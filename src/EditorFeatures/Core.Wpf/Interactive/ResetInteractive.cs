@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
@@ -30,13 +31,13 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         private readonly Func<string, string> _createImport;
 
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         internal event EventHandler ExecutionCompleted;
 
-        internal ResetInteractive(IEditorOptionsFactoryService editorOptionsFactoryService, Func<string, string> createReference, Func<string, string> createImport)
+        internal ResetInteractive(EditorOptionsService editorOptionsService, Func<string, string> createReference, Func<string, string> createImport)
         {
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _createReference = createReference;
             _createImport = createImport;
         }
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             // Now send the reference paths we've collected to the repl.
             await evaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
 
-            var editorOptions = _editorOptionsFactoryService.GetOptions(interactiveWindow.CurrentLanguageBuffer);
+            var editorOptions = _editorOptionsService.Factory.GetOptions(interactiveWindow.CurrentLanguageBuffer);
             var importReferencesCommand = referencePaths.Select(_createReference);
             await interactiveWindow.SubmitAsync(importReferencesCommand).ConfigureAwait(true);
 

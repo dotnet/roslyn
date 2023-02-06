@@ -678,7 +678,7 @@ namespace N4
                 // (10,17): error CS1501: No overload for method 'M1' takes 3 arguments
                 //                 this.M1(1, 2, 3); // MethodResolutionKind.NoCorrespondingParameter
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "3").WithLocation(10, 22),
-                // (11,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'N1.N2.C.M2(int, int)'
+                // (11,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'N1.N2.C.M2(int, int)'
                 //                 this.M2(1); // MethodResolutionKind.RequiredParameterMissing
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(11, 22),
                 // (12,28): error CS1503: Argument 2: cannot convert from 'double' to 'int'
@@ -696,7 +696,7 @@ namespace N4
                 // (41,17): error CS1501: No overload for method 'M1' takes 3 arguments
                 //                 this.M1(1, 2, 3); // MethodResolutionKind.NoCorrespondingParameter
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "3").WithLocation(41, 22),
-                // (42,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'N1.N2.C.M2(int, int)'
+                // (42,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'N1.N2.C.M2(int, int)'
                 //                 this.M2(1); // MethodResolutionKind.RequiredParameterMissing
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(42, 22),
                 // (43,28): error CS1503: Argument 2: cannot convert from 'double' to 'int'
@@ -2778,10 +2778,10 @@ class Program
                 // (5,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         x.M(x, y);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2").WithLocation(5, 11),
-                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'S.M(object, object)'
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'S.M(object, object)'
                 //         x.M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(6, 11),
-                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'S.M(object, object)'
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'S.M(object, object)'
                 //         M(x);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(7, 9));
         }
@@ -2863,7 +2863,6 @@ public struct MyStruct<T>
 
             reducedWithReceiver = extensionMethod.GetPublicSymbol().ReduceExtensionMethod(msi.GetPublicSymbol());
             Assert.NotNull(reducedWithReceiver);
-
 
             compilation2 = CreateCompilation(source2, references: new[] { new CSharpCompilationReference(compilation1) }, parseOptions: TestOptions.Regular7);
             compilation2.VerifyDiagnostics(
@@ -4079,6 +4078,33 @@ public static class C
             }
 
             CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
+        }
+
+        [Fact]
+        [WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")]
+        public void ReduceExtensionsMethodOnReceiverTypeSystemVoid()
+        {
+            var source =
+@"static class C
+{
+    static void M(this object x)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            compilation.VerifyDiagnostics();
+
+            var extensionMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.True(extensionMethod.IsExtensionMethod);
+
+            var systemVoidType = compilation.GetSpecialType(SpecialType.System_Void);
+            Assert.Equal(SpecialType.System_Void, systemVoidType.SpecialType);
+
+            var reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, null!);
+            Assert.Null(reduced);
+
+            reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, compilation);
+            Assert.Null(reduced);
         }
     }
 }

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -22,27 +21,72 @@ namespace Microsoft.CodeAnalysis.CSharp
         // (like the type names in those decls). 
         private class Cache
         {
+            private readonly DeclarationTable _table;
+
             // The merged root declaration for all the 'old' declarations.
-            internal readonly Lazy<MergedNamespaceDeclaration> MergedRoot;
+            private MergedNamespaceDeclaration? _mergedRoot;
 
             // All the simple type names for all the types in the 'old' declarations.
-            internal readonly Lazy<ISet<string>> TypeNames;
-            internal readonly Lazy<ISet<string>> NamespaceNames;
-            internal readonly Lazy<ImmutableArray<ReferenceDirective>> ReferenceDirectives;
+            private ISet<string>? _typeNames;
+            private ISet<string>? _namespaceNames;
+            private ImmutableArray<ReferenceDirective> _referenceDirectives;
 
             public Cache(DeclarationTable table)
             {
-                this.MergedRoot = new Lazy<MergedNamespaceDeclaration>(
-                    () => MergedNamespaceDeclaration.Create(table._allOlderRootDeclarations.InInsertionOrder.AsImmutable<SingleNamespaceDeclaration>()));
+                _table = table;
+            }
 
-                this.TypeNames = new Lazy<ISet<string>>(
-                    () => GetTypeNames(this.MergedRoot.Value));
+            public MergedNamespaceDeclaration MergedRoot
+            {
+                get
+                {
+                    if (_mergedRoot is null)
+                    {
+                        Interlocked.CompareExchange(
+                            ref _mergedRoot,
+                            MergedNamespaceDeclaration.Create(_table._allOlderRootDeclarations.InInsertionOrder.Select(static lazyRoot => lazyRoot.Value).AsImmutable<SingleNamespaceDeclaration>()),
+                            comparand: null);
+                    }
 
-                this.NamespaceNames = new Lazy<ISet<string>>(
-                    () => GetNamespaceNames(this.MergedRoot.Value));
+                    return _mergedRoot;
+                }
+            }
 
-                this.ReferenceDirectives = new Lazy<ImmutableArray<ReferenceDirective>>(
-                    () => MergedRoot.Value.Declarations.OfType<RootSingleNamespaceDeclaration>().SelectMany(r => r.ReferenceDirectives).AsImmutable());
+            public ISet<string> TypeNames
+            {
+                get
+                {
+                    if (_typeNames is null)
+                        Interlocked.CompareExchange(ref _typeNames, GetTypeNames(this.MergedRoot), comparand: null);
+
+                    return _typeNames;
+                }
+            }
+
+            public ISet<string> NamespaceNames
+            {
+                get
+                {
+                    if (_namespaceNames is null)
+                        Interlocked.CompareExchange(ref _namespaceNames, GetNamespaceNames(this.MergedRoot), comparand: null);
+
+                    return _namespaceNames;
+                }
+            }
+
+            public ImmutableArray<ReferenceDirective> ReferenceDirectives
+            {
+                get
+                {
+                    if (_referenceDirectives.IsDefault)
+                    {
+                        ImmutableInterlocked.InterlockedInitialize(
+                            ref _referenceDirectives,
+                            MergedRoot.Declarations.OfType<RootSingleNamespaceDeclaration>().SelectMany(r => r.ReferenceDirectives).AsImmutable());
+                    }
+
+                    return _referenceDirectives;
+                }
             }
         }
     }

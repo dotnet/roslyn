@@ -17,6 +17,21 @@
         <target state="translated">L'assembly contenant le type '{0}' référence le .NET Framework, ce qui n'est pas pris en charge.</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">Nom d’opérateur intégré '{0}' non autorisé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">Opérateur intégré {0} non pris en charge</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">'{0}' n’était pas un nom d’opérateur intégré valide</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">Les changements doivent se situer dans les limites de SourceText</target>
@@ -41,18 +56,38 @@
       </trans-unit>
       <trans-unit id="EncCannotResumeSuspendedAsyncMethod">
         <source>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</source>
-        <target state="new">Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</target>
+        <target state="translated">Modifier et continuer ne peut pas reprendre la méthode asynchrone suspendue, car l’expression await correspondante a été supprimée</target>
         <note />
       </trans-unit>
       <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
         <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
-        <target state="new">Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</target>
+        <target state="translated">Modifier et continuer ne peut pas reprendre l’itérateur suspendu, car l’instruction yield return correspondante a été supprimée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="translated">Générateur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="translated">Durée totale d’exécution du générateur : {0} secondes.</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
         <target state="translated">Le hintName « {0} » contient un caractère non valide « {1} » à la position {2}.</target>
         <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidSegment">
+        <source>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</source>
+        <target state="new">The hintName '{0}' contains an invalid segment '{1}' at position {2}.</target>
+        <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameNotWithinCurrentDirectory">
+        <source>The hintName '{0}' is not within the current directory.</source>
+        <target state="new">The hintName '{0}' is not within the current directory.</target>
+        <note />
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>

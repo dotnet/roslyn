@@ -25,17 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseMemberDeclaration(text, offset, options);
         }
 
-        private SyntaxTree UsingTree(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
-        {
-            var tree = base.UsingTree(text, options);
-
-            var actualErrors = tree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-
-            return tree;
-        }
-
-        private static readonly CSharpParseOptions RequiredMembersOptions = TestOptions.RegularNext;
+        private static readonly CSharpParseOptions RequiredMembersOptions = TestOptions.Regular11;
         public static readonly IEnumerable<object[]> Regular10AndScriptAndRequiredMembersMinimum = new[] { new[] { TestOptions.Regular10 }, new[] { RequiredMembersOptions }, new[] { TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10) } };
         public static readonly IEnumerable<object[]> Regular10AndScript = new[] { new[] { TestOptions.Regular10 }, new[] { TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10) } };
 
@@ -435,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_01()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator >>>(C x, C y) => x;", options: options);
 
@@ -486,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_02()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator > >>(C x, C y) => x;", options: options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -569,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_03()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator >> >(C x, C y) => x;", options: options,
                     // (1,15): error CS1003: Syntax error, '(' expected
@@ -652,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_04()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator >>>=(C x, C y) => x;", options: options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -1656,14 +1646,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [MemberData(nameof(Regular10AndScript))]
         public void RequiredModifierConversion_02(CSharpParseOptions parseOptions)
         {
-            UsingDeclaration("static implicit required operator C(S s) {}", options: parseOptions,
-                // (1,17): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // static implicit required operator C(S s) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "required ").WithArguments("static abstract members in interfaces").WithLocation(1, 17),
+            var text = "static implicit required operator C(S s) {}";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: parseOptions).VerifyDiagnostics(
+                // (1,27): error CS0246: The type or namespace name 'required' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { static implicit required operator C(S s) {} }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "required").WithArguments("required").WithLocation(1, 27),
+                // (1,27): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // class C { static implicit required operator C(S s) {} }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "required ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 27),
+                // (1,27): error CS0538: 'required' in explicit interface declaration is not an interface
+                // class C { static implicit required operator C(S s) {} }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "required").WithArguments("required").WithLocation(1, 27),
+                // (1,36): error CS1003: Syntax error, '.' expected
+                // class C { static implicit required operator C(S s) {} }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 36),
+                // (1,45): error CS0161: 'C.implicit operator C(S)': not all code paths return a value
+                // class C { static implicit required operator C(S s) {} }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "C").WithArguments("C.implicit operator C(S)").WithLocation(1, 45),
+                // (1,47): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { static implicit required operator C(S s) {} }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(1, 47));
+
+            UsingDeclaration(text, options: parseOptions,
                 // (1,26): error CS1003: Syntax error, '.' expected
                 // static implicit required operator C(S s) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 26)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 26));
             N(SyntaxKind.ConversionOperatorDeclaration);
             {
                 N(SyntaxKind.StaticKeyword);
@@ -1925,17 +1933,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_01()
         {
-            var error =
-                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // public int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12);
+            var text = "public int N.I.operator +(int x, int y) => x + y;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,35): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 35),
+                // (1,35): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int, int)' must be declared static
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int, int)").WithLocation(1, 35));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,35): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 35),
+                // (1,35): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int, int)' must be declared static
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int, int)").WithLocation(1, 35));
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("public int N.I.operator +(int x, int y) => x + y;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ? new[] { error } : new DiagnosticDescription[] { });
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version));
 
                     N(SyntaxKind.OperatorDeclaration);
                     {
@@ -2010,7 +2044,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_02()
         {
-            var errors = new[] {
+            var text = "public int N.I.implicit (int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,18): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 18),
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, 'operator' expected
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 26),
+                // (1,26): error CS1019: Overloadable unary operator expected
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 26),
+                // (1,26): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("public").WithLocation(1, 26),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 26));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,18): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 18),
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, 'operator' expected
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 26),
+                // (1,26): error CS1019: Overloadable unary operator expected
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 26),
+                // (1,26): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("public").WithLocation(1, 26),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 26));
+
+            var errors = new[]
+            {
                 // (1,8): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
                 // public int N.I.implicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
@@ -2020,20 +2105,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,16): error CS1019: Overloadable unary operator expected
                 // public int N.I.implicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 16)
-                };
+            };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("public int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // public int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
-                                ).ToArray() :
-                            errors);
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.OperatorDeclaration);
                     {
@@ -2091,6 +2169,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_03()
         {
+            var text = "public int N.I.explicit (int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,18): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 18),
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, 'operator' expected
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 26),
+                // (1,26): error CS1019: Overloadable unary operator expected
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 26),
+                // (1,26): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("public").WithLocation(1, 26),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 26));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,18): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 18),
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, 'operator' expected
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 26),
+                // (1,26): error CS1019: Overloadable unary operator expected
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 26),
+                // (1,26): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("public").WithLocation(1, 26),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 26));
+
             var errors = new[] {
                 // (1,8): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
                 // public int N.I.explicit (int x) => x;
@@ -2107,14 +2235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("public int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // public int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
-                                ).ToArray() :
-                            errors);
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.OperatorDeclaration);
                     {
@@ -2172,6 +2293,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_04()
         {
+            var text = "public int N.I operator +(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, '.' expected
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 26),
+                // (1,35): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 35),
+                // (1,35): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 35));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, '.' expected
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 26),
+                // (1,35): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 35),
+                // (1,35): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 35));
+
             var errors = new[] {
                 // (1,16): error CS1003: Syntax error, '.' expected
                 // public int N.I operator +(int x) => x;
@@ -2182,14 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("public int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // public int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
-                                ).ToArray() :
-                            errors);
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.OperatorDeclaration);
                     {
@@ -2247,6 +2399,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_05()
         {
+            var text = "public int I operator +(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 22),
+                // (1,22): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 22),
+                // (1,22): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 22),
+                // (1,24): error CS1003: Syntax error, '.' expected
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 24),
+                // (1,33): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 33),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 33));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 22),
+                // (1,22): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 22),
+                // (1,24): error CS1003: Syntax error, '.' expected
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 24),
+                // (1,33): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 33),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 33));
+
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // public int I operator +(int x) => x;
@@ -2257,14 +2447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("public int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // public int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
-                                ).ToArray() :
-                            errors);
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.OperatorDeclaration);
                     {
@@ -2631,17 +2814,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_11()
         {
-            var error =
-                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // public int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12);
+            var text = "public int N.I.operator +(int x, int y) => x + y;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,35): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 35),
+                // (1,35): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int, int)' must be declared static
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int, int)").WithLocation(1, 35));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,35): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 35),
+                // (1,35): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int, int)' must be declared static
+                // class C { public int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int, int)").WithLocation(1, 35));
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("public int N.I.operator +(int x, int y) => x + y;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ? new[] { error } : new DiagnosticDescription[] { });
+                    UsingTree(text, options: options.WithLanguageVersion(version));
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -2720,6 +2929,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_12()
         {
+            var text = "public int N.I.implicit (int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,18): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 18),
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, 'operator' expected
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 26),
+                // (1,26): error CS1019: Overloadable unary operator expected
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 26),
+                // (1,26): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("public").WithLocation(1, 26),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 26));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,18): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 18),
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, 'operator' expected
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 26),
+                // (1,26): error CS1019: Overloadable unary operator expected
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 26),
+                // (1,26): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("public").WithLocation(1, 26),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 26));
+
             var errors = new[] {
                 // (1,8): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
                 // public int N.I.implicit (int x) => x;
@@ -2736,14 +2995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("public int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // public int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -2805,6 +3057,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_13()
         {
+            var text = "public int N.I.explicit (int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,18): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 18),
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, 'operator' expected
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 26),
+                // (1,26): error CS1019: Overloadable unary operator expected
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 26),
+                // (1,26): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("public").WithLocation(1, 26),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 26));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,18): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 18),
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, 'operator' expected
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 26),
+                // (1,26): error CS1019: Overloadable unary operator expected
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 26),
+                // (1,26): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("public").WithLocation(1, 26),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 26));
+
             var errors = new[] {
                 // (1,8): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
                 // public int N.I.explicit (int x) => x;
@@ -2821,14 +3123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("public int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // public int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -2890,6 +3185,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_14()
         {
+            var text = "public int N.I operator +(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, '.' expected
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 26),
+                // (1,35): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 35),
+                // (1,35): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 35));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 22),
+                // (1,22): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 22),
+                // (1,26): error CS1003: Syntax error, '.' expected
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 26),
+                // (1,35): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 35),
+                // (1,35): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 35));
+
             var errors = new[] {
                 // (1,16): error CS1003: Syntax error, '.' expected
                 // public int N.I operator +(int x) => x;
@@ -2900,14 +3233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("public int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // public int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -2969,6 +3295,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_15()
         {
+            var text = "public int I operator +(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 22),
+                // (1,22): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 22),
+                // (1,22): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 22),
+                // (1,24): error CS1003: Syntax error, '.' expected
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 24),
+                // (1,33): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 33),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 33));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,22): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 22),
+                // (1,22): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 22),
+                // (1,24): error CS1003: Syntax error, '.' expected
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 24),
+                // (1,33): error CS0106: The modifier 'public' is not valid for this item
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("public").WithLocation(1, 33),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { public int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 33));
+
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // public int I operator +(int x) => x;
@@ -2979,14 +3343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("public int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // public int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -3503,17 +3860,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_23()
         {
-            var error =
-                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5);
+            var text = "int N.I.operator +(int x, int y) => x + y;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,28): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int, int)' must be declared static
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int, int)").WithLocation(1, 28));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,28): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int, int)' must be declared static
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int, int)").WithLocation(1, 28));
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("int N.I.operator +(int x, int y) => x + y;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ? new[] { error } : new DiagnosticDescription[] { });
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version));
 
                     N(SyntaxKind.OperatorDeclaration);
                     {
@@ -3587,6 +3964,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_24()
         {
+            var text = "int N.I.implicit (int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 11),
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, 'operator' expected
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 19),
+                // (1,19): error CS1019: Overloadable unary operator expected
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 19),
+                // (1,19): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 19));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 11),
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, 'operator' expected
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 19),
+                // (1,19): error CS1019: Overloadable unary operator expected
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 19),
+                // (1,19): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 19));
+
             var errors = new[] {
                 // (1,1): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
                 // int N.I.implicit (int x) => x;
@@ -3603,14 +4024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
-                                ).ToArray() :
-                            errors);
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.OperatorDeclaration);
                     {
@@ -3667,6 +4081,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_25()
         {
+            var text = "int N.I.explicit (int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 11),
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, 'operator' expected
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 19),
+                // (1,19): error CS1019: Overloadable unary operator expected
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 19),
+                // (1,19): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 19));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 11),
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, 'operator' expected
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 19),
+                // (1,19): error CS1019: Overloadable unary operator expected
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 19),
+                // (1,19): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 19));
+
             var errors = new[] {
                 // (1,1): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
                 // int N.I.explicit (int x) => x;
@@ -3683,14 +4141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
-                                ).ToArray() :
-                            errors);
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.OperatorDeclaration);
                     {
@@ -3747,6 +4198,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_26()
         {
+            var text = "int N.I operator +(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, '.' expected
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 19),
+                // (1,28): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 28));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, '.' expected
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 19),
+                // (1,28): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 28));
+
             var errors = new[] {
                 // (1,9): error CS1003: Syntax error, '.' expected
                 // int N.I operator +(int x) => x;
@@ -3757,14 +4240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
-                                ).ToArray() :
-                            errors);
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.OperatorDeclaration);
                     {
@@ -3821,6 +4297,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_27()
         {
+            var text = "int I operator +(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 15),
+                // (1,15): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 15),
+                // (1,15): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 15),
+                // (1,17): error CS1003: Syntax error, '.' expected
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 17),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 26));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 15),
+                // (1,15): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 15),
+                // (1,17): error CS1003: Syntax error, '.' expected
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 17),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 26));
+
             var errors = new[] {
                 // (1,7): error CS1003: Syntax error, '.' expected
                 // int I operator +(int x) => x;
@@ -3831,14 +4339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
-                                ).ToArray() :
-                            errors);
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.OperatorDeclaration);
                     {
@@ -4199,17 +4700,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_33()
         {
-            var error =
-                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5);
+            var text = "int N.I.operator +(int x, int y) => x + y;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,28): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int, int)' must be declared static
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int, int)").WithLocation(1, 28));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,28): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int, int)' must be declared static
+                // class C { int N.I.operator +(int x, int y) => x + y; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int, int)").WithLocation(1, 28));
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("int N.I.operator +(int x, int y) => x + y;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ? new[] { error } : new DiagnosticDescription[] { });
+                    UsingTree(text, options: options.WithLanguageVersion(version));
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -4287,6 +4808,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_34()
         {
+            var text = "int N.I.implicit (int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 11),
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, 'operator' expected
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 19),
+                // (1,19): error CS1019: Overloadable unary operator expected
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 19),
+                // (1,19): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 19));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 11),
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, 'operator' expected
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 19),
+                // (1,19): error CS1019: Overloadable unary operator expected
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 19),
+                // (1,19): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I.implicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 19));
+
             var errors = new[] {
                 // (1,1): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
                 // int N.I.implicit (int x) => x;
@@ -4303,14 +4868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -4371,6 +4929,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_35()
         {
+            var text = "int N.I.explicit (int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 11),
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, 'operator' expected
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 19),
+                // (1,19): error CS1019: Overloadable unary operator expected
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 19),
+                // (1,19): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 19));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 11),
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, 'operator' expected
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 19),
+                // (1,19): error CS1019: Overloadable unary operator expected
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 19),
+                // (1,19): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I.explicit (int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "").WithArguments("C.operator +(int)").WithLocation(1, 19));
+
             var errors = new[] {
                 // (1,1): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
                 // int N.I.explicit (int x) => x;
@@ -4387,14 +4989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -4455,6 +5050,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_36()
         {
+            var text = "int N.I operator +(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, '.' expected
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 19),
+                // (1,28): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 28));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 15),
+                // (1,15): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 15),
+                // (1,19): error CS1003: Syntax error, '.' expected
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 19),
+                // (1,28): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int N.I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 28));
+
             var errors = new[] {
                 // (1,9): error CS1003: Syntax error, '.' expected
                 // int N.I operator +(int x) => x;
@@ -4465,14 +5092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -4533,6 +5153,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void OperatorDeclaration_ExplicitImplementation_37()
         {
+            var text = "int I operator +(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 15),
+                // (1,15): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 15),
+                // (1,15): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 15),
+                // (1,17): error CS1003: Syntax error, '.' expected
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 17),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 26));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,15): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 15),
+                // (1,15): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 15),
+                // (1,17): error CS1003: Syntax error, '.' expected
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 17),
+                // (1,26): error CS8930: Explicit implementation of a user-defined operator 'C.operator +(int)' must be declared static
+                // class C { int I operator +(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "+").WithArguments("C.operator +(int)").WithLocation(1, 26));
+
             var errors = new[] {
                 // (1,7): error CS1003: Syntax error, '.' expected
                 // int I operator +(int x) => x;
@@ -4543,14 +5195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -5242,17 +5887,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConversionDeclaration_ExplicitImplementation_01()
         {
-            var error =
-                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // implicit N.I.operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 10);
+            var text = "implicit N.I.operator int(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { implicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { implicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { implicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.implicit operator int(int)' must be declared static
+                // class C { implicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.implicit operator int(int)").WithLocation(1, 33));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { implicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { implicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.implicit operator int(int)' must be declared static
+                // class C { implicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.implicit operator int(int)").WithLocation(1, 33));
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("implicit N.I.operator int(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ? new[] { error } : new DiagnosticDescription[] { });
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version));
 
                     N(SyntaxKind.ConversionOperatorDeclaration);
                     {
@@ -5309,24 +5974,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConversionDeclaration_ExplicitImplementation_02()
         {
-            var errors = new[] {
+            var text = "N.I.operator int(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,11): error CS1003: Syntax error, 'explicit' expected
+                // class C { N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "N").WithArguments("explicit").WithLocation(1, 11),
+                // (1,11): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 11),
+                // (1,11): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 11),
+                // (1,11): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 11),
+                // (1,24): error CS8930: Explicit implementation of a user-defined operator 'C.explicit operator int(int)' must be declared static
+                // class C { N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.explicit operator int(int)").WithLocation(1, 24));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,11): error CS1003: Syntax error, 'explicit' expected
+                // class C { N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "N").WithArguments("explicit").WithLocation(1, 11),
+                // (1,11): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 11),
+                // (1,11): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 11),
+                // (1,24): error CS8930: Explicit implementation of a user-defined operator 'C.explicit operator int(int)' must be declared static
+                // class C { N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.explicit operator int(int)").WithLocation(1, 24));
+
+            var errors = new[]
+            {
                 // (1,1): error CS1003: Syntax error, 'explicit' expected
                 // N.I.operator int(int x) => x;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "N").WithArguments("explicit").WithLocation(1, 1)
-                };
+            };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("N.I.operator int(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,1): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // N.I.operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 1)
-                                ).ToArray() :
-                            errors);
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.ConversionOperatorDeclaration);
                     {
@@ -5434,24 +6125,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConversionDeclaration_ExplicitImplementation_04()
         {
-            var errors = new[] {
+            var text = "implicit N.I operator int(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,24): error CS1003: Syntax error, '.' expected
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 24),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.implicit operator int(int)' must be declared static
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.implicit operator int(int)").WithLocation(1, 33));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,24): error CS1003: Syntax error, '.' expected
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 24),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.implicit operator int(int)' must be declared static
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.implicit operator int(int)").WithLocation(1, 33));
+
+            var errors = new[]
+            {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // implicit N.I operator int(int x) => x;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 14)
-                };
+            };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("implicit N.I operator int(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // implicit N.I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
-                                ).ToArray() :
-                            errors);
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.ConversionOperatorDeclaration);
                     {
@@ -5508,24 +6225,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConversionDeclaration_ExplicitImplementation_05()
         {
-            var errors = new[] {
+            var text = "explicit I operator int(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 20),
+                // (1,20): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 20),
+                // (1,20): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 20),
+                // (1,22): error CS1003: Syntax error, '.' expected
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 22),
+                // (1,31): error CS8930: Explicit implementation of a user-defined operator 'C.explicit operator int(int)' must be declared static
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.explicit operator int(int)").WithLocation(1, 31));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 20),
+                // (1,20): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 20),
+                // (1,22): error CS1003: Syntax error, '.' expected
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 22),
+                // (1,31): error CS8930: Explicit implementation of a user-defined operator 'C.explicit operator int(int)' must be declared static
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.explicit operator int(int)").WithLocation(1, 31));
+
+            var errors = new[]
+            {
                 // (1,12): error CS1003: Syntax error, '.' expected
                 // explicit I operator int(int x) => x;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 12)
-                };
+            };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingDeclaration("explicit I operator int(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // explicit I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
-                                ).ToArray() :
-                            errors);
+                    UsingDeclaration(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.ConversionOperatorDeclaration);
                     {
@@ -5869,17 +6612,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConversionDeclaration_ExplicitImplementation_11()
         {
-            var error =
-                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // explicit N.I.operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 10);
+            var text = "explicit N.I.operator int(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { explicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { explicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { explicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.explicit operator int(int)' must be declared static
+                // class C { explicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.explicit operator int(int)").WithLocation(1, 33));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { explicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { explicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.explicit operator int(int)' must be declared static
+                // class C { explicit N.I.operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.explicit operator int(int)").WithLocation(1, 33));
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("explicit N.I.operator int(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ? new[] { error } : new DiagnosticDescription[] { });
+                    UsingTree(text, options: options.WithLanguageVersion(version));
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -5940,27 +6703,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConversionDeclaration_ExplicitImplementation_12()
         {
-            var errors = new[] {
+            var text = "implicit N.I int(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { implicit N.I int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { implicit N.I int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { implicit N.I int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,24): error CS1003: Syntax error, '.' expected
+                // class C { implicit N.I int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(".").WithLocation(1, 24),
+                // (1,24): error CS1003: Syntax error, 'operator' expected
+                // class C { implicit N.I int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator").WithLocation(1, 24),
+                // (1,24): error CS8930: Explicit implementation of a user-defined operator 'C.implicit operator int(int)' must be declared static
+                // class C { implicit N.I int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.implicit operator int(int)").WithLocation(1, 24));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { implicit N.I int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { implicit N.I int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,24): error CS1003: Syntax error, '.' expected
+                // class C { implicit N.I int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(".").WithLocation(1, 24),
+                // (1,24): error CS1003: Syntax error, 'operator' expected
+                // class C { implicit N.I int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator").WithLocation(1, 24),
+                // (1,24): error CS8930: Explicit implementation of a user-defined operator 'C.implicit operator int(int)' must be declared static
+                // class C { implicit N.I int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.implicit operator int(int)").WithLocation(1, 24));
+
+            var errors = new[]
+            {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // implicit N.I int(int x) => x;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(".").WithLocation(1, 14),
                 // (1,14): error CS1003: Syntax error, 'operator' expected
                 // implicit N.I int(int x) => x;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator").WithLocation(1, 14)
-                };
+            };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("implicit N.I int(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // implicit N.I int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -6021,24 +6816,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConversionDeclaration_ExplicitImplementation_13()
         {
-            var errors = new[] {
+            var text = "explicit N.I. int(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { explicit N.I. int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { explicit N.I. int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { explicit N.I. int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,25): error CS1003: Syntax error, 'operator' expected
+                // class C { explicit N.I. int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator").WithLocation(1, 25),
+                // (1,25): error CS8930: Explicit implementation of a user-defined operator 'C.explicit operator int(int)' must be declared static
+                // class C { explicit N.I. int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.explicit operator int(int)").WithLocation(1, 25));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { explicit N.I. int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { explicit N.I. int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,25): error CS1003: Syntax error, 'operator' expected
+                // class C { explicit N.I. int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator").WithLocation(1, 25),
+                // (1,25): error CS8930: Explicit implementation of a user-defined operator 'C.explicit operator int(int)' must be declared static
+                // class C { explicit N.I. int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.explicit operator int(int)").WithLocation(1, 25));
+
+            var errors = new[]
+            {
                 // (1,15): error CS1003: Syntax error, 'operator' expected
                 // explicit N.I. int(int x) => x;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator").WithLocation(1, 15)
-                };
+            };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("explicit N.I. int(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // explicit N.I. int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -6099,24 +6920,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConversionDeclaration_ExplicitImplementation_14()
         {
-            var errors = new[] {
+            var text = "implicit N.I operator int(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,24): error CS1003: Syntax error, '.' expected
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 24),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.implicit operator int(int)' must be declared static
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.implicit operator int(int)").WithLocation(1, 33));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "N").WithArguments("N").WithLocation(1, 20),
+                // (1,20): error CS0538: 'N.I' in explicit interface declaration is not an interface
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "N.I").WithArguments("N.I").WithLocation(1, 20),
+                // (1,24): error CS1003: Syntax error, '.' expected
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 24),
+                // (1,33): error CS8930: Explicit implementation of a user-defined operator 'C.implicit operator int(int)' must be declared static
+                // class C { implicit N.I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.implicit operator int(int)").WithLocation(1, 33));
+
+            var errors = new[]
+            {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // implicit N.I operator int(int x) => x;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 14)
-                };
+            };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("implicit N.I operator int(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // implicit N.I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -6177,24 +7024,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConversionDeclaration_ExplicitImplementation_15()
         {
-            var errors = new[] {
+            var text = "explicit I operator int(int x) => x;";
+            var classWithText = $"class C {{ {text} }}";
+            CreateCompilation(classWithText, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 20),
+                // (1,20): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 20),
+                // (1,20): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 20),
+                // (1,22): error CS1003: Syntax error, '.' expected
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 22),
+                // (1,31): error CS8930: Explicit implementation of a user-defined operator 'C.explicit operator int(int)' must be declared static
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.explicit operator int(int)").WithLocation(1, 31));
+            CreateCompilation(classWithText, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(1, 20),
+                // (1,20): error CS0538: 'I' in explicit interface declaration is not an interface
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(1, 20),
+                // (1,22): error CS1003: Syntax error, '.' expected
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 22),
+                // (1,31): error CS8930: Explicit implementation of a user-defined operator 'C.explicit operator int(int)' must be declared static
+                // class C { explicit I operator int(int x) => x; }
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C.explicit operator int(int)").WithLocation(1, 31));
+
+            var errors = new[]
+            {
                 // (1,12): error CS1003: Syntax error, '.' expected
                 // explicit I operator int(int x) => x;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 12)
-                };
+            };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
                 {
-                    UsingTree("explicit I operator int(int x) => x;", options: options.WithLanguageVersion(version),
-                        version == LanguageVersion.CSharp9 ?
-                            errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                                // explicit I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
-                                ).ToArray() :
-                            errors);
+                    UsingTree(text, options: options.WithLanguageVersion(version), errors);
 
                     N(SyntaxKind.CompilationUnit);
                     {
@@ -8910,6 +9783,312 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        public void ReadonlyParameter1()
+        {
+            UsingTree(@"
+public class Base {
+    public virtual void M(ref int X) {
+    }
+}
+public class Derived : Base {
+    public override void M(ref readonly int X) {
+    }
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Base");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.VirtualKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Derived");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.OverrideKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.ReadOnlyKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        public void ReadonlyParameter2()
+        {
+            UsingExpression(@"
+(readonly int i) => { }");
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        public void ReadonlyParameter3()
+        {
+            UsingExpression(@"
+(ref readonly int i) => { }");
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
+        public void ReadonlyParameter4()
+        {
+            UsingExpression(@"
+(readonly ref int i) => { }");
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(52, "https://github.com/dotnet/roslyn/issues/52")]
+        public void PropertyWithErrantSemicolon1()
+        {
+            var text = @"
+public class Class
+{
+    public int MyProperty; { get; set; }
+
+    // Pretty much anything here causes an error
+}
+";
+            UsingTree(text,
+                // (4,26): error CS1514: { expected
+                //     public int MyProperty; { get; set; }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(4, 26));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Class");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "MyProperty");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(52, "https://github.com/dotnet/roslyn/issues/52")]
+        public void PropertyWithErrantSemicolon2()
+        {
+            var text = @"
+public class Class
+{
+    public int MyProperty; => 0;
+
+    // Pretty much anything here causes an error
+}
+";
+            UsingTree(text,
+                // (4,26): error CS1514: { expected
+                //     public int MyProperty; => 0;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(4, 26));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Class");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "MyProperty");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }

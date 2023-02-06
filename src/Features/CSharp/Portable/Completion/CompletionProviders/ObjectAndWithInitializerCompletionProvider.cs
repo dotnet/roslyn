@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // If we got a comma, we can syntactically find out if we're in an ObjectInitializerExpression or WithExpression
             if (token.Kind() == SyntaxKind.CommaToken &&
-                !token.Parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.WithInitializerExpression))
+                token.Parent.Kind() is not (SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression))
             {
                 return null;
             }
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // new() { $$
             // new Goo { $$
-            if (parent.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ImplicitObjectCreationExpression))
+            if (parent is (kind: SyntaxKind.ObjectCreationExpression or SyntaxKind.ImplicitObjectCreationExpression))
             {
                 return semanticModel.GetTypeInfo(parent, cancellationToken).Type;
             }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // expr with { $$
-            if (parent.IsKind(SyntaxKind.WithExpression, out WithExpressionSyntax? withExpression))
+            if (parent is WithExpressionSyntax withExpression)
             {
                 return semanticModel.GetTypeInfo(withExpression.Expression, cancellationToken).Type;
             }
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)
         {
-            if (member is IPropertySymbol property && property.Parameters.Any(p => !p.IsOptional))
+            if (member is IPropertySymbol property && property.Parameters.Any(static p => !p.IsOptional))
             {
                 return false;
             }

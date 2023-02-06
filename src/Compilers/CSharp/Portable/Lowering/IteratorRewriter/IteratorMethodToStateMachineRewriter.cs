@@ -47,20 +47,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Finally state of the next Finally frame if such created.
         /// Finally state is a negative decreasing number starting with -3. (-2 is used for something else).
         /// Root frame has finally state -1.
-        /// 
+        ///
         /// The Finally state is the state that we are in when "between states".
         /// Regular states are positive and are the only states that can be resumed to.
-        /// The purpose of distinct finally states is to have enough information about 
-        /// which finally handlers must run when we need to finalize iterator after a fault. 
+        /// The purpose of distinct finally states is to have enough information about
+        /// which finally handlers must run when we need to finalize iterator after a fault.
         /// </summary>
-        private int _nextFinalizeState;
+        private StateMachineState _nextFinalizeState;
 
         internal IteratorMethodToStateMachineRewriter(
             SyntheticBoundNodeFactory F,
             MethodSymbol originalMethod,
             FieldSymbol state,
             FieldSymbol current,
-            IReadOnlySet<Symbol> hoistedVariables,
+            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _current = current;
 
-            _nextFinalizeState = slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing: false) ?? StateMachineStates.FirstIteratorFinalizeState;
+            _nextFinalizeState = slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing: false) ?? StateMachineState.FirstIteratorFinalizeState;
         }
 
         protected override string EncMissingStateMessage
             => CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod;
 
-        protected override int FirstIncreasingResumableState
-            => StateMachineStates.FirstResumableIteratorState;
+        protected override StateMachineState FirstIncreasingResumableState
+            => StateMachineState.FirstResumableIteratorState;
 
         internal void GenerateMoveNextAndDispose(BoundStatement body, SynthesizedImplementationMethod moveNextMethod, SynthesizedImplementationMethod disposeMethod)
         {
@@ -90,12 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _tryNestingLevel++;
             }
 
-            /////////////////////////////////// 
+            ///////////////////////////////////
             // Generate the body for MoveNext()
             ///////////////////////////////////
 
             F.CurrentFunction = moveNextMethod;
-            AddState(StateMachineStates.InitialIteratorState, out GeneratedLabelSymbol initialLabel);
+            AddState(StateMachineState.InitialIteratorState, out GeneratedLabelSymbol initialLabel);
             var newBody = (BoundStatement)Visit(body);
 
             // switch(cachedState) {
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             // state_0:
             // state = -1;
-            // [optional: cachedThis = capturedThis;] 
+            // [optional: cachedThis = capturedThis;]
             // [[rewritten body]]
             newBody = F.Block((object)cachedThis == null ?
                                 ImmutableArray.Create(cachedState) :
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Dispatch(isOutermost: true),
                     GenerateReturn(finished: true),
                     F.Label(initialLabel),
-                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.NotStartedOrRunningState)),
+                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.NotStartedOrRunningState)),
                     newBody);
 
             //
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             if (_yieldsInTryAnalysis.ContainsYieldsInTrys())
             {
-                // try 
+                // try
                 // {
                 //    body;
                 // }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             newBody = HandleReturn(newBody);
             F.CloseMethod(F.SequencePoint(body.Syntax, newBody));
 
-            /////////////////////////////////// 
+            ///////////////////////////////////
             // Generate the body for Dispose().
             ///////////////////////////////////
             F.CurrentFunction = disposeMethod;
@@ -207,9 +207,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Produces a Try/Finally if frame has a handler (otherwise a regular block).
         /// Handler goes into the Finally.
         /// If there are nested frames, they are emitted into the try block.
-        /// This way the handler for the current frame is guaranteed to run even if 
+        /// This way the handler for the current frame is guaranteed to run even if
         /// nested handlers throw exceptions.
-        /// 
+        ///
         /// {
         ///     switch(state)
         ///     {
@@ -241,13 +241,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///                 handler_1_2()
         ///             }
         ///             break;
-        ///             
+        ///
         ///         case state5:
         ///             ... another dispatch of nested states to their finally blocks ...
         ///             break;
         ///     }
         /// }
-        /// 
+        ///
         /// </summary>
         private BoundStatement EmitFinallyFrame(IteratorFinallyFrame frame, BoundLocal state)
         {
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sections = from ft in frame.knownStates
                                group ft.Key by ft.Value into g
                                select F.SwitchSection(
-                                    new List<int>(g),
+                                    g.SelectAsArray(state => (int)state),
                                     EmitFinallyFrame(g.Key, state),
                                     F.Goto(breakLabel));
 
@@ -310,7 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         #region Visitors
 
         public override BoundNode VisitYieldBreakStatement(BoundYieldBreakStatement node)
@@ -328,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     <next_state_label>: ;
             //     <hidden sequence point>
             //     this.state = finalizeState;
-            AddResumableState(node.Syntax, out int stateNumber, out GeneratedLabelSymbol resumeLabel);
+            AddResumableState(node.Syntax, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
             _currentFinallyFrame.AddState(stateNumber);
 
             var rewrittenExpression = (BoundExpression)Visit(node.Expression);
@@ -413,7 +412,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CloseMethod(rewrittenHandler);
             F.CurrentFunction = origMethod;
 
-
             var bodyStatements = ArrayBuilder<BoundStatement>.GetInstance();
 
             // add a call to the handler after the try body.
@@ -486,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _yieldsInTryAnalysis.ContainsYields(statement);
         }
 
-        private IteratorFinallyMethodSymbol MakeSynthesizedFinally(int finalizeState)
+        private IteratorFinallyMethodSymbol MakeSynthesizedFinally(StateMachineState finalizeState)
         {
             var stateMachineType = (IteratorStateMachine)F.CurrentType;
             var finallyMethod = new IteratorFinallyMethodSymbol(stateMachineType, GeneratedNames.MakeIteratorFinallyMethodName(finalizeState));

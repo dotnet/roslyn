@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 </Workspace>";
 
         protected override TestWorkspace CreateWorkspace(string fileContents)
-            => TestWorkspace.CreateCSharp(fileContents, exportProvider: ExportProvider);
+            => TestWorkspace.CreateCSharp(fileContents, composition: GetComposition());
 
-        internal override CompletionServiceWithProviders GetCompletionService(Project project)
+        internal override CompletionService GetCompletionService(Project project)
             => Assert.IsType<CSharpCompletionService>(base.GetCompletionService(project));
 
         private protected override Task BaseVerifyWorkerAsync(
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         protected override string ItemPartiallyWritten(string expectedItemOrNull)
-            => expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull.Substring(0, 1);
+            => expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull[..1];
 
         private async Task VerifyInFrontOfCommentAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit, List<CompletionFilter> matchingFilters,
             CompletionOptions options, bool skipSpeculation = false)
         {
-            code = code.Substring(0, position) + insertText + "/**/" + code.Substring(position);
+            code = code[..position] + insertText + "/**/" + code[position..];
             position += insertText.Length;
 
             await base.VerifyWorkerAsync(
@@ -171,7 +171,7 @@ text;
 
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynTrigger.Invoke);
-            var item = completionList.Items.First(i => (i.DisplayText + i.DisplayTextSuffix).StartsWith(textTypedSoFar));
+            var item = completionList.ItemsList.First(i => (i.DisplayText + i.DisplayTextSuffix).StartsWith(textTypedSoFar));
 
             Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(options), item, textTypedSoFar));
         }

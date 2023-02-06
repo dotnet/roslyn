@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(FormatDocumentOnTypeHandler)), Shared]
     [Method(Methods.TextDocumentOnTypeFormattingName)]
-    internal sealed class FormatDocumentOnTypeHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
+    internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
     {
         private readonly IGlobalOptionService _globalOptions;
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
 
         public async Task<TextEdit[]?> HandleRequestAsync(
             DocumentOnTypeFormattingParams request,
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
+            if (document is null)
                 return null;
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
@@ -55,9 +55,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<TextEdit>();
             }
 
-            var formattingService = document.Project.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
+            var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
+            var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            if (!await formattingService.ShouldFormatOnTypedCharacterAsync(document, request.Character[0], position, cancellationToken).ConfigureAwait(false))
+            if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Character[0], position, cancellationToken))
             {
                 return Array.Empty<TextEdit>();
             }
@@ -69,15 +70,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
             };
 
-            var textChanges = await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
+            var textChanges = formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
             if (textChanges.IsEmpty)
             {
                 return Array.Empty<TextEdit>();
             }
 
             var edits = new ArrayBuilder<TextEdit>();
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
+            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, documentSyntax.Text)));
             return edits.ToArrayAndFree();
         }
     }

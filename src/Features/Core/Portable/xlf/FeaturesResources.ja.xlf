@@ -350,6 +350,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">アクセス不可能な未実装のメンバーが基底クラスに含まれています</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_VisualBasic_References">
+        <source>C# and Visual Basic References</source>
+        <target state="new">C# and Visual Basic References</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">変更を適用できません。予期しないエラー: '{0}'</target>
@@ -457,7 +462,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
         <source>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</source>
-        <target state="new">Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</target>
+        <target state="translated">'{0}' の包含名前空間を '{1}' から '{2}' に変更するには、アプリケーションを再起動する必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
@@ -495,6 +500,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0} の可視性を変更するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="translated">'{0}' のコード スニペット</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">コメントは使用できません</target>
@@ -527,12 +537,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Containing_Member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">含んでいるメンバー</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_Type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">含んでいる型</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -585,6 +595,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">ディスク、埋め込み、またはシンボル サーバーで PDB が見つかりませんでした。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_implementation_of_symbol_0">
+        <source>Could not find implementation of symbol '{0}'</source>
+        <target state="translated">シンボル '{0}'の実装が見つかりませんでした</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">フィールド '{0}' を作成して割り当てる</target>
@@ -607,7 +622,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Decompiled">
         <source>decompiled</source>
-        <target state="new">decompiled</target>
+        <target state="translated">逆コンパイル済み</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
@@ -620,6 +635,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0} を削除すると、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">ランタイムでサポートされていないため、{0} を削除するには、アプリケーションを再起動する必要があります。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
         <target state="translated">キャプチャした変数 '{0}' を削除するには、アプリケーションを再起動する必要があります。</target>
@@ -627,7 +647,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Directives_from_0">
         <source>Directives from '{0}'</source>
-        <target state="new">Directives from '{0}'</target>
+        <target state="translated">'{0}' からのディレクティブ</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -658,6 +678,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Enable_all_JSON_editor_features">
         <source>Enable all JSON editor features</source>
         <target state="translated">すべての JSON エディター機能を有効にする</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="translated">列挙型メンバー</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -705,6 +730,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">基底クラスの抽出...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_base_record">
+        <source>Extract base record...</source>
+        <target state="translated">基底 record を抽出...</target>
+        <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">インターフェイスの抽出...</target>
@@ -728,6 +758,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">'{0}' の入力ミスを修正します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fixing_0">
+        <source>Fixing '{0}'</source>
+        <target state="translated">'{0}' の修正中</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -948,6 +983,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">インラインおよび '{0}' の保持</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="translated">インラインの一時変数</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1265,6 +1305,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">演算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
+        <source>Please resolve errors in your code before renaming this element.</source>
+        <target state="translated">この要素の名前を変更する前に、コード内のエラーを解決してください。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
         <source>Probable JSON string detected</source>
         <target state="translated">JSON の可能性のある文字列が検出されました</target>
@@ -1303,6 +1348,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">基本型のメンバーをプル...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_selected_members_up">
+        <source>Pull selected members up</source>
+        <target state="translated">選択したメンバーを選出</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_selected_members_up_to_0">
+        <source>Pull selected members up to {0}</source>
+        <target state="translated">選択したメンバーを最大 {0} 人選出</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2505,10 +2560,25 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">キャプチャした変数の名前を '{0}' から '{1}' に変更するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
+        <source>Renaming anonymous type members is not yet supported.</source>
+        <target state="translated">匿名型メンバーの名前の変更は、まだサポートされていません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">'{0}' を '{1}' に置き換える</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Replace_conditional_expression_with_statements">
+        <source>Replace conditional expression with statements</source>
+        <target state="translated">条件式をステートメントに置き換える</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required">
+        <source>required</source>
+        <target state="translated">必須</target>
+        <note>Used in the object initializer completion.</note>
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
@@ -2615,6 +2685,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">型 '{1}' を含むアセンブリ '{0}' が .NET Framework を参照しています。これはサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="translated">アナライザー アセンブリ '{0}' は、コンパイラのバージョン '{1}' を参照しています。これは、現在実行中のバージョン '{2}' よりも新しいバージョンです。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="translated">選択範囲に、宣言のないローカル関数呼び出しが含まれています。</target>
@@ -2628,6 +2703,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="The_symbol_has_no_implementations">
         <source>The symbol has no implementations.</source>
         <target state="translated">シンボルに実装がありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_0_has_1_references">
+        <source>This {0} has {1} reference(s).</source>
+        <target state="new">This {0} has {1} reference(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="Timeout_SourceLink">
@@ -2860,16 +2940,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">{0} の変性を更新するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_lambda_expressions">
-        <source>Use block body for lambda expressions</source>
-        <target state="translated">ラムダ式にブロック本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambda_expressions">
-        <source>Use expression body for lambda expressions</source>
-        <target state="translated">ラムダ式に式本体を使用する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">値:</target>
@@ -2960,6 +3030,31 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">ナビゲーション バーを使用してコンテキストを切り替えることができます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
+        <source>You cannot rename elements from previous submissions.</source>
+        <target state="translated">前の送信からの要素の名前を変更することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
+        <source>You cannot rename elements that are defined in metadata.</source>
+        <target state="translated">メタデータで定義されている要素の名前を変更することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_operators">
+        <source>You cannot rename operators.</source>
+        <target state="translated">演算子の名前を変更することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element">
+        <source>You cannot rename this element.</source>
+        <target state="translated">この要素の名前を変更することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_rename_an_identifier">
+        <source>You must rename an identifier.</source>
+        <target state="translated">識別子の名前を変更する必要があります。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
         <target state="translated">'{0}' ベース</target>
@@ -3045,9 +3140,19 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">ここでは、'{0}' は null である可能性があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_reference_unquoted">
+        <source>{0} reference</source>
+        <target state="new">{0} reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
         <target state="translated">'{0}' の参照</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references_unquoted">
+        <source>{0} references</source>
+        <target state="new">{0} references</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unexpected">
@@ -3306,6 +3411,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">コード</target>
         <note />
       </trans-unit>
+      <trans-unit id="console_writeline">
+        <source>Console.WriteLine</source>
+        <target state="translated">Console.WriteLine</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">日付の区切り記号</target>
@@ -3373,6 +3483,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <target state="translated">破棄</target>
         <note />
       </trans-unit>
+      <trans-unit id="else_statement">
+        <source>else statement</source>
+        <target state="translated">else ステートメント</target>
+        <note />
+      </trans-unit>
       <trans-unit id="embedded">
         <source>embedded</source>
         <target state="translated">埋め込み</target>
@@ -3382,6 +3497,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <source>external</source>
         <target state="translated">外部</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
+      </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach loop</source>
+        <target state="translated">ForEach ループ</target>
+        <note />
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
@@ -3440,6 +3560,16 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">ジェネリック オーバーロード</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="get_only_property">
+        <source>get-only property</source>
+        <target state="new">get-only property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement">
+        <source>if statement</source>
+        <target state="translated">If ステートメント</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">
@@ -3960,16 +4090,6 @@ Do you want to continue?</source>
 '{1}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_Names">
-        <source>Simplify Names</source>
-        <target state="translated">名前を単純化します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Member_Access">
-        <source>Simplify Member Access</source>
-        <target state="translated">メンバー アクセスを単純化します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_qualification">
         <source>Remove qualification</source>
         <target state="translated">修飾子を削除</target>
@@ -3982,7 +4102,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Available">
         <source>Available</source>
-        <target state="translated">空き領域</target>
+        <target state="translated">利用可能</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
@@ -4233,6 +4353,11 @@ When this standard format specifier is used, the formatting or parsing operation
       <trans-unit id="static_constructor">
         <source>static constructor</source>
         <target state="translated">静的コンストラクター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="translated">構造体</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
@@ -4890,6 +5015,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 DateTimeOffset 値で使用した場合、この書式指定子は DateTimeOffset 値の UTC を基準とするオフセット (時間単位) を表します。
 
 このオフセットは、常に先頭の符号と共に表示されます。プラス記号 (+) は UTC より時間が進んでいることを示し、マイナス記号 (-) は UTC よりも時間が遅れていることを示します。1 桁のオフセットは、先行ゼロ付きで書式設定されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="translated">while ループ</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

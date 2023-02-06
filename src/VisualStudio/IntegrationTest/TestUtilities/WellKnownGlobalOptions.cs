@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     /// <summary>
     /// Options settable by integration tests.
     /// 
-    /// TODO: Options are currently explicitly listed since <see cref="OptionKey"/> is not serializable.
+    /// TODO: Options are currently explicitly listed since <see cref="OptionKey2"/> is not serializable.
     /// https://github.com/dotnet/roslyn/issues/59267
     /// </summary>
     public enum WellKnownGlobalOption
@@ -34,11 +35,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspace,
         SolutionCrawlerOptions_BackgroundAnalysisScopeOption,
         SolutionCrawlerOptions_CompilerDiagnosticsScopeOption,
+        InlineRenameSessionOptions_UseNewUI,
     }
 
-    public static class WellKnownGlobalOptions
+    internal static class WellKnownGlobalOptions
     {
-        public static IOption GetOption(this WellKnownGlobalOption option)
+        public static IOption2 GetOption(this WellKnownGlobalOption option)
             => option switch
             {
                 WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces => CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
@@ -53,10 +55,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 WellKnownGlobalOption.WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspace => WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
                 WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption => SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
                 WellKnownGlobalOption.SolutionCrawlerOptions_CompilerDiagnosticsScopeOption => SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
-                _ => throw ExceptionUtilities.Unreachable
+                WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI => InlineRenameUIOptions.UseInlineAdornment,
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
-        public static OptionKey GetKey(this WellKnownGlobalOption option, string? language)
-            => new OptionKey(GetOption(option), language);
+        public static OptionKey2 GetKey(this WellKnownGlobalOption option, string? language)
+            => new OptionKey2(GetOption(option), language);
     }
 }

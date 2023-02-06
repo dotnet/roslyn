@@ -183,27 +183,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     //     We do so to ensure that we don't report false positives during editing scenarios in the IDE, where the user
                     //     is still editing code and fixing unresolved references to symbols, such as overload resolution errors.
                     //  2. Dynamic operations, where we do not know the exact member being referenced at compile time.
-                    //  3. Operations with OperationKind.None which are not operation root nodes. Attributes
-                    //     generate operation blocks with root operation with OperationKind.None, and we don't want to bail out for them.
-                    symbolStartContext.RegisterOperationAction(_ => hasUnsupportedOperation = true, OperationKind.Invalid,
+                    //  3. Operations with OperationKind.None.
+                    symbolStartContext.RegisterOperationAction(_ => hasUnsupportedOperation = true, OperationKind.Invalid, OperationKind.None,
                         OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
-                    symbolStartContext.RegisterOperationAction(AnalyzeOperationNone, OperationKind.None);
 
                     symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
 
                     // Register custom language-specific actions, if any.
                     _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
-
-                    return;
-
-                    void AnalyzeOperationNone(OperationAnalysisContext context)
-                    {
-                        if (context.Operation.Kind == OperationKind.None &&
-                            context.Operation.Parent != null)
-                        {
-                            hasUnsupportedOperation = true;
-                        }
-                    }
                 }, SymbolKind.NamedType);
             }
 
@@ -397,7 +384,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     return;
                 }
 
-                if (symbolEndContext.Symbol.GetAttributes().Any(a => a.AttributeClass == _structLayoutAttributeType))
+                if (symbolEndContext.Symbol.GetAttributes().Any(static (a, self) => a.AttributeClass == self._structLayoutAttributeType, this))
                 {
                     // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
                     // and removal of unused members might break semantics.
@@ -550,7 +537,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                              .SelectMany(n => n.DescendantNodes().OfType<TIdentifierNameSyntax>()))
                     {
                         lazyModel ??= compilation.GetSemanticModel(root.SyntaxTree);
-                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol;
+                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol?.OriginalDefinition;
                         if (symbol != null && IsCandidateSymbol(symbol))
                         {
                             builder.Add(symbol);
@@ -727,7 +714,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
 
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
-                => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));
+                => methodSymbol.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), this);
 
             private static bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
             {
@@ -747,7 +734,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     {
                         var suffix = methodSymbol.Name[prefix.Length..];
                         return suffix.Length > 0 &&
-                            methodSymbol.ContainingType.GetMembers(suffix).Any(m => m is IPropertySymbol);
+                            methodSymbol.ContainingType.GetMembers(suffix).Any(static m => m is IPropertySymbol);
                     }
 
                     return false;

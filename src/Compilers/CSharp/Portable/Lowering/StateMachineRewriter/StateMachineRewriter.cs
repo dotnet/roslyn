@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generate the GetEnumerator() method for iterators and GetAsyncEnumerator() for async-iterators.
         /// </summary>
-        protected SynthesizedImplementationMethod GenerateIteratorGetEnumerator(MethodSymbol getEnumeratorMethod, ref BoundExpression managedThreadId, int initialState)
+        protected SynthesizedImplementationMethod GenerateIteratorGetEnumerator(MethodSymbol getEnumeratorMethod, ref BoundExpression managedThreadId, StateMachineState initialState)
         {
             // Produces:
             //    {StateMachineType} result;
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 makeIterator = F.If(
                     // if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)
                     condition: F.LogicalAnd(
-                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedState)),
+                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)),
                         F.IntEqual(F.Field(F.This(), initialThreadIdField), managedThreadId)),
                     thenClause: F.Block(thenBuilder.ToImmutableAndFree()),
                     elseClauseOpt: makeIterator);
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generate logic to reset the current instance (rather than creating a new instance)
         /// </summary>
-        protected virtual void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, int initialState)
+        protected virtual void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, StateMachineState initialState)
         {
             builder.Add(
                 // this.state = {initialState};

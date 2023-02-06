@@ -243,24 +243,30 @@ record class Point(int x, int y);
 ";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "record ").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
+                // (2,8): error CS1001: Identifier expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 8),
+                // (2,8): error CS1002: ; expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
                 // (2,19): error CS1514: { expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
                 // (2,19): error CS1513: } expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 19),
-                // (2,19): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 19),
                 // (2,19): error CS8803: Top-level statements must precede namespace and type declarations.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 19),
-                // (2,19): error CS8805: Program using top-level statements must be an executable.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 19),
                 // (2,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 19),
@@ -1285,49 +1291,46 @@ class C<T> { }
 static class C2 { }
 ref struct RefLike{}
 
-unsafe record C( // 1
-    int* P1, // 2
-    int*[] P2, // 3
+unsafe record C(
+    int* P1, // 1
+    int*[] P2, // 2
     C<int*[]> P3,
-    delegate*<int, int> P4, // 4
-    void P5, // 5
-    C2 P6, // 6, 7
-    System.ArgIterator P7, // 8
-    System.TypedReference P8, // 9
-    RefLike P9); // 10
+    delegate*<int, int> P4, // 3
+    void P5, // 4
+    C2 P6, // 5, 6
+    System.ArgIterator P7, // 7
+    System.TypedReference P8, // 8
+    RefLike P9); // 9
 ";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
-                // (6,15): error CS0721: 'C2': static types cannot be used as parameters
-                // unsafe record C( // 1
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C2").WithLocation(6, 15),
                 // (7,10): error CS8908: The type 'int*' may not be used for a field of a record.
-                //     int* P1, // 2
+                //     int* P1, // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P1").WithArguments("int*").WithLocation(7, 10),
                 // (8,12): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     int*[] P2, // 3
+                //     int*[] P2, // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P2").WithArguments("int*[]").WithLocation(8, 12),
                 // (10,25): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
-                //     delegate*<int, int> P4, // 4
+                //     delegate*<int, int> P4, // 3
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P4").WithArguments("delegate*<int, int>").WithLocation(10, 25),
                 // (11,5): error CS1536: Invalid parameter type 'void'
-                //     void P5, // 5
+                //     void P5, // 4
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
-                // (12,8): error CS0722: 'C2': static types cannot be used as return types
-                //     C2 P6, // 6, 7
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
-                // (12,8): error CS0721: 'C2': static types cannot be used as parameters
-                //     C2 P6, // 6, 7
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
+                // (12,5): error CS0721: 'C2': static types cannot be used as parameters
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
+                // (12,5): error CS0722: 'C2': static types cannot be used as return types
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
                 // (13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     System.ArgIterator P7, // 8
+                //     System.ArgIterator P7, // 7
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(13, 5),
                 // (14,5): error CS0610: Field or property cannot be of type 'TypedReference'
-                //     System.TypedReference P8, // 9
+                //     System.TypedReference P8, // 8
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
                 // (15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
-                //     RefLike P9); // 10
+                //     RefLike P9); // 9
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)
                 );
         }
@@ -1421,12 +1424,9 @@ public unsafe record C
                 // (12,17): error CS0547: 'C.f5': property or indexer cannot have void type
                 //     public void f5 { get; set; } // 4
                 Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(12, 17),
-                // (13,20): error CS0722: 'C2': static types cannot be used as return types
+                // (13,12): error CS0722: 'C2': static types cannot be used as return types
                 //     public C2 f6 { get; set; } // 5, 6
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("C2").WithLocation(13, 20),
-                // (13,25): error CS0721: 'C2': static types cannot be used as parameters
-                //     public C2 f6 { get; set; } // 5, 6
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("C2").WithLocation(13, 25),
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(13, 12),
                 // (14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     public System.ArgIterator f7 { get; set; } // 6
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
@@ -5449,21 +5449,6 @@ record C2: Error;
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS0115: 'C2.ToString()': no suitable method found to override
-                // record C2: Error;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C2.EqualityContract': no suitable method found to override
-                // record C2: Error;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C2.Equals(object?)': no suitable method found to override
-                // record C2: Error;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C2.GetHashCode()': no suitable method found to override
-                // record C2: Error;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C2.PrintMembers(StringBuilder)': no suitable method found to override
-                // record C2: Error;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (2,12): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 // record C2: Error;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(2, 12)
@@ -5481,22 +5466,7 @@ record R : R;
             comp.VerifyEmitDiagnostics(
                 // (2,8): error CS0146: Circular base type dependency involving 'R' and 'R'
                 // record R : R;
-                Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("R", "R").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R.ToString()': no suitable method found to override
-                // record R : R;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R.EqualityContract': no suitable method found to override
-                // record R : R;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R.Equals(object?)': no suitable method found to override
-                // record R : R;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R.GetHashCode()': no suitable method found to override
-                // record R : R;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R.PrintMembers(StringBuilder)': no suitable method found to override
-                // record R : R;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8)
+                Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("R", "R").WithLocation(2, 8)
                 );
         }
 
@@ -9737,15 +9707,12 @@ record C(int Y)
                 // (9,9): error CS8147: Properties which return by reference cannot have set accessors
                 //         set { }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 9),
-                // (15,32): error CS1525: Invalid expression term 'ref'
+                // (15,28): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         var c = new C(0) { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a[0]").WithArguments("ref").WithLocation(15, 32),
-                // (15,32): error CS1073: Unexpected token 'ref'
-                //         var c = new C(0) { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(15, 32),
-                // (17,26): error CS1073: Unexpected token 'ref'
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "X").WithLocation(15, 28),
+                // (17,22): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         c = c with { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 26)
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "X").WithLocation(17, 22)
             );
         }
 
@@ -10810,7 +10777,7 @@ record C(object P)
     public object get_P() => null;
     public object set_Q() => null;
 }";
-            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics(
                 // (9,17): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
                 // record C(object P)
@@ -11223,7 +11190,7 @@ End Class
                 // (1,8): error CS0115: 'C.PrintMembers(StringBuilder)': no suitable method found to override
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
-                // (1,8): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
+                // (1,8): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("b", "B.B(B)").WithLocation(1, 8),
                 // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
@@ -12688,7 +12655,7 @@ record B : A
 @"public record B(object N1, object N2)
 {
 }";
-            var compA = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceA : new[] { sourceA, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var compA = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceA : new[] { sourceA, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             var verifierA = CompileAndVerify(compA, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
 
             verifierA.VerifyIL("B..ctor(B)", @"
@@ -12727,7 +12694,7 @@ record B : A
         System.Console.Write((c3.P1, c3.P2, c3.N1, c3.N2));
     }
 }";
-            var compB = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceB : new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardLatest);
+            var compB = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceB : new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.NetLatest);
 
             var verifierB = CompileAndVerify(compB, expectedOutput: "(1, 2, 3, 4) (1, 2, 3, 4) (10, 2, 30, 4)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             // call base copy constructor B..ctor(B)
@@ -13450,21 +13417,6 @@ record C(int j) : B(3, 4)
 
             var compB2 = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, assemblyName: "AssemblyB2");
             compB2.VerifyEmitDiagnostics(
-                // (2,8): error CS0115: 'C.ToString()': no suitable method found to override
-                // record C(int j) : B(3, 4);
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C.GetHashCode()': no suitable method found to override
-                // record C(int j) : B(3, 4);
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C.EqualityContract': no suitable method found to override
-                // record C(int j) : B(3, 4);
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C.Equals(object?)': no suitable method found to override
-                // record C(int j) : B(3, 4);
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'C.PrintMembers(StringBuilder)': no suitable method found to override
-                // record C(int j) : B(3, 4);
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (2,19): error CS0122: 'B' is inaccessible due to its protection level
                 // record C(int j) : B(3, 4);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B").WithArguments("B").WithLocation(2, 19),
@@ -14034,7 +13986,6 @@ public class Program
     }
 }";
 
-
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition },
                 ilSource: ilSource,
                 parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
@@ -14054,7 +14005,7 @@ public class Program
 $@"
 record A(int X)
 {{
-    { accessibility } A(A a)
+    {accessibility} A(A a)
         => throw null;
 }}
 ";
@@ -14075,7 +14026,7 @@ record A(int X)
 $@"
 record A(int X)
 {{
-    { accessibility } A(A a)
+    {accessibility} A(A a)
         => System.Console.Write(""RAN"");
 
     public static void Main()
@@ -14101,7 +14052,7 @@ record A(int X)
 $@"
 sealed record A(int X)
 {{
-    { accessibility } A(A a)
+    {accessibility} A(A a)
         => System.Console.Write(""RAN"");
 
     public static void Main()
@@ -14134,7 +14085,7 @@ sealed record A(int X)
 $@"
 sealed record A(int X)
 {{
-    { accessibility } A(A a)
+    {accessibility} A(A a)
         => System.Console.Write(""RAN"");
 
     public static void Main()
@@ -15599,7 +15550,7 @@ record B(int X, int Y) : A(X)
 $@"
 record A(int X)
 {{
-    { accessibility } void Deconstruct(out int a)
+    {accessibility} void Deconstruct(out int a)
         => throw null;
 }}
 ";
@@ -15902,7 +15853,7 @@ record B(int X, int Y) : A
 record B(int X, int Y) : A
 {
 }";
-            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics(
                 // (3,35): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public abstract override bool Equals(object other);
@@ -16385,7 +16336,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -16394,7 +16345,7 @@ namespace System.Text
 public record A {
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'A.Equals(object?)': return type must be 'int' to match overridden member 'object.Equals(object)'
                 // public record A {
@@ -17334,7 +17285,7 @@ public class Something
 {
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -17344,7 +17295,7 @@ public record A {
     public override Something GetHashCode() => default;
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (3,31): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override Something GetHashCode() => default;
@@ -17430,7 +17381,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -17440,7 +17391,7 @@ public record A {
     public override bool GetHashCode() => default;
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (3,26): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override bool GetHashCode() => default;
@@ -17526,7 +17477,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -17535,7 +17486,7 @@ namespace System.Text
 public record A {
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'A.GetHashCode()': return type must be 'bool' to match overridden member 'object.GetHashCode()'
                 // public record A {
@@ -18488,7 +18439,7 @@ True
 $@"
 record A
 {{
-    { accessibility } virtual bool Equals(A x)
+    {accessibility} virtual bool Equals(A x)
         => throw null;
 
     bool System.IEquatable<A>.Equals(A x) => throw null;
@@ -18514,7 +18465,7 @@ record A
 $@"
 record A
 {{
-    { accessibility } virtual bool Equals(A x)
+    {accessibility} virtual bool Equals(A x)
         => throw null;
 
     bool System.IEquatable<A>.Equals(A x) => throw null;
@@ -19049,7 +19000,7 @@ True
 $@"
 record A
 {{
-    { accessibility } virtual System.Type EqualityContract
+    {accessibility} virtual System.Type EqualityContract
         => throw null;
 }}
 ";
@@ -19070,7 +19021,7 @@ record A
 $@"
 record A
 {{
-    { accessibility } virtual System.Type EqualityContract
+    {accessibility} virtual System.Type EqualityContract
         => throw null;
 
     bool System.IEquatable<A>.Equals(A x) => throw null;
@@ -21105,7 +21056,7 @@ public record C
     public int X { get; init; }
 }
 public record D(int Y) : C;";
-            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? src : new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? src : new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics();
 
             var src2 = @"
@@ -21141,7 +21092,7 @@ class E
 1
 2
 1 2
-2 3", targetFramework: TargetFramework.StandardLatest).VerifyDiagnostics().VerifyIL("E.CHelper", @"
+2 3", targetFramework: TargetFramework.NetLatest).VerifyDiagnostics().VerifyIL("E.CHelper", @"
 {
   // Code size       14 (0xe)
   .maxstack  3
@@ -21990,7 +21941,7 @@ class C : Base(X)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (11,7): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'Base.Base(int)'
+                // (11,7): error CS7036: There is no argument given that corresponds to the required parameter 'X' of 'Base.Base(int)'
                 // class C : Base(X)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("X", "Base.Base(int)").WithLocation(11, 7),
                 // (11,15): error CS8861: Unexpected argument list.
@@ -23680,7 +23631,7 @@ record B : A
 }
 record C : B;
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetLatest);
             comp.VerifyDiagnostics(
                 // (4,43): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
                 //     protected sealed override System.Type EqualityContract => typeof(B);
@@ -24346,7 +24297,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24354,7 +24305,7 @@ namespace System.Text
 @"record A<T>;
 record B : A<int>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T>;
@@ -24411,7 +24362,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24419,7 +24370,7 @@ namespace System.Text
 @"record A<T> : System.IEquatable<A<T>>;
 record B : A<int>, System.IEquatable<B>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
@@ -24430,21 +24381,6 @@ record B : A<int>, System.IEquatable<B>;
                 // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
-                // (1,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(1, 8),
-                // (1,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(1, 8),
-                // (1,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(1, 8),
-                // (1,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(1, 8),
-                // (1,8): error CS0115: 'A<T>.PrintMembers(StringBuilder)': no suitable method found to override
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
                 // (1,22): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<A<T>>").WithArguments("IEquatable<>", "System").WithLocation(1, 22),
@@ -24496,7 +24432,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24505,7 +24441,7 @@ namespace System.Text
 record A<T> : IEquatable<A<T>>;
 record B : A<int>, IEquatable<B>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using System;
@@ -24519,21 +24455,6 @@ record B : A<int>, IEquatable<B>;
                 // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.PrintMembers(StringBuilder)': no suitable method found to override
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (2,15): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<A<T>>").WithArguments("IEquatable<>").WithLocation(2, 15),
@@ -24590,7 +24511,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24604,7 +24525,7 @@ class Program
         _ = a.Equals(null);
     }
 }";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A;
@@ -25767,7 +25688,7 @@ record B
         }
     }
 }
-", targetFramework: TargetFramework.StandardLatest);
+", targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, c.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (c.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
@@ -25832,42 +25753,12 @@ record B<T> : A<B<T>> {
 ";
             var comp = CreateCompilation(text);
             comp.GetDeclarationDiagnostics().Verify(
-                // (2,8): error CS0146: Circular base type dependency involving 'B<A<T>>' and 'A<T>'
-                // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B<A<T>>", "A<T>").WithLocation(2, 8),
                 // (3,8): error CS0146: Circular base type dependency involving 'A<B<T>>' and 'B<T>'
                 // record B<T> : A<B<T>> {
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A<B<T>>", "B<T>").WithLocation(3, 8),
-                // (2,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
+                // (2,8): error CS0146: Circular base type dependency involving 'B<A<T>>' and 'A<T>'
                 // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
-                // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
-                // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
-                // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.PrintMembers(StringBuilder)': no suitable method found to override
-                // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
-                // (3,8): error CS0115: 'B<T>.EqualityContract': no suitable method found to override
-                // record B<T> : A<B<T>> {
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.EqualityContract").WithLocation(3, 8),
-                // (3,8): error CS0115: 'B<T>.Equals(object?)': no suitable method found to override
-                // record B<T> : A<B<T>> {
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.Equals(object?)").WithLocation(3, 8),
-                // (3,8): error CS0115: 'B<T>.GetHashCode()': no suitable method found to override
-                // record B<T> : A<B<T>> {
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.GetHashCode()").WithLocation(3, 8),
-                // (3,8): error CS0115: 'B<T>.PrintMembers(StringBuilder)': no suitable method found to override
-                // record B<T> : A<B<T>> {
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
-                // (3,8): error CS0115: 'B<T>.ToString()': no suitable method found to override
-                // record B<T> : A<B<T>> {
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.ToString()").WithLocation(3, 8)
+                Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B<A<T>>", "A<T>").WithLocation(2, 8)
                 );
         }
 
@@ -25911,42 +25802,12 @@ public partial record C3 : Base<(int a, int b)> { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,23): error CS0263: Partial declarations of 'C2' must not specify different base classes
-                // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C2").WithArguments("C2").WithLocation(5, 23),
                 // (3,23): error CS0263: Partial declarations of 'C1' must not specify different base classes
                 // public partial record C1 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C1").WithArguments("C1").WithLocation(3, 23),
-                // (5,23): error CS0115: 'C2.ToString()': no suitable method found to override
+                // (5,23): error CS0263: Partial declarations of 'C2' must not specify different base classes
                 // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.ToString()").WithLocation(5, 23),
-                // (5,23): error CS0115: 'C2.EqualityContract': no suitable method found to override
-                // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.EqualityContract").WithLocation(5, 23),
-                // (5,23): error CS0115: 'C2.Equals(object?)': no suitable method found to override
-                // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.Equals(object?)").WithLocation(5, 23),
-                // (5,23): error CS0115: 'C2.GetHashCode()': no suitable method found to override
-                // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.GetHashCode()").WithLocation(5, 23),
-                // (5,23): error CS0115: 'C2.PrintMembers(StringBuilder)': no suitable method found to override
-                // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.PrintMembers(System.Text.StringBuilder)").WithLocation(5, 23),
-                // (3,23): error CS0115: 'C1.ToString()': no suitable method found to override
-                // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.ToString()").WithLocation(3, 23),
-                // (3,23): error CS0115: 'C1.EqualityContract': no suitable method found to override
-                // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.EqualityContract").WithLocation(3, 23),
-                // (3,23): error CS0115: 'C1.Equals(object?)': no suitable method found to override
-                // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.Equals(object?)").WithLocation(3, 23),
-                // (3,23): error CS0115: 'C1.GetHashCode()': no suitable method found to override
-                // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.GetHashCode()").WithLocation(3, 23),
-                // (3,23): error CS0115: 'C1.PrintMembers(StringBuilder)': no suitable method found to override
-                // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 23)
+                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C2").WithArguments("C2").WithLocation(5, 23)
                 );
         }
 
@@ -26136,7 +25997,7 @@ public partial record C1
 {
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
@@ -27141,7 +27002,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         break;
@@ -27152,7 +27013,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
@@ -27166,7 +27027,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
@@ -27275,7 +27136,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         RegisterOperationAction(context);
@@ -27288,7 +27149,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
@@ -27304,7 +27165,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
@@ -27349,7 +27210,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         break;
@@ -27360,7 +27221,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
@@ -27374,7 +27235,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
 
                         Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
@@ -27981,7 +27842,7 @@ class Program
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (8,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.C(int)'
+                // (8,17): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C.C(int)'
                 //         _ = new C();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("x", "C.C(int)").WithLocation(8, 17)
                 );
@@ -30159,21 +30020,6 @@ record R2(int X) : Error(X)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS0115: 'R2.ToString()': no suitable method found to override
-                // record R2(int X) : Error(X)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R2.EqualityContract': no suitable method found to override
-                // record R2(int X) : Error(X)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.EqualityContract").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R2.Equals(object?)': no suitable method found to override
-                // record R2(int X) : Error(X)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.Equals(object?)").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R2.GetHashCode()': no suitable method found to override
-                // record R2(int X) : Error(X)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.GetHashCode()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'R2.PrintMembers(StringBuilder)': no suitable method found to override
-                // record R2(int X) : Error(X)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (2,20): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 // record R2(int X) : Error(X)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(2, 20),
@@ -30423,6 +30269,144 @@ class C3<T>
                     // [Obsolete(T)]
                     Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(16, 11)
                     );
+        }
+
+        [Fact, WorkItem(62051, "https://github.com/dotnet/roslyn/issues/62051")]
+        public void MisingBaseType()
+        {
+            var src = @"
+record R : // 1
+{
+}
+
+record R2 : Missing // 2
+{
+}
+
+public class C : // 3
+{
+    public override void M() { }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,11): error CS1031: Type expected
+                // record R : // 1
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(2, 11),
+                // (6,13): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                // record R2 : Missing // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(6, 13),
+                // (10,17): error CS1031: Type expected
+                // public class C : // 3
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64238, "https://github.com/dotnet/roslyn/issues/64238")]
+        public void NoMethodBodiesInComImportType()
+        {
+            var source1 =
+@"
+[System.Runtime.InteropServices.ComImport]
+[System.Runtime.InteropServices.Guid(""00112233-4455-6677-8899-aabbccddeeff"")]
+record R1(int x);
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
+
+            compilation1.VerifyDiagnostics(
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Equals(R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Equals(R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.ToString()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.ToString()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Deconstruct(out int)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Deconstruct(out int)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.<Clone>$()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.<Clone>$()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.EqualityContract.get' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.EqualityContract.get", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Equals(object?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Equals(object?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.GetHashCode()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.GetHashCode()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.operator ==(R1?, R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.operator ==(R1?, R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.operator !=(R1?, R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.operator !=(R1?, R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.PrintMembers(StringBuilder)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.PrintMembers(System.Text.StringBuilder)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0669: A class with the ComImport attribute cannot have a user-defined constructor
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithUserCtor, "R1").WithLocation(4, 8),
+                // (4,11): error CS8028: 'R1': a class with the ComImport attribute cannot specify field initializers.
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithInitializers, "int x").WithArguments("R1").WithLocation(4, 11),
+                // (4,15): error CS0423: Since 'R1' has the ComImport attribute, 'R1.x.get' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "x").WithArguments("R1.x.get", "R1").WithLocation(4, 15),
+                // (4,15): error CS0423: Since 'R1' has the ComImport attribute, 'R1.x.init' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "x").WithArguments("R1.x.init", "R1").WithLocation(4, 15)
+                );
+        }
+
+        [Fact]
+        public void AttributedDerivedRecord_SemanticInfoOnBaseParameter()
+        {
+            var source = """
+                public record Base(int X);
+                [Attr]
+                public record Derived(int X) : Base(X);
+
+                class Attr : System.Attribute {}
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var xReference = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single().ArgumentList.Arguments[0].Expression;
+
+            AssertEx.Equal("System.Int32 X", model.GetSymbolInfo(xReference).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AttributedDerivedRecord_BaseParameterNotVisibleInBody()
+        {
+            var source = """
+                public record Base(int X);
+                [Attr()]
+                public record Derived() : Base(M(out var y))
+                {
+                    static int M(out int y) => y = 1;
+                }
+
+                class Attr : System.Attribute {}
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var mCall = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single().ArgumentList.Arguments[0].Expression;
+            var attrApplication = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var mDefinition = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            Assert.Contains("System.Int32 y", model.LookupSymbols(mCall.SpanStart).Select(s => s.ToTestDisplayString()));
+            Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(attrApplication.ArgumentList!.OpenParenToken.SpanStart + 1).Select(s => s.ToTestDisplayString()));
+            Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(mDefinition.SpanStart).Select(s => s.ToTestDisplayString()));
         }
     }
 }

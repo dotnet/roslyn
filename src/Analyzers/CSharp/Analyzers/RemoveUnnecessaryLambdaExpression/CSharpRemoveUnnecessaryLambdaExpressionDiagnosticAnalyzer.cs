@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,16 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
     /// time.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         public CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId,
                    EnforceOnBuildValues.RemoveUnnecessaryLambdaExpression,
                    CSharpCodeStyleOptions.PreferMethodGroupConversion,
-                   LanguageNames.CSharp,
+                   fadingOption: null,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   isUnnecessary: true)
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -135,6 +133,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             if (invokedSymbolInfo.Symbol is not IMethodSymbol invokedMethod)
                 return;
 
+            // cannot convert a partial-definition to a delegate (unless there's an existing implementation part that can be used).
+            if (invokedMethod.IsPartialDefinition && invokedMethod.PartialImplementationPart is null)
+                return;
+
             // If we're calling a generic method, we have to have supplied type arguments.  They cannot be inferred once
             // we remove the arguments during simplification.
             var invokedTypeArguments = invokedExpression.GetRightmostName() is GenericNameSyntax genericName
@@ -167,6 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 if (!IsIdentityOrImplicitConversion(compilation, lambdaParameter.Type, invokedParameter.Type))
                     return;
             }
+
+            // If invoked method is conditional, converting lambda to method group produces compiler error
+            if (invokedMethod.GetAttributes().Any(a => Equals(a.AttributeClass, compilation.ConditionalAttribute())))
+                return;
 
             // Semantically, this looks good to go.  Now, do an actual speculative replacement to ensure that the
             // non-invoked method reference refers to the same method symbol, and that it converts to the same type that

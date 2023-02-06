@@ -29,19 +29,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |............................|rr|vvvvv|
+            // |........................|qq|rr|v|fffff|
             //
             // f = FlowAnalysisAnnotations. 5 bits (4 value bits + 1 completion bit).
-            // r = Required members. 2 bits (1 value bit + 1 completion bit).
+            // v = IsVolatile 1 bit
+            // r = RefKind 2 bits
+            // q = Required members. 2 bits (1 value bit + 1 completion bit).
 
             private const int HasDisallowNullAttribute = 0x1 << 0;
             private const int HasAllowNullAttribute = 0x1 << 1;
             private const int HasMaybeNullAttribute = 0x1 << 2;
             private const int HasNotNullAttribute = 0x1 << 3;
             private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 4;
+            private const int IsVolatileBit = 0x1 << 5;
+            private const int RefKindOffset = 6;
+            private const int RefKindMask = 0x3;
 
-            private const int HasRequiredMemberAttribute = 0x1 << 5;
-            private const int RequiredMemberCompletionBit = 0x1 << 6;
+            private const int HasRequiredMemberAttribute = 0x1 << 8;
+            private const int RequiredMemberCompletionBit = 0x1 << 9;
 
             private int _bits;
 
@@ -72,6 +77,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return result;
             }
 
+            public void SetIsVolatile(bool isVolatile)
+            {
+                if (isVolatile) ThreadSafeFlagOperations.Set(ref _bits, IsVolatileBit);
+                Debug.Assert(IsVolatile == isVolatile);
+            }
+
+            public bool IsVolatile => (_bits & IsVolatileBit) != 0;
+
+            public void SetRefKind(RefKind refKind)
+            {
+                int bits = ((int)refKind & RefKindMask) << RefKindOffset;
+                if (bits != 0) ThreadSafeFlagOperations.Set(ref _bits, bits);
+                Debug.Assert(RefKind == refKind);
+            }
+
+            public RefKind RefKind => (RefKind)((_bits >> RefKindOffset) & RefKindMask);
+
             public bool SetHasRequiredMemberAttribute(bool isRequired)
             {
                 int bitsToSet = RequiredMemberCompletionBit | (isRequired ? HasRequiredMemberAttribute : 0);
@@ -95,7 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly string _name;
         private readonly FieldAttributes _flags;
         private readonly PENamedTypeSymbol _containingType;
-        private bool _lazyIsVolatile;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
         private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset; // Indicates an uninitialized ConstantValue
         private Tuple<CultureInfo, string> _lazyDocComment;
@@ -108,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private NamedTypeSymbol _lazyFixedImplementationType;
         private PEEventSymbol _associatedEventOpt;
         private PackedFlags _packedFlags;
+        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
         internal PEFieldSymbol(
             PEModuleSymbol moduleSymbol,
@@ -283,9 +305,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (_lazyType == null)
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
-                ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
-                TypeSymbol typeSymbol = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out customModifiers);
-                ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
+                FieldInfo<TypeSymbol> fieldInfo = new MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle);
+                TypeSymbol typeSymbol = fieldInfo.Type;
+                ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(fieldInfo.CustomModifiers);
 
                 typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
                 typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, _handle, moduleSymbol, _containingType);
@@ -298,7 +320,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol, accessSymbol: this, nullableContext: _containingType);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
 
-                _lazyIsVolatile = customModifiersArray.Any(m => !m.IsOptional && ((CSharpCustomModifier)m).ModifierSymbol.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile);
+                RefKind refKind = fieldInfo.IsByRef ?
+                    moduleSymbol.Module.HasIsReadOnlyAttribute(_handle) ? RefKind.RefReadOnly : RefKind.Ref :
+                    RefKind.None;
+                _packedFlags.SetRefKind(refKind);
+                _packedFlags.SetIsVolatile(customModifiersArray.Any(static m => !m.IsOptional && ((CSharpCustomModifier)m).ModifierSymbol.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile));
 
                 TypeSymbol fixedElementType;
                 int fixedSize;
@@ -308,6 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _lazyFixedImplementationType = type.Type as NamedTypeSymbol;
                     type = TypeWithAnnotations.Create(new PointerTypeSymbol(TypeWithAnnotations.Create(fixedElementType)));
                 }
+
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyRefCustomModifiers, CSharpCustomModifier.Convert(fieldInfo.RefCustomModifiers));
 
                 Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
             }
@@ -341,6 +369,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return ((PENamespaceSymbol)ContainingNamespace).ContainingPEModule;
+            }
+        }
+
+        public override RefKind RefKind
+        {
+            get
+            {
+                EnsureSignatureIsLoaded();
+                return _packedFlags.RefKind;
+            }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                EnsureSignatureIsLoaded();
+                return _lazyRefCustomModifiers;
             }
         }
 
@@ -419,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureSignatureIsLoaded();
-                return _lazyIsVolatile;
+                return _packedFlags.IsVolatile;
             }
         }
 
@@ -535,20 +581,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
 
-                if (FilterOutDecimalConstantAttribute())
-                {
-                    // filter out DecimalConstantAttribute
-                    var attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
-                        _handle,
-                        out _,
-                        AttributeDescription.DecimalConstantAttribute);
+                var attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
+                    _handle,
+                    out _,
+                    FilterOutDecimalConstantAttribute() ? AttributeDescription.DecimalConstantAttribute : default,
+                    out CustomAttributeHandle required,
+                    AttributeDescription.RequiredMemberAttribute);
 
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
-                }
-                else
-                {
-                    containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
-                }
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
+                _packedFlags.SetHasRequiredMemberAttribute(!required.IsNil);
             }
             return _lazyCustomAttributes;
         }
@@ -590,6 +631,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
+                if (RefKind != RefKind.None &&
+                    (IsFixedSizeBuffer || Type.IsRefLikeType == true))
+                {
+                    MergeUseSiteInfo(ref result, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
+                }
                 deriveCompilerFeatureRequiredUseSiteInfo(ref result);
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }

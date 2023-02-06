@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal sealed class TypeParameterSymbolReferenceFinder : AbstractReferenceFinder<ITypeParameterSymbol>
+    internal sealed class TypeParameterSymbolReferenceFinder : AbstractTypeParameterSymbolReferenceFinder
     {
         protected override bool CanFind(ITypeParameterSymbol symbol)
             => symbol.TypeParameterKind != TypeParameterKind.Method;
@@ -30,17 +30,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // this only happens in error situations.  It is not legal in C# to use a different
             // name for a type parameter in different parts.
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name, symbol.ContainingType.Name);
-        }
-
-        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            ITypeParameterSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);
         }
     }
 }

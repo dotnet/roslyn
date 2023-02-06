@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics);
 
             // Report subsumption errors, but ignore the input's constant value for that.
-            CheckSwitchErrors(node, boundSwitchGoverningExpression, ref switchSections, decisionDag, diagnostics);
+            CheckSwitchErrors(ref switchSections, decisionDag, diagnostics);
 
             // When the input is constant, we use that to reshape the decision dag that is returned
             // so that flow analysis will see that some of the cases may be unreachable.
@@ -70,20 +70,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void CheckSwitchErrors(
-            SwitchStatementSyntax node,
-            BoundExpression boundSwitchGoverningExpression,
             ref ImmutableArray<BoundSwitchSection> switchSections,
             BoundDecisionDag decisionDag,
             BindingDiagnosticBag diagnostics)
         {
             var reachableLabels = decisionDag.ReachableLabels;
-            bool isSubsumed(BoundSwitchLabel switchLabel)
+            static bool isSubsumed(BoundSwitchLabel switchLabel, ImmutableHashSet<LabelSymbol> reachableLabels)
             {
                 return !reachableLabels.Contains(switchLabel.Label);
             }
 
             // If no switch sections are subsumed, just return
-            if (!switchSections.Any(s => s.SwitchLabels.Any(l => isSubsumed(l))))
+            if (!switchSections.Any(static (s, reachableLabels) => s.SwitchLabels.Any(isSubsumed, reachableLabels), reachableLabels))
             {
                 return;
             }
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var label in oldSection.SwitchLabels)
                 {
                     var newLabel = label;
-                    if (!label.HasErrors && isSubsumed(label) && label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
+                    if (!label.HasErrors && isSubsumed(label, reachableLabels) && label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                     {
                         var syntax = label.Syntax;
                         switch (syntax)
@@ -226,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-
         private BoundSwitchLabel BindSwitchSectionLabel(
             Binder sectionBinder,
             SwitchLabelSyntax node,
@@ -269,8 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CasePatternSwitchLabel:
                     {
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
+
+                        MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation());
+
                         BoundPattern pattern = sectionBinder.BindPattern(
-                            matchLabelSyntax.Pattern, SwitchGoverningType, SwitchGoverningValEscape, permitDesignations: true, node.HasErrors, diagnostics);
+                            matchLabelSyntax.Pattern, SwitchGoverningType, permitDesignations: true, node.HasErrors, diagnostics);
                         if (matchLabelSyntax.Pattern is ConstantPatternSyntax p)
                             reportIfConstantNamedUnderscore(pattern, p.Expression);
 

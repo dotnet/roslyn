@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             public bool MoveNext() => ++_position < _virtualCharSequence.Length;
             public VirtualChar Current => _virtualCharSequence[_position];
 
-            void IEnumerator.Reset()
+            public void Reset()
                 => _position = -1;
 
             object? IEnumerator.Current => this.Current;
-            void IDisposable.Dispose() { }
+            public void Dispose() { }
         }
     }
 }

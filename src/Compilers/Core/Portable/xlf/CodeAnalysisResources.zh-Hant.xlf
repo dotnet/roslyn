@@ -17,6 +17,21 @@
         <target state="translated">包含類型 '{0}' 的組件參考了 .NET Framework，此情形不受支援。</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">不合法的內建運算子名稱 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">不支援的內建運算子: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">'{0}' 不是有效的內建運算子名稱</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">變更必須在 SourceText 的界限內</target>
@@ -41,18 +56,38 @@
       </trans-unit>
       <trans-unit id="EncCannotResumeSuspendedAsyncMethod">
         <source>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</source>
-        <target state="new">Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</target>
+        <target state="translated">編輯和繼續無法繼續暫停的非同步方法，因為對應的 await 運算式已刪除</target>
         <note />
       </trans-unit>
       <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
         <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
-        <target state="new">Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</target>
+        <target state="translated">編輯和繼續無法繼續暫停的列舉程式，因為對應的 yield return 陳述式已刪除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="translated">產生器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="translated">產生器執行時間總計: {0}秒。</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
         <target state="translated">位置 {2} 的 hintName {0} 包含無效的字元 '{1}'。</target>
         <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidSegment">
+        <source>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</source>
+        <target state="new">The hintName '{0}' contains an invalid segment '{1}' at position {2}.</target>
+        <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameNotWithinCurrentDirectory">
+        <source>The hintName '{0}' is not within the current directory.</source>
+        <target state="new">The hintName '{0}' is not within the current directory.</target>
+        <note />
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>

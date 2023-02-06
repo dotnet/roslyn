@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             var container = (SyntaxNode)typeDecl ?? eventHookupExpression.GetAncestor<CompilationUnitSyntax>();
 
             var codeGenerator = document.Document.GetRequiredLanguageService<ICodeGenerationService>();
-            var codeGenOptions = options.GetInfo(new CodeGenerationContext(afterThisLocation: eventHookupExpression.GetLocation()), document.Project);
+            var codeGenOptions = codeGenerator.GetInfo(new CodeGenerationContext(afterThisLocation: eventHookupExpression.GetLocation()), options, root.SyntaxTree.Options);
             var newContainer = codeGenerator.AddMethod(container, generatedMethodSymbol, codeGenOptions, cancellationToken);
 
             return root.ReplaceNode(container, newContainer);

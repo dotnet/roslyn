@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _validResult As MemberResolutionResult(Of TMember)?
         Private ReadOnly _bestResult As MemberResolutionResult(Of TMember)?
-        Private _results As ImmutableArray(Of MemberResolutionResult(Of TMember))
+        Private ReadOnly _results As ImmutableArray(Of MemberResolutionResult(Of TMember))
 
         Friend Sub New(
             results As ImmutableArray(Of MemberResolutionResult(Of TMember)),

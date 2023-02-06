@@ -98,7 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
             bool hasBody = hasBlockBody || _isExpressionBodied;
             _hasAnyBody = hasBody;
-            _refKind = syntax.ReturnType.GetRefKind();
+            Debug.Assert(syntax.ReturnType is not ScopedTypeSyntax);
+            _refKind = syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics);
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
@@ -137,11 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: true,
                 allowThis: true,
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            RefKind refKind;
-            var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+            var returnTypeSyntax = syntax.ReturnType;
+            Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
+
+            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRef();
             TypeWithAnnotations returnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             // span-like types are returnable in general
@@ -516,13 +519,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
-            return ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForTypeDeclaration: false, isForInterfaceMember: ContainingType.IsInterface,
+            return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: ContainingType.IsInterface,
                                                                     syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, Locations[0], diagnostics, out _);
         }
 
         private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax.TypeParameterList != null);
+
+            MessageID.IDS_FeatureGenerics.CheckFeatureAvailability(diagnostics, syntax.TypeParameterList, syntax.TypeParameterList.LessThanToken.GetLocation());
 
             OverriddenMethodTypeParameterMapBase typeMap = null;
             if (this.IsOverride)
@@ -699,6 +704,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
+
+            if (SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
+                constructedDefinition,
+                implementation,
+                diagnostics,
+                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
+                {
+                    diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                },
+                extraArgument: (object)null,
+                allowVariance: false,
+                invokedAsExtensionMethod: false))
+            {
+                hasTypeDifferences = true;
+            }
 
             if (SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 implementation.DeclaringCompilation,

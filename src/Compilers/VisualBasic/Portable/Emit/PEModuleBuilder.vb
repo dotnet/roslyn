@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -25,7 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly _metadataName As String
 
         Private _lazyExportedTypes As ImmutableArray(Of Cci.ExportedType)
-        Private ReadOnly _lazyNumberOfTypesFromOtherModules As Integer
         Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
         Private _lazyDefaultNamespace As String
 
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             If asmIdentity.IsStrongName AndAlso Not refIdentity.IsStrongName AndAlso
                asmRef.Identity.ContentType <> Reflection.AssemblyContentType.WindowsRuntime Then
-                ' Dev12 reported error, we have changed it to a warning to allow referencing libraries 
+                ' Dev12 reported error, we have changed it to a warning to allow referencing libraries
                 ' built for platforms that don't support strong names.
                 diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.WRN_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton)
             End If
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetSourceAssemblyAttributes(isRefAssembly As Boolean) As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.ContainingSourceAssembly.GetAssemblyCustomAttributesToEmit(Me.CompilationState,
+            Return SourceModule.ContainingSourceAssembly.GetAssemblyCustomAttributesToEmit(Me,
                                                                                            isRefAssembly,
                                                                                            emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
         End Function
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.GetCustomAttributesToEmit(Me.CompilationState)
+            Return SourceModule.GetCustomAttributesToEmit(Me)
         End Function
 
         Public NotOverridable Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)
@@ -209,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Case SymbolKind.Namespace
                         location = GetSmallestSourceLocationOrNull(symbol)
 
-                        ' filtering out synthesized symbols not having real source 
+                        ' filtering out synthesized symbols not having real source
                         ' locations such as anonymous types, my types, etc...
                         If location IsNot Nothing Then
                             For Each member In symbol.GetMembers()
@@ -444,7 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' exported types are not emitted in EnC deltas (hence generation 0):
                 Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName(
                     DirectCast(typeReference, Cci.INamespaceTypeReference).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(DirectCast(typeReference, Cci.INamedTypeReference), generation:=0))
+                    Cci.MetadataWriter.GetMetadataName(DirectCast(typeReference, Cci.INamedTypeReference), generation:=0))
 
                 ' First check against types declared in the primary module
                 If ContainsTopLevelType(fullEmittedName) Then
@@ -656,7 +656,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Case SymbolKind.Namespace
                         Dim location = GetSmallestSourceLocationOrNull(symbol)
 
-                        ' filtering out synthesized symbols not having real source 
+                        ' filtering out synthesized symbols not having real source
                         ' locations such as anonymous types, my types, etc...
                         If location IsNot Nothing Then
                             For Each member In symbol.GetMembers()
@@ -739,7 +739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Public Function JITOptimizationIsDisabled(methodSymbol As MethodSymbol) As Boolean
-            Debug.Assert(methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
+            Debug.Assert(methodSymbol Is methodSymbol.OriginalDefinition)
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
 

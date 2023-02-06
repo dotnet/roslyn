@@ -7,15 +7,21 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options;assembly=Microsoft.VisualStudio.LanguageServices.Implementation"
     xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.CSharp.Options"
+    xmlns:system="clr-namespace:System;assembly=mscorlib"
     mc:Ignorable="d" d:DesignHeight="500" d:DesignWidth="500">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ScrollViewer.Resources>
+            <system:Boolean x:Key="True">True</system:Boolean>
+            <system:Boolean x:Key="False">False</system:Boolean>
+        </ScrollViewer.Resources>
+        
         <!-- We have a Margin here, to get some distance to the Scrollbar See: https://github.com/dotnet/roslyn/issues/14979-->
         <StackPanel Margin="0,0,3,0">
             <GroupBox x:Uid="AnalysisGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Analysis}">
                 <StackPanel>
-                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_Run_background_code_analysis_for}"/>
+                    <Label x:Name="Run_background_code_analysis_for_label" Content="{x:Static local:AdvancedOptionPageStrings.Option_Run_background_code_analysis_for}"/>
                     <StackPanel>
                         <ComboBox x:Name="Run_background_code_analysis_for" IsEditable="false" AutomationProperties.Name="{x:Static local:AdvancedOptionPageStrings.Option_Run_background_code_analysis_for}">
                             <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_None}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_None_Tag}" />
@@ -24,7 +30,7 @@
                             <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution_Tag}" />
                         </ComboBox>
                     </StackPanel>
-                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_compiler_errors_and_warnings_for}"/>
+                    <Label x:Name="Show_compiler_errors_and_warnings_for_label" Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_compiler_errors_and_warnings_for}"/>
                     <StackPanel>
                         <ComboBox x:Name="Show_compiler_errors_and_warnings_for" IsEditable="false" AutomationProperties.Name="{x:Static local:AdvancedOptionPageStrings.Option_Show_compiler_errors_and_warnings_for}">
                             <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_None}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_None_Tag}" />
@@ -55,6 +61,9 @@
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
 
+                    <CheckBox x:Name="Analyze_source_generated_files"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
+
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
 
@@ -69,6 +78,8 @@
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
                 <StackPanel>
+                    <CheckBox x:Name="Enable_navigation_to_sourcelink_and_embedded_sources"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_sourcelink_and_embedded_sources}" />
                     <CheckBox x:Name="Enable_navigation_to_decompiled_sources"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
                     <CheckBox x:Name="Always_use_default_symbol_servers_for_navigation"
@@ -83,6 +94,16 @@
                 <StackPanel>
                     <CheckBox x:Name="Rename_asynchronously_exerimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Rename_asynchronously_experimental}" />
+
+                    <Label x:Name="Rename_UI_setting_label" Content="{x:Static local:AdvancedOptionPageStrings.Where_should_the_rename_UI_be_shown}" />
+                    <ComboBox x:Name="Rename_UI_setting">
+                        <ComboBoxItem x:Name="Rename_UI_inline"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_UI_inline}"
+                            Tag="{StaticResource True}" />
+                        <ComboBoxItem x:Name="Rename_UI_dashboard"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_UI_as_dashboard_in_top_right}" 
+                            Tag="{StaticResource False}" />
+                    </ComboBox>
                 </StackPanel>
             </GroupBox>
             

@@ -14,13 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceSimpleParameterSymbol : SourceParameterSymbol
     {
         public SourceSimpleParameterSymbol(
-           Symbol owner,
-           TypeWithAnnotations parameterType,
-           int ordinal,
-           RefKind refKind,
-           string name,
-           ImmutableArray<Location> locations)
-           : base(owner, parameterType, ordinal, refKind, name, locations)
+            Symbol owner,
+            TypeWithAnnotations parameterType,
+            int ordinal,
+            RefKind refKind,
+            ScopedKind scope,
+            string name,
+            ImmutableArray<Location> locations)
+            : base(owner, parameterType, ordinal, refKind, scope, name, locations)
         {
         }
 
@@ -127,5 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ConstantValue.NotAvailable; }
         }
+
+        internal override ScopedKind EffectiveScope => CalculateEffectiveScopeIgnoringAttributes();
+
+        internal override bool HasUnscopedRefAttribute => false;
     }
 }

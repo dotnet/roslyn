@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 return constructorParams.All(parameter => parameter.RefKind == RefKind.None) &&
                     !constructor.IsImplicitlyDeclared &&
-                    !constructorParams.Any(p => p.IsParams) &&
+                    !constructorParams.Any(static p => p.IsParams) &&
                     !SelectedMembersAlreadyExistAsParameters(parameterNamesForSelectedMembers, constructorParams);
             }
 

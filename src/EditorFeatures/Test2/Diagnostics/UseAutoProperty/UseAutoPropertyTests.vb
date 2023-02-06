@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
     Public Class UseAutoPropertyTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
@@ -21,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
             End If
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <Fact>
         Public Async Function TestMultiFile_CSharp() As Task
             Dim input =
                 <Workspace>
@@ -59,7 +60,7 @@ partial class C
                 })
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <Fact>
         Public Async Function TestMultiFile_VisualBasic() As Task
             Dim input =
                 <Workspace>
@@ -97,8 +98,7 @@ end class
                 })
         End Function
 
-        <WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <Fact, WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
         Public Async Function TestLinkedFile() As Task
             Dim input =
                 <Workspace>
@@ -144,6 +144,101 @@ partial class C
                         Assert.Equal(expectedText, text)
                     Next
                 End Function)
+        End Function
+
+        <Fact, WorkItem(66320, "https://github.com/dotnet/roslyn/issues/66320")>
+        Public Async Function TestChangeReferencesInMultipleFiles_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.cs'>
+partial class C
+{
+    private int test = 0;
+
+    public int $$TestProp { get => test; set => test = value; }
+}
+                        </Document>
+                        <Document FilePath='Test2.cs'>
+partial class C
+{
+    private void Bla()
+    {
+        Console.WriteLine(test);
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Await TestAsync(input, fileNameToExpected:=
+                 New Dictionary(Of String, String) From {
+                    {"Test1.cs",
+<text>
+partial class C
+{
+    public int TestProp { get; set; } = 0;
+}
+</text>.Value.Trim()},
+                    {"Test2.cs",
+<text>
+partial class C
+{
+    private void Bla()
+    {
+        Console.WriteLine(TestProp);
+    }
+}
+</text>.Value.Trim()}
+                })
+        End Function
+
+        <Fact>
+        Public Async Function TestChangeReferencesInMultipleFiles_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='Visual Basic' AssemblyName='CSharpAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.vb'>
+partial class C
+    dim $$test as Integer
+
+    property TestProp as Integer
+        get
+            return test
+        end get
+        set(value as Integer)
+            test = value
+        end set
+    end property
+end class
+                        </Document>
+                        <Document FilePath='Test2.vb'>
+partial class C
+    private sub Bla()
+        Console.WriteLine(test)
+    end sub
+end class
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Await TestAsync(input, fileNameToExpected:=
+                 New Dictionary(Of String, String) From {
+                    {"Test1.vb",
+<text>
+partial class C
+    property TestProp as Integer
+end class
+</text>.Value.Trim()},
+                    {"Test2.vb",
+<text>
+partial class C
+    private sub Bla()
+        Console.WriteLine(TestProp)
+    end sub
+end class
+</text>.Value.Trim()}
+                })
         End Function
     End Class
 End Namespace

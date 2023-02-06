@@ -7,9 +7,19 @@
         <target state="translated">Agregar las directivas using que faltan al pegar</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+      <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
         <target state="translated">Permitir una línea en blanco después de dos puntos en el inicializador del constructor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">Permitir línea en blanco después del token en la cláusula de expresión de flecha</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="translated">Permitir línea en blanco después del token en la expresión condicional</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -59,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
         <source>Collapse usings on file open</source>
-        <target state="new">Collapse usings on file open</target>
+        <target state="translated">Contraer instrucciones Using al abrir el archivo</target>
         <note />
       </trans-unit>
       <trans-unit id="Completion">
@@ -100,6 +110,16 @@
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
         <target state="translated">Insertar // al comienzo de las líneas nuevas al escribir comentarios //</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
+        <source>Insert space between called method name and its opening parenthesis</source>
+        <target state="translated">Insertar espacio entre el nombre del método llamado y el paréntesis de apertura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">Insertar espacio entre el nombre del método y el paréntesis de apertura</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
@@ -180,6 +200,11 @@
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
         <target state="translated">Mostrar elementos de espacios de nombres no importados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience_experimental">
+        <source>Show new snippet experience (experimental)</source>
+        <target state="translated">Mostrar nueva experiencia de fragmento de código (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -397,19 +422,9 @@
         <target state="translated">Insertar espacio entre paréntesis vacíos de la lista de argumentos</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Insertar espacio entre el nombre del método y el paréntesis de apertura</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
         <source>Insert space within empty parameter list parentheses</source>
         <target state="translated">Insertar espacio entre paréntesis vacíos de la lista de parámetros</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Insertar espacio entre el nombre del método y el paréntesis de apertura</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">

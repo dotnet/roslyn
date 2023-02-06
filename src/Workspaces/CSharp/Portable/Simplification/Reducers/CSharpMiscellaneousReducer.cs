@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         return node;
                     }
 
-                    if (node.Parent.IsParentKind(SyntaxKind.IfStatement, SyntaxKind.ElseClause))
+                    if (node.Parent?.Parent is (kind: SyntaxKind.IfStatement or SyntaxKind.ElseClause))
                     {
                         // Braces are not removed from more complicated 'if' sequences
                         return node;

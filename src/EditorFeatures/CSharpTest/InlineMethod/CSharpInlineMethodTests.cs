@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                     Assert.True(false, "Can't find proper marks that contains inlined method.");
                 }
 
-                var firstPartitionBeforeMarkUp = expectedMarkUpForCallee.Substring(0, firstMarkerIndex);
+                var firstPartitionBeforeMarkUp = expectedMarkUpForCallee[..firstMarkerIndex];
                 var inlinedMethod = expectedMarkUpForCallee.Substring(firstMarkerIndex + 2, secondMarkerIndex - firstMarkerIndex - 2);
-                var lastPartitionAfterMarkup = expectedMarkUpForCallee.Substring(secondMarkerIndex + 2);
+                var lastPartitionAfterMarkup = expectedMarkUpForCallee[(secondMarkerIndex + 2)..];
 
                 await TestInRegularScriptsInDifferentFilesAsync(
                     initialMarkUpForCaller,
@@ -130,9 +130,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                     Assert.True(false, "Can't find proper marks that contains inlined method.");
                 }
 
-                var firstPartitionBeforeMarkUp = expectedMarkUp.Substring(0, firstMarkerIndex);
+                var firstPartitionBeforeMarkUp = expectedMarkUp[..firstMarkerIndex];
                 var inlinedMethod = expectedMarkUp.Substring(firstMarkerIndex + 2, secondMarkerIndex - firstMarkerIndex - 2);
-                var lastPartitionAfterMarkup = expectedMarkUp.Substring(secondMarkerIndex + 2);
+                var lastPartitionAfterMarkup = expectedMarkUp[(secondMarkerIndex + 2)..];
 
                 await TestInRegularAndScriptInTheSameFileAsync(
                     initialMarkUp,
@@ -1697,8 +1697,8 @@ public class TestClass
 ##}");
 
         [Fact]
-        public Task TestAwaitExpresssion4() =>
-            TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
+        public Task TestAwaitExpresssion4()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -1822,8 +1822,8 @@ public class TestClass
         }
 
         [Fact]
-        public Task TestAwaitExpresssion6() =>
-            TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
+        public Task TestAwaitExpresssion6()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass

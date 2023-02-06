@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -18,11 +19,13 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.SolutionCrawler.SolutionCrawlerRegistrationService.WorkCoordinator;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 {
@@ -151,6 +154,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             await WaitWaiterAsync(workspace.ExportProvider);
 
             var worker = await ExecuteOperation(workspace, w => w.ClearSolution());
+            await WaitWaiterAsync(workspace.ExportProvider);
+
             Assert.Equal(10, worker.InvalidateDocumentIds.Count);
         }
 
@@ -476,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             workspace.OnSolutionAdded(solutionInfo);
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(Analyzer.TestOption, false))));
+            var worker = await ExecuteOperation(workspace, w => w.GlobalOptions.SetGlobalOption(Analyzer.TestOption, false));
 
             Assert.Equal(10, worker.SyntaxDocumentIds.Count);
             Assert.Equal(10, worker.DocumentIds.Count);
@@ -495,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(BackgroundAnalysisScope.ActiveFile, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.OpenFiles;
-            var worker = await ExecuteOperation(workspace, w => w.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), newAnalysisScope));
+            var worker = await ExecuteOperation(workspace, w => w.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope));
 
             Assert.Equal(newAnalysisScope, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
             Assert.Equal(10, worker.SyntaxDocumentIds.Count);
@@ -514,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(BackgroundAnalysisScope.ActiveFile, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.FullSolution;
-            var worker = await ExecuteOperation(workspace, w => w.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), newAnalysisScope));
+            var worker = await ExecuteOperation(workspace, w => w.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope));
 
             Assert.Equal(newAnalysisScope, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
             Assert.Equal(10, worker.SyntaxDocumentIds.Count);
@@ -822,8 +827,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var listenerProvider = GetListenerProvider(workspace.ExportProvider);
 
             // start an operation that allows an expedited wait to cover the remainder of the delayed operations in the test
-            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler).BeginAsyncOperation("Test operation");
-            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy).BeginAsyncOperation("Test operation");
+            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawlerLegacy).ExpeditedWaitAsync();
 
             workspace.ChangeDocument(document.Id, SourceText.From("//"));
             if (expectedDocumentSyntaxEvents > 0 || expectedDocumentSemanticEvents > 0)
@@ -877,8 +882,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var listenerProvider = GetListenerProvider(workspace.ExportProvider);
 
             // start an operation that allows an expedited wait to cover the remainder of the delayed operations in the test
-            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler).BeginAsyncOperation("Test operation");
-            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy).BeginAsyncOperation("Test operation");
+            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawlerLegacy).ExpeditedWaitAsync();
 
             workspace.ChangeDocument(document.Id, SourceText.From("//"));
             if (expectedDocumentSyntaxEvents > 0 || expectedDocumentSemanticEvents > 0)
@@ -977,14 +982,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             {
                 (BackgroundAnalysisScope.ActiveFile, _) => 1,
                 (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution or BackgroundAnalysisScope.None, _) => 0,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var expectedDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
                 (BackgroundAnalysisScope.ActiveFile, _) => 1,
                 (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution or BackgroundAnalysisScope.None, _) => 0,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             // Switch to another active source document and verify expected document analysis callbacks
@@ -1004,6 +1009,96 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedSyntaxDocumentEvents, worker.SyntaxDocumentIds.Count);
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
             Assert.Equal(0, worker.InvalidateDocumentIds.Count);
+        }
+
+        [Fact]
+        public async Task DocumentOpenedClosedEvents()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
+
+            var document = new TestHostDocument();
+            var project = new TestHostProject(workspace, document);
+            workspace.AddTestProject(project);
+
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var docOpened = false;
+            var docClosed = false;
+            var textDocOpened = false;
+            var textDocClosed = false;
+
+            workspace.DocumentOpened += (o, e) => docOpened = true;
+            workspace.DocumentClosed += (o, e) => docClosed = true;
+
+            workspace.TextDocumentOpened += (o, e) => textDocOpened = true;
+            workspace.TextDocumentClosed += (o, e) => textDocClosed = true;
+
+            var id = workspace.Documents.First().Id;
+            var worker = await ExecuteOperation(workspace, w => w.OpenDocument(id));
+            Assert.True(docOpened);
+            Assert.True(textDocOpened);
+            Assert.Equal(1, worker.OpenedDocumentIds.Count);
+
+            worker = await ExecuteOperation(workspace, w => w.CloseDocument(id));
+            Assert.True(docClosed);
+            Assert.True(textDocClosed);
+            Assert.Equal(1, worker.ClosedDocumentIds.Count);
+        }
+
+        [Fact]
+        public async Task AdditionalDocumentOpenedClosedEvents()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
+
+            var document = new TestHostDocument();
+            var project = new TestHostProject(workspace, additionalDocuments: new[] { document });
+            workspace.AddTestProject(project);
+
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var opened = false;
+            var closed = false;
+
+            workspace.TextDocumentOpened += (o, e) => opened = true;
+            workspace.TextDocumentClosed += (o, e) => closed = true;
+
+            var id = workspace.AdditionalDocuments.First().Id;
+            var worker = await ExecuteOperation(workspace, w => w.OpenAdditionalDocument(id));
+            Assert.True(opened);
+            Assert.Equal(1, worker.OpenedNonSourceDocumentIds.Count);
+
+            worker = await ExecuteOperation(workspace, w => w.CloseAdditionalDocument(id));
+            Assert.True(closed);
+            // TODO: Below check seems to fail occassionally. We should investigate and re-enable it.
+            //Assert.Equal(1, worker.ClosedNonSourceDocumentIds.Count);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/62479")]
+        public async Task AnalyzerConfigDocumentOpenedClosedEvents()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
+
+            var document = new TestHostDocument();
+            var project = new TestHostProject(workspace, analyzerConfigDocuments: new[] { document });
+            workspace.AddTestProject(project);
+
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var opened = false;
+            var closed = false;
+
+            workspace.TextDocumentOpened += (o, e) => opened = true;
+            workspace.TextDocumentClosed += (o, e) => closed = true;
+
+            var id = workspace.AnalyzerConfigDocuments.First().Id;
+            var worker = await ExecuteOperation(workspace, w => w.OpenAnalyzerConfigDocument(id));
+            Assert.True(opened);
+            Assert.Equal(1, worker.OpenedNonSourceDocumentIds.Count);
+
+            worker = await ExecuteOperation(workspace, w => w.CloseAnalyzerConfigDocument(id));
+            Assert.True(closed);
+            // TODO: Below check seems to fail occassionally. We should investigate and re-enable it.
+            //Assert.Equal(1, worker.ClosedNonSourceDocumentIds.Count);
         }
 
         [Fact]
@@ -1213,6 +1308,69 @@ class C
             Assert.Equal(3, worker.DocumentIds.Count);
         }
 
+        [Fact]
+        public async Task SpecificAnalyzers_AllThenSpecific()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var analyzer = new Analyzer(workspace.GlobalOptions);
+            var analyzer2 = new Analyzer2();
+            var allAnalyzers = ImmutableArray.Create<IIncrementalAnalyzer>(analyzer, analyzer2);
+
+            var item = new WorkItem(documentId, "C#", InvocationReasons.DocumentAdded, isLowPriority: false, analyzer: null, EmptyAsyncToken.Instance);
+
+            item = item.With(item.InvocationReasons, item.ActiveMember, specificAnalyzers: ImmutableHashSet.Create<IIncrementalAnalyzer>(analyzer2), item.IsRetry, item.AsyncToken);
+
+            Assert.True(item.SpecificAnalyzers.IsEmpty);
+            Assert.Equal(2, item.GetApplicableAnalyzers(allAnalyzers).Count());
+        }
+
+        [Fact]
+        public async Task SpecificAnalyzers_SpecificThenAll()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var analyzer = new Analyzer(workspace.GlobalOptions);
+            var analyzer2 = new Analyzer2();
+            var allAnalyzers = ImmutableArray.Create<IIncrementalAnalyzer>(analyzer, analyzer2);
+
+            var item = new WorkItem(documentId, "C#", InvocationReasons.DocumentAdded, isLowPriority: false, analyzer: analyzer, EmptyAsyncToken.Instance);
+
+            item = item.With(item.InvocationReasons, item.ActiveMember, specificAnalyzers: ImmutableHashSet<IIncrementalAnalyzer>.Empty, item.IsRetry, item.AsyncToken);
+
+            Assert.True(item.SpecificAnalyzers.IsEmpty);
+            Assert.Equal(2, item.GetApplicableAnalyzers(allAnalyzers).Count());
+        }
+
+        [Fact]
+        public async Task SpecificAnalyzers_TwoSpecific()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var analyzer = new Analyzer(workspace.GlobalOptions);
+            var analyzer2 = new Analyzer2();
+            var allAnalyzers = ImmutableArray.Create<IIncrementalAnalyzer>(analyzer, analyzer2);
+
+            var item = new WorkItem(documentId, "C#", InvocationReasons.DocumentAdded, isLowPriority: false, analyzer: analyzer, EmptyAsyncToken.Instance);
+
+            item = item.With(item.InvocationReasons, item.ActiveMember, specificAnalyzers: ImmutableHashSet.Create<IIncrementalAnalyzer>(analyzer2), item.IsRetry, item.AsyncToken);
+
+            Assert.Equal(2, item.SpecificAnalyzers.Count);
+            Assert.Equal(2, item.GetApplicableAnalyzers(allAnalyzers).Count());
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23657")]
         public async Task ProgressReporterTest()
         {
@@ -1267,8 +1425,7 @@ class C
             registrationService.Unregister(workspace);
         }
 
-        [Fact]
-        [WorkItem(26244, "https://github.com/dotnet/roslyn/issues/26244")]
+        [Fact, WorkItem(26244, "https://github.com/dotnet/roslyn/issues/26244")]
         public async Task FileFromSameProjectTogetherTest()
         {
             var projectId1 = ProjectId.CreateNewId();
@@ -1303,8 +1460,8 @@ class C
             var listenerProvider = GetListenerProvider(workspace.ExportProvider);
 
             // start an operation that allows an expedited wait to cover the remainder of the delayed operations in the test
-            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler).BeginAsyncOperation("Test operation");
-            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy).BeginAsyncOperation("Test operation");
+            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawlerLegacy).ExpeditedWaitAsync();
 
             // we want to test order items processed by solution crawler.
             // but since everything async, lazy and cancellable, order is not 100% deterministic. an item might 
@@ -1320,7 +1477,7 @@ class C
             // let the test not care about cancellation or work not enqueued yet.
 
             // block solution cralwer from processing.
-            var globalOperation = workspace.Services.GetService<IGlobalOperationNotificationService>();
+            var globalOperation = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOperationNotificationService>();
             using (var operation = globalOperation.Start("Block SolutionCrawler"))
             {
                 // make sure global operaiton is actually started
@@ -1336,7 +1493,7 @@ class C
                 await workspaceWaiter.ExpeditedWaitAsync();
 
                 // now wait for semantic processor to finish
-                var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
+                var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawlerLegacy);
 
                 // first, wait for first work to be queued.
                 //
@@ -1408,7 +1565,7 @@ class C
             Assert.False(worker.WaitForCancellation);
             Assert.False(worker.BlockedRun);
             var service = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
-            worker.Reset();
+            worker.Reset(workspace);
 
             service.Register(workspace);
 
@@ -1449,7 +1606,7 @@ class C
             var workspaceWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.Workspace);
             await workspaceWaiter.ExpeditedWaitAsync();
 
-            var solutionCrawlerWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.SolutionCrawler);
+            var solutionCrawlerWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.SolutionCrawlerLegacy);
             await solutionCrawlerWaiter.ExpeditedWaitAsync();
         }
 
@@ -1513,7 +1670,7 @@ class C
 
         private static void MakeDocumentActive(Document document)
         {
-            var documentTrackingService = (TestDocumentTrackingService)document.Project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var documentTrackingService = (TestDocumentTrackingService)document.Project.Solution.Services.GetRequiredService<IDocumentTrackingService>();
             documentTrackingService.SetActiveDocument(document.Id);
         }
 
@@ -1525,7 +1682,9 @@ class C
 
         private class WorkCoordinatorWorkspace : TestWorkspace
         {
-            private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService)).AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider));
+            private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures
+                .AddParts(typeof(TestDocumentTrackingService))
+                .AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider));
 
             private readonly IAsynchronousOperationWaiter _workspaceWaiter;
             private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;
@@ -1534,7 +1693,7 @@ class C
                 : base(composition: incrementalAnalyzer is null ? s_composition : s_composition.AddParts(incrementalAnalyzer), workspaceKind: workspaceKind, disablePartialSolutions: disablePartialSolutions)
             {
                 _workspaceWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.Workspace);
-                _solutionCrawlerWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.SolutionCrawler);
+                _solutionCrawlerWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.SolutionCrawlerLegacy);
 
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);
@@ -1544,8 +1703,8 @@ class C
             {
                 var workspace = new WorkCoordinatorWorkspace(workspaceKind, disablePartialSolutions, incrementalAnalyzer);
 
-                var globalOptions = ((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IGlobalOptionService>();
-                globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
+                var globalOptions = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
+                globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
 
                 return workspace;
             }
@@ -1629,7 +1788,7 @@ class C
 
         private class Analyzer : IIncrementalAnalyzer
         {
-            public static readonly Option2<bool> TestOption = new Option2<bool>("TestOptions", "TestOption", defaultValue: true);
+            public static readonly Option2<bool> TestOption = new Option2<bool>("TestOptions_TestOption", defaultValue: true);
 
             public readonly ManualResetEventSlim BlockEvent;
             public readonly ManualResetEventSlim RunningEvent;
@@ -1641,7 +1800,15 @@ class C
 
             public readonly HashSet<DocumentId> InvalidateDocumentIds = new HashSet<DocumentId>();
             public readonly HashSet<ProjectId> InvalidateProjectIds = new HashSet<ProjectId>();
+
+            public readonly HashSet<DocumentId> OpenedDocumentIds = new HashSet<DocumentId>();
+            public readonly HashSet<DocumentId> OpenedNonSourceDocumentIds = new HashSet<DocumentId>();
+            public readonly HashSet<DocumentId> ClosedDocumentIds = new HashSet<DocumentId>();
+            public readonly HashSet<DocumentId> ClosedNonSourceDocumentIds = new HashSet<DocumentId>();
+
             private readonly IGlobalOptionService _globalOptions;
+
+            private Workspace _workspace;
 
             public Analyzer(IGlobalOptionService globalOptions, bool waitForCancellation = false, bool blockedRun = false)
             {
@@ -1651,14 +1818,34 @@ class C
 
                 this.BlockEvent = new ManualResetEventSlim(initialState: false);
                 this.RunningEvent = new ManualResetEventSlim(initialState: false);
+
+                _globalOptions.OptionChanged += GlobalOptionChanged;
+            }
+
+            public void Shutdown()
+            {
+                _globalOptions.OptionChanged -= GlobalOptionChanged;
+            }
+
+            private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
+            {
+                if (e.Option == TestOption ||
+                    e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
+                    e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption)
+                {
+                    var service = _workspace.Services.GetService<ISolutionCrawlerService>();
+                    service?.Reanalyze(_workspace, this, projectIds: null, documentIds: null, highPriority: false);
+                }
             }
 
             public bool WaitForCancellation { get; }
 
             public bool BlockedRun { get; }
 
-            public void Reset()
+            public void Reset(Workspace workspace)
             {
+                _workspace = workspace;
+
                 BlockEvent.Reset();
                 RunningEvent.Reset();
 
@@ -1669,6 +1856,11 @@ class C
 
                 InvalidateDocumentIds.Clear();
                 InvalidateProjectIds.Clear();
+
+                OpenedDocumentIds.Clear();
+                ClosedDocumentIds.Clear();
+                OpenedNonSourceDocumentIds.Clear();
+                ClosedNonSourceDocumentIds.Clear();
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -1730,6 +1922,30 @@ class C
                 return Task.CompletedTask;
             }
 
+            public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+            {
+                OpenedDocumentIds.Add(document.Id);
+                return Task.CompletedTask;
+            }
+
+            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+            {
+                ClosedDocumentIds.Add(document.Id);
+                return Task.CompletedTask;
+            }
+
+            public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            {
+                OpenedNonSourceDocumentIds.Add(textDocument.Id);
+                return Task.CompletedTask;
+            }
+
+            public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            {
+                ClosedNonSourceDocumentIds.Add(textDocument.Id);
+                return Task.CompletedTask;
+            }
+
             private void Process(DocumentId _, CancellationToken cancellationToken)
             {
                 if (BlockedRun && !RunningEvent.IsSet)
@@ -1749,30 +1965,11 @@ class C
                 }
             }
 
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return e.Option == TestOption
-                    || e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption
-                    || e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption;
-            }
-
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
-            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
-            public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
-            public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
             public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
@@ -1798,7 +1995,6 @@ class C
             }
 
             #region unused 
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e) => false;
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
@@ -1819,6 +2015,10 @@ class C
 
             public int Priority => 1;
 
+            public void Shutdown()
+            {
+            }
+
             #endregion
         }
 
@@ -1831,7 +2031,7 @@ class C
             sb.AppendLine("workspace");
             sb.AppendLine(workspaceWaiter.Trace());
 
-            var solutionCrawlerWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawler).Value as TestAsynchronousOperationListener;
+            var solutionCrawlerWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawlerLegacy).Value as TestAsynchronousOperationListener;
             sb.AppendLine("solutionCrawler");
             sb.AppendLine(solutionCrawlerWaiter.Trace());
 

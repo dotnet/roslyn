@@ -10,10 +10,11 @@ Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text.Adornments
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <Trait(Traits.Feature, Traits.Features.QuickInfo)>
     Public Class IntellisenseQuickInfoBuilderTests_Links
         Inherits AbstractIntellisenseQuickInfoBuilderTests
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfTheory>
         <InlineData("see")>
         <InlineData("a")>
         Public Async Function QuickInfoForPlainHyperlink(tag As String) As Task
@@ -60,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfTheory>
         <InlineData("see")>
         <InlineData("a")>
         Public Async Function QuickInfoForHyperlinkWithText(tag As String) As Task

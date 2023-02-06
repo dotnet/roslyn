@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <NonShipping>true</NonShipping>
     <UseAppHost>false</UseAppHost>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>  
   <ItemGroup>
     <Compile Include="..\..\Analyzers\Core\Analyzers\EnforceOnBuild.cs" Link="EnforceOnBuild.cs" />

@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return mangleName;
             }
         }
+
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
+
         /// <summary>
         /// Get the arity of the missing type.
         /// </summary>
@@ -430,7 +433,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-
             public override SpecialType SpecialType
             {
                 get
@@ -441,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override int GetHashCode()

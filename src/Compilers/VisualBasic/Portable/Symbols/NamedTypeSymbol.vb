@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Therefore it is a good practice to avoid type names with dots.
                 Debug.Assert(Me.IsErrorType OrElse Not (TypeOf Me Is SourceNamedTypeSymbol) OrElse Not Name.Contains("."), "type name contains dots: " + Name)
 
-                Return If(MangleName, MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity), Name)
+                Return If(MangleName, MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, associatedFileIdentifier:=Nothing), Name)
             End Get
         End Property
 
@@ -424,7 +424,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
             Return constructors.ToImmutableAndFree()
         End Function
-
 
         ''' <summary>
         ''' Returns true if this type is known to be a reference type. It is never the case
@@ -1213,6 +1212,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property INamedTypeSymbol_IsComImport As Boolean Implements INamedTypeSymbol.IsComImport
             Get
                 Return IsComImport
+            End Get
+        End Property
+
+        Private ReadOnly Property INamedTypeSymbol_IsFileLocal As Boolean Implements INamedTypeSymbol.IsFileLocal
+            Get
+                Return False
             End Get
         End Property
 

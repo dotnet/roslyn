@@ -17,6 +17,7 @@ using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 #endif
 
@@ -69,6 +70,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// <inheritdoc cref="SharedVerifierState.Options"/>
             internal OptionsCollection Options => _sharedState.Options;
 
+#if !CODE_STYLE
+            internal CodeActionOptionsProvider CodeActionOptions
+            {
+                get => _sharedState.CodeActionOptions;
+                set => _sharedState.CodeActionOptions = value;
+            }
+#endif
+
             /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
             public string? EditorConfig
             {
@@ -101,8 +110,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
 #if !CODE_STYLE
+
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.GetIdeAnalyzerOptions(project));
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
+
+            protected override CodeRefactoringContext CreateCodeRefactoringContext(Document document, TextSpan span, Action<CodeAction> registerRefactoring, CancellationToken cancellationToken)
+                => new CodeRefactoringContext(document, span, (action, textSpan) => registerRefactoring(action), _sharedState.CodeActionOptions, isBlocking: false, cancellationToken);
 
             /// <summary>
             /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.InProcess"/> if unspecified.

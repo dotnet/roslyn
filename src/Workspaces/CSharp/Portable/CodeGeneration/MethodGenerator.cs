@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -214,19 +215,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             Debug.Assert(method.ExplicitInterfaceImplementations.Any() || method.IsOverride);
 
-            using var _1 = PooledHashSet<string>.GetInstance(out var seenTypeParameters);
-            using var _2 = ArrayBuilder<TypeParameterConstraintClauseSyntax>.GetInstance(out var listOfClauses);
-            foreach (var parameter in method.Parameters)
-            {
-                if (parameter.Type is not ITypeParameterSymbol { NullableAnnotation: NullableAnnotation.Annotated } typeParameter)
-                {
-                    continue;
-                }
+            using var _ = ArrayBuilder<TypeParameterConstraintClauseSyntax>.GetInstance(out var listOfClauses);
 
-                if (!seenTypeParameters.Add(parameter.Type.Name))
-                {
+            var referencedTypeParameters = method.Parameters
+                .SelectMany(p => p.Type.GetReferencedTypeParameters())
+                .Concat(method.ReturnType.GetReferencedTypeParameters())
+                .Where(tp => tp.NullableAnnotation == NullableAnnotation.Annotated)
+                .ToImmutableHashSet();
+
+            foreach (var typeParameter in method.TypeParameters)
+            {
+                if (!referencedTypeParameters.Contains(typeParameter))
                     continue;
-                }
 
                 var constraint = typeParameter switch
                 {
@@ -236,8 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 };
 
                 listOfClauses.Add(SyntaxFactory.TypeParameterConstraintClause(
-                    name: parameter.Type.Name.ToIdentifierName(),
-                    constraints: SyntaxFactory.SingletonSeparatedList(constraint)));
+                    typeParameter.Name.ToIdentifierName(),
+                    SyntaxFactory.SingletonSeparatedList(constraint)));
             }
 
             return SyntaxFactory.List(listOfClauses);
@@ -258,14 +258,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (method.ExplicitInterfaceImplementations.Any())
             {
                 if (method.IsStatic)
-                {
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-                }
 
                 if (CodeGenerationMethodInfo.GetIsUnsafe(method))
-                {
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
-                }
             }
             else
             {
@@ -278,9 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                         // We only generate the abstract keyword in interfaces for static abstract members
                         if (method.IsAbstract)
-                        {
                             tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
-                        }
                     }
                 }
                 else if (destination is not CodeGenerationDestination.CompilationUnit and
@@ -289,59 +283,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                     if (method.IsStatic)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-                    }
 
                     if (method.IsAbstract)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
-                    }
 
                     if (method.IsSealed)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
-                    }
 
                     // Don't show the readonly modifier if the containing type is already readonly
                     // ContainingSymbol is used to guard against methods which are not members of their ContainingType (e.g. lambdas and local functions)
                     if (method.IsReadOnly && (method.ContainingSymbol as INamedTypeSymbol)?.IsReadOnly != true)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
-                    }
 
                     if (method.IsOverride)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
-                    }
 
                     if (method.IsVirtual)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword));
-                    }
 
                     if (CodeGenerationMethodInfo.GetIsPartial(method) && !method.IsAsync)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
-                    }
                 }
                 else if (destination is CodeGenerationDestination.CompilationUnit)
                 {
                     if (method.IsStatic)
-                    {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-                    }
                 }
 
                 if (CodeGenerationMethodInfo.GetIsUnsafe(method))
-                {
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
-                }
 
                 if (CodeGenerationMethodInfo.GetIsNew(method))
-                {
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
-                }
             }
 
             if (destination != CodeGenerationDestination.InterfaceType)

@@ -401,8 +401,7 @@ namespace N2
             Assert.Equal(5, references.Count());
         }
 
-        [WorkItem(4936, "https://github.com/dotnet/roslyn/issues/4936")]
-        [Fact]
+        [Fact, WorkItem(4936, "https://github.com/dotnet/roslyn/issues/4936")]
         public async Task OverriddenMethodsFromPortableToDesktop()
         {
             var solution = CreateWorkspace().CurrentSolution;

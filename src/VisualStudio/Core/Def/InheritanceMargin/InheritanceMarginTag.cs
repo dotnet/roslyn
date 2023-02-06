@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
-    internal class InheritanceMarginTag : IGlyphTag
+    internal class InheritanceMarginTag : IGlyphTag, IEquatable<InheritanceMarginTag>
     {
         /// <summary>
         /// Margin moniker.
@@ -36,13 +36,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// </summary>
         public readonly int LineNumber;
 
-        public readonly Workspace Workspace;
-
-        public InheritanceMarginTag(Workspace workspace, int lineNumber, ImmutableArray<InheritanceMarginItem> membersOnLine)
+        public InheritanceMarginTag(int lineNumber, ImmutableArray<InheritanceMarginItem> membersOnLine)
         {
             Contract.ThrowIfTrue(membersOnLine.IsEmpty);
 
-            Workspace = workspace;
             LineNumber = lineNumber;
             MembersOnLine = membersOnLine;
 
@@ -56,6 +53,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 relationship |= allItems[i].RelationToMember;
 
             Moniker = InheritanceMarginHelpers.GetMoniker(relationship);
+        }
+
+        // Intentionally throwing, we have never supported this facility, and there is no contract around placing
+        // these tags in sets or maps.
+        public override int GetHashCode()
+            => throw new NotImplementedException();
+
+        public override bool Equals(object? obj)
+            => Equals(obj as InheritanceMarginTag);
+
+        public bool Equals(InheritanceMarginTag? other)
+        {
+            return other != null &&
+                this.LineNumber == other.LineNumber &&
+                this.Moniker.Guid == other.Moniker.Guid &&
+                this.Moniker.Id == other.Moniker.Id &&
+                this.MembersOnLine.SequenceEqual(other.MembersOnLine);
         }
     }
 }

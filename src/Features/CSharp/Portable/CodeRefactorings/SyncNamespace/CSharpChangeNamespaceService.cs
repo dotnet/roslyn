@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             SyntaxNode container,
             CancellationToken cancellationToken)
         {
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles
                 || document.IsGeneratedCode(cancellationToken))
             {
                 return default;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             if (!IsSupportedLinkedDocument(document, out var allDocumentIds))
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             if (container is BaseNamespaceDeclarationSyntax namespaceDecl)
                 return CSharpSyntaxGenerator.Instance.GetName(namespaceDecl);
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override SyntaxList<MemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode container)
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             if (container is CompilationUnitSyntax compilationUnit)
                 return compilationUnit.Members;
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                         .WithoutAnnotations(ContainerAnnotation));      // Make sure to remove the annotation we added
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static CompilationUnitSyntax MoveMembersFromNamespaceToGlobal(

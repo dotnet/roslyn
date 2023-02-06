@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertAnonymousTypeToTuple
+    <Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
     Partial Public Class ConvertAnonymousTypeToTupleTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertAnonymousTy
             Return FlattenActions(actions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function ConvertSingleAnonymousType() As Task
             Dim text = "
 class Test
@@ -39,7 +40,7 @@ end class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function NotOnEmptyAnonymousType() As Task
             Await TestMissingInRegularAndScriptAsync("
 class Test
@@ -50,7 +51,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function NotOnSingleFieldAnonymousType() As Task
             Await TestMissingInRegularAndScriptAsync("
 class Test
@@ -61,7 +62,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function ConvertSingleAnonymousTypeWithInferredName() As Task
             Dim text = "
 class Test
@@ -80,7 +81,7 @@ end class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function ConvertMultipleInstancesInSameMethod() As Task
             Dim text = "
 class Test
@@ -101,7 +102,7 @@ end class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function ConvertMultipleInstancesAcrossMethods() As Task
             Dim text = "
 class Test
@@ -132,7 +133,7 @@ end class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function OnlyConvertMatchingTypesInSameMethod() As Task
             Dim text = "
 class Test
@@ -157,7 +158,7 @@ end class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function TestFixAllInSingleMethod() As Task
             Dim text = "
 class Test
@@ -182,7 +183,7 @@ end class
             Await TestInRegularAndScriptAsync(text, expected, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function TestFixNotAcrossMethods() As Task
             Dim text = "
 class Test
@@ -213,7 +214,7 @@ end class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function TestFixAllNestedTypes() As Task
             Dim text = "
 class Test
@@ -232,7 +233,7 @@ end class
             Await TestInRegularAndScriptAsync(text, expected, Index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function ConvertMultipleNestedInstancesInSameMethod() As Task
             Dim text = "
 class Test
@@ -251,7 +252,7 @@ end class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function TestInLambda1() As Task
             Dim text = "
 Imports System
@@ -282,7 +283,7 @@ end class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function TestInLambda2() As Task
             Dim text = "
 Imports System
@@ -313,7 +314,7 @@ end class
             Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <Fact>
         Public Async Function TestIncomplete() As Task
             Dim text = "
 Imports System

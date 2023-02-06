@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class TryKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TryInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Try")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TryInMultiLineLambdaTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
@@ -21,21 +22,21 @@ End Sub
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TryInSingleLineLambdaTest()
             VerifyRecommendationsMissing(<ClassDeclaration>
 Private _member = Sub() |
                                          </ClassDeclaration>, "Try")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TryInSingleLineFunctionLambdaTest()
             VerifyRecommendationsMissing(<ClassDeclaration>
 Private _member = Function() |
                                          </ClassDeclaration>, "Try")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AfterExitInTryBlockTest()
             Dim code =
 <MethodBody>
@@ -46,7 +47,7 @@ Try
             VerifyRecommendationsContain(code, "Try")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NotAfterExitInFinallyBlockTest()
             Dim code =
 <MethodBody>
@@ -58,7 +59,7 @@ Finally
             VerifyRecommendationsMissing(code, "Try")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AfterExitInCatchBlockTest()
             Dim code =
 <MethodBody>

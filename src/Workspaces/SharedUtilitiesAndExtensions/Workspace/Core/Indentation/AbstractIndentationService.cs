@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Indentation
         where TSyntaxRoot : SyntaxNode, ICompilationUnitSyntax
     {
         public IndentationResult GetIndentation(
-            Document document, int lineNumber, IndentationOptions options, CancellationToken cancellationToken)
+            ParsedDocument document, int lineNumber, IndentationOptions options, CancellationToken cancellationToken)
         {
             var indentStyle = options.IndentStyle;
 
@@ -39,25 +39,16 @@ namespace Microsoft.CodeAnalysis.Indentation
             return indenter.GetDesiredIndentation(indentStyle) ?? default;
         }
 
-        private Indenter GetIndenter(Document document, int lineNumber, IndentationOptions options, CancellationToken cancellationToken)
+        private Indenter GetIndenter(ParsedDocument document, int lineNumber, IndentationOptions options, CancellationToken cancellationToken)
         {
             var syntaxFormatting = this.SyntaxFormatting;
 
-#if CODE_STYLE
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-            Contract.ThrowIfNull(tree);
-#else
-            var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
-#endif
-
-            var sourceText = tree.GetText(cancellationToken);
-            var lineToBeIndented = sourceText.Lines[lineNumber];
+            var lineToBeIndented = document.Text.Lines[lineNumber];
 
 #if CODE_STYLE
             var baseIndentationRule = NoOpFormattingRule.Instance;
 #else
-            var workspace = document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+            var formattingRuleFactory = document.SolutionServices.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
             var baseIndentationRule = formattingRuleFactory.CreateRule(document, lineToBeIndented.Start);
 #endif
 
@@ -67,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Indentation
                 syntaxFormatting.GetDefaultFormattingRules());
 
             var smartTokenFormatter = CreateSmartTokenFormatter(
-                (TSyntaxRoot)tree.GetRoot(cancellationToken), lineToBeIndented, options, baseIndentationRule);
-            return new Indenter(this, tree, formattingRules, options, lineToBeIndented, smartTokenFormatter, cancellationToken);
+                (TSyntaxRoot)document.Root, document.Text, lineToBeIndented, options, baseIndentationRule);
+            return new Indenter(this, document.SyntaxTree, formattingRules, options, lineToBeIndented, smartTokenFormatter, cancellationToken);
         }
     }
 }

@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis
     {
         public const string Compilation = nameof(Compilation);
 
+        internal const string CompilationOptions = nameof(CompilationOptions);
+
         public const string ParseOptions = nameof(ParseOptions);
 
         public const string AdditionalTexts = nameof(AdditionalTexts);

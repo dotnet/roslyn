@@ -178,16 +178,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
             {
                 var current = expression;
-                while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
+                while (current is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) currentMember)
                 {
                     current = currentMember.Expression;
                     continue;
                 }
 
-                return current.IsKind(SyntaxKind.AliasQualifiedName,
-                                      SyntaxKind.IdentifierName,
-                                      SyntaxKind.GenericName,
-                                      SyntaxKind.QualifiedName);
+                return current.Kind() is SyntaxKind.AliasQualifiedName or SyntaxKind.IdentifierName or SyntaxKind.GenericName or SyntaxKind.QualifiedName;
             }
         }
 
@@ -399,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 !SyntaxFacts.IsInNamespaceOrTypeContext(expression))
             {
                 var symbols = semanticModel.LookupSymbols(expression.SpanStart, name: identifierName.Identifier.ValueText);
-                return symbols.Any(s => s is ILocalSymbol);
+                return symbols.Any(static s => s is ILocalSymbol);
             }
 
             return false;

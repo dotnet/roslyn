@@ -259,13 +259,24 @@ namespace Microsoft.Cci
         ITypeReference GetType(EmitContext context);
 
         /// <summary>
+        /// The list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// True if the field contains a managed pointer.
+        /// </summary>
+        bool IsByReference { get; }
+
+        /// <summary>
         /// The Field being referred to.
         /// </summary>
         IFieldDefinition? GetResolvedField(EmitContext context);
 
-
         ISpecializedFieldReference? AsSpecializedFieldReference { get; }
-
 
         /// <summary>
         /// True, if field is an IContextualNamedEntity, even if field reference implements the interface,

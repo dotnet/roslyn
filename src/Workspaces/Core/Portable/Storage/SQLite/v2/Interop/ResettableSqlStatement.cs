@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
     /// as it will happen to all prepared statemnets when the <see cref="SqlStatement"/> is
     /// <see cref="SqlStatement.Close_OnlyForUseBySqlConnection"/>d.
     /// </summary>
-    internal struct ResettableSqlStatement : IDisposable
+    internal readonly struct ResettableSqlStatement : IDisposable
     {
         public readonly SqlStatement Statement;
 

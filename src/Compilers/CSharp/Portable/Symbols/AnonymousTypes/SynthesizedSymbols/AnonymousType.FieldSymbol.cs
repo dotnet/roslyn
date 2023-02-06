@@ -32,6 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _property.TypeWithAnnotations;
             }
 
+            public override RefKind RefKind => RefKind.None;
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
             public override string Name
             {
                 get { return GeneratedNames.MakeAnonymousTypeBackingFieldName(_property.Name); }

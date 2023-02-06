@@ -5,7 +5,10 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -124,7 +127,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     var comListItems = memberSelectionList.Items;
                     var listItems = Enumerable.Range(0, comListItems.Count).Select(comListItems.GetItemAt);
 
-                    return listItems.Cast<ExtractInterfaceDialogViewModel.MemberSymbolViewModel>()
+                    return listItems.Cast<SymbolViewModel<ISymbol>>()
                         .Where(viewModel => viewModel.IsChecked)
                         .Select(viewModel => viewModel.SymbolName)
                         .ToArray();
@@ -143,7 +146,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
 
                     var memberSelectionList = dialog.GetTestAccessor().Members;
-                    var items = memberSelectionList.Items.Cast<ExtractInterfaceDialogViewModel.MemberSymbolViewModel>().ToArray();
+                    var items = memberSelectionList.Items.Cast<MemberSymbolViewModel>().ToArray();
                     var itemViewModel = items.Single(x => x.SymbolName == item);
                     itemViewModel.IsChecked = !itemViewModel.IsChecked;
 

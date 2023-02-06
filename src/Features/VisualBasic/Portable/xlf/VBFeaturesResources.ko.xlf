@@ -67,11 +67,6 @@
         <target state="translated">누락된 '{0}'을(를) 삽입합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">인라인 임시 변수</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">충돌이 감지되었습니다.</target>
@@ -104,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Project_level_Imports">
         <source>Project level 'Imports'</source>
-        <target state="new">Project level 'Imports'</target>
+        <target state="translated">프로젝트 수준 '가져오기'</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_shared_keyword_from_module_member">

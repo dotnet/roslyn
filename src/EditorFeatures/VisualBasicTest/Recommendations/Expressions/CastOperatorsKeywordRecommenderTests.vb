@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expressions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class CastOperatorsKeywordRecommenderTests
         Inherits RecommenderTests
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
             End Get
         End Property
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub DirectCastHelpTextTest()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "DirectCast",
 $"{VBFeaturesResources.DirectCast_function}
@@ -28,7 +29,7 @@ $"{VBFeaturesResources.DirectCast_function}
 DirectCast({VBWorkspaceResources.expression}, {VBWorkspaceResources.typeName}) As {VBWorkspaceResources.result}")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub TryCastHelpTextTest()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "TryCast",
 $"{VBFeaturesResources.TryCast_function}
@@ -36,7 +37,7 @@ $"{VBFeaturesResources.TryCast_function}
 TryCast({VBWorkspaceResources.expression}, {VBWorkspaceResources.typeName}) As {VBWorkspaceResources.result}")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub CTypeHelpTextTest()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "CType",
 $"{VBFeaturesResources.CType_function}
@@ -44,7 +45,7 @@ $"{VBFeaturesResources.CType_function}
 CType({VBWorkspaceResources.expression}, {VBWorkspaceResources.typeName}) As {VBWorkspaceResources.result}")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub CBoolHelpTextTest()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "CBool",
 $"{String.Format(VBFeaturesResources._0_function, "CBool")}
@@ -52,112 +53,111 @@ $"{String.Format(VBFeaturesResources._0_function, "CBool")}
 CBool({VBWorkspaceResources.expression}) As Boolean")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NoneInClassDeclarationTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllInStatementTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterReturnTest()
             VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterArgument1Test()
             VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterArgument2Test()
             VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterBinaryExpressionTest()
             VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterNotTest()
             VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterTypeOfTest()
             VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterDoWhileTest()
             VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterDoUntilTest()
             VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterLoopWhileTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterLoopUntilTest()
             VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterIfTest()
             VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterElseIfTest()
             VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterElseSpaceIfTest()
             VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterErrorTest()
             VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterThrowTest()
             VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterInitializerTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterArrayInitializerSquiggleTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub AllAfterArrayInitializerCommaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Sub
 
-        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub NoneInDelegateCreationTest()
             Dim code =
 <File>

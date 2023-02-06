@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using Humanizer;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
         }
 
-        private static ISymbol? MapSymbol(ISymbol symbol, ITypeSymbol? type)
+        private static ISymbol? MapSymbol(ISymbol? symbol, ITypeSymbol? type)
         {
             if (symbol.IsConstructor() && symbol.ContainingType.IsAnonymousType)
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (symbol.IsFunctionValue() &&
                 symbol.ContainingSymbol is IMethodSymbol method)
             {
-                if (method?.AssociatedSymbol != null)
+                if (method.AssociatedSymbol != null)
                 {
                     return method.AssociatedSymbol;
                 }
@@ -93,36 +93,37 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TokenSemanticInfo GetSemanticInfo(
             this SemanticModel semanticModel,
             SyntaxToken token,
-            HostWorkspaceServices services,
+            SolutionServices services,
             CancellationToken cancellationToken)
         {
             var languageServices = services.GetLanguageServices(token.Language);
             var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
+            var syntaxKinds = languageServices.GetRequiredService<ISyntaxKindsService>();
+
             if (!syntaxFacts.IsBindableToken(token))
-            {
                 return TokenSemanticInfo.Empty;
-            }
 
             var semanticFacts = languageServices.GetRequiredService<ISemanticFactsService>();
-
-            IAliasSymbol? aliasSymbol;
-            ITypeSymbol? type;
-            ITypeSymbol? convertedType;
-            ISymbol? declaredSymbol;
-            ImmutableArray<ISymbol?> allSymbols;
-
             var overriddingIdentifier = syntaxFacts.GetDeclarationIdentifierIfOverride(token);
-            if (overriddingIdentifier.HasValue)
+
+            IAliasSymbol? aliasSymbol = null;
+            ITypeSymbol? type = null;
+            ITypeSymbol? convertedType = null;
+            ISymbol? declaredSymbol = null;
+            var allSymbols = ImmutableArray<ISymbol?>.Empty;
+
+            if (token.RawKind == syntaxKinds.UsingKeyword &&
+                (token.Parent?.RawKind == syntaxKinds.UsingStatement || token.Parent?.RawKind == syntaxKinds.LocalDeclarationStatement))
+            {
+                var usingStatement = token.Parent;
+                declaredSymbol = semanticFacts.TryGetDisposeMethod(semanticModel, token.Parent, cancellationToken);
+            }
+            else if (overriddingIdentifier.HasValue)
             {
                 // on an "override" token, we'll find the overridden symbol
-                aliasSymbol = null;
                 var overriddingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overriddingIdentifier.Value, cancellationToken);
                 var overriddenSymbol = overriddingSymbol.GetOverriddenMember();
 
-                // on an "override" token, the overridden symbol is the only part of TokenSemanticInfo used by callers, so type doesn't matter
-                type = null;
-                convertedType = null;
-                declaredSymbol = null;
                 allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol?>.Empty : ImmutableArray.Create<ISymbol?>(overriddenSymbol);
             }
             else
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return false;
 
             var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
-            return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
+            return type.AllInterfaces.Any(static (i, enumerableType) => i.OriginalDefinition.Equals(enumerableType), enumerableType);
         }
 
         private static bool TryGeneratePluralizedNameFromTypeArgument(

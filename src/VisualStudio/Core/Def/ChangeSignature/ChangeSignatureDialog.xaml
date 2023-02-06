@@ -393,7 +393,7 @@
         <StackPanel Grid.Row="3" 
                     HorizontalAlignment="Right" 
                     Margin="0, 11, 0, 0"
-                    Orientation="Horizontal" Width="153">
+                    Orientation="Horizontal">
             <vs:DialogButton x:Uid="OKButton" 
                     Name="OKButton"
                     Content="{Binding ElementName=dialog, Path=OK}" 

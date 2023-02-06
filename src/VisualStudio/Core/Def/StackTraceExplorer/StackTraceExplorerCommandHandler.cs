@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     {
         private readonly RoslynPackage _package;
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
         private static StackTraceExplorerCommandHandler? _instance;
         private uint _vsShellBroadcastCookie;
 
@@ -26,11 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             _package = package;
             _threadingContext = package.ComponentModel.GetService<IThreadingContext>();
-            var globalOptions = package.ComponentModel.GetService<IGlobalOptionService>();
+            _globalOptions = package.ComponentModel.GetService<IGlobalOptionService>();
 
-            globalOptions.OptionChanged += OptionService_OptionChanged;
+            _globalOptions.OptionChanged += GlobalOptionChanged;
 
-            var enabled = globalOptions.GetOption(StackTraceExplorerOptionsMetadata.OpenOnFocus);
+            var enabled = _globalOptions.GetOption(StackTraceExplorerOptionsMetadata.OpenOnFocus);
             if (enabled)
             {
                 AdviseBroadcastMessages();
@@ -74,9 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             UnadviseBroadcastMessages();
 
-            var workspace = _package.ComponentModel.GetService<VisualStudioWorkspace>();
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
-            optionService.OptionChanged -= OptionService_OptionChanged;
+            _globalOptions.OptionChanged -= GlobalOptionChanged;
         }
 
         private void AdviseBroadcastMessages()
@@ -89,10 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             var serviceProvider = (IServiceProvider)_package;
             var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
 
-            if (vsShell is not null)
-            {
-                vsShell.AdviseBroadcastMessages(this, out _vsShellBroadcastCookie);
-            }
+            vsShell?.AdviseBroadcastMessages(this, out _vsShellBroadcastCookie);
         }
 
         private void UnadviseBroadcastMessages()
@@ -109,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             }
         }
 
-        private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
+        private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
         {
             if (e.Option == StackTraceExplorerOptionsMetadata.OpenOnFocus && e.Value is not null)
             {
@@ -155,6 +152,22 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             return window;
         }
 
+        private void Paste(object sender, EventArgs e)
+        {
+            RoslynDebug.AssertNotNull(_instance);
+
+            var window = _instance.GetOrInitializeWindow();
+            window.Root?.ViewModel?.DoPasteSynchronously(default);
+        }
+
+        private void Clear(object sender, EventArgs e)
+        {
+            RoslynDebug.AssertNotNull(_instance);
+
+            var window = _instance.GetOrInitializeWindow();
+            window.Root?.OnClear();
+        }
+
         internal static void Initialize(OleMenuCommandService menuCommandService, RoslynPackage package)
         {
             if (_instance is not null)
@@ -167,6 +180,15 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             var menuCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0100);
             var menuItem = new MenuCommand(_instance.Execute, menuCommandId);
             menuCommandService.AddCommand(menuItem);
+
+            var pasteCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0101);
+            var clearCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0102);
+
+            var pasteMenuItem = new MenuCommand(_instance.Paste, pasteCommandId);
+            var clearMenuItem = new MenuCommand(_instance.Clear, clearCommandId);
+
+            menuCommandService.AddCommand(pasteMenuItem);
+            menuCommandService.AddCommand(clearMenuItem);
         }
     }
 }

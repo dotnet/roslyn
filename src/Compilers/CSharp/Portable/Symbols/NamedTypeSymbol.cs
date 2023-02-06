@@ -11,9 +11,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -478,6 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract override string Name { get; }
 
+#nullable enable
         /// <summary>
         /// Return the name including the metadata arity suffix.
         /// </summary>
@@ -485,14 +486,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return MangleName ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity) : Name;
+                var fileIdentifier = this.GetFileLocalTypeMetadataNamePrefix();
+                // If we have a file prefix, the type will definitely use CLS arity encoding for nonzero arity.
+                Debug.Assert(!(fileIdentifier != null && !MangleName && Arity > 0));
+                return fileIdentifier != null || MangleName
+                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, fileIdentifier)
+                    : Name;
             }
         }
+
+        /// <summary>
+        /// If this type is a file-local type, returns an identifier for the file this type was declared in. Otherwise, returns null.
+        /// </summary>
+        internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
+
+#nullable disable
 
         /// <summary>
         /// Should the name returned by Name property be mangled with [`arity] suffix in order to get metadata name.
         /// Must return False for a type with Arity == 0.
         /// </summary>
+        /// <remarks>
+        /// Some types with Arity > 0 still have MangleName == false. For example, EENamedTypeSymbol.
+        /// Note that other differences between source names and metadata names exist and are not controlled by this property,
+        /// such as the 'AssociatedFileIdentifier' prefix for file types.
+        /// </remarks>
         internal abstract bool MangleName
         {
             // Intentionally no default implementation to force consideration of appropriate implementation for each new subclass
@@ -576,17 +594,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool TryCalculateRequiredMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
         {
             var lazyRequiredMembers = _lazyRequiredMembers;
-            if (_lazyRequiredMembers == RequiredMembersErrorSentinel)
+            if (lazyRequiredMembers == RequiredMembersErrorSentinel)
             {
-                if (lazyRequiredMembers.IsDefault)
-                {
-                    return false;
-                }
-                else
-                {
-                    requiredMembersBuilder = lazyRequiredMembers.ToBuilder();
-                    return true;
-                }
+                return false;
             }
 
             if (BaseTypeNoUseSiteDiagnostics?.TryCalculateRequiredMembers(ref requiredMembersBuilder) == false)
@@ -612,6 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // This is only permitted if the member is an override of a required member from a base type, and is required itself.
                         if (!member.IsRequired()
+                            || member.Kind == SymbolKind.Field
                             || member.GetOverriddenMember() is not { } overriddenMember
                             || !overriddenMember.Equals(requiredMembersBuilder[member.Name], TypeCompareKind.ConsiderEverything))
                         {
@@ -1257,12 +1268,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Given C<int>.D<string, double>, yields { int, string, double }
-        internal void GetAllTypeArguments(ArrayBuilder<TypeSymbol> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal void GetAllTypeArguments(ref TemporaryArray<TypeSymbol> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
-                outer.GetAllTypeArguments(builder, ref useSiteInfo);
+                outer.GetAllTypeArguments(ref builder, ref useSiteInfo);
             }
 
             foreach (var argument in TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo))

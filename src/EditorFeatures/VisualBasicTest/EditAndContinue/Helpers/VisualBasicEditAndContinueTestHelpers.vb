@@ -32,6 +32,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ProjectFileExtension As String
+            Get
+                Return ".vbproj"
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property TopSyntaxComparer As TreeComparer(Of SyntaxNode)
             Get
                 Return SyntaxComparer.TopLevel

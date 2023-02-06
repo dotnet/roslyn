@@ -81,10 +81,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_OvlUnaryOperatorExpected, syntax.ParameterList.GetLocation());
             }
 
-            if (IsStatic && IsAbstract)
+            if (IsStatic && (IsAbstract || IsVirtual))
             {
                 CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
             }
+
+            if (syntax.ExplicitInterfaceSpecifier != null)
+                MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.CheckFeatureAvailability(diagnostics, syntax.ExplicitInterfaceSpecifier);
         }
 
         internal ConversionOperatorDeclarationSyntax GetSyntax()

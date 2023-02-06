@@ -6,9 +6,10 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
         <WorkItem(541167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541167")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestExtensionMethodToDelegateConversion(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -31,7 +32,7 @@ class Program
         End Function
 
         <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestReducedExtensionMethod1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -63,7 +64,7 @@ public static class MyExtension
         End Function
 
         <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestReducedExtensionMethod2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -96,7 +97,7 @@ public static class MyExtension
 
 #Region "Normal Visual Basic Tests"
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVisualBasicFindReferencesOnExtensionMethod(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

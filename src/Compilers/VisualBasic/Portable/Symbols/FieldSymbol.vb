@@ -378,7 +378,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         ''' <summary>
         ''' If this is a field representing a tuple element,
         ''' returns the index of the element (zero-based).
@@ -433,6 +432,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IFieldSymbol_FixedSize As Integer Implements IFieldSymbol.FixedSize
             Get
                 Return 0
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns the RefKind of the field. 
+        ''' </summary>
+        Private ReadOnly Property IFieldSymbol_RefKind As RefKind Implements IFieldSymbol.RefKind
+            Get
+                Return RefKind.None
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        ''' </summary>
+        Private ReadOnly Property IFieldSymbol_RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IFieldSymbol.RefCustomModifiers
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
             End Get
         End Property
 

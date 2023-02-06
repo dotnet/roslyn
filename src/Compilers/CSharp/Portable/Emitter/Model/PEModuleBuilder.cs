@@ -19,14 +19,17 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal abstract class PEModuleBuilder : PEModuleBuilder<CSharpCompilation, SourceModuleSymbol, AssemblySymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, SyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState>
     {
-        // TODO: Need to estimate amount of elements for this map and pass that value to the constructor. 
+        // TODO: Need to estimate amount of elements for this map and pass that value to the constructor.
         protected readonly ConcurrentDictionary<Symbol, Cci.IModuleReference> AssemblyOrModuleSymbolToModuleRefMap = new ConcurrentDictionary<Symbol, Cci.IModuleReference>();
         private readonly ConcurrentDictionary<Symbol, object> _genericInstanceMap = new ConcurrentDictionary<Symbol, object>(Symbols.SymbolEqualityComparer.ConsiderEverything);
+        private readonly ConcurrentDictionary<ImportChain, ImmutableArray<Cci.UsedNamespaceOrType>> _translatedImportsMap =
+                                                            new ConcurrentDictionary<ImportChain, ImmutableArray<Cci.UsedNamespaceOrType>>(ReferenceEqualityComparer.Instance);
         private readonly ConcurrentSet<TypeSymbol> _reportedErrorTypesMap = new ConcurrentSet<TypeSymbol>();
 
         private readonly NoPia.EmbeddedTypesManager _embeddedTypesManagerOpt;
@@ -165,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (asmIdentity.IsStrongName && !refIdentity.IsStrongName &&
                 asmRef.Identity.ContentType != AssemblyContentType.WindowsRuntime)
             {
-                // Dev12 reported error, we have changed it to a warning to allow referencing libraries 
+                // Dev12 reported error, we have changed it to a warning to allow referencing libraries
                 // built for platforms that don't support strong names.
                 diagnostics.Add(new CSDiagnosticInfo(ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton);
             }
@@ -225,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     case SymbolKind.Namespace:
                         var location = GetSmallestSourceLocationOrNull(symbol);
 
-                        // filtering out synthesized symbols not having real source 
+                        // filtering out synthesized symbols not having real source
                         // locations such as anonymous types, etc...
                         if (location != null)
                         {
@@ -340,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     case SymbolKind.Namespace:
                         location = GetSmallestSourceLocationOrNull(symbol);
 
-                        // filtering out synthesized symbols not having real source 
+                        // filtering out synthesized symbols not having real source
                         // locations such as anonymous types, etc...
                         if (location != null)
                         {
@@ -660,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // exported types are not emitted in EnC deltas (hence generation 0):
                 string fullEmittedName = MetadataHelpers.BuildQualifiedName(
                     ((Cci.INamespaceTypeReference)type.GetCciAdapter()).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(type.GetCciAdapter(), generation: 0));
+                    Cci.MetadataWriter.GetMetadataName(type.GetCciAdapter(), generation: 0));
 
                 // First check against types declared in the primary module
                 if (ContainsTopLevelType(fullEmittedName))
@@ -1117,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             switch (typeSymbol.Kind)
             {
                 case SymbolKind.DynamicType:
-                    return Translate((DynamicTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics);
+                    return Translate(syntaxNodeOpt, diagnostics);
 
                 case SymbolKind.ArrayType:
                     return Translate((ArrayTypeSymbol)typeSymbol);
@@ -1179,18 +1182,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             //
             // We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
-            // 
+            //
             // Top-level:
             //   private                       -> public
             //   protected                     -> public (compiles with a warning)
-            //   public                         
+            //   public
             //   internal                      -> public
-            // 
+            //
             // In a nested class:
-            //   
-            //   private                       
-            //   protected                     
-            //   public                         
+            //
+            //   private
+            //   protected
+            //   public
             //   internal                      -> public
             //
             switch (symbol.DeclaredAccessibility)
@@ -1484,12 +1487,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         internal Cci.ITypeReference Translate(
-            DynamicTypeSymbol symbol,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
-            // Translate the dynamic type to System.Object special type to avoid duplicate entries in TypeRef table. 
-            // We don't need to recursively replace the dynamic type with Object since the DynamicTypeSymbol adapter 
+            // Translate the dynamic type to System.Object special type to avoid duplicate entries in TypeRef table.
+            // We don't need to recursively replace the dynamic type with Object since the DynamicTypeSymbol adapter
             // masquerades the TypeRef as System.Object when used to encode signatures.
             return GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics);
         }
@@ -1575,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         /// <summary>
-        /// Given a type <paramref name="type"/>, which is either a nullable reference type OR 
+        /// Given a type <paramref name="type"/>, which is either a nullable reference type OR
         /// is a constructed type with a nullable reference type present in its type argument tree,
         /// returns a synthesized NullableAttribute with encoded nullable transforms array.
         /// </summary>
@@ -1710,6 +1712,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
         }
 
+        internal SynthesizedAttributeData SynthesizeScopedRefAttribute(ParameterSymbol symbol, ScopedKind scope)
+        {
+            Debug.Assert(scope != ScopedKind.None);
+            Debug.Assert(!ParameterHelpers.IsRefScopedByDefault(symbol) || scope == ScopedKind.ScopedValue);
+            Debug.Assert(!symbol.IsThis);
+
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return SynthesizeScopedRefAttribute(WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor);
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeScopedRefAttribute(WellKnownMember member)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(member, isOptionalUse: true);
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeRefSafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor, arguments, isOptionalUse: true);
+        }
+
         internal bool ShouldEmitNullablePublicOnlyAttribute()
         {
             // No need to look at this.GetNeedsGeneratedAttributes() since those bits are
@@ -1781,6 +1812,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute);
+        }
+
+        internal void EnsureScopedRefAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute);
         }
 
 #nullable enable
@@ -1913,6 +1949,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)
         {
             return base.GetEmbeddedTypes(diagnostics.DiagnosticBag);
+        }
+
+        internal bool TryGetTranslatedImports(ImportChain chain, out ImmutableArray<Cci.UsedNamespaceOrType> imports)
+        {
+            return _translatedImportsMap.TryGetValue(chain, out imports);
+        }
+
+        internal ImmutableArray<Cci.UsedNamespaceOrType> GetOrAddTranslatedImports(ImportChain chain, ImmutableArray<Cci.UsedNamespaceOrType> imports)
+        {
+            return _translatedImportsMap.GetOrAdd(chain, imports);
         }
     }
 }

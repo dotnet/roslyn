@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// </summary>
     internal class UnifiedSuggestedActionSet
     {
+        public Solution OriginalSolution { get; }
+
         public string? CategoryName { get; }
 
         public ImmutableArray<IUnifiedSuggestedAction> Actions { get; }
@@ -24,12 +26,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         public TextSpan? ApplicableToSpan { get; }
 
         public UnifiedSuggestedActionSet(
+            Solution originalSolution,
             string? categoryName,
             ImmutableArray<IUnifiedSuggestedAction> actions,
             object? title,
             UnifiedSuggestedActionSetPriority priority,
             TextSpan? applicableToSpan)
         {
+            OriginalSolution = originalSolution;
             CategoryName = categoryName;
             Actions = actions;
             Title = title;

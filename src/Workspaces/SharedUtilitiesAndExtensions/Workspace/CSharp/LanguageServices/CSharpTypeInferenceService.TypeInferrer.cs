@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -288,13 +289,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return InferTypeInConstructorInitializer(initializer, index, argument);
                     }
 
-                    if (argument.Parent.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
+                    if (argument.Parent?.Parent is InvocationExpressionSyntax invocation)
                     {
                         var index = invocation.ArgumentList.Arguments.IndexOf(argument);
                         return InferTypeInInvocationExpression(invocation, index, argument);
                     }
 
-                    if (argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax creation))
+                    if (argument.Parent?.Parent is ObjectCreationExpressionSyntax creation)
                     {
                         // new Outer(Goo());
                         //
@@ -305,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return InferTypeInObjectCreationExpression(creation, index, argument);
                     }
 
-                    if (argument.Parent.IsParentKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax elementAccess))
+                    if (argument.Parent?.Parent is ElementAccessExpressionSyntax elementAccess)
                     {
                         // Outer[Goo()];
                         //
@@ -316,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return InferTypeInElementAccessExpression(elementAccess, index, argument);
                     }
 
-                    if (argument.IsParentKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpression))
+                    if (argument?.Parent is TupleExpressionSyntax tupleExpression)
                     {
                         return InferTypeInTupleExpression(tupleExpression, argument);
                     }
@@ -325,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
                     argument.Parent.Parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
                     argument.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) &&
-                    argument.Parent.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
+                    argument.Parent.Parent.Parent.Parent?.Parent is ObjectCreationExpressionSyntax objectCreation)
                 {
                     var types = GetTypes(objectCreation).Select(t => t.InferredType);
 
@@ -429,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The new is part of the assignment to o but the user is really trying to 
                 // add a parameter to the method call.
                 if (previousToken.Kind() == SyntaxKind.NewKeyword &&
-                    previousToken.GetPreviousToken().IsKind(SyntaxKind.EqualsToken, SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+                    previousToken.GetPreviousToken().Kind() is SyntaxKind.EqualsToken or SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
                 {
                     return InferTypes(previousToken.SpanStart);
                 }
@@ -570,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (indexers.Any())
                     {
                         return indexers.SelectMany(i =>
-                            InferTypeInArgument(index, SpecializedCollections.SingletonEnumerable(i.Parameters), argumentOpt));
+                            InferTypeInArgument(index, ImmutableArray.Create(i.Parameters), argumentOpt));
                     }
                 }
 
@@ -608,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methods = filteredMethods.Any() ? filteredMethods : instantiatedMethods;
                 }
 
-                return InferTypeInArgument(index, methods.Select(m => m.Parameters), argumentOpt);
+                return InferTypeInArgument(index, methods.SelectAsArray(m => m.Parameters), argumentOpt);
             }
 
             private IMethodSymbol Instantiate(IMethodSymbol method, IList<ITypeSymbol> invocationTypes)
@@ -630,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If the method has already been constructed poorly (i.e. with error types for type 
                 // arguments), then unconstruct it.
-                if (method.TypeArguments.Any(t => t.Kind == SymbolKind.ErrorType))
+                if (method.TypeArguments.Any(static t => t.Kind == SymbolKind.ErrorType))
                 {
                     method = method.ConstructedFrom;
                 }
@@ -731,12 +732,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 int index,
-                IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
+                ImmutableArray<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 ArgumentSyntax argumentOpt)
             {
+                // Prefer parameter lists that match the original number of arguments passed.
+                using var _1 = ArrayBuilder<ImmutableArray<IParameterSymbol>>.GetInstance(out var parameterListsWithMatchingCount);
+                using var _2 = ArrayBuilder<ImmutableArray<IParameterSymbol>>.GetInstance(out var parameterListsWithoutMatchingCount);
+
+                var argumentCount = argumentOpt?.Parent is BaseArgumentListSyntax baseArgumentList ? baseArgumentList.Arguments.Count : -1;
+                foreach (var parameterList in parameterizedSymbols)
+                {
+                    if (argumentCount == -1)
+                    {
+                        // don't have a known argument count.  Just add this all to one of the lists.
+                        parameterListsWithMatchingCount.Add(parameterList);
+                    }
+                    else
+                    {
+                        var minParameterCount = parameterList.Count(p => !p.IsParams && !p.IsOptional);
+                        var maxParameterCount = parameterList.Any(p => p.IsParams) ? int.MaxValue : parameterList.Length;
+                        var list = argumentCount >= minParameterCount && argumentCount <= maxParameterCount
+                            ? parameterListsWithMatchingCount
+                            : parameterListsWithoutMatchingCount;
+
+                        list.Add(parameterList);
+                    }
+                }
+
                 var name = argumentOpt != null && argumentOpt.NameColon != null ? argumentOpt.NameColon.Name.Identifier.ValueText : null;
                 var refKind = argumentOpt.GetRefKind();
-                return InferTypeInArgument(index, parameterizedSymbols, name, refKind);
+                return InferTypeInArgument(index, parameterListsWithMatchingCount.ToImmutable(), name, refKind).Concat(
+                    InferTypeInArgument(index, parameterListsWithoutMatchingCount.ToImmutable(), name, refKind));
             }
 
             private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
@@ -1011,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // is the case where the other side was also unknown.  So we walk one higher and if
                     // we get a delegate or a string type, then use that type here.
                     var parentTypes = InferTypes(binop);
-                    if (parentTypes.Any(parentType => parentType.InferredType.SpecialType == SpecialType.System_String || parentType.InferredType.TypeKind == TypeKind.Delegate))
+                    if (parentTypes.Any(static parentType => parentType.InferredType.SpecialType == SpecialType.System_String || parentType.InferredType.TypeKind == TypeKind.Delegate))
                     {
                         return parentTypes.Where(parentType => parentType.InferredType.SpecialType == SpecialType.System_String || parentType.InferredType.TypeKind == TypeKind.Delegate);
                     }
@@ -1108,20 +1134,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (onRightSide)
                 {
                     var leftTypes = GetTypes(coalesceExpression.Left);
-                    return leftTypes
-                        .Select(x => x.InferredType.IsNullable()
-                            ? new TypeInferenceInfo(((INamedTypeSymbol)x.InferredType).TypeArguments[0]) // nullableExpr ?? Goo()
-                            : x); // normalExpr ?? Goo() 
+                    return leftTypes.Select(x => x.InferredType.IsNullable(out var underlying)
+                        ? new TypeInferenceInfo(underlying) // nullableExpr ?? Goo()
+                        : x); // normalExpr ?? Goo() 
                 }
 
                 var rightTypes = GetTypes(coalesceExpression.Right);
                 if (!rightTypes.Any())
-                {
                     return CreateResult(SpecialType.System_Object, NullableAnnotation.Annotated);
-                }
 
-                return rightTypes
-                    .Select(x => new TypeInferenceInfo(MakeNullable(x.InferredType, this.Compilation))); // Goo() ?? ""
+                // Goo() ?? ""
+                return rightTypes.Select(x => new TypeInferenceInfo(MakeNullable(x.InferredType, this.Compilation)));
 
                 static ITypeSymbol MakeNullable(ITypeSymbol symbol, Compilation compilation)
                 {
@@ -1130,6 +1153,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We could be smart and infer this as an ErrorType?, but in the #nullable disable case we don't know if this is intended to be
                         // a struct (where the question mark is legal) or a class (where it isn't). We'll thus avoid sticking question marks in this case.
                         // https://github.com/dotnet/roslyn/issues/37852 tracks fixing this is a much fancier way.
+                        return symbol;
+                    }
+                    else if (symbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                    {
+                        // We already have something nullable.  Don't wrap in another nullable layer.
                         return symbol;
                     }
                     else if (symbol.IsValueType)
@@ -1200,10 +1228,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (previousToken.HasValue && previousToken.Value != equalsValue.EqualsToken)
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
 
-                if (equalsValue.IsParentKind(SyntaxKind.VariableDeclarator, out VariableDeclaratorSyntax varDecl))
+                if (equalsValue?.Parent is VariableDeclaratorSyntax varDecl)
                     return InferTypeInVariableDeclarator(varDecl);
 
-                if (equalsValue.IsParentKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDecl))
+                if (equalsValue?.Parent is PropertyDeclarationSyntax propertyDecl)
                     return InferTypeInPropertyDeclaration(propertyDecl);
 
                 if (equalsValue.IsParentKind(SyntaxKind.Parameter) &&
@@ -1354,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (initializerExpression.IsParentKind(SyntaxKind.ImplicitArrayCreationExpression, out ImplicitArrayCreationExpressionSyntax implicitArray))
+                if (initializerExpression?.Parent is ImplicitArrayCreationExpressionSyntax implicitArray)
                 {
                     // new[] { 1, x }
 
@@ -1382,7 +1410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (initializerExpression.IsParentKind(SyntaxKind.EqualsValueClause, out EqualsValueClauseSyntax equalsValueClause))
+                else if (initializerExpression?.Parent is EqualsValueClauseSyntax equalsValueClause)
                 {
                     // = { Goo() }
                     var types = InferTypeInEqualsValueClause(equalsValueClause).Select(t => t.InferredType);
@@ -1392,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType));
                     }
                 }
-                else if (initializerExpression.IsParentKind(SyntaxKind.ArrayCreationExpression, out ArrayCreationExpressionSyntax arrayCreation))
+                else if (initializerExpression?.Parent is ArrayCreationExpressionSyntax arrayCreation)
                 {
                     // new int[] { Goo() } 
                     var types = GetTypes(arrayCreation).Select(t => t.InferredType);
@@ -1402,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType));
                     }
                 }
-                else if (initializerExpression.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
+                else if (initializerExpression?.Parent is ObjectCreationExpressionSyntax objectCreation)
                 {
                     // new List<T> { Goo() } 
                     var types = GetTypes(objectCreation).Select(t => t.InferredType);
@@ -1737,7 +1765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // context.
                 var name = memberAccessExpression.Name.Identifier.Value;
                 if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
-                    memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation) &&
+                    memberAccessExpression?.Parent is InvocationExpressionSyntax invocation &&
                     memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression))
                 {
                     return InferTypes(invocation);
@@ -1832,7 +1860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string parameterName,
                 SyntaxNode node)
             {
-                if (node.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
+                if (node is IdentifierNameSyntax identifierName)
                 {
                     if (identifierName.Identifier.ValueText.Equals(parameterName) &&
                         SemanticModel.GetSymbolInfo(identifierName.Identifier).Symbol?.Kind == SymbolKind.Parameter)
@@ -1999,13 +2027,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (isAsync)
                 {
-                    if (type.OriginalDefinition.Equals(this.Compilation.TaskOfTType()))
+                    if (type.OriginalDefinition.Equals(this.Compilation.TaskOfTType()) || type.OriginalDefinition.Equals(this.Compilation.ValueTaskOfTType()))
                     {
                         var namedTypeSymbol = (INamedTypeSymbol)type;
                         return namedTypeSymbol.TypeArguments[0];
                     }
 
-                    if (type.OriginalDefinition.Equals(this.Compilation.TaskType()))
+                    if (type.OriginalDefinition.Equals(this.Compilation.TaskType()) || type.OriginalDefinition.Equals(this.Compilation.ValueTaskType()))
                     {
                         return this.Compilation.GetSpecialType(SpecialType.System_Void);
                     }
@@ -2163,50 +2191,98 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var variableType = variableDeclarator.GetVariableType();
                 if (variableType == null)
-                {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
 
                 var symbol = SemanticModel.GetDeclaredSymbol(variableDeclarator);
                 if (symbol == null)
-                {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
 
                 var type = symbol.GetSymbolType();
                 var types = CreateResult(type).Where(IsUsableTypeFunc);
 
-                if (variableType.IsVar)
+                if (!variableType.IsVar ||
+                    variableDeclarator.Parent is not VariableDeclarationSyntax variableDeclaration)
                 {
-                    if (variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration)
+                    return types;
+                }
+
+                // using (var v = Goo())
+                if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
+                    return CreateResult(SpecialType.System_IDisposable);
+
+                // for (var v = Goo(); ..
+                if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
+                    return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+
+                var laterUsageInference = InferTypeBasedOnLaterUsage(symbol, variableDeclaration);
+                if (laterUsageInference is not [] and not [{ InferredType.SpecialType: SpecialType.System_Object }])
+                    return laterUsageInference;
+
+                // Return the types here if they actually bound to a type called 'var'.
+                return types.Where(t => t.InferredType.Name == "var");
+            }
+
+            private ImmutableArray<TypeInferenceInfo> InferTypeBasedOnLaterUsage(ISymbol symbol, SyntaxNode afterNode)
+            {
+                // var v = expr.
+                // Attempt to see how 'v' is used later in the current scope to determine what to do.
+                var container = afterNode.AncestorsAndSelf().FirstOrDefault(a => a is BlockSyntax or SwitchSectionSyntax);
+                if (container != null)
+                {
+                    foreach (var descendant in container.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
                     {
-                        if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
-                        {
-                            // using (var v = Goo())
-                            return CreateResult(SpecialType.System_IDisposable);
-                        }
+                        // only look after the variable we're declaring.
+                        if (descendant.SpanStart <= afterNode.Span.End)
+                            continue;
 
-                        if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
-                        {
-                            // for (var v = Goo(); ..
-                            return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
-                        }
+                        if (descendant.Identifier.ValueText != symbol.Name)
+                            continue;
 
-                        // Return the types here if they actually bound to a type called 'var'.
-                        return types.Where(t => t.InferredType.Name == "var");
+                        // Make sure it's actually a match for this variable.
+                        var descendantSymbol = SemanticModel.GetSymbolInfo(descendant, CancellationToken).GetAnySymbol();
+                        if (symbol.Equals(descendantSymbol))
+                        {
+                            // See if we can infer something interesting about this location.
+                            var inferredDescendantTypes = InferTypes(descendant, filterUnusable: true);
+                            if (inferredDescendantTypes is not [] and not [{ InferredType.SpecialType: SpecialType.System_Object }])
+                                return inferredDescendantTypes;
+                        }
                     }
                 }
 
-                return types;
+                return ImmutableArray<TypeInferenceInfo>.Empty;
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(ExpressionSyntax left)
             {
-                if (left.IsKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax declExpr))
+                if (left is DeclarationExpressionSyntax declExpr)
                 {
+                    // var (x, y) = Expr();
+                    // Attempt to determine what x and y are based on their future usage.
+                    if (declExpr.Type.IsVar &&
+                        declExpr.Designation is ParenthesizedVariableDesignationSyntax parenthesizedVariableDesignation &&
+                        parenthesizedVariableDesignation.Variables.All(v => v is SingleVariableDesignationSyntax))
+                    {
+                        using var _1 = ArrayBuilder<ITypeSymbol>.GetInstance(out var tupleTypes);
+                        using var _2 = ArrayBuilder<string>.GetInstance(out var names);
+
+                        foreach (var variable in parenthesizedVariableDesignation.Variables.Cast<SingleVariableDesignationSyntax>())
+                        {
+                            var symbol = SemanticModel.GetRequiredDeclaredSymbol(variable, CancellationToken);
+                            var inferredFutureUsage = InferTypeBasedOnLaterUsage(symbol, afterNode: left.Parent);
+                            tupleTypes.Add(inferredFutureUsage.Length > 0 ? inferredFutureUsage[0].InferredType : Compilation.ObjectType);
+                            names.Add(variable.Identifier.ValueText);
+                        }
+
+                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(
+                            Compilation.CreateTupleTypeSymbol(
+                                tupleTypes.ToImmutable(),
+                                names.ToImmutable())));
+                    }
+
                     return GetTypes(declExpr.Type);
                 }
-                else if (left.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpression))
+                else if (left is TupleExpressionSyntax tupleExpression)
                 {
                     // We have something of the form:
                     //   (int a, int b) = ...
@@ -2250,11 +2326,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var arg in arguments)
                 {
                     var expr = arg.Expression;
-                    if (expr.IsKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax declExpr))
+                    if (expr is DeclarationExpressionSyntax declExpr)
                     {
                         AddTypeAndName(declExpr, elementTypesBuilder, elementNamesBuilder);
                     }
-                    else if (expr.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpr))
+                    else if (expr is TupleExpressionSyntax tupleExpr)
                     {
                         AddTypeAndName(tupleExpr, elementTypesBuilder, elementNamesBuilder);
                     }
@@ -2288,7 +2364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementTypesBuilder.Add(GetTypes(declaration.Type).FirstOrDefault().InferredType);
 
                 var designation = declaration.Designation;
-                if (designation.IsKind(SyntaxKind.SingleVariableDesignation, out SingleVariableDesignationSyntax singleVariable))
+                if (designation is SingleVariableDesignationSyntax singleVariable)
                 {
                     var name = singleVariable.Identifier.ValueText;
 

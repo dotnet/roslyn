@@ -300,9 +300,6 @@
   <data name="Specified_path_must_be_absolute" xml:space="preserve">
     <value>Specified path must be absolute.</value>
   </data>
-  <data name="Name_can_be_simplified" xml:space="preserve">
-    <value>Name can be simplified.</value>
-  </data>
   <data name="Unknown_identifier" xml:space="preserve">
     <value>Unknown identifier.</value>
   </data>
@@ -581,5 +578,14 @@
   </data>
   <data name="FixAllScope_Custom_is_not_supported_with_this_API" xml:space="preserve">
     <value>'FixAllScope.Custom' is not supported with this API</value>
+  </data>
+  <data name="Failed_to_resolve_rename_conflicts" xml:space="preserve">
+    <value>Failed to resolve rename conflicts</value>
+  </data>
+  <data name="Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents" xml:space="preserve">
+    <value>Use 'TextDocument' property instead of 'Document' property as the provider supports non-source text documents.</value>
+  </data>
+  <data name="Unexpected_value_0_in_DocumentKinds_array" xml:space="preserve">
+    <value>Unexpected value '{0}' in DocumentKinds array.</value>
   </data>
 </root>

@@ -87,6 +87,14 @@
                               Unchecked="Tab_twice_to_insert_arguments_CheckedChanged"
                               Indeterminate="Tab_twice_to_insert_arguments_CheckedChanged"
                               IsThreeState="True"/>
+
+                    <CheckBox x:Uid="Show_new_snippet_experience"
+                                  x:Name="Show_new_snippet_experience"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_new_snippet_experience_experimental}"
+                              Checked="Show_new_snippet_experience_CheckedChanged"
+                              Unchecked="Show_new_snippet_experience_CheckedChanged"
+                              Indeterminate="Show_new_snippet_experience_CheckedChanged"
+                              IsThreeState="True"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

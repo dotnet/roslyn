@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
@@ -23,11 +24,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
         Inherits ContainedLanguage
         Implements IVsContainedLanguageStaticEventBinding
 
+        <Obsolete("Use the constructor that omits the IVsHierarchy and UInteger parameters instead.", True)>
         Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
                 componentModel As IComponentModel,
-                project As VisualStudioProject,
+                project As ProjectSystemProject,
                 hierarchy As IVsHierarchy,
                 itemid As UInteger,
+                languageServiceGuid As Guid)
+
+            Me.New(
+                bufferCoordinator,
+                componentModel,
+                project,
+                languageServiceGuid)
+        End Sub
+
+        Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
+                componentModel As IComponentModel,
+                project As ProjectSystemProject,
                 languageServiceGuid As Guid)
 
             MyBase.New(
@@ -36,7 +50,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 componentModel.GetService(Of VisualStudioWorkspace)(),
                 project.Id,
                 project,
-                ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid),
                 languageServiceGuid,
                 VisualBasicHelperFormattingRule.Instance)
         End Sub

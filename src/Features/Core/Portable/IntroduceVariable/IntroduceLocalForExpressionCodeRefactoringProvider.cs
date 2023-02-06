@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
             var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize: false, cancellationToken);
-            var uniqueName = semanticFacts.GenerateUniqueLocalName(semanticModel, expression, containerOpt: null, baseName, cancellationToken)
+            var uniqueName = semanticFacts.GenerateUniqueLocalName(semanticModel, expression, container: null, baseName, cancellationToken)
                                           .WithAdditionalAnnotations(RenameAnnotation.Create());
             return uniqueName;
         }

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -70,18 +71,8 @@ namespace Microsoft.CodeAnalysis
             private CompilationTrackerState ReadState()
                 => Volatile.Read(ref _stateDoNotAccessDirectly);
 
-            private void WriteState(CompilationTrackerState state, SolutionServices solutionServices)
-            {
-                if (solutionServices.SupportsCachingRecoverableObjects)
-                {
-                    // Allow the cache service to create a strong reference to the compilation. We'll get the "furthest along" compilation we have
-                    // and hold onto that.
-                    var compilationToCache = state.FinalCompilationWithGeneratedDocuments ?? state.CompilationWithoutGeneratedDocuments;
-                    solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, compilationToCache);
-                }
-
-                Volatile.Write(ref _stateDoNotAccessDirectly, state);
-            }
+            private void WriteState(CompilationTrackerState state)
+                => Volatile.Write(ref _stateDoNotAccessDirectly, state);
 
             public GeneratorDriver? GeneratorDriver
             {
@@ -115,10 +106,8 @@ namespace Microsoft.CodeAnalysis
             /// compilation state as the now 'old' state
             /// </summary>
             public ICompilationTracker Fork(
-                SolutionServices solutionServices,
                 ProjectState newProject,
-                CompilationAndGeneratorDriverTranslationAction? translate = null,
-                CancellationToken cancellationToken = default)
+                CompilationAndGeneratorDriverTranslationAction? translate)
             {
                 var state = ReadState();
 
@@ -184,22 +173,65 @@ namespace Microsoft.CodeAnalysis
                     out var metadataReferenceToProjectId,
                     cancellationToken);
 
-                // Ensure we actually have the tree we need in there
-                if (!compilationPair.CompilationWithoutGeneratedDocuments.SyntaxTrees.Contains(tree))
+                // Ensure we actually have the tree we need in there; note that if the tree is present, then we know the document must also be
+                // present in inProgressProject, since those are both updated in parallel.
+                //
+                // the tree that we have been given was directly returned from the document state that we're also being passed --
+                // the only reason we're requesting it earlier is this code is running under a lock in
+                // SolutionState.WithFrozenPartialCompilationIncludingSpecificDocument.
+                if (!compilationPair.CompilationWithoutGeneratedDocuments.ContainsSyntaxTree(tree))
                 {
-                    var existingTree = compilationPair.CompilationWithoutGeneratedDocuments.SyntaxTrees.FirstOrDefault(t => t.FilePath == tree.FilePath);
-                    if (existingTree != null)
+                    // We do not have the exact tree. It either means this document was recently added, or the tree was recently changed.
+                    // We now need to update both the inProgressState and the compilation. There are several possibilities we want to consider:
+                    //
+                    // 1. An earlier version of the document is present in the compilation, and we just need to update it to the current version
+                    // 2. The tree wasn't present in the original snapshot at all, and we just need to add the tree.
+                    // 3. The tree wasn't present in the original snapshot, but an older file had been removed that had the same file path.
+                    //    As a heuristic, we remove the old one so we don't end up with duplicate trees.
+                    //
+                    // Note it's possible that we simply had never tried to produce a compilation yet for this project at all, in that case
+                    // GetPartialCompilationState would have produced an empty compilation, and it would have updated inProgressProject to
+                    // remove all the documents. Thus, that is no different than the "add" case above.
+                    if (inProgressProject.DocumentStates.TryGetState(docState.Id, out var oldState))
                     {
-                        compilationPair = compilationPair.ReplaceSyntaxTree(existingTree, tree);
-                        inProgressProject = inProgressProject.UpdateDocument(docState, textChanged: false, recalculateDependentVersions: false);
+                        // Scenario 1. The document had been previously parsed and it's there, so we can update it with our current state
+                        // This call should be instant, since the compilation already must exist that contains this tree. Note if no compilation existed
+                        // GetPartialCompilationState would have produced an empty one, and removed any documents, so inProgressProject.DocumentStates would
+                        // have been empty originally.
+                        var oldTree = oldState.GetSyntaxTree(cancellationToken);
+
+                        compilationPair = compilationPair.ReplaceSyntaxTree(oldTree, tree);
+                        inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
                     }
                     else
                     {
-                        compilationPair = compilationPair.AddSyntaxTree(tree);
-                        Debug.Assert(!inProgressProject.DocumentStates.Contains(docState.Id));
-                        inProgressProject = inProgressProject.AddDocuments(ImmutableArray.Create(docState));
+                        // We're in either scenario 2 or 3. Do we have an existing tree to try replacing? Note: the file path here corresponds to Document.FilePath.
+                        // If a document's file path is null, we then substitute Document.Name, so we usually expect there to be a unique string regardless.
+                        var oldTree = compilationPair.CompilationWithoutGeneratedDocuments.SyntaxTrees.FirstOrDefault(t => t.FilePath == tree.FilePath);
+                        if (oldTree == null)
+                        {
+                            // Scenario 2.
+                            compilationPair = compilationPair.AddSyntaxTree(tree);
+                            inProgressProject = inProgressProject.AddDocuments(ImmutableArray.Create(docState));
+                        }
+                        else
+                        {
+                            // Scenario 3.
+                            compilationPair = compilationPair.ReplaceSyntaxTree(oldTree, tree);
+
+                            // The old tree came from some other document with a different ID then we started with -- if the document ID still existed we would have
+                            // been in the Scenario 1 case instead. We'll find the old document ID, remove that state, and then add ours.
+                            var oldDocumentId = DocumentState.GetDocumentIdForTree(oldTree);
+                            Contract.ThrowIfNull(oldDocumentId, $"{nameof(oldTree)} came from the compilation produced by the workspace, so the document ID should have existed.");
+                            inProgressProject = inProgressProject
+                                .RemoveDocuments(ImmutableArray.Create(oldDocumentId))
+                                .AddDocuments(ImmutableArray.Create(docState));
+                        }
                     }
                 }
+
+                // At this point, we now absolutely should have our tree in the compilation
+                Contract.ThrowIfFalse(compilationPair.CompilationWithoutGeneratedDocuments.ContainsSyntaxTree(tree));
 
                 // The user is asking for an in progress snap.  We don't want to create it and then
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
@@ -241,15 +273,14 @@ namespace Microsoft.CodeAnalysis
                 var inProgressState = state as InProgressState;
 
                 generatorInfo = state.GeneratorInfo.WithDocumentsAreFinalAndFrozen();
+                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().oldState : this.ProjectState;
 
-                // all changes left for this document is modifying the given document.
-                // we can use current state as it is since we will replace the document with latest document anyway.
+                // all changes left for this document is modifying the given document; since the compilation is already fully up to date
+                // we don't need to do any further checking of it's references
                 if (inProgressState != null &&
                     compilationWithoutGeneratedDocuments != null &&
                     inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t.action, id)))
                 {
-                    inProgressProject = ProjectState;
-
                     // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
                     // being made to the project, but it's the best we have so we'll use it.
                     compilations = new CompilationPair(
@@ -262,8 +293,6 @@ namespace Microsoft.CodeAnalysis
                     SolutionLogger.UseExistingPartialProjectState();
                     return;
                 }
-
-                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().oldState : this.ProjectState;
 
                 // if we already have a final compilation we are done.
                 if (compilationWithoutGeneratedDocuments != null && state is FinalState finalState)
@@ -370,11 +399,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.TryGetCompilation(out var compilation))
                 {
-                    // PERF: This is a hot code path and Task<TResult> isn't cheap,
-                    // so cache the completed tasks to reduce allocations. We also
-                    // need to avoid keeping a strong reference to the Compilation,
-                    // so use a ConditionalWeakTable.
-                    return SpecializedTasks.FromResult(compilation);
+                    return Task.FromResult(compilation);
                 }
                 else if (cancellationToken.IsCancellationRequested)
                 {
@@ -393,51 +418,6 @@ namespace Microsoft.CodeAnalysis
             {
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return compilationInfo.Compilation;
-            }
-
-            private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionServices solutionServices, CancellationToken cancellationToken)
-            {
-                try
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                    {
-                        var state = ReadState();
-
-                        // we are already in the final stage. just return it.
-                        var compilation = state.FinalCompilationWithGeneratedDocuments;
-                        if (compilation != null)
-                        {
-                            return compilation;
-                        }
-
-                        compilation = state.CompilationWithoutGeneratedDocuments;
-                        if (compilation == null)
-                        {
-                            // We've got nothing.  Build it from scratch :(
-                            return await BuildDeclarationCompilationFromScratchAsync(
-                                solutionServices,
-                                state.GeneratorInfo,
-                                cancellationToken).ConfigureAwait(false);
-                        }
-
-                        if (state is AllSyntaxTreesParsedState or FinalState)
-                        {
-                            // we have full declaration, just use it.
-                            return compilation;
-                        }
-
-                        (compilation, _, _) = await BuildDeclarationCompilationFromInProgressAsync(solutionServices, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
-
-                        // We must have an in progress compilation. Build off of that.
-                        return compilation;
-                    }
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
             }
 
             private async Task<CompilationInfo> GetOrBuildCompilationInfoAsync(
@@ -479,7 +459,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -541,9 +521,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     var compilation = await BuildDeclarationCompilationFromScratchAsync(
-                        solution.Services,
-                        generatorInfo,
-                        cancellationToken).ConfigureAwait(false);
+                        generatorInfo, cancellationToken).ConfigureAwait(false);
 
                     return await FinalizeCompilationAsync(
                         solution,
@@ -554,7 +532,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -562,7 +540,6 @@ namespace Microsoft.CodeAnalysis
                 "https://github.com/dotnet/roslyn/issues/23582",
                 Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
             private async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
-                SolutionServices solutionServices,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 CancellationToken cancellationToken)
             {
@@ -579,12 +556,12 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     compilation = compilation.AddSyntaxTrees(trees);
-                    WriteState(new AllSyntaxTreesParsedState(compilation, generatorInfo), solutionServices);
+                    WriteState(new AllSyntaxTreesParsedState(compilation, generatorInfo));
                     return compilation;
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -612,7 +589,9 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(solution.Services, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                    var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(
+                        state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+
                     return await FinalizeCompilationAsync(
                         solution,
                         compilationWithoutGenerators,
@@ -622,12 +601,12 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
             private async Task<(Compilation compilationWithoutGenerators, Compilation? compilationWithGenerators, GeneratorDriver? generatorDriver)> BuildDeclarationCompilationFromInProgressAsync(
-                SolutionServices solutionServices, InProgressState state, Compilation compilationWithoutGenerators, CancellationToken cancellationToken)
+                InProgressState state, Compilation compilationWithoutGenerators, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -680,14 +659,14 @@ namespace Microsoft.CodeAnalysis
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
                         this.WriteState(CompilationTrackerState.Create(
-                            compilationWithoutGenerators, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGenerators, intermediateProjects), solutionServices);
+                            compilationWithoutGenerators, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGenerators, intermediateProjects));
                     }
 
                     return (compilationWithoutGenerators, compilationWithGenerators, generatorDriver);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -807,7 +786,12 @@ namespace Microsoft.CodeAnalysis
                     {
                         using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
 
-                        if (ProjectState.SourceGenerators.Any())
+                        if (!ProjectState.SourceGenerators.Any())
+                        {
+                            // We don't have any generators, so if we have a compilation from a previous run with generated files, we definitely can't use it anymore
+                            compilationWithStaleGeneratedTrees = null;
+                        }
+                        else // we have a generator
                         {
                             // If we don't already have a generator driver, we'll have to create one from scratch
                             if (generatorInfo.Driver == null)
@@ -817,7 +801,7 @@ namespace Microsoft.CodeAnalysis
 
                                 generatorInfo = generatorInfo.WithDriver(compilationFactory.CreateGeneratorDriver(
                                         this.ProjectState.ParseOptions!,
-                                        ProjectState.SourceGenerators,
+                                        ProjectState.SourceGenerators.ToImmutableArray(),
                                         this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
                                         additionalTexts));
                             }
@@ -862,6 +846,9 @@ namespace Microsoft.CodeAnalysis
                             // END HACK HACK HACK HACK.
 
                             generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver!.RunGenerators(compilationToRunGeneratorsOn, cancellationToken));
+
+                            solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>()?.CollectRunResult(generatorInfo.Driver!.GetRunResult(), generatorInfo.Driver!.GetTimingInfo(), ProjectState);
+
                             var runResult = generatorInfo.Driver!.GetRunResult();
 
                             // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
@@ -871,7 +858,10 @@ namespace Microsoft.CodeAnalysis
                             // and the prior generated trees are identical.
                             if (compilationWithStaleGeneratedTrees != null)
                             {
-                                if (generatorInfo.Documents.Count != runResult.Results.Sum(r => r.GeneratedSources.Length))
+                                var generatedTreeCount =
+                                    runResult.Results.Sum(r => IsGeneratorRunResultToIgnore(r) ? 0 : r.GeneratedSources.Length);
+
+                                if (generatorInfo.Documents.Count != generatedTreeCount)
                                 {
                                     compilationWithStaleGeneratedTrees = null;
                                 }
@@ -879,11 +869,19 @@ namespace Microsoft.CodeAnalysis
 
                             foreach (var generatorResult in runResult.Results)
                             {
+                                if (IsGeneratorRunResultToIgnore(generatorResult))
+                                {
+                                    continue;
+                                }
+
+                                var generatorAnalyzerReference = this.ProjectState.GetAnalyzerReferenceForGenerator(generatorResult.Generator);
+
                                 foreach (var generatedSource in generatorResult.GeneratedSources)
                                 {
                                     var existing = FindExistingGeneratedDocumentState(
                                         generatorInfo.Documents,
                                         generatorResult.Generator,
+                                        generatorAnalyzerReference,
                                         generatedSource.HintName);
 
                                     if (existing != null)
@@ -905,15 +903,15 @@ namespace Microsoft.CodeAnalysis
                                             ProjectState.Id,
                                             generatedSource.HintName,
                                             generatorResult.Generator,
-                                            generatedSource.SyntaxTree.FilePath);
+                                            generatedSource.SyntaxTree.FilePath,
+                                            generatorAnalyzerReference);
 
                                         generatedDocumentsBuilder.Add(
                                             SourceGeneratedDocumentState.Create(
                                                 identity,
                                                 generatedSource.SourceText,
                                                 generatedSource.SyntaxTree.Options,
-                                                this.ProjectState.LanguageServices,
-                                                solution.Services));
+                                                ProjectState.LanguageServices));
 
                                         // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
                                         // was added, and an equal number must have been removed. Rather than trying to incrementally update
@@ -949,7 +947,7 @@ namespace Microsoft.CodeAnalysis
                         this.ProjectState.Id,
                         metadataReferenceToProjectId);
 
-                    this.WriteState(finalState, solution.Services);
+                    this.WriteState(finalState);
 
                     return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatorInfo);
                 }
@@ -967,24 +965,21 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // Local functions
                 static SourceGeneratedDocumentState? FindExistingGeneratedDocumentState(
                     TextDocumentStates<SourceGeneratedDocumentState> states,
                     ISourceGenerator generator,
+                    AnalyzerReference analyzerReference,
                     string hintName)
                 {
-                    var generatorAssemblyName = SourceGeneratedDocumentIdentity.GetGeneratorAssemblyName(generator);
-                    var generatorTypeName = SourceGeneratedDocumentIdentity.GetGeneratorTypeName(generator);
+                    var generatorIdentity = new SourceGeneratorIdentity(generator, analyzerReference);
 
                     foreach (var (_, state) in states.States)
                     {
-                        if (state.SourceGeneratorAssemblyName != generatorAssemblyName)
-                            continue;
-
-                        if (state.SourceGeneratorTypeName != generatorTypeName)
+                        if (state.Identity.Generator != generatorIdentity)
                             continue;
 
                         if (state.HintName != hintName)
@@ -1065,7 +1060,24 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return compilationInfo.GeneratorInfo.Driver?.GetRunResult().Diagnostics ?? ImmutableArray<Diagnostic>.Empty;
+
+                var driverRunResult = compilationInfo.GeneratorInfo.Driver?.GetRunResult();
+                if (driverRunResult is null)
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                using var _ = ArrayBuilder<Diagnostic>.GetInstance(capacity: driverRunResult.Diagnostics.Length, out var builder);
+
+                foreach (var result in driverRunResult.Results)
+                {
+                    if (!IsGeneratorRunResultToIgnore(result))
+                    {
+                        builder.AddRange(result.Diagnostics);
+                    }
+                }
+
+                return builder.ToImmutableAndClear();
             }
 
             public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
@@ -1077,6 +1089,34 @@ namespace Microsoft.CodeAnalysis
                 // correct and can be re-ran later.
                 return state is FinalState finalState ? finalState.GeneratorInfo.Documents.GetState(documentId) : null;
             }
+
+            // HACK HACK HACK HACK around a problem introduced by https://github.com/dotnet/sdk/pull/24928. The Razor generator is
+            // controlled by a flag that lives in an .editorconfig file; in the IDE we generally don't run the generator and instead use
+            // the design-time files added through the legacy IDynamicFileInfo API. When we're doing Hot Reload we then
+            // remove those legacy files and remove the .editorconfig file that is supposed to disable the generator, for the Hot
+            // Reload pass we then are running the generator. This is done in the CompileTimeSolutionProvider.
+            //
+            // https://github.com/dotnet/sdk/pull/24928 introduced an issue where even though the Razor generator is being told to not
+            // run, it still runs anyways. As a tactical fix rather than reverting that PR, for Visual Studio 17.3 Preview 2 we are going
+            // to do a hack here which is to rip out generated files.
+
+            private bool IsGeneratorRunResultToIgnore(GeneratorRunResult result)
+            {
+                var globalOptions = this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
+
+                // This matches the implementation in https://github.com/chsienki/sdk/blob/4696442a24e3972417fb9f81f182420df0add107/src/RazorSdk/SourceGenerators/RazorSourceGenerator.RazorProviders.cs#L27-L28
+                var suppressGenerator = globalOptions.TryGetValue("build_property.SuppressRazorSourceGenerator", out var option) && option == "true";
+
+                if (!suppressGenerator)
+                    return false;
+
+                var generatorType = result.Generator.GetGeneratorType();
+                return generatorType.FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator" &&
+                       generatorType.Assembly.GetName().Name == "Microsoft.NET.Sdk.Razor.SourceGenerators";
+            }
+
+            // END HACK HACK HACK HACK, or the setup of it at least; once this hack is removed the calls to IsGeneratorRunResultToIgnore
+            // need to be cleaned up.
 
             #region Versions and Checksums
 

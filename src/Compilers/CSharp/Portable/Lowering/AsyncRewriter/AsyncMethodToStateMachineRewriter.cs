@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory F,
             FieldSymbol state,
             FieldSymbol builder,
-            IReadOnlySet<Symbol> hoistedVariables,
+            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -124,8 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected sealed override string EncMissingStateMessage
             => CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod;
 
-        protected sealed override int FirstIncreasingResumableState
-            => StateMachineStates.FirstResumableAsyncState;
+        protected sealed override StateMachineState FirstIncreasingResumableState
+            => StateMachineState.FirstResumableAsyncState;
 
         /// <summary>
         /// Generate the body for <c>MoveNext()</c>.
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(F.Label(_exprReturnLabel));
 
             // this.state = finishedState
-            var stateDone = F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedState));
+            var stateDone = F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState));
             var block = body.Syntax as BlockSyntax;
             if (block == null)
             {
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // _state = finishedState;
             BoundStatement assignFinishedState =
-                F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedState)));
+                F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)));
 
             // builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex);
             BoundStatement callSetException = GenerateSetExceptionCall(exceptionLocal);
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             // await expressions must, by now, have been moved to the top level.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override BoundNode VisitBadExpression(BoundBadExpression node)
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBlock GenerateAwaitForIncompleteTask(LocalSymbol awaiterTemp)
         {
-            AddResumableState(awaiterTemp.GetDeclaratorSyntax(), out int stateNumber, out GeneratedLabelSymbol resumeLabel);
+            AddResumableState(awaiterTemp.GetDeclaratorSyntax(), out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
 
             TypeSymbol awaiterFieldType = awaiterTemp.Type.IsVerifierReference()
                 ? F.SpecialType(SpecialType.System_Object)
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                     // this.state = cachedState = NotStartedStateMachine
-                    GenerateSetBothStates(StateMachineStates.NotStartedOrRunningState));
+                    GenerateSetBothStates(StateMachineState.NotStartedOrRunningState));
 
             return F.Block(blockBuilder.ToImmutableAndFree());
         }

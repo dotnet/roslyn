@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         string IDkmClrFormatter2.GetEditableValueString(DkmClrValue value, DkmInspectionContext inspectionContext, DkmClrCustomTypeInfo customTypeInfo)
         {
-            return GetEditableValue(value, inspectionContext, customTypeInfo);
+            return GetEditableValue(value, inspectionContext);
         }
 
         string IDkmClrFullNameProvider.GetClrTypeName(DkmInspectionContext inspectionContext, DkmClrType clrType, DkmClrCustomTypeInfo customTypeInfo)

@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Indentation
 {
     internal abstract partial class AbstractIndentation<TSyntaxRoot>
     {
-        protected struct Indenter
+        protected readonly struct Indenter
         {
             private readonly AbstractIndentation<TSyntaxRoot> _service;
 
@@ -167,14 +167,9 @@ namespace Microsoft.CodeAnalysis.Indentation
             {
                 if (_service.ShouldUseTokenIndenter(this, out var token))
                 {
-                    // var root = document.GetSyntaxRootSynchronously(cancellationToken);
-                    var sourceText = Tree.GetText(CancellationToken);
+                    var changes = SmartTokenFormatter.FormatToken(token, CancellationToken);
 
-                    var changes = this.SmartTokenFormatter
-                        .FormatTokenAsync(token, CancellationToken)
-                        .WaitAndGetResult_CanCallOnBackground(CancellationToken);
-
-                    var updatedSourceText = sourceText.WithChanges(changes);
+                    var updatedSourceText = Text.WithChanges(changes);
                     if (LineToBeIndented.LineNumber < updatedSourceText.Lines.Count)
                     {
                         var updatedLine = updatedSourceText.Lines[LineToBeIndented.LineNumber];

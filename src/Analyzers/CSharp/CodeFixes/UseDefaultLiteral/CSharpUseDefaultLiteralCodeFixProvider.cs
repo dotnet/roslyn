@@ -2,24 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 {
@@ -27,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     internal partial class CSharpUseDefaultLiteralCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpUseDefaultLiteralCodeFixProvider()
         {
         }
@@ -53,12 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             // Here, we can replace either of the default expressions, but not both. So we have 
             // to replace one at a time, and only actually replace if it's still safe to do so.
 
-            var parseOptions = (CSharpParseOptions)document.Project.ParseOptions;
-
             var options = (CSharpAnalyzerOptionsProvider)await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
             var preferSimpleDefaultExpression = options.PreferSimpleDefaultExpression.Value;
 
             var originalRoot = editor.OriginalRoot;
+            var parseOptions = (CSharpParseOptions)originalRoot.SyntaxTree.Options;
 
             var originalNodes = diagnostics.SelectAsArray(
                 d => (DefaultExpressionSyntax)originalRoot.FindNode(d.Location.SourceSpan, getInnermostNodeForTie: true));

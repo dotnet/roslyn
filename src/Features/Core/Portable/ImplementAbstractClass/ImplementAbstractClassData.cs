@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -110,13 +110,12 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 autoInsertionLocation: groupMembers,
                 sortMembers: groupMembers);
 
-            var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-            var codeGenOptions = await _document.GetCodeGenerationOptionsAsync(_options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await _document.GetCodeGenerationInfoAsync(context, _options.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
-            var updatedClassNode = codeGenerator.AddMembers(
+            var updatedClassNode = info.Service.AddMembers(
                 classNodeToAddMembersTo,
                 memberDefinitions,
-                codeGenOptions.GetInfo(context, _document.Project),
+                info,
                 cancellationToken);
 
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

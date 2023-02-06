@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var currentAnonymousFunction = currentRoot.GetCurrentNode(anonymousFunction);
 
                 currentRoot = ReplaceAnonymousWithLocalFunction(
-                    document.Project.Solution.Workspace.Services, currentRoot,
+                    document.Project.Solution.Services, currentRoot,
                     currentLocalDeclaration, currentAnonymousFunction,
                     delegateType.DelegateInvokeMethod, parameterList, makeStatic);
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static SyntaxNode ReplaceAnonymousWithLocalFunction(
-            HostWorkspaceServices services, SyntaxNode currentRoot,
+            SolutionServices services, SyntaxNode currentRoot,
             LocalDeclarationStatementSyntax localDeclaration, AnonymousFunctionExpressionSyntax anonymousFunction,
             IMethodSymbol delegateMethod, ParameterListSyntax parameterList, bool makeStatic)
         {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var constraintClauses = default(SyntaxList<TypeParameterConstraintClauseSyntax>);
 
-            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block, out BlockSyntax block)
+            var body = anonymousFunction.Body is BlockSyntax block
                 ? block
                 : null;
 

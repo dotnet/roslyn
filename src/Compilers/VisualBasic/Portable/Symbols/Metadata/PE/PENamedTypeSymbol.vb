@@ -20,6 +20,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports TypeAttributes = System.Reflection.TypeAttributes
 Imports FieldAttributes = System.Reflection.FieldAttributes
 Imports System.Reflection.Metadata.Ecma335
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -432,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _lazyCustomAttributes
         End Function
 
-        Friend Overrides Iterator Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+        Friend Overrides Iterator Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
             For Each attribute In GetAttributes()
                 Yield attribute
             Next
@@ -754,7 +755,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Return True
         End Function
-
 
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             EnsureNestedTypesAreLoaded()
@@ -1114,9 +1114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Try
                 For Each nestedTypeDef In [module].GetNestedTypeDefsOrThrow(_handle)
-                    If [module].ShouldImportNestedType(nestedTypeDef) Then
-                        members.Add(New PENamedTypeSymbol(moduleSymbol, Me, nestedTypeDef))
-                    End If
+                    members.Add(New PENamedTypeSymbol(moduleSymbol, Me, nestedTypeDef))
                 Next
             Catch mrEx As BadImageFormatException
             End Try
@@ -1212,7 +1210,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 For Each propertyDef In [module].GetPropertiesOfTypeOrThrow(_handle)
                     Try
                         Dim methods = [module].GetPropertyMethodsOrThrow(propertyDef)
-
 
                         Dim getMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Getter)
                         Dim setMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Setter)
@@ -1339,7 +1336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Function DeriveCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
             Dim decoder = New MetadataDecoder(ContainingPEModule, Me)
 
-            Dim diagnostic = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+            Dim diagnostic = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.RefStructs, decoder)
 
             If diagnostic IsNot Nothing Then
                 Return diagnostic

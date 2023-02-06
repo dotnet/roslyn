@@ -16,9 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMemberStatic
         EmptyDiagnosticAnalyzer,
         CSharpMakeMemberStaticCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
     public class MakeMemberStaticTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        [Fact]
         public async Task TestField()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -34,8 +35,7 @@ public static class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
-        [WorkItem(54202, "https://github.com/dotnet/roslyn/issues/54202")]
+        [Fact, WorkItem(54202, "https://github.com/dotnet/roslyn/issues/54202")]
         public async Task TestTrivia()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -53,7 +53,7 @@ public static class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        [Fact]
         public async Task TestMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -69,7 +69,7 @@ public static class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        [Fact]
         public async Task TestProperty()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -85,7 +85,7 @@ public static class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        [Fact]
         public async Task TestEventField()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -101,7 +101,7 @@ public static class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        [Fact]
         public async Task FixAll()
         {
             await VerifyCS.VerifyCodeFixAsync(

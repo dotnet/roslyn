@@ -293,7 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("y", tt.Elements[1].Identifier.ToString());
             Assert.Equal(2, tt.Elements.Count);
 
-
             tt = (TupleTypeSyntax)tt.Elements[1].Type;
 
             Assert.Equal("(U k, V l, W m)", tt.ToString());
@@ -2685,7 +2684,13 @@ class C
         using await var x = null;
     }
 }
-");
+",
+                // (6,15): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         using await var x = null;
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 15),
+                // (6,25): error CS1002: ; expected
+                //         using await var x = null;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(6, 25));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);

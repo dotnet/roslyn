@@ -9,16 +9,14 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
-internal interface IAddImportPlacementOptionsStorage : ILanguageService
-{
-    AddImportPlacementOptions GetOptions(IGlobalOptionService globalOptions);
-}
-
 internal static class AddImportPlacementOptionsStorage
 {
     public static ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
-        => document.GetAddImportPlacementOptionsAsync(globalOptions.GetAddImportPlacementOptions(document.Project.LanguageServices), cancellationToken);
+        => document.GetAddImportPlacementOptionsAsync(globalOptions.GetAddImportPlacementOptions(document.Project.Services), cancellationToken);
 
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
-        => languageServices.GetRequiredService<IAddImportPlacementOptionsStorage>().GetOptions(globalOptions);
+    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
+        => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(
+            globalOptions,
+            allowInHiddenRegions: AddImportPlacementOptions.Default.AllowInHiddenRegions, // no global option available
+            fallbackOptions: null);
 }

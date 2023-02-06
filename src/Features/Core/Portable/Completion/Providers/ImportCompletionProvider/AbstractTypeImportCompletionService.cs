@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract string Language { get; }
 
-        internal AbstractTypeImportCompletionService(Workspace workspace)
+        internal AbstractTypeImportCompletionService(SolutionServices services)
         {
-            CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>>();
+            CacheService = services.GetRequiredService<IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>>();
         }
 
         public void QueueCacheWarmUpTask(Project project)
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var solution = currentProject.Solution;
                 var graph = solution.GetProjectDependencyGraph();
-                var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(id => solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation);
+                var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(solution.GetRequiredProject).Where(p => p.SupportsCompilation);
 
                 projectsBuilder.Add(currentProject);
                 projectsBuilder.AddRange(referencedProjects);
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool HasGlobalAlias(ImmutableArray<string> aliases)
-            => aliases.IsEmpty || aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias);
+            => aliases.IsEmpty || aliases.Any(static alias => alias == MetadataReferenceProperties.GlobalAlias);
 
         private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
             => peReference.FilePath ?? peReference.Display;
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cacheEntry = CreateCacheWorker(
                     GetPEReferenceCacheKey(peReference)!,
                     assemblySymbol,
-                    checksum: SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken),
+                    checksum: SymbolTreeInfo.GetMetadataChecksum(solution.Services, peReference, cancellationToken),
                     CacheService.PEItemsCache,
                     editorBrowsableInfo,
                     cancellationToken);
@@ -226,6 +227,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return cacheEntry;
         }
+        private static string ConcatNamespace(string? containingNamespace, string name)
+            => string.IsNullOrEmpty(containingNamespace) ? name : containingNamespace + "." + name;
 
         private static void GetCompletionItemsForTopLevelTypeDeclarations(
             INamespaceSymbol rootNamespaceSymbol,
@@ -242,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                containingNamespace = CompletionHelper.ConcatNamespace(containingNamespace, symbol.Name);
+                containingNamespace = ConcatNamespace(containingNamespace, symbol.Name);
 
                 foreach (var memberNamespace in symbol.GetNamespaceMembers())
                 {
@@ -255,8 +258,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Iterate over all top level internal and public types, keep track of "type overloads".
                 foreach (var type in types)
                 {
-                    // No need to check accessibility here, since top level types can only be internal or public.
-                    if (type.CanBeReferencedByName)
+                    // Include all top level types except those declared as `file` (i.e. all internal or public)
+                    if (type.CanBeReferencedByName && !type.IsFileLocal)
                     {
                         overloads.TryGetValue(type.Name, out var overloadInfo);
                         overloads[type.Name] = overloadInfo.Aggregate(type);

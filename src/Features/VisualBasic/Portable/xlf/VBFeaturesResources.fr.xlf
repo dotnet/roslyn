@@ -67,11 +67,6 @@
         <target state="translated">Insérez le '{0}' manquant.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Variable temporaire inline</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">Conflit(s) détecté(s).</target>
@@ -104,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Project_level_Imports">
         <source>Project level 'Imports'</source>
-        <target state="new">Project level 'Imports'</target>
+        <target state="translated">Niveau de projet « Imports »</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_shared_keyword_from_module_member">

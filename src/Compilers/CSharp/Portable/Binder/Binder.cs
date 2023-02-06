@@ -156,6 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool UseUpdatedEscapeRules => Compilation.SourceModule.UseUpdatedEscapeRules;
+
         /// <summary>
         /// Some nodes have special binders for their contents (like Blocks)
         /// </summary>
@@ -430,7 +432,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
         }
-
 
         /// <summary>
         /// Returns true if the binder is binding top-level script code.
@@ -809,6 +810,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetWellKnownTypeMember(compilation, attributeMember, diagnostics, location, syntax, isOptional);
         }
 
+        /// <summary>
+        /// Adds diagnostics that should be reported when using a synthesized attribute. 
+        /// </summary>
+        internal static void AddUseSiteDiagnosticForSynthesizedAttribute(
+            CSharpCompilation compilation,
+            WellKnownMember attributeMember,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            GetWellKnownTypeMember(compilation,
+                attributeMember,
+                out var memberUseSiteInfo,
+                isOptional: WellKnownMembers.IsSynthesizedAttributeOptional(attributeMember));
+            useSiteInfo.Add(memberUseSiteInfo);
+        }
+
         public CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo(BindingDiagnosticBag futureDestination)
         {
             return new CompoundUseSiteInfo<AssemblySymbol>(futureDestination, Compilation.Assembly);
@@ -866,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
-            return new BoundBlock(statement.Syntax, locals, localFunctions,
+            return new BoundBlock(statement.Syntax, locals, localFunctions, hasUnsafeModifier: false,
                                   ImmutableArray.Create(statement))
             { WasCompilerGenerated = true };
         }

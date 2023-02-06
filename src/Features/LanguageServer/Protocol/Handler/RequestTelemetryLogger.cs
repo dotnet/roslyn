@@ -24,7 +24,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
     /// <summary>
     /// Histogram to aggregate the time in queue metrics.
     /// </summary>
-    private readonly HistogramLogAggregator _queuedDurationLogAggregator;
+    private readonly HistogramLogAggregator<string> _queuedDurationLogAggregator;
 
     /// <summary>
     /// Histogram to aggregate total request duration metrics.
@@ -34,7 +34,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
     /// This provides highly detailed buckets when duration is in MS, but less detailed
     /// when the duration is in terms of seconds or minutes.
     /// </summary>
-    private readonly HistogramLogAggregator _requestDurationLogAggregator;
+    private readonly HistogramLogAggregator<string> _requestDurationLogAggregator;
 
     /// <summary>
     /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
@@ -42,9 +42,9 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
     /// </summary>
     private readonly ConcurrentDictionary<string, Counter> _requestCounters;
 
-    private readonly LogAggregator _findDocumentResults;
+    private readonly CountLogAggregator<string> _findDocumentResults;
 
-    private readonly LogAggregator _usedForkedSolutionCounter;
+    private readonly CountLogAggregator<bool> _usedForkedSolutionCounter;
 
     private int _disposed;
 
@@ -57,11 +57,11 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
 
         // Buckets queued duration into 10ms buckets with the last bucket starting at 1000ms.
         // Queue times are relatively short and fall under 50ms, so tracking past 1000ms is not useful.
-        _queuedDurationLogAggregator = new HistogramLogAggregator(bucketSize: 10, maxBucketValue: 1000);
+        _queuedDurationLogAggregator = new HistogramLogAggregator<string>(bucketSize: 10, maxBucketValue: 1000);
 
         // Since this is a log based histogram, these are appropriate bucket sizes for the log data.
         // A bucket at 1 corresponds to ~26ms, while the max bucket value corresponds to ~17minutes
-        _requestDurationLogAggregator = new HistogramLogAggregator(bucketSize: 1, maxBucketValue: 40);
+        _requestDurationLogAggregator = new HistogramLogAggregator<string>(bucketSize: 1, maxBucketValue: 40);
     }
 
     public void UpdateFindDocumentTelemetryData(bool success, string? workspaceKind)
@@ -87,10 +87,10 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
     {
         // Find the bucket corresponding to the queued duration and update the count of durations in that bucket.
         // This is not broken down per method as time in queue is not specific to an LSP method.
-        _queuedDurationLogAggregator.IncreaseCount(QueuedDurationKey, Convert.ToDecimal(queuedDuration.TotalMilliseconds));
+        _queuedDurationLogAggregator.LogTime(QueuedDurationKey, queuedDuration);
 
         // Store the request time metrics per LSP method.
-        _requestDurationLogAggregator.IncreaseCount(methodName, Convert.ToDecimal(ComputeLogValue(requestDuration.TotalMilliseconds)));
+        _requestDurationLogAggregator.IncreaseCount(methodName, (int)ComputeLogValue(requestDuration.TotalMilliseconds));
         _requestCounters.GetOrAdd(methodName, (_) => new Counter()).IncrementCount(result);
     }
 

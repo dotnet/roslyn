@@ -9,8 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
@@ -55,8 +56,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         public static CompletionDescription GetDescription(CompletionItem item)
             => CommonCompletionItem.GetDescription(item);
 
+        internal sealed override async Task<CompletionDescription> GetDescriptionWorkerAsync(
+            Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+        {
+            var description = await GetDescriptionAsync(item, document, displayOptions, cancellationToken).ConfigureAwait(false);
+            return UpdateDescription(description);
+        }
+
+        protected virtual CompletionDescription UpdateDescription(CompletionDescription completionDescription)
+            => completionDescription;
+
         public static bool TryGetInsertionText(CompletionItem item, [NotNullWhen(true)] out string? insertionText)
             => SymbolCompletionItem.TryGetInsertionText(item, out insertionText);
+
+        public sealed override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
+            => IsInsertionTriggerWorker(text, insertedCharacterPosition);
+
+        protected virtual bool IsInsertionTriggerWorker(SourceText text, int insertedCharacterPosition)
+            => text[insertedCharacterPosition] == '.';
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
             => base.GetChangeAsync(document, item, commitKey, cancellationToken);

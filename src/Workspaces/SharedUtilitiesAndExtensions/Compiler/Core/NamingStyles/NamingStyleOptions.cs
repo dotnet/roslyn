@@ -5,28 +5,26 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Host;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class NamingStyleOptions
     {
-        // Use 'SimplificationOptions' for back compat as the below option 'NamingPreferences' was defined with feature name 'SimplificationOptions'.
-        private const string FeatureName = "SimplificationOptions";
+        public const string NamingPreferencesOptionName = "SimplificationOptions_NamingPreferences";
 
         /// <summary>
         /// This option describes the naming rules that should be applied to specified categories of symbols, 
         /// and the level to which those rules should be enforced.
         /// </summary>
-        internal static PerLanguageOption2<NamingStylePreferences> NamingPreferences { get; } = new PerLanguageOption2<NamingStylePreferences>(
-            FeatureName, nameof(NamingPreferences), defaultValue: NamingStylePreferences.Default,
-            new NamingStylePreferenceEditorConfigStorageLocation(),
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences5"),
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences"));
-
-        public static OptionKey2 GetNamingPreferencesOptionKey(string language)
-            => new(NamingPreferences, language);
+        internal static PerLanguageOption2<NamingStylePreferences> NamingPreferences { get; } = new(
+            NamingPreferencesOptionName,
+            defaultValue: NamingStylePreferences.Default,
+            isEditorConfigOption: true);
     }
 
     internal interface NamingStylePreferencesProvider
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 return value;
             }
 
-            return await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false);
+            return await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
         }
     }
 #endif

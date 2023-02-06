@@ -84,6 +84,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public int FixedSize => 0;
 
+        public RefKind RefKind => RefKind.None;
+
+        public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
         public ImmutableArray<CustomModifier> CustomModifiers
         {
             get

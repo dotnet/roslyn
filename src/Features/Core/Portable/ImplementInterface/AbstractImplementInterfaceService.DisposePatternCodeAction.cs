@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
     {
         // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
         // the naming style that the user has specified.
-        private static ImmutableArray<string> s_disposedValueNameParts =
+        private static readonly ImmutableArray<string> s_disposedValueNameParts =
             ImmutableArray.Create("disposed", "value");
 
         // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             var unimplementedMembers = explicitly
                 ? state.MembersWithoutExplicitImplementation
                 : state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
-            if (!unimplementedMembers.Any(m => m.type.Equals(idisposableType)))
+            if (!unimplementedMembers.Any(static (m, idisposableType) => m.type.Equals(idisposableType), idisposableType))
                 return false;
 
             // The dispose pattern is only applicable if the implementing type does
@@ -153,19 +153,17 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var firstGeneratedMember = rootWithCoreMembers.GetAnnotatedNodes(CodeGenerator.Annotation).First();
                 var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent!;
 
-                var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
-
                 var context = new CodeGenerationContext(
                     addImports: false,
                     sortMembers: false,
                     autoInsertionLocation: false);
 
-                var options = await document.GetCodeGenerationOptionsAsync(Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+                var info = await document.GetCodeGenerationInfoAsync(context, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                var typeDeclarationWithAllMembers = codeGenerator.AddMembers(
+                var typeDeclarationWithAllMembers = info.Service.AddMembers(
                     typeDeclarationWithCoreMembers,
                     disposableMethods,
-                    options.GetInfo(context, document.Project),
+                    info,
                     cancellationToken);
 
                 var docWithAllMembers = docWithCoreMembers.WithSyntaxRoot(
@@ -340,7 +338,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return value.Value;
                 }
 
-                var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false);
+                var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
 
                 return fallbackFormattingOptions.AccessibilityModifiersRequired;
             }

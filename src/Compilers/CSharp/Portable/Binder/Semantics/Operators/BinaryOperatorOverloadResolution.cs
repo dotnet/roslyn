@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddDelegateOperation(kind, delegateType, operators);
         }
 
-        private void GetEnumOperation(BinaryOperatorKind kind, TypeSymbol enumType, BoundExpression left, BoundExpression right, ArrayBuilder<BinaryOperatorSignature> operators)
+        private void GetEnumOperation(BinaryOperatorKind kind, TypeSymbol enumType, BoundExpression right, ArrayBuilder<BinaryOperatorSignature> operators)
         {
             Debug.Assert((object)enumType != null);
             AssertNotChecked(kind);
@@ -661,12 +662,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)leftType != null)
             {
-                GetEnumOperation(kind, leftType, left, right, results);
+                GetEnumOperation(kind, leftType, right, results);
             }
 
             if ((object)rightType != null && ((object)leftType == null || !(useIdentityConversion ? Conversions.HasIdentityConversion(rightType, leftType) : rightType.Equals(leftType))))
             {
-                GetEnumOperation(kind, rightType, left, right, results);
+                GetEnumOperation(kind, rightType, right, results);
             }
         }
 
@@ -729,6 +730,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We similarly limit pointer operator candidates considered.
                 GetPointerOperators(kind, left, right, operators);
+
+                if (kind.Operator() is BinaryOperatorKind.Addition &&
+                    isUtf8ByteRepresentation(left) &&
+                    isUtf8ByteRepresentation(right))
+                {
+                    this.Compilation.builtInOperators.GetUtf8ConcatenationBuiltInOperator(left.Type, operators);
+                }
             }
 
             CandidateOperators(isChecked, operators, left, right, results, ref useSiteInfo);
@@ -741,6 +749,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BuiltInOperators.IsValidObjectEquality(conversions, left.Type, left.IsLiteralNull(), leftIsDefault: false, right.Type, right.IsLiteralNull(), rightIsDefault: false, ref useSiteInfo) &&
                     ((object)left.Type == null || (!left.Type.IsDelegateType() && left.Type.SpecialType != SpecialType.System_String && left.Type.SpecialType != SpecialType.System_Delegate)) &&
                     ((object)right.Type == null || (!right.Type.IsDelegateType() && right.Type.SpecialType != SpecialType.System_String && right.Type.SpecialType != SpecialType.System_Delegate));
+            }
+
+            static bool isUtf8ByteRepresentation(BoundExpression value)
+            {
+                return value is BoundUtf8String or BoundBinaryOperator { OperatorKind: BinaryOperatorKind.Utf8Addition };
             }
         }
 
@@ -1311,8 +1324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 op2Right = op2.RightType;
             }
 
-            var uninst1 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var uninst2 = ArrayBuilder<TypeSymbol>.GetInstance();
+            using var uninst1 = TemporaryArray<TypeSymbol>.Empty;
+            using var uninst2 = TemporaryArray<TypeSymbol>.Empty;
 
             uninst1.Add(op1Left);
             uninst1.Add(op1Right);
@@ -1320,10 +1333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uninst2.Add(op2Left);
             uninst2.Add(op2Right);
 
-            BetterResult result = MoreSpecificType(uninst1, uninst2, ref useSiteInfo);
-
-            uninst1.Free();
-            uninst2.Free();
+            BetterResult result = MoreSpecificType(ref uninst1.AsRef(), ref uninst2.AsRef(), ref useSiteInfo);
 
             return result;
         }

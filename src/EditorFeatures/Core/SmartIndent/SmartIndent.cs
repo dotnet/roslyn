@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
     internal partial class SmartIndent : ISmartIndent
     {
         private readonly ITextView _textView;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly EditorOptionsService _editorOptionsService;
 
-        public SmartIndent(ITextView textView, IGlobalOptionService globalOptions)
+        public SmartIndent(ITextView textView, EditorOptionsService editorOptionsService)
         {
             _textView = textView;
-            _globalOptions = globalOptions;
+            _editorOptionsService = editorOptionsService;
         }
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)
@@ -50,8 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 if (newService == null)
                     return null;
 
-                var indentationOptions = document.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-                var result = newService.GetIndentation(document, line.LineNumber, indentationOptions, cancellationToken);
+                var indentationOptions = line.Snapshot.TextBuffer.GetIndentationOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
+                var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+                var result = newService.GetIndentation(parsedDocument, line.LineNumber, indentationOptions, cancellationToken);
                 return result.GetIndentation(_textView, line);
             }
         }

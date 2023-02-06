@@ -17,22 +17,16 @@ namespace Microsoft.CodeAnalysis.ImplementType
               PropertyGenerationBehavior = globalOptions.GetOption(PropertyGenerationBehavior, language)
           };
 
-        public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+        public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
           => new(globalOptions.GetImplementTypeOptions(languageServices.Language),
                  globalOptions.CreateProvider());
 
-        private const string FeatureName = "ImplementTypeOptions";
-
         public static readonly PerLanguageOption2<ImplementTypeInsertionBehavior> InsertionBehavior =
-            new(FeatureName,
-                "InsertionBehavior",
-                defaultValue: ImplementTypeOptions.Default.InsertionBehavior,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior"));
+            new("ImplementTypeOptions_InsertionBehavior",
+                defaultValue: ImplementTypeOptions.Default.InsertionBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypeInsertionBehavior>());
 
         public static readonly PerLanguageOption2<ImplementTypePropertyGenerationBehavior> PropertyGenerationBehavior =
-            new(FeatureName,
-                "PropertyGenerationBehavior",
-                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.ImplementTypeOptions.PropertyGenerationBehavior"));
+            new("ImplementTypeOptions_PropertyGenerationBehavior",
+                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypePropertyGenerationBehavior>());
     }
 }

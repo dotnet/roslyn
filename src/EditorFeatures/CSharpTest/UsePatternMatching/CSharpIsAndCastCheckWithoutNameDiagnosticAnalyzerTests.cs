@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
     public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITestOutputHelper logger)
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer(), new CSharpIsAndCastCheckWithoutNameCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestBinaryExpression()
         {
             await TestInRegularAndScript1Async(
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestNotInCSharp6()
         {
             await TestMissingAsync(
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestExpressionBody()
         {
             await TestInRegularAndScript1Async(
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestField()
         {
             await TestInRegularAndScript1Async(
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestLambdaBody()
         {
             await TestInRegularAndScript1Async(
@@ -132,7 +133,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestDefiniteAssignment1()
         {
             await TestInRegularAndScript1Async(
@@ -172,7 +173,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestDefiniteAssignment2()
         {
             await TestInRegularAndScript1Async(
@@ -212,7 +213,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestNotOnAnalyzerMatch()
         {
             await TestMissingAsync(
@@ -228,7 +229,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestNotOnNullable()
         {
             await TestMissingAsync(
@@ -244,7 +245,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestComplexMatch()
         {
             await TestInRegularAndScript1Async(
@@ -267,7 +268,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestTrivia()
         {
             await TestInRegularAndScript1Async(
@@ -290,7 +291,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestFixOnlyAfterIsCheck()
         {
             await TestInRegularAndScript1Async(
@@ -313,7 +314,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestArrayNaming()
         {
             await TestInRegularAndScript1Async(
@@ -336,7 +337,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestNamingConflict1()
         {
             await TestInRegularAndScript1Async(
@@ -361,7 +362,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestNamingConflict2()
         {
             await TestInRegularAndScript1Async(
@@ -391,7 +392,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestNamingNoConflict1()
         {
             await TestInRegularAndScript1Async(
@@ -421,7 +422,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestNamingNoConflict2()
         {
             await TestInRegularAndScript1Async(
@@ -451,7 +452,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestNamingNoConflict3()
         {
             await TestInRegularAndScript1Async(
@@ -487,7 +488,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task TestNamingNoConflict4()
         {
             await TestInRegularAndScript1Async(
@@ -523,8 +524,7 @@ class TestFile
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        [WorkItem(51340, "https://github.com/dotnet/roslyn/issues/51340")]
+        [Fact, WorkItem(51340, "https://github.com/dotnet/roslyn/issues/51340")]
         public async Task TestNoDiagnosticWhenCS0103Happens()
         {
             await TestDiagnosticMissingAsync(
@@ -548,8 +548,7 @@ class SpecificThingType
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        [WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
+        [Fact, WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
         public async Task TestInExpressionTree1()
         {
             await TestMissingAsync(
@@ -560,8 +559,7 @@ object? o = null;
 Expression<Func<bool>> test = () => [||]o is int && (int)o > 5;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        [WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
+        [Fact, WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
         public async Task TestInExpressionTree2()
         {
             await TestMissingAsync(

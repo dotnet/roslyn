@@ -11,6 +11,9 @@ using Roslyn.Utilities;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
@@ -19,17 +22,27 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
     {
         private readonly ValueTrackingRoot _root = new();
 
-        public static ValueTrackingToolWindow? Instance { get; set; }
+        [MemberNotNullWhen(returnValue: true, nameof(_workspace), nameof(_threadingContext), nameof(ViewModel))]
+        public bool Initialized { get; private set; }
+
+        private Workspace? _workspace;
+
+        private IThreadingContext? _threadingContext;
 
         private ValueTrackingTreeViewModel? _viewModel;
         public ValueTrackingTreeViewModel? ViewModel
         {
             get => _viewModel;
-            set
+            private set
             {
+                if (_viewModel is not null)
+                {
+                    throw new InvalidOperationException();
+                }
+
                 if (value is null)
                 {
-                    throw new ArgumentNullException(nameof(ViewModel));
+                    throw new ArgumentNullException(nameof(value));
                 }
 
                 _viewModel = value;
@@ -49,28 +62,30 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             Content = _root;
         }
 
-        public ValueTrackingToolWindow(ValueTrackingTreeViewModel viewModel)
-            : base(null)
+        public void Initialize(ValueTrackingTreeViewModel viewModel, Workspace workspace, IThreadingContext threadingContext)
         {
-            Caption = ServicesVSResources.Value_Tracking;
-            Content = _root;
+            Contract.ThrowIfTrue(Initialized);
+
+            Initialized = true;
             ViewModel = viewModel;
+            _workspace = workspace;
+            _threadingContext = threadingContext;
+
+            _workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
-        public TreeItemViewModel? Root
+        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            get => ViewModel?.Roots.Single();
-            set
+            Contract.ThrowIfFalse(Initialized);
+
+            if (e.Kind is WorkspaceChangeKind.SolutionCleared
+                       or WorkspaceChangeKind.SolutionRemoved)
             {
-                if (value is null)
+                _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    return;
-                }
-
-                Contract.ThrowIfNull(ViewModel);
-
-                ViewModel.Roots.Clear();
-                ViewModel.Roots.Add(value);
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    ViewModel.Roots.Clear();
+                });
             }
         }
     }

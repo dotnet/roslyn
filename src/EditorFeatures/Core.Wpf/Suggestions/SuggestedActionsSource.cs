@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private readonly ReferenceCountedDisposable<State> _state;
 
-            public event EventHandler<EventArgs>? SuggestedActionsChanged;
+            public event EventHandler<EventArgs>? SuggestedActionsChanged { add { } remove { } }
 
             public readonly IGlobalOptionService GlobalOptions;
 
@@ -59,13 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 _state = new ReferenceCountedDisposable<State>(new State(this, owner, textView, textBuffer));
 
                 _state.Target.TextView.Closed += OnTextViewClosed;
-
-                var updateSource = (IDiagnosticUpdateSource)owner._diagnosticService;
-                updateSource.DiagnosticsUpdated += OnDiagnosticsUpdated;
-
-                RegisterEventsToWorkspace(_state, _state.Target.Registration.Workspace);
-
-                _state.Target.Registration.WorkspaceChanged += OnWorkspaceChanged;
             }
 
             public void Dispose()
@@ -161,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
-                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
                     if (document == null)
                     {
                         // this is here to fail test and see why it is failed.
@@ -211,12 +204,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return filteredSets.Select(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull().ToImmutableArray();
             }
 
-            [return: NotNullIfNotNull("unifiedSuggestedActionSet")]
+            [return: NotNullIfNotNull(nameof(unifiedSuggestedActionSet))]
             private SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet, SuggestedActionsSourceProvider owner, ITextBuffer subjectBuffer)
             {
                 // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.
                 if (unifiedSuggestedActionSet == null)
                     return null;
+
+                var originalSolution = unifiedSuggestedActionSet.OriginalSolution;
 
                 return new SuggestedActionSet(
                     unifiedSuggestedActionSet.CategoryName,
@@ -230,24 +225,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     => unifiedSuggestedAction switch
                     {
                         UnifiedCodeFixSuggestedAction codeFixAction => new CodeFixSuggestedAction(
-                            ThreadingContext, owner, codeFixAction.Workspace, subjectBuffer,
+                            ThreadingContext, owner, codeFixAction.Workspace, originalSolution, subjectBuffer,
                             codeFixAction.CodeFix, codeFixAction.Provider, codeFixAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, owner, subjectBuffer)),
                         UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
-                            ThreadingContext, owner, codeRefactoringAction.Workspace, subjectBuffer,
+                            ThreadingContext, owner, codeRefactoringAction.Workspace, originalSolution, subjectBuffer,
                             codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, owner, subjectBuffer)),
                         UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
-                            ThreadingContext, owner, fixAllAction.Workspace, subjectBuffer,
+                            ThreadingContext, owner, fixAllAction.Workspace, originalSolution, subjectBuffer,
                             fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
                         UnifiedFixAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new FixAllCodeRefactoringSuggestedAction(
-                            ThreadingContext, owner, fixAllCodeRefactoringAction.Workspace, subjectBuffer,
+                            ThreadingContext, owner, fixAllCodeRefactoringAction.Workspace, originalSolution, subjectBuffer,
                             fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
-                            ThreadingContext, owner, nestedAction.Workspace, subjectBuffer,
+                            ThreadingContext, owner, nestedAction.Workspace, originalSolution, subjectBuffer,
                             nestedAction.Provider ?? this, nestedAction.OriginalCodeAction,
                             nestedAction.NestedActionSets.SelectAsArray((s, arg) => ConvertToSuggestedActionSet(s, arg.owner, arg.subjectBuffer), (owner, subjectBuffer))),
-                        _ => throw ExceptionUtilities.Unreachable
+                        _ => throw ExceptionUtilities.Unreachable()
                     };
 
                 static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(UnifiedSuggestedActionSetPriority unifiedSuggestedActionSetPriority)
@@ -257,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         UnifiedSuggestedActionSetPriority.Low => SuggestedActionSetPriority.Low,
                         UnifiedSuggestedActionSetPriority.Medium => SuggestedActionSetPriority.Medium,
                         UnifiedSuggestedActionSetPriority.High => SuggestedActionSetPriority.High,
-                        _ => throw ExceptionUtilities.Unreachable,
+                        _ => throw ExceptionUtilities.Unreachable(),
                     };
             }
 
@@ -266,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
-                Document document,
+                TextDocument document,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
                 CodeActionRequestPriority priority,
@@ -297,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     case DiagnosticSeverity.Error:
                         return PredefinedSuggestedActionCategoryNames.ErrorFix;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -307,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ISuggestedActionCategorySet requestedActionCategories,
                 IGlobalOptionService globalOptions,
                 Workspace workspace,
-                Document document,
+                TextDocument document,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
                 CodeActionRequestPriority priority,
@@ -360,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // roslyn document.  This can fail, for example, in projection scenarios where
                 // we are called with a range snapshot that refers to the projection buffer
                 // and not the actual roslyn code that is being projected into it.
-                var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
                 if (document == null)
                 {
                     return null;
@@ -418,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private static async Task<string?> GetFixLevelAsync(
                 ReferenceCountedDisposable<State> state,
-                Document document,
+                TextDocument document,
                 SnapshotSpan range,
                 CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
@@ -450,11 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         }
 
                         if (!result.UpToDate)
-                        {
-                            // reset solution version number so that we can raise suggested action changed event
-                            Volatile.Write(ref state.Target.LastSolutionVersionReported, InvalidSolutionVersion);
                             return null;
-                        }
                     }
 
                     return null;
@@ -462,7 +453,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(
-                Document document,
+                TextDocument document,
                 TextSpan? selection,
                 CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
@@ -521,100 +512,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private void OnTextViewClosed(object sender, EventArgs e)
                 => Dispose();
 
-            private void OnWorkspaceChanged(object sender, EventArgs e)
-            {
-                using var state = _state.TryAddReference();
-                if (state is null)
-                    return;
-
-                // REVIEW: this event should give both old and new workspace as argument so that
-                // one doesn't need to hold onto workspace in field.
-
-                // remove existing event registration
-                if (state.Target.Workspace != null)
-                {
-                    state.Target.Workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged -= OnWorkspaceStatusChanged;
-                    state.Target.Workspace.DocumentActiveContextChanged -= OnActiveContextChanged;
-                }
-
-                // REVIEW: why one need to get new workspace from registration? why not just pass in the new workspace?
-                // add new event registration
-                RegisterEventsToWorkspace(state, state.Target.Registration.Workspace);
-            }
-
-            private void RegisterEventsToWorkspace(ReferenceCountedDisposable<State> state, Workspace? workspace)
-            {
-                state.Target.Workspace = workspace;
-
-                if (state.Target.Workspace == null)
-                {
-                    return;
-                }
-
-                state.Target.Workspace.DocumentActiveContextChanged += OnActiveContextChanged;
-                state.Target.Workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged += OnWorkspaceStatusChanged;
-            }
-
-            private void OnActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
-            {
-                // REVIEW: it would be nice for changed event to pass in both old and new document.
-                OnSuggestedActionsChanged(e.Solution.Workspace, e.NewActiveContextDocumentId, e.Solution.WorkspaceVersion);
-            }
-
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
-            {
-                // document removed case. no reason to raise event
-                if (e.Solution == null)
-                {
-                    return;
-                }
-
-                OnSuggestedActionsChanged(e.Workspace, e.DocumentId, e.Solution.WorkspaceVersion);
-            }
-
-            private void OnWorkspaceStatusChanged(object sender, EventArgs args)
-            {
-                using var state = _state.TryAddReference();
-                if (state is null)
-                    return;
-
-                var document = state.Target.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-                if (document == null)
-                {
-                    // document is already closed
-                    return;
-                }
-
-                // ask editor to refresh light-bulb when workspace solution status is changed
-                this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
-            }
-
-            private void OnSuggestedActionsChanged(Workspace currentWorkspace, DocumentId? currentDocumentId, int solutionVersion)
-            {
-                using var state = _state.TryAddReference();
-                if (state is null)
-                    return;
-
-                var buffer = state.Target.SubjectBuffer;
-                var workspace = buffer.GetWorkspace();
-
-                // workspace is not ready, nothing to do.
-                if (workspace == null || workspace != currentWorkspace)
-                {
-                    return;
-                }
-
-                if (currentDocumentId != workspace.GetDocumentIdInCurrentContext(buffer.AsTextContainer()) ||
-                    solutionVersion == Volatile.Read(ref state.Target.LastSolutionVersionReported))
-                {
-                    return;
-                }
-
-                this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
-
-                Volatile.Write(ref state.Target.LastSolutionVersionReported, solutionVersion);
-            }
-
             public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
                 using var state = _state.TryAddReference();
@@ -632,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 cancellationToken.ThrowIfCancellationRequested();
 
                 using var asyncToken = state.Target.Owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync));
-                var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
                 if (document == null)
                     return null;
 

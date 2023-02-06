@@ -12,12 +12,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
     public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
         internal override Type GetHighlighterType()
             => typeof(IfStatementHighlighter);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithIfAndSingleElse1()
         {
             await TestAsync(
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithIfAndSingleElse2()
         {
             await TestAsync(
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithIfAndElseIfAndElse1()
         {
             await TestAsync(
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithIfAndElseIfAndElse2()
         {
             await TestAsync(
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithIfAndElseIfAndElse3()
         {
             await TestAsync(
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithElseIfOnDifferentLines1()
         {
             await TestAsync(
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithElseIfOnDifferentLines2()
         {
             await TestAsync(
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithElseIfOnDifferentLines3()
         {
             await TestAsync(
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithElseIfOnDifferentLines4()
         {
             await TestAsync(
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithIfAndElseIfAndElseTouching1()
         {
             await TestAsync(
@@ -262,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithIfAndElseIfAndElseTouching2()
         {
             await TestAsync(
@@ -286,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestIfStatementWithIfAndElseIfAndElseTouching3()
         {
             await TestAsync(
@@ -310,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExtraSpacesBetweenElseAndIf1()
         {
             await TestAsync(
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExtraSpacesBetweenElseAndIf2()
         {
             await TestAsync(
@@ -360,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExtraSpacesBetweenElseAndIf3()
         {
             await TestAsync(
@@ -385,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestCommentBetweenElseIf1()
         {
             await TestAsync(
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestCommentBetweenElseIf2()
         {
             await TestAsync(
@@ -435,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestCommentBetweenElseIf3()
         {
             await TestAsync(
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestCommentBetweenElseIf4()
         {
             await TestAsync(
@@ -485,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestNestedIfDoesNotHighlight1()
         {
             await TestAsync(
@@ -515,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestNestedIfDoesNotHighlight2()
         {
             await TestAsync(
@@ -545,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestNestedIfDoesNotHighlight3()
         {
             await TestAsync(
@@ -575,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample1_1()
         {
             await TestAsync(
@@ -602,7 +603,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_1()
         {
             await TestAsync(
@@ -629,7 +630,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_2()
         {
             await TestAsync(
@@ -656,7 +657,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact]
         public async Task TestExample2_3()
         {
             await TestAsync(

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // Need to special case for expressions that are contained within a parameter
             // because it is technically "contained" within a method, but an expression in a parameter does not make
             // sense to introduce.
-            var parameterNode = expression.FirstAncestorOrSelf<SyntaxNode>(node => syntaxFacts.IsParameter(node));
+            var parameterNode = expression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsParameter);
             if (parameterNode is not null)
             {
                 return;

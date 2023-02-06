@@ -6,8 +6,8 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -165,7 +165,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetForEachSymbols(model As SemanticModel, forEachStatement As SyntaxNode) As ForEachSymbols Implements ISemanticFacts.GetForEachSymbols
-
             Dim vbForEachStatement = TryCast(forEachStatement, ForEachStatementSyntax)
             If vbForEachStatement IsNot Nothing Then
                 Dim info = model.GetForEachStatementInfo(vbForEachStatement)
@@ -189,6 +188,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return Nothing
+        End Function
+
+        Public Function GetCollectionInitializerSymbolInfo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As SymbolInfo Implements ISemanticFacts.GetCollectionInitializerSymbolInfo
+            Return semanticModel.GetCollectionInitializerSymbolInfo(DirectCast(node, ExpressionSyntax), cancellationToken)
         End Function
 
         Public Function GetGetAwaiterMethod(model As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFacts.GetGetAwaiterMethod
@@ -227,12 +230,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SpecializedCollections.SingletonEnumerable(semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken))
         End Function
 
-        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
-            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, allowParams As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
+            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams, cancellationToken)
         End Function
 
-        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
-            Return FindParameterForArgument(semanticModel, argument, cancellationToken)
+        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, allowParams As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
+            Return Nothing
+        End Function
+
+        Public Function FindFieldOrPropertyForArgument(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.FindFieldOrPropertyForArgument
+            Dim argument = TryCast(node, SimpleArgumentSyntax)
+            If argument?.NameColonEquals IsNot Nothing AndAlso
+               TypeOf argument.Parent Is ArgumentListSyntax AndAlso
+               TypeOf argument.Parent.Parent Is AttributeSyntax Then
+
+                Dim symbol = semanticModel.GetSymbolInfo(argument.NameColonEquals.Name, cancellationToken).GetAnySymbol()
+                If symbol?.Kind = SymbolKind.Field OrElse symbol?.Kind = SymbolKind.Property Then
+                    Return symbol
+                End If
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Function FindFieldOrPropertyForAttributeArgument(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.FindFieldOrPropertyForAttributeArgument
+            Return Nothing
         End Function
 
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFacts.GetBestOrAllSymbols

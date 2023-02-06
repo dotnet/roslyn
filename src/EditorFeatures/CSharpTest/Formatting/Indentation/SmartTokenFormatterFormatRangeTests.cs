@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -457,8 +458,7 @@ class Class
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [WpfFact, WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList5b()
         {
@@ -540,8 +540,7 @@ class Class
             await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [WpfFact, WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList8()
         {
@@ -570,8 +569,7 @@ get
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfTheory]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [WpfTheory, WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         [InlineData("get")]
         [InlineData("set")]
@@ -603,8 +601,7 @@ get
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [WpfFact, WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList10()
         {
@@ -639,8 +636,7 @@ add
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [WpfFact, WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList11()
         {
@@ -1189,8 +1185,7 @@ class Class
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(8413, "https://github.com/dotnet/roslyn/issues/8413")]
+        [WpfFact, WorkItem(8413, "https://github.com/dotnet/roslyn/issues/8413")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatementDoBlockAlone()
         {
@@ -2058,8 +2053,7 @@ class Class
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(6645, "https://github.com/dotnet/roslyn/issues/6645")]
+        [WpfFact, WorkItem(6645, "https://github.com/dotnet/roslyn/issues/6645")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TryStatement5()
         {
@@ -2296,8 +2290,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.ClassKeyword);
         }
 
-        [WorkItem(537779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537779")]
-        [Fact]
+        [Fact, WorkItem(537779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537779")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task DisappearedTokens2()
         {
@@ -2437,8 +2430,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(537825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
+        [WpfFact, WorkItem(537825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task MalformedCode()
         {
@@ -2464,8 +2456,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(537804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
+        [WpfFact, WorkItem(537804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Colon_SwitchLabel()
         {
@@ -2503,8 +2494,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
+        [WpfFact, WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Colon_SwitchLabel_Comment()
         {
@@ -2544,8 +2534,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
+        [WpfFact, WorkItem(584599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Colon_SwitchLabel_Comment2()
         {
@@ -2587,8 +2576,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.ColonToken);
         }
 
-        [Fact]
-        [WorkItem(537804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
+        [Fact, WorkItem(537804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Colon_Label()
         {
@@ -2620,8 +2608,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.None);
         }
 
-        [WpfFact]
-        [WorkItem(538793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538793")]
+        [WpfFact, WorkItem(538793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538793")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Colon_Label2()
         {
@@ -2653,8 +2640,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(3186, "DevDiv_Projects/Roslyn")]
+        [WpfFact, WorkItem(3186, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task SemicolonInElseIfStatement()
         {
@@ -2702,8 +2688,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [WpfFact]
-        [WorkItem(538391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538391")]
+        [WpfFact, WorkItem(538391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538391")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task SemicolonInElseIfStatement2()
         {
@@ -2737,8 +2722,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [WpfFact]
-        [WorkItem(8385, "DevDiv_Projects/Roslyn")]
+        [WpfFact, WorkItem(8385, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task NullCoalescingOperator()
         {
@@ -2764,8 +2748,7 @@ class Program
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(541517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541517")]
+        [WpfFact, WorkItem(541517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541517")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task SwitchDefault()
         {
@@ -2809,8 +2792,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [WpfFact]
-        [WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
+        [WpfFact, WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task MissingTokens1()
         {
@@ -2837,8 +2819,7 @@ class Program
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
+        [WpfFact, WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task MissingTokens2()
         {
@@ -2852,8 +2833,7 @@ class Program
                 SyntaxKind.EqualsGreaterThanToken);
         }
 
-        [WpfFact]
-        [WorkItem(542953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
+        [WpfFact, WorkItem(542953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task UsingAlias()
         {
@@ -2867,8 +2847,7 @@ class Program
                 SyntaxKind.UsingKeyword);
         }
 
-        [WpfFact]
-        [WorkItem(542953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
+        [WpfFact, WorkItem(542953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542953")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task NoLineChangeWithSyntaxError()
         {
@@ -3538,16 +3517,17 @@ class Program{
 
             using var workspace = TestWorkspace.CreateCSharp(markup);
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
-
             var subjectDocument = workspace.Documents.Single();
+            var textBuffer = subjectDocument.GetTextBuffer();
+            var optionsService = workspace.GetService<EditorOptionsService>();
+            var editorOptions = optionsService.Factory.GetOptions(textBuffer);
+            editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
 
             var commandHandler = workspace.GetService<FormatCommandHandler>();
-            var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
-            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.GetTextBuffer(), typedChar[0]), () => { }, TestCommandExecutionContext.Create());
+            var typedChar = textBuffer.CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
+            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), textBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
 
-            var newSnapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
+            var newSnapshot = textBuffer.CurrentSnapshot;
 
             Assert.Equal(expected, newSnapshot.GetText());
         }
@@ -3576,6 +3556,7 @@ class Program{
             var position = testDocument.CursorPosition.Value;
 
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var documentSyntax = await ParsedDocument.CreateAsync(document, CancellationToken.None);
             var rules = Formatter.GetDefaultFormattingRules(document);
 
             var root = (CompilationUnitSyntax)await document.GetSyntaxRootAsync();
@@ -3588,9 +3569,9 @@ class Program{
             Assert.Equal(tokenKind, endToken.Kind());
 
             var options = new IndentationOptions(
-                CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions { UseTabs = useTabs }));
+                new CSharpSyntaxFormattingOptions() { LineFormatting = new() { UseTabs = useTabs } });
 
-            var formatter = new CSharpSmartTokenFormatter(options, rules, root);
+            var formatter = new CSharpSmartTokenFormatter(options, rules, (CompilationUnitSyntax)documentSyntax.Root, documentSyntax.Text);
 
             var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);
             if (tokenRange == null)

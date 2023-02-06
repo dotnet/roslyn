@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
             if (token.Span == context.Span &&
                 token.IsKind(SyntaxKind.DefaultKeyword) &&
-                token.Parent.IsKind(SyntaxKind.DefaultLiteralExpression, out LiteralExpressionSyntax defaultLiteral))
+                token.Parent is LiteralExpressionSyntax(SyntaxKind.DefaultLiteralExpression) defaultLiteral)
             {
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
         {
             var flagsAttribute = compilation.GetTypeByMetadataName(typeof(FlagsAttribute).FullName);
             return type.TypeKind == TypeKind.Enum &&
-                   type.GetAttributes().Any(attribute => attribute.AttributeClass.Equals(flagsAttribute));
+                   type.GetAttributes().Any(static (attribute, flagsAttribute) => attribute.AttributeClass.Equals(flagsAttribute), flagsAttribute);
         }
 
         private static bool IsZero(object o)

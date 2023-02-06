@@ -159,6 +159,9 @@
   <data name="IDS_XMLMISSINGINCLUDEPATH" xml:space="preserve">
     <value>Missing path attribute</value>
   </data>
+  <data name="IDS_Missing" xml:space="preserve">
+    <value>&lt;missing&gt;</value>
+  </data>
   <data name="IDS_GlobalNamespace" xml:space="preserve">
     <value>&lt;global namespace&gt;</value>
   </data>
@@ -985,10 +988,16 @@
     <value>Cannot call an abstract base member: '{0}'</value>
   </data>
   <data name="ERR_RefProperty" xml:space="preserve">
-    <value>A property or indexer may not be passed as an out or ref parameter</value>
+    <value>A non ref-returning property or indexer may not be used as an out or ref value</value>
   </data>
   <data name="ERR_ManagedAddr" xml:space="preserve">
     <value>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</value>
+  </data>
+  <data name="WRN_ManagedAddr" xml:space="preserve">
+    <value>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</value>
+  </data>
+  <data name="WRN_ManagedAddr_Title" xml:space="preserve">
+    <value>This takes the address of, gets the size of, or declares a pointer to a managed type</value>
   </data>
   <data name="ERR_BadFixedInitType" xml:space="preserve">
     <value>The type of a local declared in a fixed statement must be a pointer type</value>
@@ -1054,7 +1063,7 @@
     <value>Type and identifier are both required in a foreach statement</value>
   </data>
   <data name="ERR_ParamsLast" xml:space="preserve">
-    <value>A params parameter must be the last parameter in a formal parameter list</value>
+    <value>A params parameter must be the last parameter in a parameter list</value>
   </data>
   <data name="ERR_SizeofUnsafe" xml:space="preserve">
     <value>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</value>
@@ -1126,7 +1135,7 @@
     <value>stackalloc may not be used in a catch or finally block</value>
   </data>
   <data name="ERR_VarargsLast" xml:space="preserve">
-    <value>An __arglist parameter must be the last parameter in a formal parameter list</value>
+    <value>An __arglist parameter must be the last parameter in a parameter list</value>
   </data>
   <data name="ERR_MissingPartial" xml:space="preserve">
     <value>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</value>
@@ -1704,7 +1713,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>The first operand of an overloaded shift operator must have the same type as the containing type</value>
   </data>
   <data name="ERR_InterfacesCantContainConversionOrEqualityOperators" xml:space="preserve">
-    <value>Conversion, equality, or inequality operators declared in interfaces must be abstract</value>
+    <value>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</value>
   </data>
   <data name="ERR_EnumsCantContainDefaultConstructor" xml:space="preserve">
     <value>Enums cannot contain explicit parameterless constructors</value>
@@ -2058,7 +2067,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'</value>
   </data>
   <data name="ERR_LookupInTypeVariable" xml:space="preserve">
-    <value>Cannot do member lookup in '{0}' because it is a type parameter</value>
+    <value>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</value>
   </data>
   <data name="ERR_BadConstraintType" xml:space="preserve">
     <value>Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</value>
@@ -2981,10 +2990,10 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Members of {0} '{1}' cannot be used as a ref or out value because it is a readonly variable</value>
   </data>
   <data name="ERR_AssignReadonlyNotField" xml:space="preserve">
-    <value>Cannot assign to {0} '{1}' because it is a readonly variable</value>
+    <value>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</value>
   </data>
   <data name="ERR_AssignReadonlyNotField2" xml:space="preserve">
-    <value>Cannot assign to a member of {0} '{1}' because it is a readonly variable</value>
+    <value>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</value>
   </data>
   <data name="ERR_RefReturnReadonlyNotField" xml:space="preserve">
     <value>Cannot return {0} '{1}' by writable reference because it is a readonly variable</value>
@@ -3032,7 +3041,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type</value>
   </data>
   <data name="ERR_BadAsyncReturnExpression" xml:space="preserve">
-    <value>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</value>
+    <value>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</value>
   </data>
   <data name="ERR_CantConvAsyncAnonFuncReturns" xml:space="preserve">
     <value>Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.</value>
@@ -3744,7 +3753,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'{0}' does not implement '{1}'</value>
   </data>
   <data name="ERR_TaskRetNoObjectRequired" xml:space="preserve">
-    <value>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</value>
+    <value>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</value>
   </data>
   <data name="ERR_BadAsyncReturn" xml:space="preserve">
     <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</value>
@@ -3802,6 +3811,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   </data>
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
+  </data>
+  <data name="ERR_BadSpecialByRefUsing" xml:space="preserve">
+    <value>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</value>
   </data>
   <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
     <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</value>
@@ -4101,7 +4113,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Executables cannot be satellite assemblies; culture should always be empty</value>
   </data>
   <data name="ERR_NoCorrespondingArgument" xml:space="preserve">
-    <value>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</value>
+    <value>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</value>
   </data>
   <data name="WRN_UnimplementedCommandLineSwitch" xml:space="preserve">
     <value>The command line switch '{0}' is not yet implemented and was ignored.</value>
@@ -4515,9 +4527,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="InvalidGetDeclarationNameMultipleDeclarators" xml:space="preserve">
     <value>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</value>
   </data>
-  <data name="TreeNotPartOfCompilation" xml:space="preserve">
-    <value>tree not part of compilation</value>
-  </data>
   <data name="PositionIsNotWithinSyntax" xml:space="preserve">
     <value>Position is not within syntax tree with full span {0}</value>
   </data>
@@ -4801,7 +4810,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Anonymous function converted to a void returning delegate cannot return a value</value>
   </data>
   <data name="ERR_TaskRetNoObjectRequiredLambda" xml:space="preserve">
-    <value>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</value>
+    <value>Async lambda expression converted to a '{0}' returning delegate cannot return a value</value>
   </data>
   <data name="WRN_AnalyzerCannotBeCreated" xml:space="preserve">
     <value>An instance of analyzer {0} cannot be created from {1} : {2}.</value>
@@ -5044,6 +5053,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnNonreturnableLocal2" xml:space="preserve">
     <value>Cannot return by reference a member of '{0}' because it was initialized to a value that cannot be returned by reference</value>
   </data>
+  <data name="WRN_RefReturnNonreturnableLocal" xml:space="preserve">
+    <value>Local '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</value>
+  </data>
+  <data name="WRN_RefReturnNonreturnableLocal_Title" xml:space="preserve">
+    <value>Local is returned by reference but was initialized to a value that cannot be returned by reference</value>
+  </data>
+  <data name="WRN_RefReturnNonreturnableLocal2" xml:space="preserve">
+    <value>A member of '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</value>
+  </data>
+  <data name="WRN_RefReturnNonreturnableLocal2_Title" xml:space="preserve">
+    <value>A member is returned by reference but was initialized to a value that cannot be returned by reference</value>
+  </data>
   <data name="ERR_RefReturnReadonlyLocal" xml:space="preserve">
     <value>Cannot return '{0}' by reference because it is read-only</value>
   </data>
@@ -5069,10 +5090,58 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Fields of static readonly field '{0}' cannot be returned by writable reference</value>
   </data>
   <data name="ERR_RefReturnParameter" xml:space="preserve">
-    <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
+    <value>Cannot return a parameter by reference '{0}' because it is not a ref parameter</value>
   </data>
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
     <value>Cannot return by reference a member of parameter '{0}' because it is not a ref or out parameter</value>
+  </data>
+  <data name="ERR_RefReturnScopedParameter" xml:space="preserve">
+    <value>Cannot return a parameter by reference '{0}' because it is scoped to the current method</value>
+  </data>
+  <data name="ERR_RefReturnScopedParameter2" xml:space="preserve">
+    <value>Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</value>
+  </data>
+  <data name="ERR_RefReturnOnlyParameter" xml:space="preserve">
+    <value>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</value>
+  </data>
+  <data name="ERR_RefReturnOnlyParameter2" xml:space="preserve">
+    <value>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</value>
+  </data>
+  <data name="WRN_RefReturnOnlyParameter" xml:space="preserve">
+    <value>This returns a parameter by reference '{0}' through a ref parameter; but it can only safely be returned in a return statement</value>
+  </data>
+  <data name="WRN_RefReturnOnlyParameter_Title" xml:space="preserve">
+    <value>This returns a parameter by reference through a ref parameter; but it can only safely be returned in a return statement</value>
+  </data>
+  <data name="WRN_RefReturnOnlyParameter2" xml:space="preserve">
+    <value>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only safely be returned in a return statement</value>
+  </data>
+  <data name="WRN_RefReturnOnlyParameter2_Title" xml:space="preserve">
+    <value>This returns by reference a member of parameter through a ref parameter; but it can only safely be returned in a return statement</value>
+  </data>
+  <data name="WRN_RefReturnParameter" xml:space="preserve">
+    <value>This returns a parameter by reference '{0}' but it is not a ref parameter</value>
+  </data>
+  <data name="WRN_RefReturnParameter_Title" xml:space="preserve">
+    <value>This returns a parameter by reference but it is not a ref parameter</value>
+  </data>
+  <data name="WRN_RefReturnScopedParameter" xml:space="preserve">
+    <value>This returns a parameter by reference '{0}' but it is scoped to the current method</value>
+  </data>
+  <data name="WRN_RefReturnScopedParameter_Title" xml:space="preserve">
+    <value>This returns a parameter by reference but it is scoped to the current method</value>
+  </data>
+  <data name="WRN_RefReturnParameter2" xml:space="preserve">
+    <value>This returns by reference a member of parameter '{0}' that is not a ref or out parameter</value>
+  </data>
+  <data name="WRN_RefReturnParameter2_Title" xml:space="preserve">
+    <value>This returns by reference a member of parameter that is not a ref or out parameter</value>
+  </data>
+  <data name="WRN_RefReturnScopedParameter2" xml:space="preserve">
+    <value>This returns by reference a member of parameter '{0}' that is scoped to the current method</value>
+  </data>
+  <data name="WRN_RefReturnScopedParameter2_Title" xml:space="preserve">
+    <value>This returns by reference a member of parameter that is scoped to the current method</value>
   </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
     <value>Cannot return local '{0}' by reference because it is not a ref local</value>
@@ -5080,14 +5149,38 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnLocal2" xml:space="preserve">
     <value>Cannot return a member of local '{0}' by reference because it is not a ref local</value>
   </data>
+  <data name="WRN_RefReturnLocal" xml:space="preserve">
+    <value>This returns local '{0}' by reference but it is not a ref local</value>
+  </data>
+  <data name="WRN_RefReturnLocal_Title" xml:space="preserve">
+    <value>This returns local by reference but it is not a ref local</value>
+  </data>
+  <data name="WRN_RefReturnLocal2" xml:space="preserve">
+    <value>This returns a member of local '{0}' by reference but it is not a ref local</value>
+  </data>
+  <data name="WRN_RefReturnLocal2_Title" xml:space="preserve">
+    <value>This returns a member of local by reference but it is not a ref local</value>
+  </data>
   <data name="ERR_RefReturnStructThis" xml:space="preserve">
     <value>Struct members cannot return 'this' or other instance members by reference</value>
+  </data>
+  <data name="WRN_RefReturnStructThis" xml:space="preserve">
+    <value>Struct member returns 'this' or other instance members by reference</value>
+  </data>
+  <data name="WRN_RefReturnStructThis_Title" xml:space="preserve">
+    <value>Struct member returns 'this' or other instance members by reference</value>
   </data>
   <data name="ERR_EscapeOther" xml:space="preserve">
     <value>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</value>
   </data>
-  <data name="ERR_EscapeLocal" xml:space="preserve">
-    <value>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</value>
+  <data name="ERR_EscapeVariable" xml:space="preserve">
+    <value>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</value>
+  </data>
+  <data name="WRN_EscapeVariable" xml:space="preserve">
+    <value>Use of variable '{0}' in this context may expose referenced variables outside of their declaration scope</value>
+  </data>
+  <data name="WRN_EscapeVariable_Title" xml:space="preserve">
+    <value>Use of variable in this context may expose referenced variables outside of their declaration scope</value>
   </data>
   <data name="ERR_EscapeCall" xml:space="preserve">
     <value>Cannot use a result of '{0}' in this context because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
@@ -5095,14 +5188,44 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_EscapeCall2" xml:space="preserve">
     <value>Cannot use a member of result of '{0}' in this context because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
   </data>
+  <data name="WRN_EscapeCall" xml:space="preserve">
+    <value>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
+  </data>
+  <data name="WRN_EscapeCall_Title" xml:space="preserve">
+    <value>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</value>
+  </data>
+  <data name="WRN_EscapeCall2" xml:space="preserve">
+    <value>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
+  </data>
+  <data name="WRN_EscapeCall2_Title" xml:space="preserve">
+    <value>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</value>
+  </data>
   <data name="ERR_CallArgMixing" xml:space="preserve">
     <value>This combination of arguments to '{0}' is disallowed because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
+  </data>
+  <data name="WRN_CallArgMixing" xml:space="preserve">
+    <value>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
+  </data>
+  <data name="WRN_CallArgMixing_Title" xml:space="preserve">
+    <value>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</value>
   </data>
   <data name="ERR_MismatchedRefEscapeInTernary" xml:space="preserve">
     <value>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</value>
   </data>
+  <data name="WRN_MismatchedRefEscapeInTernary" xml:space="preserve">
+    <value>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</value>
+  </data>
+  <data name="WRN_MismatchedRefEscapeInTernary_Title" xml:space="preserve">
+    <value>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</value>
+  </data>
   <data name="ERR_EscapeStackAlloc" xml:space="preserve">
     <value>A result of a stackalloc expression of type '{0}' cannot be used in this context because it may be exposed outside of the containing method</value>
+  </data>
+  <data name="WRN_EscapeStackAlloc" xml:space="preserve">
+    <value>A result of a stackalloc expression of type '{0}' in this context may be exposed outside of the containing method</value>
+  </data>
+  <data name="WRN_EscapeStackAlloc_Title" xml:space="preserve">
+    <value>A result of a stackalloc expression of this type in this context may be exposed outside of the containing method</value>
   </data>
   <data name="ERR_InitializeByValueVariableWithReference" xml:space="preserve">
     <value>Cannot initialize a by-value variable with a reference</value>
@@ -5783,10 +5906,34 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
   </data>
   <data name="ERR_RefLocalOrParamExpected" xml:space="preserve">
-    <value>The left-hand side of a ref assignment must be a ref local or parameter.</value>
+    <value>The left-hand side of a ref assignment must be a ref variable.</value>
   </data>
   <data name="ERR_RefAssignNarrower" xml:space="preserve">
     <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</value>
+  </data>
+  <data name="ERR_RefAssignReturnOnly" xml:space="preserve">
+    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</value>
+  </data>
+  <data name="WRN_RefAssignReturnOnly" xml:space="preserve">
+    <value>This ref-assigns '{1}' to '{0}' but '{1}' can only escape the current method through a return statement.</value>
+  </data>
+  <data name="WRN_RefAssignReturnOnly_Title" xml:space="preserve">
+    <value>This ref-assigns a value that can only escape the current method through a return statement.</value>
+  </data>
+  <data name="WRN_RefAssignNarrower" xml:space="preserve">
+    <value>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</value>
+  </data>
+  <data name="WRN_RefAssignNarrower_Title" xml:space="preserve">
+    <value>This ref-assigns a value that has a narrower escape scope than the target.</value>
+  </data>
+  <data name="ERR_RefAssignValEscapeWider" xml:space="preserve">
+    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</value>
+  </data>
+  <data name="WRN_RefAssignValEscapeWider" xml:space="preserve">
+    <value>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</value>
+  </data>
+  <data name="WRN_RefAssignValEscapeWider_Title" xml:space="preserve">
+    <value>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</value>
   </data>
   <data name="IDS_FeatureEnumGenericTypeConstraint" xml:space="preserve">
     <value>enum generic type constraints</value>
@@ -6436,6 +6583,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion10" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion11" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
   </data>
@@ -6536,7 +6686,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Module initializer method '{0}' must be accessible at the module level</value>
   </data>
   <data name="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid" xml:space="preserve">
-    <value>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</value>
+    <value>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</value>
   </data>
   <data name="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric" xml:space="preserve">
     <value>Module initializer method '{0}' must not be generic and must not be contained in a generic type</value>
@@ -6621,6 +6771,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureStructFieldInitializers" xml:space="preserve">
     <value>struct field initializers</value>
   </data>
+  <data name="IDS_FeatureRefFields" xml:space="preserve">
+    <value>ref fields</value>
+  </data>
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
@@ -6633,6 +6786,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler" xml:space="preserve">
+    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler_Title" xml:space="preserve">
+    <value>The analyzer assembly references a newer version of the compiler than the currently running version.</value>
   </data>
   <data name="ERR_BadFieldTypeInRecord" xml:space="preserve">
     <value>The type '{0}' may not be used for a field of a record.</value>
@@ -6670,9 +6829,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureInferredDelegateType" xml:space="preserve">
     <value>inferred delegate type</value>
   </data>
-  <data name="IDS_FeatureLineSpanDirective" xml:space="preserve">
-    <value>line span directive</value>
-  </data>
   <data name="IDS_FeatureAutoDefaultStructs" xml:space="preserve">
     <value>auto default struct fields</value>
   </data>
@@ -6682,6 +6838,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_LineSpanDirectiveEndLessThanStart" xml:space="preserve">
     <value>The #line directive end position must be greater than or equal to the start position</value>
   </data>
+  <data name="ERR_LineSpanDirectiveRequiresSpace" xml:space="preserve">
+    <value>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</value>
+  </data>
   <data name="WRN_DoNotCompareFunctionPointers" xml:space="preserve">
     <value>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</value>
   </data>
@@ -6689,7 +6848,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Do not compare function pointer values</value>
   </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
-    <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
+    <value>Using a function pointer type in this context is not supported.</value>
   </data>
   <data name="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute may only be applied to parameters with default values</value>
@@ -6748,63 +6907,87 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ListPatternRequiresLength" xml:space="preserve">
     <value>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</value>
   </data>
-
+  <data name="ERR_ScopedRefAndRefStructOnly" xml:space="preserve">
+    <value>The 'scoped' modifier can be used for refs and ref struct values only.</value>
+  </data>
+  <data name="ERR_ScopedMismatchInParameterOfOverrideOrImplementation" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</value>
+  </data>
+  <data name="WRN_ScopedMismatchInParameterOfOverrideOrImplementation" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</value>
+  </data>
+  <data name="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</value>
+  </data>
+  <data name="ERR_ScopedMismatchInParameterOfTarget" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</value>
+  </data>
+  <data name="WRN_ScopedMismatchInParameterOfTarget" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</value>
+  </data>
+  <data name="WRN_ScopedMismatchInParameterOfTarget_Title" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter doesn't match target.</value>
+  </data>
+  <data name="ERR_ScopedMismatchInParameterOfPartial" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</value>
+  </data>
+  <data name="ERR_FixedFieldMustNotBeRef" xml:space="preserve">
+    <value>A fixed field must not be a ref field.</value>
+  </data>
+  <data name="ERR_RefFieldCannotReferToRefStruct" xml:space="preserve">
+    <value>A ref field cannot refer to a ref struct.</value>
+  </data>
+  <data name="ERR_RefFieldInNonRefStruct" xml:space="preserve">
+    <value>A ref field can only be declared in a ref struct.</value>
+  </data>
   <data name="WRN_UseDefViolationPropertySupportedVersion" xml:space="preserve">
     <value>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UseDefViolationPropertySupportedVersion_Title" xml:space="preserve">
     <value>Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="WRN_UseDefViolationFieldSupportedVersion" xml:space="preserve">
     <value>Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UseDefViolationFieldSupportedVersion_Title" xml:space="preserve">
     <value>Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="WRN_UseDefViolationThisSupportedVersion" xml:space="preserve">
     <value>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</value>
   </data>
   <data name="WRN_UseDefViolationThisSupportedVersion_Title" xml:space="preserve">
     <value>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</value>
   </data>
-
   <data name="WRN_UnassignedThisAutoPropertySupportedVersion" xml:space="preserve">
     <value>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UnassignedThisAutoPropertySupportedVersion_Title" xml:space="preserve">
     <value>Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="WRN_UnassignedThisSupportedVersion" xml:space="preserve">
     <value>Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UnassignedThisSupportedVersion_Title" xml:space="preserve">
     <value>Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="ERR_UseDefViolationFieldUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</value>
   </data>
   <data name="ERR_UseDefViolationPropertyUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</value>
   </data>
-
   <data name="WRN_UseDefViolationFieldUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</value>
   </data>
   <data name="WRN_UseDefViolationFieldUnsupportedVersion_Title" xml:space="preserve">
     <value>Use of possibly unassigned field. Consider updating the language version to auto-default the field.</value>
   </data>
-
   <data name="WRN_UseDefViolationPropertyUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</value>
   </data>
   <data name="WRN_UseDefViolationPropertyUnsupportedVersion_Title" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</value>
   </data>
-
   <data name="ERR_UnsupportedTypeForSlicePattern" xml:space="preserve">
     <value>Slice patterns may not be used for a value of type '{0}'.</value>
   </data>
@@ -6887,7 +7070,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Target runtime doesn't support static abstract members in interfaces.</value>
   </data>
   <data name="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers" xml:space="preserve">
-    <value>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</value>
+    <value>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</value>
   </data>
   <data name="ERR_BadAbstractUnaryOperatorSignature" xml:space="preserve">
     <value>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</value>
@@ -7088,13 +7271,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CheckedOperatorNeedsMatch" xml:space="preserve">
     <value>The operator '{0}' requires a matching non-checked version of the operator to also be defined</value>
   </data>
-  <data name="ERR_CannotBeConvertedToUTF8" xml:space="preserve">
+  <data name="ERR_CannotBeConvertedToUtf8" xml:space="preserve">
     <value>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</value>
   </data>
-  <data name="IDS_FeatureUTF8StringLiterals" xml:space="preserve">
+  <data name="IDS_FeatureUtf8StringLiterals" xml:space="preserve">
     <value>UTF-8 string literals</value>
   </data>
-  <data name="ERR_ExpressionTreeContainsUTF8StringLiterals" xml:space="preserve">
+  <data name="ERR_ExpressionTreeContainsUtf8StringLiterals" xml:space="preserve">
     <value>An expression tree may not contain UTF-8 string conversion or literal.</value>
   </data>
   <data name="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers" xml:space="preserve">
@@ -7102,6 +7285,30 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
     <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
+  </data>
+  <data name="ERR_FileTypeDisallowedInSignature" xml:space="preserve">
+    <value>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</value>
+  </data>
+  <data name="ERR_FileTypeNoExplicitAccessibility" xml:space="preserve">
+    <value>File-local type '{0}' cannot use accessibility modifiers.</value>
+  </data>
+  <data name="ERR_FileTypeBase" xml:space="preserve">
+    <value>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</value>
+  </data>
+  <data name="ERR_FileTypeNested" xml:space="preserve">
+    <value>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</value>
+  </data>
+  <data name="ERR_FilePathCannotBeConvertedToUtf8" xml:space="preserve">
+    <value>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</value>
+  </data>
+  <data name="ERR_GlobalUsingStaticFileType" xml:space="preserve">
+    <value>File-local type '{0}' cannot be used in a 'global using static' directive.</value>
+  </data>
+  <data name="ERR_FileTypeNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'file'.</value>
+  </data>
+  <data name="ERR_FileTypeNonUniquePath" xml:space="preserve">
+    <value>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</value>
   </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
@@ -7123,5 +7330,92 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_MisplacedUnchecked" xml:space="preserve">
     <value>Unexpected keyword 'unchecked'</value>
+  </data>
+  <data name="ERR_ImplicitImplementationOfInaccessibleInterfaceMember" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</value>
+  </data>
+  <data name="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers" xml:space="preserve">
+    <value>Required members are not allowed on the top level of a script or submission.</value>
+  </data>
+  <data name="ERR_BadAbstractEqualityOperatorSignature" xml:space="preserve">
+    <value>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</value>
+  </data>
+  <data name="ERR_BadBinaryReadOnlySpanConcatenation" xml:space="preserve">
+    <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</value>
+  </data>
+  <data name="ERR_ImplicitlyTypedDefaultParameter" xml:space="preserve">
+    <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
+  </data>
+  <data name="WRN_OptionalParamValueMismatch" xml:space="preserve">
+    <value>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</value>
+  </data>
+  <data name="WRN_OptionalParamValueMismatch_Title" xml:space="preserve">
+    <value>The default parameter value does not match in the target delegate type.</value>
+  </data>
+  <data name="IDS_FeatureFileTypes" xml:space="preserve">
+    <value>file types</value>
+  </data>
+  <data name="ERR_CannotMatchOnINumberBase" xml:space="preserve">
+    <value>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</value>
+  </data>
+  <data name="IDS_ArrayAccess" xml:space="preserve">
+    <value>array access</value>
+  </data>
+  <data name="IDS_PointerElementAccess" xml:space="preserve">
+    <value>pointer element access</value>
+  </data>
+  <data name="ERR_ScopedTypeNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'scoped'.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeUnsupportedTarget" xml:space="preserve">
+    <value>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeUnsupportedMemberTarget" xml:space="preserve">
+    <value>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeInterfaceImplementation" xml:space="preserve">
+    <value>UnscopedRefAttribute cannot be applied to an interface implementation.</value>
+  </data>
+  <data name="ERR_UnrecognizedRefSafetyRulesAttributeVersion" xml:space="preserve">
+    <value>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportRefFields" xml:space="preserve">
+    <value>Target runtime doesn't support ref fields.</value>
+  </data>
+  <data name="ERR_ExplicitScopedRef" xml:space="preserve">
+    <value>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference" xml:space="preserve">
+    <value>Analyzer reference '{0}' specified multiple times</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference_Title" xml:space="preserve">
+    <value>Analyzer reference specified multiple times</value>
+  </data>
+  <data name="ERR_FileLocalDuplicateNameInNS" xml:space="preserve">
+    <value>The namespace '{1}' already contains a definition for '{0}' in this file.</value>
+  </data>
+  <data name="ERR_UnscopedScoped" xml:space="preserve">
+    <value>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</value>
+  </data>
+  <data name="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn" xml:space="preserve">
+    <value>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</value>
+  </data>
+  <data name="ERR_ScopedDiscard" xml:space="preserve">
+    <value>The 'scoped' modifier cannot be used with discard.</value>
+  </data>
+  <data name="ERR_DeconstructVariableCannotBeByRef" xml:space="preserve">
+    <value>A deconstruction variable cannot be declared as a ref local</value>
+  </data>
+  <data name="IDS_FeatureLambdaOptionalParameters" xml:space="preserve">
+    <value>lambda optional parameters</value>
+  </data>
+  <data name="IDS_FeatureLambdaParamsArray" xml:space="preserve">
+    <value>lambda params array</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly" xml:space="preserve">
+    <value>Parameter {0} has params modifier in lambda but not in target delegate type.</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly_Title" xml:space="preserve">
+    <value>Parameter has params modifier in lambda but not in target delegate type.</value>
   </data>
 </root>

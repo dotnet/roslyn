@@ -90,15 +90,20 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
             cancellationToken.ThrowIfCancellationRequested();
 
+            var (invokedExpression, invokeName) =
+                invocationExpression.Expression is MemberAccessExpressionSyntax { Name: IdentifierNameSyntax { Identifier.ValueText: nameof(Action.Invoke) } } memberAccessExpression
+                    ? (memberAccessExpression.Expression, memberAccessExpression.Name)
+                    : (invocationExpression.Expression, SyntaxFactory.IdentifierName(nameof(Action.Invoke)));
+
             StatementSyntax newStatement = expressionStatement.WithExpression(
                 SyntaxFactory.ConditionalAccessExpression(
-                    invocationExpression.Expression,
+                    invokedExpression,
                     SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
+                        SyntaxFactory.MemberBindingExpression(invokeName), invocationExpression.ArgumentList)));
             newStatement = newStatement.WithPrependedLeadingTrivia(ifStatement.GetLeadingTrivia());
 
             if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) &&
-                ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax? block))
+                ifStatement.Statement is BlockSyntax block)
             {
                 newStatement = block.WithStatements(SyntaxFactory.SingletonList(newStatement));
             }
@@ -132,11 +137,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
             var parentBlock = (BlockSyntax)localDeclarationStatement.GetRequiredParent();
 
+            var invokeName =
+                invocationExpression.Expression is MemberAccessExpressionSyntax { Name: IdentifierNameSyntax { Identifier.ValueText: nameof(Action.Invoke) } } memberAccessExpression
+                    ? memberAccessExpression.Name
+                    : SyntaxFactory.IdentifierName(nameof(Action.Invoke));
+
             var newStatement = expressionStatement.WithExpression(
                 SyntaxFactory.ConditionalAccessExpression(
                     localDeclarationStatement.Declaration.Variables[0].Initializer!.Value.Parenthesize(),
                     SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
+                        SyntaxFactory.MemberBindingExpression(invokeName), invocationExpression.ArgumentList)));
 
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
             newStatement = AppendTriviaWithoutEndOfLines(newStatement, ifStatement);

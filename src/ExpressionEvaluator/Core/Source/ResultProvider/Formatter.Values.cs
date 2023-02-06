@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        private string GetEditableValue(DkmClrValue value, DkmInspectionContext inspectionContext, DkmClrCustomTypeInfo customTypeInfo)
+        private string GetEditableValue(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             if (value.IsError())
             {
@@ -463,9 +463,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static string IncludeObjectId(DkmClrValue value, string valueStr, GetValueFlags flags)
         {
             Debug.Assert(valueStr != null);
-            return (flags & GetValueFlags.IncludeObjectId) == 0 ?
-                valueStr :
-                value.IncludeObjectId(valueStr);
+            return (flags & GetValueFlags.IncludeObjectId) == 0
+                ? valueStr
+                : value.IncludeObjectId(valueStr);
         }
 
         #region Language-specific value formatting behavior

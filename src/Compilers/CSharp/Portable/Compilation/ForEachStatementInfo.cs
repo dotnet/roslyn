@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Structure containing all semantic information about a for each statement.
     /// </summary>
-    public struct ForEachStatementInfo : IEquatable<ForEachStatementInfo>
+    public readonly struct ForEachStatementInfo : IEquatable<ForEachStatementInfo>
     {
         /// <summary>
         /// Whether this is an asynchronous foreach.

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
             {
                 var solution = document.Project.Solution;
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var fieldSymbolKeys = fields.SelectAsArray(f => SymbolKey.CreateString(f, cancellationToken));
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     var result = await client.TryInvokeAsync<IRemoteEncapsulateFieldService, ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>>(
                         solution,
                         (service, solutionInfo, callbackId, cancellationToken) => service.EncapsulateFieldsAsync(solutionInfo, callbackId, document.Id, fieldSymbolKeys, updateReferences, cancellationToken),
-                        callbackTarget: new RemoteOptionsProvider<CleanCodeGenerationOptions>(solution.Workspace.Services, fallbackOptions),
+                        callbackTarget: new RemoteOptionsProvider<CleanCodeGenerationOptions>(solution.Services, fallbackOptions),
                         cancellationToken).ConfigureAwait(false);
 
                     if (!result.HasValue)
@@ -265,12 +266,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             if (field.IsReadOnly)
             {
                 // Inside the constructor we want to rename references the field to the final field name.
-                var constructorLocations = GetConstructorLocations(field.ContainingType);
+                var constructorLocations = GetConstructorLocations(solution, field.ContainingType);
                 if (finalFieldName != field.Name && constructorLocations.Count > 0)
                 {
                     solution = await RenameAsync(
                         solution, field, finalFieldName,
-                        location => IntersectsWithAny(location, constructorLocations),
+                        (docId, span) => IntersectsWithAny(docId, span, constructorLocations),
                         fallbackOptions,
                         cancellationToken).ConfigureAwait(false);
 
@@ -278,13 +279,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                     field = field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
-                    constructorLocations = GetConstructorLocations(field.ContainingType);
+                    constructorLocations = GetConstructorLocations(solution, field.ContainingType);
                 }
 
                 // Outside the constructor we want to rename references to the field to final property name.
                 return await RenameAsync(
                     solution, field, generatedPropertyName,
-                    location => !IntersectsWithAny(location, constructorLocations),
+                    (documentId, span) => !IntersectsWithAny(documentId, span, constructorLocations),
                     fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
             }
@@ -300,7 +301,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             Solution solution,
             IFieldSymbol field,
             string finalName,
-            Func<Location, bool> filter,
+            Func<DocumentId, TextSpan, bool> filter,
             CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
@@ -314,26 +315,29 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 solution, field, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
-                finalName, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
+                field, finalName, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfTrue(resolution.ErrorMessage != null);
+            Contract.ThrowIfFalse(resolution.IsSuccessful);
 
             return resolution.NewSolution;
         }
 
-        private static bool IntersectsWithAny(Location location, ISet<Location> constructorLocations)
+        private static bool IntersectsWithAny(DocumentId documentId, TextSpan span, ISet<(DocumentId documentId, TextSpan span)> constructorLocations)
         {
             foreach (var constructor in constructorLocations)
             {
-                if (location.IntersectsWith(constructor))
+                if (constructor.documentId == documentId &&
+                    span.IntersectsWith(constructor.span))
+                {
                     return true;
+                }
             }
 
             return false;
         }
 
-        private ISet<Location> GetConstructorLocations(INamedTypeSymbol containingType)
-            => GetConstructorNodes(containingType).Select(n => n.GetLocation()).ToSet();
+        private ISet<(DocumentId documentId, TextSpan span)> GetConstructorLocations(Solution solution, INamedTypeSymbol containingType)
+            => GetConstructorNodes(containingType).Select(n => (solution.GetRequiredDocument(n.SyntaxTree).Id, n.Span)).ToSet();
 
         internal abstract IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType);
 

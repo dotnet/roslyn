@@ -89,10 +89,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                     }
 
                     // This will be hit in the index is `0`, in which case the previous node is the summary node
-                    if (nodeBeforeNewParamNode == null)
-                    {
-                        nodeBeforeNewParamNode = summaryNode;
-                    }
+                    nodeBeforeNewParamNode ??= summaryNode;
 
                     newDocComment = newDocComment.InsertNodesAfter(nodeBeforeNewParamNode,
                         new[] { GetNewNode(parameterName, isFirstNodeInComment: false) });

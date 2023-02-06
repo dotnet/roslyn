@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Ambiguous
     }
 
-    internal struct BestIndex
+    internal readonly struct BestIndex
     {
         internal readonly BestIndexKind Kind;
         internal readonly int Best;

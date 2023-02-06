@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync && !currentMethod.IsImplicitlyDeclared)
             {
-                var foundAwait = result.Any(pending => HasAwait(pending));
+                var foundAwait = result.Any(static pending => HasAwait(pending));
                 if (!foundAwait)
                 {
                     // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be
@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type.SpecialType != SpecialType.System_String &&
                 type is not ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte })
             {
-                return value.ConstantValue != ConstantValue.Null;
+                return value.ConstantValueOpt != ConstantValue.Null;
             }
 
             if ((object)type != null && type.IsPointerOrFunctionPointer())
@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that used them were always considered used. We now consider interpolated strings that are
             // made up of only constant expressions to be constant values, but for backcompat we consider
             // the writes to be uses anyway.
-            if (value is { ConstantValue: not null, Kind: not BoundKind.InterpolatedString }) return false;
+            if (value is { ConstantValueOpt: not null, Kind: not BoundKind.InterpolatedString }) return false;
 
             switch (value.Kind)
             {
@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
-                case BoundKind.UTF8String:
+                case BoundKind.Utf8String:
                     return false;
                 default:
                     return true;
@@ -1685,6 +1685,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0) SetSlotState(slot, true);
                 NoteWrite(parameter, value: null, read: true);
             }
+
+            if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam)
+            {
+                // Mark attribute arguments as used.
+                VisitAttributes(sourceComplexParam.BindParameterAttributes());
+
+                // Mark default parameter values as used.
+                if (sourceComplexParam.BindParameterEqualsValue() is { } boundValue)
+                {
+                    VisitRvalue(boundValue.Value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Marks attribute arguments as used.
+        /// </summary>
+        private void VisitAttributes(ImmutableArray<(CSharpAttributeData, BoundAttribute)> boundAttributes)
+        {
+            if (boundAttributes.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
+            foreach (var (attributeData, boundAttribute) in boundAttributes)
+            {
+                // Skip invalid attributes (e.g., with a non-constant argument) to avoid superfluous diagnostics.
+                if (attributeData.HasErrors)
+                {
+                    continue;
+                }
+
+                foreach (var attributeArgument in boundAttribute.ConstructorArguments)
+                {
+                    VisitRvalue(attributeArgument);
+                }
+                foreach (var attributeNamedArgumentAssignment in boundAttribute.NamedArguments)
+                {
+                    VisitRvalue(attributeNamedArgumentAssignment.Right);
+                }
+            }
         }
 
         protected override void LeaveParameters(ImmutableArray<ParameterSymbol> parameters, SyntaxNode syntax, Location location)
@@ -1883,8 +1924,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // First phase
                 foreach (var stmt in block.Statements)
                 {
-                    if (stmt.Kind == BoundKind.LocalFunctionStatement)
+                    if (stmt is BoundLocalFunctionStatement localFunctionStatement)
                     {
+                        // Mark attribute arguments as used.
+                        VisitAttributes(localFunctionStatement.Symbol.BindMethodAttributes());
+
                         VisitAlways(stmt);
                     }
                 }
@@ -2108,6 +2152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldSymbol = this.CurrentSymbol;
             this.CurrentSymbol = node.Symbol;
+
+            // Mark attribute arguments as used.
+            VisitAttributes(node.Symbol.BindMethodAttributes());
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 

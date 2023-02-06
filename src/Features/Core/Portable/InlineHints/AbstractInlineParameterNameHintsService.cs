@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,6 +18,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
+        /// <summary>
+        /// Used as a tiebreaker to position coincident type and parameter hints.
+        /// Parameter hints will always appear first.
+        /// </summary>
+        private const double Ranking = 0.0;
+
         protected enum HintKind
         {
             Literal,
@@ -38,7 +44,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineParameterHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
             // TODO: https://github.com/dotnet/roslyn/issues/57283
-            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+            var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
             var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
 
             var enabledForParameters = displayAllOverride || options.EnabledForParameters;
@@ -104,6 +110,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                             textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
                             new TextChange(textSpan, inlineHintText),
+                            ranking: Ranking,
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }

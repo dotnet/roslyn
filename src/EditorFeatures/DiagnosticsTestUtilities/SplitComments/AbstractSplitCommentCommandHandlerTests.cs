@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 
             using var workspace = CreateWorkspace(inputMarkup);
 
-            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            var globalOptions = workspace.GlobalOptions;
             var language = workspace.Projects.Single().Language;
 
-            globalOptions.SetGlobalOption(new OptionKey(SplitCommentOptions.Enabled, language), enabled);
-            workspace.SetOptions(workspace.Options.WithChangedOption(FormattingOptions.UseTabs, language, useTabs));
+            globalOptions.SetGlobalOption(SplitCommentOptions.Enabled, language, enabled);
+            globalOptions.SetGlobalOption(FormattingOptions2.UseTabs, language, useTabs);
 
             var document = workspace.Documents.Single();
             var view = document.GetTextView();

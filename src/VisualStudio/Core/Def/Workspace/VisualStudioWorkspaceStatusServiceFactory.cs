@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,23 +10,23 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.OperationProgress;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Task = System.Threading.Tasks.Task;
-
 using IAsyncServiceProvider2 = Microsoft.VisualStudio.Shell.IAsyncServiceProvider2;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceStatusService), ServiceLayer.Host), Shared]
-    internal class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
+    internal sealed class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
     {
+        private static readonly Option2<bool> s_partialLoadModeFeatureFlag = new("VisualStudioWorkspaceStatusService_PartialLoadModeFeatureFlag", defaultValue: false);
+
         private readonly IAsyncServiceProvider2 _serviceProvider;
         private readonly IThreadingContext _threadingContext;
         private readonly IGlobalOptionService _globalOptions;
@@ -55,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             if (workspaceServices.Workspace is VisualStudioWorkspace)
             {
-                if (!_globalOptions.GetOption(Options.PartialLoadModeFeatureFlag))
+                if (!_globalOptions.GetOption(s_partialLoadModeFeatureFlag))
                 {
                     // don't enable partial load mode for ones that are not in experiment yet
                     return new WorkspaceStatusService();
@@ -180,24 +179,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 return await _progressStageStatus.JoinAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        [Export(typeof(IOptionProvider)), Shared]
-        internal sealed class Options : IOptionProvider
-        {
-            private const string FeatureName = "VisualStudioWorkspaceStatusService";
-
-            public static readonly Option2<bool> PartialLoadModeFeatureFlag = new(FeatureName, nameof(PartialLoadModeFeatureFlag), defaultValue: false,
-                new FeatureFlagStorageLocation("Roslyn.PartialLoadMode"));
-
-            ImmutableArray<IOption> IOptionProvider.Options => ImmutableArray.Create<IOption>(
-                PartialLoadModeFeatureFlag);
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Options()
-            {
             }
         }
     }

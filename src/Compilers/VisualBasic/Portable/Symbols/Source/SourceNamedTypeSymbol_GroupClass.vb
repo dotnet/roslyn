@@ -198,7 +198,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
 DoneWithBindingAttributes:
-
             If attributeData Is Nothing Then
                 binder = Nothing
                 attributeSyntax = Nothing
@@ -206,7 +205,6 @@ DoneWithBindingAttributes:
 
             Return attributeData
         End Function
-
 
         Private Shared Sub FindGroupClassBaseTypes(nameParts() As String, current As NamespaceOrTypeSymbol, nextPart As Integer, candidates As ArrayBuilder(Of NamedTypeSymbol))
             ' Bindable::FindBaseInMyGroupCollection

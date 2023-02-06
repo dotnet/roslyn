@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
-    internal struct VirtualTreePoint : IComparable<VirtualTreePoint>, IEquatable<VirtualTreePoint>
+    internal readonly struct VirtualTreePoint : IComparable<VirtualTreePoint>, IEquatable<VirtualTreePoint>
     {
         private readonly SyntaxTree _tree;
         private readonly SourceText _text;

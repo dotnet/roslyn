@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Windows;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public AddParameterDialogViewModel(Document document, int positionForTypeBinding)
         {
-            _notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+            _notificationService = document.Project.Solution.Services.GetService<INotificationService>();
             _semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
             TypeIsEmptyImage = Visibility.Visible;

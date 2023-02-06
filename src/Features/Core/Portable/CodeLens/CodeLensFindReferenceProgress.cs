@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                                           (definition as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
             return (isImplicitlyDeclared && !isConstructorInvocation) ||
                    !reference.Location.IsInSource ||
-                   !definition.Locations.Any(loc => loc.IsInSource);
+                   !definition.Locations.Any(static loc => loc.IsInSource);
         }
 
         public void OnReferenceFound(ISymbol symbol, ReferenceLocation location)

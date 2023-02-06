@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return ShouldTriggerCompletionImpl(text, caretPosition, trigger, CompletionOptions.Default);
         }
 
-        internal override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
+        internal override bool ShouldTriggerCompletion(LanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
             => ShouldTriggerCompletionImpl(text, caretPosition, trigger, options);
 
         private bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger, in CompletionOptions options)
@@ -76,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document, CompletionItem item,
             ImmutableArray<TaggedText> parts, CancellationToken cancellationToken)
         {
-            var languageServices = document.Project.LanguageServices;
-            var snippetService = languageServices.GetService<ISnippetInfoService>();
+            var snippetService = document.Project.Services.GetService<ISnippetInfoService>();
             if (snippetService != null)
             {
                 var change = await GetTextChangeAsync(document, item, ch: '\t', cancellationToken: cancellationToken).ConfigureAwait(false) ??

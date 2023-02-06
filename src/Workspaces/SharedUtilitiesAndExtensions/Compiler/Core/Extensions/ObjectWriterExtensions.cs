@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             for (var i = 0; i < length; i++)
                 builder.Add(read(reader));
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 }

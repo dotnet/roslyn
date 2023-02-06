@@ -18,9 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
         CSharpSimplifyPropertyPatternDiagnosticAnalyzer,
         CSharpSimplifyPropertyPatternCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
     public class SimplifyPropertyPatternTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task NotInCSharp9()
         {
             var code = @"
@@ -46,7 +47,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task InCSharp10()
         {
             await new VerifyCS.Test
@@ -83,7 +84,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task TestNotWithoutPropertyPattern1()
         {
             var testCode = @"
@@ -109,7 +110,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task TestNotWithoutPropertyPattern2()
         {
             var testCode = @"
@@ -134,7 +135,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task TestNotWithTypePatterm()
         {
             var testCode = @"
@@ -159,7 +160,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task TestNotWithOuterDesignation()
         {
             var testCode = @"
@@ -184,7 +185,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task TestNotWithoutInnerSubpatterns()
         {
             var testCode = @"
@@ -209,7 +210,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task TestNotWithMultipleInnerSubpatterns()
         {
             var testCode = @"
@@ -234,7 +235,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task TestWithInnerDesignation()
         {
             await new VerifyCS.Test
@@ -271,7 +272,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task Test_Permutation1()
         {
             await new VerifyCS.Test
@@ -306,7 +307,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task Test_Permutation2()
         {
             await new VerifyCS.Test
@@ -341,7 +342,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task Test_Permutation3()
         {
             await new VerifyCS.Test
@@ -376,7 +377,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task Test_Permutation4()
         {
             await new VerifyCS.Test
@@ -411,7 +412,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task Test_Permutation5()
         {
             await new VerifyCS.Test
@@ -446,7 +447,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task Test_Permutation6()
         {
             await new VerifyCS.Test
@@ -481,7 +482,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task Test_Permutation7()
         {
             await new VerifyCS.Test
@@ -516,7 +517,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task TestMultiLine1()
         {
             await new VerifyCS.Test
@@ -564,7 +565,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await new VerifyCS.Test
@@ -611,7 +612,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task TestOuterDiagnostic()
         {
             await new VerifyCS.Test
@@ -650,7 +651,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [Fact]
         public async Task TestInnerDiagnostic()
         {
             await new VerifyCS.Test
@@ -700,8 +701,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
-        [WorkItem(57674, "https://github.com/dotnet/roslyn/issues/57674")]
+        [Fact, WorkItem(57674, "https://github.com/dotnet/roslyn/issues/57674")]
         public async Task TestTuplePattern()
         {
             var testCode = @"
@@ -723,8 +723,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
-        [WorkItem(57674, "https://github.com/dotnet/roslyn/issues/57674")]
+        [Fact, WorkItem(57674, "https://github.com/dotnet/roslyn/issues/57674")]
         public async Task TestPositionalPattern()
         {
             var testCode = @"

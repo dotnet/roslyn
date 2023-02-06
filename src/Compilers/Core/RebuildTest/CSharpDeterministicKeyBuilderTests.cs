@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             verifyCount<ParseOptions>(11);
             verifyCount<CSharpParseOptions>(10);
-            verifyCount<CompilationOptions>(62);
+            verifyCount<CompilationOptions>(63);
             verifyCount<CSharpCompilationOptions>(9);
 
             static void verifyCount<T>(int expected)
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void Simple()
         {
             var compilation = CSharpTestBase.CreateCompilation(
-                @"System.Console.WriteLine(""Hello World"");",
+                CSharpTestSource.Parse(@"System.Console.WriteLine(""Hello World"");", checksumAlgorithm: SourceHashAlgorithm.Sha1),
                 targetFramework: TargetFramework.NetCoreApp,
                 options: Options);
 
@@ -353,13 +353,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""TRACE""
 ]", "DEBUG", "TRACE");
 
-
             assert(@"
 [
   ""DEBUG"",
   ""TRACE""
 ]", "TRACE", "DEBUG");
-
 
             void assert(string expected, params string[] values)
             {
@@ -375,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [InlineData(@"e:\long\path\src\code.cs", @"e:\long\path\src\", @"/pathmap:e:\long\path\=c:\")]
         public void CSharpPathMapWindows(string filePath, string workingDirectory, string? pathMap)
         {
-            var args = new List<string>(new[] { filePath, "/nostdlib", "/langversion:9" });
+            var args = new List<string>(new[] { filePath, "/nostdlib", "/langversion:9", "/checksumalgorithm:sha256" });
             if (pathMap is not null)
             {
                 args.Add(pathMap);
@@ -497,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void FeatureFlag()
         {
-            var compiler = TestableCompiler.CreateCSharpNetCoreApp("test.cs", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", "-debug:portable");
+            var compiler = TestableCompiler.CreateCSharpNetCoreApp("test.cs", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", "-debug:portable", "-checksumalgorithm:sha256");
             var sourceFile = compiler.AddSourceFile("test.cs", @"// this is a test file");
             compiler.AddOutputFile("test.dll");
             var pdbFile = compiler.AddOutputFile("test.pdb");
@@ -552,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""features"": {{
             ""debug-determinism"": ""true""
           }},
-          ""languageVersion"": ""CSharp10"",
+          ""languageVersion"": ""CSharp11"",
           ""specifiedLanguageVersion"": ""Default"",
           ""preprocessorSymbols"": []
         }}

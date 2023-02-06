@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             : base(IDEDiagnosticIds.UseNotPatternDiagnosticId,
                    EnforceOnBuildValues.UseNotPattern,
                    CSharpCodeStyleOptions.PreferNotPattern,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                         nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {

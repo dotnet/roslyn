@@ -374,6 +374,10 @@
     <None Include="SymbolsTests\Metadata\public-and-private.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Analyzers\README.md" />
+    <Compile Include="Analyzers\DoNothingAnalyzer.cs" />
+    <Compile Include="Analyzers\DoNothingGenerator.cs" />
+    <Compile Include="Analyzers\DoNothingSuppressor.cs" />
     <Compile Include="ResourceLoader.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />

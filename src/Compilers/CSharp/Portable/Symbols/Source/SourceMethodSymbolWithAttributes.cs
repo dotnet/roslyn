@@ -362,6 +362,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
+
+        /// <summary>
+        /// Binds attributes applied to this method.
+        /// </summary>
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindMethodAttributes()
+        {
+            return BindAttributes(GetAttributeDeclarations(), OuterBinder);
+        }
 #nullable disable
 
         public override bool AreLocalsZeroed
@@ -528,7 +536,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.NullableContextAttribute | ReservedAttributes.CaseSensitiveExtensionAttribute))
+                ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.IsUnmanagedAttribute |
+                ReservedAttributes.IsByRefLikeAttribute |
+                ReservedAttributes.NullableContextAttribute |
+                ReservedAttributes.CaseSensitiveExtensionAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
@@ -566,6 +578,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DecodeUnmanagedCallersOnlyAttribute(ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnscopedRefAttribute))
+            {
+                if (this.IsValidUnscopedRefAttributeTarget())
+                {
+                    arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
+                }
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -595,6 +618,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(MethodWellKnownAttributeData attributeData)
             => attributeData?.HasDoesNotReturnAttribute == true ? FlowAnalysisAnnotations.DoesNotReturn : FlowAnalysisAnnotations.None;
+
+        internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
 
         private bool VerifyObsoleteAttributeAppliedToMethod(
             ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
@@ -703,7 +728,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MarshalAsAttributeDecoder<ReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
+                ReservedAttributes.DynamicAttribute |
+                ReservedAttributes.IsUnmanagedAttribute |
+                ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.IsByRefLikeAttribute |
+                ReservedAttributes.TupleElementNamesAttribute |
+                ReservedAttributes.NullableAttribute |
+                ReservedAttributes.NativeIntegerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
@@ -870,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Add(arguments.AttributeSyntaxOpt, useSiteInfo);
 
-            if (!IsStatic || ParameterCount > 0 || !ReturnsVoid)
+            if (!IsStatic || ParameterCount > 0 || !ReturnsVoid || IsAbstract || IsVirtual)
             {
                 diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, arguments.AttributeSyntaxOpt.Location, Name);
                 hasError = true;
@@ -994,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(_lazyCustomAttributesBag != null);
                 Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
 
-                if (ContainingSymbol is NamedTypeSymbol { IsComImport: true, TypeKind: TypeKind.Class })
+                if (ContainingSymbol is NamedTypeSymbol { IsComImport: true, TypeKind: TypeKind.Class or TypeKind.Interface })
                 {
                     switch (this.MethodKind)
                     {
@@ -1071,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.HasAsyncMethodBuilderAttribute(out _))
                 {
-                    hasErrors |= MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
+                    MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
                 }
 
                 // Avoid checking attributes on containing types to avoid a potential cycle when a lambda
@@ -1109,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
                     var enumeratorCancellationCount = Parameters.Count(p => p.IsSourceParameterWithEnumeratorCancellationAttribute());
                     if (enumeratorCancellationCount == 0 &&
-                        ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)))
+                        ParameterTypesWithAnnotations.Any(static (p, cancellationTokenType) => p.Type.Equals(cancellationTokenType), cancellationTokenType))
                     {
                         // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
                         // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead

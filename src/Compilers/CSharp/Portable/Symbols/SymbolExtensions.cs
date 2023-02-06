@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             switch (parameter)
             {
-                case SourceComplexParameterSymbol source:
+                case SourceComplexParameterSymbolBase source:
                     return source.HasEnumeratorCancellationAttribute;
                 case SynthesizedComplexParameterSymbol synthesized:
                     return synthesized.HasEnumeratorCancellationAttribute;
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static Symbol? EnsureCSharpSymbolOrNull(this ISymbol? symbol, string paramName)
         {
             var csSymbol = symbol as PublicModel.Symbol;
@@ -392,43 +392,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return csSymbol.UnderlyingSymbol;
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static AssemblySymbol? EnsureCSharpSymbolOrNull(this IAssemblySymbol? symbol, string paramName)
         {
             return (AssemblySymbol?)EnsureCSharpSymbolOrNull((ISymbol?)symbol, paramName);
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static NamespaceOrTypeSymbol? EnsureCSharpSymbolOrNull(this INamespaceOrTypeSymbol? symbol, string paramName)
         {
             return (NamespaceOrTypeSymbol?)EnsureCSharpSymbolOrNull((ISymbol?)symbol, paramName);
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static NamespaceSymbol? EnsureCSharpSymbolOrNull(this INamespaceSymbol? symbol, string paramName)
         {
             return (NamespaceSymbol?)EnsureCSharpSymbolOrNull((ISymbol?)symbol, paramName);
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static TypeSymbol? EnsureCSharpSymbolOrNull(this ITypeSymbol? symbol, string paramName)
         {
             return (TypeSymbol?)EnsureCSharpSymbolOrNull((ISymbol?)symbol, paramName);
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static NamedTypeSymbol? EnsureCSharpSymbolOrNull(this INamedTypeSymbol? symbol, string paramName)
         {
             return (NamedTypeSymbol?)EnsureCSharpSymbolOrNull((ISymbol?)symbol, paramName);
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static TypeParameterSymbol? EnsureCSharpSymbolOrNull(this ITypeParameterSymbol? symbol, string paramName)
         {
             return (TypeParameterSymbol?)EnsureCSharpSymbolOrNull((ISymbol?)symbol, paramName);
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static EventSymbol? EnsureCSharpSymbolOrNull(this IEventSymbol? symbol, string paramName)
         {
             return (EventSymbol?)EnsureCSharpSymbolOrNull((ISymbol?)symbol, paramName);
@@ -546,134 +546,134 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             };
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         private static TISymbol? GetPublicSymbol<TISymbol>(this Symbol? symbol)
             where TISymbol : class, ISymbol
         {
             return (TISymbol?)symbol?.ISymbol;
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static ISymbol? GetPublicSymbol(this Symbol? symbol)
         {
             return symbol.GetPublicSymbol<ISymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IMethodSymbol? GetPublicSymbol(this MethodSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IMethodSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IPropertySymbol? GetPublicSymbol(this PropertySymbol? symbol)
         {
             return symbol.GetPublicSymbol<IPropertySymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static INamedTypeSymbol? GetPublicSymbol(this NamedTypeSymbol? symbol)
         {
             return symbol.GetPublicSymbol<INamedTypeSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static INamespaceSymbol? GetPublicSymbol(this NamespaceSymbol? symbol)
         {
             return symbol.GetPublicSymbol<INamespaceSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static ITypeSymbol? GetPublicSymbol(this TypeSymbol? symbol)
         {
             return symbol.GetPublicSymbol<ITypeSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static ILocalSymbol? GetPublicSymbol(this LocalSymbol? symbol)
         {
             return symbol.GetPublicSymbol<ILocalSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IAssemblySymbol? GetPublicSymbol(this AssemblySymbol? symbol)
         {
             return symbol.GetPublicSymbol<IAssemblySymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static INamespaceOrTypeSymbol? GetPublicSymbol(this NamespaceOrTypeSymbol? symbol)
         {
             return symbol.GetPublicSymbol<INamespaceOrTypeSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IDiscardSymbol? GetPublicSymbol(this DiscardSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IDiscardSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IFieldSymbol? GetPublicSymbol(this FieldSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IFieldSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IParameterSymbol? GetPublicSymbol(this ParameterSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IParameterSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IRangeVariableSymbol? GetPublicSymbol(this RangeVariableSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IRangeVariableSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static ILabelSymbol? GetPublicSymbol(this LabelSymbol? symbol)
         {
             return symbol.GetPublicSymbol<ILabelSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IAliasSymbol? GetPublicSymbol(this AliasSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IAliasSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IModuleSymbol? GetPublicSymbol(this ModuleSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IModuleSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static ITypeParameterSymbol? GetPublicSymbol(this TypeParameterSymbol? symbol)
         {
             return symbol.GetPublicSymbol<ITypeParameterSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IArrayTypeSymbol? GetPublicSymbol(this ArrayTypeSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IArrayTypeSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IPointerTypeSymbol? GetPublicSymbol(this PointerTypeSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IPointerTypeSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IFunctionPointerTypeSymbol? GetPublicSymbol(this FunctionPointerTypeSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IFunctionPointerTypeSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static IEventSymbol? GetPublicSymbol(this EventSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IEventSymbol>();
@@ -755,62 +755,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetPublicSymbols<INamespaceSymbol>(StaticCast<Symbol>.From(symbols));
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static TSymbol? GetSymbol<TSymbol>(this ISymbol? symbol)
             where TSymbol : Symbol
         {
             return (TSymbol?)((PublicModel.Symbol?)symbol)?.UnderlyingSymbol;
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static Symbol? GetSymbol(this ISymbol? symbol)
         {
             return symbol.GetSymbol<Symbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static TypeSymbol? GetSymbol(this ITypeSymbol? symbol)
         {
             return symbol.GetSymbol<TypeSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static NamedTypeSymbol? GetSymbol(this INamedTypeSymbol? symbol)
         {
             return symbol.GetSymbol<NamedTypeSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static AliasSymbol? GetSymbol(this IAliasSymbol? symbol)
         {
             return symbol.GetSymbol<AliasSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static LocalSymbol? GetSymbol(this ILocalSymbol? symbol)
         {
             return symbol.GetSymbol<LocalSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static AssemblySymbol? GetSymbol(this IAssemblySymbol? symbol)
         {
             return symbol.GetSymbol<AssemblySymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static MethodSymbol? GetSymbol(this IMethodSymbol? symbol)
         {
             return symbol.GetSymbol<MethodSymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static PropertySymbol? GetSymbol(this IPropertySymbol? symbol)
         {
             return symbol.GetSymbol<PropertySymbol>();
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         internal static FunctionPointerTypeSymbol? GetSymbol(this IFunctionPointerTypeSymbol? symbol)
         {
             return symbol.GetSymbol<FunctionPointerTypeSymbol>();

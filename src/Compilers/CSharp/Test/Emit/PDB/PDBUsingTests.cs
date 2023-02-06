@@ -383,6 +383,7 @@ namespace X
 ";
             var compilation = CreateCompilation(text,
                 assemblyName: GetUniqueName(),
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -473,7 +474,7 @@ namespace X
 namespace U.V.W {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
 
             string source2 = @"
 using U.V.W;
@@ -482,6 +483,7 @@ class A { void M() {  } }
 ";
             var compilation2 = CreateCompilation(
                 source2,
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -525,7 +527,7 @@ class A { void M() {  } }
 namespace U.V.W {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
 
             string source2 = @"
 using U.V.W;
@@ -534,6 +536,7 @@ class A { void M() {  } }
 ";
             var compilation2 = CreateCompilation(
                 source2,
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -569,7 +572,8 @@ class A { void M() {  } }
 ");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/60045")]
+        [Fact]
+        [WorkItem(60045, "https://github.com/dotnet/roslyn/issues/60045")]
         public void ExternAliases4()
         {
             var src1 = @"
@@ -603,7 +607,53 @@ namespace M
                 });
 
             compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
             compilation.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(63927, "https://github.com/dotnet/roslyn/issues/63927")]
+        [Fact]
+        public void ExternAliases5()
+        {
+            string sourceA =
+@"public class A { }";
+            var comp = CreateCompilation(sourceA, assemblyName: "A1");
+            var refA = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
+
+            string sourceB =
+@"#nullable enable
+extern alias A2;
+class B
+{
+    static void F(A2::A? a) { }
+}
+";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyPdb(
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""B"" name=""F"" parameterNames=""a"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""29"" endLine=""5"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""31"" endLine=""5"" endColumn=""32"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""A2"" />
+        <externinfo alias=""A2"" assembly=""A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
@@ -983,7 +1033,7 @@ public class C
             var source1 = @"
 namespace N { public class D { } }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
 
             var source2 = @"
 extern alias A;
@@ -1000,6 +1050,7 @@ public class C
 }";
 
             var compilation2 = CreateCompilation(source2,
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -2190,7 +2241,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
             var v = CompileAndVerify(comp, validator: (peAssembly) =>
             {
                 var reader = peAssembly.ManifestModule.MetadataReader;

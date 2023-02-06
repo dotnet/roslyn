@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // get potential namespace, types and members to remove.
                 var removableCandidates = root
-                    .DescendantNodes(n => spine.Contains(n))
+                    .DescendantNodes(spine.Contains)
                     .Where(n => FilterToTopLevelMembers(n, State.TypeNode)).ToSet();
 
                 // diff candidates with items we want to keep.

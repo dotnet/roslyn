@@ -11,8 +11,9 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Options;
@@ -24,6 +25,7 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
@@ -36,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             private readonly IUIThreadOperationExecutor _operationExecutor;
             private readonly IAsynchronousOperationListener _asyncListener;
             private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
-            private readonly IGlobalOptionService _globalOptions;
+            private readonly EditorOptionsService _editorOptionsService;
+            private readonly IInlineRenameService _inlineRenameService;
 
             public QuickInfoSource(
                 ITextBuffer subjectBuffer,
@@ -44,18 +47,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 IUIThreadOperationExecutor operationExecutor,
                 IAsynchronousOperationListener asyncListener,
                 Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-                IGlobalOptionService globalOptions)
+                EditorOptionsService editorOptionsService,
+                IInlineRenameService inlineRenameService)
             {
                 _subjectBuffer = subjectBuffer;
                 _threadingContext = threadingContext;
                 _operationExecutor = operationExecutor;
                 _asyncListener = asyncListener;
                 _streamingPresenter = streamingPresenter;
-                _globalOptions = globalOptions;
+                _editorOptionsService = editorOptionsService;
+                _inlineRenameService = inlineRenameService;
             }
 
             public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
             {
+                // Until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1611398 is resolved we can't disable
+                // quickinfo in InlineRename. Instead, we return no quickinfo information while the adornment
+                // is being shown. This can be removed after IFeaturesService supports disabling quickinfo
+                if (_editorOptionsService.GlobalOptions.GetOption(InlineRenameUIOptions.UseInlineAdornment) && _inlineRenameService.ActiveSession is not null)
+                    return null;
+
                 var triggerPoint = session.GetTriggerPoint(_subjectBuffer.CurrentSnapshot);
                 if (!triggerPoint.HasValue)
                     return null;
@@ -75,16 +86,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+                        var options = _editorOptionsService.GlobalOptions.GetSymbolDescriptionOptions(document.Project.Language);
                         var item = await service.GetQuickInfoAsync(document, triggerPoint.Value, options, cancellationToken).ConfigureAwait(false);
                         if (item != null)
                         {
                             var textVersion = snapshot.Version;
                             var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                            var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
+                            var classificationOptions = _editorOptionsService.GlobalOptions.GetClassificationOptions(document.Project.Language);
+                            var lineFormattingOptions = snapshot.TextBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
 
                             return await IntellisenseQuickInfoBuilder.BuildItemAsync(
-                                trackingSpan, item, document, classificationOptions,
+                                trackingSpan, item, document, classificationOptions, lineFormattingOptions,
                                 _threadingContext, _operationExecutor,
                                 _asyncListener, _streamingPresenter, cancellationToken).ConfigureAwait(false);
                         }
@@ -94,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 

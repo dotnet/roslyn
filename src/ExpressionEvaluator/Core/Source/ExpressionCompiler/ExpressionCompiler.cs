@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -424,10 +424,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         if (!missingAssemblyIdentities.IsEmpty)
                         {
-                            if (assembliesLoadedInRetryLoop == null)
-                            {
-                                assembliesLoadedInRetryLoop = PooledHashSet<AssemblyIdentity>.GetInstance();
-                            }
+                            assembliesLoadedInRetryLoop ??= PooledHashSet<AssemblyIdentity>.GetInstance();
                             // If any identities failed to add (they were already in the list), then don't retry. 
                             if (assembliesLoadedInRetryLoop.AddAll(missingAssemblyIdentities))
                             {

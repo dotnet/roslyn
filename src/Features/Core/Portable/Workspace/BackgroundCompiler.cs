@@ -17,17 +17,10 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class BackgroundCompiler : IDisposable
     {
         private Workspace? _workspace;
-        private readonly AsyncBatchingWorkQueue<CancellationToken> _workQueue;
+        private readonly AsyncBatchingWorkQueue _workQueue;
 
         [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Used to keep a strong reference to the built compilations so they are not GC'd")]
         private readonly ConcurrentSet<Compilation> _mostRecentCompilations = new();
-
-        /// <summary>
-        /// Cancellation series controlling the individual pieces of work added to <see cref="_workQueue"/>.  Every time
-        /// we add a new item, we cancel the prior item so that batch can stop as soon as possible and move onto the
-        /// next batch.
-        /// </summary>
-        private readonly CancellationSeries _cancellationSeries = new();
 
         /// <summary>
         /// Token to stop work entirely when this object is disposed.
@@ -40,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Host
 
             // make a scheduler that runs on the thread pool
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-            _workQueue = new AsyncBatchingWorkQueue<CancellationToken>(
+
+            _workQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.NearImmediate,
                 BuildCompilationsForVisibleDocumentsAsync,
                 listenerProvider.GetListener(),
@@ -54,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Host
         public void Dispose()
         {
             _disposalCancellationSource.Cancel();
-            _cancellationSeries.Dispose();
 
             _mostRecentCompilations.Clear();
 
@@ -78,43 +71,22 @@ namespace Microsoft.CodeAnalysis.Host
 
         private void Rebuild()
         {
-            // Stop any work on the current batch and create a token for the next batch.
-            var nextToken = _cancellationSeries.CreateNext();
-            _workQueue.AddWork(nextToken);
+            // Stop any work on the current batch and start the next job.
+            _workQueue.AddWork(cancelExistingWork: true);
         }
 
-        private async ValueTask BuildCompilationsForVisibleDocumentsAsync(
-            ImmutableSegmentedList<CancellationToken> cancellationTokens, CancellationToken disposalToken)
-        {
-            using var _ = ArrayBuilder<Compilation>.GetInstance(out var compilations);
-
-            await AddCompilationsForVisibleDocumentsAsync(cancellationTokens, compilations, disposalToken).ConfigureAwait(false);
-
-            _mostRecentCompilations.Clear();
-            _mostRecentCompilations.AddRange(compilations);
-        }
-
-        private async ValueTask AddCompilationsForVisibleDocumentsAsync(
-            ImmutableSegmentedList<CancellationToken> cancellationTokens,
-            ArrayBuilder<Compilation> compilations,
-            CancellationToken disposalToken)
+        private async ValueTask BuildCompilationsForVisibleDocumentsAsync(CancellationToken cancellationToken)
         {
             var workspace = _workspace;
             if (workspace is null)
                 return;
 
-            // Because we always cancel the previous token prior to queuing new work, there can only be at most one
-            // actual real cancellation token that is not already canceled.
-            var cancellationToken = cancellationTokens.SingleOrNull(ct => !ct.IsCancellationRequested);
+            using var _ = ArrayBuilder<Compilation>.GetInstance(out var compilations);
 
-            // if we didn't get an actual non-canceled token back, then this batch was entirely canceled and we have
-            // nothing to do.
-            if (cancellationToken is null)
-                return;
+            await AddCompilationsForVisibleDocumentsAsync(workspace.CurrentSolution, compilations, cancellationToken).ConfigureAwait(false);
 
-            using var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Value, disposalToken);
-            await AddCompilationsForVisibleDocumentsAsync(
-                workspace.CurrentSolution, compilations, source.Token).ConfigureAwait(false);
+            _mostRecentCompilations.Clear();
+            _mostRecentCompilations.AddRange(compilations);
         }
 
         private static async ValueTask AddCompilationsForVisibleDocumentsAsync(
@@ -124,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var trackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var trackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
             var visibleProjectIds = trackingService.GetVisibleDocuments().Select(d => d.ProjectId).ToSet();
             var activeProjectId = trackingService.TryGetActiveDocument()?.ProjectId;
 

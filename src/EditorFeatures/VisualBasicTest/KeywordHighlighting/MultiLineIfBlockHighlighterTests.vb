@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
+    <Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
     Public Class MultiLineIfBlockHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return GetType(MultiLineIfBlockHighlighter)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMultilineIf1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -28,7 +29,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMultilineIf2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -44,7 +45,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMultilineIf3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -60,7 +61,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMultilineIf4() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -76,7 +77,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMultilineIf5() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -92,8 +93,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <WorkItem(542614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542614")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, WorkItem(542614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542614")>
         Public Async Function TestMultilineIf6() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System

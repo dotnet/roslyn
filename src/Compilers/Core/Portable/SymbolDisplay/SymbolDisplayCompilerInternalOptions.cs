@@ -62,5 +62,22 @@ namespace Microsoft.CodeAnalysis
         /// Display `System.[U]IntPtr` instead of `n[u]int`.
         /// </summary>
         UseNativeIntegerUnderlyingType = 1 << 7,
+
+        /// <summary>
+        /// Separate out nested types from containing types using <c>+</c> instead of <c>.</c> (dot).
+        /// </summary>
+        UsePlusForNestedTypes = 1 << 8,
+
+        /// <summary>
+        /// Display `MyType@File.cs` instead of `MyType`.
+        /// </summary>
+        IncludeContainingFileForFileTypes = 1 << 9,
+
+        /// <summary>
+        /// Equivalent to <see cref="SymbolDisplayParameterOptions.IncludeName"/>
+        /// but only if the parameter is displayed on its own
+        /// (i.e., not as part of a method, delegate, or indexer).
+        /// </summary>
+        IncludeParameterNameIfStandalone = 1 << 10,
     }
 }

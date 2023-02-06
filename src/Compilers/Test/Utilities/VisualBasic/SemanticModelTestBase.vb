@@ -25,24 +25,6 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         Return position
     End Function
 
-    Private Function GetAncestor(Of T As VisualBasicSyntaxNode)(node As VisualBasicSyntaxNode) As T
-        If node Is Nothing Then
-            Throw New ArgumentNullException(NameOf(node))
-        End If
-
-        Dim parent = node.Parent
-        While parent IsNot Nothing
-            Dim result = TryCast(parent, T)
-            If result IsNot Nothing Then
-                Return result
-            End If
-
-            parent = parent.Parent
-        End While
-
-        Return Nothing
-    End Function
-
     Protected Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0) As TNode
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
 

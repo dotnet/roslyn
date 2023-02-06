@@ -33,7 +33,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly IDocumentTrackingService _documentTrackingService;
+        private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
+
+#if NETSTANDARD
         private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers = new();
+#else
+        private readonly ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers = new();
+#endif
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
@@ -58,6 +64,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
+
+            GlobalOptions.OptionChanged += OnGlobalOptionChanged;
+        }
+
+        private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
+        {
+            if (e.Option == NamingStyleOptions.NamingPreferences ||
+                e.Option.Definition.Group.Parent == CodeStyleOptionGroups.CodeStyle ||
+                e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
+                e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
+                e.Option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption)
+            {
+                var service = Workspace.Services.GetService<ISolutionCrawlerService>();
+                service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
+            }
         }
 
         internal IGlobalOptionService GlobalOptions => AnalyzerService.GlobalOptions;
@@ -68,15 +89,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             return _stateManager.HasAnyHostStateSet(static (stateSet, arg) => stateSet.ContainsAnyDocumentOrProjectDiagnostics(arg), projectId)
                 || _stateManager.HasAnyProjectStateSet(projectId, static (stateSet, arg) => stateSet.ContainsAnyDocumentOrProjectDiagnostics(arg), projectId);
-        }
-
-        public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-        {
-            return e.Option.Feature == nameof(SimplificationOptions) ||
-                   e.Option.Feature == nameof(CodeStyleOptions) ||
-                   e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
-                   e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
-                   e.Option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption;
         }
 
         private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)
@@ -102,6 +114,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public void Shutdown()
         {
+            GlobalOptions.OptionChanged -= OnGlobalOptionChanged;
+
             var stateSets = _stateManager.GetAllStateSets();
 
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>

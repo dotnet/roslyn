@@ -60,6 +60,7 @@ namespace Microsoft.Cci
                 return;
             }
 
+            this.Visit(fieldReference.RefCustomModifiers);
             this.Visit((ITypeMemberReference)fieldReference);
             this.Visit(fieldReference.GetType(Context));
             ReserveFieldToken(fieldReference);
@@ -298,7 +299,6 @@ namespace Microsoft.Cci
                 VisitTypeReferencesThatNeedTokens(refWithAttributes.TypeRef);
             }
         }
-
 
         private void VisitTypeReferencesThatNeedTokens(ITypeReference typeReference)
         {

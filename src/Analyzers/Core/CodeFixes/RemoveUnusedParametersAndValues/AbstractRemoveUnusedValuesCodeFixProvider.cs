@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -105,15 +105,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             ISyntaxFactsService syntaxFacts);
 
         /// <summary>
+        /// Gets the replacement node for a var pattern.
+        /// We need just to change the identifier of the pattern, not the whole node
+        /// </summary>
+        protected abstract SyntaxNode GetReplacementNodeForVarPattern(SyntaxNode originalVarPattern, SyntaxNode newNameNode);
+
+        /// <summary>
         /// Rewrite the parent of a node which was rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.
         /// </summary>
         /// <param name="parent">The original parent of the node rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
         /// <param name="newNameNode">The rewritten node produced by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
         /// <param name="editor">The syntax editor for the code fix.</param>
         /// <param name="syntaxFacts">The syntax facts for the current language.</param>
+        /// <param name="semanticModel">Semantic model for the tree.</param>
         /// <returns>The replacement node to use in the rewritten syntax tree; otherwise, <see langword="null"/> to only
         /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
-        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts) => null;
+        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel) => null;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -282,7 +289,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             // We compute the code fix in two passes:
             //   1. The first pass groups the diagnostics to fix by containing member declaration and
@@ -357,7 +364,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -542,9 +549,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         // is replaced with "_ = MethodCall();" or "var unused = MethodCall();"
                         nodeReplacementMap.Add(node.GetRequiredParent(), GetReplacementNodeForCompoundAssignment(node.GetRequiredParent(), newNameNode, editor, syntaxFacts));
                     }
+                    else if (syntaxFacts.IsVarPattern(node))
+                    {
+                        nodeReplacementMap.Add(node, GetReplacementNodeForVarPattern(node, newNameNode));
+                    }
                     else
                     {
-                        var newParentNode = TryUpdateParentOfUpdatedNode(node.GetRequiredParent(), newNameNode, editor, syntaxFacts);
+                        var newParentNode = TryUpdateParentOfUpdatedNode(node.GetRequiredParent(), newNameNode, editor, syntaxFacts, semanticModel);
                         if (newParentNode is not null)
                         {
                             nodeReplacementMap.Add(node.GetRequiredParent(), newParentNode);
@@ -785,12 +796,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
             var service = document.GetLanguageService<IReplaceDiscardDeclarationsWithAssignmentsService>();
             if (service == null)
-            {
                 return memberDeclaration;
-            }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return await service.ReplaceAsync(memberDeclaration, semanticModel, document.Project.Solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
+            return await service.ReplaceAsync(document, memberDeclaration, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -831,7 +839,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var provider = GetSyntaxFormatting();
             rootWithTrackedNodes = FormatterHelper.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
 #else
-            var provider = document.Project.Solution.Workspace.Services;
+            var provider = document.Project.Solution.Services;
             rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
 #endif
 

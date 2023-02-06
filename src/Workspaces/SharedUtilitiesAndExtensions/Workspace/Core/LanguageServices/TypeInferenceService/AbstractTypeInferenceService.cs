@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
+namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService
 {
     internal abstract partial class AbstractTypeInferenceService : ITypeInferenceService
     {

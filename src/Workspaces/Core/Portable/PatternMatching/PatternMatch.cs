@@ -2,34 +2,38 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
-    internal struct PatternMatch : IComparable<PatternMatch>
+    [DataContract]
+    internal readonly struct PatternMatch : IComparable<PatternMatch>
     {
-        /// <summary>
-        /// True if this was a case sensitive match.
-        /// </summary>
-        public bool IsCaseSensitive { get; }
-
         /// <summary>
         /// The type of match that occurred.
         /// </summary>
+        [DataMember(Order = 0)]
         public PatternMatchKind Kind { get; }
+
+        [DataMember(Order = 1)]
+        private readonly bool _punctuationStripped;
+
+        /// <summary>
+        /// True if this was a case sensitive match.
+        /// </summary>
+        [DataMember(Order = 2)]
+        public bool IsCaseSensitive { get; }
 
         /// <summary>
         /// The spans in the original text that were matched.  Only returned if the 
         /// pattern matcher is asked to collect these spans.
         /// </summary>
+        [DataMember(Order = 3)]
         public ImmutableArray<TextSpan> MatchedSpans { get; }
-
-        private readonly bool _punctuationStripped;
 
         internal PatternMatch(
             PatternMatchKind resultType,
@@ -42,13 +46,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         internal PatternMatch(
-            PatternMatchKind resultType,
+            PatternMatchKind kind,
             bool punctuationStripped,
             bool isCaseSensitive,
             ImmutableArray<TextSpan> matchedSpans)
-            : this()
         {
-            this.Kind = resultType;
+            this.Kind = kind;
             this.IsCaseSensitive = isCaseSensitive;
             this.MatchedSpans = matchedSpans;
             _punctuationStripped = punctuationStripped;
@@ -60,17 +63,27 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public int CompareTo(PatternMatch other)
             => CompareTo(other, ignoreCase: false);
 
-        public int CompareTo(PatternMatch other, bool ignoreCase)
-            => ComparerWithState.CompareTo(this, other, ignoreCase, s_comparers);
+        public int CompareTo(PatternMatch? other, bool ignoreCase)
+            => other.HasValue ? CompareTo(other.Value, ignoreCase) : -1;
 
-        private static readonly ImmutableArray<Func<PatternMatch, bool, IComparable>> s_comparers =
-            ImmutableArray.Create<Func<PatternMatch, bool, IComparable>>(
-                // Compare types
-                (p, b) => p.Kind,
-                // Compare cases
-                (p, b) => !b && !p.IsCaseSensitive,
-                // Consider a match to be better if it was successful without stripping punctuation
-                // versus a match that had to strip punctuation to succeed.
-                (p, b) => p._punctuationStripped);
+        public int CompareTo(PatternMatch other, bool ignoreCase)
+        {
+            // Compare types
+            var comparison = this.Kind - other.Kind;
+            if (comparison != 0)
+                return comparison;
+
+            // Compare cases
+            if (!ignoreCase)
+            {
+                comparison = (!this.IsCaseSensitive).CompareTo(!other.IsCaseSensitive);
+                if (comparison != 0)
+                    return comparison;
+            }
+
+            // Consider a match to be better if it was successful without stripping punctuation
+            // versus a match that had to strip punctuation to succeed.
+            return this._punctuationStripped.CompareTo(other._punctuationStripped);
+        }
     }
 }

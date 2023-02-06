@@ -85,14 +85,14 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                             else
                             {
                                 // non local diagnostics without location
-                                AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                                AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                             }
 
                             break;
                         }
 
                     case LocationKind.None:
-                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                        AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                         break;
 
                     case LocationKind.SourceFile:
@@ -159,13 +159,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     }
                     else
                     {
-                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                        AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                     }
 
                     break;
 
                 case LocationKind.None:
-                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                    AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                     break;
 
                 case LocationKind.SourceFile:
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     else
                     {
                         // non local diagnostics without location
-                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                        AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                     }
 
                     break;
@@ -207,9 +207,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private static ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Convert(Dictionary<DocumentId, List<DiagnosticData>>? map)
         {
-            return map == null ?
-                ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty :
-                map.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
+            return map == null
+                ? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty
+                : map.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
         }
     }
 }

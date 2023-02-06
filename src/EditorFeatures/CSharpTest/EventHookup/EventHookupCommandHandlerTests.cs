@@ -17,11 +17,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.EventHookup)]
     public class EventHookupCommandHandlerTests
     {
         private readonly NamingStylesTestOptionSets _namingOptions = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HandlerName_EventInThisClass()
         {
             var markup = @"
@@ -40,7 +41,7 @@ class C
         }
 
         [WorkItem(20999, "https://github.com/dotnet/roslyn/issues/20999")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HandlerName_EventInThisClass_CamelCaseRule()
         {
             var markup = @"
@@ -60,7 +61,7 @@ class C
             testState.AssertShowing("c_MyEvent");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HandlerName_EventOnLocal()
         {
             var markup = @"
@@ -84,7 +85,7 @@ class D
             testState.AssertShowing("Local_MyEvent");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HandlerName_EventOnFieldOfObject()
         {
             var markup = @"
@@ -113,7 +114,7 @@ class E
             testState.AssertShowing("Cfield_MyEvent");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task NoHookupOnIntegerPlusEquals()
         {
             var markup = @"
@@ -146,7 +147,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HandlerName_DefaultHandlerNameAlreadyExistsWithSameNonStaticState()
         {
             var markup = @"
@@ -170,7 +171,7 @@ class C
             testState.AssertShowing("C_MyEvent1");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HandlerName_DefaultHandlerNameAlreadyExistsWithDifferentStaticState()
         {
             var markup = @"
@@ -194,7 +195,7 @@ class C
             testState.AssertShowing("C_MyEvent1");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HandlerName_DefaultHandlerNameAlreadyExistsAsField()
         {
             var markup = @"
@@ -214,7 +215,7 @@ class C
             testState.AssertShowing("C_MyEvent1");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HookupInLambdaInLocalDeclaration()
         {
             var markup = @"
@@ -234,7 +235,7 @@ class C
             testState.AssertShowing("C_MyEvent");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task TypingSpacesDoesNotDismiss()
         {
             var markup = @"
@@ -256,7 +257,7 @@ class C
             testState.AssertShowing("C_MyEvent");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task TypingLettersDismisses()
         {
             var markup = @"
@@ -278,7 +279,7 @@ class C
             testState.AssertNotShowing();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task TypingEqualsInSessionDismisses()
         {
             var markup = @"
@@ -300,7 +301,7 @@ class C
             testState.AssertNotShowing();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task CancelViaLeftKey()
         {
             var markup = @"
@@ -330,7 +331,7 @@ class C
             testState.AssertNotShowing();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task CancelViaBackspace()
         {
             var markup = @"
@@ -357,7 +358,7 @@ class C
             testState.AssertNotShowing();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EventHookupBeforeEventHookup()
         {
             var markup = @"
@@ -403,7 +404,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EventHookupBeforeComment()
         {
             var markup = @"
@@ -449,7 +450,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EventHookupInArgument()
         {
             var markup = @"
@@ -491,7 +492,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HookupInFieldDeclarationSingleLineLambda()
         {
             var markup = @"
@@ -519,7 +520,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HookupInFieldDeclarationMultiLineLambda()
         {
             var markup = @"
@@ -553,7 +554,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EventHookupInUnformattedPosition1()
         {
             var markup = @"
@@ -586,7 +587,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EventHookupInUnformattedPosition2()
         {
             var markup = @"
@@ -637,7 +638,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task SessionCancelledByCharacterBeforeEventHookupDeterminationCompleted()
         {
             var markup = @"
@@ -660,7 +661,7 @@ class C
             testState.AssertNotShowing();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task TabBeforeEventHookupDeterminationCompleted()
         {
             var markup = @"
@@ -701,7 +702,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task MoveCaretOutOfSpanBeforeEventHookupDeterminationCompleted()
         {
             var markup = @"
@@ -724,7 +725,7 @@ class C
             testState.AssertNotShowing();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EnsureNameUniquenessInPartialClasses()
         {
             var markup = @"
@@ -750,7 +751,7 @@ public partial class C
             testState.AssertShowing("C_MyEvent1");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EnsureNameUniquenessAgainstBaseClasses()
         {
             var markup = @"
@@ -772,7 +773,7 @@ class Program : Base
             testState.AssertShowing("Console_CancelKeyPress1");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EnsureNameUniquenessAgainstParameters()
         {
             var markup = @"
@@ -791,7 +792,7 @@ class C
             testState.AssertShowing("C_MyEvent1");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task DelegateInvokeMethodReturnsNonVoid()
         {
             var markup = @"
@@ -829,8 +830,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        [WorkItem(553660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553660")]
+        [WpfFact, WorkItem(553660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553660")]
         public async Task PlusEqualsInsideComment()
         {
             var markup = @"
@@ -848,8 +848,7 @@ class C
             testState.AssertNotShowing();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        [WorkItem(951664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951664")]
+        [WpfFact, WorkItem(951664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951664")]
         public async Task UseInvocationLocationTypeNameWhenEventIsMemberOfBaseType()
         {
             var markup = @"
@@ -900,7 +899,7 @@ class TestClass_T1_S1_4 : Scenarios.DelegateTest_Generics_NonGenericClass
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EventHookupWithQualifiedMethodAccess()
         {
             var markup = @"
@@ -934,7 +933,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EventHookupRemovesInaccessibleAttributes()
         {
             var workspaceXml = @"
@@ -987,7 +986,7 @@ class D
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EventHookupWithQualifiedMethodAccessAndNotificationOptionSilent()
         {
             // This validates the scenario where the user has stated that they prefer `this.` qualification but the
@@ -1024,8 +1023,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        [WorkItem(58474, "https://github.com/dotnet/roslyn/issues/58474")]
+        [WpfFact, WorkItem(58474, "https://github.com/dotnet/roslyn/issues/58474")]
         public async Task EventHookupInTopLevelCode()
         {
             var markup = @"
@@ -1049,7 +1047,7 @@ void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEv
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task EventHookupAtEndOfDocument()
         {
             var markup = @"
@@ -1080,8 +1078,7 @@ void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEv
             testState.AssertCodeIs(expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        [WorkItem(59935, "https://github.com/dotnet/roslyn/issues/59935")]
+        [WpfFact, WorkItem(59935, "https://github.com/dotnet/roslyn/issues/59935")]
         public async Task HandlerName_EventInGenericClass()
         {
             var markup = @"
@@ -1105,7 +1102,7 @@ class Generic&lt;T&gt;
             testState.AssertShowing("Generic_MyEvent");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HandlerName_GlobalAlias01()
         {
             var markup = @"
@@ -1129,7 +1126,7 @@ class D
             testState.AssertShowing("D_MyEvent");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HandlerName_GlobalAlias02()
         {
             var markup = @"
@@ -1153,7 +1150,7 @@ class Generic&lt;T&gt;
             testState.AssertShowing("Generic_MyEvent");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HandlerName_GlobalAlias03()
         {
             var markup = @"
@@ -1170,7 +1167,7 @@ class Program
             testState.AssertShowing("Console_CancelKeyPress");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact]
         public async Task HandlerName_InvocationExpression()
         {
             var markup = @"

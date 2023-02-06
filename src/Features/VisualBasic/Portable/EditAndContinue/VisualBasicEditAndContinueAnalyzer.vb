@@ -1043,14 +1043,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)() ' TODO: EnbumBlock?
         End Function
 
-        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode, <Out> ByRef declaration As SyntaxNode) As Boolean
+        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode, editKind As EditKind, <Out> ByRef declaration As SyntaxNode) As Boolean
             If node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter) Then
                 Contract.ThrowIfFalse(node.IsParentKind(SyntaxKind.ParameterList, SyntaxKind.TypeParameterList))
                 declaration = node.Parent.Parent
                 Return True
             End If
 
-            If node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock) Then
+            ' We allow deleting event and property accessors, so don't associate them
+            If editKind <> EditKind.Delete AndAlso node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock) Then
                 declaration = node.Parent
                 Return True
             End If
@@ -1269,6 +1270,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Dim newSymbols As OneOrMany(Of ISymbol) = Nothing
 
             Select Case editKind
+                Case EditKind.Reorder
+                    If TryCast(oldNode, ParameterSyntax) Is Nothing OrElse TryCast(newNode, ParameterSyntax) Is Nothing Then
+                        ' Other than parameters, we don't do any semantic checks for reordering
+                        ' And we don't need to report them to the compiler either.
+                        ' Consider: Currently Symbol ordering changes are Not reflected in metadata (Reflection will report original order).
+
+                        ' Consider Reordering of fields Is Not allowed since it changes the layout of the type.
+                        ' This ordering should however Not matter unless the type has explicit layout so we might want to allow it.
+                        ' We do Not check changes to the order if they occur across multiple documents (the containing type Is partial).
+                        Debug.Assert(Not IsDeclarationWithInitializer(oldNode) AndAlso Not IsDeclarationWithInitializer(newNode))
+                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
+                    End If
+
+                    If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) OrElse
+                       Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
+                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
+                    End If
+
+                    Return OneOrMany.Create((oldSymbols(0).ContainingSymbol, newSymbols(0).ContainingSymbol, EditKind.Update))
                 Case EditKind.Delete
                     If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) Then
                         Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
@@ -2232,7 +2252,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                          SyntaxKind.NewConstraint,
                          SyntaxKind.TypeConstraint,
                          SyntaxKind.AttributeList,
-                         SyntaxKind.Attribute
+                         SyntaxKind.Attribute,
+                         SyntaxKind.Parameter
                         ' We'll ignore these edits. A general policy is to ignore edits that are only discoverable via reflection.
                         Return
 
@@ -2257,8 +2278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ReportError(RudeEditKind.Move)
                         Return
 
-                    Case SyntaxKind.TypeParameter,
-                         SyntaxKind.Parameter
+                    Case SyntaxKind.TypeParameter
                         ReportError(RudeEditKind.Move)
                         Return
 
@@ -2611,16 +2631,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
 
 #Region "State Machines"
-
-        Protected Overrides ReadOnly Property SupportsStateMachineUpdates As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
-        Protected Overrides Function IsStateMachineResumableStateSyntax(node As SyntaxNode) As Boolean
-            Return node.IsKind(SyntaxKind.AwaitExpression, SyntaxKind.YieldStatement)
-        End Function
 
         Friend Overrides Function IsStateMachineMethod(declaration As SyntaxNode) As Boolean
             Return SyntaxUtilities.IsAsyncMethodOrLambda(declaration) OrElse

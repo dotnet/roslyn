@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicitCast
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
     public partial class AddExplicitCastTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public AddExplicitCastTests(ITestOutputHelper logger)
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicit
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleVariableDeclaration()
         {
             await TestInRegularAndScriptAsync(
@@ -58,7 +59,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleVariableDeclarationWithFunctionInnvocation()
         {
             await TestInRegularAndScriptAsync(
@@ -96,7 +97,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ReturnStatementWithObject()
         {
             await TestInRegularAndScriptAsync(
@@ -124,7 +125,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ReturnStatementWithIEnumerable()
         {
             await TestInRegularAndScriptAsync(
@@ -154,7 +155,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ReturnStatementWithIEnumerator()
         {
             await TestInRegularAndScriptAsync(
@@ -184,7 +185,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ReturnStatementWithFunctionInnvocation()
         {
             await TestInRegularAndScriptAsync(
@@ -220,7 +221,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleFunctionArgumentsWithObject1()
         {
             await TestInRegularAndScriptAsync(
@@ -262,7 +263,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleFunctionArgumentsWithObject2()
         {
             await TestInRegularAndScriptAsync(
@@ -304,7 +305,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleFunctionArgumentsWithFunctionInvocation()
         {
             await TestInRegularAndScriptAsync(
@@ -344,7 +345,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task YieldReturnStatementWithObject()
         {
             await TestInRegularAndScriptAsync(
@@ -374,7 +375,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task SimpleConstructorArgumentsWithObject()
         {
             await TestInRegularAndScriptAsync(
@@ -408,7 +409,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ReturnTypeWithTask()
         {
             await TestInRegularAndScriptAsync(
@@ -440,7 +441,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task VariableDeclarationWithPublicFieldMember()
         {
             await TestInRegularAndScriptAsync(
@@ -478,7 +479,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task VariableDeclarationWithPrivateFieldMember()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -500,7 +501,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task PublicMemberFunctionArgument1()
         {
             await TestInRegularAndScriptAsync(
@@ -534,7 +535,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task PublicMemberFunctionArgument2()
         {
             await TestInRegularAndScriptAsync(
@@ -570,7 +571,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task PrivateMemberFunctionArgument()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -591,7 +592,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MemberFunctions()
         {
             await TestInRegularAndScriptAsync(
@@ -629,7 +630,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task BaseConstructorArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -659,7 +660,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ThisConstructorArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -685,7 +686,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction1()
         {
             await TestInRegularAndScriptAsync(
@@ -713,7 +714,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction2()
         {
             await TestInRegularAndScriptAsync(
@@ -725,7 +726,7 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    void Foo() {
+    void Goo() {
         Func<Derived, Derived> func = d => d;
         Base b;
         Base b2 = func([||]b);
@@ -739,7 +740,7 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    void Foo() {
+    void Goo() {
         Func<Derived, Derived> func = d => d;
         Base b;
         Base b2 = func((Derived)b);
@@ -747,7 +748,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction3()
         {
             await TestInRegularAndScriptAsync(
@@ -759,7 +760,7 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    void Foo() {
+    void Goo() {
         Func<Base, Base> func = d => d;
         Base b;
         Derived b2 = [||]func(b);
@@ -773,7 +774,7 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    void Foo() {
+    void Goo() {
         Func<Base, Base> func = d => d;
         Base b;
         Derived b2 = (Derived)func(b);
@@ -781,7 +782,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction4()
         {
             await TestInRegularAndScriptAsync(
@@ -793,7 +794,7 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    Derived Foo() {
+    Derived Goo() {
         Func<Base, Base> func = d => d;
         Base b;
         return [||]func(b);
@@ -807,7 +808,7 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    Derived Foo() {
+    Derived Goo() {
         Func<Base, Base> func = d => d;
         Base b;
         return (Derived)func(b);
@@ -815,7 +816,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction5_ReturnStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -827,13 +828,13 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    Action<Derived> Foo() {
+    Action<Derived> Goo() {
         return [||](Base b) => { };
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction6_Arguments()
         {
             await TestInRegularAndScriptAsync(
@@ -846,7 +847,7 @@ class Program
     class Derived : Base {}
 
     void M(Derived d, Action<Derived> action) { }
-    void Foo() {
+    void Goo() {
         Base b = new Derived();
         M([||]b, (Derived d) => { });
     }
@@ -860,14 +861,14 @@ class Program
     class Derived : Base {}
 
     void M(Derived d, Action<Derived> action) { }
-    void Foo() {
+    void Goo() {
         Base b = new Derived();
         M((Derived)b, (Derived d) => { });
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction7_Arguments()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -880,14 +881,14 @@ class Program
     class Derived : Base {}
 
     void M(Derived d, Action<Derived> action) { }
-    void Foo() {
+    void Goo() {
         Base b = new Derived();
         M([||]b, (Base base) => { });
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction8_Arguments()
         {
             await TestInRegularAndScriptAsync(
@@ -900,7 +901,7 @@ class Program
     class Derived : Base {}
 
     void M(Derived d, params Action<Derived>[] action) { }
-    void Foo() {
+    void Goo() {
         Base b1 = new Derived();
         M([||]b1, (Derived d) => { }, (Derived d) => { });
     }
@@ -914,14 +915,14 @@ class Program
     class Derived : Base {}
 
     void M(Derived d, params Action<Derived>[] action) { }
-    void Foo() {
+    void Goo() {
         Base b1 = new Derived();
         M((Derived)b1, (Derived d) => { }, (Derived d) => { });
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task LambdaFunction9_Arguments()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -934,14 +935,14 @@ class Program
     class Derived : Base {}
 
     void M(Derived d, params Action<Derived>[] action) { }
-    void Foo() {
+    void Goo() {
         Base b1 = new Derived();
         M([||]b1, action: new Action<Derived>[0], (Derived d) => { }, (Derived d) => { });
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task InheritInterfaces1()
         {
             await TestInRegularAndScriptAsync(
@@ -952,7 +953,7 @@ class Program
     interface Base2 {}
     class Derived : Base1, Base2 {}
 
-    void Foo(Base2 b) {
+    void Goo(Base2 b) {
         Derived d = [||]b;
     }
 }",
@@ -963,13 +964,13 @@ class Program
     interface Base2 {}
     class Derived : Base1, Base2 {}
 
-    void Foo(Base2 b) {
+    void Goo(Base2 b) {
         Derived d = (Derived)b;
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task InheritInterfaces2()
         {
             await TestInRegularAndScriptAsync(
@@ -981,7 +982,7 @@ class Program
     class Derived1 : Base1, Base2 {}
     class Derived2 : Derived1 {}
 
-    void Foo(Base2 b) {
+    void Goo(Base2 b) {
         Derived2 d = [||]b;
     }
 }",
@@ -993,13 +994,13 @@ class Program
     class Derived1 : Base1, Base2 {}
     class Derived2 : Derived1 {}
 
-    void Foo(Base2 b) {
+    void Goo(Base2 b) {
         Derived2 d = (Derived2)b;
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task InheritInterfaces3()
         {
             await TestInRegularAndScriptAsync(
@@ -1009,7 +1010,7 @@ class Program
     interface Base1 {}
     interface Base2 : Base1 {}
 
-    Base2 Foo(Base1 b) {
+    Base2 Goo(Base1 b) {
         return [||]b;
     }
 }",
@@ -1019,13 +1020,13 @@ class Program
     interface Base1 {}
     interface Base2 : Base1 {}
 
-    Base2 Foo(Base1 b) {
+    Base2 Goo(Base1 b) {
         return (Base2)b;
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task InheritInterfaces4()
         {
             await TestInRegularAndScriptAsync(
@@ -1035,7 +1036,7 @@ class Program
     interface Base1 {}
     interface Base2 : Base1 {}
 
-    void Foo(Base1 b) {
+    void Goo(Base1 b) {
         Base2 b2 = [||]b;
     }
 }",
@@ -1045,13 +1046,13 @@ class Program
     interface Base1 {}
     interface Base2 : Base1 {}
 
-    void Foo(Base1 b) {
+    void Goo(Base1 b) {
         Base2 b2 = (Base2)b;
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task InheritInterfaces5()
         {
             await TestInRegularAndScriptAsync(
@@ -1064,9 +1065,9 @@ class Program
     class Derived1 : Base2, Base3 {}
     class Derived2 : Derived1 {}
 
-    void Foo(Derived2 b) {}
+    void Goo(Derived2 b) {}
     void M(Base1 b) {
-        Foo([||]b);
+        Goo([||]b);
     }
 }",
             @"
@@ -1078,14 +1079,14 @@ class Program
     class Derived1 : Base2, Base3 {}
     class Derived2 : Derived1 {}
 
-    void Foo(Derived2 b) {}
+    void Goo(Derived2 b) {}
     void M(Base1 b) {
-        Foo((Derived2)b);
+        Goo((Derived2)b);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType()
         {
             await TestInRegularAndScriptAsync(
@@ -1117,7 +1118,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType2()
         {
             await TestInRegularAndScriptAsync(
@@ -1127,12 +1128,12 @@ class Program
 {
     class Base { }
     class Derived : Base { }
-    void Foo(Func<Derived, Derived> func) { }
+    void Goo(Func<Derived, Derived> func) { }
 
     void M()
     {
         Func<Base, Base> func1 = b => b;
-        Foo(func1[||]);
+        Goo(func1[||]);
     }
 }",
             @"
@@ -1141,17 +1142,17 @@ class Program
 {
     class Base { }
     class Derived : Base { }
-    void Foo(Func<Derived, Derived> func) { }
+    void Goo(Func<Derived, Derived> func) { }
 
     void M()
     {
         Func<Base, Base> func1 = b => b;
-        Foo((Func<Derived, Derived>)func1);
+        Goo((Func<Derived, Derived>)func1);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType3()
         {
             await TestInRegularAndScriptAsync(
@@ -1161,7 +1162,7 @@ class Program
 {
     class Base { }
     class Derived : Base { }
-    Func<Derived, Derived> Foo(Func<Derived, Derived> func)
+    Func<Derived, Derived> Goo(Func<Derived, Derived> func)
     {
         Func<Base, Base> func1 = b => b;
         return func1[||];
@@ -1173,7 +1174,7 @@ class Program
 {
     class Base { }
     class Derived : Base { }
-    Func<Derived, Derived> Foo(Func<Derived, Derived> func)
+    Func<Derived, Derived> Goo(Func<Derived, Derived> func)
     {
         Func<Base, Base> func1 = b => b;
         return (Func<Derived, Derived>)func1;
@@ -1181,14 +1182,14 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType4()
         {
             await TestInRegularAndScriptAsync(
             @"
 class Program
 {
-    void Foo()
+    void Goo()
     {
         B<CB> b = null;
         A<IA> c1 = [||]b;
@@ -1203,7 +1204,7 @@ class Program
             @"
 class Program
 {
-    void Foo()
+    void Goo()
     {
         B<CB> b = null;
         A<IA> c1 = (A<IA>)b;
@@ -1217,14 +1218,14 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType5()
         {
             await TestMissingInRegularAndScriptAsync(
             @"
 class Program
 {
-    void Foo()
+    void Goo()
     {
         B<IB> b = null;
         A<IA> c1 = [||]b;
@@ -1238,14 +1239,14 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task GenericType6()
         {
             await TestInRegularAndScriptAsync(
             @"
 class Program
 {
-    void Foo()
+    void Goo()
     {
         B<IB, int> b = null;
         A<IA, string> c1 = [||]b;
@@ -1260,7 +1261,7 @@ class Program
             @"
 class Program
 {
-    void Foo()
+    void Goo()
     {
         B<IB, int> b = null;
         A<IA, string> c1 = (A<IA, string>)b;
@@ -1274,7 +1275,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1294,7 +1295,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer2()
         {
             await TestInRegularAndScriptAsync(
@@ -1328,7 +1329,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1347,7 +1348,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer4()
         {
             await TestInRegularAndScriptAsync(
@@ -1379,7 +1380,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1393,13 +1394,13 @@ class Program
         static public explicit operator Derived(Test t) { return new Derived();  }
     }
     void M(Derived d) { }
-    void Foo() {
+    void Goo() {
         M([||]new Base());
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer6()
         {
             await TestInRegularAndScriptAsync(
@@ -1413,7 +1414,7 @@ class Program
         static public explicit operator Derived(Test t) { return new Derived();  }
     }
     void M(Derived d) { }
-    void Foo() {
+    void Goo() {
         M([||]new Test());
     }
 }",
@@ -1427,13 +1428,13 @@ class Program
         static public explicit operator Derived(Test t) { return new Derived();  }
     }
     void M(Derived d) { }
-    void Foo() {
+    void Goo() {
         M((Derived)new Test());
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ObjectInitializer7()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1446,14 +1447,14 @@ class Program
     {
         static public explicit operator Derived(Test t) { return new Derived();  }
     }
-    void M(Derveed d) { }
-    void Foo() {
+    void M(Derived d) { }
+    void Goo() {
         M([||]new Base());
     }
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        [Fact]
         public async Task RedundantCast1()
         {
             await TestInRegularAndScriptAsync(
@@ -1462,7 +1463,7 @@ class Program
 {
     class Base { }
     class Derived : Base { }
-    void Foo() {
+    void Goo() {
         Base b;
         Derived d = [||](Base)b;
     }
@@ -1472,14 +1473,14 @@ class Program
 {
     class Base { }
     class Derived : Base { }
-    void Foo() {
+    void Goo() {
         Base b;
         Derived d = (Derived)b;
     }
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        [Fact]
         public async Task RedundantCast2()
         {
             await TestInRegularAndScriptAsync(
@@ -1489,7 +1490,7 @@ class Program
     class Base { }
     class Derived1 : Base { }
     class Derived2 : Derived1 { }
-    void Foo() {
+    void Goo() {
         Base b;
         Derived2 d = [||](Derived1)b;
     }
@@ -1500,14 +1501,14 @@ class Program
     class Base { }
     class Derived1 : Base { }
     class Derived2 : Derived1 { }
-    void Foo() {
+    void Goo() {
         Base b;
         Derived2 d = (Derived2)b;
     }
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        [Fact]
         public async Task RedundantCast3()
         {
             await TestInRegularAndScriptAsync(
@@ -1517,7 +1518,7 @@ class Program
     class Base { }
     class Derived : Base { }
     void M(Derived d) { }
-    void Foo() {
+    void Goo() {
         Base b;
         M([||](Base)b);
     }
@@ -1528,14 +1529,14 @@ class Program
     class Base { }
     class Derived : Base { }
     void M(Derived d) { }
-    void Foo() {
+    void Goo() {
         Base b;
         M((Derived)b);
     }
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        [Fact]
         public async Task RedundantCast4()
         {
             await TestInRegularAndScriptAsync(
@@ -1546,7 +1547,7 @@ class Program
     class Derived1 : Base { }
     class Derived2 : Derived1 { }
     void M(Derived2 d) { }
-    void Foo() {
+    void Goo() {
         Base b;
         M([||](Derived1)b);
     }
@@ -1558,14 +1559,14 @@ class Program
     class Derived1 : Base { }
     class Derived2 : Derived1 { }
     void M(Derived2 d) { }
-    void Foo() {
+    void Goo() {
         Base b;
         M((Derived2)b);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ExactMethodCandidate()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1590,7 +1591,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates1_ArgumentsInOrder_NoLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -1600,13 +1601,13 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    void Foo(string s, Derived d) {} 
-    void Foo(string s, int i) {}
+    void Goo(string s, Derived d) {} 
+    void Goo(string s, int i) {}
 
     void M()
     {
         Base b = new Base();
-        Foo("""", [||]b);
+        Goo("""", [||]b);
     }
 }",
             @"
@@ -1615,18 +1616,18 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    void Foo(string s, Derived d) {} 
-    void Foo(string s, int i) {}
+    void Goo(string s, Derived d) {} 
+    void Goo(string s, int i) {}
 
     void M()
     {
         Base b = new Base();
-        Foo("""", (Derived)b);
+        Goo("""", (Derived)b);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates2_ArgumentsInOrder_NoLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -1636,15 +1637,15 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    void Foo(string s, Derived d, out int i) {
+    void Goo(string s, Derived d, out int i) {
         i = 1;
     } 
-    void Foo(string s, Derived d) {}
+    void Goo(string s, Derived d) {}
 
     void M()
     {
         Base b = new Base();
-        Foo("""", [||]b, out var i);
+        Goo("""", [||]b, out var i);
     }
 }",
             @"
@@ -1653,20 +1654,20 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    void Foo(string s, Derived d, out int i) {
+    void Goo(string s, Derived d, out int i) {
         i = 1;
     } 
-    void Foo(string s, Derived d) {}
+    void Goo(string s, Derived d) {}
 
     void M()
     {
         Base b = new Base();
-        Foo("""", (Derived)b, out var i);
+        Goo("""", (Derived)b, out var i);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates3_ArgumentsInOrder_NoLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -1676,7 +1677,7 @@ class Program
     class Base { }
     class Derived : Base { }
 
-    void Foo(string s, Derived d, out int i, params object[] list)
+    void Goo(string s, Derived d, out int i, params object[] list)
     {
         i = 1;
     }
@@ -1684,7 +1685,7 @@ class Program
     void M()
     {
         Base b = new Base();
-        Foo("""", [||]b, out var i);
+        Goo("""", [||]b, out var i);
     }
 }",
             @"
@@ -1693,7 +1694,7 @@ class Program
     class Base { }
     class Derived : Base { }
 
-    void Foo(string s, Derived d, out int i, params object[] list)
+    void Goo(string s, Derived d, out int i, params object[] list)
     {
         i = 1;
     }
@@ -1701,12 +1702,12 @@ class Program
     void M()
     {
         Base b = new Base();
-        Foo("""", (Derived)b, out var i);
+        Goo("""", (Derived)b, out var i);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates4_ArgumentsInOrder_NoLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -1716,7 +1717,7 @@ class Program
     class Base { }
     class Derived : Base { }
 
-    void Foo(string s, Derived d, out int i, params object[] list)
+    void Goo(string s, Derived d, out int i, params object[] list)
     {
         i = 1;
     }
@@ -1724,7 +1725,7 @@ class Program
     void M()
     {
         Base b = new Base();
-        Foo("""", [||]b, out var i, 1);
+        Goo("""", [||]b, out var i, 1);
     }
 }",
             @"
@@ -1733,7 +1734,7 @@ class Program
     class Base { }
     class Derived : Base { }
 
-    void Foo(string s, Derived d, out int i, params object[] list)
+    void Goo(string s, Derived d, out int i, params object[] list)
     {
         i = 1;
     }
@@ -1741,12 +1742,12 @@ class Program
     void M()
     {
         Base b = new Base();
-        Foo("""", (Derived)b, out var i, 1);
+        Goo("""", (Derived)b, out var i, 1);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates5_ArgumentsInOrder_NoLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -1756,7 +1757,7 @@ class Program
     class Base { }
     class Derived : Base { }
 
-    void Foo(string s, Derived d, out int i, params object[] list)
+    void Goo(string s, Derived d, out int i, params object[] list)
     {
         i = 1;
     }
@@ -1764,7 +1765,7 @@ class Program
     void M()
     {
         Base b = new Base();
-        Foo("""", [||]b, out var i, 1, 2, 3);
+        Goo("""", [||]b, out var i, 1, 2, 3);
     }
 }",
             @"
@@ -1773,7 +1774,7 @@ class Program
     class Base { }
     class Derived : Base { }
 
-    void Foo(string s, Derived d, out int i, params object[] list)
+    void Goo(string s, Derived d, out int i, params object[] list)
     {
         i = 1;
     }
@@ -1781,12 +1782,12 @@ class Program
     void M()
     {
         Base b = new Base();
-        Foo("""", (Derived)b, out var i, 1, 2, 3);
+        Goo("""", (Derived)b, out var i, 1, 2, 3);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates6_ArgumentsInOrder_NoLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -1798,12 +1799,12 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, params Derived2[] list) { }
+    void Goo(string s, Derived d, params Derived2[] list) { }
 
     void M()
     {
         Base b = new Base();
-        Foo("""", [||]b);
+        Goo("""", [||]b);
     }
 }",
             @"
@@ -1814,17 +1815,17 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, params Derived2[] list) { }
+    void Goo(string s, Derived d, params Derived2[] list) { }
 
     void M()
     {
         Base b = new Base();
-        Foo("""", (Derived)b);
+        Goo("""", (Derived)b);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates7_ArgumentsInOrder_NoLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -1836,12 +1837,12 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, params Derived2[] list) { }
+    void Goo(string s, Derived d, params Derived2[] list) { }
 
     void M()
     {
         Base b = new Base();
-        Foo("""", b, [||]b);
+        Goo("""", b, [||]b);
     }
 }",
             @"
@@ -1852,17 +1853,17 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, params Derived2[] list) { }
+    void Goo(string s, Derived d, params Derived2[] list) { }
 
     void M()
     {
         Base b = new Base();
-        Foo("""", b, (Derived2)b);
+        Goo("""", b, (Derived2)b);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates8_ArgumentsInOrder_NoLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -1879,12 +1880,12 @@ namespace ExtensionMethods
             string s = """";
             Base b = new Derived();
             Derived d = new Derived();
-            s.Foo([||]b, d);
+            s.Goo([||]b, d);
         }
     }
     public static class MyExtensions
     {
-        public static void Foo(this string str, Derived d, Derived d2) { }
+        public static void Goo(this string str, Derived d, Derived d2) { }
     }
 }",
             @"
@@ -1900,17 +1901,17 @@ namespace ExtensionMethods
             string s = """";
             Base b = new Derived();
             Derived d = new Derived();
-            s.Foo((Derived)b, d);
+            s.Goo((Derived)b, d);
         }
     }
     public static class MyExtensions
     {
-        public static void Foo(this string str, Derived d, Derived d2) { }
+        public static void Goo(this string str, Derived d, Derived d2) { }
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates9_ArgumentsOutOfOrder_NoLabels()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1921,18 +1922,18 @@ class Program
     class Derived1 : Base {}
     class Derived2 : Derived1 {}
 
-    void Foo(string s, Derived d) {} 
-    void Foo(string s, int i) {}
+    void Goo(string s, Derived d) {} 
+    void Goo(string s, int i) {}
 
     void M()
     {
         Base b = new Base();
-        Foo(b[||], """");
+        Goo(b[||], """");
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates10_ArgumentsInOrder_SomeLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -1944,12 +1945,12 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i) { }
+    void Goo(string s, Derived d, int i) { }
 
     void M()
     {
         Base b = new Base();
-        Foo("""", d: [||]b, 1);
+        Goo("""", d: [||]b, 1);
     }
 }",
             @"
@@ -1960,17 +1961,17 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i) { }
+    void Goo(string s, Derived d, int i) { }
 
     void M()
     {
         Base b = new Base();
-        Foo("""", d: (Derived)b, 1);
+        Goo("""", d: (Derived)b, 1);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates11_ArgumentsInOrder_SomeLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -1982,13 +1983,13 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", d: [||]b, 1, list: strlist);
+        Goo("""", d: [||]b, 1, list: strlist);
     }
 }",
             @"
@@ -1999,18 +2000,18 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", d: (Derived)b, 1, list: strlist);
+        Goo("""", d: (Derived)b, 1, list: strlist);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates12_ArgumentsInOrder_SomeLabels_Params()
         {
             await TestInRegularAndScriptAsync(
@@ -2022,13 +2023,13 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", d: [||]b, list: strlist, i: 1);
+        Goo("""", d: [||]b, list: strlist, i: 1);
     }
 }",
             @"
@@ -2039,18 +2040,18 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", d: (Derived)b, list: strlist, i: 1);
+        Goo("""", d: (Derived)b, list: strlist, i: 1);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates13_ArgumentsOutOfOrder_SomeLabels()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2062,18 +2063,18 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i) { }
+    void Goo(string s, Derived d, int i) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo(d: [||]b, """", 1, list: strlist);
+        Goo(d: [||]b, """", 1, list: strlist);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates14_ArgumentsOutOfOrder_AllLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -2085,13 +2086,13 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo(d: [||]b, s: """", list: strlist, i: 1);
+        Goo(d: [||]b, s: """", list: strlist, i: 1);
     }
 }",
             @"
@@ -2102,18 +2103,18 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo(d: (Derived)b, s: """", list: strlist, i: 1);
+        Goo(d: (Derived)b, s: """", list: strlist, i: 1);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates15_ArgumentsOutOfOrder_AllLabels()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2125,18 +2126,18 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo(d: """", s: [||]b, list: strlist, i: 1);
+        Goo(d: """", s: [||]b, list: strlist, i: 1);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates17_ArgumentsInOrder_SomeLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -2148,12 +2149,12 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, int j = 1) { }
+    void Goo(string s, Derived d, int i, int j = 1) { }
 
     void M()
     {
         Base b = new Base();
-        Foo("""", d: [||]b, 1);
+        Goo("""", d: [||]b, 1);
     }
 }",
             @"
@@ -2164,17 +2165,17 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, int j = 1) { }
+    void Goo(string s, Derived d, int i, int j = 1) { }
 
     void M()
     {
         Base b = new Base();
-        Foo("""", d: (Derived)b, 1);
+        Goo("""", d: (Derived)b, 1);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates18_ArgumentsInOrder_SomeLabels()
         {
             await TestInRegularAndScriptAsync(
@@ -2186,13 +2187,13 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, params Derived2[] d2list) { }
+    void Goo(string s, Derived d, params Derived2[] d2list) { }
 
     void M()
     {
         Base b = new Base();
         var dlist = new Derived[] {};
-        Foo("""", d: b, [||]dlist);
+        Goo("""", d: b, [||]dlist);
     }
 }",
             @"
@@ -2203,18 +2204,18 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, params Derived2[] d2list) { }
+    void Goo(string s, Derived d, params Derived2[] d2list) { }
 
     void M()
     {
         Base b = new Base();
         var dlist = new Derived[] {};
-        Foo("""", d: b, (Derived2[])dlist);
+        Goo("""", d: b, (Derived2[])dlist);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates19_ArgumentsInOrder_NoLabels_Params()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2226,18 +2227,18 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(params Derived2[] d2list) { }
+    void Goo(params Derived2[] d2list) { }
 
     void M()
     {
         Base b = new Base();
         var dlist = new Derived[] {};
-        Foo([||]dlist, new Derived2());
+        Goo([||]dlist, new Derived2());
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates20_ArgumentsInOrder_NoLabels_Params()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2249,18 +2250,18 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(params Derived2[] d2list) { }
+    void Goo(params Derived2[] d2list) { }
 
     void M()
     {
         Base b = new Base();
         var dlist = new Derived[] {};
-        Foo([||]dlist, dlist);
+        Goo([||]dlist, dlist);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates21_ArgumentsInOrder_Labels()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2270,17 +2271,17 @@ class Program
     class Base { }
     class Derived : Base { }
 
-    void Foo(Derived d, int i) { }
+    void Goo(Derived d, int i) { }
 
     void M()
     {
         Base b = new Base();
-        Foo([||]b, i:1, i:1);
+        Goo([||]b, i:1, i:1);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MethodCandidates22_ArgumentsInOrder()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2290,20 +2291,20 @@ class Program
     class Base {}
     class Derived : Base {}
 
-    void Foo(string s, Derived d, out Derived i) {
+    void Goo(string s, Derived d, out Derived i) {
         i = new Derived();
     } 
-    void Foo(string s, Derived d) {}
+    void Goo(string s, Derived d) {}
 
     void M()
     {
         Base b = new Base();
-        Foo("""", [||]b, out Base i);
+        Goo("""", [||]b, out Base i);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ConstructorCandidates1()
         {
             await TestInRegularAndScriptAsync(
@@ -2349,7 +2350,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ConstructorCandidates2()
         {
             await TestInRegularAndScriptAsync(
@@ -2366,7 +2367,7 @@ class Program
         public Test(string s, Derived d, int i, params object[] list) { }
     }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
 
     void M()
     {
@@ -2388,7 +2389,7 @@ class Program
         public Test(string s, Derived d, int i, params object[] list) { }
     }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
 
     void M()
     {
@@ -2399,7 +2400,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ConstructorCandidates3()
         {
             await TestInRegularAndScriptAsync(
@@ -2433,7 +2434,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions1()
         {
             var initialMarkup =
@@ -2497,7 +2498,7 @@ class Program
                 title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions2()
         {
             var initialMarkup =
@@ -2563,7 +2564,7 @@ class Program
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions3()
         {
             var initialMarkup =
@@ -2601,7 +2602,7 @@ class Program
             await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions4()
         {
             var initialMarkup =
@@ -2612,15 +2613,15 @@ class Program
     class Derived : Base { }
     class Derived2 : Derived { }
 
-    void Foo(string s, int j, int i, Derived d) { }
+    void Goo(string s, int j, int i, Derived d) { }
 
-    void Foo(string s, int i, Derived2 d) { }
+    void Goo(string s, int i, Derived2 d) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", 1, i:1, d: [||]b);
+        Goo("""", 1, i:1, d: [||]b);
     }
 }";
             var expected =
@@ -2631,21 +2632,21 @@ class Program
     class Derived : Base { }
     class Derived2 : Derived { }
 
-    void Foo(string s, int j, int i, Derived d) { }
+    void Goo(string s, int j, int i, Derived d) { }
 
-    void Foo(string s, int i, Derived2 d) { }
+    void Goo(string s, int i, Derived2 d) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", 1, i:1, d: (Derived)b);
+        Goo("""", 1, i:1, d: (Derived)b);
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions5()
         {
             var initialMarkup =
@@ -2657,14 +2658,14 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
-    void Foo(string s, Derived2 d, int i, object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived2 d, int i, object[] list) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", d: [||]b, list: strlist, i: 1);
+        Goo("""", d: [||]b, list: strlist, i: 1);
     }
 }";
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
@@ -2682,14 +2683,14 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
-    void Foo(string s, Derived2 d, int i, object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived2 d, int i, object[] list) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", d: (Derived)b, list: strlist, i: 1);
+        Goo("""", d: (Derived)b, list: strlist, i: 1);
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
@@ -2704,21 +2705,21 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i, params object[] list) { }
-    void Foo(string s, Derived2 d, int i, object[] list) { }
+    void Goo(string s, Derived d, int i, params object[] list) { }
+    void Goo(string s, Derived2 d, int i, object[] list) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", d: (Derived2)b, list: strlist, i: 1);
+        Goo("""", d: (Derived2)b, list: strlist, i: 1);
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
                 title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions6()
         {
             var initialMarkup =
@@ -2732,15 +2733,15 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i) { }
-    void Foo(string s, Derived2 d, int i) { }
-    void Foo(string s, string d, int i) { }
+    void Goo(string s, Derived d, int i) { }
+    void Goo(string s, Derived2 d, int i) { }
+    void Goo(string s, string d, int i) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", d: [||]b, i: 1);
+        Goo("""", d: [||]b, i: 1);
     }
 }";
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
@@ -2760,15 +2761,15 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i) { }
-    void Foo(string s, Derived2 d, int i) { }
-    void Foo(string s, string d, int i) { }
+    void Goo(string s, Derived d, int i) { }
+    void Goo(string s, Derived2 d, int i) { }
+    void Goo(string s, string d, int i) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", d: (string)b, i: 1);
+        Goo("""", d: (string)b, i: 1);
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
@@ -2785,15 +2786,15 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i) { }
-    void Foo(string s, Derived2 d, int i) { }
-    void Foo(string s, string d, int i) { }
+    void Goo(string s, Derived d, int i) { }
+    void Goo(string s, Derived2 d, int i) { }
+    void Goo(string s, string d, int i) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", d: (Derived)b, i: 1);
+        Goo("""", d: (Derived)b, i: 1);
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
@@ -2810,22 +2811,22 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s, Derived d, int i) { }
-    void Foo(string s, Derived2 d, int i) { }
-    void Foo(string s, string d, int i) { }
+    void Goo(string s, Derived d, int i) { }
+    void Goo(string s, Derived2 d, int i) { }
+    void Goo(string s, string d, int i) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo("""", d: (Derived2)b, i: 1);
+        Goo("""", d: (Derived2)b, i: 1);
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_2, index: 2,
                 title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions7()
         {
             var initialMarkup =
@@ -2837,15 +2838,15 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s1, int i, Derived d) { }
+    void Goo(string s1, int i, Derived d) { }
 
-    void Foo(string s2, int i, Derived2 d) { }
+    void Goo(string s2, int i, Derived2 d) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo(s1:"""", 1, d: [||]b);
+        Goo(s1:"""", 1, d: [||]b);
     }
 }";
             var expected =
@@ -2857,21 +2858,21 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(string s1, int i, Derived d) { }
+    void Goo(string s1, int i, Derived d) { }
 
-    void Foo(string s2, int i, Derived2 d) { }
+    void Goo(string s2, int i, Derived2 d) { }
 
     void M()
     {
         Base b = new Base();
         var strlist = new string[1];
-        Foo(s1:"""", 1, d: (Derived)b);
+        Goo(s1:"""", 1, d: (Derived)b);
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions8()
         {
             var initialMarkup =
@@ -2915,7 +2916,7 @@ class Program
             await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleOptions9()
         {
             var initialMarkup =
@@ -2927,17 +2928,17 @@ class Program
 
     class Derived2 : Derived { }
 
-    void Foo(Derived d1) { }
-    void Foo(Derived2 d2) { }
+    void Goo(Derived d1) { }
+    void Goo(Derived2 d2) { }
 
     void M() {
-        Foo([||]new Base());
+        Goo([||]new Base());
     }
 }";
             await TestMissingInRegularAndScriptAsync(initialMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleErrors1()
         {
             await TestInRegularAndScriptAsync(
@@ -2951,7 +2952,7 @@ class Program
 
     void M(Derived2 d2) { }
 
-    void Foo(Base b) {
+    void Goo(Base b) {
         Derived d;
         M(d = [|b|]);
     }
@@ -2966,14 +2967,14 @@ class Program
 
     void M(Derived2 d2) { }
 
-    void Foo(Base b) {
+    void Goo(Base b) {
         Derived d;
         M(d = (Derived)b);
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task MultipleErrors2()
         {
             await TestInRegularAndScriptAsync(
@@ -2987,7 +2988,7 @@ class Program
 
     void M(Derived2 d2) { }
 
-    void Foo(Base b) {
+    void Goo(Base b) {
         Derived d;
         M([||]d = b);
     }
@@ -3002,14 +3003,14 @@ class Program
 
     void M(Derived2 d2) { }
 
-    void Foo(Base b) {
+    void Goo(Base b) {
         Derived d;
         M((Derived2)(d = b));
     }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task ErrorType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3024,7 +3025,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [Fact]
         public async Task AttributeArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -3052,8 +3053,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
-        [WorkItem(50493, "https://github.com/dotnet/roslyn/issues/50493")]
+        [Fact, WorkItem(50493, "https://github.com/dotnet/roslyn/issues/50493")]
         public async Task ArrayAccess()
         {
             await TestInRegularAndScriptAsync(
@@ -3075,6 +3075,34 @@ class C
         var array = new int[10];
 
         if (array[(int)o] > 0) {}
+    }
+}");
+        }
+
+        [Fact]
+        public async Task RemoveExistingCast1()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class Program
+{
+    class Base { }
+    class Derived1 : Base { }
+    class Derived2 : Derived1 { }
+    void Goo() {
+        Base b;
+        Derived2 d = [||](Derived1)b;
+    }
+}",
+                @"
+class Program
+{
+    class Base { }
+    class Derived1 : Base { }
+    class Derived2 : Derived1 { }
+    void Goo() {
+        Base b;
+        Derived2 d = (Derived2)b;
     }
 }");
         }

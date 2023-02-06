@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             var cancellationToken = context.CancellationToken;
             var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var services = context.Document.Project.Solution.Workspace.Services;
+            var services = context.Document.Project.Solution.Services;
             return await CreateContentAsync(
                 services, semanticModel, token, tokenInformation, supportedPlatforms, context.Options, cancellationToken).ConfigureAwait(false);
         }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 return await ComputeFromLinkedDocumentsAsync(context, token, linkedDocumentIds).ConfigureAwait(false);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var tokenInformation = BindToken(services, semanticModel, token, cancellationToken);
             return (tokenInformation, supportedPlatforms: null);
         }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
             var solution = document.Project.Solution;
-            var services = solution.Workspace.Services;
+            var services = solution.Services;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var mainTokenInformation = BindToken(services, semanticModel, token, cancellationToken);
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         protected static Task<QuickInfoItem> CreateContentAsync(
-            HostWorkspaceServices services,
+            SolutionServices services,
             SemanticModel semanticModel,
             SyntaxToken token,
             TokenInformation tokenInformation,
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SymbolDescriptionOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
+            var syntaxFactsService = services.GetRequiredLanguageService<ISyntaxFactsService>(semanticModel.Language);
 
             var symbols = tokenInformation.Symbols;
 
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         protected virtual NullableFlowState GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
 
         private TokenInformation BindToken(
-            HostWorkspaceServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+            SolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
             var languageServices = services.GetLanguageServices(semanticModel.Language);
             var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return new TokenInformation(ImmutableArray<ISymbol>.Empty);
         }
 
-        private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, HostWorkspaceServices services, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, SolutionServices services, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (GetBindableNodeForTokenIndicatingLambda(token, out var lambdaSyntax))
             {

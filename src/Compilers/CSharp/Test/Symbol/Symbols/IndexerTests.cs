@@ -236,7 +236,7 @@ class C : IB, IC
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, int]'
+                // (9,16): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.this[int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "this[0]").WithArguments("y", "C.this[int, int]").WithLocation(9, 16),
                 // (10,18): error CS1503: Argument 2: cannot convert from 'C' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("2", "C", "int").WithLocation(10, 18),
@@ -843,7 +843,7 @@ class Derived : Base
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
-                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, long]'
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.this[int, long]'
                 //         c[0] = c[0, 0, 0]; //wrong number of arguments
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[0]").WithArguments("y", "C.this[int, long]").WithLocation(7, 9),
                 // (7,16): error CS1501: No overload for method 'this' takes 3 arguments
@@ -1955,12 +1955,12 @@ class B<T> where T : Q
                 // (7,25): error CS0110: The evaluation of the constant value for 'P.Constant2' involves a circular definition
                 //     public const string Constant2 = Q.Constant2;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("P.Constant2"),
-                // (18,18): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (18,18): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     [IndexerName(T.Constant1)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"),
-                // (24,18): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(18, 18),
+                // (24,18): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     [IndexerName(T.Constant2)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"));
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(24, 18));
         }
 
         [Fact]

@@ -3313,7 +3313,6 @@ Block[B7] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
-
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns, CompilerFeature.Dataflow)]
         [Fact]
         public void EmptySwitchExpressionFlow()

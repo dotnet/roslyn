@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceMemberMethodSymbol : SourceMethodSymbolWithAttributes, IAttributeTargetSymbol
+    internal abstract class SourceMemberMethodSymbol : LocalFunctionOrSourceMemberMethodSymbol, IAttributeTargetSymbol
     {
         // The flags type is used to compact many different bits of information.
         protected struct Flags
@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextSize = 3;
 
             private const int IsNullableAnalysisEnabledOffset = NullableContextOffset + NullableContextSize;
+#pragma warning disable IDE0051 // Remove unused private members
             private const int IsNullableAnalysisEnabledSize = 1;
+#pragma warning restore IDE0051 // Remove unused private members
 
             private const int MethodKindMask = (1 << MethodKindSize) - 1;
 
@@ -193,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly NamedTypeSymbol _containingType;
         private ParameterSymbol _lazyThisParameter;
-        private TypeWithAnnotations.Boxed _lazyIteratorElementType;
 
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxReferenceOpt,
             ImmutableArray<Location> locations,
             bool isIterator)
-            : base(syntaxReferenceOpt)
+            : base(syntaxReferenceOpt, isIterator)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert(!locations.IsEmpty);
@@ -235,11 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _containingType = containingType;
             this.locations = locations;
-
-            if (isIterator)
-            {
-                _lazyIteratorElementType = TypeWithAnnotations.Boxed.Sentinel;
-            }
         }
 
         protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
@@ -274,6 +270,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Add(Locations[0], useSiteInfo);
+        }
+
+        protected void CheckFileTypeUsage(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        {
+            if (ContainingType.HasFileLocalTypes())
+            {
+                return;
+            }
+
+            if (returnType.Type.HasFileLocalTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Locations[0], returnType.Type, ContainingType);
+            }
+
+            foreach (var param in parameters)
+            {
+                if (param.Type.HasFileLocalTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Locations[0], param.Type, ContainingType);
+                }
+            }
         }
 
         protected void MakeFlags(
@@ -699,21 +716,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             thisParameter = _lazyThisParameter;
             return true;
         }
-
-        internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
-        {
-            get
-            {
-                return _lazyIteratorElementType?.Value ?? default;
-            }
-            set
-            {
-                Debug.Assert(_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
-                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), TypeWithAnnotations.Boxed.Sentinel);
-            }
-        }
-
-        internal override bool IsIterator => _lazyIteratorElementType is object;
 
         //overridden appropriately in SourceMemberMethodSymbol
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations

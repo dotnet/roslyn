@@ -22,7 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     private readonly int _someInt;
 
-    {|typed:public C|}
+    {|priorSelection:|}
+}";
+            var currentText =
+@"class C
+{
+    private readonly int _someInt;
+
+    public C
 }";
             var expectedText =
 @"class C
@@ -35,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     }
 }";
 
-            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, currentText, expectedText).ConfigureAwait(false);
         }
 
         [Fact]
@@ -46,7 +53,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     private readonly int _someInt;
 
-    {|typed:private C|}
+    {|priorSelection:|}
+}";
+            var currentText =
+@"class C
+{
+    private readonly int _someInt;
+
+    private C
 }";
             var expectedText =
 @"class C
@@ -59,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     }
 }";
 
-            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, currentText, expectedText).ConfigureAwait(false);
         }
 
         [Fact]
@@ -70,7 +84,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     private readonly int _someInt;
 
-    {|typed:private C|}
+    {|priorSelection:|}
+}";
+            var currentText =
+@"class C
+{
+    private readonly int _someInt;
+
+    private C
 }";
             var expectedText =
 @"class C
@@ -86,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             // lang=json
             var intentData = @"{ ""accessibility"": ""Private""}";
 
-            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText, intentData: intentData).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, currentText, expectedText, intentData: intentData).ConfigureAwait(false);
         }
 
         [Fact]
@@ -97,7 +118,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     private readonly int _someInt;
 
-    {|typed:private protected C|}
+    {|priorSelection:|}
+}";
+            var currentText =
+@"class C
+{
+    private readonly int _someInt;
+
+    private protected C
 }";
             var expectedText =
 @"class C
@@ -113,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             // lang=json
             var intentData = @"{ ""accessibility"": ""ProtectedAndInternal""}";
 
-            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText, intentData: intentData).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, currentText, expectedText, intentData: intentData).ConfigureAwait(false);
         }
 
         [Fact]
@@ -122,7 +150,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             var initialText =
 @"partial class C
 {
-    {|typed:public C|}
+    {|priorSelection:|}
+}";
+            var currentText =
+@"partial class C
+{
+    public C
 }";
             var additionalDocuments = new string[]
             {
@@ -140,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     }
 }";
 
-            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, additionalDocuments, new[] { expectedText }).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, currentText, additionalDocuments, new[] { expectedText }).ConfigureAwait(false);
         }
 
         [Fact]
@@ -151,7 +184,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     private readonly object _someObject;
 
-    {|typed:public C|}
+    {|priorSelection:|}
+}";
+            var currentText =
+@"class C
+{
+    private readonly object _someObject;
+
+    public C
 }";
             var expectedText =
 @"class C
@@ -164,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     }
 }";
 
-            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, currentText, expectedText).ConfigureAwait(false);
         }
 
         [Fact]
@@ -175,7 +215,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     private readonly int _someInt;
 
-    {|typed:public C|}
+    {|priorSelection:|}
+}";
+            var currentText =
+@"class C
+{
+    private readonly int _someInt;
+
+    public C
 }";
             var expectedText =
 @"class C
@@ -185,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     public C(int someInt) => _someInt = someInt;
 }";
 
-            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText,
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, currentText, expectedText,
                 options: new OptionsCollection(LanguageNames.CSharp)
                 {
                     { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement }

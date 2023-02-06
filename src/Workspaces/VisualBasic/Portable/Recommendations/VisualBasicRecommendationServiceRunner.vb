@@ -273,6 +273,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     Return ImmutableArray(Of ISymbol).Empty
                 End If
 
+                ' We don't provide any member from System.Void (which is valid only in the context of typeof operation).
+                ' Try to bail early to avoid unnecessary work even though compiler will handle this case for us.
+                If container IsNot Nothing AndAlso container.Kind = SymbolKind.NamedType Then
+                    Dim typeContainer = DirectCast(container, INamedTypeSymbol)
+                    If typeContainer.IsSystemVoid() Then
+                        Return ImmutableArray(Of ISymbol).Empty
+                    End If
+                End If
+
                 Debug.Assert((Not excludeInstance OrElse Not excludeShared) OrElse
                          (inNameOfExpression AndAlso Not excludeInstance AndAlso Not excludeShared))
 

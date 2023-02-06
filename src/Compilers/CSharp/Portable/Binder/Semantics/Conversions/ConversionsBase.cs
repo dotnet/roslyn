@@ -1273,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool HasImplicitConstantExpressionConversion(BoundExpression source, TypeSymbol destination)
         {
-            var constantValue = source.ConstantValue;
+            var constantValue = source.ConstantValueOpt;
 
             if (constantValue == null || (object)source.Type == null)
             {
@@ -1382,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var sourceConstantValue = source.ConstantValue;
+            var sourceConstantValue = source.ConstantValueOpt;
             return sourceConstantValue != null &&
                 source.Type is object &&
                 IsNumericType(source.Type) &&
@@ -1754,12 +1754,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ClassifyImplicitConversionFromType(source.Type, destination.Type, ref discardedUseSiteInfo).Kind != ConversionKind.NoConversion;
         }
 
-        public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
-            where T : TypeSymbol
+        private static bool HasIdentityConversionToAny(NamedTypeSymbol type, ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)> targetTypes)
         {
             foreach (var targetType in targetTypes)
             {
-                if (HasIdentityConversionInternal(type, targetType, includeNullability: false))
+                if (HasIdentityConversionInternal(type, targetType.ParticipatingType, includeNullability: false))
                 {
                     return true;
                 }

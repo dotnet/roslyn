@@ -62,6 +62,16 @@ namespace Microsoft.CodeAnalysis
         int FixedSize { get; }
 
         /// <summary>
+        /// Returns the RefKind of the field.
+        /// </summary>
+        RefKind RefKind { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        ImmutableArray<CustomModifier> RefCustomModifiers { get; }
+
+        /// <summary>
         /// Gets the type of this field.
         /// </summary>
         ITypeSymbol Type { get; }

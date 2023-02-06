@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -55,10 +56,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         // Note: The lifetime for state in this class is carefully managed.  For every bit of state
         // we set up, there is a corresponding tear down phase which deconstructs the state in the
         // reverse order it was created in.
-        internal IGlobalOptionService GlobalOptions { get; private set; }
+        internal EditorOptionsService EditorOptionsService { get; private set; }
         internal VisualStudioWorkspaceImpl Workspace { get; private set; }
         internal IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; private set; }
-        internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; private set; }
         internal AnalyzerFileWatcherService AnalyzerFileWatcherService { get; private set; }
 
         /// <summary>
@@ -135,10 +135,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // This method should only contain calls to acquire services off of the component model
             // or service providers.  Anything else which is more complicated should go in Initialize
             // instead.
-            this.GlobalOptions = this.Package.ComponentModel.GetService<IGlobalOptionService>();
+            this.EditorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
             this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
             this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-            this.HostDiagnosticUpdateSource = this.Package.ComponentModel.GetService<HostDiagnosticUpdateSource>();
             this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
         }
 
@@ -168,10 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private void PrimeLanguageServiceComponentsOnBackground()
         {
             var formatter = this.Workspace.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
-            if (formatter != null)
-            {
-                formatter.GetDefaultFormattingRules();
-            }
+            formatter?.GetDefaultFormattingRules();
         }
 
         protected abstract string ContentTypeName { get; }
@@ -281,18 +277,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             => this.LanguageDebugInfo = null;
 
         protected virtual IVsContainedLanguage CreateContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator, VisualStudioProject project,
+            IVsTextBufferCoordinator bufferCoordinator, ProjectSystemProject project,
             IVsHierarchy hierarchy, uint itemid)
         {
-            var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
-
             return new ContainedLanguage(
                 bufferCoordinator,
                 this.Package.ComponentModel,
                 this.Workspace,
                 project.Id,
                 project,
-                filePath,
                 this.LanguageServiceId);
         }
     }

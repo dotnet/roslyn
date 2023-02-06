@@ -90,7 +90,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
                             TabSize: _textView.Options.GetOptionValue(DefaultOptions.TabSizeOptionId),
                             IndentStyle: (FormattingOptions.IndentStyle)indentStyle);
 
+#pragma warning disable 0618 // Compat with existing EA api
                         result = _provider._service.GetDesiredIndentation(document.Project.LanguageServices, text, document.Id, document.FilePath, line.LineNumber, fsharpOptions);
+#pragma warning restore
                     }
                     else
                     {

@@ -625,12 +625,6 @@ Do you want to continue?</value>
     <value>Analyzer '{0}' threw the following exception:
 '{1}'.</value>
   </data>
-  <data name="Simplify_Names" xml:space="preserve">
-    <value>Simplify Names</value>
-  </data>
-  <data name="Simplify_Member_Access" xml:space="preserve">
-    <value>Simplify Member Access</value>
-  </data>
   <data name="Remove_qualification" xml:space="preserve">
     <value>Remove qualification</value>
   </data>
@@ -1150,12 +1144,6 @@ This version used in: {2}</value>
   </data>
   <data name="Add_member_name" xml:space="preserve">
     <value>Add member name</value>
-  </data>
-  <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
-    <value>Use block body for lambda expressions</value>
-  </data>
-  <data name="Use_expression_body_for_lambda_expressions" xml:space="preserve">
-    <value>Use expression body for lambda expressions</value>
   </data>
   <data name="Convert_to_linq_call_form" xml:space="preserve">
     <value>Convert to LINQ (call form)</value>
@@ -2729,6 +2717,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="The_assembly_0_containing_type_1_references_NET_Framework" xml:space="preserve">
     <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
   </data>
+  <data name="The_assembly_0_references_compiler_version_1_newer_than_2" xml:space="preserve">
+    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+  </data>
   <data name="Apply_file_header_preferences" xml:space="preserve">
     <value>Apply file header preferences</value>
   </data>
@@ -2868,6 +2859,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Silent" xml:space="preserve">
     <value>Silent</value>
+  </data>
+  <data name="console_writeline" xml:space="preserve">
+    <value>Console.WriteLine</value>
   </data>
   <data name="embedded" xml:space="preserve">
     <value>embedded</value>
@@ -3132,10 +3126,96 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Sort_Imports_or_usings" xml:space="preserve">
     <value>Sort Imports or usings</value>
   </data>
+  <data name="if_statement" xml:space="preserve">
+    <value>if statement</value>
+  </data>
   <data name="Directives_from_0" xml:space="preserve">
     <value>Directives from '{0}'</value>
   </data>
   <data name="Decompiled" xml:space="preserve">
     <value>decompiled</value>
+  </data>
+  <data name="Could_not_find_implementation_of_symbol_0" xml:space="preserve">
+    <value>Could not find implementation of symbol '{0}'</value>
+  </data>
+  <data name="Replace_conditional_expression_with_statements" xml:space="preserve">
+    <value>Replace conditional expression with statements</value>
+  </data>
+  <data name="Fixing_0" xml:space="preserve">
+    <value>Fixing '{0}'</value>
+  </data>
+  <data name="Pull_selected_members_up_to_0" xml:space="preserve">
+    <value>Pull selected members up to {0}</value>
+  </data>
+  <data name="Pull_selected_members_up" xml:space="preserve">
+    <value>Pull selected members up</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>required</value>
+    <comment>Used in the object initializer completion.</comment>
+  </data>
+  <data name="foreach_loop" xml:space="preserve">
+    <value>foreach loop</value>
+  </data>
+  <data name="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Deleting {0} requires restarting the application because is not supported by the runtime.</value>
+  </data>
+  <data name="Extract_base_record" xml:space="preserve">
+    <value>Extract base record...</value>
+    <comment>{Locked="record"} "record" is a language construct for C# and should not be localized.</comment>
+  </data>
+  <data name="Enum_members" xml:space="preserve">
+    <value>Enum members</value>
+  </data>
+  <data name="struct_" xml:space="preserve">
+    <value>struct</value>
+  </data>
+  <data name="Inline_temporary_variable" xml:space="preserve">
+    <value>Inline temporary variable</value>
+  </data>
+  <data name="while_loop" xml:space="preserve">
+    <value>while loop</value>
+  </data>
+  <data name="else_statement" xml:space="preserve">
+    <value>else statement</value>
+  </data>
+  <data name="Code_snippet_for_0" xml:space="preserve">
+    <value>Code snippet for '{0}'</value>
+  </data>
+  <data name="Please_resolve_errors_in_your_code_before_renaming_this_element" xml:space="preserve">
+    <value>Please resolve errors in your code before renaming this element.</value>
+  </data>
+  <data name="Renaming_anonymous_type_members_is_not_yet_supported" xml:space="preserve">
+    <value>Renaming anonymous type members is not yet supported.</value>
+  </data>
+  <data name="You_cannot_rename_elements_from_previous_submissions" xml:space="preserve">
+    <value>You cannot rename elements from previous submissions.</value>
+  </data>
+  <data name="You_cannot_rename_elements_that_are_defined_in_metadata" xml:space="preserve">
+    <value>You cannot rename elements that are defined in metadata.</value>
+  </data>
+  <data name="You_cannot_rename_operators" xml:space="preserve">
+    <value>You cannot rename operators.</value>
+  </data>
+  <data name="You_cannot_rename_this_element" xml:space="preserve">
+    <value>You cannot rename this element.</value>
+  </data>
+  <data name="You_must_rename_an_identifier" xml:space="preserve">
+    <value>You must rename an identifier.</value>
+  </data>
+  <data name="get_only_property" xml:space="preserve">
+    <value>get-only property</value>
+  </data>
+  <data name="This_0_has_1_references" xml:space="preserve">
+    <value>This {0} has {1} reference(s).</value>
+  </data>
+  <data name="_0_reference_unquoted" xml:space="preserve">
+    <value>{0} reference</value>
+  </data>
+  <data name="CSharp_VisualBasic_References" xml:space="preserve">
+    <value>C# and Visual Basic References</value>
+  </data>
+  <data name="_0_references_unquoted" xml:space="preserve">
+    <value>{0} references</value>
   </data>
 </root>

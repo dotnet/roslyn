@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using Microsoft.CodeAnalysis.Storage;
-
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal static class SQLitePersistentStorageConstants
@@ -15,9 +12,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         //    and validating checksums without the overhead of reading the full 'value' into
         //    memory.
         // 3. Use an in-memory DB to cache writes before flushing to disk.
-        // 4. Store checksums directly inline (i.e. 20 bytes), instead of usign ObjectWriter serialization (which adds
+        // 4. Store checksums directly inline (i.e. 20 bytes), instead of using ObjectWriter serialization (which adds
         //    more data to the checksum).
-        private const string Version = "4";
+        // 5. Use individual columns for primary keys.
+        // 6. Use compression in some features.  Need to move to a different table since the blob
+        //    format will be different and we don't want different VS versions (that do/don't support
+        //    compression constantly stomping on each other.
+        private const string Version = "6";
 
         /// <summary>
         /// Inside the DB we have a table dedicated to storing strings that also provides a unique
@@ -36,9 +37,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// The format of the table is:
         ///
         ///  StringInfo
-        ///  --------------------------------------------------------------
-        ///  | Id (integer, primary key, auto increment) | Data (varchar) |
-        ///  --------------------------------------------------------------
+        ///  --------------------------------------------------------------------
+        ///  | StringDataId (int, primary key, auto increment) | Data (varchar) |
+        ///  --------------------------------------------------------------------
         /// </summary>
         public const string StringInfoTableName = "StringInfo" + Version;
 
@@ -49,49 +50,66 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         ///
         /// The format of the table is:
         ///
+        ///  <code>
         ///  SolutionData
-        ///  -------------------------------------------------------------------
-        ///  | DataId (primary key, varchar) | | Checksum (blob) | Data (blob) |
-        ///  -------------------------------------------------------------------
+        ///  ----------------------------------------------------
+        ///  | DataNameId (int) | Checksum (blob) | Data (blob) |
+        ///  ----------------------------------------------------
+        ///  | Primary Key      |
+        ///  --------------------
+        ///  </code>
         /// </summary>
         public const string SolutionDataTableName = "SolutionData" + Version;
 
         /// <summary>
-        /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>.
-        /// The data is keyed off of an integral value produced by combining the ID of the Project and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(ProjectKey, Project?, string, Checksum?, CancellationToken)"/>.
-        ///
-        /// This gives a very efficient integral key, and means that the we only have to store a
-        /// single mapping from stream name to ID in the string table.
+        /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>. The data is
+        /// keyed off of the path of the project and its name.  That way different TFMs will have different keys.
         ///
         /// The format of the table is:
         ///
+        ///  <code>
         ///  ProjectData
-        ///  -------------------------------------------------------------------
-        ///  | DataId (primary key, integer) | | Checksum (blob) | Data (blob) |
-        ///  -------------------------------------------------------------------
+        ///  ------------------------------------------------------------------------------------------------
+        ///  | ProjectPathId (int) | ProjectNameId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
+        ///  ------------------------------------------------------------------------------------------------
+        ///  | Primary Key                                                  |
+        ///  ----------------------------------------------------------------
+        ///  </code>
         /// </summary>
         public const string ProjectDataTableName = "ProjectData" + Version;
 
         /// <summary>
-        /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>.
-        /// The data is keyed off of an integral value produced by combining the ID of the Document and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(DocumentKey, Document?, string, Checksum?, CancellationToken)"/>.
-        ///
-        /// This gives a very efficient integral key, and means that the we only have to store a
-        /// single mapping from stream name to ID in the string table.
+        /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>. The data is
+        /// keyed off the project information, and the folder and name of the document itself.  This allows the majority
+        /// of the key to be shared (project path/name, and folder name) with other documents, and only having the doc
+        /// name portion be distinct.  Different TFM flavors will also share everything but the project name.
         ///
         /// The format of the table is:
         ///
+        ///  <code>
         ///  DocumentData
-        ///  -------------------------------------------------------------------
-        ///  | DataId (primary key, integer) | | Checksum (blob) | Data (blob) |
-        ///  -------------------------------------------------------------------
+        ///  ------------------------------------------------------------------------------------------------------------------------------------------------
+        ///  | ProjectPathId (int) | ProjectNameId (int) | DocumentFolderId (int) | DocumentNameId (int) | DataNameId (int) | Checksum (blob) | Data (blob) |
+        ///  ------------------------------------------------------------------------------------------------------------------------------------------------
+        ///  | Primary Key                                                                                                    |
+        ///  ------------------------------------------------------------------------------------------------------------------
+        ///  </code>
         /// </summary>
         public const string DocumentDataTableName = "DocumentData" + Version;
 
-        public const string DataIdColumnName = "DataId";
+        public const string StringDataIdColumnName = "StringDataId";
+
+        public const string ProjectPathIdColumnName = "ProjectPathId";
+        public const string ProjectNameIdColumnName = "ProjectNameId";
+        public const string DocumentFolderIdColumnName = "DocumentFolderId";
+        public const string DocumentNameIdColumnName = "DocumentNameId";
+
+        public const string DataNameIdColumnName = "DataNameId";
         public const string ChecksumColumnName = "Checksum";
         public const string DataColumnName = "Data";
+
+        public const string SQLiteIntegerType = "integer";
+        public const string SQLiteVarCharType = "varchar";
+        public const string SQLiteBlobType = "blob";
     }
 }

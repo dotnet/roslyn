@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 CancellationToken cancellationToken)
                 : base(provider, exact, cancellationToken)
             {
+                Contract.ThrowIfFalse(project.SupportsCompilation);
                 _project = project;
             }
 

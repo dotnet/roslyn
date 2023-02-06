@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -264,9 +265,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < members.Count; i++)
             {
                 AddMemberToCandidateSet(
-                    members[i], results, members, typeArguments, receiver, arguments, completeResults,
-                    isMethodGroupConversion, allowRefOmittedArguments, containingTypeMapOpt, inferWithDynamic: inferWithDynamic,
-                    useSiteInfo: ref useSiteInfo, allowUnexpandedForm: allowUnexpandedForm);
+                    members[i],
+                    results,
+                    members,
+                    typeArguments,
+                    arguments,
+                    completeResults,
+                    isMethodGroupConversion,
+                    allowRefOmittedArguments,
+                    containingTypeMapOpt,
+                    inferWithDynamic: inferWithDynamic,
+                    useSiteInfo: ref useSiteInfo,
+                    allowUnexpandedForm: allowUnexpandedForm);
             }
 
             // CONSIDER: use containingTypeMapOpt for RemoveLessDerivedMembers?
@@ -334,14 +344,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 overloadResolutionResult.ResultsBuilder,
                 funcPtrBuilder,
                 typeArgumentsBuilder,
-                receiverOpt: null,
                 analyzedArguments,
                 completeResults: true,
                 isMethodGroupConversion: false,
                 allowRefOmittedArguments: false,
                 containingTypeMapOpt: null,
                 inferWithDynamic: false,
-                ref useSiteInfo,
+                useSiteInfo: ref useSiteInfo,
                 allowUnexpandedForm: true);
 
             ReportUseSiteInfo(overloadResolutionResult.ResultsBuilder, ref useSiteInfo);
@@ -808,7 +817,6 @@ outerDefault:
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeWithAnnotations> typeArguments,
-            BoundExpression receiverOpt,
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
@@ -2037,35 +2045,35 @@ outerDefault:
             // NB: OriginalDefinition, not ConstructedFrom.  Substitutions into containing symbols
             // must also be ignored for this tie-breaker.
 
-            var uninst1 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var uninst2 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
-            var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
-            for (i = 0; i < arguments.Count; ++i)
+            using (var uninst1 = TemporaryArray<TypeSymbol>.Empty)
+            using (var uninst2 = TemporaryArray<TypeSymbol>.Empty)
             {
-                // If these are both applicable varargs methods and we're looking at the __arglist argument
-                // then clearly neither of them is going to be better in this argument.
-                if (arguments[i].Kind == BoundKind.ArgListOperator)
+                var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
+                var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
+                for (i = 0; i < arguments.Count; ++i)
                 {
-                    Debug.Assert(i == arguments.Count - 1);
-                    Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
-                    continue;
+                    // If these are both applicable varargs methods and we're looking at the __arglist argument
+                    // then clearly neither of them is going to be better in this argument.
+                    if (arguments[i].Kind == BoundKind.ArgListOperator)
+                    {
+                        Debug.Assert(i == arguments.Count - 1);
+                        Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
+                        continue;
+                    }
+
+                    var parameter1 = GetParameter(i, m1.Result, m1Original);
+                    uninst1.Add(GetParameterType(parameter1, m1.Result));
+
+                    var parameter2 = GetParameter(i, m2.Result, m2Original);
+                    uninst2.Add(GetParameterType(parameter2, m2.Result));
                 }
 
-                var parameter1 = GetParameter(i, m1.Result, m1Original);
-                uninst1.Add(GetParameterType(parameter1, m1.Result));
+                result = MoreSpecificType(ref uninst1.AsRef(), ref uninst2.AsRef(), ref useSiteInfo);
 
-                var parameter2 = GetParameter(i, m2.Result, m2Original);
-                uninst2.Add(GetParameterType(parameter2, m2.Result));
-            }
-
-            result = MoreSpecificType(uninst1, uninst2, ref useSiteInfo);
-            uninst1.Free();
-            uninst2.Free();
-
-            if (result != BetterResult.Neither)
-            {
-                return result;
+                if (result != BetterResult.Neither)
+                {
+                    return result;
+                }
             }
 
             // UNDONE: Otherwise if one member is a non-lifted operator and the other is a lifted
@@ -2123,7 +2131,7 @@ outerDefault:
                 return false;
             }
 
-            return conversionsOpt.Any(c => c.Kind == ConversionKind.FunctionType);
+            return conversionsOpt.Any(static c => c.Kind == ConversionKind.FunctionType);
         }
 
         private static BetterResult PreferValOverInOrRefInterpolatedHandlerParameters<TMember>(
@@ -2223,7 +2231,7 @@ outerDefault:
             }
         }
 
-        private static BetterResult MoreSpecificType(ArrayBuilder<TypeSymbol> t1, ArrayBuilder<TypeSymbol> t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static BetterResult MoreSpecificType(ref TemporaryArray<TypeSymbol> t1, ref TemporaryArray<TypeSymbol> t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(t1.Count == t2.Count);
 
@@ -2332,15 +2340,13 @@ outerDefault:
             // Task equivalents) have the same OriginalDefinition but we don't have a Compilation
             // here for NormalizeTaskTypes.
 
-            var allTypeArgs1 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var allTypeArgs2 = ArrayBuilder<TypeSymbol>.GetInstance();
-            n1.GetAllTypeArguments(allTypeArgs1, ref useSiteInfo);
-            n2.GetAllTypeArguments(allTypeArgs2, ref useSiteInfo);
+            using var allTypeArgs1 = TemporaryArray<TypeSymbol>.Empty;
+            using var allTypeArgs2 = TemporaryArray<TypeSymbol>.Empty;
+            n1.GetAllTypeArguments(ref allTypeArgs1.AsRef(), ref useSiteInfo);
+            n2.GetAllTypeArguments(ref allTypeArgs2.AsRef(), ref useSiteInfo);
 
-            var result = MoreSpecificType(allTypeArgs1, allTypeArgs2, ref useSiteInfo);
+            var result = MoreSpecificType(ref allTypeArgs1.AsRef(), ref allTypeArgs2.AsRef(), ref useSiteInfo);
 
-            allTypeArgs1.Free();
-            allTypeArgs2.Free();
             return result;
         }
 
@@ -2450,7 +2456,7 @@ outerDefault:
             // choice after we received customer reports of problems in the space.
             // https://github.com/dotnet/roslyn/issues/55345
             if (_binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) &&
-                node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValue: null })
+                node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValueOpt: null })
             {
                 switch ((conv1.Kind, conv2.Kind))
                 {
@@ -2673,7 +2679,7 @@ outerDefault:
 
             protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
@@ -2691,6 +2697,7 @@ outerDefault:
 
         private const int BetterConversionTargetRecursionLimit = 100;
 
+#if DEBUG
         private BetterResult BetterConversionTarget(
             TypeSymbol type1,
             TypeSymbol type2,
@@ -2699,6 +2706,7 @@ outerDefault:
             bool okToDowngradeToNeither;
             return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
         }
+#endif
 
         private BetterResult BetterConversionTargetCore(
             TypeSymbol type1,
@@ -3082,7 +3090,7 @@ outerDefault:
             parameterRefKinds = effectiveParameters.ParameterRefKinds;
         }
 
-        private struct EffectiveParameters
+        private readonly struct EffectiveParameters
         {
             internal readonly ImmutableArray<TypeWithAnnotations> ParameterTypes;
             internal readonly ImmutableArray<RefKind> ParameterRefKinds;

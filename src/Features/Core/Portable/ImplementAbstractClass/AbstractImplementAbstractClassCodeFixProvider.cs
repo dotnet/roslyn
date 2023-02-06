@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
@@ -42,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 return;
 
             var data = await ImplementAbstractClassData.TryGetDataAsync(
-                document, classNode, GetClassIdentifier(classNode), context.Options.GetImplementTypeGenerationOptions(document.Project.LanguageServices), cancellationToken).ConfigureAwait(false);
+                document, classNode, GetClassIdentifier(classNode), context.Options.GetImplementTypeGenerationOptions(document.Project.Services), cancellationToken).ConfigureAwait(false);
             if (data == null)
                 return;
 

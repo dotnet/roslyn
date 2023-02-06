@@ -383,8 +383,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.ForEachStatement;
 
                 case SyntaxKind.UsingStatement:
-                    // We need to distinguish using statements with no or single variable declaration from one with multiple variable declarations. 
-                    // The former generates a single try-finally block, the latter one for each variable. The finally blocks need to match since they
+                    // We need to distinguish using statements with expression or single variable declaration from ones with multiple variable declarations. 
+                    // The former generate a single try-finally block, the latter one for each variable. The finally blocks need to match since they
                     // affect state machine state matching. For simplicity we do not match single-declaration to expression, we just treat usings
                     // with declarations entirely separately from usings with expressions.
                     //
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.IndexerDeclaration;
 
                 case SyntaxKind.ArrowExpressionClause:
-                    if (node.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration))
+                    if (node?.Parent is (kind: SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration))
                         return Label.ArrowExpressionClause;
 
                     break;
@@ -1057,6 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.Block:
                 case SyntaxKind.LabeledStatement:
+                case SyntaxKind.GlobalStatement:
                     distance = ComputeWeightedBlockDistance(leftBlock, rightBlock);
                     return true;
 
@@ -1244,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             foreach (var child in block.ChildNodes())
             {
-                if (child.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax? localDecl))
+                if (child is LocalDeclarationStatementSyntax localDecl)
                 {
                     GetLocalNames(localDecl.Declaration, ref result);
                 }

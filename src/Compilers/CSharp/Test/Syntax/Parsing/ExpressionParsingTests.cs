@@ -732,11 +732,29 @@ class C
 
             Assert.NotNull(expr);
             Assert.Equal(text, expr.ToString());
-            Assert.Equal(1, expr.Errors().Length);
+            Assert.Equal(0, expr.Errors().Length);
 
             var e = (ConditionalAccessExpressionSyntax)expr;
             Assert.Equal("a.b", e.Expression.ToString());
             Assert.Equal(".c.d?[1]?.e()?.f", e.WhenNotNull.ToString());
+
+            var testWithStatement = @$"class C {{ void M() {{ var v = {text}; }} }}";
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 30),
+                // (1,33): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 33),
+                // (1,38): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 38),
+                // (1,42): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 42),
+                // (1,47): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 47));
         }
 
         [Fact]
@@ -2671,7 +2689,7 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (6,14): error CS1001: Identifier expected
                 //         Task.
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 14),
@@ -2679,7 +2697,6 @@ class C
                 //         Task.
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 14));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2769,7 +2786,7 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (6,14): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         Task.await Task.Delay();
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 14),
@@ -2780,7 +2797,6 @@ class C
                 //         Task.await Task.Delay();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Delay").WithLocation(6, 25));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2866,12 +2882,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2941,12 +2956,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task = 1;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3024,12 +3038,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task, Task2;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3104,12 +3117,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task();
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3178,12 +3190,11 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         await Task<T>();
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3261,7 +3272,7 @@ class C
     }
 }
 ";
-            ParseAndValidate(text,
+            UsingTree(text,
                 // (6,14): error CS1001: Identifier expected
                 //         Task.
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 14),
@@ -3269,7 +3280,6 @@ class C
                 //         Task.
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 14));
 
-            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3816,8 +3826,7 @@ class C
     }
 }
 ";
-            var tree = UsingTree(text);
-            tree.GetDiagnostics().Verify(
+            var tree = UsingTree(text,
                 // (7,30): error CS1525: Invalid expression term '<<'
                 //         var j = e is a < i > << 2;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<<").WithArguments("<<").WithLocation(7, 30)
@@ -3922,8 +3931,7 @@ class C
     }
 }
 ";
-            var tree = UsingTree(text);
-            tree.GetDiagnostics().Verify(
+            var tree = UsingTree(text,
                 // (7,31): error CS1525: Invalid expression term '>'
                 //         var j = e is a < i >>>> 2;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(7, 31)
@@ -4764,10 +4772,21 @@ select t";
         [Fact]
         public void NullCoalescingAssignmentCSharp7_3()
         {
-            UsingExpression("a ??= b", TestOptions.Regular7_3,
-                // (1,3): error CS8652: The feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // a ??= b
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 3));
+            var test = "a ??= b";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 30),
+                // (1,32): error CS8370: Feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 32),
+                // (1,36): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 36));
+
+            UsingExpression(test, TestOptions.Regular7_3);
 
             N(SyntaxKind.CoalesceAssignmentExpression);
             {
@@ -5683,9 +5702,6 @@ select t";
         public void ObjectInitializer_BadRef()
         {
             UsingExpression("new C { P = ref }",
-                // (1,13): error CS1525: Invalid expression term 'ref'
-                // new C { P = ref }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 13),
                 // (1,17): error CS1525: Invalid expression term '}'
                 // new C { P = ref }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 17));
@@ -5727,9 +5743,6 @@ select t";
         public void CollectionInitializer_BadRef_01()
         {
             UsingExpression("new C { ref }",
-                // (1,9): error CS1525: Invalid expression term 'ref'
-                // new C { ref }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 9),
                 // (1,13): error CS1525: Invalid expression term '}'
                 // new C { ref }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 13));
@@ -5808,7 +5821,7 @@ select t";
         [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void AttributeArgument_BadRef()
         {
-            UsingTree("class C { [Attr(ref)] void M() { } }").GetDiagnostics().Verify(
+            UsingTree("class C { [Attr(ref)] void M() { } }",
                 // (1,17): error CS1525: Invalid expression term 'ref'
                 // class C { [Attr(ref)] void M() { } }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(1, 17),
@@ -5944,9 +5957,9 @@ select t";
         public void ArrayCreation_BadInElementAccess()
         {
             UsingExpression("new[] { in[] }",
-                // (1,9): error CS1003: Syntax error, ',' expected
+                // (1,9): error CS1041: Identifier expected; 'in' is a keyword
                 // new[] { in[] }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "in").WithArguments("", "in").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5967,9 +5980,9 @@ select t";
         public void ArrayCreation_BadOutElementAccess()
         {
             UsingExpression("new[] { out[] }",
-                    // (1,9): error CS1003: Syntax error, ',' expected
-                    // new[] { out[] }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(1, 9));
+                // (1,9): error CS1041: Identifier expected; 'out' is a keyword
+                // new[] { out[] }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -6143,7 +6156,7 @@ select t";
         [Fact]
         public void UnsignedRightShift_01()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x >>> y", options);
 
@@ -6166,7 +6179,7 @@ select t";
         [Fact]
         public void UnsignedRightShift_02()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x > >> y", options,
                     // (1,5): error CS1525: Invalid expression term '>'
@@ -6201,7 +6214,7 @@ select t";
         [Fact]
         public void UnsignedRightShift_03()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x >> > y", options,
                     // (1,6): error CS1525: Invalid expression term '>'
@@ -6236,7 +6249,7 @@ select t";
         [Fact]
         public void UnsignedRightShiftAssignment_01()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x >>>= y", options);
 
@@ -6259,7 +6272,7 @@ select t";
         [Fact]
         public void UnsignedRightShiftAssignment_02()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x > >>= y", options,
                     // (1,5): error CS1525: Invalid expression term '>'
@@ -6294,7 +6307,7 @@ select t";
         [Fact]
         public void UnsignedRightShiftAssignment_03()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x >> >= y", options,
                     // (1,6): error CS1525: Invalid expression term '>='
@@ -6329,7 +6342,7 @@ select t";
         [Fact]
         public void UnsignedRightShiftAssignment_04()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x >>> = y", options,
                     // (1,7): error CS1525: Invalid expression term '='

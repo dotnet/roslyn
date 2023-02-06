@@ -7277,8 +7277,7 @@ class C
                 Diagnostic(RudeEditKind.ChangingLambdaReturnType, "local", CSharpFeaturesResources.local_function));
         }
 
-        [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
-        [Fact]
+        [Fact, WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
         public void LocalFunction_AddToInterfaceMethod()
         {
             var src1 = @"
@@ -7382,8 +7381,7 @@ interface I
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
-        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact, WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunction_AddAsync()
         {
             var src1 = @"class Test { void M() { Task<int> local() => throw null; } }";
@@ -7393,8 +7391,7 @@ interface I
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
-        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        [Fact, WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunction_RemoveAsync()
         {
             var src1 = @"class Test { void M() { async int local() { throw null; } } }";
@@ -9383,22 +9380,22 @@ class C
         /// Tests spilling detection logic of <see cref="CSharpEditAndContinueAnalyzer.ReportStateMachineSuspensionPointRudeEdits"/>.
         /// </summary>
         [Theory]
-        [InlineData("await F(1);", "await F(2);")]
-        [InlineData("if (await F(1)) { Console.WriteLine(1); }", "if (await F(1)) { Console.WriteLine(2); }")]
-        [InlineData("if (await F(1)) { Console.WriteLine(1); }", "if (await F(2)) { Console.WriteLine(1); }")]
-        [InlineData("if (F(1, await F(1))) { Console.WriteLine(1); }", "if (F(1, await F(1))) { Console.WriteLine(2); }")]
+        [InlineData("await F(old);")]
+        [InlineData("if (await F(1)) { Console.WriteLine(old); }")]
+        [InlineData("if (await F(old)) { Console.WriteLine(1); }")]
+        [InlineData("if (F(1, await F(1))) { Console.WriteLine(old); }")]
         [InlineData("if (await F(1)) { Console.WriteLine(1); }", "while (await F(1)) { Console.WriteLine(1); }")]
-        [InlineData("do { Console.WriteLine(1); } while (await F(1));", "do { Console.WriteLine(2); } while (await F(2));")]
-        [InlineData("for (var x = await F(1); await G(1); await H(1)) { Console.WriteLine(1); }", "for (var x = await F(2); await G(2); await H(2)) { Console.WriteLine(2); }")]
-        [InlineData("foreach (var x in await F(1)) { Console.WriteLine(1); }", "foreach (var x in await F(2)) { Console.WriteLine(2); }")]
-        [InlineData("using (var x = await F(1)) { Console.WriteLine(1); }", "using (var x = await F(2)) { Console.WriteLine(1); }")]
-        [InlineData("lock (await F(1)) { Console.WriteLine(1); }", "lock (await F(2)) { Console.WriteLine(2); }")]
-        [InlineData("lock (a = await F(1)) { Console.WriteLine(1); }", "lock (a = await F(2)) { Console.WriteLine(2); }")]
-        [InlineData("var a = await F(1), b = await G(1);", "var a = await F(2), b = await G(2);")]
-        [InlineData("a = await F(1);", "b = await F(2);")]
-        [InlineData("switch (await F(2)) { case 1: return b = await F(1); }", "switch (await F(2)) { case 1: return b = await F(2); }")]
-        [InlineData("return await F(1);", "return await F(2);")]
-        public void AwaitSpilling_OK(string oldStatement, string newStatement)
+        [InlineData("do { Console.WriteLine(old); } while (await F(old));")]
+        [InlineData("for (var x = await F(old); await G(old); await H(old)) { Console.WriteLine(old); }")]
+        [InlineData("foreach (var x in await F(old)) { Console.WriteLine(old); }")]
+        [InlineData("using (var x = await F(old)) { Console.WriteLine(1); }")]
+        [InlineData("lock (await F(old)) { Console.WriteLine(old); }")]
+        [InlineData("lock (a = await F(old)) { Console.WriteLine(old); }")]
+        [InlineData("var a = await F(old), b = await G(old);")]
+        [InlineData("a = await F(old);")]
+        [InlineData("switch (await F(2)) { case 1: return b = await F(old); }")]
+        [InlineData("return await F(old);")]
+        public void AwaitSpilling_OK(string oldStatement, string newStatement = null)
         {
             var src1 = @"
 class C
@@ -9409,6 +9406,8 @@ class C
     }
 }
 ";
+            newStatement ??= oldStatement.Replace("old", "@new");
+
             var src2 = @"
 class C
 {
@@ -9445,17 +9444,15 @@ class C
         /// Tests spilling detection logic of <see cref="CSharpEditAndContinueAnalyzer.ReportStateMachineSuspensionPointRudeEdits"/>.
         /// </summary>
         [Theory]
-        [InlineData("F(1, await F(1));", "F(2, await F(1));")]
-        [InlineData("F(1, await F(1));", "F(1, await F(2));")]
-        [InlineData("F(await F(1));", "F(await F(2));")]
-        [InlineData("await F(await F(1));", "await F(await F(2));")]
-        [InlineData("if (F(1, await F(1))) { Console.WriteLine(1); }", "if (F(2, await F(1))) { Console.WriteLine(1); }",
-                    new[] { "F(2, await F(1))" })]
-        [InlineData("var a = F(1, await F(1)), b = F(1, await G(1));", "var a = F(1, await F(2)), b = F(1, await G(2));",
-                    new[] { "var a = F(1, await F(2)), b = F(1, await G(2));", "var a = F(1, await F(2)), b = F(1, await G(2));" })]
-        [InlineData("b = F(1, await F(1));", "b = F(1, await F(2));")]
-        [InlineData("b += await F(1);", "b += await F(2);")]
-        public void AwaitSpilling_Errors(string oldStatement, string newStatement, string[] errorMessages = null)
+        [InlineData("F(old, await F(1));")]
+        [InlineData("F(1, await F(old));")]
+        [InlineData("F(await F(old));")]
+        [InlineData("await F(await F(old));")]
+        [InlineData("if (F(old, await F(1))) { Console.WriteLine(1); }", new[] { "F(@new, await F(1))" })]
+        [InlineData("var a = F(1, await F(old)), b = F(1, await G(old));", new[] { "var a = F(1, await F(@new)), b = F(1, await G(@new));", "var a = F(1, await F(@new)), b = F(1, await G(@new));" })]
+        [InlineData("b = F(1, await F(old));")]
+        [InlineData("b += await F(old);")]
+        public void AwaitSpilling_Errors(string oldStatement, string[] errorMessages = null)
         {
             var src1 = @"
 class C
@@ -9466,6 +9463,8 @@ class C
     }
 }
 ";
+            var newStatement = oldStatement.Replace("old", "@new");
+
             var src2 = @"
 class C
 {

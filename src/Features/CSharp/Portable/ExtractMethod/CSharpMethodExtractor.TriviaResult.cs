@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             public static async Task<CSharpTriviaResult> ProcessAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
             {
-                var preservationService = selectionResult.SemanticDocument.Document.Project.LanguageServices.GetService<ISyntaxTriviaService>();
+                var preservationService = selectionResult.SemanticDocument.Document.Project.Services.GetService<ISyntaxTriviaService>();
                 var root = selectionResult.SemanticDocument.Root;
                 var result = preservationService.SaveTriviaAroundSelection(root, selectionResult.FinalSpan);
                 return new CSharpTriviaResult(

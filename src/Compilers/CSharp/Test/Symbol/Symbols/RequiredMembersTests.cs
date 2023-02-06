@@ -56,14 +56,7 @@ End Namespace";
                 AssertEx.NotNull(member, $"Member {memberPath} was not found");
                 Assert.True(member is PropertySymbol or FieldSymbol, $"Unexpected member symbol type {member.Kind}");
                 Assert.True(member.IsRequired());
-                if (module is SourceModuleSymbol)
-                {
-                    Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
-                }
-                else
-                {
-                    AssertEx.Any(member.GetAttributes(), attr => attr.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.RequiredMemberAttribute");
-                }
+                Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
 
                 requiredTypes.Add((NamedTypeSymbol)member.ContainingType);
             }
@@ -258,15 +251,15 @@ class C
         var comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.Regular10);
 
         comp.VerifyDiagnostics(
-            // (5,27): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,27): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     internal required int Field;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("required members").WithLocation(5, 27),
-            // (6,27): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Field").WithArguments("required members", "11.0").WithLocation(5, 27),
+            // (6,27): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     internal required int Prop { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("required members").WithLocation(6, 27)
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Prop").WithArguments("required members", "11.0").WithLocation(6, 27)
         );
 
-        comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.Regular11);
         comp.VerifyDiagnostics();
     }
 
@@ -335,7 +328,7 @@ namespace N8
     class required<T> {}
 }
 ";
-        var comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+        var comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.Regular11);
 
         comp.VerifyDiagnostics(
             use10 ?
@@ -396,7 +389,7 @@ namespace N8
         );
 
         code = code.Replace("required", "@required");
-        comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+        comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.Regular11);
         comp.VerifyDiagnostics();
     }
 
@@ -890,29 +883,29 @@ internal class Outer
     {
         public required int PublicProperty { get; set; }
         internal protected required int InternalProtectedProperty { get; set; }
-        internal required int InternalProperty { get; set; } // 17
-        protected required int ProtectedProperty { get; set; } // 18
-        private protected required int PrivateProtectedProperty { get; set; } // 19
-        private required int PrivateProperty { get; set; } // 20
+        internal required int InternalProperty { get; set; }
+        protected required int ProtectedProperty { get; set; } // 17
+        private protected required int PrivateProtectedProperty { get; set; } // 18
+        private required int PrivateProperty { get; set; } // 19
         public required int PublicField;
         internal protected required int InternalProtectedField;
-        internal required int InternalField; // 21
-        protected required int ProtectedField; // 22
-        private protected required int PrivateProtectedField; // 23
-        private required int PrivateField; // 24
+        internal required int InternalField;
+        protected required int ProtectedField; // 20
+        private protected required int PrivateProtectedField; // 21
+        private required int PrivateField; // 22
     }
     protected class ProtectedClass
     {
         public required int PublicProperty { get; set; }
         internal protected required int InternalProtectedProperty { get; set; }
         internal required int InternalProperty { get; set; }
-        protected required int ProtectedProperty { get; set; }
-        private protected required int PrivateProtectedProperty { get; set; } // 25
-        private required int PrivateProperty { get; set; } // 26
+        protected required int ProtectedProperty { get; set; } // 23
+        private protected required int PrivateProtectedProperty { get; set; } // 24
+        private required int PrivateProperty { get; set; } // 25
         public required int PublicField;
         internal protected required int InternalProtectedField;
         internal required int InternalField;
-        protected required int ProtectedField;
+        protected required int ProtectedField; // 26
         private protected required int PrivateProtectedField; // 27
         private required int PrivateField; // 28
     }
@@ -921,30 +914,48 @@ internal class Outer
         public required int PublicProperty { get; set; }
         internal protected required int InternalProtectedProperty { get; set; }
         internal required int InternalProperty { get; set; }
-        protected required int ProtectedProperty { get; set; }
-        private protected required int PrivateProtectedProperty { get; set; }
-        private required int PrivateProperty { get; set; } // 29
+        protected required int ProtectedProperty { get; set; } // 29
+        private protected required int PrivateProtectedProperty { get; set; } // 30
+        private required int PrivateProperty { get; set; } // 31
         public required int PublicField;
         internal protected required int InternalProtectedField;
         internal required int InternalField;
-        protected required int ProtectedField;
-        private protected required int PrivateProtectedField;
-        private required int PrivateField; // 30
+        protected required int ProtectedField; // 32
+        private protected required int PrivateProtectedField; // 33
+        private required int PrivateField; // 34
     }
     private class PrivateClass
     {
         public required int PublicProperty { get; set; }
         internal protected required int InternalProtectedProperty { get; set; }
         internal required int InternalProperty { get; set; }
-        protected required int ProtectedProperty { get; set; }
-        private protected required int PrivateProtectedProperty { get; set; }
-        private required int PrivateProperty { get; set; }
+        protected required int ProtectedProperty { get; set; } // 35
+        private protected required int PrivateProtectedProperty { get; set; } // 36
+        private required int PrivateProperty { get; set; } // 37
         public required int PublicField;
         internal protected required int InternalProtectedField;
         internal required int InternalField;
-        protected required int ProtectedField;
-        private protected required int PrivateProtectedField;
-        private required int PrivateField;
+        protected required int ProtectedField; // 38
+        private protected required int PrivateProtectedField; // 39
+        private required int PrivateField; // 40
+    }
+}
+public class Outer2
+{
+    protected internal class ProtectedInternalClass2
+    {
+        public required int PublicProperty { get; set; }
+        internal protected required int InternalProtectedProperty { get; set; } // 41
+        internal required int InternalProperty { get; set; } // 42
+        protected required int ProtectedProperty { get; set; } // 43
+        private protected required int PrivateProtectedProperty { get; set; } // 44
+        private required int PrivateProperty { get; set; } // 45
+        public required int PublicField;
+        internal protected required int InternalProtectedField; // 46
+        internal required int InternalField; // 47
+        protected required int ProtectedField; // 48
+        private protected required int PrivateProtectedField; // 49
+        private required int PrivateField; // 50
     }
 }
 ");
@@ -998,48 +1009,108 @@ internal class Outer
             // (32,26): error CS9032: Required member 'InternalClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     private required int PrivateField; // 16
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("InternalClass.PrivateField", "InternalClass").WithLocation(32, 26),
-            // (40,31): error CS9032: Required member 'Outer.ProtectedInternalClass.InternalProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         internal required int InternalProperty { get; set; } // 17
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProperty").WithArguments("Outer.ProtectedInternalClass.InternalProperty", "Outer.ProtectedInternalClass").WithLocation(40, 31),
             // (41,32): error CS9032: Required member 'Outer.ProtectedInternalClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         protected required int ProtectedProperty { get; set; } // 18
+            //         protected required int ProtectedProperty { get; set; } // 17
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer.ProtectedInternalClass.ProtectedProperty", "Outer.ProtectedInternalClass").WithLocation(41, 32),
             // (42,40): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         private protected required int PrivateProtectedProperty { get; set; } // 19
+            //         private protected required int PrivateProtectedProperty { get; set; } // 18
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.ProtectedInternalClass.PrivateProtectedProperty", "Outer.ProtectedInternalClass").WithLocation(42, 40),
             // (43,30): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         private required int PrivateProperty { get; set; } // 20
+            //         private required int PrivateProperty { get; set; } // 19
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.ProtectedInternalClass.PrivateProperty", "Outer.ProtectedInternalClass").WithLocation(43, 30),
-            // (46,31): error CS9032: Required member 'Outer.ProtectedInternalClass.InternalField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         internal required int InternalField; // 21
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalField").WithArguments("Outer.ProtectedInternalClass.InternalField", "Outer.ProtectedInternalClass").WithLocation(46, 31),
             // (47,32): error CS9032: Required member 'Outer.ProtectedInternalClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         protected required int ProtectedField; // 22
+            //         protected required int ProtectedField; // 20
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer.ProtectedInternalClass.ProtectedField", "Outer.ProtectedInternalClass").WithLocation(47, 32),
             // (48,40): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         private protected required int PrivateProtectedField; // 23
+            //         private protected required int PrivateProtectedField; // 21
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.ProtectedInternalClass.PrivateProtectedField", "Outer.ProtectedInternalClass").WithLocation(48, 40),
             // (49,30): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
-            //         private required int PrivateField; // 24
+            //         private required int PrivateField; // 22
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.ProtectedInternalClass.PrivateField", "Outer.ProtectedInternalClass").WithLocation(49, 30),
+            // (56,32): error CS9032: Required member 'Outer.ProtectedClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            //         protected required int ProtectedProperty { get; set; } // 23
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer.ProtectedClass.ProtectedProperty", "Outer.ProtectedClass").WithLocation(56, 32),
             // (57,40): error CS9032: Required member 'Outer.ProtectedClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
-            //         private protected required int PrivateProtectedProperty { get; set; } // 25
+            //         private protected required int PrivateProtectedProperty { get; set; } // 24
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.ProtectedClass.PrivateProtectedProperty", "Outer.ProtectedClass").WithLocation(57, 40),
             // (58,30): error CS9032: Required member 'Outer.ProtectedClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
-            //         private required int PrivateProperty { get; set; } // 26
+            //         private required int PrivateProperty { get; set; } // 25
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.ProtectedClass.PrivateProperty", "Outer.ProtectedClass").WithLocation(58, 30),
+            // (62,32): error CS9032: Required member 'Outer.ProtectedClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            //         protected required int ProtectedField; // 26
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer.ProtectedClass.ProtectedField", "Outer.ProtectedClass").WithLocation(62, 32),
             // (63,40): error CS9032: Required member 'Outer.ProtectedClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         private protected required int PrivateProtectedField; // 27
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.ProtectedClass.PrivateProtectedField", "Outer.ProtectedClass").WithLocation(63, 40),
             // (64,30): error CS9032: Required member 'Outer.ProtectedClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         private required int PrivateField; // 28
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.ProtectedClass.PrivateField", "Outer.ProtectedClass").WithLocation(64, 30),
+            // (71,32): error CS9032: Required member 'Outer.PrivateProtectedClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         protected required int ProtectedProperty { get; set; } // 29
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer.PrivateProtectedClass.ProtectedProperty", "Outer.PrivateProtectedClass").WithLocation(71, 32),
+            // (72,40): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         private protected required int PrivateProtectedProperty { get; set; } // 30
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.PrivateProtectedClass.PrivateProtectedProperty", "Outer.PrivateProtectedClass").WithLocation(72, 40),
             // (73,30): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
-            //         private required int PrivateProperty { get; set; } // 29
+            //         private required int PrivateProperty { get; set; } // 31
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.PrivateProtectedClass.PrivateProperty", "Outer.PrivateProtectedClass").WithLocation(73, 30),
+            // (77,32): error CS9032: Required member 'Outer.PrivateProtectedClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         protected required int ProtectedField; // 32
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer.PrivateProtectedClass.ProtectedField", "Outer.PrivateProtectedClass").WithLocation(77, 32),
+            // (78,40): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         private protected required int PrivateProtectedField; // 33
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.PrivateProtectedClass.PrivateProtectedField", "Outer.PrivateProtectedClass").WithLocation(78, 40),
             // (79,30): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
-            //         private required int PrivateField; // 30
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.PrivateProtectedClass.PrivateField", "Outer.PrivateProtectedClass").WithLocation(79, 30)
+            //         private required int PrivateField; // 34
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.PrivateProtectedClass.PrivateField", "Outer.PrivateProtectedClass").WithLocation(79, 30),
+            // (86,32): error CS9032: Required member 'Outer.PrivateClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         protected required int ProtectedProperty { get; set; } // 35
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer.PrivateClass.ProtectedProperty", "Outer.PrivateClass").WithLocation(86, 32),
+            // (87,40): error CS9032: Required member 'Outer.PrivateClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         private protected required int PrivateProtectedProperty { get; set; } // 36
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.PrivateClass.PrivateProtectedProperty", "Outer.PrivateClass").WithLocation(87, 40),
+            // (88,30): error CS9032: Required member 'Outer.PrivateClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         private required int PrivateProperty { get; set; } // 37
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.PrivateClass.PrivateProperty", "Outer.PrivateClass").WithLocation(88, 30),
+            // (92,32): error CS9032: Required member 'Outer.PrivateClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         protected required int ProtectedField; // 38
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer.PrivateClass.ProtectedField", "Outer.PrivateClass").WithLocation(92, 32),
+            // (93,40): error CS9032: Required member 'Outer.PrivateClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         private protected required int PrivateProtectedField; // 39
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.PrivateClass.PrivateProtectedField", "Outer.PrivateClass").WithLocation(93, 40),
+            // (94,30): error CS9032: Required member 'Outer.PrivateClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         private required int PrivateField; // 40
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.PrivateClass.PrivateField", "Outer.PrivateClass").WithLocation(94, 30),
+            // (102,41): error CS9032: Required member 'Outer2.ProtectedInternalClass2.InternalProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         internal protected required int InternalProtectedProperty { get; set; } // 41
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProtectedProperty").WithArguments("Outer2.ProtectedInternalClass2.InternalProtectedProperty", "Outer2.ProtectedInternalClass2").WithLocation(102, 41),
+            // (103,31): error CS9032: Required member 'Outer2.ProtectedInternalClass2.InternalProperty' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         internal required int InternalProperty { get; set; } // 42
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProperty").WithArguments("Outer2.ProtectedInternalClass2.InternalProperty", "Outer2.ProtectedInternalClass2").WithLocation(103, 31),
+            // (104,32): error CS9032: Required member 'Outer2.ProtectedInternalClass2.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         protected required int ProtectedProperty { get; set; } // 43
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer2.ProtectedInternalClass2.ProtectedProperty", "Outer2.ProtectedInternalClass2").WithLocation(104, 32),
+            // (105,40): error CS9032: Required member 'Outer2.ProtectedInternalClass2.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         private protected required int PrivateProtectedProperty { get; set; } // 44
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer2.ProtectedInternalClass2.PrivateProtectedProperty", "Outer2.ProtectedInternalClass2").WithLocation(105, 40),
+            // (106,30): error CS9032: Required member 'Outer2.ProtectedInternalClass2.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         private required int PrivateProperty { get; set; } // 45
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer2.ProtectedInternalClass2.PrivateProperty", "Outer2.ProtectedInternalClass2").WithLocation(106, 30),
+            // (108,41): error CS9032: Required member 'Outer2.ProtectedInternalClass2.InternalProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         internal protected required int InternalProtectedField; // 46
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProtectedField").WithArguments("Outer2.ProtectedInternalClass2.InternalProtectedField", "Outer2.ProtectedInternalClass2").WithLocation(108, 41),
+            // (109,31): error CS9032: Required member 'Outer2.ProtectedInternalClass2.InternalField' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         internal required int InternalField; // 47
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalField").WithArguments("Outer2.ProtectedInternalClass2.InternalField", "Outer2.ProtectedInternalClass2").WithLocation(109, 31),
+            // (110,32): error CS9032: Required member 'Outer2.ProtectedInternalClass2.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         protected required int ProtectedField; // 48
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer2.ProtectedInternalClass2.ProtectedField", "Outer2.ProtectedInternalClass2").WithLocation(110, 32),
+            // (111,40): error CS9032: Required member 'Outer2.ProtectedInternalClass2.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         private protected required int PrivateProtectedField; // 49
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer2.ProtectedInternalClass2.PrivateProtectedField", "Outer2.ProtectedInternalClass2").WithLocation(111, 40),
+            // (112,30): error CS9032: Required member 'Outer2.ProtectedInternalClass2.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer2.ProtectedInternalClass2'.
+            //         private required int PrivateField; // 50
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer2.ProtectedInternalClass2.PrivateField", "Outer2.ProtectedInternalClass2").WithLocation(112, 30)
         );
     }
 
@@ -1068,16 +1139,16 @@ internal class Outer
     protected internal class InternalProtectedClass
     {
         public required int InternalProtected { get; internal protected set; }
-        public required int Internal { get; internal set; } // 9
-        public required int Protected { get; protected set; } // 10
-        public required int PrivateProtected { get; private protected set; } // 11
-        public required int Private { get; private set; } // 12
+        public required int Internal { get; internal set; }
+        public required int Protected { get; protected set; } // 9
+        public required int PrivateProtected { get; private protected set; } // 10
+        public required int Private { get; private set; } // 11
     }
     protected class ProtectedClass
     {
         public required int InternalProtected { get; internal protected set; }
         public required int Internal { get; internal set; }
-        public required int Protected { get; protected set; }
+        public required int Protected { get; protected set; } // 12
         public required int PrivateProtected { get; private protected set; } // 13
         public required int Private { get; private set; } // 14
     }
@@ -1085,17 +1156,28 @@ internal class Outer
     {
         public required int InternalProtected { get; internal protected set; }
         public required int Internal { get; internal set; }
-        public required int Protected { get; protected set; }
-        public required int PrivateProtected { get; private protected set; }
-        public required int Private { get; private set; } // 15
+        public required int Protected { get; protected set; } // 15
+        public required int PrivateProtected { get; private protected set; } // 16
+        public required int Private { get; private set; } // 17
     }
     private class PrivateClass
     {
         public required int InternalProtected { get; internal protected set; }
         public required int Internal { get; internal set; }
-        public required int Protected { get; protected set; }
-        public required int PrivateProtected { get; private protected set; }
-        public required int Private { get; private set; }
+        public required int Protected { get; protected set; } // 18
+        public required int PrivateProtected { get; private protected set; } // 19
+        public required int Private { get; private set; } // 20
+    }
+}
+public class Outer2
+{
+    protected internal class InternalProtectedClass2
+    {
+        public required int InternalProtected { get; internal protected set; } // 21
+        public required int Internal { get; internal set; } // 22
+        public required int Protected { get; protected set; } // 23
+        public required int PrivateProtected { get; private protected set; } // 24
+        public required int Private { get; private set; } // 25
     }
 }
 ");
@@ -1125,27 +1207,58 @@ internal class Outer
             // (16,25): error CS9032: Required member 'InternalClass.Private' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     public required int Private { get; private set; } // 8
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("InternalClass.Private", "InternalClass").WithLocation(16, 25),
-            // (23,29): error CS9032: Required member 'Outer.InternalProtectedClass.Internal' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
-            //         public required int Internal { get; internal set; } // 9
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Internal").WithArguments("Outer.InternalProtectedClass.Internal", "Outer.InternalProtectedClass").WithLocation(23, 29),
             // (24,29): error CS9032: Required member 'Outer.InternalProtectedClass.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
-            //         public required int Protected { get; protected set; } // 10
+            //         public required int Protected { get; protected set; } // 9
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("Outer.InternalProtectedClass.Protected", "Outer.InternalProtectedClass").WithLocation(24, 29),
             // (25,29): error CS9032: Required member 'Outer.InternalProtectedClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
-            //         public required int PrivateProtected { get; private protected set; } // 11
+            //         public required int PrivateProtected { get; private protected set; } // 10
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer.InternalProtectedClass.PrivateProtected", "Outer.InternalProtectedClass").WithLocation(25, 29),
             // (26,29): error CS9032: Required member 'Outer.InternalProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
-            //         public required int Private { get; private set; } // 12
+            //         public required int Private { get; private set; } // 11
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.InternalProtectedClass.Private", "Outer.InternalProtectedClass").WithLocation(26, 29),
+            // (32,29): error CS9032: Required member 'Outer.ProtectedClass.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            //         public required int Protected { get; protected set; } // 12
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("Outer.ProtectedClass.Protected", "Outer.ProtectedClass").WithLocation(32, 29),
             // (33,29): error CS9032: Required member 'Outer.ProtectedClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         public required int PrivateProtected { get; private protected set; } // 13
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer.ProtectedClass.PrivateProtected", "Outer.ProtectedClass").WithLocation(33, 29),
             // (34,29): error CS9032: Required member 'Outer.ProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         public required int Private { get; private set; } // 14
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.ProtectedClass.Private", "Outer.ProtectedClass").WithLocation(34, 29),
+            // (40,29): error CS9032: Required member 'Outer.PrivateProtectedClass.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         public required int Protected { get; protected set; } // 15
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("Outer.PrivateProtectedClass.Protected", "Outer.PrivateProtectedClass").WithLocation(40, 29),
+            // (41,29): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         public required int PrivateProtected { get; private protected set; } // 16
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer.PrivateProtectedClass.PrivateProtected", "Outer.PrivateProtectedClass").WithLocation(41, 29),
             // (42,29): error CS9032: Required member 'Outer.PrivateProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
-            //         public required int Private { get; private set; } // 15
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.PrivateProtectedClass.Private", "Outer.PrivateProtectedClass").WithLocation(42, 29)
+            //         public required int Private { get; private set; } // 17
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.PrivateProtectedClass.Private", "Outer.PrivateProtectedClass").WithLocation(42, 29),
+            // (48,29): error CS9032: Required member 'Outer.PrivateClass.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         public required int Protected { get; protected set; } // 18
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("Outer.PrivateClass.Protected", "Outer.PrivateClass").WithLocation(48, 29),
+            // (49,29): error CS9032: Required member 'Outer.PrivateClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         public required int PrivateProtected { get; private protected set; } // 19
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer.PrivateClass.PrivateProtected", "Outer.PrivateClass").WithLocation(49, 29),
+            // (50,29): error CS9032: Required member 'Outer.PrivateClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateClass'.
+            //         public required int Private { get; private set; } // 20
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.PrivateClass.Private", "Outer.PrivateClass").WithLocation(50, 29),
+            // (57,29): error CS9032: Required member 'Outer2.InternalProtectedClass2.InternalProtected' cannot be less visible or have a setter less visible than the containing type 'Outer2.InternalProtectedClass2'.
+            //         public required int InternalProtected { get; internal protected set; } // 21
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProtected").WithArguments("Outer2.InternalProtectedClass2.InternalProtected", "Outer2.InternalProtectedClass2").WithLocation(57, 29),
+            // (58,29): error CS9032: Required member 'Outer2.InternalProtectedClass2.Internal' cannot be less visible or have a setter less visible than the containing type 'Outer2.InternalProtectedClass2'.
+            //         public required int Internal { get; internal set; } // 22
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Internal").WithArguments("Outer2.InternalProtectedClass2.Internal", "Outer2.InternalProtectedClass2").WithLocation(58, 29),
+            // (59,29): error CS9032: Required member 'Outer2.InternalProtectedClass2.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer2.InternalProtectedClass2'.
+            //         public required int Protected { get; protected set; } // 23
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("Outer2.InternalProtectedClass2.Protected", "Outer2.InternalProtectedClass2").WithLocation(59, 29),
+            // (60,29): error CS9032: Required member 'Outer2.InternalProtectedClass2.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer2.InternalProtectedClass2'.
+            //         public required int PrivateProtected { get; private protected set; } // 24
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer2.InternalProtectedClass2.PrivateProtected", "Outer2.InternalProtectedClass2").WithLocation(60, 29),
+            // (61,29): error CS9032: Required member 'Outer2.InternalProtectedClass2.Private' cannot be less visible or have a setter less visible than the containing type 'Outer2.InternalProtectedClass2'.
+            //         public required int Private { get; private set; } // 25
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer2.InternalProtectedClass2.Private", "Outer2.InternalProtectedClass2").WithLocation(61, 29)
+
          );
     }
 
@@ -1261,6 +1374,35 @@ class C
                 //     public required ref readonly int Prop2 => ref i;
                 Diagnostic(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, "Prop2").WithLocation(6, 38)
         );
+    }
+
+    [Fact]
+    public void RefFields()
+    {
+        var source = """
+            #pragma warning disable 649
+            internal ref struct R1<T>
+            {
+                internal required ref T F1;
+                public R1() { }
+            }
+            public ref struct R2<U>
+            {
+                public required ref readonly U F2;
+                public R2() { }
+            }
+            """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var expectedRequiredMembers = new[] { "R1.F1", "R2.F2" };
+        var expectedAttributeLayout = """
+            [RequiredMember] R1<T>
+                    [RequiredMember] ref T R1<T>.F1
+                [RequiredMember] R2<U>
+                    [RequiredMember] ref readonly U R2<U>.F2
+            """;
+        var symbolValidator = ValidateRequiredMembersInModule(expectedRequiredMembers, expectedAttributeLayout);
+        var verifier = CompileAndVerify(comp, verify: Verification.Skipped, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
     }
 
     [Theory]
@@ -2534,7 +2676,6 @@ class Derived3 : Derived { }";
         );
     }
 
-
     /// <summary>
     /// This IL is the equivalent of:
     /// public record Derived : Base
@@ -3473,7 +3614,8 @@ struct S
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor()
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_01()
     {
         var code = @"
 using System.Diagnostics.CodeAnalysis;
@@ -3481,13 +3623,129 @@ using System.Diagnostics.CodeAnalysis;
 class C
 {
     private string _field;
-    public required string Field { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
 
     public C() { }
 }";
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_02()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_03()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field1;
+    private string _field2;
+    [MemberNotNull(nameof(_field1))]
+    public required string Property
+    { 
+        get => _field1 ??= "";
+        [MemberNotNull(nameof(_field2))]
+        set
+        {
+            _field1 = value; 
+            _field2 = value; 
+        }
+    }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_04()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_05()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    [MemberNotNull(nameof(Property2))]
+    public required string Property1 { get => Property2 ??= ""; set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_06()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    [SetsRequiredMembers]
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
         comp.VerifyDiagnostics(
+            // (9,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property").WithLocation(9, 12),
             // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
             //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
@@ -3495,30 +3753,467 @@ class C
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor()
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_07()
     {
-        var code = @"
+        var code = """
 using System.Diagnostics.CodeAnalysis;
 #nullable enable
 class C
 {
     private string _field;
-    public required string Field { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    [SetsRequiredMembers]
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (9,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property").WithLocation(9, 12),
+            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_08()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; }
+
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (6,60): error CS9034: Required member 'C.Property' must be settable.
+            //     [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; }
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Property").WithArguments("C.Property").WithLocation(6, 60)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor_09()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class C
+{
+    public required string Prop1 { get => Prop2; [MemberNotNull(nameof(Prop2))] set => Prop2 = value; }
+    public string Prop2 { get => Prop3; [MemberNotNull(nameof(Prop3))] set => Prop3 = value; }
+    public string Prop3 { get; set; }
+    public C() { }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (8,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Prop3").WithLocation(8, 12)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_01()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
 
     public C() { }
     public C(bool unused) : this()
     { 
         _field.ToString();
-        Field.ToString();
+        Property.ToString();
     }
-}";
+}
+""";
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
         comp.VerifyDiagnostics(
-            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-            //     public C() { }
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
+            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(11, 9),
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(12, 9)
         );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_02()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public C() { }
+    public C(bool unused) : this()
+    { 
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(11, 9),
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(12, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_03()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+    public C(bool unused) : this()
+    { 
+        Property1.ToString();
+        Property2.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property1.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property1").WithLocation(11, 9),
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property2.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property2").WithLocation(12, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_04()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    public C() { }
+    [SetsRequiredMembers]
+    public C(bool unused) : this()
+    { 
+        Property1.ToString();
+        Property2.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property1.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property1").WithLocation(12, 9),
+            // (13,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property2.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property2").WithLocation(13, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_05()
+    {
+        var code = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
+    public string Property2 { get; set; }
+
+    [SetsRequiredMembers]
+    public C() { }
+    [SetsRequiredMembers]
+    public C(bool unused) : this()
+    { 
+        Property1.ToString();
+        Property2.ToString();
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (9,12): warning CS8618: Non-nullable property 'Property2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property2").WithLocation(9, 12),
+            // (9,12): warning CS8618: Non-nullable property 'Property1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property1").WithLocation(9, 12)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_01()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    protected string _field;
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    public Derived()
+    { 
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (6,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(6, 9),
+            // (7,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(7, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_02()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    protected string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    public Derived()
+    { 
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (6,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(6, 9),
+            // (7,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(7, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_03()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    private string _field;
+    public required string Property { get => _field ??= ""; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    private string _field;
+    private Derived() { _field = ""; }
+    public Derived(bool unused) : this()
+    { 
+        // No warning, as the _field in the MemberNotNull isn't visible in this type, and the one that is visible was set by the chained ctor
+        _field.ToString();
+        Property.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (10,9): warning CS8602: Dereference of a possibly null reference.
+            //         Property.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Property").WithLocation(10, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_04()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    private string _field;
+    public required string Property { get => _field ??= ""; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+#nullable enable
+class Derived : Base
+{
+    private string _field;
+    private Derived()
+    {
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (4,20): warning CS0169: The field 'Derived._field' is never used
+            //     private string _field;
+            Diagnostic(ErrorCode.WRN_UnreferencedField, "_field").WithArguments("Derived._field").WithLocation(4, 20),
+            // (5,13): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     private Derived()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "_field").WithLocation(5, 13)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_05()
+    {
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base 
+{
+    protected string _field;
+    [MemberNotNull(nameof(_field))] public required string Property { get => _field ??= ""; set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class Derived : Base
+{
+    [SetsRequiredMembers]
+    public Derived()
+    {
+        _field.ToString();
+    }
+}
+""";
+
+        var expectedDiagnostics = new[] {
+            // (6,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Property").WithLocation(6, 12),
+            // (8,9): warning CS8602: Dereference of a possibly null reference.
+            //         _field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(8, 9)
+        };
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
@@ -3827,10 +4522,10 @@ public class Derived : Base
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09()
+    [WorkItem(61718, "https://github.com/dotnet/roslyn/issues/61718")]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09A()
     {
-        var code = """
-            using System.Diagnostics.CodeAnalysis;
+        var @base = $$"""
             #nullable enable
             public class Base
             {
@@ -3839,7 +4534,12 @@ public class Derived : Base
 
                 protected Base() {}
             }
-            
+            """;
+
+        var derived = $$"""
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+
             public class Derived : Base
             {
                 public required string Prop3 { get; set; }
@@ -3850,7 +4550,13 @@ public class Derived : Base
                 {
                     Prop4 = null!;
                 }
-            
+
+                [SetsRequiredMembers]
+                public Derived(bool unused)
+                {
+                    Prop4 = null!;
+                }
+
                 public Derived() : this(0)
                 {
                     Prop1.ToString();
@@ -3861,14 +4567,190 @@ public class Derived : Base
             }
             """;
 
+        var comp = CreateCompilationWithRequiredMembers(new[] { derived, @base });
+
+        comp.VerifyDiagnostics(
+            // (10,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(10, 12),
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
+            // (16,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(16, 12),
+            // (16,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(16, 12),
+            // (21,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(21, 24)
+        );
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (10,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(10, 12),
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
+            // (16,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(16, 12),
+            // (16,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(16, 12),
+            // (21,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(21, 24)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(61718, "https://github.com/dotnet/roslyn/issues/61718")]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09B()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+            public class Base
+            {
+                public required string Field1;
+                public string Field2 = null!;
+
+                protected Base() {}
+            }
+
+            public class Derived : Base
+            {
+                public required string Field3;
+                public string Field4;
+
+                [SetsRequiredMembers]
+                public Derived(int unused) : base()
+                {
+                    Field4 = null!;
+                }
+
+                [SetsRequiredMembers]
+                public Derived(bool unused)
+                {
+                    Field4 = null!;
+                }
+
+                public Derived() : this(0)
+                {
+                    Field1.ToString();
+                    Field2.ToString();
+                    Field3.ToString();
+                    Field4.ToString();
+                }
+            }
+            """;
+
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (17,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (17,12): warning CS8618: Non-nullable field 'Field3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public Derived(int unused) : base()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field3").WithLocation(17, 12),
+                // (17,12): warning CS8618: Non-nullable field 'Field1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public Derived(int unused) : base()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field1").WithLocation(17, 12),
+                // (23,12): warning CS8618: Non-nullable field 'Field3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public Derived(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field3").WithLocation(23, 12),
+                // (23,12): warning CS8618: Non-nullable field 'Field1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public Derived(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field1").WithLocation(23, 12),
+                // (28,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+                //     public Derived() : this(0)
+                Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(28, 24)
+
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(61718, "https://github.com/dotnet/roslyn/issues/61718")]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09C()
+    {
+        var @base = $$"""
+            #nullable enable
+            public class Base
+            {
+                private string _field1 = null!;
+                public required string Prop1 { get => _field1; set => _field1 = value; }
+
+                protected Base() {}
+            }
+            """;
+
+        var derived = $$"""
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+
+            public class Derived : Base
+            {
+                private string _field2 = null!;
+                public required string Prop2 { get => _field2; set => _field2 = value; }
+
+                [SetsRequiredMembers]
+                public Derived(int unused) : base()
+                {
+                }
+
+                [SetsRequiredMembers]
+                public Derived(bool unused)
+                {
+                }
+
+                public Derived() : this(0)
+                {
+                    Prop1.ToString();
+                    Prop2.ToString();
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { derived, @base });
+
+        comp.VerifyDiagnostics(
+            // (10,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
             //     public Derived(int unused) : base()
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(17, 12),
-            // (22,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(10, 12),
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
+            // (15,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(15, 12),
+            // (15,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(15, 12),
+            // (19,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : this(0)
-            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(22, 24)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(19, 24)
+        );
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (10,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(10, 12),
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
+            // (15,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(15, 12),
+            // (15,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(bool unused)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(15, 12),
+            // (19,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(19, 24)
         );
     }
 
@@ -4176,6 +5058,139 @@ public class Derived : Base
         );
     }
 
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_11()
+    {
+        var code = """
+            #nullable enable
+            public class Base
+            {
+                public required string Prop1 { get; set; }
+                public string Prop2 { get; set; } = null!;
+            }
+            
+            public class Derived : Base
+            {
+                public required string Prop3 { get; set; } = Prop1.ToString();
+                public string Prop4 { get; set; } = Prop2.ToString();
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (10,50): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop1'
+            //     public required string Prop3 { get; set; } = Prop1.ToString();
+            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop1").WithArguments("Base.Prop1").WithLocation(10, 50),
+            // (11,41): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop2'
+            //     public string Prop4 { get; set; } = Prop2.ToString();
+            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop2").WithArguments("Base.Prop2").WithLocation(11, 41)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_12()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+            public record Base
+            {
+                public required string Prop1 { get; set; }
+                public string Prop2 { get; set; } = null!;
+
+                [SetsRequiredMembers]
+                protected Base() {} // 1
+            }
+            
+            public record Derived() : Base;
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (9,15): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     protected Base() {} // 1
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Base").WithArguments("property", "Prop1").WithLocation(9, 15),
+            // (12,15): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // public record Derived() : Base;
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "Derived").WithLocation(12, 15)
+        );
+    }
+
+    [Fact]
+    public void SetsRequiredMembersRequiredForChaining_ImplicitConstructor()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+
+            class Base
+            {
+                [SetsRequiredMembers]
+                public Base() { }
+            }
+
+            class Derived : Base { }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (9,7): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // class Derived : Base { }
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "Derived").WithLocation(9, 7)
+        );
+    }
+
+    [Fact]
+    public void SetsRequiredMembersRequiredForChaining_ImplicitBaseCall()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+
+            class Base
+            {
+                [SetsRequiredMembers]
+                public Base() { }
+            }
+
+            class Derived : Base
+            {
+                public Derived() { }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (11,12): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() { }
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "Derived").WithLocation(11, 12)
+        );
+    }
+
+    [Fact]
+    public void SetsRequiredMembersRequiredForChaining_Explicit()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+
+            class Base
+            {
+                [SetsRequiredMembers]
+                public Base() { }
+            }
+
+            class Derived : Base
+            {
+                public Derived() : base() { } 
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (11,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : base() { } 
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "base").WithLocation(11, 24)
+        );
+    }
+
     [Fact]
     public void SetsRequiredMembersAppliedToRecordCopyConstructor_DeclaredInType()
     {
@@ -4224,35 +5239,6 @@ public class Derived : Base
             // (1,15): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute..ctor'
             // public record C
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute", ".ctor").WithLocation(1, 15)
-        );
-    }
-
-    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_11()
-    {
-        var code = """
-            #nullable enable
-            public class Base
-            {
-                public required string Prop1 { get; set; }
-                public string Prop2 { get; set; } = null!;
-            }
-            
-            public class Derived : Base
-            {
-                public required string Prop3 { get; set; } = Prop1.ToString();
-                public string Prop4 { get; set; } = Prop2.ToString();
-            }
-            """;
-
-        var comp = CreateCompilationWithRequiredMembers(code);
-        comp.VerifyDiagnostics(
-            // (10,50): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop1'
-            //     public required string Prop3 { get; set; } = Prop1.ToString();
-            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop1").WithArguments("Base.Prop1").WithLocation(10, 50),
-            // (11,41): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop2'
-            //     public string Prop4 { get; set; } = Prop2.ToString();
-            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop2").WithArguments("Base.Prop2").WithLocation(11, 41)
         );
     }
 
@@ -4527,5 +5513,231 @@ public class Derived : Base
 
         var property = c.GetProperty("Property").GetPublicSymbol();
         Assert.Equal(isRequired, property.IsRequired);
+    }
+
+    [Fact, WorkItem(61822, "https://github.com/dotnet/roslyn/issues/61822")]
+    public void RequiredMembersNotAllowedInSubmission()
+    {
+        var reference = CreateCompilationWithRequiredMembers("").ToMetadataReference();
+        var submission = CreateSubmission("""
+            public required int Field;
+            public required int Prop { get; set; }
+            """, new[] { reference }, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview));
+
+        submission.VerifyDiagnostics(
+            // (1,21): error CS9045: Required members are not allowed on the top level of a script or submission.
+            // public required int Field;
+            Diagnostic(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, "Field").WithLocation(1, 21),
+            // (2,21): error CS9045: Required members are not allowed on the top level of a script or submission.
+            // public required int Prop { get; set; }
+            Diagnostic(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, "Prop").WithLocation(2, 21)
+        );
+    }
+
+    [Fact, WorkItem(61822, "https://github.com/dotnet/roslyn/issues/61822")]
+    public void RequiredMembersNotAllowedInScript()
+    {
+        var reference = CreateCompilationWithRequiredMembers("").ToMetadataReference();
+        var script = CreateCompilation("""
+            public required int Field;
+            public required int Prop { get; set; }
+            """, new[] { reference }, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview));
+
+        script.VerifyDiagnostics(
+            // (1,21): error CS9045: Required members are not allowed on the top level of a script or submission.
+            // public required int Field;
+            Diagnostic(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, "Field").WithLocation(1, 21),
+            // (2,21): error CS9045: Required members are not allowed on the top level of a script or submission.
+            // public required int Prop { get; set; }
+            Diagnostic(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, "Prop").WithLocation(2, 21)
+        );
+    }
+
+    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    public void DuplicateRequiredMembers_Fields()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            public class C
+            {
+                public required int Test;
+                public required int Test;
+                public required int Test;
+                public required int Test;
+                public required int Test;
+                public required int Test;
+            
+                public void M()
+                {
+                    C c = new C { T = 42 };
+                }
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (4,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25),
+            // (5,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(5, 25),
+            // (6,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(6, 25),
+            // (7,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(7, 25),
+            // (8,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(8, 25),
+            // (12,23): error CS0117: 'C' does not contain a definition for 'T'
+            //         C c = new C { T = 42 };
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "T").WithArguments("C", "T").WithLocation(12, 23)
+        );
+    }
+
+    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    public void DuplicateRequiredMembers_Properties()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            public class C
+            {
+                public required int Test { get; set; }
+                public required int Test { get; set; }
+                public required int Test { get; set; }
+                public required int Test { get; set; }
+                public required int Test { get; set; }
+                public required int Test { get; set; }
+            
+                public void M()
+                {
+                    C c = new C { T = 42 };
+                }
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (4,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25),
+            // (5,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(5, 25),
+            // (6,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(6, 25),
+            // (7,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(7, 25),
+            // (8,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(8, 25),
+            // (12,23): error CS0117: 'C' does not contain a definition for 'T'
+            //         C c = new C { T = 42 };
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "T").WithArguments("C", "T").WithLocation(12, 23)
+        );
+    }
+
+    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    public void DuplicateRequiredMembers_Mixed01()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            class C
+            {
+                public required int Test { get; set; }
+                public required int Test;
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (4,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25),
+            // (4,25): warning CS0649: Field 'C.Test' is never assigned to, and will always have its default value 0
+            //     public required int Test;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Test").WithArguments("C.Test", "0").WithLocation(4, 25)
+        );
+    }
+
+    [Fact, WorkItem(62062, "https://github.com/dotnet/roslyn/issues/62062")]
+    public void DuplicateRequiredMembers_Mixed02()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            class C
+            {
+                public required int Test;
+                public required int Test { get; set; }
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (3,25): warning CS0649: Field 'C.Test' is never assigned to, and will always have its default value 0
+            //     public required int Test;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Test").WithArguments("C.Test", "0").WithLocation(3, 25),
+            // (4,25): error CS0102: The type 'C' already contains a definition for 'Test'
+            //     public required int Test { get; set; }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25)
+        );
+    }
+
+    [Theory, CombinatorialData]
+    public void FirstAccessOfIsRequiredDoesNotMatter(bool accessAttributesFirst)
+    {
+        // Accessing attributes will populate IsRequired if it's not already populated, so we want to test both codepaths explicitly.
+        var comp = CreateCompilationWithRequiredMembers("""
+            public class C
+            {
+                public required int Field1;
+                public required int Property1 { get; set; }
+            }
+
+            public class D
+            {
+                public int Field2;
+                public int Property2 { get; set; }
+            }
+            """);
+
+        CompileAndVerify(comp, symbolValidator: module =>
+        {
+            var c = module.ContainingAssembly.GetTypeByMetadataName("C");
+            AssertEx.NotNull(c);
+            FieldSymbol field1 = c.GetMember<FieldSymbol>("Field1");
+            PropertySymbol property1 = c.GetMember<PropertySymbol>("Property1");
+            var d = module.ContainingAssembly.GetTypeByMetadataName("D");
+            AssertEx.NotNull(d);
+            FieldSymbol field2 = d.GetMember<FieldSymbol>("Field2");
+            PropertySymbol property2 = d.GetMember<PropertySymbol>("Property2");
+
+            if (accessAttributesFirst)
+            {
+                assertAttributesEmpty();
+                assertIsRequired();
+            }
+            else
+            {
+                assertIsRequired();
+                assertAttributesEmpty();
+            }
+
+            void assertIsRequired()
+            {
+                Assert.True(c.HasDeclaredRequiredMembers);
+                Assert.True(field1.IsRequired);
+                Assert.True(property1.IsRequired);
+                Assert.False(d.HasDeclaredRequiredMembers);
+                Assert.False(field2.IsRequired);
+                Assert.False(property2.IsRequired);
+            }
+
+            void assertAttributesEmpty()
+            {
+                Assert.Empty(c.GetAttributes());
+                Assert.Empty(field1.GetAttributes());
+                Assert.Empty(property1.GetAttributes());
+                Assert.Empty(d.GetAttributes());
+                Assert.Empty(field2.GetAttributes());
+                Assert.Empty(property2.GetAttributes());
+            }
+        });
     }
 }

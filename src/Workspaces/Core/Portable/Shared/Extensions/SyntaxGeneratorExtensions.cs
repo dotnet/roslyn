@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: accessibility,
-                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(p => p.RequiresUnsafeModifier())),
+                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
@@ -409,11 +409,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     codeFactory.IdentifierName("value")));
             }
 
-            // The user can add required if they want, but if the property being overridden is required, this one needs to be as well.
-            modifiers = modifiers.WithIsRequired(overriddenProperty.IsIndexer
-                ? false
-                : (modifiers.IsRequired || overriddenProperty.IsRequired));
-
             // Only generate a getter if the base getter is accessible.
             IMethodSymbol? accessorGet = null;
             if (overriddenProperty.GetMethod != null && overriddenProperty.GetMethod.IsAccessibleWithin(containingType))
@@ -473,10 +468,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol symbol,
             INamedTypeSymbol containingType,
             Document document,
-            DeclarationModifiers? declarationModifiers = null,
+            DeclarationModifiers extraDeclarationModifiers = default,
             CancellationToken cancellationToken = default)
         {
-            var modifiers = declarationModifiers ?? GetOverrideModifiers(symbol);
+            var modifiers = GetOverrideModifiers(symbol) + extraDeclarationModifiers;
 
             if (symbol is IMethodSymbol method)
             {
@@ -494,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

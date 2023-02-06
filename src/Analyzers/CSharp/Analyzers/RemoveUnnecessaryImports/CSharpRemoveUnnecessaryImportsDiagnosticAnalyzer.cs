@@ -8,10 +8,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,13 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer :
-        AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
+        AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<UsingDirectiveSyntax>
     {
-        private static readonly LocalizableString s_TitleAndMessageFormat =
-            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Using_directive_is_unnecessary), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
-
-        protected override LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor()
-            => s_TitleAndMessageFormat;
+        public CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer()
+            : base(new LocalizableResourceString(nameof(CSharpAnalyzersResources.Using_directive_is_unnecessary), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+        {
+        }
 
         protected override ISyntaxFacts SyntaxFacts
             => CSharpSyntaxFacts.Instance;
@@ -35,10 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         // C# has no need to do any merging of using statements.  Only VB needs to
         // merge import clauses to an import statement if it all the import clauses
         // are unnecessary.
-        protected override ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports)
-            => unnecessaryImports;
+        protected override ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<UsingDirectiveSyntax> unnecessaryImports)
+            => ImmutableArray<SyntaxNode>.CastUp(unnecessaryImports);
 
-        protected override IUnnecessaryImportsProvider UnnecessaryImportsProvider
+        protected override IUnnecessaryImportsProvider<UsingDirectiveSyntax> UnnecessaryImportsProvider
             => CSharpUnnecessaryImportsProvider.Instance;
 
         protected override bool IsRegularCommentOrDocComment(SyntaxTrivia trivia)

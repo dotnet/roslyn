@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -21,11 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.Instrument || (node != _rootStatement && (node.WasCompilerGenerated || node.Syntax.Kind() != SyntaxKind.Block)))
             {
-                return node.Update(node.Locals, node.LocalFunctions, builder.ToImmutableAndFree());
+                return node.Update(node.Locals, node.LocalFunctions, node.HasUnsafeModifier, builder.ToImmutableAndFree());
             }
 
             LocalSymbol? synthesizedLocal;
-            BoundStatement? prologue = _instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
+            BoundStatement? prologue = Instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
             if (prologue != null)
             {
                 builder.Insert(0, prologue);
@@ -35,15 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Insert(0, _factory.HiddenSequencePoint());
             }
 
-            BoundStatement? epilogue = _instrumenter.CreateBlockEpilogue(node);
+            BoundStatement? epilogue = Instrumenter.CreateBlockEpilogue(node);
             if (epilogue != null)
             {
                 builder.Add(epilogue);
             }
 
-            return new BoundBlock(node.Syntax, synthesizedLocal == null ? node.Locals : node.Locals.Add(synthesizedLocal), node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
+            return new BoundBlock(node.Syntax, synthesizedLocal == null ? node.Locals : node.Locals.Add(synthesizedLocal), node.LocalFunctions, node.HasUnsafeModifier, builder.ToImmutableAndFree(), node.HasErrors);
         }
-
 
         /// <summary>
         /// Visit a partial list of statements that possibly contain using declarations
@@ -102,12 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         public override BoundNode VisitNoOpStatement(BoundNoOpStatement node)
         {
             return (node.WasCompilerGenerated || !this.Instrument)
                 ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
-                : _instrumenter.InstrumentNoOpStatement(node, node);
+                : Instrumenter.InstrumentNoOpStatement(node, node);
         }
     }
 }

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (container is object)
             {
                 Debug.Assert(container.IsInterfaceType());
-                Debug.Assert(container.TypeParameters.Any(tp => tp.Variance != VarianceKind.None));
+                Debug.Assert(container.TypeParameters.Any(static tp => tp.Variance != VarianceKind.None));
                 diagnostics.Add(ErrorCode.ERR_VarianceInterfaceNesting, member.Locations[0]);
             }
         }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 }
 
-                if (container.TypeParameters.Any(tp => tp.Variance != VarianceKind.None))
+                if (container.TypeParameters.Any(static tp => tp.Variance != VarianceKind.None))
                 {
                     // We are inside of a variant interface
                     return container;

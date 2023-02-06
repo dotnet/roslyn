@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     {
         private class UnderlyingNamedTypeVisitor : SymbolVisitor<INamedTypeSymbol?>
         {
-            public static readonly UnderlyingNamedTypeVisitor Instance = new UnderlyingNamedTypeVisitor();
+            public static readonly UnderlyingNamedTypeVisitor Instance = new();
 
             private UnderlyingNamedTypeVisitor()
             {

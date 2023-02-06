@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
         {
             return _colorSchemes.Values.Any(
                 scheme => scheme.Themes.Any(
-                    theme => theme.Guid == themeId));
+                    static (theme, themeId) => theme.Guid == themeId, themeId));
         }
 
         public async Task<bool> IsThemeCustomizedAsync(CancellationToken cancellationToken)

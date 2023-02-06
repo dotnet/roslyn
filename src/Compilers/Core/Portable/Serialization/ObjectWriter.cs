@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
 
 namespace Roslyn.Utilities
 {
@@ -36,21 +37,21 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Map of serialized object's reference ids.  The object-reference-map uses reference equality
-        /// for performance.  While the string-reference-map uses value-equality for greater cache hits 
+        /// for performance.  While the string-reference-map uses value-equality for greater cache hits
         /// and reuse.
-        /// 
+        ///
         /// These are not readonly because they're structs and we mutate them.
-        /// 
-        /// When we write out objects/strings we give each successive, unique, item a monotonically 
-        /// increasing integral ID starting at 0.  I.e. the first object gets ID-0, the next gets 
+        ///
+        /// When we write out objects/strings we give each successive, unique, item a monotonically
+        /// increasing integral ID starting at 0.  I.e. the first object gets ID-0, the next gets
         /// ID-1 and so on and so forth.  We do *not* include these IDs with the object when it is
         /// written out.  We only include the ID if we hit the object *again* while writing.
-        /// 
-        /// During reading, the reader knows to give each object it reads the same monotonically 
+        ///
+        /// During reading, the reader knows to give each object it reads the same monotonically
         /// increasing integral value.  i.e. the first object it reads is put into an array at position
         /// 0, the next at position 1, and so on.  Then, when the reader reads in an object-reference
         /// it can just retrieved it directly from that array.
-        /// 
+        ///
         /// In other words, writing and reading take advantage of the fact that they know they will
         /// write and read objects in the exact same order.  So they only need the IDs for references
         /// and not the objects themselves because the ID is inferred from the order the object is
@@ -61,8 +62,8 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Copy of the global binder data that maps from Types to the appropriate reading-function
-        /// for that type.  Types register functions directly with <see cref="ObjectBinder"/>, but 
-        /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us 
+        /// for that type.  Types register functions directly with <see cref="ObjectBinder"/>, but
+        /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us
         /// local copy we can work with without needing to worry about anyone else mutating.
         /// </summary>
         private readonly ObjectBinderSnapshot _binderSnapshot;
@@ -90,7 +91,7 @@ namespace Roslyn.Utilities
             _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
             _cancellationToken = cancellationToken;
 
-            // Capture a copy of the current static binder state.  That way we don't have to 
+            // Capture a copy of the current static binder state.  That way we don't have to
             // access any locks while we're doing our processing.
             _binderSnapshot = ObjectBinder.GetSnapshot();
 
@@ -155,7 +156,7 @@ namespace Roslyn.Utilities
 
             if (value == null)
             {
-                _writer.Write((byte)EncodingKind.Null);
+                _writer.Write((byte)TypeCode.Null);
                 return;
             }
 
@@ -166,7 +167,7 @@ namespace Roslyn.Utilities
             // Perf: Note that JIT optimizes each expression value.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.
 
-            // The primitive types are 
+            // The primitive types are
             // Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32,
             // Int64, UInt64, IntPtr, UIntPtr, Char, Double, and Single.
             if (typeInfo.IsPrimitive)
@@ -180,46 +181,46 @@ namespace Roslyn.Utilities
                 }
                 else if (value.GetType() == typeof(double))
                 {
-                    _writer.Write((byte)EncodingKind.Float8);
+                    _writer.Write((byte)TypeCode.Float8);
                     _writer.Write((double)value);
                 }
                 else if (value.GetType() == typeof(bool))
                 {
-                    _writer.Write((byte)((bool)value ? EncodingKind.Boolean_True : EncodingKind.Boolean_False));
+                    _writer.Write((byte)((bool)value ? TypeCode.Boolean_True : TypeCode.Boolean_False));
                 }
                 else if (value.GetType() == typeof(char))
                 {
-                    _writer.Write((byte)EncodingKind.Char);
+                    _writer.Write((byte)TypeCode.Char);
                     _writer.Write((ushort)(char)value);  // written as ushort because BinaryWriter fails on chars that are unicode surrogates
                 }
                 else if (value.GetType() == typeof(byte))
                 {
-                    _writer.Write((byte)EncodingKind.UInt8);
+                    _writer.Write((byte)TypeCode.UInt8);
                     _writer.Write((byte)value);
                 }
                 else if (value.GetType() == typeof(short))
                 {
-                    _writer.Write((byte)EncodingKind.Int16);
+                    _writer.Write((byte)TypeCode.Int16);
                     _writer.Write((short)value);
                 }
                 else if (value.GetType() == typeof(long))
                 {
-                    _writer.Write((byte)EncodingKind.Int64);
+                    _writer.Write((byte)TypeCode.Int64);
                     _writer.Write((long)value);
                 }
                 else if (value.GetType() == typeof(sbyte))
                 {
-                    _writer.Write((byte)EncodingKind.Int8);
+                    _writer.Write((byte)TypeCode.Int8);
                     _writer.Write((sbyte)value);
                 }
                 else if (value.GetType() == typeof(float))
                 {
-                    _writer.Write((byte)EncodingKind.Float4);
+                    _writer.Write((byte)TypeCode.Float4);
                     _writer.Write((float)value);
                 }
                 else if (value.GetType() == typeof(ushort))
                 {
-                    _writer.Write((byte)EncodingKind.UInt16);
+                    _writer.Write((byte)TypeCode.UInt16);
                     _writer.Write((ushort)value);
                 }
                 else if (value.GetType() == typeof(uint))
@@ -228,7 +229,7 @@ namespace Roslyn.Utilities
                 }
                 else if (value.GetType() == typeof(ulong))
                 {
-                    _writer.Write((byte)EncodingKind.UInt64);
+                    _writer.Write((byte)TypeCode.UInt64);
                     _writer.Write((ulong)value);
                 }
                 else
@@ -238,12 +239,12 @@ namespace Roslyn.Utilities
             }
             else if (value.GetType() == typeof(decimal))
             {
-                _writer.Write((byte)EncodingKind.Decimal);
+                _writer.Write((byte)TypeCode.Decimal);
                 _writer.Write((decimal)value);
             }
             else if (value.GetType() == typeof(DateTime))
             {
-                _writer.Write((byte)EncodingKind.DateTime);
+                _writer.Write((byte)TypeCode.DateTime);
                 _writer.Write(((DateTime)value).ToBinary());
             }
             else if (value.GetType() == typeof(string))
@@ -282,27 +283,27 @@ namespace Roslyn.Utilities
             switch (length)
             {
                 case 0:
-                    _writer.Write((byte)EncodingKind.Array_0);
+                    _writer.Write((byte)TypeCode.Array_0);
                     break;
                 case 1:
-                    _writer.Write((byte)EncodingKind.Array_1);
+                    _writer.Write((byte)TypeCode.Array_1);
                     break;
                 case 2:
-                    _writer.Write((byte)EncodingKind.Array_2);
+                    _writer.Write((byte)TypeCode.Array_2);
                     break;
                 case 3:
-                    _writer.Write((byte)EncodingKind.Array_3);
+                    _writer.Write((byte)TypeCode.Array_3);
                     break;
                 default:
-                    _writer.Write((byte)EncodingKind.Array);
+                    _writer.Write((byte)TypeCode.Array);
                     WriteCompressedUInt((uint)length);
                     break;
             }
 
             var elementType = typeof(byte);
-            Debug.Assert(s_typeMap[elementType] == EncodingKind.UInt8);
+            Debug.Assert(s_typeMap[elementType] == TypeCode.UInt8);
 
-            WritePrimitiveType(elementType, EncodingKind.UInt8);
+            WritePrimitiveType(elementType, TypeCode.UInt8);
 
 #if NETCOREAPP
             _writer.Write(span);
@@ -324,7 +325,7 @@ namespace Roslyn.Utilities
         {
             if (value == null)
             {
-                _writer.Write((byte)EncodingKind.Null);
+                _writer.Write((byte)TypeCode.Null);
                 return;
             }
 
@@ -335,21 +336,21 @@ namespace Roslyn.Utilities
         {
             if (v >= 0 && v <= 10)
             {
-                _writer.Write((byte)((int)EncodingKind.Int32_0 + v));
+                _writer.Write((byte)((int)TypeCode.Int32_0 + v));
             }
             else if (v >= 0 && v < byte.MaxValue)
             {
-                _writer.Write((byte)EncodingKind.Int32_1Byte);
+                _writer.Write((byte)TypeCode.Int32_1Byte);
                 _writer.Write((byte)v);
             }
             else if (v >= 0 && v < ushort.MaxValue)
             {
-                _writer.Write((byte)EncodingKind.Int32_2Bytes);
+                _writer.Write((byte)TypeCode.Int32_2Bytes);
                 _writer.Write((ushort)v);
             }
             else
             {
-                _writer.Write((byte)EncodingKind.Int32);
+                _writer.Write((byte)TypeCode.Int32);
                 _writer.Write(v);
             }
         }
@@ -358,21 +359,21 @@ namespace Roslyn.Utilities
         {
             if (v >= 0 && v <= 10)
             {
-                _writer.Write((byte)((int)EncodingKind.UInt32_0 + v));
+                _writer.Write((byte)((int)TypeCode.UInt32_0 + v));
             }
             else if (v >= 0 && v < byte.MaxValue)
             {
-                _writer.Write((byte)EncodingKind.UInt32_1Byte);
+                _writer.Write((byte)TypeCode.UInt32_1Byte);
                 _writer.Write((byte)v);
             }
             else if (v >= 0 && v < ushort.MaxValue)
             {
-                _writer.Write((byte)EncodingKind.UInt32_2Bytes);
+                _writer.Write((byte)TypeCode.UInt32_2Bytes);
                 _writer.Write((ushort)v);
             }
             else
             {
-                _writer.Write((byte)EncodingKind.UInt32);
+                _writer.Write((byte)TypeCode.UInt32);
                 _writer.Write(v);
             }
         }
@@ -473,7 +474,7 @@ namespace Roslyn.Utilities
         {
             if (value == null)
             {
-                _writer.Write((byte)EncodingKind.Null);
+                _writer.Write((byte)TypeCode.Null);
             }
             else
             {
@@ -482,17 +483,17 @@ namespace Roslyn.Utilities
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
                     {
-                        _writer.Write((byte)EncodingKind.StringRef_1Byte);
+                        _writer.Write((byte)TypeCode.StringRef_1Byte);
                         _writer.Write((byte)id);
                     }
                     else if (id <= ushort.MaxValue)
                     {
-                        _writer.Write((byte)EncodingKind.StringRef_2Bytes);
+                        _writer.Write((byte)TypeCode.StringRef_2Bytes);
                         _writer.Write((ushort)id);
                     }
                     else
                     {
-                        _writer.Write((byte)EncodingKind.StringRef_4Bytes);
+                        _writer.Write((byte)TypeCode.StringRef_4Bytes);
                         _writer.Write(id);
                     }
                 }
@@ -502,15 +503,15 @@ namespace Roslyn.Utilities
 
                     if (value.IsValidUnicodeString())
                     {
-                        // Usual case - the string can be encoded as UTF8:
-                        // We can use the UTF8 encoding of the binary writer.
+                        // Usual case - the string can be encoded as UTF-8:
+                        // We can use the UTF-8 encoding of the binary writer.
 
-                        _writer.Write((byte)EncodingKind.StringUtf8);
+                        _writer.Write((byte)TypeCode.StringUtf8);
                         _writer.Write(value);
                     }
                     else
                     {
-                        _writer.Write((byte)EncodingKind.StringUtf16);
+                        _writer.Write((byte)TypeCode.StringUtf16);
 
                         // This is rare, just allocate UTF16 bytes for simplicity.
                         byte[] bytes = new byte[(uint)value.Length * sizeof(char)];
@@ -533,19 +534,19 @@ namespace Roslyn.Utilities
             switch (length)
             {
                 case 0:
-                    _writer.Write((byte)EncodingKind.Array_0);
+                    _writer.Write((byte)TypeCode.Array_0);
                     break;
                 case 1:
-                    _writer.Write((byte)EncodingKind.Array_1);
+                    _writer.Write((byte)TypeCode.Array_1);
                     break;
                 case 2:
-                    _writer.Write((byte)EncodingKind.Array_2);
+                    _writer.Write((byte)TypeCode.Array_2);
                     break;
                 case 3:
-                    _writer.Write((byte)EncodingKind.Array_3);
+                    _writer.Write((byte)TypeCode.Array_3);
                     break;
                 default:
-                    _writer.Write((byte)EncodingKind.Array);
+                    _writer.Write((byte)TypeCode.Array);
                     this.WriteCompressedUInt((uint)length);
                     break;
             }
@@ -607,7 +608,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WritePrimitiveTypeArrayElements(Type type, EncodingKind kind, Array instance)
+        private void WritePrimitiveTypeArrayElements(Type type, TypeCode kind, Array instance)
         {
             Debug.Assert(s_typeMap[type] == kind);
 
@@ -636,34 +637,34 @@ namespace Roslyn.Utilities
                 // otherwise, write elements directly to underlying binary writer
                 switch (kind)
                 {
-                    case EncodingKind.Int8:
+                    case TypeCode.Int8:
                         WriteInt8ArrayElements((sbyte[])instance);
                         return;
-                    case EncodingKind.Int16:
+                    case TypeCode.Int16:
                         WriteInt16ArrayElements((short[])instance);
                         return;
-                    case EncodingKind.Int32:
+                    case TypeCode.Int32:
                         WriteInt32ArrayElements((int[])instance);
                         return;
-                    case EncodingKind.Int64:
+                    case TypeCode.Int64:
                         WriteInt64ArrayElements((long[])instance);
                         return;
-                    case EncodingKind.UInt16:
+                    case TypeCode.UInt16:
                         WriteUInt16ArrayElements((ushort[])instance);
                         return;
-                    case EncodingKind.UInt32:
+                    case TypeCode.UInt32:
                         WriteUInt32ArrayElements((uint[])instance);
                         return;
-                    case EncodingKind.UInt64:
+                    case TypeCode.UInt64:
                         WriteUInt64ArrayElements((ulong[])instance);
                         return;
-                    case EncodingKind.Float4:
+                    case TypeCode.Float4:
                         WriteFloat4ArrayElements((float[])instance);
                         return;
-                    case EncodingKind.Float8:
+                    case TypeCode.Float8:
                         WriteFloat8ArrayElements((double[])instance);
                         return;
-                    case EncodingKind.Decimal:
+                    case TypeCode.Decimal:
                         WriteDecimalArrayElements((decimal[])instance);
                         return;
                     default:
@@ -776,7 +777,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WritePrimitiveType(Type type, EncodingKind kind)
+        private void WritePrimitiveType(Type type, TypeCode kind)
         {
             Debug.Assert(s_typeMap[type] == kind);
             _writer.Write((byte)kind);
@@ -784,66 +785,36 @@ namespace Roslyn.Utilities
 
         public void WriteType(Type type)
         {
-            _writer.Write((byte)EncodingKind.Type);
+            _writer.Write((byte)TypeCode.Type);
             this.WriteString(type.AssemblyQualifiedName);
         }
 
         private void WriteKnownType(Type type)
         {
-            _writer.Write((byte)EncodingKind.Type);
+            _writer.Write((byte)TypeCode.Type);
             this.WriteInt32(_binderSnapshot.GetTypeId(type));
         }
 
         public void WriteEncoding(Encoding? encoding)
         {
-            var kind = GetEncodingKind(encoding);
-            WriteByte((byte)kind);
-
-            if (kind == EncodingKind.EncodingName)
+            if (encoding == null)
             {
-                WriteString(encoding!.WebName);
+                WriteByte((byte)TypeCode.Null);
             }
-        }
-
-        private static EncodingKind GetEncodingKind(Encoding? encoding)
-        {
-            if (encoding is null)
+            else if (encoding.TryGetEncodingKind(out var kind))
             {
-                return EncodingKind.Null;
+                WriteByte((byte)ToTypeCode(kind));
             }
-
-            switch (encoding.CodePage)
+            else if (encoding.CodePage > 0)
             {
-                case 1200:
-                    Debug.Assert(HasPreamble(Encoding.Unicode));
-                    return (encoding.Equals(Encoding.Unicode) || HasPreamble(encoding)) ? EncodingKind.EncodingUnicode_LE_BOM : EncodingKind.EncodingUnicode_LE;
-
-                case 1201:
-                    Debug.Assert(HasPreamble(Encoding.BigEndianUnicode));
-                    return (encoding.Equals(Encoding.BigEndianUnicode) || HasPreamble(encoding)) ? EncodingKind.EncodingUnicode_BE_BOM : EncodingKind.EncodingUnicode_BE;
-
-                case 12000:
-                    Debug.Assert(HasPreamble(Encoding.UTF32));
-                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF32_LE_BOM : EncodingKind.EncodingUTF32_LE;
-
-                case 12001:
-                    Debug.Assert(HasPreamble(Encoding.UTF32));
-                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF32_BE_BOM : EncodingKind.EncodingUTF32_BE;
-
-                case 65001:
-                    Debug.Assert(HasPreamble(Encoding.UTF8));
-                    return (encoding.Equals(Encoding.UTF8) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF8_BOM : EncodingKind.EncodingUTF8;
-
-                default:
-                    return EncodingKind.EncodingName;
+                WriteByte((byte)TypeCode.EncodingCodePage);
+                WriteInt32(encoding.CodePage);
             }
-
-            static bool HasPreamble(Encoding encoding)
-#if NETCOREAPP
-                => !encoding.Preamble.IsEmpty;
-#else
-                => !encoding.GetPreamble().IsEmpty();
-#endif
+            else
+            {
+                WriteByte((byte)TypeCode.EncodingName);
+                WriteString(encoding.WebName);
+            }
         }
 
         private void WriteObject(object instance, IObjectWritable? instanceAsWritable)
@@ -859,17 +830,17 @@ namespace Roslyn.Utilities
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
                 {
-                    _writer.Write((byte)EncodingKind.ObjectRef_1Byte);
+                    _writer.Write((byte)TypeCode.ObjectRef_1Byte);
                     _writer.Write((byte)id);
                 }
                 else if (id <= ushort.MaxValue)
                 {
-                    _writer.Write((byte)EncodingKind.ObjectRef_2Bytes);
+                    _writer.Write((byte)TypeCode.ObjectRef_2Bytes);
                     _writer.Write((ushort)id);
                 }
                 else
                 {
-                    _writer.Write((byte)EncodingKind.ObjectRef_4Bytes);
+                    _writer.Write((byte)TypeCode.ObjectRef_4Bytes);
                     _writer.Write(id);
                 }
             }
@@ -926,7 +897,7 @@ namespace Roslyn.Utilities
             _objectReferenceMap.Add(writable, writable.ShouldReuseInSerialization);
 
             // emit object header up front
-            _writer.Write((byte)EncodingKind.Object);
+            _writer.Write((byte)TypeCode.Object);
 
             // Directly write out the type-id for this object.  i.e. no need to write out the 'Type'
             // tag since we just wrote out the 'Object' tag
@@ -947,34 +918,34 @@ namespace Roslyn.Utilities
         // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
         // Note: s_typeMap is effectively immutable.  However, for maximum perf we use mutable types because
         // they are used in hotspots.
-        internal static readonly Dictionary<Type, EncodingKind> s_typeMap;
+        internal static readonly Dictionary<Type, TypeCode> s_typeMap;
 
         /// <summary>
-        /// Indexed by EncodingKind.
+        /// Indexed by <see cref="TypeCode"/>.
         /// </summary>
         internal static readonly ImmutableArray<Type> s_reverseTypeMap;
 
         static ObjectWriter()
         {
-            s_typeMap = new Dictionary<Type, EncodingKind>
+            s_typeMap = new Dictionary<Type, TypeCode>
             {
-                { typeof(bool), EncodingKind.BooleanType },
-                { typeof(char), EncodingKind.Char },
-                { typeof(string), EncodingKind.StringType },
-                { typeof(sbyte), EncodingKind.Int8 },
-                { typeof(short), EncodingKind.Int16 },
-                { typeof(int), EncodingKind.Int32 },
-                { typeof(long), EncodingKind.Int64 },
-                { typeof(byte), EncodingKind.UInt8 },
-                { typeof(ushort), EncodingKind.UInt16 },
-                { typeof(uint), EncodingKind.UInt32 },
-                { typeof(ulong), EncodingKind.UInt64 },
-                { typeof(float), EncodingKind.Float4 },
-                { typeof(double), EncodingKind.Float8 },
-                { typeof(decimal), EncodingKind.Decimal },
+                { typeof(bool), TypeCode.BooleanType },
+                { typeof(char), TypeCode.Char },
+                { typeof(string), TypeCode.StringType },
+                { typeof(sbyte), TypeCode.Int8 },
+                { typeof(short), TypeCode.Int16 },
+                { typeof(int), TypeCode.Int32 },
+                { typeof(long), TypeCode.Int64 },
+                { typeof(byte), TypeCode.UInt8 },
+                { typeof(ushort), TypeCode.UInt16 },
+                { typeof(uint), TypeCode.UInt32 },
+                { typeof(ulong), TypeCode.UInt64 },
+                { typeof(float), TypeCode.Float4 },
+                { typeof(double), TypeCode.Float8 },
+                { typeof(decimal), TypeCode.Decimal },
             };
 
-            var temp = new Type[(int)EncodingKind.Last];
+            var temp = new Type[(int)TypeCode.Last];
 
             foreach (var kvp in s_typeMap)
             {
@@ -985,7 +956,7 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// byte marker mask for encoding compressed uint 
+        /// byte marker mask for encoding compressed uint
         /// </summary>
         internal const byte ByteMarkerMask = 3 << 6;
 
@@ -1004,7 +975,7 @@ namespace Roslyn.Utilities
         /// </summary>
         internal const byte Byte4Marker = 2 << 6;
 
-        internal enum EncodingKind : byte
+        internal enum TypeCode : byte
         {
             /// <summary>
             /// The null value
@@ -1037,7 +1008,7 @@ namespace Roslyn.Utilities
             ObjectRef_4Bytes,
 
             /// <summary>
-            /// A string encoded as UTF8 (using BinaryWriter.Write(string))
+            /// A string encoded as UTF-8 (using BinaryWriter.Write(string))
             /// </summary>
             StringUtf8,
 
@@ -1306,19 +1277,30 @@ namespace Roslyn.Utilities
             /// </summary>
             EncodingName,
 
-            // well-known encodings (parameterized by BOM)
-            EncodingUTF8,
-            EncodingUTF8_BOM,
-            EncodingUTF32_BE,
-            EncodingUTF32_BE_BOM,
-            EncodingUTF32_LE,
-            EncodingUTF32_LE_BOM,
-            EncodingUnicode_BE,
-            EncodingUnicode_BE_BOM,
-            EncodingUnicode_LE,
-            EncodingUnicode_LE_BOM,
+            /// <summary>
+            /// Encoding serialized as <see cref="TextEncodingKind"/>.
+            /// </summary>
+            FirstWellKnownTextEncoding,
+            LastWellKnownTextEncoding = FirstWellKnownTextEncoding + EncodingExtensions.LastTextEncodingKind - EncodingExtensions.FirstTextEncodingKind,
+
+            /// <summary>
+            /// Encoding serialized as <see cref="Encoding.CodePage"/>.
+            /// </summary>
+            EncodingCodePage,
 
             Last,
+        }
+
+        internal static TypeCode ToTypeCode(TextEncodingKind kind)
+        {
+            Debug.Assert(kind is >= EncodingExtensions.FirstTextEncodingKind and <= EncodingExtensions.LastTextEncodingKind);
+            return TypeCode.FirstWellKnownTextEncoding + (byte)(kind - EncodingExtensions.FirstTextEncodingKind);
+        }
+
+        internal static TextEncodingKind ToEncodingKind(TypeCode code)
+        {
+            Debug.Assert(code is >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding);
+            return EncodingExtensions.FirstTextEncodingKind + (byte)(code - TypeCode.FirstWellKnownTextEncoding);
         }
     }
 }

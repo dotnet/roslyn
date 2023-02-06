@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal partial class ConversionOperation
     {
         public IMethodSymbol? OperatorMethod => Conversion.MethodSymbol;
+        public ITypeSymbol? ConstrainedToType => Conversion.ConstrainedToType;
     }
 
     internal sealed partial class InvalidOperation : Operation, IInvalidOperation
@@ -168,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
 
-
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFlowAnonymousFunction(this);
@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class FieldReferenceOperation
     {
         public override ISymbol Member => Field;
+        public override ITypeSymbol? ConstrainedToType => null;
     }
 
     internal sealed partial class RangeCaseClauseOperation
@@ -347,7 +348,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     => Arguments[index],
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
-
 
         internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {

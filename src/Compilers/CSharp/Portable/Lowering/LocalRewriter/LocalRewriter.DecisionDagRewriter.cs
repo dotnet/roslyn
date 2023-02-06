@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -47,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to will jump there. After the expression is evaluated, we need to jump to different
             // labels depending on the `when` node we came from. To achieve that, each `when` node
             // gets an identifier and sets a local before jumping into the shared `when` expression.
-            private int _nextWhenNodeIdentifier = 0;
             internal LocalSymbol? _whenNodeIdentifierLocal;
 #nullable disable
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode Visit(BoundNode node)
                 {
                     // A constant expression cannot mutate anything
-                    if (node is BoundExpression { ConstantValue: { } })
+                    if (node is BoundExpression { ConstantValueOpt: { } })
                         return null;
 
                     // Stop visiting once we determine something might get assigned
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var mightAssignWalker = new WhenClauseMightAssignPatternVariableWalker();
                 bool canShareTemps =
                     !decisionDag.TopologicallySortedNodes
-                    .Any(node => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression));
+                    .Any(static (node, mightAssignWalker) => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression), mightAssignWalker);
 
                 if (canShareTemps)
                 {
@@ -535,6 +535,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                         if (!t1.Input.Equals(t2.Input))
                             return false;
+
+                        if (t1.Input.Type.SpecialType is SpecialType.System_Double or SpecialType.System_Single)
+                        {
+                            // The optimization (using balanced switch dispatch) breaks the semantics of NaN
+                            return false;
+                        }
+
                         return true;
                     }
                 }
@@ -743,22 +750,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // we need to generate a helper method for computing
                     // string hash value in <PrivateImplementationDetails> class.
 
-                    if (input.Type.SpecialType == SpecialType.System_String)
+                    bool isStringInput = input.Type.SpecialType == SpecialType.System_String;
+                    bool isSpanInput = input.Type.IsSpanChar();
+                    bool isReadOnlySpanInput = input.Type.IsReadOnlySpanChar();
+                    LengthBasedStringSwitchData lengthBasedDispatchOpt = null;
+                    if (isStringInput || isSpanInput || isReadOnlySpanInput)
                     {
-                        EnsureStringHashFunction(node.Cases.Length, node.Syntax, StringPatternInput.String);
-                        // Report required missing member diagnostic
-                        _localRewriter.TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality, out _);
-                    }
-                    else if (input.Type.IsReadOnlySpanChar())
-                    {
-                        EnsureStringHashFunction(node.Cases.Length, node.Syntax, StringPatternInput.ReadOnlySpanChar);
-                    }
-                    else if (input.Type.IsSpanChar())
-                    {
-                        EnsureStringHashFunction(node.Cases.Length, node.Syntax, StringPatternInput.SpanChar);
+                        var stringPatternInput = isStringInput ? StringPatternInput.String : (isSpanInput ? StringPatternInput.SpanChar : StringPatternInput.ReadOnlySpanChar);
+
+                        if (!this._localRewriter._compilation.FeatureDisableLengthBasedSwitch &&
+                            LengthBasedStringSwitchData.Create(node.Cases) is var lengthBasedDispatch &&
+                            lengthBasedDispatch.ShouldGenerateLengthBasedSwitch(node.Cases.Length) &&
+                            hasLengthBasedDispatchRequiredMembers(stringPatternInput))
+                        {
+                            lengthBasedDispatchOpt = lengthBasedDispatch;
+                        }
+                        else
+                        {
+                            EnsureStringHashFunction(node.Cases.Length, node.Syntax, stringPatternInput);
+                        }
+
+                        if (isStringInput)
+                        {
+                            // Report required missing member diagnostic
+                            _localRewriter.TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality, out _);
+                        }
                     }
 
-                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel);
+                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel, lengthBasedDispatchOpt);
                     _loweredDecisionDag.Add(dispatch);
                 }
                 else if (input.Type.IsNativeIntegerType)
@@ -784,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.UnexpectedValue(input.Type);
                     }
 
-                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, cases, defaultLabel);
+                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, cases, defaultLabel, lengthBasedStringSwitchDataOpt: null);
                     _loweredDecisionDag.Add(dispatch);
                 }
                 else
@@ -823,6 +842,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                             lowerFloatDispatch(firstIndex + half, count - half);
                         }
                     }
+                }
+
+                return;
+
+                bool hasLengthBasedDispatchRequiredMembers(StringPatternInput stringPatternInput)
+                {
+                    var compilation = _localRewriter._compilation;
+                    var lengthMember = stringPatternInput switch
+                    {
+                        StringPatternInput.String => compilation.GetSpecialTypeMember(SpecialMember.System_String__Length),
+                        StringPatternInput.SpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Length),
+                        StringPatternInput.ReadOnlySpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Length),
+                        _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                    };
+
+                    if ((object)lengthMember == null || lengthMember.HasUseSiteError)
+                    {
+                        return false;
+                    }
+
+                    var charsMember = stringPatternInput switch
+                    {
+                        StringPatternInput.String => compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars),
+                        StringPatternInput.SpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item),
+                        StringPatternInput.ReadOnlySpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Item),
+                        _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                    };
+
+                    if ((object)charsMember == null || charsMember.HasUseSiteError)
+                    {
+                        return false;
+                    }
+
+                    return true;
                 }
             }
 
@@ -916,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
             private void LowerWhenClauses(ImmutableArray<BoundDecisionDagNode> sortedNodes)
             {
-                if (!sortedNodes.Any(n => n.Kind == BoundKind.WhenDecisionDagNode)) return;
+                if (!sortedNodes.Any(static n => n.Kind == BoundKind.WhenDecisionDagNode)) return;
 
                 // The way the DAG is prepared, it is possible for different `BoundWhenDecisionDagNode` nodes to
                 // share the same `WhenExpression` (same `BoundExpression` instance).
@@ -944,6 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   }
                 //   switch on whenNodeIdentifierLocal with dispatches to whenFalse labels
 
+                int nextWhenNodeIdentifier = 0;
                 // Prepared maps for `when` nodes and expressions
                 var whenExpressionMap = PooledDictionary<BoundExpression, (LabelSymbol LabelToWhenExpression, ArrayBuilder<BoundWhenDecisionDagNode> WhenNodes)>.GetInstance();
                 var whenNodeMap = PooledDictionary<BoundWhenDecisionDagNode, (LabelSymbol LabelToWhenExpression, int WhenNodeIdentifier)>.GetInstance();
@@ -952,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (node is BoundWhenDecisionDagNode whenNode)
                     {
                         var whenExpression = whenNode.WhenExpression;
-                        if (whenExpression is not null && whenExpression.ConstantValue != ConstantValue.True)
+                        if (whenExpression is not null && whenExpression.ConstantValueOpt != ConstantValue.True)
                         {
                             LabelSymbol labelToWhenExpression;
                             if (whenExpressionMap.TryGetValue(whenExpression, out var whenExpressionInfo))
@@ -968,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 whenExpressionMap.Add(whenExpression, (labelToWhenExpression, list));
                             }
 
-                            whenNodeMap.Add(whenNode, (labelToWhenExpression, _nextWhenNodeIdentifier++));
+                            whenNodeMap.Add(whenNode, (labelToWhenExpression, nextWhenNodeIdentifier++));
                         }
                     }
                 }
@@ -1074,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
                     if (GenerateInstrumentation && !whenExpression.WasCompilerGenerated)
                     {
-                        conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGoto);
+                        conditionalGoto = _localRewriter.Instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGoto);
                     }
 
                     sectionBuilder.Add(conditionalGoto);
@@ -1104,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var whenFalse = whenClause.WhenFalse;
                     var trueLabel = GetDagNodeLabel(whenTrue);
-                    if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
+                    if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValueOpt != ConstantValue.True)
                     {
                         addConditionalGoto(whenClause.WhenExpression, whenClause.Syntax, trueLabel, sectionBuilder);
 
