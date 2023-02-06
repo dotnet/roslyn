@@ -417,40 +417,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool SupportsRuntimeCapability(RuntimeCapability capability)
             => RuntimeCapabilityHelpers.RuntimeSupportsCapability(this, capability);
 
-        /// <summary>
-        /// Figure out if the target runtime supports default interface implementation.
-        /// </summary>
+        /// <inheritdoc cref="RuntimeCapability.DefaultImplementationsOfInterfaces" />
         internal bool RuntimeSupportsDefaultInterfaceImplementation
             => SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces);
 
-        /// <summary>
-        /// Figure out if the target runtime supports static abstract members in interfaces.
-        /// </summary>
+        /// <inheritdoc cref="RuntimeCapability.VirtualStaticsInInterfaces" />
         internal bool RuntimeSupportsStaticAbstractMembersInInterfaces
             => SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces);
 
-        /// <summary>
-        /// Whether the target runtime supports numeric IntPtr types.
-        /// </summary>
+        /// <inheritdoc cref="RuntimeCapability.NumericIntPtr" />
         internal bool RuntimeSupportsNumericIntPtr
             => SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr);
 
-        //protected bool RuntimeSupportsFeature(SpecialMember feature)
-        //{
-        //    Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
-        //    return GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature) is { TypeKind: TypeKind.Class, IsStatic: true } &&
-        //           GetSpecialTypeMember(feature) is object;
-        //}
-
+        /// <inheritdoc cref="RuntimeCapability.UnmanagedSignatureCallingConvention" />
         internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
             => SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention);
 
+        /// <inheritdoc cref="RuntimeCapability.ByRefFields" />
         internal bool RuntimeSupportsByRefFields
             => SupportsRuntimeCapability(RuntimeCapability.ByRefFields);
 
-        /// <summary>
-        /// True if the target runtime support covariant returns of methods declared in classes.
-        /// </summary>
+        /// <inheritdoc cref="RuntimeCapability.CovariantReturnsOfClasses" />
         internal bool RuntimeSupportsCovariantReturnsOfClasses
             => SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses);
 
