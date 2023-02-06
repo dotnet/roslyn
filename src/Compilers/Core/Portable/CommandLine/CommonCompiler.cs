@@ -2212,7 +2212,7 @@ namespace Microsoft.CodeAnalysis
         }
 
 
-        private static void MapDiagnosticsToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation, ILogger? logger)
+        internal static void MapDiagnosticsToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation, ILogger? logger)
         {
             var hasSystemBug = false;
             var hasAspectBug = false;

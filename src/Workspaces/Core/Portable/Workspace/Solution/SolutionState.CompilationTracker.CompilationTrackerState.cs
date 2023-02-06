@@ -292,7 +292,9 @@ namespace Microsoft.CodeAnalysis
                         // If we have no generated files, the pre-generator compilation and post-generator compilation
                         // should be the exact same instance; that way we're not creating more compilations than
                         // necessary that would be unable to share source symbols.
-                        Debug.Assert(object.ReferenceEquals(finalCompilation, compilationWithoutGeneratedFiles));
+                        // <Metalama> Except that's not the case with Metalama.
+                        // Debug.Assert(object.ReferenceEquals(finalCompilation, compilationWithoutGeneratedFiles));
+                        // </Metalama>
                     }
                 }
 
