@@ -29,9 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             {
                 if (section.Labels.Count > 0 && section.Statements.Count > 0)
                 {
+                    var start = section.Labels.Last().ColonToken.Span.End;
+                    var end = section.Statements.Last().Span.End;
+
                     spans.Add(new BlockSpan(
                         isCollapsible: true,
-                        textSpan: TextSpan.FromBounds(section.Labels.Last().ColonToken.Span.End, section.Statements.Last().Span.End),
+                        textSpan: TextSpan.FromBounds(start, end),
                         hintSpan: section.Span,
                         type: BlockTypes.Statement));
                 }
