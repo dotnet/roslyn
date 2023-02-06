@@ -2232,13 +2232,22 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub RuntimeCapabilitiesNotSupported()
+        Public Sub RuntimeCapabilitiesSupported()
             Dim compilation1 = VisualBasicCompilation.Create("Compilation1")
             Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
             Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
             Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
             Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
             Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
+
+            Dim compilation2 = VisualBasicCompilation.Create("Compilation2", references:=TargetFrameworkUtil.GetReferences(TargetFramework.Net70, Nothing))
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
         End Sub
     End Class
 End Namespace
