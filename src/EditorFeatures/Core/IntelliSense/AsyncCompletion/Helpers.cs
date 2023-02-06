@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using EditorAsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -18,6 +19,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 {
     internal static class Helpers
     {
+        private const string PromotedItemOriginalIndexPropertyName = nameof(PromotedItemOriginalIndexPropertyName);
+
+        /// <summary>
+        /// Add star to display text and store the index of the passed-in item in the original sorted list in
+        /// <see cref="AsyncCompletionSessionDataSnapshot.InitialSortedItemList"/> so we can retrieve it when needed.
+        /// </summary>
+        public static RoslynCompletionItem PromoteItem(RoslynCompletionItem item, int index)
+        {
+            return item.WithDisplayText(Completion.Utilities.UnicodeStarAndSpace + item.DisplayText)
+            .AddProperty(PromotedItemOriginalIndexPropertyName, index.ToString());
+        }
+
+        public static bool TryGetOriginalIndexOfPromotedItem(RoslynCompletionItem item, out int originalIndex)
+        {
+            if (item.Properties.TryGetValue(PromotedItemOriginalIndexPropertyName, out var indexString))
+            {
+                originalIndex = int.Parse(indexString);
+                return true;
+            }
+
+            originalIndex = -1;
+            return false;
+        }
+
         /// <summary>
         /// Attempts to convert VS Completion trigger into Roslyn completion trigger
         /// </summary>
@@ -136,10 +161,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         // Tab, Enter and Null (call invoke commit) are always commit characters. 
         public static bool IsStandardCommitCharacter(char c)
             => c is '\t' or '\n' or '\0';
-
-        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
-        // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
-        public static bool IsPreferredItem(this VSCompletionItem completionItem)
-            => completionItem.DisplayText.StartsWith("★");
     }
 }

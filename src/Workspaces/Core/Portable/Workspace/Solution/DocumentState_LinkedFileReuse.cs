@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return new DocumentState(
                     LanguageServices,
-                    solutionServices,
                     Services,
                     Attributes,
                     _options,
@@ -57,8 +56,7 @@ namespace Microsoft.CodeAnalysis
                 filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource);
 
             return new DocumentState(
-                LanguageServices,
-                solutionServices,
+                languageServices,
                 Services,
                 Attributes,
                 _options,
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis
 
             static AsyncLazy<TreeAndVersion> GetReuseTreeSource(
                 string filePath,
-                HostLanguageServices languageServices,
+                LanguageServices languageServices,
                 LoadTextOptions loadTextOptions,
                 ParseOptions parseOptions,
                 ValueSource<TreeAndVersion> treeSource,
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis
 
             static bool TryReuseSiblingRoot(
                 string filePath,
-                HostLanguageServices languageServices,
+                LanguageServices languageServices,
                 LoadTextOptions loadTextOptions,
                 ParseOptions parseOptions,
                 SyntaxNode siblingRoot,
@@ -176,7 +174,7 @@ namespace Microsoft.CodeAnalysis
 
             static async Task<TreeAndVersion> TryReuseSiblingTreeAsync(
                 string filePath,
-                HostLanguageServices languageServices,
+                LanguageServices languageServices,
                 LoadTextOptions loadTextOptions,
                 ParseOptions parseOptions,
                 ValueSource<TreeAndVersion> treeSource,
@@ -198,7 +196,7 @@ namespace Microsoft.CodeAnalysis
 
             static TreeAndVersion TryReuseSiblingTree(
                 string filePath,
-                HostLanguageServices languageServices,
+                LanguageServices languageServices,
                 LoadTextOptions loadTextOptions,
                 ParseOptions parseOptions,
                 ValueSource<TreeAndVersion> treeSource,

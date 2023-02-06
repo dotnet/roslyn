@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -19,7 +20,7 @@ internal static class WorkspaceConfigurationOptionsStorage
             DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees));
 
     public static readonly Option2<StorageDatabase> Database = new(
-        "Storage_Database", WorkspaceConfigurationOptions.Default.CacheStorage);
+        "Storage_Database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
 
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
         "Storage_CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);

@@ -1486,7 +1486,7 @@ class C
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
             var options = new IndentationOptions(
-                CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions { UseTabs = useTabs }));
+                new CSharpSyntaxFormattingOptions() { LineFormatting = new() { UseTabs = useTabs } });
 
             Assert.True(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
@@ -1526,7 +1526,7 @@ class C
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-            var options = new IndentationOptions(CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions { UseTabs = useTabs }))
+            var options = new IndentationOptions(new CSharpSyntaxFormattingOptions() { LineFormatting = new() { UseTabs = useTabs } })
             {
                 IndentStyle = indentStyle
             };

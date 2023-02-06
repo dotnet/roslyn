@@ -350,6 +350,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Базовые классы содержат недоступные нереализованные члены</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_VisualBasic_References">
+        <source>C# and Visual Basic References</source>
+        <target state="new">C# and Visual Basic References</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Не удается применить изменения, так как возникла непредвиденная ошибка: "{0}"</target>
@@ -2700,6 +2705,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Этот символ не имеет реализации.</target>
         <note />
       </trans-unit>
+      <trans-unit id="This_0_has_1_references">
+        <source>This {0} has {1} reference(s).</source>
+        <target state="new">This {0} has {1} reference(s).</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Timeout_SourceLink">
         <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
         <target state="translated">Истекло время ожидания при попытке скачать исходный код из SourceLink. Последующие запросы могут быть успешными.</target>
@@ -3130,9 +3140,19 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Здесь "{0}" может иметь значение NULL.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_reference_unquoted">
+        <source>{0} reference</source>
+        <target state="new">{0} reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
         <target state="translated">Ссылки “{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references_unquoted">
+        <source>{0} references</source>
+        <target state="new">{0} references</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unexpected">
@@ -3540,6 +3560,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">универсальные перегрузки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="get_only_property">
+        <source>get-only property</source>
+        <target state="new">get-only property</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement">

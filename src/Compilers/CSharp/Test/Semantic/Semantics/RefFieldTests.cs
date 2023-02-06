@@ -22416,9 +22416,9 @@ struct B
                 // (10,9): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         r.F = ref this; // 1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(10, 9),
-                // (15,6): warning CS0436: The type 'UnscopedRefAttribute' in '' conflicts with the imported type 'UnscopedRefAttribute' in 'System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+                // (15,6): warning CS0436: The type 'UnscopedRefAttribute' in '1.cs' conflicts with the imported type 'UnscopedRefAttribute' in 'System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "UnscopedRef").WithArguments("", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", "System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute").WithLocation(15, 6),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "UnscopedRef").WithArguments("1.cs", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", "System.Runtime, Version=7.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute").WithLocation(15, 6),
                 // (15,6): error CS9101: UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.
                 //     [UnscopedRef]
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(15, 6),
@@ -25623,10 +25623,13 @@ public class A
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(17, 6));
         }
 
+        [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
         [Theory]
         [InlineData(0)]
         [InlineData(-1)]
+        [InlineData(10)]
         [InlineData(11)]
+        [InlineData(12)]
         [InlineData(int.MinValue)]
         [InlineData(int.MaxValue)]
         public void RefSafetyRulesAttribute_Version(int version)
@@ -25658,12 +25661,100 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
     static ref int F2(out int i) => ref A.F1(out i);
 }";
             var comp = CreateCompilation(sourceB, references: new[] { refA });
-            comp.VerifyDiagnostics();
+            if (version == 11)
+            {
+                comp.VerifyDiagnostics();
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
+                    //     static ref int F2(out int i) => ref A.F1(out i);
+                    Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+            }
 
             var method = comp.GetMember<MethodSymbol>("A.F1");
-            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.ScopedRef);
+            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, version == 11 ? ScopedKind.ScopedRef : ScopedKind.None);
 
-            Assert.True(method.ContainingModule.UseUpdatedEscapeRules);
+            Assert.Equal(version == 11, method.ContainingModule.UseUpdatedEscapeRules);
+        }
+
+        [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
+        [Fact]
+        public void RefSafetyRulesAttribute_UnrecognizedConstructor_NoArguments()
+        {
+            // [module: RefSafetyRules()]
+            var sourceA = """
+                .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+                .assembly '<<GeneratedFileName>>' { }
+                .module '<<GeneratedFileName>>.dll'
+                .custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor() = ( 01 00 00 00 ) 
+                .class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                }
+                .class public A
+                {
+                  .method public static int32& F1([out] int32& i) { ldnull throw }
+                }
+                """;
+            var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+            var sourceB = """
+                class B
+                {
+                    static ref int F2(out int i) => ref A.F1(out i);
+                }
+                """;
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyDiagnostics(
+                // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
+                //     static ref int F2(out int i) => ref A.F1(out i);
+                Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+
+            var method = comp.GetMember<MethodSymbol>("A.F1");
+            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.None);
+
+            Assert.False(method.ContainingModule.UseUpdatedEscapeRules);
+        }
+
+        [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
+        [Fact]
+        public void RefSafetyRulesAttribute_UnrecognizedConstructor_StringArgument()
+        {
+            // [module: RefSafetyRules("11")]
+            var sourceA = """
+                .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+                .assembly '<<GeneratedFileName>>' { }
+                .module '<<GeneratedFileName>>.dll'
+                .custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(string) = {string('11')}
+                .class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor(string version) cil managed { ret }
+                }
+                .class public A
+                {
+                  .method public static int32& F1([out] int32& i) { ldnull throw }
+                }
+                """;
+            var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+            var sourceB = """
+                class B
+                {
+                    static ref int F2(out int i) => ref A.F1(out i);
+                }
+                """;
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyDiagnostics(
+                // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
+                //     static ref int F2(out int i) => ref A.F1(out i);
+                Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+
+            var method = comp.GetMember<MethodSymbol>("A.F1");
+            VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.None);
+
+            Assert.False(method.ContainingModule.UseUpdatedEscapeRules);
         }
 
         /// <summary>
@@ -28714,6 +28805,192 @@ Block[B2] - Exit
                 // (14,9): error CS8332: Cannot assign to a member of method 'GetReadonlyReference3' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         GetReadonlyReference3(out s1).RefField = ref value; // 6
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "GetReadonlyReference3(out s1).RefField").WithArguments("method", "GetReadonlyReference3").WithLocation(14, 9));
+        }
+
+        [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefensiveCopy_RefReadOnlyReceiver_01()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        S s = new();
+                        ref readonly S r = ref s;
+                        M(in r);
+                        Console.WriteLine(r);
+                    }
+                    static void M(in S s)
+                    {
+                        R r = new(in s);
+                        r.S.M();
+                    }
+                }
+                struct S
+                {
+                    int i;
+                    public void M() { i++; }
+                    public readonly override string ToString() => i.ToString();
+                }
+                ref struct R
+                {
+                    public ref readonly S S;
+                    public R(in S s) { S = ref s; }
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, expectedOutput: "0");
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  1
+                  .locals init (R V_0, //r
+                                S V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "R..ctor(in S)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloc.0
+                  IL_0008:  ldfld      "ref readonly S R.S"
+                  IL_000d:  ldobj      "S"
+                  IL_0012:  stloc.1
+                  IL_0013:  ldloca.s   V_1
+                  IL_0015:  call       "void S.M()"
+                  IL_001a:  ret
+                }
+                """);
+        }
+
+        [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefensiveCopy_RefReadOnlyReceiver_02()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        R r = new R(new S());
+                        Console.WriteLine(r.S);
+                    }
+                }
+                struct S
+                {
+                    int i;
+                    public void M1() { i++; }
+                    public readonly void M2() { }
+                    public readonly override string ToString() => i.ToString();
+                }
+                ref struct R
+                {
+                    public ref readonly S S;
+                    public R(in S s)
+                    {
+                        S = ref s;
+                        S.M1();
+                    }
+                    public R(in S s, object o)
+                    {
+                        S = ref s;
+                        S.M2();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, expectedOutput: "0");
+            verifier.VerifyIL("R..ctor(in S)", """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  2
+                  .locals init (S V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stfld      "ref readonly S R.S"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldfld      "ref readonly S R.S"
+                  IL_000d:  ldobj      "S"
+                  IL_0012:  stloc.0
+                  IL_0013:  ldloca.s   V_0
+                  IL_0015:  call       "void S.M1()"
+                  IL_001a:  ret
+                }
+                """);
+            verifier.VerifyIL("R..ctor(in S, object)", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stfld      "ref readonly S R.S"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldfld      "ref readonly S R.S"
+                  IL_000d:  call       "readonly void S.M2()"
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefensiveCopy_RefReadOnlyReceiver_03()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        R r1 = new R(new S()) { P1 = 1 };
+                        Console.WriteLine(r1.S);
+                        R r2 = new R(new S()) { P2 = 2 };
+                        Console.WriteLine(r2.S);
+                    }
+                }
+                struct S
+                {
+                    int i;
+                    public void M() { i++; }
+                    public readonly override string ToString() => i.ToString();
+                }
+                ref struct R
+                {
+                    public ref readonly S S;
+                    public R(in S s)
+                    {
+                        S = ref s;
+                    }
+                    public object P1
+                    {
+                        get { return null; }
+                        set { S.M(); }
+                    }
+                    public object P2
+                    {
+                        get { return null; }
+                        init { S.M(); }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, expectedOutput: """
+                0
+                0
+                """);
+            string expectedIL = """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  1
+                  .locals init (S V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "ref readonly S R.S"
+                  IL_0006:  ldobj      "S"
+                  IL_000b:  stloc.0
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  call       "void S.M()"
+                  IL_0013:  ret
+                }
+                """;
+            verifier.VerifyIL("R.P1.set", expectedIL);
+            verifier.VerifyIL("R.P2.init", expectedIL);
         }
 
         [Theory]
