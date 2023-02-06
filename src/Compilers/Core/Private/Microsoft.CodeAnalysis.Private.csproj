@@ -9,9 +9,11 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Private</PackageId>
     <PackageDescription>
       Private utilities for Microsoft .NET Compiler Platform ("Roslyn").
     </PackageDescription>
