@@ -873,12 +873,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            // Require a separator between a lambda return type and its open paren.
-            // Current token might be 2 or 3 layers deeper than lambda expression.
-            // If the type syntax is simple, e.g. int () => ... then the token is 2 layers deeper.
-            // In more complex cases, e.g. int[] () => ..., A.B* () => ... etc. it is 3 layers deeper that the lambda.
-            if (token.Parent is { Parent: LambdaExpressionSyntax or { Parent: LambdaExpressionSyntax } } &&
-                next is { RawKind: (int)SyntaxKind.OpenParenToken, Parent.Parent: LambdaExpressionSyntax })
+            // Require a separator between a lambda return type and its open paren
+            if (next is { RawKind: (int)SyntaxKind.OpenParenToken, Parent.Parent: ParenthesizedLambdaExpressionSyntax lambda } &&
+                lambda.ReturnType?.GetLastToken() == token)
             {
                 return true;
             }
