@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeExpression(
                 "[A]B()=>{ }", """
                 [A]
-                B() =>
+                B () =>
                 {
                 }
                 """);
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeExpression("int( x )=>x", "int (x) => x");
             TestNormalizeExpression(
                 "A( B b )=>{}", """
-                A(B b) =>
+                A (B b) =>
                 {
                 }
                 """);
@@ -853,7 +853,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 async
                 A<int>()=>x
                 """,
-                "static async A<int>() => x");
+                "static async A<int> () => x");
+            TestNormalizeExpression("(A,B)()=>(new A(),new B())", "(A, B) () => (new A(), new B())");
+            TestNormalizeExpression("A.B()=>null", "A.B () => null");
+            TestNormalizeExpression("A.B.C()=>null", "A.B.C () => null");
+            TestNormalizeExpression("int[]()=>null", "int[] () => null");
+            TestNormalizeExpression("A.B[]()=>null", "A.B[] () => null");
+            TestNormalizeExpression("A.B.C[]()=>null", "A.B.C[] () => null");
+            TestNormalizeExpression("int*()=>null", "int* () => null");
+            TestNormalizeExpression("A.B*()=>null", "A.B* () => null");
+            TestNormalizeExpression("A.B.C*()=>null", "A.B.C* () => null");
         }
 
         [Fact]
