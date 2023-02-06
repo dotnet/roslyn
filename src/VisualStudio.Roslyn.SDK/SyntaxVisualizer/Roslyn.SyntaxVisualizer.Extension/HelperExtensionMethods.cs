@@ -12,15 +12,15 @@ namespace Roslyn.SyntaxVisualizer.Extension
 {
     internal static class HelperExtensionMethods
     {
-        internal static IWpfTextView ToWpfTextView(this IVsWindowFrame vsWindowFrame)
+        internal static IWpfTextView? ToWpfTextView(this IVsWindowFrame vsWindowFrame)
         {
-            IWpfTextView wpfTextView = null;
+            IWpfTextView? wpfTextView = null;
             var vsTextView = VsShellUtilities.GetTextView(vsWindowFrame);
 
             if (vsTextView != null)
             {
                 var guidTextViewHost = DefGuidList.guidIWpfTextViewHost;
-                if (((IVsUserData)vsTextView).GetData(ref guidTextViewHost, out var textViewHost) == VSConstants.S_OK && 
+                if (((IVsUserData)vsTextView).GetData(ref guidTextViewHost, out var textViewHost) == VSConstants.S_OK &&
                     textViewHost != null)
                 {
                     wpfTextView = ((IWpfTextViewHost)textViewHost).TextView;

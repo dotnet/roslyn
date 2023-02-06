@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using CSharpTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.CSharpAnalyzerTest<
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer>;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
@@ -51,24 +50,6 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal("Test code", test.TestState.Sources[1].content.ToString());
             Assert.Null(test.TestState.Sources[1].content.Encoding);
             Assert.Equal(SourceHashAlgorithm.Sha1, test.TestState.Sources[1].content.ChecksumAlgorithm);
-        }
-
-        private class CSharpTest : AnalyzerTest<DefaultVerifier>
-        {
-            public override string Language => LanguageNames.CSharp;
-
-            protected override string DefaultFileExt => "cs";
-
-            protected override CompilationOptions CreateCompilationOptions()
-                => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-
-            protected override ParseOptions CreateParseOptions()
-                => new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
-
-            protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-            {
-                yield return new NoActionAnalyzer();
-            }
         }
     }
 }

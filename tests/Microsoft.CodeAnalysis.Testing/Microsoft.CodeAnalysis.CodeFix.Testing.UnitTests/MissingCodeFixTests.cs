@@ -8,8 +8,8 @@ using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
+using Microsoft.CodeAnalysis.Testing.TestFixes;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Testing
 namespace MyNamespace {
 }
 ";
-            var expected = new DiagnosticResult(HighlightBraceAnalyzer.Descriptor).WithSpan(2, 23, 2, 24);
+            var expected = new DiagnosticResult(new HighlightBracesAnalyzer().Descriptor).WithSpan(2, 23, 2, 24);
 
             // Test through the helper
-            await new CSharpCodeFixTest<HighlightBraceAnalyzer, CodeFixNotOfferedProvider>
+            await new CSharpCodeFixTest<HighlightBracesAnalyzer, CodeFixNotOfferedProvider>
             {
                 TestCode = testCode,
                 ExpectedDiagnostics = { expected },
@@ -60,12 +60,12 @@ namespace MyNamespace {
 namespace MyNamespace {
 }
 ";
-            var expected = new DiagnosticResult(HighlightBraceAnalyzer.Descriptor).WithSpan(2, 23, 2, 24);
+            var expected = new DiagnosticResult(new HighlightBracesAnalyzer().Descriptor).WithSpan(2, 23, 2, 24);
 
             // Test through the helper
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
-                await new CSharpCodeFixTest<HighlightBraceAnalyzer, CodeFixOfferedProvider>
+                await new CSharpCodeFixTest<HighlightBracesAnalyzer, CodeFixOfferedProvider>
                 {
                     TestCode = testCode,
                     ExpectedDiagnostics = { expected },
@@ -96,10 +96,10 @@ namespace MyNamespace {
 namespace MyNamespace {
 }
 ";
-            var expected = new DiagnosticResult(HighlightBraceAnalyzer.Descriptor).WithSpan(2, 23, 2, 24);
+            var expected = new DiagnosticResult(new HighlightBracesAnalyzer().Descriptor).WithSpan(2, 23, 2, 24);
 
             // Test through the helper
-            await new CSharpCodeFixTest<HighlightBraceAnalyzer, CodeFixOfferedProvider>
+            await new CSharpCodeFixTest<HighlightBracesAnalyzer, CodeFixOfferedProvider>
             {
                 TestCode = testCode,
                 ExpectedDiagnostics = { expected },
@@ -125,12 +125,12 @@ namespace MyNamespace {
 namespace MyNamespace {
 }
 ";
-            var expected = new DiagnosticResult(HighlightBraceAnalyzer.Descriptor).WithSpan(2, 23, 2, 24);
+            var expected = new DiagnosticResult(new HighlightBracesAnalyzer().Descriptor).WithSpan(2, 23, 2, 24);
 
             // Test through the helper (this scenario cannot be described via the verifier)
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
-                await new CSharpCodeFixTest<HighlightBraceAnalyzer, CodeFixNotOfferedProvider>
+                await new CSharpCodeFixTest<HighlightBracesAnalyzer, CodeFixNotOfferedProvider>
                 {
                     TestCode = testCode,
                     ExpectedDiagnostics = { expected },
@@ -143,42 +143,12 @@ namespace MyNamespace {
             Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '1' iterations but found '0' iterations.", exception.Message);
         }
 
-        [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        private class HighlightBraceAnalyzer : DiagnosticAnalyzer
-        {
-            internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-
-            public override void Initialize(AnalysisContext context)
-            {
-                context.EnableConcurrentExecution();
-                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
-                context.RegisterSyntaxTreeAction(HandleSyntaxTree);
-            }
-
-            private void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
-            {
-                foreach (var token in context.Tree.GetRoot(context.CancellationToken).DescendantTokens())
-                {
-                    if (!token.IsKind(SyntaxKind.OpenBraceToken))
-                    {
-                        continue;
-                    }
-
-                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, token.GetLocation()));
-                }
-            }
-        }
-
         [ExportCodeFixProvider(LanguageNames.CSharp)]
         [PartNotDiscoverable]
         private class CodeFixNotOfferedProvider : CodeFixProvider
         {
             public override ImmutableArray<string> FixableDiagnosticIds
-                => ImmutableArray.Create(HighlightBraceAnalyzer.Descriptor.Id);
+                => ImmutableArray.Create(new HighlightBracesAnalyzer().Descriptor.Id);
 
             public override FixAllProvider GetFixAllProvider()
                 => WellKnownFixAllProviders.BatchFixer;
@@ -192,7 +162,7 @@ namespace MyNamespace {
         private class CodeFixOfferedProvider : CodeFixProvider
         {
             public override ImmutableArray<string> FixableDiagnosticIds
-                => ImmutableArray.Create(HighlightBraceAnalyzer.Descriptor.Id);
+                => ImmutableArray.Create(new HighlightBracesAnalyzer().Descriptor.Id);
 
             public override FixAllProvider GetFixAllProvider()
                 => WellKnownFixAllProviders.BatchFixer;
@@ -213,7 +183,7 @@ namespace MyNamespace {
             }
         }
 
-        private class Verify<TCodeFix> : CodeFixVerifier<HighlightBraceAnalyzer, TCodeFix, CSharpCodeFixTest<HighlightBraceAnalyzer, TCodeFix>, DefaultVerifier>
+        private class Verify<TCodeFix> : CodeFixVerifier<HighlightBracesAnalyzer, TCodeFix, CSharpCodeFixTest<HighlightBracesAnalyzer, TCodeFix>, DefaultVerifier>
             where TCodeFix : CodeFixProvider, new()
         {
         }

@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
+using CSharpTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.CSharpAnalyzerTest<
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer>;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
@@ -26,6 +25,30 @@ namespace Microsoft.CodeAnalysis.Testing
         public async Task ResolveReferenceAssemblies_Net20_WindowsForms()
         {
             var referenceAssemblies = ReferenceAssemblies.NetFramework.Net20.WindowsForms;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net35()
+        {
+            var referenceAssemblies = ReferenceAssemblies.NetFramework.Net35.Default;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net35_WindowsForms()
+        {
+            var referenceAssemblies = ReferenceAssemblies.NetFramework.Net35.WindowsForms;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net35_Wpf()
+        {
+            var referenceAssemblies = ReferenceAssemblies.NetFramework.Net35.Wpf;
             var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
             Assert.NotEmpty(resolved);
         }
@@ -415,14 +438,143 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
-        public async Task ResolveReferenceAssemblies_NetCoreApp50()
+        public async Task ResolveReferenceAssemblies_Net50()
         {
-            var referenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp50;
+#if NETCOREAPP1_1 || NET46
+            Assert.False(ReferenceAssemblies.TestAccessor.IsPackageBased("net5.0"));
+            Assert.ThrowsAny<NotSupportedException>(() => ReferenceAssemblies.Net.Net50);
+
+            // Avoid a warning for 'async' operator
+            await Task.Yield();
+#else
+            Assert.True(ReferenceAssemblies.TestAccessor.IsPackageBased("net5.0"));
+            var referenceAssemblies = ReferenceAssemblies.Net.Net50;
             var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
             Assert.NotEmpty(resolved);
+#endif
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net60Windows()
+        {
+#if NETCOREAPP1_1 || NET46
+            Assert.False(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            Assert.ThrowsAny<NotSupportedException>(() => ReferenceAssemblies.Net.Net60Windows);
+
+            // Avoid a warning for 'async' operator
+            await Task.Yield();
+#else
+            Assert.True(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            var referenceAssemblies = ReferenceAssemblies.Net.Net60Windows;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+#endif
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net60Android()
+        {
+#if NETCOREAPP1_1 || NET46
+            Assert.False(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            Assert.ThrowsAny<NotSupportedException>(() => ReferenceAssemblies.Net.Net60Android);
+
+            // Avoid a warning for 'async' operator
+            await Task.Yield();
+#else
+            Assert.True(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            var referenceAssemblies = ReferenceAssemblies.Net.Net60Android;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+#endif
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net60iOS()
+        {
+#if NETCOREAPP1_1 || NET46
+            Assert.False(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            Assert.ThrowsAny<NotSupportedException>(() => ReferenceAssemblies.Net.Net60iOS);
+
+            // Avoid a warning for 'async' operator
+            await Task.Yield();
+#else
+            Assert.True(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            var referenceAssemblies = ReferenceAssemblies.Net.Net60iOS;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+#endif
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net60MacOS()
+        {
+#if NETCOREAPP1_1 || NET46
+            Assert.False(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            Assert.ThrowsAny<NotSupportedException>(() => ReferenceAssemblies.Net.Net60MacOS);
+
+            // Avoid a warning for 'async' operator
+            await Task.Yield();
+#else
+            Assert.True(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            var referenceAssemblies = ReferenceAssemblies.Net.Net60MacOS;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+#endif
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net60MacCatalyst()
+        {
+#if NETCOREAPP1_1 || NET46
+            Assert.False(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            Assert.ThrowsAny<NotSupportedException>(() => ReferenceAssemblies.Net.Net60MacCatalyst);
+
+            // Avoid a warning for 'async' operator
+            await Task.Yield();
+#else
+            Assert.True(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            var referenceAssemblies = ReferenceAssemblies.Net.Net60MacCatalyst;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+#endif
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net60TvOS()
+        {
+#if NETCOREAPP1_1 || NET46
+            Assert.False(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            Assert.ThrowsAny<NotSupportedException>(() => ReferenceAssemblies.Net.Net60TvOS);
+
+            // Avoid a warning for 'async' operator
+            await Task.Yield();
+#else
+            Assert.True(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            var referenceAssemblies = ReferenceAssemblies.Net.Net60TvOS;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+#endif
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net60()
+        {
+#if NETCOREAPP1_1 || NET46
+            Assert.False(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            Assert.ThrowsAny<NotSupportedException>(() => ReferenceAssemblies.Net.Net60);
+
+            // Avoid a warning for 'async' operator
+            await Task.Yield();
+#else
+            Assert.True(ReferenceAssemblies.TestAccessor.IsPackageBased("net6.0"));
+            var referenceAssemblies = ReferenceAssemblies.Net.Net60;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+#endif
         }
 
         [Theory]
+        [InlineData("net35")]
         [InlineData("net40")]
         [InlineData("net45")]
         [InlineData("net451")]
@@ -440,7 +592,18 @@ namespace Microsoft.CodeAnalysis.Testing
         [InlineData("netcoreapp2.1")]
         [InlineData("netcoreapp3.0")]
         [InlineData("netcoreapp3.1")]
-        [InlineData("netcoreapp5.0")]
+#if !(NETCOREAPP1_1 || NET46)
+        [InlineData("net5.0")]
+        [InlineData("net6.0")]
+        [InlineData("net6.0-windows")]
+        [InlineData("net6.0-android")]
+        [InlineData("net6.0-ios")]
+        [InlineData("net6.0-macos")]
+        [InlineData("net6.0-maccatalyst")]
+        [InlineData("net6.0-tvos")]
+        [InlineData("net7.0")]
+        [InlineData("net7.0-windows")]
+#endif
         [InlineData("netstandard1.0")]
         [InlineData("netstandard1.1")]
         [InlineData("netstandard1.2")]
@@ -472,6 +635,7 @@ class TestClass {
             return targetFramework switch
             {
                 "net20" => ReferenceAssemblies.NetFramework.Net20.Default,
+                "net35" => ReferenceAssemblies.NetFramework.Net35.Default,
                 "net40" => ReferenceAssemblies.NetFramework.Net40.Default,
                 "net45" => ReferenceAssemblies.NetFramework.Net45.Default,
                 "net451" => ReferenceAssemblies.NetFramework.Net451.Default,
@@ -489,7 +653,16 @@ class TestClass {
                 "netcoreapp2.1" => ReferenceAssemblies.NetCore.NetCoreApp21,
                 "netcoreapp3.0" => ReferenceAssemblies.NetCore.NetCoreApp30,
                 "netcoreapp3.1" => ReferenceAssemblies.NetCore.NetCoreApp31,
-                "netcoreapp5.0" => ReferenceAssemblies.NetCore.NetCoreApp50,
+                "net5.0" => ReferenceAssemblies.Net.Net50,
+                "net6.0" => ReferenceAssemblies.Net.Net60,
+                "net6.0-windows" => ReferenceAssemblies.Net.Net60Windows,
+                "net6.0-android" => ReferenceAssemblies.Net.Net60Android,
+                "net6.0-ios" => ReferenceAssemblies.Net.Net60iOS,
+                "net6.0-macos" => ReferenceAssemblies.Net.Net60MacOS,
+                "net6.0-maccatalyst" => ReferenceAssemblies.Net.Net60MacCatalyst,
+                "net6.0-tvos" => ReferenceAssemblies.Net.Net60TvOS,
+                "net7.0" => ReferenceAssemblies.Net.Net70,
+                "net7.0-windows" => ReferenceAssemblies.Net.Net70Windows,
                 "netstandard1.0" => ReferenceAssemblies.NetStandard.NetStandard10,
                 "netstandard1.1" => ReferenceAssemblies.NetStandard.NetStandard11,
                 "netstandard1.2" => ReferenceAssemblies.NetStandard.NetStandard12,
@@ -502,24 +675,6 @@ class TestClass {
                 null => throw new ArgumentNullException(nameof(targetFramework)),
                 _ => throw new NotSupportedException($"Target framework '{targetFramework}' is not currently supported."),
             };
-        }
-
-        private class CSharpTest : AnalyzerTest<DefaultVerifier>
-        {
-            public override string Language => LanguageNames.CSharp;
-
-            protected override string DefaultFileExt => "cs";
-
-            protected override CompilationOptions CreateCompilationOptions()
-                => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-
-            protected override ParseOptions CreateParseOptions()
-                => new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
-
-            protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-            {
-                yield return new NoActionAnalyzer();
-            }
         }
     }
 }

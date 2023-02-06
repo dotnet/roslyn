@@ -3,17 +3,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
@@ -23,6 +23,9 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
+
+using Roslyn.SyntaxVisualizer.Control.SymbolDisplay;
+
 using SystemInformation = System.Windows.Forms.SystemInformation;
 
 namespace Roslyn.SyntaxVisualizer.Control
@@ -51,16 +54,16 @@ namespace Roslyn.SyntaxVisualizer.Control
         {
             internal TextSpan Span { get; set; }
             internal TextSpan FullSpan { get; set; }
-            internal TreeViewItem ParentItem { get; set; }
-            internal string Kind { get; set; }
-            internal SyntaxNode SyntaxNode { get; set; }
+            internal TreeViewItem? ParentItem { get; set; }
+            internal string? Kind { get; set; }
+            internal SyntaxNode? SyntaxNode { get; set; }
             internal SyntaxToken SyntaxToken { get; set; }
             internal SyntaxTrivia SyntaxTrivia { get; set; }
             internal SyntaxCategory Category { get; set; }
         }
 
         #region Private State
-        private TreeViewItem _currentSelection;
+        private TreeViewItem? _currentSelection;
         private bool _isNavigatingFromSourceToTree;
         private bool _isNavigatingFromTreeToSource;
         private readonly System.Windows.Forms.PropertyGrid _propertyGrid;
@@ -69,50 +72,50 @@ namespace Roslyn.SyntaxVisualizer.Control
         /// <remarks>
         /// Every unselected item in the TreeView has a foreground (indicating if it is a node/
         /// token/trivia) and background color (indicating the presence of diagnostics). When an
-        /// item is selected (active or inactive), we want to ensure that it looks obviously 
+        /// item is selected (active or inactive), we want to ensure that it looks obviously
         /// selected while maintaining contrasting colors.
-        /// 
+        ///
         /// To that end, we want to use these custom colors when unselected and the ControlTemplate
         /// colors when selected. Unfortunately, our use of hard-coded color values to instantiate
         /// TreeViewItems in code makes this very difficult to accomplish declaratively. We should
         /// remove the hard-coded color approach in favor of a data class with a DataTemplate in
         /// the future.
-        /// 
-        /// Instead, we listen for when items are selected/unselected and manually swap colors 
-        /// around. With the goal of using custom colors when unselected and the ControlTemplate 
+        ///
+        /// Instead, we listen for when items are selected/unselected and manually swap colors
+        /// around. With the goal of using custom colors when unselected and the ControlTemplate
         /// when selected, we handle the colors by:
         ///
         ///   - Background colors: The item's control template hides the specified background color
-        /// when it is selected (active or inactive) by overlaying a Border colored by the 
-        /// highlight brush. When the item becomes unselected again, the added Border is hidden, 
+        /// when it is selected (active or inactive) by overlaying a Border colored by the
+        /// highlight brush. When the item becomes unselected again, the added Border is hidden,
         /// allowing the originally specified background color to show again, so we don't need any
         /// custom handling.
-        /// 
+        ///
         ///   - Foreground colors: The item's control template does *not* override the specified
         /// foreground when it is selected. To use the control templates correctly themed defaults,
         /// we temporarily clear the specified foreground color and restore it when the item is
         /// unselected. This field is used to save and restore that foreground color.
         /// </remarks>
-        private Brush _currentSelectionUnselectedForeground;
+        private Brush? _currentSelectionUnselectedForeground;
         private ImmutableArray<ClassifiedSpan> classifiedSpans;
         #endregion
 
         #region Public Properties, Events
-        public SyntaxTree SyntaxTree { get; private set; }
-        public SemanticModel SemanticModel { get; private set; }
+        public SyntaxTree? SyntaxTree { get; private set; }
+        public SemanticModel? SemanticModel { get; private set; }
         public bool IsLazy { get; private set; }
 
-        public delegate void SyntaxNodeDelegate(SyntaxNode node);
-        public event SyntaxNodeDelegate SyntaxNodeDirectedGraphRequested;
-        public event SyntaxNodeDelegate SyntaxNodeNavigationToSourceRequested;
+        public delegate void SyntaxNodeDelegate(SyntaxNode? node);
+        public event SyntaxNodeDelegate? SyntaxNodeDirectedGraphRequested;
+        public event SyntaxNodeDelegate? SyntaxNodeNavigationToSourceRequested;
 
         public delegate void SyntaxTokenDelegate(SyntaxToken token);
-        public event SyntaxTokenDelegate SyntaxTokenDirectedGraphRequested;
-        public event SyntaxTokenDelegate SyntaxTokenNavigationToSourceRequested;
+        public event SyntaxTokenDelegate? SyntaxTokenDirectedGraphRequested;
+        public event SyntaxTokenDelegate? SyntaxTokenNavigationToSourceRequested;
 
         public delegate void SyntaxTriviaDelegate(SyntaxTrivia trivia);
-        public event SyntaxTriviaDelegate SyntaxTriviaDirectedGraphRequested;
-        public event SyntaxTriviaDelegate SyntaxTriviaNavigationToSourceRequested;
+        public event SyntaxTriviaDelegate? SyntaxTriviaDirectedGraphRequested;
+        public event SyntaxTriviaDelegate? SyntaxTriviaNavigationToSourceRequested;
 
         private ClassifiedSpan? _classifiedSpan;
         public ClassifiedSpan? ClassifiedSpan
@@ -141,7 +144,10 @@ namespace Roslyn.SyntaxVisualizer.Control
                     {
                         colorLabel.Visibility = Visibility.Visible;
                         colorPickerGrid.Visibility = Visibility.Visible;
-                        colorPickerButton.Background = new SolidColorBrush(color.Value);
+                        if (color is not null)
+                        {
+                            colorPickerButton.Background = new SolidColorBrush(color.Value);
+                        }
 
                         var textValue = _classifiedSpan?.ClassificationType;
                         if (string.IsNullOrEmpty(textValue))
@@ -218,7 +224,11 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             if (popup.ShowDialog() == true)
             {
-                FontsAndColorsHelper.UpdateClassificationColor(_classifiedSpan.Value, popup.Color);
+                if (_classifiedSpan is not null)
+                {
+                    FontsAndColorsHelper.UpdateClassificationColor(_classifiedSpan.Value, popup.Color);
+                }
+
                 colorPickerButton.Background = new SolidColorBrush(popup.Color);
             }
 
@@ -322,7 +332,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         // the children for any given item are only populated when the item is selected. If lazy is
         // false then the entire tree is populated at once (and this can result in bad performance when
         // displaying large trees).
-        public void DisplaySyntaxTree(SyntaxTree tree, SemanticModel model = null, bool lazy = true, Workspace workspace = null)
+        public void DisplaySyntaxTree(Document document, SyntaxTree tree, SemanticModel? model = null, bool lazy = true, Workspace? workspace = null)
         {
             if (tree != null)
             {
@@ -333,7 +343,9 @@ namespace Roslyn.SyntaxVisualizer.Control
 
                 if (model != null && workspace != null)
                 {
-                    classifiedSpans = Classifier.GetClassifiedSpans(model, tree.GetRoot().FullSpan, workspace).ToImmutableArray();
+                    var root = ThreadHelper.JoinableTaskFactory.Run(() => tree.GetRootAsync());
+                    classifiedSpans = ThreadHelper.JoinableTaskFactory.Run(
+                        () => Classifier.GetClassifiedSpansAsync(document, root.FullSpan, CancellationToken.None)).ToImmutableArray();
                 }
                 else
                 {
@@ -346,7 +358,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         // the children for any given item are only populated when the item is selected. If lazy is
         // false then the entire tree is populated at once (and this can result in bad performance when
         // displaying large trees).
-        public void DisplaySyntaxNode(SyntaxNode node, SemanticModel model = null, bool lazy = true)
+        public void DisplaySyntaxNode(SyntaxNode node, SemanticModel? model = null, bool lazy = true)
         {
             if (node != null)
             {
@@ -358,11 +370,11 @@ namespace Roslyn.SyntaxVisualizer.Control
         }
 
         // Select the SyntaxNode / SyntaxToken / SyntaxTrivia whose position best matches the supplied position.
-        public bool NavigateToBestMatch(int position, string kind = null,
+        public bool NavigateToBestMatch(int position, string? kind = null,
             SyntaxCategory category = SyntaxCategory.None,
             bool highlightMatch = false)
         {
-            TreeViewItem match = null;
+            TreeViewItem? match = null;
 
             if (treeView.HasItems && !_isNavigatingFromTreeToSource)
             {
@@ -371,20 +383,18 @@ namespace Roslyn.SyntaxVisualizer.Control
                 _isNavigatingFromSourceToTree = false;
             }
 
-            var matchFound = match != null;
+            if (!highlightMatch || match is null)
+                return false;
 
-            if (highlightMatch && matchFound)
-            {
-                match.Background = Brushes.Yellow;
-                match.BorderBrush = Brushes.Black;
-                match.BorderThickness = s_defaultBorderThickness;
-            }
+            match.Background = Brushes.Yellow;
+            match.BorderBrush = Brushes.Black;
+            match.BorderThickness = s_defaultBorderThickness;
 
-            return matchFound;
+            return true;
         }
 
         // Select the SyntaxNode / SyntaxToken / SyntaxTrivia whose span best matches the supplied span.
-        public bool NavigateToBestMatch(int start, int length, string kind = null,
+        public bool NavigateToBestMatch(int start, int length, string? kind = null,
             SyntaxCategory category = SyntaxCategory.None,
             bool highlightMatch = false)
         {
@@ -392,11 +402,11 @@ namespace Roslyn.SyntaxVisualizer.Control
         }
 
         // Select the SyntaxNode / SyntaxToken / SyntaxTrivia whose span best matches the supplied span.
-        public bool NavigateToBestMatch(TextSpan span, string kind = null,
+        public bool NavigateToBestMatch(TextSpan span, string? kind = null,
             SyntaxCategory category = SyntaxCategory.None,
             bool highlightMatch = false)
         {
-            TreeViewItem match = null;
+            TreeViewItem? match = null;
 
             if (treeView.HasItems && !_isNavigatingFromTreeToSource)
             {
@@ -405,16 +415,14 @@ namespace Roslyn.SyntaxVisualizer.Control
                 _isNavigatingFromSourceToTree = false;
             }
 
-            var matchFound = match != null;
+            if (!highlightMatch || match is null)
+                return false;
 
-            if (highlightMatch && matchFound)
-            {
-                match.Background = Brushes.Yellow;
-                match.BorderBrush = Brushes.Black;
-                match.BorderThickness = s_defaultBorderThickness;
-            }
+            match.Background = Brushes.Yellow;
+            match.BorderBrush = Brushes.Black;
+            match.BorderThickness = s_defaultBorderThickness;
 
-            return matchFound;
+            return true;
         }
         #endregion
 
@@ -446,7 +454,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         }
 
         // Ensure that the supplied treeview item and all its ancestors are expanded.
-        private void ExpandPathTo(TreeViewItem item)
+        private void ExpandPathTo(TreeViewItem? item)
         {
             if (item != null)
             {
@@ -456,10 +464,10 @@ namespace Roslyn.SyntaxVisualizer.Control
         }
 
         // Select the SyntaxNode / SyntaxToken / SyntaxTrivia whose position best matches the supplied position.
-        private TreeViewItem NavigateToBestMatch(TreeViewItem current, int position, string kind = null,
+        private TreeViewItem? NavigateToBestMatch(TreeViewItem current, int position, string? kind = null,
             SyntaxCategory category = SyntaxCategory.None)
         {
-            TreeViewItem match = null;
+            TreeViewItem? match = null;
 
             if (current != null)
             {
@@ -489,10 +497,10 @@ namespace Roslyn.SyntaxVisualizer.Control
         }
 
         // Select the SyntaxNode / SyntaxToken / SyntaxTrivia whose span best matches the supplied span.
-        private TreeViewItem NavigateToBestMatch(TreeViewItem current, TextSpan span, string kind = null,
+        private TreeViewItem? NavigateToBestMatch(TreeViewItem current, TextSpan span, string? kind = null,
             SyntaxCategory category = SyntaxCategory.None)
         {
-            TreeViewItem match = null;
+            TreeViewItem? match = null;
 
             if (current != null)
             {
@@ -668,8 +676,13 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
         }
 
-        private void AddNode(TreeViewItem parentItem, SyntaxNode node)
+        private void AddNode(TreeViewItem? parentItem, SyntaxNode? node)
         {
+            if (node is null)
+            {
+                return;
+            }
+
             var kind = node.GetKind();
             var tag = new SyntaxTag()
             {
@@ -723,10 +736,13 @@ namespace Roslyn.SyntaxVisualizer.Control
                     // Remove placeholder child and populate real children.
                     item.Items.RemoveAt(0);
 
-                    var operation = SemanticModel.GetOperation(node);
-                    if (operation is { Parent: null })
+                    if (SemanticModel is not null)
                     {
-                        AddOperation(item, operation);
+                        var operation = SemanticModel.GetOperation(node);
+                        if (operation is { Parent: null })
+                        {
+                            AddOperation(item, operation);
+                        }
                     }
 
                     foreach (var child in node.ChildNodesAndTokens())
@@ -987,7 +1003,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         #endregion
 
         #region Private Helpers - Other
-        private void DisplaySymbolInPropertyGrid(ISymbol symbol)
+        private void DisplaySymbolInPropertyGrid(ISymbol? symbol)
         {
             if (symbol == null)
             {
@@ -995,6 +1011,8 @@ namespace Roslyn.SyntaxVisualizer.Control
                 kindTextLabel.Visibility = Visibility.Hidden;
                 typeValueLabel.Content = string.Empty;
                 kindValueLabel.Content = string.Empty;
+
+                _propertyGrid.SelectedObject = null;
             }
             else
             {
@@ -1002,12 +1020,12 @@ namespace Roslyn.SyntaxVisualizer.Control
                 kindTextLabel.Visibility = Visibility.Visible;
                 typeValueLabel.Content = symbol.GetType().Name;
                 kindValueLabel.Content = symbol.Kind.ToString();
-            }
 
-            _propertyGrid.SelectedObject = symbol;
+                _propertyGrid.SelectedObject = new SymbolPropertyGridAdapter(symbol);
+            }
         }
 
-        private static TreeViewItem FindTreeViewItem(DependencyObject source)
+        private static TreeViewItem? FindTreeViewItem(DependencyObject source)
         {
             while (source != null && !(source is TreeViewItem))
             {
@@ -1021,7 +1039,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                 }
             }
 
-            return (TreeViewItem)source;
+            return (TreeViewItem?)source;
         }
         #endregion
 
@@ -1130,7 +1148,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
 
             var currentTag = (SyntaxTag)_currentSelection.Tag;
-            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
+            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode) && currentTag.SyntaxNode is not null)
             {
                 var symbol = SemanticModel.GetSymbolInfo(currentTag.SyntaxNode).Symbol;
                 if (symbol == null)
@@ -1156,6 +1174,12 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
 
             var currentTag = (SyntaxTag)_currentSelection.Tag;
+            if (currentTag.SyntaxNode is null)
+            {
+                e.Handled = true;
+                return;
+            }
+
             if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
             {
                 var symbol = SemanticModel.GetTypeInfo(currentTag.SyntaxNode).Type;
@@ -1172,6 +1196,12 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
 
             var currentTag = (SyntaxTag)_currentSelection.Tag;
+            if (currentTag.SyntaxNode is null)
+            {
+                e.Handled = true;
+                return;
+            }
+
             if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
             {
                 var symbol = SemanticModel.GetTypeInfo(currentTag.SyntaxNode).ConvertedType;
@@ -1188,6 +1218,12 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
 
             var currentTag = (SyntaxTag)_currentSelection.Tag;
+            if (currentTag.SyntaxNode is null)
+            {
+                e.Handled = true;
+                return;
+            }
+
             if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
             {
                 var symbol = SemanticModel.GetAliasInfo(currentTag.SyntaxNode);
@@ -1204,7 +1240,9 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
 
             var currentTag = (SyntaxTag)_currentSelection.Tag;
-            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
+            if (SemanticModel != null &&
+                currentTag.Category == SyntaxCategory.SyntaxNode &&
+                currentTag.SyntaxNode is not null)
             {
                 var value = SemanticModel.GetConstantValue(currentTag.SyntaxNode);
                 kindTextLabel.Visibility = Visibility.Hidden;

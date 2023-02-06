@@ -2,18 +2,19 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="ef918f69-be54-4b44-b381-81d6cecef939" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
-    <DisplayName>.NET Compiler Platform SDK For Visual Studio 2017</DisplayName>
+    <DisplayName>.NET Compiler Platform SDK For Visual Studio 2022</DisplayName>
     <Description xml:space="preserve">The .NET Compiler Platform ("Roslyn") provides open-source C# and Visual Basic compilers with rich code analysis APIs. You can build code analysis tools with the same APIs that Microsoft is using to implement Visual Studio! Also includes the Syntax Visualizer, a Visual Studio extension that allows you to inspect and explore the syntax trees you'll use as you build applications and VS extensions atop the .NET Compiler Platform ("Roslyn").</Description>
     <PackageId>Roslyn.SDK</PackageId>
     <License>EULA.rtf</License>
     <Tags>roslyn,template,SDK</Tags>
   </Metadata>
   <Installation Experimental="true">
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0.27009,)" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,18.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-    <Dependency Id="Microsoft.VisualStudio.MPF.14.0" DisplayName="Visual Studio MPF 14.0" d:Source="Installed" Version="[14.0]" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.ProjectTemplate" Path="CSharpConsoleApplication"/>
@@ -30,11 +31,9 @@
     <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="VBRefactoring"/>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Roslyn.SyntaxVisualizer.Extension" Path="|Roslyn.SyntaxVisualizer.Extension;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Roslyn.ComponentDebugger" Path="|Roslyn.ComponentDebugger|" />
   </Assets>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
-    <Prerequisite Id="Microsoft.VisualStudio.Component.VSSDK" Version="[15.0,16.0)" DisplayName="Visual Studio SDK" />
-    <Prerequisite Id="Microsoft.Net.ComponentGroup.DevelopmentPrerequisites" Version="[15.0,16.0)" DisplayName=".NET Framework 4.6.1 development tools" />
-    <Prerequisite Id="Microsoft.Net.Core.Component.SDK" Version="[15.0,16.0)" DisplayName=".NET Core 2.0 development tools" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
   </Prerequisites>
 </PackageManifest>

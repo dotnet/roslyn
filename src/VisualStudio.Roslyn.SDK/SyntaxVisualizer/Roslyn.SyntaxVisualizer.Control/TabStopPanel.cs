@@ -14,13 +14,13 @@ namespace Roslyn.SyntaxVisualizer.Control
     internal class TabStopPanel : Panel
     {
         private readonly HwndHost _wpfHost;
-        private PropertyGrid _propertyGrid;
+        private PropertyGrid? _propertyGrid;
         public TabStopPanel(HwndHost wpfHost)
         {
             _wpfHost = wpfHost;
         }
 
-        public PropertyGrid PropertyGrid
+        public PropertyGrid? PropertyGrid
         {
             get => _propertyGrid;
             set

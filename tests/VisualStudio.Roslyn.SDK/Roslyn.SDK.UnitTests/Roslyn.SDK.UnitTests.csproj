@@ -10,4 +10,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\VisualStudio.Roslyn.SDK\Roslyn.SDK\Roslyn.SDK.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Explicit reference to avoid missing package warning -->
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
+    <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
+  </ItemGroup>
 </Project>

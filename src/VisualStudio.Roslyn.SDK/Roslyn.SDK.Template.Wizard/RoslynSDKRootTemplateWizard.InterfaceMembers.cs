@@ -16,6 +16,9 @@ public partial class RoslynSDKRootTemplateWizard : IWizard
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        OnRunStarted(automationObject as DTE, replacementsDictionary, runKind, customParams);
+        if (automationObject is DTE dte)
+        {
+            OnRunStarted(dte, replacementsDictionary, runKind, customParams);
+        }
     }
 }

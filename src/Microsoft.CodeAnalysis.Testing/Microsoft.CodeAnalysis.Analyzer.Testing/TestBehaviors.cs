@@ -36,5 +36,15 @@ namespace Microsoft.CodeAnalysis.Testing
         /// at the beginning of the file.
         /// </summary>
         SkipSuppressionCheck = 0x02,
+
+        /// <summary>
+        /// Skip a verification check that the contents of <see cref="ProjectState.GeneratedSources"/> match the sources
+        /// produced by the active source generators (if any).
+        /// </summary>
+        /// <remarks>
+        /// When this flag is set, the <see cref="ProjectState.GeneratedSources"/> property is completely ignored; tests
+        /// are encouraged to leave it empty for optimal readability.
+        /// </remarks>
+        SkipGeneratedSourcesCheck = 0x04,
     }
 }

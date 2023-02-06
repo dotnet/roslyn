@@ -5,24 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
-    public class SolutionState
+    public class SolutionState : ProjectState
     {
-        private readonly string _defaultPrefix;
-        private readonly string _defaultExtension;
-
-        public SolutionState(string defaultPrefix, string defaultExtension)
+        public SolutionState(string name, string language, string defaultPrefix, string defaultExtension)
+            : base(name, language, defaultPrefix, defaultExtension)
         {
-            _defaultPrefix = defaultPrefix;
-            _defaultExtension = defaultExtension;
-
-            Sources = new SourceFileList(defaultPrefix, defaultExtension);
+            AdditionalProjects = new ProjectCollection(language, defaultExtension);
         }
 
         /// <summary>
@@ -37,23 +30,9 @@ namespace Microsoft.CodeAnalysis.Testing
         public StateInheritanceMode? InheritanceMode { get; set; }
 
         /// <summary>
-        /// Gets the set of source files for analyzer or code fix testing. Files may be added to this list using one of
-        /// the <see cref="SourceFileList.Add(string)"/> methods.
+        /// Gets a collection of additional projects to include in the solution.
         /// </summary>
-        public SourceFileList Sources { get; }
-
-        public SourceFileCollection AdditionalFiles { get; } = new SourceFileCollection();
-
-        public List<Func<IEnumerable<(string filename, SourceText content)>>> AdditionalFilesFactories { get; } = new List<Func<IEnumerable<(string filename, SourceText content)>>>();
-
-        /// <summary>
-        /// Gets a list of additional projects to include in the solution. A <see cref="ProjectReference"/> will be
-        /// added from the primary project to each of the additional projects provided here. Markup, additional files,
-        /// and diagnostics in additional projects are not yet supported.
-        /// </summary>
-        public List<ProjectState> AdditionalProjects { get; } = new List<ProjectState>();
-
-        public MetadataReferenceCollection AdditionalReferences { get; } = new MetadataReferenceCollection();
+        public ProjectCollection AdditionalProjects { get; }
 
         /// <summary>
         /// Gets the list of diagnostics expected in the source(s) and/or additonal files.
@@ -92,8 +71,9 @@ namespace Microsoft.CodeAnalysis.Testing
         /// Applies the <see cref="InheritanceMode"/> using a specified base state.
         /// </summary>
         /// <remarks>
-        /// <para>This method evaluates <see cref="AdditionalFilesFactories"/>, and places the resulting additional
-        /// files in the <see cref="AdditionalFiles"/> collection of the result before returning.</para>
+        /// <para>This method evaluates <see cref="ProjectState.AdditionalFilesFactories"/>, and places the resulting
+        /// additional files in the <see cref="ProjectState.AdditionalFiles"/> collection of the result before
+        /// returning.</para>
         /// </remarks>
         /// <param name="baseState">The base state to inherit from, or <see langword="null"/> if the current state is
         /// the root state.</param>
@@ -138,12 +118,26 @@ namespace Microsoft.CodeAnalysis.Testing
                 throw new InvalidOperationException("The base state should already have its inheritance state evaluated prior to its use as a base state.");
             }
 
-            var result = new SolutionState(_defaultPrefix, _defaultExtension);
+            var result = new SolutionState(Name, Language, DefaultPrefix, DefaultExtension);
+
+            result.ReferenceAssemblies = ReferenceAssemblies;
+            result.OutputKind = OutputKind;
+            result.DocumentationMode = DocumentationMode;
+
             if (inheritanceMode != StateInheritanceMode.Explicit && baseState != null)
             {
+                result.ReferenceAssemblies ??= baseState.ReferenceAssemblies;
+                result.OutputKind ??= baseState.OutputKind;
+                result.DocumentationMode ??= baseState.DocumentationMode;
+
                 if (Sources.Count == 0)
                 {
                     result.Sources.AddRange(baseState.Sources);
+                }
+
+                if (GeneratedSources.Count == 0)
+                {
+                    result.GeneratedSources.AddRange(baseState.GeneratedSources);
                 }
 
                 if (AdditionalFiles.Count == 0)
@@ -151,9 +145,19 @@ namespace Microsoft.CodeAnalysis.Testing
                     result.AdditionalFiles.AddRange(baseState.AdditionalFiles);
                 }
 
+                if (AnalyzerConfigFiles.Count == 0)
+                {
+                    result.AnalyzerConfigFiles.AddRange(baseState.AnalyzerConfigFiles);
+                }
+
                 if (AdditionalProjects.Count == 0)
                 {
                     result.AdditionalProjects.AddRange(baseState.AdditionalProjects);
+                }
+
+                if (AdditionalProjectReferences.Count == 0)
+                {
+                    result.AdditionalProjectReferences.AddRange(baseState.AdditionalProjectReferences);
                 }
 
                 if (AdditionalReferences.Count == 0)
@@ -177,8 +181,11 @@ namespace Microsoft.CodeAnalysis.Testing
             result.MarkupHandling = markupHandling;
             result.InheritanceMode = StateInheritanceMode.Explicit;
             result.Sources.AddRange(Sources);
+            result.GeneratedSources.AddRange(GeneratedSources);
             result.AdditionalFiles.AddRange(AdditionalFiles);
+            result.AnalyzerConfigFiles.AddRange(AnalyzerConfigFiles);
             result.AdditionalProjects.AddRange(AdditionalProjects);
+            result.AdditionalProjectReferences.AddRange(AdditionalProjectReferences);
             result.AdditionalReferences.AddRange(AdditionalReferences);
             result.ExpectedDiagnostics.AddRange(ExpectedDiagnostics);
             result.AdditionalFiles.AddRange(AdditionalFilesFactories.SelectMany(factory => factory()));
@@ -202,7 +209,17 @@ namespace Microsoft.CodeAnalysis.Testing
                 return true;
             }
 
+            if ((!willInherit || state.GeneratedSources.Any()) && !ContentEqual(state.GeneratedSources, baseState.GeneratedSources))
+            {
+                return true;
+            }
+
             if ((!willInherit || state.AdditionalFiles.Any()) && !ContentEqual(state.AdditionalFiles, baseState.AdditionalFiles))
+            {
+                return true;
+            }
+
+            if ((!willInherit || state.AnalyzerConfigFiles.Any()) && !ContentEqual(state.AnalyzerConfigFiles, baseState.AnalyzerConfigFiles))
             {
                 return true;
             }
@@ -245,8 +262,10 @@ namespace Microsoft.CodeAnalysis.Testing
 
         /// <summary>
         /// Processes the markup syntax for this <see cref="SolutionState"/> according to the current
-        /// <see cref="MarkupHandling"/>, and returns a new <see cref="SolutionState"/> with the <see cref="Sources"/>,
-        /// <see cref="AdditionalFiles"/>, and <see cref="ExpectedDiagnostics"/> updated accordingly.
+        /// <see cref="MarkupHandling"/>, and returns a new <see cref="SolutionState"/> with the
+        /// <see cref="ProjectState.Sources"/>, <see cref="ProjectState.GeneratedSources"/>,
+        /// <see cref="ProjectState.AdditionalFiles"/>, <see cref="ProjectState.AnalyzerConfigFiles"/>, and
+        /// <see cref="ExpectedDiagnostics"/> updated accordingly.
         /// </summary>
         /// <param name="markupOptions">Additional options to apply during markup processing.</param>
         /// <param name="defaultDiagnostic">The diagnostic descriptor to use for markup spans without an explicit name,
@@ -269,19 +288,49 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var markupLocations = ImmutableDictionary<string, FileLinePositionSpan>.Empty;
             (var expected, var testSources) = ProcessMarkupSources(Sources, ExpectedDiagnostics, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
-            var (additionalExpected, additionalFiles) = ProcessMarkupSources(AdditionalFiles.Concat(AdditionalFilesFactories.SelectMany(factory => factory())), expected, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+            var (additionalExpected2, testGeneratedSources) = ProcessMarkupSources(GeneratedSources, expected, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+            var (additionalExpected1, additionalFiles) = ProcessMarkupSources(AdditionalFiles.Concat(AdditionalFilesFactories.SelectMany(factory => factory())), additionalExpected2, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+            var (additionalExpected, analyzerConfigFiles) = ProcessMarkupSources(AnalyzerConfigFiles, additionalExpected1, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+
+            var result = new SolutionState(Name, Language, DefaultPrefix, DefaultExtension);
+            result.MarkupHandling = MarkupMode.None;
+            result.InheritanceMode = StateInheritanceMode.Explicit;
+            result.ReferenceAssemblies = ReferenceAssemblies;
+            result.OutputKind = OutputKind;
+            result.DocumentationMode = DocumentationMode;
+            result.Sources.AddRange(testSources);
+            result.GeneratedSources.AddRange(testGeneratedSources);
+            result.AdditionalFiles.AddRange(additionalFiles);
+            result.AnalyzerConfigFiles.AddRange(analyzerConfigFiles);
+
+            foreach (var (projectName, projectState) in AdditionalProjects)
+            {
+                var (correctedIntermediateDiagnostics, additionalProjectSources) = ProcessMarkupSources(projectState.Sources, additionalExpected, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+                var (correctedDiagnostics2, additionalProjectGeneratedSources) = ProcessMarkupSources(projectState.GeneratedSources, correctedIntermediateDiagnostics, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+                var (correctedDiagnostics1, additionalProjectAdditionalFiles) = ProcessMarkupSources(projectState.AdditionalFiles.Concat(projectState.AdditionalFilesFactories.SelectMany(factory => factory())), correctedDiagnostics2, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+                var (correctedDiagnostics, additionalProjectAnalyzerConfigFiles) = ProcessMarkupSources(projectState.AnalyzerConfigFiles, correctedDiagnostics1, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+
+                var processedProjectState = new ProjectState(projectState);
+                processedProjectState.Sources.Clear();
+                processedProjectState.Sources.AddRange(additionalProjectSources);
+                processedProjectState.GeneratedSources.Clear();
+                processedProjectState.GeneratedSources.AddRange(additionalProjectGeneratedSources);
+                processedProjectState.AdditionalFiles.Clear();
+                processedProjectState.AdditionalFilesFactories.Clear();
+                processedProjectState.AdditionalFiles.AddRange(additionalProjectAdditionalFiles);
+                processedProjectState.AnalyzerConfigFiles.Clear();
+                processedProjectState.AnalyzerConfigFiles.AddRange(additionalProjectAnalyzerConfigFiles);
+
+                result.AdditionalProjects.Add(projectName, processedProjectState);
+                additionalExpected = correctedDiagnostics;
+            }
 
             for (var i = 0; i < additionalExpected.Length; i++)
             {
                 additionalExpected[i] = additionalExpected[i].WithAppliedMarkupLocations(markupLocations);
             }
 
-            var result = new SolutionState(_defaultPrefix, _defaultExtension);
-            result.MarkupHandling = MarkupMode.None;
-            result.InheritanceMode = StateInheritanceMode.Explicit;
-            result.Sources.AddRange(testSources);
-            result.AdditionalFiles.AddRange(additionalFiles);
-            result.AdditionalProjects.AddRange(AdditionalProjects);
+            result.AdditionalProjectReferences.AddRange(AdditionalProjectReferences);
             result.AdditionalReferences.AddRange(AdditionalReferences);
             result.ExpectedDiagnostics.AddRange(additionalExpected);
             return result;

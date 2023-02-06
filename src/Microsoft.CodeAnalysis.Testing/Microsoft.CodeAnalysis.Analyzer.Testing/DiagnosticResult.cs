@@ -57,7 +57,8 @@ namespace Microsoft.CodeAnalysis.Testing
             DiagnosticOptions options,
             string id,
             LocalizableString? messageFormat,
-            object?[]? messageArguments)
+            object?[]? messageArguments,
+            bool? isSuppressed)
         {
             _spans = spans;
             _suppressMessage = suppressMessage;
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Id = id;
             MessageFormat = messageFormat;
             MessageArguments = messageArguments;
+            IsSuppressed = isSuppressed;
         }
 
         /// <summary>
@@ -150,9 +152,19 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <value>
         /// <see langword="true"/> if the diagnostic is expected to have a location; otherwise, <see langword="false"/>
-        /// if a no-locatino diagnostic is expected.
+        /// if a no-location diagnostic is expected.
         /// </value>
         public bool HasLocation => !Spans.IsEmpty;
+
+        /// <summary>
+        /// Gets a value indicating whether the diagnostic is expected to be suppressed.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the diagnostic is expected to be suppressed;
+        /// <see langword="false"/> if the diagnostic is expected to be not suppressed;
+        /// <see langword="null"/> if the suppression state should not be tested;
+        /// </value>
+        public bool? IsSuppressed { get; }
 
         /// <summary>
         /// Creates a <see cref="DiagnosticResult"/> for a compiler error with the specified ID.
@@ -186,7 +198,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
-                messageArguments: MessageArguments);
+                messageArguments: MessageArguments,
+                isSuppressed: IsSuppressed);
         }
 
         /// <summary>
@@ -205,7 +218,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 options: options,
                 id: Id,
                 messageFormat: MessageFormat,
-                messageArguments: MessageArguments);
+                messageArguments: MessageArguments,
+                isSuppressed: IsSuppressed);
         }
 
         public DiagnosticResult WithArguments(params object[] arguments)
@@ -218,7 +232,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
-                messageArguments: arguments);
+                messageArguments: arguments,
+                isSuppressed: IsSuppressed);
         }
 
         public DiagnosticResult WithMessage(string? message)
@@ -231,7 +246,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
-                messageArguments: MessageArguments);
+                messageArguments: MessageArguments,
+                isSuppressed: IsSuppressed);
         }
 
         public DiagnosticResult WithMessageFormat(LocalizableString messageFormat)
@@ -244,7 +260,22 @@ namespace Microsoft.CodeAnalysis.Testing
                 options: Options,
                 id: Id,
                 messageFormat: messageFormat,
-                messageArguments: MessageArguments);
+                messageArguments: MessageArguments,
+                isSuppressed: IsSuppressed);
+        }
+
+        public DiagnosticResult WithIsSuppressed(bool? isSuppressed)
+        {
+            return new DiagnosticResult(
+                spans: _spans,
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                options: Options,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments,
+                isSuppressed: isSuppressed);
         }
 
         public DiagnosticResult WithNoLocation()
@@ -257,7 +288,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
-                messageArguments: MessageArguments);
+                messageArguments: MessageArguments,
+                isSuppressed: IsSuppressed);
         }
 
         public DiagnosticResult WithLocation(int line, int column)
@@ -323,7 +355,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
-                messageArguments: MessageArguments);
+                messageArguments: MessageArguments,
+                isSuppressed: IsSuppressed);
         }
 
         internal DiagnosticResult WithAppliedMarkupLocations(ImmutableDictionary<string, FileLinePositionSpan> markupLocations)
@@ -365,7 +398,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
-                messageArguments: MessageArguments);
+                messageArguments: MessageArguments,
+                isSuppressed: IsSuppressed);
         }
 
         public DiagnosticResult WithLineOffset(int offset)
@@ -393,7 +427,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
-                messageArguments: MessageArguments);
+                messageArguments: MessageArguments,
+                isSuppressed: IsSuppressed);
         }
 
         private DiagnosticResult AppendSpan(FileLinePositionSpan span, DiagnosticLocationOptions options)
@@ -406,7 +441,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
-                messageArguments: MessageArguments);
+                messageArguments: MessageArguments,
+                isSuppressed: IsSuppressed);
         }
 
         public override string ToString()

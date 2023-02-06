@@ -5,3 +5,4 @@
 using Microsoft.VisualStudio.Shell;
 
 [assembly: ProvideBindingRedirection(CodeBase = "Roslyn.SDK.Template.Wizard.dll", OldVersionLowerBound = "1.0.0.0")]
+[assembly: ProvideCodeBase(AssemblyName = "Roslyn.ComponentDebugger", CodeBase = "$PackageFolder$\\Roslyn.ComponentDebugger.dll")]

@@ -4,7 +4,7 @@
 
 Separate packages are provided for each language and test framework.
 
-### MyGet feed for prerelease packages
+### Azure Packages feed for prerelease packages
 
 To reference prerelease packages, add a **NuGet.Config** file to your solution directory containing the following:
 
@@ -12,7 +12,7 @@ To reference prerelease packages, add a **NuGet.Config** file to your solution d
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <packageSources>
-    <add key="roslyn-analyzers" value="https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json" />
+    <add key="dotnet-tools" value="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json" />
   </packageSources>
 </configuration>
 ```
@@ -22,27 +22,39 @@ To reference prerelease packages, add a **NuGet.Config** file to your solution d
 * C#
   * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.MSTest
   * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.MSTest
+  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.MSTest
+  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest
 * Visual Basic
   * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.MSTest
   * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.MSTest
+  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.MSTest
+  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest
 
 ### NUnit
 
 * C#
   * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.NUnit
   * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.NUnit
+  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.NUnit
+  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.NUnit
 * Visual Basic
   * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.NUnit
   * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.NUnit
+  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.NUnit
+  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.NUnit
 
 ### xUnit.net
 
 * C#
   * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit
   * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit
+  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.XUnit
+  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit
 * Visual Basic
   * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.XUnit
   * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit
+  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit
+  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.XUnit
 
 ## Verifier overview
 
@@ -107,7 +119,7 @@ properties:
 * `ExpectedDiagnostics`: the diagnostics expected to appear in the input source file
 * `FixedCode`: (code fix tests only) the single output source file produced by applying a code fix to the input
 * Other properties are set to their default values
- 
+
 #### Analyzer with no diagnostics
 
 ```csharp

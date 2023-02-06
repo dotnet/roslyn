@@ -24,7 +24,7 @@ Public Class $saferootidentifiername$CodeFixProvider
     End Property
 
     Public NotOverridable Overrides Function GetFixAllProvider() As FixAllProvider
-        ' See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for more information on Fix All Providers
+        ' See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for more information on Fix All Providers
         Return WellKnownFixAllProviders.BatchFixer
     End Function
 

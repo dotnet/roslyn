@@ -2,11 +2,8 @@ Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<TAnalyzer, TVerifier>
 Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<TAnalyzer, TVerifier>.CSharpAnalyzerTest() -> void
 Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<TAnalyzer, TVerifier>
 Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<TAnalyzer, TVerifier>.CSharpAnalyzerVerifier() -> void
-Microsoft.CodeAnalysis.CSharp.Testing.CSharpProjectState
-Microsoft.CodeAnalysis.CSharp.Testing.CSharpProjectState.CSharpProjectState(string name) -> void
 override Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<TAnalyzer, TVerifier>.CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
 override Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<TAnalyzer, TVerifier>.CreateParseOptions() -> Microsoft.CodeAnalysis.ParseOptions
 override Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<TAnalyzer, TVerifier>.DefaultFileExt.get -> string
 override Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<TAnalyzer, TVerifier>.GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 override Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<TAnalyzer, TVerifier>.Language.get -> string
-override Microsoft.CodeAnalysis.CSharp.Testing.CSharpProjectState.Language.get -> string

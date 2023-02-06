@@ -6,11 +6,11 @@
 
     <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\ExceptionUtilities.cs" Link="ExceptionUtilities.cs" />
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\Extensions\IVerifierExtensions.cs" Link="IVerifierExtensions.cs" />
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\IVerifier.cs" Link="IVerifier.cs" />
-    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\NullableAttributes.cs" Link="NullableAttributes.cs" />
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.XUnit\EmptyWithMessageException.cs" Link="EmptyWithMessageException.cs" />
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.XUnit\EqualWithMessageException.cs" Link="EqualWithMessageException.cs" />
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.XUnit\NotEmptyWithMessageException.cs" Link="NotEmptyWithMessageException.cs" />
@@ -19,26 +19,56 @@
 
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="$(DiffPlexVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioShellInterop121DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.7.DesignTime" Version="$(MicrosoftVisualStudioShellInterop157DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" />
-    <PackageReference Include="VsixTesting.Xunit" Version="$(VsixTestingXunitVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" Version="$(MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(MicrosoftVisualStudioExtensibilityTestingXunitVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
+    <PackageReference Include="Nullable" Version="1.3.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\VisualStudio.Roslyn.SDK\Roslyn.SDK\Roslyn.SDK.csproj" />
+    <ProjectReference Include="..\..\..\src\VisualStudio.Roslyn.SDK\Roslyn.SDK\Roslyn.SDK.csproj" CopyVsix="true" />
   </ItemGroup>
 
-  <Target Name="PrepareVsixProjectReferences" BeforeTargets="ResolveProjectReferences" DependsOnTargets="PrepareProjectReferences">
-    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)" Targets="CreateVsixContainer;VSIXContainerProjectOutputGroup" BuildInParallel="$(BuildInParallel)" Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform); %(_MSBuildProjectReferenceExistent.SetTargetFramework); CreateVsixContainer=true" Condition="'%(_MSBuildProjectReferenceExistent.CopyVsix)' == 'true'" ContinueOnError="!$(BuildingProject)" RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
+  <ItemGroup>
+    <AssemblyAttribute Include="Xunit.Harness.RequireExtensionAttribute">
+      <_Parameter1>Roslyn.SDK.vsix</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <Target Name="SetEnvironmentVariablesForXUnit" BeforeTargets="RunTests">
+    <PropertyGroup>
+      <_OriginalNuGetPackageRoot>$(NuGetPackageRoot)</_OriginalNuGetPackageRoot>
+
+      <!-- Use the first variable in the definition of $(_XUnitConsoleExePath) to change environment variables as part of launching tests -->
+      <NuGetPackageRoot>cmd" /c &amp; (set DOTNET_MULTILEVEL_LOOKUP=) &amp; (set DOTNET_INSTALL_DIR=) &amp; (set DOTNET_ROOT=) &amp; "$(NuGetPackageRoot)</NuGetPackageRoot>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="RestoreBuildState" AfterTargets="RunTests">
+    <PropertyGroup>
+      <NuGetPackageRoot>$(_OriginalNuGetPackageRoot)</NuGetPackageRoot>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="PrepareVsixProjectReferences"
+          BeforeTargets="ResolveProjectReferences"
+          DependsOnTargets="PrepareProjectReferences">
+    <MSBuild
+      Projects="@(_MSBuildProjectReferenceExistent)"
+      Targets="VSIXContainerProjectOutputGroup"
+      BuildInParallel="$(BuildInParallel)"
+      Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform); %(_MSBuildProjectReferenceExistent.SetTargetFramework); CreateVsixContainer=true"
+      Condition="'%(_MSBuildProjectReferenceExistent.CopyVsix)' == 'true'"
+      ContinueOnError="!$(BuildingProject)"
+      RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
 
       <Output TaskParameter="TargetOutputs" ItemName="_ProjectReferenceVsixOutputs" />
     </MSBuild>
 
     <ItemGroup>
-      <None Include="@(_ProjectReferenceVsixOutputs)" Condition="Exists('%(Identity)')" CopyToOutputDirectory="PreserveNewest" />
+      <ReferenceCopyLocalPaths Include="@(_ProjectReferenceVsixOutputs)" />
     </ItemGroup>
   </Target>
 

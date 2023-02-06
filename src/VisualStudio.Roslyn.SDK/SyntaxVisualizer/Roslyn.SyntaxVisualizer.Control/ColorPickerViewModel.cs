@@ -184,7 +184,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         }
 
         #region NotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
         private bool SetProperty<T>(ref T backingField, T value, [CallerMemberName] string propertyName = "")
         {
             if (EqualityComparer<T>.Default.Equals(backingField, value))
@@ -203,7 +203,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         private enum UpdateBehavior
         {
             None,
-            
+
             /// <summary>
             /// Update is triggered from the Color property being updated
             /// </summary>

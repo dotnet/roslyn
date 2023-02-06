@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing.TestFixes;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -90,10 +91,6 @@ class TestClass {{
 }}
 ";
 
-            // The batch code fix provider does not support nested code actions.
-            // https://github.com/dotnet/roslyn/issues/43044
-            var batchFixedCode = testCode;
-
             // Three CodeFixProviders provide three actions
             var codeFixes = ImmutableArray.Create(
                 ImmutableArray.Create(1),
@@ -103,11 +100,6 @@ class TestClass {{
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                BatchFixedState =
-                {
-                    Sources = { batchFixedCode },
-                    MarkupHandling = MarkupMode.Allow,
-                },
             }.RunAsync();
         }
 #endif
@@ -395,7 +387,7 @@ class TestClass {{
 
             private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, int replacement, CancellationToken cancellationToken)
             {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken);
+                var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
                 var root = await tree.GetRootAsync(cancellationToken);
                 var token = root.FindToken(sourceSpan.Start);
                 var newToken = SyntaxFactory.Literal(token.LeadingTrivia, replacement.ToString(), replacement, token.TrailingTrivia);
@@ -403,7 +395,7 @@ class TestClass {{
             }
         }
 
-        private class CSharpTest : CodeFixTest<DefaultVerifier>
+        private class CSharpTest : CSharpCodeFixTest<LiteralZeroAnalyzer, EmptyCodeFixProvider>
         {
             private readonly ImmutableArray<ImmutableArray<int>> _replacementGroups;
             private readonly bool _nested;
@@ -414,33 +406,12 @@ class TestClass {{
                 _nested = nested;
             }
 
-            public override string Language => LanguageNames.CSharp;
-
-            public override Type SyntaxKindType => typeof(SyntaxKind);
-
-            protected override string DefaultFileExt => "cs";
-
-            protected override CompilationOptions CreateCompilationOptions()
-            {
-                return new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            }
-
-            protected override ParseOptions CreateParseOptions()
-            {
-                return new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
-            }
-
             protected override IEnumerable<CodeFixProvider> GetCodeFixProviders()
             {
                 foreach (var replacementGroup in _replacementGroups)
                 {
                     yield return new ReplaceZeroFix(replacementGroup, _nested);
                 }
-            }
-
-            protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-            {
-                yield return new LiteralZeroAnalyzer();
             }
         }
     }

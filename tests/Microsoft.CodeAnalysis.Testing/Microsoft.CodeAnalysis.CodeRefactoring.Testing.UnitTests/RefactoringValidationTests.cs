@@ -243,6 +243,27 @@ Actual and expected values differ. Expected shown in baseline of diff:
         }
 
         [Fact]
+        [WorkItem(991, "https://github.com/dotnet/roslyn-sdk/issues/991")]
+        public async Task TestErrorForLackOfTriggerSpan()
+        {
+            var failure = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new ReplaceThisWithBaseTest<ReplaceThisWithBaseShiftWhitespaceFix>
+                {
+                    TestCode = @"
+class TestClass {
+  void TestMethod() { this.Equals(null); }
+}
+",
+                }.RunAsync();
+            });
+
+            Assert.Equal(
+                @"Expected the refactoring test to specify the refactoring result in 'FixedState'",
+                failure.Message);
+        }
+
+        [Fact]
         [WorkItem(149, "https://github.com/dotnet/roslyn-sdk/pull/149")]
         public async Task TestSemanticValidationPassesFull()
         {
@@ -290,6 +311,68 @@ Actual and expected values differ. Expected shown in baseline of diff:
             }.RunAsync();
         }
 
+        [Fact]
+        [WorkItem(806, "https://github.com/dotnet/roslyn-sdk/issues/806")]
+        public async Task TestWithAdditionalProject_SameLanguage()
+        {
+            await new ReplaceThisWithBaseTest<ReplaceThisWithBaseNodeFix>
+            {
+                TestState =
+                {
+                    Sources = { "public class Ignored { }" },
+                    AdditionalProjects =
+                    {
+                        ["Additional"] =
+                        {
+                            Sources = { ReplaceThisWithBaseTestCode },
+                        },
+                    },
+                },
+                FixedState =
+                {
+                    Sources = { "public class Ignored { }" },
+                    AdditionalProjects =
+                    {
+                        ["Additional"] =
+                        {
+                            Sources = { ReplaceThisWithBaseFixedCode },
+                        },
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(806, "https://github.com/dotnet/roslyn-sdk/issues/806")]
+        public async Task TestWithAdditionalProject_DifferentLanguage()
+        {
+            await new ReplaceThisWithBaseTestVisualBasic<ReplaceThisWithBaseNodeFix>
+            {
+                TestState =
+                {
+                    Sources = { "Public Class Ignored : End Class" },
+                    AdditionalProjects =
+                    {
+                        ["Additional", LanguageNames.CSharp] =
+                        {
+                            Sources = { ReplaceThisWithBaseTestCode },
+                        },
+                    },
+                },
+                FixedState =
+                {
+                    Sources = { "Public Class Ignored : End Class" },
+                    AdditionalProjects =
+                    {
+                        ["Additional", LanguageNames.CSharp] =
+                        {
+                            Sources = { ReplaceThisWithBaseFixedCode },
+                        },
+                    },
+                },
+            }.RunAsync();
+        }
+
         [ExportCodeRefactoringProvider(LanguageNames.CSharp)]
         [PartNotDiscoverable]
         private class ReplaceThisWithBaseTokenFix : CodeRefactoringProvider
@@ -307,7 +390,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
 
             private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
             {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken);
+                var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
                 var root = await tree.GetRootAsync(cancellationToken);
                 var token = root.FindToken(sourceSpan.Start);
                 var newToken = SyntaxFactory.Token(token.LeadingTrivia, token.Kind(), "base", "base", token.TrailingTrivia);
@@ -332,10 +415,10 @@ Actual and expected values differ. Expected shown in baseline of diff:
 
             private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
             {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken);
+                var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
                 var root = await tree.GetRootAsync(cancellationToken);
                 var token = root.FindToken(sourceSpan.Start);
-                var node = token.Parent;
+                var node = token.Parent!;
                 var newToken = SyntaxFactory.Token(token.LeadingTrivia, SyntaxKind.BaseKeyword, "base", "base", token.TrailingTrivia);
 
                 // Intentionally relocate a whitespace trivia node so the text is the same but the tree shape changes
@@ -371,10 +454,10 @@ Actual and expected values differ. Expected shown in baseline of diff:
 
             private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
             {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken);
+                var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
                 var root = await tree.GetRootAsync(cancellationToken);
                 var token = root.FindToken(sourceSpan.Start);
-                var node = token.Parent;
+                var node = token.Parent!;
                 var newToken = SyntaxFactory.Token(token.LeadingTrivia, SyntaxKind.BaseKeyword, "base", "base", token.TrailingTrivia);
                 var newNode = SyntaxFactory.BaseExpression(newToken);
                 return document.WithSyntaxRoot(root.ReplaceNode(node, newNode));
@@ -398,6 +481,31 @@ Actual and expected values differ. Expected shown in baseline of diff:
             protected override ParseOptions CreateParseOptions()
             {
                 return new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
+            }
+
+            protected override IEnumerable<CodeRefactoringProvider> GetCodeRefactoringProviders()
+            {
+                yield return new TCodeRefactoring();
+            }
+        }
+
+        private class ReplaceThisWithBaseTestVisualBasic<TCodeRefactoring> : CodeRefactoringTest<DefaultVerifier>
+            where TCodeRefactoring : CodeRefactoringProvider, new()
+        {
+            public override string Language => LanguageNames.VisualBasic;
+
+            public override Type SyntaxKindType => typeof(VisualBasic.SyntaxKind);
+
+            protected override string DefaultFileExt => "vb";
+
+            protected override CompilationOptions CreateCompilationOptions()
+            {
+                return new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            }
+
+            protected override ParseOptions CreateParseOptions()
+            {
+                return new VisualBasic.VisualBasicParseOptions(VisualBasic.LanguageVersion.Default, DocumentationMode.Diagnose);
             }
 
             protected override IEnumerable<CodeRefactoringProvider> GetCodeRefactoringProviders()

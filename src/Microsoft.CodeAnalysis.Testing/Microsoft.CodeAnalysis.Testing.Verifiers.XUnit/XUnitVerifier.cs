@@ -108,25 +108,11 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? equalityComparer = null, string? message = null)
         {
-            if (message is null && Context.IsEmpty)
+            var comparer = new SequenceEqualEnumerableEqualityComparer<T>(equalityComparer);
+            var areEqual = comparer.Equals(expected, actual);
+            if (!areEqual)
             {
-                if (equalityComparer is null)
-                {
-                    Assert.Equal(expected, actual);
-                }
-                else
-                {
-                    Assert.Equal(expected, actual, equalityComparer);
-                }
-            }
-            else
-            {
-                var comparer = new SequenceEqualEnumerableEqualityComparer<T>(equalityComparer);
-                var areEqual = comparer.Equals(expected, actual);
-                if (!areEqual)
-                {
-                    throw new EqualWithMessageException(expected, actual, CreateMessage(message));
-                }
+                throw new EqualWithMessageException(expected, actual, CreateMessage(message));
             }
         }
 

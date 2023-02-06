@@ -29,7 +29,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
 
             GradientStop left = stops[0];
-            GradientStop right = null;
+            GradientStop? right = null;
 
             foreach (GradientStop stop in stops)
             {
@@ -40,6 +40,11 @@ namespace Roslyn.SyntaxVisualizer.Control
                 }
 
                 left = stop;
+            }
+
+            if (right is null)
+            {
+                return left.Color;
             }
 
             double percent = Math.Round((offset - left.Offset) / (right.Offset - left.Offset), 3);

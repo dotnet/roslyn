@@ -2,6 +2,7 @@
 <Project>
   <PropertyGroup>
     <NoWarn>$(NoWarn);NU5125;NU3005</NoWarn>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
 
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
@@ -17,10 +18,11 @@
     <TestRunnerName>NUnit</TestRunnerName>
   </PropertyGroup>
 
-  <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
-    <TestTargetFrameworks>netcoreapp3.1;net472;net46;netcoreapp1.1;netcoreapp2.0</TestTargetFrameworks>
+    <TestTargetFrameworks>netcoreapp3.1;net472</TestTargetFrameworks>
+    <SourceGeneratorTestTargetFrameworks>netcoreapp3.1;net472</SourceGeneratorTestTargetFrameworks>
 
     <!-- Workaround dependencies that do not yet support netcoreapp3.1 https://github.com/dotnet/roslyn/issues/45114 -->
     <NoWarn>NU1701;$(NoWarn)</NoWarn>
@@ -51,13 +53,13 @@
   <!-- StyleCop Analyzers configuration -->
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)..\..\RoslynSDK.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="StyleCop.Analyzers" Version="$(StyleCopAnalyzersVersion)" PrivateAssets="all" />
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\..\stylecop.json" Link="stylecop.json" />
     <None Include="$(CodeAnalysisRuleSet)" Condition="'$(CodeAnalysisRuleSet)' != ''" Link="%(Filename)%(Extension)" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" PrivateAssets="all" ExcludeAssets="all" />
   </ItemGroup>
 
 </Project>

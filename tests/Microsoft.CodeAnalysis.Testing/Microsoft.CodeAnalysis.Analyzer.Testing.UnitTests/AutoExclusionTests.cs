@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -313,7 +314,7 @@ End Class
             }
         }
 
-        private class CSharpReplaceThisWithBaseTest : AnalyzerTest<DefaultVerifier>
+        private class CSharpReplaceThisWithBaseTest : CSharpAnalyzerTest<EmptyDiagnosticAnalyzer>
         {
             private readonly GeneratedCodeAnalysisFlags? _generatedCodeAnalysisFlags;
 
@@ -322,47 +323,19 @@ End Class
                 _generatedCodeAnalysisFlags = generatedCodeAnalysisFlags;
             }
 
-            public override string Language => LanguageNames.CSharp;
-
-            protected override string DefaultFileExt => "cs";
-
-            protected override CompilationOptions CreateCompilationOptions()
-            {
-                return new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            }
-
-            protected override ParseOptions CreateParseOptions()
-            {
-                return new CSharp.CSharpParseOptions(CSharp.LanguageVersion.Default, DocumentationMode.Diagnose);
-            }
-
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
             {
                 yield return new ReplaceThisWithBaseAnalyzer(_generatedCodeAnalysisFlags);
             }
         }
 
-        private class VisualBasicReplaceThisWithBaseTest : AnalyzerTest<DefaultVerifier>
+        private class VisualBasicReplaceThisWithBaseTest : VisualBasicAnalyzerTest<EmptyDiagnosticAnalyzer>
         {
             private readonly GeneratedCodeAnalysisFlags? _generatedCodeAnalysisFlags;
 
             public VisualBasicReplaceThisWithBaseTest(GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlags)
             {
                 _generatedCodeAnalysisFlags = generatedCodeAnalysisFlags;
-            }
-
-            public override string Language => LanguageNames.VisualBasic;
-
-            protected override string DefaultFileExt => "vb";
-
-            protected override CompilationOptions CreateCompilationOptions()
-            {
-                return new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            }
-
-            protected override ParseOptions CreateParseOptions()
-            {
-                return new VisualBasic.VisualBasicParseOptions(VisualBasic.LanguageVersion.Default, DocumentationMode.Diagnose);
             }
 
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()

@@ -1,13 +1,14 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
-<Project>  
+<Project>
+
   <PropertyGroup>
     <NoWarn>$(NoWarn);NU5125;NU3005</NoWarn>
-
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
 
-  <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -17,13 +18,13 @@
   <Choose>
     <When Condition="'$(Language)' == 'VB'">
       <PropertyGroup>
-        <LangVersion>15.5</LangVersion>
+        <LangVersion>16</LangVersion>
       </PropertyGroup>
     </When>
 
     <When Condition="'$(Language)' == 'C#'">
       <PropertyGroup>
-        <LangVersion>8</LangVersion>
+        <LangVersion>9</LangVersion>
       </PropertyGroup>
 
       <!-- Nullable reference types -->
@@ -36,7 +37,6 @@
   <!-- StyleCop Analyzers configuration -->
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)..\..\RoslynSDK.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   
   <ItemGroup>

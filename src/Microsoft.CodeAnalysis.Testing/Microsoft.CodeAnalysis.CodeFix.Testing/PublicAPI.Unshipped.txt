@@ -14,6 +14,8 @@ Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.FixedCode.set -> void
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.FixedState.get -> Microsoft.CodeAnalysis.Testing.SolutionState
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInDocumentIterations.get -> int?
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInDocumentIterations.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInProjectIterations.get -> int?
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInProjectIterations.set -> void
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllIterations.get -> int?
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllIterations.set -> void
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfIncrementalIterations.get -> int?
@@ -36,7 +38,7 @@ Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider
 Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider.EmptyCodeFixProvider() -> void
 abstract Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.GetCodeFixProviders() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider>
 override Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.IsCompilerDiagnosticIncluded(Microsoft.CodeAnalysis.Diagnostic diagnostic, Microsoft.CodeAnalysis.Testing.CompilerDiagnostics compilerDiagnostics) -> bool
-override Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+override Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.RunImplAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
 override Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider.FixableDiagnosticIds.get -> System.Collections.Immutable.ImmutableArray<string>
 override Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider.RegisterCodeFixesAsync(Microsoft.CodeAnalysis.CodeFixes.CodeFixContext context) -> System.Threading.Tasks.Task
 static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.Diagnostic() -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
@@ -46,4 +48,6 @@ static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest
 static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.VerifyCodeFixAsync(string source, Microsoft.CodeAnalysis.Testing.DiagnosticResult expected, string fixedSource) -> System.Threading.Tasks.Task
 static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.VerifyCodeFixAsync(string source, Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected, string fixedSource) -> System.Threading.Tasks.Task
 static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.VerifyCodeFixAsync(string source, string fixedSource) -> System.Threading.Tasks.Task
+virtual Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CreateCodeFixContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>> registerCodeFix, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.CodeFixes.CodeFixContext
+virtual Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CreateFixAllContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Project project, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider codeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllScope scope, string codeActionEquivalenceKey, System.Collections.Generic.IEnumerable<string> diagnosticIds, Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider fixAllDiagnosticProvider, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.CodeFixes.FixAllContext
 virtual Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.TrySelectDiagnosticToFix(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> fixableDiagnostics) -> Microsoft.CodeAnalysis.Diagnostic

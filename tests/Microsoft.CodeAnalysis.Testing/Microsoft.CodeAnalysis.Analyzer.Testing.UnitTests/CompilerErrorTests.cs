@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
+using CSharpTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.CSharpAnalyzerTest<
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer>;
+using VisualBasicTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.VisualBasicAnalyzerTest<
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer>;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
@@ -405,7 +407,9 @@ class TestClass {
         [InlineData("net472")]
         [InlineData("netcoreapp3.0")]
         [InlineData("netcoreapp3.1")]
-        [InlineData("netcoreapp5.0")]
+#if !(NETCOREAPP1_1 || NET46)
+        [InlineData("net5.0")]
+#endif
         public async Task TestRoslynCompilerUsage_2(string targetFramework)
         {
             var testCode = @"
@@ -431,7 +435,9 @@ class TestClass {
         [InlineData("netstandard2.1")]
         [InlineData("net472")]
         [InlineData("netcoreapp3.1")]
-        [InlineData("netcoreapp5.0")]
+#if !(NETCOREAPP1_1 || NET46)
+        [InlineData("net5.0")]
+#endif
         public async Task TestRoslynCompilerUsage_3(string targetFramework)
         {
             var testCode = @"
@@ -452,40 +458,22 @@ class TestClass {
             }.RunAsync();
         }
 
-        private class CSharpTest : AnalyzerTest<DefaultVerifier>
+#if !(NETCOREAPP1_1 || NET46)
+        [Fact]
+        public async Task TestTopLevelStatements()
         {
-            public override string Language => LanguageNames.CSharp;
-
-            protected override string DefaultFileExt => "cs";
-
-            protected override CompilationOptions CreateCompilationOptions()
-                => new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-
-            protected override ParseOptions CreateParseOptions()
-                => new CSharp.CSharpParseOptions(CSharp.LanguageVersion.Default, DocumentationMode.Diagnose);
-
-            protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+            await new CSharpTest
             {
-                yield return new NoActionAnalyzer();
-            }
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                    Sources =
+                    {
+                        @"return 0;",
+                    },
+                },
+            }.RunAsync();
         }
-
-        private class VisualBasicTest : AnalyzerTest<DefaultVerifier>
-        {
-            public override string Language => LanguageNames.VisualBasic;
-
-            protected override string DefaultFileExt => "vb";
-
-            protected override CompilationOptions CreateCompilationOptions()
-                => new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-
-            protected override ParseOptions CreateParseOptions()
-                => new VisualBasic.VisualBasicParseOptions(VisualBasic.LanguageVersion.Default, DocumentationMode.Diagnose);
-
-            protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-            {
-                yield return new NoActionAnalyzer();
-            }
-        }
+#endif
     }
 }

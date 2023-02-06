@@ -20,7 +20,6 @@
     <PlatformTag>Linux</PlatformTag>
     <PlatformTag>macOS</PlatformTag>
     <ProjectTypeTag>Console</ProjectTypeTag>
-    <ProjectTypeTag>VSSDK</ProjectTypeTag>
     <ProjectTypeTag>Roslyn</ProjectTypeTag>
     <ProjectTypeTag>Extensions</ProjectTypeTag>
   </TemplateData>

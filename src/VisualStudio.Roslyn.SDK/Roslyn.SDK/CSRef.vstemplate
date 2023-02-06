@@ -19,7 +19,6 @@
     <PlatformTag>Windows</PlatformTag>
     <PlatformTag>Linux</PlatformTag>
     <PlatformTag>macOS</PlatformTag>
-    <ProjectTypeTag>VSSDK</ProjectTypeTag>
     <ProjectTypeTag>Roslyn</ProjectTypeTag>
     <ProjectTypeTag>Extensions</ProjectTypeTag>
   </TemplateData>

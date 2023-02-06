@@ -5,154 +5,140 @@
 using System;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
-    public class CreateProjectTests : AbstractIdeIntegrationTest
+    public class CreateProjectTests : AbstractIntegrationTest
     {
-        public override async Task DisposeAsync()
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
-
-            await TestServices.SolutionExplorer.CloseSolutionAsync();
-
-            await base.DisposeAsync();
-        }
-
-        [VsFact]
+        [IdeFact]
         public async Task CreateFromTemplateAsync()
         {
-            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ClassLibrary, languageName: LanguageNames.CSharp);
+            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests), HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.CSharpNetCoreClassLibrary, languageName: LanguageNames.CSharp, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            await TestServices.Editor.SetTextAsync(@"using System");
+            await TestServices.Editor.SetTextAsync(@"using System", HangMitigatingCancellationToken);
 
-            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
             Assert.Equal("========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
-            await TestServices.ErrorList.ShowBuildErrorsAsync();
+            await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
             // Verify that intentional errors get validated by the test
-            var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR);
+            var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken);
             var expected = "(Compiler) Class1.cs(1, 13): error CS1002: ; expected";
             new XUnitVerifier().EqualOrDiff(expected, string.Join(Environment.NewLine, errors));
-            Assert.Equal(1, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
+            Assert.Equal(1, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
         }
 
-        [VsFact]
+        [IdeFact]
         public async Task CreateAnalyzerFromCSharpTemplateAsync()
         {
-            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.CSharp.Analyzer", languageName: LanguageNames.CSharp);
+            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests), HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.CSharp.Analyzer", languageName: LanguageNames.CSharp, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
             Assert.Equal("========== Build: 5 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
-            await TestServices.ErrorList.ShowBuildErrorsAsync();
+            await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
-            var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR);
+            var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken);
             new XUnitVerifier().EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
-            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
 
             // Currently have two analyzer warnings in the template.
-            var warnings = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_WARNING);
-            var expected = @"(Compiler) TestProjAnalyzer.cs(29, 57): warning RS1025: Configure generated code analysis
-(Compiler) TestProjAnalyzer.cs(29, 57): warning RS1026: Enable concurrent execution";
-            new XUnitVerifier().EqualOrDiff(expected, string.Join(Environment.NewLine, warnings));
-            Assert.Equal(2, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
+            var warnings = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken);
+            new XUnitVerifier().EqualOrDiff(string.Empty, string.Join(Environment.NewLine, warnings));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken));
         }
 
-        [VsFact]
+        [IdeFact]
         public async Task CreateRefactoringFromCSharpTemplateAsync()
         {
-            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.CSharp.CodeRefactoring", languageName: LanguageNames.CSharp);
+            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests), HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.CSharp.CodeRefactoring", languageName: LanguageNames.CSharp, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
             Assert.Equal("========== Build: 2 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
-            await TestServices.ErrorList.ShowBuildErrorsAsync();
+            await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
-            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
-            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken));
         }
 
-        [VsFact]
+        [IdeFact]
         public async Task CreateStandaloneToolFromCSharpTemplateAsync()
         {
-            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.CSharp.StandaloneCodeAnalysis", languageName: LanguageNames.CSharp);
+            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests), HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.CSharp.StandaloneCodeAnalysis", languageName: LanguageNames.CSharp, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
             Assert.Equal("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
-            await TestServices.ErrorList.ShowBuildErrorsAsync();
+            await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
-            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
-            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken));
         }
 
-        [VsFact]
+        [IdeFact]
         public async Task CreateAnalyzerFromVisualBasicTemplateAsync()
         {
-            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.VisualBasic.Analyzer", languageName: LanguageNames.VisualBasic);
+            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests), HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.VisualBasic.Analyzer", languageName: LanguageNames.VisualBasic, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
             Assert.Equal("========== Build: 5 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
-            await TestServices.ErrorList.ShowBuildErrorsAsync();
+            await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
-            var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR);
+            var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken);
             new XUnitVerifier().EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
-            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
 
             // Currently have two analyzer warnings in the template.
-            var warnings = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_WARNING);
-            var expected = @"(Compiler) TestProjAnalyzer.vb(32, 37): warning RS1025: Configure generated code analysis
-(Compiler) TestProjAnalyzer.vb(32, 37): warning RS1026: Enable concurrent execution";
-            new XUnitVerifier().EqualOrDiff(expected, string.Join(Environment.NewLine, warnings));
-            Assert.Equal(2, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
+            var warnings = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken);
+            new XUnitVerifier().EqualOrDiff(string.Empty, string.Join(Environment.NewLine, warnings));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken));
         }
 
-        [VsFact]
+        [IdeFact]
         public async Task CreateRefactoringFromVisualBasicTemplateAsync()
         {
-            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.VisualBasic.CodeRefactoring", languageName: LanguageNames.VisualBasic);
+            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests), HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.VisualBasic.CodeRefactoring", languageName: LanguageNames.VisualBasic, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
             Assert.Equal("========== Build: 2 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
-            await TestServices.ErrorList.ShowBuildErrorsAsync();
+            await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
-            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
-            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken));
         }
 
-        [VsFact]
+        [IdeFact]
         public async Task CreateStandaloneToolFromVisualBasicTemplateAsync()
         {
-            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.VisualBasic.StandaloneCodeAnalysis", languageName: LanguageNames.VisualBasic);
+            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests), HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.VisualBasic.StandaloneCodeAnalysis", languageName: LanguageNames.VisualBasic, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
             Assert.Equal("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
-            await TestServices.ErrorList.ShowBuildErrorsAsync();
+            await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
-            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
-            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken));
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             = DependencyProperty.Register(
                 nameof(Hue),
                 typeof(double),
-                typeof(HuePicker), 
+                typeof(HuePicker),
                 new PropertyMetadata(0.0, OnHueChanged));
 
 
