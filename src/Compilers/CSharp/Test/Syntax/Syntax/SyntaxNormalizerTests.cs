@@ -855,6 +855,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """,
                 "static async A<int> () => x");
             TestNormalizeExpression("(A,B)()=>(new A(),new B())", "(A, B) () => (new A(), new B())");
+            TestNormalizeExpression("A.B()=>null", "A.B () => null");
+            TestNormalizeExpression("A.B.C()=>null", "A.B.C () => null");
+            TestNormalizeExpression("int[]()=>null", "int[] () => null");
+            TestNormalizeExpression("A.B[]()=>null", "A.B[] () => null");
+            TestNormalizeExpression("A.B.C[]()=>null", "A.B.C[] () => null");
+            TestNormalizeExpression("int*()=>null", "int* () => null");
+            TestNormalizeExpression("A.B*()=>null", "A.B* () => null");
+            TestNormalizeExpression("A.B.C*()=>null", "A.B.C* () => null");
         }
 
         [Fact]

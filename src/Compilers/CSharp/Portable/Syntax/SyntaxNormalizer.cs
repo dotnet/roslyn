@@ -873,10 +873,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            // Require a separator between a lambda return type and its open paren. Current token might be:
-            // 1. Simple type (predefined or identifier): int () => ... The parent of token is Predefined/Identifier type syntax, which parent is lambda
-            // 2. Close paren of a tuple: (int, int) () => ... The parent of token is tuple type syntax, which parent is lambda
-            // 3. Close `>` of generic name: Task<int> () => ... The parent of token is type argument list, its parent is generic name syntax, and its parent is finally lambda
+            // Require a separator between a lambda return type and its open paren.
+            // Current token might be 2 or 3 layers deeper than lambda expression.
+            // If the type syntax is simple, e.g. int () => ... then the token is 2 layers deeper.
+            // In more complex cases, e.g. int[] () => ..., A.B* () => ... etc. it is 3 layers deeper that the lambda.
             if (token.Parent is { Parent: LambdaExpressionSyntax or { Parent: LambdaExpressionSyntax } } &&
                 next is { RawKind: (int)SyntaxKind.OpenParenToken, Parent.Parent: LambdaExpressionSyntax })
             {
