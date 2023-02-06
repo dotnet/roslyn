@@ -3140,17 +3140,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        'Private Protected Overrides Function SupportsRuntimeCapabilityCore(capability As RuntimeCapability) As Boolean
-        '    Dim assembly = Me.Assembly
-
-        '    Select Case capability
-        '        Case RuntimeCapability.DefaultImplementationsOfInterfaces
-        '            Return assembly.RuntimeSupportsDefaultInterfaceImplementation
-        '    End Select
-
-        '    Return False
-        'End Function
-
 #End Region
 
         Private MustInherit Class AbstractSymbolSearcher
