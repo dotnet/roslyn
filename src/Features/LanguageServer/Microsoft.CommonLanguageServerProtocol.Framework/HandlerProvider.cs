@@ -108,7 +108,6 @@ internal class HandlerProvider : IHandlerProvider
                 var method = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
                 CheckForDuplicates(method, methodHash);
 
-                methodHash.Add(method);
                 requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType), new Lazy<IMethodHandler>(() => handler));
             }
         }
