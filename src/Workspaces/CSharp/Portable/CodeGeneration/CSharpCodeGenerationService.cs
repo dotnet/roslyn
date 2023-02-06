@@ -33,8 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override CodeGenerationOptions DefaultOptions
             => CSharpCodeGenerationOptions.Default;
 
-        public override CodeGenerationOptions GetCodeGenerationOptions(AnalyzerConfigOptions options, CodeGenerationOptions? fallbackOptions)
-            => options.GetCSharpCodeGenerationOptions((CSharpCodeGenerationOptions?)fallbackOptions);
+        public override CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options, CodeGenerationOptions? fallbackOptions)
+            => new CSharpCodeGenerationOptions(options, (CSharpCodeGenerationOptions?)fallbackOptions);
+
+        public override CSharpCodeGenerationContextInfo GetInfo(CodeGenerationContext context, CodeGenerationOptions options, ParseOptions parseOptions)
+            => new(context, (CSharpCodeGenerationOptions)options, this, ((CSharpParseOptions)parseOptions).LanguageVersion);
 
         public override CodeGenerationDestination GetDestination(SyntaxNode node)
             => CSharpCodeGenerationHelpers.GetDestination(node);

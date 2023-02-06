@@ -207,6 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
         /// <summary>
+        /// True when the "disable-length-based-switch" feature flag is set.
+        /// When this flag is set, the compiler will not emit length-based switch for string dispatches.
+        /// </summary>
+        internal bool FeatureDisableLengthBasedSwitch => Feature("disable-length-based-switch") != null;
+
+        /// <summary>
         /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
         /// </summary>
         /// <remarks>
@@ -3176,8 +3182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // testData is only passed when running tests.
             if (testData != null)
             {
-                moduleBeingBuilt.SetMethodTestData(testData.Methods);
-                testData.Module = moduleBeingBuilt;
+                moduleBeingBuilt.SetTestData(testData);
             }
 
             return moduleBeingBuilt;
@@ -3897,7 +3902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
                 var nullableAnnotation = memberNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : memberNullableAnnotations[i].ToInternalAnnotation();
-                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None, DeclarationScope.Unscoped));
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None, ScopedKind.None));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);

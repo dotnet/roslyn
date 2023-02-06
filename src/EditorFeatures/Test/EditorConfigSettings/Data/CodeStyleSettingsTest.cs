@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-extern alias WORKSPACES;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -10,24 +9,31 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.CodeAnalysis.UnitTests;
-using WORKSPACES::Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
 {
+    [UseExportProvider]
     public class CodeStyleSettingsTest
     {
+        private static IGlobalOptionService GetGlobalOptions(Workspace workspace)
+            => workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
         public static void CodeStyleSettingBoolFactory(bool defaultValue)
         {
+            using var workspace = new AdhocWorkspace();
+            var globalOptions = GetGlobalOptions(workspace);
+
             var option = CreateBoolOption(defaultValue);
 
             var options = new TieredAnalyzerConfigOptions(
                 new TestAnalyzerConfigOptions(),
-                new TestAnalyzerConfigOptions(new[] { ("csharp_test_option", "default") }),
+                globalOptions,
                 LanguageNames.CSharp,
                 ".editorconfig");
 
@@ -44,11 +50,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
         [InlineData(DayOfWeek.Friday)]
         public static void CodeStyleSettingEnumFactory(DayOfWeek defaultValue)
         {
+            using var workspace = new AdhocWorkspace();
+            var globalOptions = GetGlobalOptions(workspace);
+
             var option = CreateEnumOption(defaultValue);
 
             var options = new TieredAnalyzerConfigOptions(
                 new TestAnalyzerConfigOptions(),
-                new TestAnalyzerConfigOptions(new[] { ("csharp_test_option", "default") }),
+                globalOptions,
                 LanguageNames.CSharp,
                 ".editorconfig");
 
@@ -72,10 +81,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             var defaultCodeStyle = (CodeStyleOption2<bool>)((ICodeStyleOption)CodeStyleOption2<bool>.Default).WithValue(defaultValue);
 
             return new Option2<CodeStyleOption2<bool>>(
-                feature: "TestFeature",
-                name: "TestOption",
+                name: "dotnet_test_option",
                 defaultValue: defaultCodeStyle,
-                new EditorConfigStorageLocation<CodeStyleOption2<bool>>("csharp_test_option", _ => defaultCodeStyle, _ => "default"));
+                serializer: new EditorConfigValueSerializer<CodeStyleOption2<bool>>(_ => defaultCodeStyle, _ => "default"),
+                isEditorConfigOption: true);
         }
 
         private static Option2<CodeStyleOption2<T>> CreateEnumOption<T>(T defaultValue)
@@ -83,10 +92,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
         {
             var defaultCodeStyle = (CodeStyleOption2<T>)((ICodeStyleOption)CodeStyleOption2<T>.Default).WithValue(defaultValue);
             return new Option2<CodeStyleOption2<T>>(
-                feature: "TestFeature",
-                name: "TestOption",
+                name: "dotnet_test_option",
                 defaultValue: defaultCodeStyle,
-                new EditorConfigStorageLocation<CodeStyleOption2<T>>("csharp_test_option", _ => defaultCodeStyle, _ => "default"));
+                serializer: new EditorConfigValueSerializer<CodeStyleOption2<T>>(_ => defaultCodeStyle, _ => "default"),
+                isEditorConfigOption: true);
         }
 
         private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
@@ -96,15 +105,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
                 => _dictionary = options?.ToDictionary(x => x.Item1, x => x.Item2) ?? new Dictionary<string, string>();
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
                 => _dictionary.TryGetValue(key, out value);
-        }
-
-        private class TestOptionSet<T> : OptionSet
-        {
-            private readonly object? _value;
-            public TestOptionSet(CodeStyleOption2<T> value) => _value = value;
-            public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value) => this;
-            internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet) => Array.Empty<OptionKey>();
-            private protected override object? GetOptionCore(OptionKey optionKey) => _value;
         }
     }
 }

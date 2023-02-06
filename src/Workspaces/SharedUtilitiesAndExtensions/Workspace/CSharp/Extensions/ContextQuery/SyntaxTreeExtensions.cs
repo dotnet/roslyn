@@ -602,6 +602,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
                     return true;
+
+                if (container is VariableDeclarationSyntax && modifierTokens.Contains(SyntaxKind.FileKeyword))
+                    return true;
             }
 
             return false;
@@ -611,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this SyntaxTree syntaxTree,
             int position,
             CancellationToken cancellationToken,
-            SemanticModel? semanticModelOpt = null)
+            SemanticModel? semanticModel = null)
         {
             // first do quick exit check
             if (syntaxTree.IsInNonUserCode(position, cancellationToken) ||
@@ -658,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // if it is not using directive location, most of places where 
             // type can appear, namespace can appear as well
-            return syntaxTree.IsTypeContext(position, cancellationToken, semanticModelOpt);
+            return syntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
         }
 
         public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
@@ -710,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static bool IsTypeContext(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, SemanticModel? semanticModelOpt = null)
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, SemanticModel? semanticModel = null)
         {
             // first do quick exit check
             if (syntaxTree.IsDefinitelyNotTypeContext(position, cancellationToken))
@@ -732,9 +735,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsCatchVariableDeclarationContext(position, cancellationToken) ||
                 syntaxTree.IsDefiniteCastTypeContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsDelegateReturnTypeContext(position, tokenOnLeftOfPosition) ||
-                syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModelOpt) ||
+                syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel) ||
                 syntaxTree.IsPrimaryFunctionExpressionContext(position, tokenOnLeftOfPosition) ||
-                syntaxTree.IsGenericTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken, semanticModelOpt) ||
+                syntaxTree.IsGenericTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken, semanticModel) ||
                 syntaxTree.IsFunctionPointerTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken) ||
                 syntaxTree.IsFixedVariableDeclarationContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsImplicitOrExplicitOperatorTypeContext(position, tokenOnLeftOfPosition) ||
@@ -764,6 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             // class C : |
             // class C : Bar, |
+            // NOT enum E : |
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
@@ -771,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.ColonToken) ||
                 token.IsKind(SyntaxKind.CommaToken))
             {
-                if (token.Parent.IsKind(SyntaxKind.BaseList))
+                if (token.Parent is BaseListSyntax { Parent: not EnumDeclarationSyntax })
                 {
                     return true;
                 }
@@ -1461,12 +1465,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     // Patterns such as 'e is not $$', 'e is 1 or $$', 'e is ($$', and 'e is null or global::$$' should be invalid here
                     // as they are incomplete patterns.
-                    return !(leftToken.IsKind(SyntaxKind.OrKeyword) ||
-                        leftToken.IsKind(SyntaxKind.AndKeyword) ||
-                        leftToken.IsKind(SyntaxKind.NotKeyword) ||
-                        leftToken.IsKind(SyntaxKind.OpenParenToken) ||
-                        leftToken.IsKind(SyntaxKind.ColonColonToken) ||
-                        leftToken.IsKind(SyntaxKind.DotDotToken));
+                    return leftToken.Kind() is not (SyntaxKind.OrKeyword
+                        or SyntaxKind.AndKeyword
+                        or SyntaxKind.NotKeyword
+                        or SyntaxKind.OpenParenToken
+                        or SyntaxKind.ColonColonToken
+                        or SyntaxKind.DotDotToken
+                        or SyntaxKind.OpenBraceToken);
                 }
 
                 // We want to make sure that IsAtEndOfPattern returns true even when the user is in the middle of typing a keyword

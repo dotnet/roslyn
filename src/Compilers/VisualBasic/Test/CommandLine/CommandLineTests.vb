@@ -26,6 +26,7 @@ Imports Microsoft.DiaSymReader
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.SharedResourceHelpers
+Imports Roslyn.Test.Utilities.TestGenerators
 Imports Roslyn.Utilities
 Imports TestResources.Analyzers
 Imports Xunit
@@ -7810,7 +7811,8 @@ BC2006: option 'analyzerconfig' requires ':<file_list>']]>
                                              Optional expectedWarningCount As Integer = 0,
                                              Optional expectedErrorCount As Integer = 0,
                                              Optional errorlog As Boolean = False,
-                                             Optional analyzers As DiagnosticAnalyzer() = Nothing) As String
+                                             Optional analyzers As DiagnosticAnalyzer() = Nothing,
+                                             Optional generators As ISourceGenerator() = Nothing) As String
             Dim args = {
                             "/nologo", "/preferreduilang:en", "/t:library",
                             sourceFile.Path
@@ -7827,7 +7829,7 @@ BC2006: option 'analyzerconfig' requires ':<file_list>']]>
                 args = args.Append(additionalFlags)
             End If
 
-            Dim vbc = New MockVisualBasicCompiler(Nothing, sourceDir.Path, args, analyzers)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, sourceDir.Path, args, analyzers, generators)
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = vbc.Run(outWriter, Nothing)
             Dim output = outWriter.ToString()
@@ -10399,6 +10401,143 @@ End Class")
             VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:CS8850,CS8033", "/analyzer:" & frameworkGenerator})
         End Sub
 
+        <Fact>
+        Public Sub SourceGenerators_DoNotWriteGeneratedSources_When_No_Directory_Supplied()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+End Class")
+            Dim generatedDir = dir.CreateDirectory("generated")
+
+            Dim generatedSource = "
+Class D
+End Class"
+
+            Dim generator = New SingleFileTestGenerator(generatedSource, "generatedSource.vb")
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, generators:={generator})
+
+            Dim generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator)
+            ValidateWrittenSources(New Dictionary(Of String, Dictionary(Of String, String))() From
+                {{generatedDir.Path, New Dictionary(Of String, String)()}}
+            )
+            'Clean up temp files
+            CleanupAllGeneratedFiles(src.Path)
+            Directory.Delete(dir.Path, True)
+
+        End Sub
+
+        <Fact>
+        Public Sub SourceGenerators_Error_When_GeneratedDir_NotExist()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+End Class")
+            Dim generatedDirPath = Path.Combine(dir.Path, "noexist")
+            Dim generatedSource = "
+Class D
+End Class"
+
+            Dim generator = New SingleFileTestGenerator(generatedSource, "generatedSource.vb")
+
+            Dim output = VerifyOutput(dir, src, expectedErrorCount:=1, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/generatedfilesout:" + generatedDirPath}, generators:={generator})
+            Assert.Contains("BC2012:", output)
+
+            'Clean up temp files
+            CleanupAllGeneratedFiles(src.Path)
+            Directory.Delete(dir.Path, True)
+
+        End Sub
+
+        <Fact>
+        Public Sub SourceGenerators_GeneratedDir_Has_Spaces()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+End Class")
+            Dim generatedDir = dir.CreateDirectory("generated files")
+
+            Dim generatedSource = "
+Class D
+End Class"
+
+            Dim generator = New SingleFileTestGenerator(generatedSource, "generatedSource.vb")
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/generatedfilesout:" + generatedDir.Path}, generators:={generator})
+
+            Dim generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator)
+            ValidateWrittenSources(New Dictionary(Of String, Dictionary(Of String, String))() From
+                {{Path.Combine(generatedDir.Path, generatorPrefix), New Dictionary(Of String, String)() From
+                    {{"generatedSource.vb", generatedSource}}
+                }}
+            )
+            'Clean up temp files
+            CleanupAllGeneratedFiles(src.Path)
+            Directory.Delete(dir.Path, True)
+
+        End Sub
+
+        <Fact>
+        Public Sub SourceGenerators_Error_When_NoDirectoryArgumentGiven()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText("
+Class C
+End Class")
+
+            Dim output = VerifyOutput(dir, src, expectedErrorCount:=1, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/generatedfilesout:"})
+            Assert.Contains("vbc : error BC2006: option 'generatedfilesout' requires ':<dir>'", output)
+
+            'Clean up temp files
+            CleanupAllGeneratedFiles(src.Path)
+            Directory.Delete(dir.Path, True)
+        End Sub
+
+        <Fact>
+        Public Sub ParseGeneratedFilesOut()
+            Dim root As String = If(PathUtilities.IsUnixLikePlatform, "/", "c:\")
+            Dim baseDirectory As String = Path.Combine(root, "abc", "def")
+
+            Dim parsedArgs = DefaultParse({"/generatedfilesout:", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("generatedfilesout", ":<dir>").WithLocation(1, 1))
+            Assert.Null(parsedArgs.GeneratedFilesOutputDirectory)
+
+            parsedArgs = DefaultParse({"/generatedfilesout:""""", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("generatedfilesout", ":<dir>").WithLocation(1, 1))
+            Assert.Null(parsedArgs.GeneratedFilesOutputDirectory)
+
+            parsedArgs = DefaultParse({"/generatedfilesout:outdir", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(baseDirectory, "outdir"), parsedArgs.GeneratedFilesOutputDirectory)
+
+            parsedArgs = DefaultParse({"/generatedfilesout:""outdir""", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(baseDirectory, "outdir"), parsedArgs.GeneratedFilesOutputDirectory)
+
+            parsedArgs = DefaultParse({"/generatedfilesout:out dir", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(baseDirectory, "out dir"), parsedArgs.GeneratedFilesOutputDirectory)
+
+            parsedArgs = DefaultParse({"/generatedfilesout:""out dir""", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(baseDirectory, "out dir"), parsedArgs.GeneratedFilesOutputDirectory)
+
+            Dim absPath = Path.Combine(root, "outdir")
+            parsedArgs = DefaultParse({$"/generatedfilesout:{absPath}", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory)
+
+            parsedArgs = DefaultParse({$"/generatedfilesout:""{absPath}""", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory)
+
+            absPath = Path.Combine(root, "generated files")
+            parsedArgs = DefaultParse({$"/generatedfilesout:{absPath}", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory)
+
+            parsedArgs = DefaultParse({$"/generatedfilesout:""{absPath}""", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory)
+        End Sub
+
         Private Function EmitGenerator(ByVal targetFramework As String) As String
             Dim targetFrameworkAttributeText As String = If(TypeOf targetFramework Is Object, $"<Assembly: System.Runtime.Versioning.TargetFramework(""{targetFramework}"")>", String.Empty)
             Dim generatorSource As String = $"
@@ -10428,6 +10567,26 @@ End Class
             Assert.[True](result.Success)
             Return generatorPath
         End Function
+
+        Private Shared Sub ValidateWrittenSources(ByVal expectedFilesMap As Dictionary(Of String, Dictionary(Of String, String)), ByVal Optional encoding As Encoding = Nothing)
+            For Each kvp In expectedFilesMap.ToArray()
+                Dim dirPath = kvp.Key
+                Dim fileMap = kvp.Value
+
+                For Each fileName In Directory.GetFiles(dirPath)
+                    Dim name = Path.GetFileName(fileName)
+                    Dim content = File.ReadAllText(fileName, If(encoding, Encoding.UTF8))
+                    Assert.Equal(fileMap(name), content)
+                    Assert.[True](fileMap.Remove(name))
+                Next
+
+                Assert.Empty(fileMap)
+                Assert.[True](expectedFilesMap.Remove(dirPath))
+            Next
+
+            Assert.Empty(expectedFilesMap)
+        End Sub
+
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitCatchBlock(node);
             }
 
-            if (node.ExceptionFilterOpt.ConstantValue?.BooleanValue == false)
+            if (node.ExceptionFilterOpt.ConstantValueOpt?.BooleanValue == false)
             {
                 return null;
             }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the containing method is edited while methods invoked in the condition are being executed.
             if (rewrittenFilter != null && !node.WasCompilerGenerated && this.Instrument)
             {
-                rewrittenFilter = _instrumenter.InstrumentCatchClauseFilter(node, rewrittenFilter, _factory);
+                rewrittenFilter = Instrumenter.InstrumentCatchClauseFilter(node, rewrittenFilter, _factory);
             }
 
             return node.Update(

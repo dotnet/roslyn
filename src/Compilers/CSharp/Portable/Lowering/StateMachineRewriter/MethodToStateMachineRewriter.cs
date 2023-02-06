@@ -38,15 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly LocalSymbol cachedState;
 
         /// <summary>
-        /// Cached "this" local, used to store the captured "this", which is safe to cache locally since "this" 
+        /// Cached "this" local, used to store the captured "this", which is safe to cache locally since "this"
         /// is semantically immutable.
         /// It would be hard for such caching to happen at JIT level (since JIT does not know that it never changes).
         /// NOTE: this field is null when we are not caching "this" which happens when
         ///       - not optimizing
         ///       - method is not capturing "this" at all
-        ///       - containing type is a struct 
-        ///       (we could cache "this" as a ref local for struct containers, 
-        ///       but such caching would not save as much indirection and could actually 
+        ///       - containing type is a struct
+        ///       (we could cache "this" as a ref local for struct containers,
+        ///       but such caching would not save as much indirection and could actually
         ///       be done at JIT level, possibly more efficiently)
         /// </summary>
         protected readonly LocalSymbol cachedThis;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.
         /// </summary>
-        private readonly IReadOnlySet<Symbol> _hoistedVariables;
+        private readonly Roslyn.Utilities.IReadOnlySet<Symbol> _hoistedVariables;
 
         private readonly SynthesizedLocalOrdinalsDispenser _synthesizedLocalOrdinals;
         private int _nextFreeHoistedLocalSlot;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory F,
             MethodSymbol originalMethod,
             FieldSymbol state,
-            IReadOnlySet<Symbol> hoistedVariables,
+            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return OriginalMethod.ContainingType; }
         }
 
-        internal IReadOnlySet<Symbol> HoistedVariables
+        internal Roslyn.Utilities.IReadOnlySet<Symbol> HoistedVariables
         {
             get
             {
@@ -312,8 +312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     proxies.Add(local, proxy);
                 }
 
-                // We need to produce hoisted local scope debug information for user locals as well as 
-                // lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
+                // We need to produce hoisted local scope debug information for user locals as well as
+                // lambda display classes, since Dev12 EE uses them to determine which variables are displayed
                 // in Locals window.
                 if ((local.SynthesizedKind == SynthesizedLocalKind.UserDefined && local.ScopeDesignatorOpt?.Kind() != SyntaxKind.SwitchSection) ||
                     local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var translatedStatement = wrapped();
             var variableCleanup = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
 
-            // produce cleanup code for all fields of locals defined by this block 
+            // produce cleanup code for all fields of locals defined by this block
             // as well as all proxies allocated by VisitAssignmentOperator within this block:
             foreach (var local in locals)
             {
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // These are only used to calculate debug id for ref-spilled variables, 
+                // These are only used to calculate debug id for ref-spilled variables,
                 // no need to do so in release build.
                 awaitSyntaxOpt = null;
                 syntaxOffset = -1;
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto default;
 
                 default:
-                    if (expr.ConstantValue != null)
+                    if (expr.ConstantValueOpt != null)
                     {
                         return expr;
                     }
@@ -919,8 +919,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 //TODO: It seems we may capture more than needed here.
 
-                // TODO: Why don't we drop "this" while lowering if method is static? 
-                //       Actually, considering that method group expression does not evaluate to a particular value 
+                // TODO: Why don't we drop "this" while lowering if method is static?
+                //       Actually, considering that method group expression does not evaluate to a particular value
                 //       why do we have it in the lowered tree at all?
                 return node.Update(VisitType(node.Type));
             }

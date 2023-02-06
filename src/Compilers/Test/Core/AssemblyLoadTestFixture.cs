@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
@@ -14,98 +15,100 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public sealed class AssemblyLoadTestFixture : IDisposable
+    public sealed class AssemblyLoadTestFixture : MarshalByRefObject, IDisposable
     {
         private readonly TempRoot _temp;
         private readonly TempDirectory _directory;
 
+        public string TempDirectory => _directory.Path;
+
         /// <summary>
         /// An assembly with no references, assembly version 1.
         /// </summary>
-        public TempFile Delta1 { get; }
+        public string Delta1 { get; }
 
         /// <summary>
         /// An assembly with no references, assembly version 1, and public signed.
         /// </summary>
-        public TempFile DeltaPublicSigned1 { get; }
+        public string DeltaPublicSigned1 { get; }
 
         /// <summary>
         /// An assembly with a reference to <see cref="Delta1"/>.
         /// </summary>
-        public TempFile Gamma { get; }
+        public string Gamma { get; }
 
         /// <summary>
         /// An assembly with a reference to <see cref="DeltaPublicSigned1"/>.
         /// </summary>
-        public TempFile GammaReferencingPublicSigned { get; }
+        public string GammaReferencingPublicSigned { get; }
 
         /// <summary>
         /// An assembly with a reference to <see cref="Gamma"/>.
         /// </summary>
-        public TempFile Beta { get; }
+        public string Beta { get; }
 
         /// <summary>
         /// An assembly with a reference to <see cref="Gamma"/>.
         /// </summary>
-        public TempFile Alpha { get; }
+        public string Alpha { get; }
 
         /// <summary>
         /// An assembly with no references, assembly version 2.
         /// </summary>
-        public TempFile Delta2 { get; }
+        public string Delta2 { get; }
 
         /// <summary>
         /// An assembly with no references, assembly version 2, and public signed.
         /// </summary>
-        public TempFile DeltaPublicSigned2 { get; }
+        public string DeltaPublicSigned2 { get; }
 
         /// <summary>
         /// An assembly with a reference to <see cref="Delta2"/>.
         /// </summary>
-        public TempFile Epsilon { get; }
+        public string Epsilon { get; }
 
         /// <summary>
         /// An assembly with a reference to <see cref="DeltaPublicSigned2"/>.
         /// </summary>
-        public TempFile EpsilonReferencingPublicSigned { get; }
+        public string EpsilonReferencingPublicSigned { get; }
 
         /// <summary>
         /// An assembly with no references, assembly version 2. The implementation however is different than
         /// <see cref="Delta2"/> so we can test having two assemblies that look the same but aren't.
         /// </summary>
-        public TempFile Delta2B { get; }
+        public string Delta2B { get; }
 
         /// <summary>
         /// An assembly with no references, assembly version 3.
         /// </summary>
-        public TempFile Delta3 { get; }
+        public string Delta3 { get; }
 
-        public TempFile UserSystemCollectionsImmutable { get; }
+        public string UserSystemCollectionsImmutable { get; }
 
         /// <summary>
         /// An analyzer which uses members in its referenced version of System.Collections.Immutable
         /// that are not present in the compiler's version of System.Collections.Immutable.
         /// </summary>
-        public TempFile AnalyzerReferencesSystemCollectionsImmutable1 { get; }
+        public string AnalyzerReferencesSystemCollectionsImmutable1 { get; }
 
         /// <summary>
         /// An analyzer which uses members in its referenced version of System.Collections.Immutable
         /// which have different behavior than the same members in compiler's version of System.Collections.Immutable.
         /// </summary>
-        public TempFile AnalyzerReferencesSystemCollectionsImmutable2 { get; }
+        public string AnalyzerReferencesSystemCollectionsImmutable2 { get; }
 
-        public TempFile AnalyzerReferencesDelta1 { get; }
+        public string AnalyzerReferencesDelta1 { get; }
 
-        public TempFile FaultyAnalyzer { get; }
+        public string FaultyAnalyzer { get; }
 
-        public TempFile AnalyzerWithDependency { get; }
-        public TempFile AnalyzerDependency { get; }
+        public string AnalyzerWithDependency { get; }
+        public string AnalyzerDependency { get; }
 
-        public TempFile AnalyzerWithNativeDependency { get; }
+        public string AnalyzerWithNativeDependency { get; }
 
-        public TempFile AnalyzerWithFakeCompilerDependency { get; }
+        public string AnalyzerWithFakeCompilerDependency { get; }
 
-        public TempFile AnalyzerWithLaterFakeCompilerDependency { get; }
+        public string AnalyzerWithLaterFakeCompilerDependency { get; }
 
         public AssemblyLoadTestFixture()
         {
@@ -131,7 +134,7 @@ namespace Delta
 ";
 
             Delta1 = GenerateDll("Delta", _directory, Delta1Source);
-            var delta1Reference = MetadataReference.CreateFromFile(Delta1.Path);
+            var delta1Reference = MetadataReference.CreateFromFile(Delta1);
             DeltaPublicSigned1 = GenerateDll("DeltaPublicSigned", _directory.CreateDirectory("Delta1PublicSigned"), Delta1Source, publicKeyOpt: SigningTestHelpers.PublicKey);
 
             const string GammaSource = @"
@@ -152,9 +155,9 @@ namespace Gamma
 }
 ";
             Gamma = GenerateDll("Gamma", _directory, GammaSource, delta1Reference);
-            GammaReferencingPublicSigned = GenerateDll("GammaReferencingPublicSigned", _directory.CreateDirectory("GammaReferencingPublicSigned"), GammaSource, MetadataReference.CreateFromFile(DeltaPublicSigned1.Path));
+            GammaReferencingPublicSigned = GenerateDll("GammaReferencingPublicSigned", _directory.CreateDirectory("GammaReferencingPublicSigned"), GammaSource, MetadataReference.CreateFromFile(DeltaPublicSigned1));
 
-            var gammaReference = MetadataReference.CreateFromFile(Gamma.Path);
+            var gammaReference = MetadataReference.CreateFromFile(Gamma);
             Beta = GenerateDll("Beta", _directory, @"
 using System.Text;
 using Gamma;
@@ -213,7 +216,7 @@ namespace Delta
             var v2PublicSignedDirectory = _directory.CreateDirectory("Version2PublicSigned");
             DeltaPublicSigned2 = GenerateDll("DeltaPublicSigned", v2PublicSignedDirectory, Delta2Source, publicKeyOpt: SigningTestHelpers.PublicKey);
 
-            var delta2Reference = MetadataReference.CreateFromFile(Delta2.Path);
+            var delta2Reference = MetadataReference.CreateFromFile(Delta2);
 
             const string EpsilonSource = @"
 using System.Text;
@@ -233,7 +236,7 @@ namespace Epsilon
 }
 ";
             Epsilon = GenerateDll("Epsilon", v2Directory, EpsilonSource, delta2Reference);
-            EpsilonReferencingPublicSigned = GenerateDll("EpsilonReferencingPublicSigned", v2PublicSignedDirectory, EpsilonSource, MetadataReference.CreateFromFile(DeltaPublicSigned2.Path));
+            EpsilonReferencingPublicSigned = GenerateDll("EpsilonReferencingPublicSigned", v2PublicSignedDirectory, EpsilonSource, MetadataReference.CreateFromFile(DeltaPublicSigned2));
 
             var v2BDirectory = _directory.CreateDirectory("Version2B");
             Delta2B = GenerateDll("Delta", v2BDirectory, @"
@@ -293,7 +296,7 @@ namespace System.Collections.Immutable
 }
 ", compilerReference);
 
-            var userSystemCollectionsImmutableReference = MetadataReference.CreateFromFile(UserSystemCollectionsImmutable.Path);
+            var userSystemCollectionsImmutableReference = MetadataReference.CreateFromFile(UserSystemCollectionsImmutable);
             AnalyzerReferencesSystemCollectionsImmutable1 = GenerateDll("AnalyzerUsesSystemCollectionsImmutable1", sciUserDirectory, @"
 using System.Text;
 using System.Collections.Immutable;
@@ -321,7 +324,7 @@ public class Analyzer
 ", userSystemCollectionsImmutableReference, compilerReference);
 
             var analyzerReferencesDelta1Directory = _directory.CreateDirectory("AnalyzerReferencesDelta1");
-            var delta1InAnalyzerReferencesDelta1 = analyzerReferencesDelta1Directory.CopyFile(Delta1.Path);
+            var delta1InAnalyzerReferencesDelta1 = analyzerReferencesDelta1Directory.CopyFile(Delta1);
 
             AnalyzerReferencesDelta1 = GenerateDll("AnalyzerReferencesDelta1", _directory, @"
 using System.Text;
@@ -372,7 +375,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 public sealed class TestAnalyzer : AbstractTestAnalyzer
 {
     private static string SomeString2 = AbstractTestAnalyzer.SomeString;
-}", realSciReference, compilerReference, MetadataReference.CreateFromFile(AnalyzerDependency.Path));
+}", realSciReference, compilerReference, MetadataReference.CreateFromFile(AnalyzerDependency));
 
             AnalyzerWithNativeDependency = GenerateDll("AnalyzerWithNativeDependency", _directory, @"
 using System;
@@ -410,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     }
 }
 ");
-            var fakeCompilerReference = MetadataReference.CreateFromFile(fakeCompilerAssembly.Path);
+            var fakeCompilerReference = MetadataReference.CreateFromFile(fakeCompilerAssembly);
             AnalyzerWithFakeCompilerDependency = GenerateDll("AnalyzerWithFakeCompilerDependency", analyzerWithFakeCompilerDependencyDirectory, @"
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -438,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     }
 }
 ");
-            var laterCompilerReference = MetadataReference.CreateFromFile(laterFakeCompilerAssembly.Path);
+            var laterCompilerReference = MetadataReference.CreateFromFile(laterFakeCompilerAssembly);
             AnalyzerWithLaterFakeCompilerDependency = GenerateDll("AnalyzerWithLaterFakeCompilerDependency", analyzerWithLaterFakeCompileDirectory, @"
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -448,12 +451,12 @@ public class Analyzer : DiagnosticAnalyzer
 }", laterCompilerReference);
         }
 
-        private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, params MetadataReference[] additionalReferences)
+        private static string GenerateDll(string assemblyName, TempDirectory directory, string csSource, params MetadataReference[] additionalReferences)
         {
             return GenerateDll(assemblyName, directory, csSource, publicKeyOpt: default, additionalReferences);
         }
 
-        private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, ImmutableArray<byte> publicKeyOpt, params MetadataReference[] additionalReferences)
+        private static string GenerateDll(string assemblyName, TempDirectory directory, string csSource, ImmutableArray<byte> publicKeyOpt, params MetadataReference[] additionalReferences)
         {
             CSharpCompilationOptions options = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel);
 
@@ -475,7 +478,14 @@ public class Analyzer : DiagnosticAnalyzer
 
             var tempFile = directory.CreateFile($"{assemblyName}.dll");
             tempFile.WriteAllBytes(analyzerDependencyCompilation.EmitToArray());
-            return tempFile;
+
+            // Mark the file as read only to prevent mutations. The output of this type is frequently used across
+            // unit tests boundaries. Need a guardrail to make sure one test doesn't pollute the output of 
+            // another test.
+            var fileInfo = new FileInfo(tempFile.Path);
+            fileInfo.IsReadOnly = true;
+
+            return tempFile.Path;
         }
 
         public void Dispose()

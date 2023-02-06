@@ -256,6 +256,8 @@
 -errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
 -filealign:&lt;number&gt;               Specify the alignment used for output file
                                   sections.
 -highentropyva[+|-]               Enable high-entropy ASLR.
@@ -292,7 +294,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Opcje kompilatora Visual Basic
+        <target state="needs-review-translation">                  Opcje kompilatora Visual Basic
 
                                   - OUTPUT FILE -
 -out:&lt;file&gt;                       Określa nazwę pliku wyjściowego.
