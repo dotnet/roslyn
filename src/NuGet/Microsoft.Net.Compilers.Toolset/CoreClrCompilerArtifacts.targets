@@ -10,6 +10,8 @@
 
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\net6.0\Microsoft.CodeAnalysis.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\net6.0\**\Microsoft.CodeAnalysis.resources.dll" />
+      
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Private\$(Configuration)\net6.0\Microsoft.CodeAnalysis.Private.dll" />
 
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\net6.0\Microsoft.CodeAnalysis.CSharp.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\net6.0\**\Microsoft.CodeAnalysis.CSharp.resources.dll" />
