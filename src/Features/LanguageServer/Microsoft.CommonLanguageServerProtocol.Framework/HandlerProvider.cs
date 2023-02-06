@@ -208,11 +208,12 @@ internal class HandlerProvider : IHandlerProvider
     /// <summary>
     /// Retrieves the generic argument information from the request handler type without instantiating it.
     /// </summary>
-    private static IEnumerable<HandlerTypes> ConvertHandlerTypeToRequestResponseTypes(Type handlerType)
+    private static List<HandlerTypes> ConvertHandlerTypeToRequestResponseTypes(Type handlerType)
     {
-        var requestHandlerGenericTypes = GetGenericTypes(handlerType, typeof(IRequestHandler<,,>));
-        var parameterlessNotificationHandlerGenericTypes = GetGenericTypes(handlerType, typeof(INotificationHandler<>));
-        var notificationHandlerGenericTypes = GetGenericTypes(handlerType, typeof(INotificationHandler<,>));
+        var genericInterfaces = handlerType.GetInterfaces().Where(i => i.IsGenericType);
+        var requestHandlerGenericTypes = GetGenericTypes(genericInterfaces, typeof(IRequestHandler<,,>));
+        var parameterlessNotificationHandlerGenericTypes = GetGenericTypes(genericInterfaces, typeof(INotificationHandler<>));
+        var notificationHandlerGenericTypes = GetGenericTypes(genericInterfaces, typeof(INotificationHandler<,>));
 
         var handlerList = new List<HandlerTypes>();
 
@@ -259,9 +260,9 @@ internal class HandlerProvider : IHandlerProvider
 
         return handlerList;
 
-        static IEnumerable<Type> GetGenericTypes(Type concreteHandlerType, Type methodHandlerType)
+        static IEnumerable<Type> GetGenericTypes(IEnumerable<Type> genericInterfaces, Type methodHandlerType)
         {
-            return concreteHandlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == methodHandlerType);
+            return genericInterfaces.Where(i => i.GetGenericTypeDefinition() == methodHandlerType);
         }
     }
 }
