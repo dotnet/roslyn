@@ -356,6 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
                 case SyntaxKind.RoleDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                     return true;
 
                 default:
@@ -815,6 +816,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.RecordDeclaration;
                 case SyntaxKind.RoleKeyword:
                     return SyntaxKind.RoleDeclaration;
+                case SyntaxKind.ExtensionKeyword:
+                    return SyntaxKind.ExtensionDeclaration;
                 default:
                     return SyntaxKind.None;
             }
@@ -1198,6 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ScopedKeyword:
                 case SyntaxKind.FileKeyword:
                 case SyntaxKind.RoleKeyword:
+                case SyntaxKind.ExtensionKeyword:
                     return true;
                 default:
                     return false;
@@ -1325,6 +1329,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.FileKeyword;
                 case "role":
                     return SyntaxKind.RoleKeyword;
+                case "extension":
+                    return SyntaxKind.ExtensionKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1772,6 +1778,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "file";
                 case SyntaxKind.RoleKeyword:
                     return "role";
+                case SyntaxKind.ExtensionKeyword:
+                    return "extension";
                 default:
                     return string.Empty;
             }

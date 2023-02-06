@@ -1426,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case SyntaxKind.IdentifierToken:
                     Debug.Assert(CurrentToken.ContextualKind is SyntaxKind.RecordKeyword
-                        or SyntaxKind.RoleKeyword);
+                        or SyntaxKind.RoleKeyword or SyntaxKind.ExtensionKeyword);
                     return ParseClassOrStructOrInterfaceOrRoleDeclaration(attributes, modifiers);
 
                 default:
@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private TypeDeclarationSyntax ParseClassOrStructOrInterfaceOrRoleDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
-                this.CurrentToken.ContextualKind is SyntaxKind.RecordKeyword or SyntaxKind.RoleKeyword);
+                this.CurrentToken.ContextualKind is SyntaxKind.RecordKeyword or SyntaxKind.RoleKeyword or SyntaxKind.ExtensionKeyword);
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -1689,6 +1689,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.RoleKeyword:
                         // role ...
                         return syntaxFactory.RoleDeclaration(
+                            attributes,
+                            modifiers.ToList(),
+                            keyword,
+                            name,
+                            typeParameters,
+                            baseList,
+                            constraints,
+                            openBrace,
+                            members,
+                            closeBrace,
+                            semicolon);
+
+                    case SyntaxKind.ExtensionKeyword:
+                        // extension ...
+                        return syntaxFactory.ExtensionDeclaration(
                             attributes,
                             modifiers.ToList(),
                             keyword,
@@ -2072,12 +2087,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // older code that is not using C# 9 we conditionally parse based on langversion
                         return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
                     }
-                    if (CurrentToken.ContextualKind == SyntaxKind.RoleKeyword)
+                    if (CurrentToken.ContextualKind is SyntaxKind.RoleKeyword or SyntaxKind.ExtensionKeyword)
                     {
                         // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
                         // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "role" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 11 we conditionally parse based on langversion
+                        // change to consider "role" or "extension" a type declaration in all ambiguous cases.
+                        // To avoid breaking older code that is not using C# 11 we conditionally parse based on langversion
                         return IsFeatureEnabled(MessageID.IDS_FeatureRoles);
                     }
                     return false;
