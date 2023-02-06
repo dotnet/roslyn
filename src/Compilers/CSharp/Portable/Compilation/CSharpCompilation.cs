@@ -4518,6 +4518,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private protected override bool SupportsRuntimeCapabilityCore(RuntimeCapability capability)
+            => RuntimeCapabilityHelpers.RuntimeSupportsCapability(this.Assembly, capability);
+
         private abstract class AbstractSymbolSearcher
         {
             private readonly PooledDictionary<Declaration, NamespaceOrTypeSymbol> _cache;

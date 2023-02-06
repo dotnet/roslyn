@@ -3140,6 +3140,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
+        Private Protected Overrides Function SupportsRuntimeCapabilityCore(capability As RuntimeCapability) As Boolean
+            Return RuntimeCapabilityHelpers.RuntimeSupportsCapability(Me.Assembly, capability)
+        End Function
+
 #End Region
 
         Private MustInherit Class AbstractSymbolSearcher

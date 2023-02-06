@@ -44,6 +44,10 @@ namespace Microsoft.CodeAnalysis
         VirtualStaticsInInterfaces = 6,
     }
 
+    /// <summary>
+    /// Shared helpers to determine if a runtime capability is supported.  Located in a shared location so that we
+    /// return the same result per runtime, regardless of whether this is a C# or VB compilation.
+    /// </summary>
     internal static class RuntimeCapabilityHelpers
     {
         public static bool RuntimeSupportsCapability(IAssemblySymbolInternal assembly, RuntimeCapability capability)

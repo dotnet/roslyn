@@ -3751,9 +3751,8 @@ namespace Microsoft.CodeAnalysis
         /// Determines whether the runtime this <see cref="Compilation"/> is targeting supports a particular capability.
         /// </summary>
         public bool SupportsRuntimeCapability(RuntimeCapability capability)
-        {
-            var assembly = (IAssemblySymbolInternal)this.Assembly;
-            return assembly.SupportsRuntimeCapability(capability);
-        }
+            => SupportsRuntimeCapabilityCore(capability);
+
+        private protected abstract bool SupportsRuntimeCapabilityCore(RuntimeCapability capability);
     }
 }
