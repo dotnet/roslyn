@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeExpression(
                 "[A]B()=>{ }", """
                 [A]
-                B() =>
+                B () =>
                 {
                 }
                 """);
