@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeExpression("int( x )=>x", "int (x) => x");
             TestNormalizeExpression(
                 "A( B b )=>{}", """
-                A(B b) =>
+                A (B b) =>
                 {
                 }
                 """);
@@ -853,7 +853,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 async
                 A<int>()=>x
                 """,
-                "static async A<int>() => x");
+                "static async A<int> () => x");
+            TestNormalizeExpression("(A,B)()=>(new A(),new B())", "(A, B) () => (new A(), new B())");
         }
 
         [Fact]
