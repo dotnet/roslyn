@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(TestingLibrarySourceGeneratorTargetFrameworks)</TargetFrameworks>
+    <AssemblyName>Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.Testing</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Roslyn Source Generator Framework C# Types.</Description>
+    <PackageReleaseNotes>Roslyn Source Generator Framework C# Types.</PackageReleaseNotes>
+    <PackageTags>Roslyn Source Generator Framework C# Types</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.SourceGenerators.Testing\Microsoft.CodeAnalysis.SourceGenerators.Testing.csproj" />
+  </ItemGroup>
+
+</Project>

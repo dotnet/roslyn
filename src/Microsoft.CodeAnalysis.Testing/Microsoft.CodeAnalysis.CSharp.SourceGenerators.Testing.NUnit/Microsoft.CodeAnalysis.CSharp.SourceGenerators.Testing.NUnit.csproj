@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(TestingLibrarySourceGeneratorTargetFrameworks)</TargetFrameworks>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.Testing.NUnit</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Roslyn Source Generator NUnit Framework C# Types.</Description>
+    <PackageReleaseNotes>Roslyn Source Generator NUnit Framework C# Types.</PackageReleaseNotes>
+    <PackageTags>Roslyn Source Generator NUnit Framework C# Types</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Analyzer.Testing\Microsoft.CodeAnalysis.Analyzer.Testing.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.SourceGenerators.Testing\Microsoft.CodeAnalysis.SourceGenerators.Testing.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing\Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Testing.Verifiers.NUnit\Microsoft.CodeAnalysis.Testing.Verifiers.NUnit.csproj" />
+  </ItemGroup>
+
+</Project>

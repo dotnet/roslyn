@@ -2,11 +2,8 @@ Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicAnalyzerTest(Of TAnalyzer,
 Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicAnalyzerTest(Of TAnalyzer, TVerifier).New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicAnalyzerVerifier(Of TAnalyzer, TVerifier)
 Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicAnalyzerVerifier(Of TAnalyzer, TVerifier).New() -> Void
-Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicProjectState
-Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicProjectState.New(name As String) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicAnalyzerTest(Of TAnalyzer, TVerifier).CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicAnalyzerTest(Of TAnalyzer, TVerifier).CreateParseOptions() -> Microsoft.CodeAnalysis.ParseOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicAnalyzerTest(Of TAnalyzer, TVerifier).DefaultFileExt() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicAnalyzerTest(Of TAnalyzer, TVerifier).GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer)
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicAnalyzerTest(Of TAnalyzer, TVerifier).Language() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicProjectState.Language() -> String

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public sealed partial class ReferenceAssemblies
     {
-        private const string ReferenceAssembliesPackageVersion = "1.0.0";
+        private const string ReferenceAssembliesPackageVersion = "1.0.2";
 
         private static readonly FileSystemSemaphore Semaphore = new FileSystemSemaphore(Path.Combine(Path.GetTempPath(), "test-packages", ".lock"));
 
@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Testing
             ImmutableArray<string> assemblies,
             ImmutableArray<string> facadeAssemblies,
             ImmutableDictionary<string, ImmutableArray<string>> languageSpecificAssemblies,
-            ImmutableArray<PackageIdentity> packages)
+            ImmutableArray<PackageIdentity> packages,
+            string? nugetConfigFilePath)
         {
             TargetFramework = targetFramework;
             AssemblyIdentityComparer = assemblyIdentityComparer;
@@ -81,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Testing
             FacadeAssemblies = facadeAssemblies.IsDefault ? ImmutableArray<string>.Empty : facadeAssemblies;
             LanguageSpecificAssemblies = languageSpecificAssemblies;
             Packages = packages.IsDefault ? ImmutableArray<PackageIdentity>.Empty : packages;
+            NuGetConfigFilePath = nugetConfigFilePath;
         }
 
         public static ReferenceAssemblies Default
@@ -119,14 +121,16 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public ImmutableArray<PackageIdentity> Packages { get; }
 
+        public string? NuGetConfigFilePath { get; }
+
         public ReferenceAssemblies WithAssemblyIdentityComparer(AssemblyIdentityComparer assemblyIdentityComparer)
-            => new ReferenceAssemblies(TargetFramework, assemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages);
+            => new ReferenceAssemblies(TargetFramework, assemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
 
         public ReferenceAssemblies WithAssemblies(ImmutableArray<string> assemblies)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages);
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
 
         public ReferenceAssemblies WithFacadeAssemblies(ImmutableArray<string> facadeAssemblies)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, facadeAssemblies, LanguageSpecificAssemblies, Packages);
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, facadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
 
         public ReferenceAssemblies AddAssemblies(ImmutableArray<string> assemblies)
             => WithAssemblies(Assemblies.AddRange(assemblies));
@@ -135,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Testing
             => WithFacadeAssemblies(FacadeAssemblies.AddRange(facadeAssemblies));
 
         public ReferenceAssemblies WithLanguageSpecificAssemblies(ImmutableDictionary<string, ImmutableArray<string>> languageSpecificAssemblies)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, languageSpecificAssemblies, Packages);
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, languageSpecificAssemblies, Packages, NuGetConfigFilePath);
 
         public ReferenceAssemblies WithLanguageSpecificAssemblies(string language, ImmutableArray<string> assemblies)
             => WithLanguageSpecificAssemblies(LanguageSpecificAssemblies.SetItem(language, assemblies));
@@ -151,10 +155,13 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         public ReferenceAssemblies WithPackages(ImmutableArray<PackageIdentity> packages)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, packages);
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, packages, NuGetConfigFilePath);
 
         public ReferenceAssemblies AddPackages(ImmutableArray<PackageIdentity> packages)
             => WithPackages(Packages.AddRange(packages));
+
+        public ReferenceAssemblies WithNuGetConfigFilePath(string nugetConfigFilePath)
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, nugetConfigFilePath);
 
         public async Task<ImmutableArray<MetadataReference>> ResolveAsync(string? language, CancellationToken cancellationToken)
         {
@@ -200,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <seealso href="https://martinbjorkstrom.com/posts/2018-09-19-revisiting-nuget-client-libraries"/>
         private async Task<ImmutableArray<MetadataReference>> ResolveCoreAsync(string language, CancellationToken cancellationToken)
         {
-            var settings = Settings.LoadDefaultSettings(root: null);
+            var settings = string.IsNullOrEmpty(NuGetConfigFilePath) ? Settings.LoadDefaultSettings(root: null) : Settings.LoadSpecificSettings(root: null, NuGetConfigFilePath);
             var sourceRepositoryProvider = new SourceRepositoryProvider(new PackageSourceProvider(settings), Repository.Provider.GetCoreV3());
             var targetFramework = NuGetFramework.ParseFolder(TargetFramework);
             var logger = NullLogger.Instance;
@@ -310,13 +317,32 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     PackageReaderBase packageReader;
                     var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, packageToInstall);
+                    if (installedPath is { })
+                    {
+                        packageReader = new PackageFolderReader(installedPath);
+                        if (Path.GetDirectoryName(installedPath) == temporaryPackagesFolder)
+                        {
+                            // Delete the folder if it's in the temporary path and the package reader cannot read the
+                            // nuspec file.
+                            try
+                            {
+                                _ = packageReader.GetNuspecFile();
+                            }
+                            catch (PackagingException)
+                            {
+                                Directory.Delete(installedPath, recursive: true);
+                                installedPath = null;
+                            }
+                        }
+                    }
+
                     if (installedPath is null)
                     {
                         var downloadResource = await availablePackages[packageToInstall].Source.GetResourceAsync<DownloadResource>(cancellationToken);
                         var downloadResult = await downloadResource.GetDownloadResourceResultAsync(
                             packageToInstall,
                             new PackageDownloadContext(cacheContext),
-                            SettingsUtility.GetGlobalPackagesFolder(settings),
+                            temporaryPackagesFolder,
                             logger,
                             cancellationToken);
 
@@ -329,16 +355,33 @@ namespace Microsoft.CodeAnalysis.Testing
                             continue;
                         }
 
-                        await PackageExtractor.ExtractPackageAsync(
+                        if (downloadResult.Status == DownloadResourceResultStatus.AvailableWithoutStream)
+                        {
+                            await PackageExtractor.ExtractPackageAsync(
 #if !NET452 && !NETSTANDARD1_5
 #pragma warning disable SA1114 // Parameter list should follow declaration
-                            downloadResult.PackageSource,
+                                downloadResult.PackageSource,
 #pragma warning restore SA1114 // Parameter list should follow declaration
 #endif
-                            downloadResult.PackageStream,
-                            localPathResolver,
-                            packageExtractionContext,
-                            cancellationToken);
+                                downloadResult.PackageReader,
+                                localPathResolver,
+                                packageExtractionContext,
+                                cancellationToken);
+                        }
+                        else
+                        {
+                            Debug.Assert(downloadResult.PackageStream != null, "PackageStream should not be null if download result status != DownloadResourceResultStatus.AvailableWithoutStream");
+                            await PackageExtractor.ExtractPackageAsync(
+#if !NET452 && !NETSTANDARD1_5
+#pragma warning disable SA1114 // Parameter list should follow declaration
+                                downloadResult.PackageSource,
+#pragma warning restore SA1114 // Parameter list should follow declaration
+#endif
+                                downloadResult.PackageStream,
+                                localPathResolver,
+                                packageExtractionContext,
+                                cancellationToken);
+                        }
 
                         installedPath = GetInstalledPath(localPathResolver, globalPathResolver, packageToInstall);
                         packageReader = downloadResult.PackageReader;
@@ -364,7 +407,9 @@ namespace Microsoft.CodeAnalysis.Testing
                         var nearestRefItems = refItems.Single(x => x.TargetFramework == nearestRef);
                         foreach (var item in nearestRefItems.Items)
                         {
-                            if (!string.Equals(Path.GetExtension(item), ".dll", StringComparison.OrdinalIgnoreCase))
+                            if (!string.Equals(Path.GetExtension(item), ".dll", StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(Path.GetExtension(item), ".exe", StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(Path.GetExtension(item), ".winmd", StringComparison.OrdinalIgnoreCase))
                             {
                                 continue;
                             }
@@ -377,7 +422,9 @@ namespace Microsoft.CodeAnalysis.Testing
                         var nearestLibItems = libItems.Single(x => x.TargetFramework == nearestLib);
                         foreach (var item in nearestLibItems.Items)
                         {
-                            if (!string.Equals(Path.GetExtension(item), ".dll", StringComparison.OrdinalIgnoreCase))
+                            if (!string.Equals(Path.GetExtension(item), ".dll", StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(Path.GetExtension(item), ".exe", StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(Path.GetExtension(item), ".winmd", StringComparison.OrdinalIgnoreCase))
                             {
                                 continue;
                             }
@@ -411,6 +458,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".dll")));
                     }
+                    else if (File.Exists(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".exe")))
+                    {
+                        resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".exe")));
+                    }
+                    else if (File.Exists(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".winmd")))
+                    {
+                        resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".winmd")));
+                    }
                 }
 
                 // Prefer assemblies from the reference assembly package to ones otherwise provided
@@ -429,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     var facadesPath = Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, "Facades");
                     if (Directory.Exists(facadesPath))
                     {
-                        foreach (var path in Directory.GetFiles(facadesPath, "*.dll"))
+                        foreach (var path in Directory.GetFiles(facadesPath, "*.dll").Concat(Directory.GetFiles(facadesPath, "*.exe")).Concat(Directory.GetFiles(facadesPath, "*.winmd")))
                         {
                             resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == Path.GetFileNameWithoutExtension(path));
                             resolvedAssemblies.Add(Path.GetFullPath(path));
@@ -442,6 +497,16 @@ namespace Microsoft.CodeAnalysis.Testing
                         {
                             resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == assembly);
                             resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".dll")));
+                        }
+                        else if (File.Exists(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".exe")))
+                        {
+                            resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == assembly);
+                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".exe")));
+                        }
+                        else if (File.Exists(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".winmd")))
+                        {
+                            resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == assembly);
+                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".winmd")));
                         }
                     }
                 }
@@ -548,6 +613,26 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 public static ReferenceAssemblies WindowsForms { get; }
                     = Default.AddAssemblies(ImmutableArray.Create("System.Drawing", "System.Windows.Forms"));
+            }
+
+            public static class Net35
+            {
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net35",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net35",
+                            ReferenceAssembliesPackageVersion),
+                        Path.Combine("build", ".NETFramework", "v3.5"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
+
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
+
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "WindowsBase"));
             }
 
             public static class Net40
@@ -815,14 +900,122 @@ namespace Microsoft.CodeAnalysis.Testing
                         "Microsoft.NETCore.App.Ref",
                         "3.1.0"),
                     Path.Combine("ref", "netcoreapp3.1"));
+        }
 
-            public static ReferenceAssemblies NetCoreApp50 { get; }
-                = new ReferenceAssemblies(
-                    "netcoreapp5.0",
-                    new PackageIdentity(
-                        "Microsoft.NETCore.App.Ref",
-                        "5.0.0-preview.1.20120.5"),
-                    Path.Combine("ref", "netcoreapp5.0"));
+        public static class Net
+        {
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet50 =
+                new Lazy<ReferenceAssemblies>(() =>
+                {
+                    if (!NuGetFramework.Parse("net5.0").IsPackageBased)
+                    {
+                        // The NuGet version provided at runtime does not recognize the 'net5.0' target framework
+                        throw new NotSupportedException("The 'net5.0' target framework is not supported by this version of NuGet.");
+                    }
+
+                    return new ReferenceAssemblies(
+                        "net5.0",
+                        new PackageIdentity(
+                            "Microsoft.NETCore.App.Ref",
+                            "5.0.0"),
+                        Path.Combine("ref", "net5.0"));
+                });
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60 =
+                new Lazy<ReferenceAssemblies>(() =>
+                {
+                    if (!NuGetFramework.Parse("net6.0").IsPackageBased)
+                    {
+                        // The NuGet version provided at runtime does not recognize the 'net6.0' target framework
+                        throw new NotSupportedException("The 'net6.0' target framework is not supported by this version of NuGet.");
+                    }
+
+                    return new ReferenceAssemblies(
+                        "net6.0",
+                        new PackageIdentity(
+                            "Microsoft.NETCore.App.Ref",
+                            "6.0.0"),
+                        Path.Combine("ref", "net6.0"));
+                });
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60Windows =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "6.0.0"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60Android =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.Android.Ref", "31.0.100-rc.1.12"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60iOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.iOS.Ref", "15.0.100-rc.1.1534"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.macOS.Ref", "12.0.100-rc.1.1534"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacCatalyst =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.MacCatalyst.Ref", "15.0.100-rc.1.1534"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60TvOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.tvOS.Ref", "15.0.100-rc.1.1534"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet70 =
+                new Lazy<ReferenceAssemblies>(() =>
+                {
+                    if (!NuGetFramework.Parse("net7.0").IsPackageBased)
+                    {
+                        // The NuGet version provided at runtime does not recognize the 'net7.0' target framework
+                        throw new NotSupportedException("The 'net7.0' target framework is not supported by this version of NuGet.");
+                    }
+
+                    return new ReferenceAssemblies(
+                        "net7.0",
+                        new PackageIdentity(
+                            "Microsoft.NETCore.App.Ref",
+                            "7.0.0-preview.7.22375.6"),
+                        Path.Combine("ref", "net7.0"));
+                });
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet70Windows =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net70.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "7.0.0-preview.7.22377.1"))));
+
+            public static ReferenceAssemblies Net50 => _lazyNet50.Value;
+
+            public static ReferenceAssemblies Net60 => _lazyNet60.Value;
+
+            public static ReferenceAssemblies Net60Windows => _lazyNet60Windows.Value;
+
+            public static ReferenceAssemblies Net60Android => _lazyNet60Android.Value;
+
+            public static ReferenceAssemblies Net60iOS => _lazyNet60iOS.Value;
+
+            public static ReferenceAssemblies Net60MacOS => _lazyNet60MacOS.Value;
+
+            public static ReferenceAssemblies Net60MacCatalyst => _lazyNet60MacCatalyst.Value;
+
+            public static ReferenceAssemblies Net60TvOS => _lazyNet60TvOS.Value;
+
+            public static ReferenceAssemblies Net70 => _lazyNet70.Value;
+
+            public static ReferenceAssemblies Net70Windows => _lazyNet70Windows.Value;
         }
 
         public static class NetStandard
@@ -984,6 +1177,15 @@ namespace Microsoft.CodeAnalysis.Testing
                         "NETStandard.Library.Ref",
                         "2.1.0"),
                     Path.Combine("ref", "netstandard2.1"));
+        }
+
+        internal static class TestAccessor
+        {
+            public static bool IsPackageBased(string targetFramework)
+            {
+                var framework = NuGetFramework.ParseFolder(targetFramework);
+                return framework.IsPackageBased;
+            }
         }
     }
 }

@@ -6,13 +6,9 @@ using Microsoft.CodeAnalysis.Testing;
 
 namespace Microsoft.CodeAnalysis.CSharp.Testing
 {
-    public class CSharpProjectState : ProjectState
+    public class CSharpSourceGeneratorVerifier<TSourceGenerator, TVerifier> : SourceGeneratorVerifier<TSourceGenerator, CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>, TVerifier>
+        where TSourceGenerator : ISourceGenerator, new()
+        where TVerifier : IVerifier, new()
     {
-        public CSharpProjectState(string name)
-            : base(name, defaultPrefix: "Test", defaultExtension: "cs")
-        {
-        }
-
-        public override string Language => LanguageNames.CSharp;
     }
 }

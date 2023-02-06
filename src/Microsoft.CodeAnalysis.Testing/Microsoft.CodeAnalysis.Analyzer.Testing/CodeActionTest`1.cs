@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,25 +65,67 @@ namespace Microsoft.CodeAnalysis.Testing
             return state.InheritanceMode != null
                 || state.MarkupHandling != null
                 || state.Sources.Any()
+                || state.GeneratedSources.Any()
                 || state.AdditionalFiles.Any()
+                || state.AnalyzerConfigFiles.Any()
                 || state.AdditionalFilesFactories.Any();
         }
 
-        protected static bool HasAnyChange(SolutionState oldState, SolutionState newState)
+        protected static bool HasAnyChange(ProjectState oldState, ProjectState newState, bool recursive)
         {
-            return !oldState.Sources.SequenceEqual(newState.Sources, SourceFileEqualityComparer.Instance)
-                || !oldState.AdditionalFiles.SequenceEqual(newState.AdditionalFiles, SourceFileEqualityComparer.Instance);
+            if (!oldState.Sources.SequenceEqual(newState.Sources, SourceFileEqualityComparer.Instance)
+                || !oldState.GeneratedSources.SequenceEqual(newState.GeneratedSources, SourceFileEqualityComparer.Instance)
+                || !oldState.AdditionalFiles.SequenceEqual(newState.AdditionalFiles, SourceFileEqualityComparer.Instance)
+                || !oldState.AnalyzerConfigFiles.SequenceEqual(newState.AnalyzerConfigFiles, SourceFileEqualityComparer.Instance))
+            {
+                return true;
+            }
+
+            if (!recursive)
+            {
+                return false;
+            }
+
+            if (oldState is SolutionState oldSolutionState)
+            {
+                if (!(newState is SolutionState newSolutionState))
+                {
+                    throw new ArgumentException("Unexpected mismatch of SolutionState with ProjectState.");
+                }
+
+                if (oldSolutionState.AdditionalProjects.Count != newSolutionState.AdditionalProjects.Count)
+                {
+                    return true;
+                }
+
+                foreach (var oldAdditionalState in oldSolutionState.AdditionalProjects)
+                {
+                    if (!newSolutionState.AdditionalProjects.TryGetValue(oldAdditionalState.Key, out var newAdditionalState)
+                        || HasAnyChange(oldAdditionalState.Value, newAdditionalState, recursive: true))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
-        protected static CodeAction? TryGetCodeActionToApply(ImmutableArray<CodeAction> actions, int? codeActionIndex, string? codeActionEquivalenceKey, Action<CodeAction, IVerifier>? codeActionVerifier, IVerifier verifier)
+        protected static CodeAction? TryGetCodeActionToApply(int iteration, ImmutableArray<CodeAction> actions, int? codeActionIndex, string? codeActionEquivalenceKey, Action<CodeAction, IVerifier>? codeActionVerifier, IVerifier verifier)
         {
             CodeAction? result;
             if (codeActionIndex.HasValue && codeActionEquivalenceKey != null)
             {
-                if (actions.Length <= codeActionIndex)
+                var expectedAction = actions.FirstOrDefault(action => action.EquivalenceKey == codeActionEquivalenceKey);
+                if (expectedAction is null && iteration > 0)
                 {
+                    // No matching code action was found. This is acceptable if this is not the first iteration.
                     return null;
                 }
+
+                verifier.True(
+                    actions.Length > codeActionIndex,
+                    $"Expected to find a code action at index '{codeActionIndex}', but only '{actions.Length}' code actions were found.");
 
                 verifier.Equal(
                     codeActionEquivalenceKey,
@@ -153,17 +196,18 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="verifier">The verifier to use for test assertions.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="Project"/> with the changes from the <see cref="CodeAction"/>.</returns>
-        protected async Task<Project> ApplyCodeActionAsync(Project project, CodeAction codeAction, IVerifier verifier, CancellationToken cancellationToken)
+        protected async Task<(Project updatedProject, ExceptionDispatchInfo? validationError)> ApplyCodeActionAsync(Project project, CodeAction codeAction, IVerifier verifier, CancellationToken cancellationToken)
         {
             var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             var solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
             var changedProject = solution.GetProject(project.Id);
+            ExceptionDispatchInfo? validationError = null;
             if (changedProject != project)
             {
-                project = await RecreateProjectDocumentsAsync(changedProject, verifier, cancellationToken).ConfigureAwait(false);
+                (project, validationError) = await RecreateProjectDocumentsAsync(changedProject, verifier, cancellationToken).ConfigureAwait(false);
             }
 
-            return project;
+            return (project, validationError);
         }
 
         /// <summary>
@@ -173,15 +217,16 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="verifier">The verifier to use for test assertions.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/>.</param>
         /// <returns>The updated <see cref="Project"/>.</returns>
-        private async Task<Project> RecreateProjectDocumentsAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
+        private async Task<(Project updatedProject, ExceptionDispatchInfo? validationError)> RecreateProjectDocumentsAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
         {
+            ExceptionDispatchInfo? validationError = null;
             foreach (var documentId in project.DocumentIds)
             {
                 var document = project.GetDocument(documentId);
                 var initialTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 document = await RecreateDocumentAsync(document, cancellationToken).ConfigureAwait(false);
                 var recreatedTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                if (CodeActionValidationMode != CodeActionValidationMode.None)
+                if (CodeActionValidationMode != CodeActionValidationMode.None && validationError is null)
                 {
                     try
                     {
@@ -194,23 +239,32 @@ namespace Microsoft.CodeAnalysis.Testing
                             await initialTree.GetRootAsync(cancellationToken).ConfigureAwait(false),
                             checkTrivia: CodeActionValidationMode == CodeActionValidationMode.Full);
                     }
-                    catch
+                    catch (Exception genericError)
                     {
                         // Try to revalidate the tree with a better message
                         var renderedInitialTree = TreeToString(await initialTree.GetRootAsync(cancellationToken).ConfigureAwait(false), CodeActionValidationMode);
                         var renderedRecreatedTree = TreeToString(await recreatedTree.GetRootAsync(cancellationToken).ConfigureAwait(false), CodeActionValidationMode);
-                        verifier.EqualOrDiff(renderedRecreatedTree, renderedInitialTree);
-
-                        // This is not expected to be hit, but it will be hit if the validation failure occurred in a
-                        // portion of the tree not captured by the rendered form from TreeToString.
-                        throw;
+                        try
+                        {
+                            verifier.EqualOrDiff(renderedRecreatedTree, renderedInitialTree);
+                        }
+                        catch (Exception specificError)
+                        {
+                            validationError = ExceptionDispatchInfo.Capture(specificError);
+                        }
+                        finally
+                        {
+                            // This is not expected to be hit, but it will be hit if the validation failure occurred in
+                            // a portion of the tree not captured by the rendered form from TreeToString.
+                            validationError ??= ExceptionDispatchInfo.Capture(genericError);
+                        }
                     }
                 }
 
                 project = document.Project;
             }
 
-            return project;
+            return (project, validationError);
         }
 
         private static async Task<Document> RecreateDocumentAsync(Document document, CancellationToken cancellationToken)

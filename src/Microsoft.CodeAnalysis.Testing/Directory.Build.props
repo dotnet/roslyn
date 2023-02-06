@@ -1,11 +1,13 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>  
   <PropertyGroup>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
 
-  <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
     <!--
@@ -14,12 +16,13 @@
       netstandard1.5/net46: Roslyn 2.x
       netstandard2.0/net472: Roslyn 3.x
     -->
-    <TestingLibraryTargetFrameworks>netcoreapp3.1;netstandard1.5;netstandard2.0;net452;net46;net472</TestingLibraryTargetFrameworks>
-  </PropertyGroup>
+    <TestingLibraryTargetFrameworks>netcoreapp3.1;netstandard1.5;netstandard2.0;net46;net472</TestingLibraryTargetFrameworks>
 
-  <PropertyGroup Condition="'$(CopyrightMicrosoft)' != ''">
-    <Copyright>$(CopyrightMicrosoft)</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <!--
+      netcoreapp3.1: Ensures full support for nullable reference types
+      netstandard2.0/net472: Roslyn 3.x, starting with 3.8.0
+    -->
+    <TestingLibrarySourceGeneratorTargetFrameworks>netcoreapp3.1;netstandard2.0;net472</TestingLibrarySourceGeneratorTargetFrameworks>
   </PropertyGroup>
   
   <Choose>
@@ -31,12 +34,7 @@
 
     <When Condition="'$(Language)' == 'C#'">
       <PropertyGroup>
-        <LangVersion>8</LangVersion>
-      </PropertyGroup>
-
-      <!-- Nullable reference types -->
-      <PropertyGroup>
-        <Nullable>enable</Nullable>
+        <LangVersion>9</LangVersion>
       </PropertyGroup>
     </When>
   </Choose>
@@ -68,7 +66,6 @@
   <!-- StyleCop Analyzers configuration -->
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)..\..\RoslynSDK.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
@@ -80,9 +77,14 @@
   <!-- Public API Analyzer configuration -->
   <ItemGroup>
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
-
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" PrivateAssets="all" ExcludeAssets="all" />
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <!-- Needed to override the transitive 9.0.1 version brought in by the 16.1.1 Microsoft.NET.Test.Sdk -->
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" ExcludeAssets="all" />
   </ItemGroup>
 
   <!-- Use a different versioning scheme for nuget packages -->
