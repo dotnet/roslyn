@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             finally
             {
                 loader.UnloadAll();
-                testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory.Path}");
+                testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory}");
 
                 foreach (var context in loader.GetDirectoryLoadContextsSnapshot())
                 {
@@ -88,9 +88,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public sealed class InvokeUtil : MarshalByRefObject
     {
-        public void Exec(ITestOutputHelper testOutputHelper, bool shadowLoad, string typeName, string methodName)
+        public void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture fixture, bool shadowLoad, string typeName, string methodName)
         {
-            using var fixture = new AssemblyLoadTestFixture();
             using var tempRoot = new TempRoot();
             AnalyzerAssemblyLoader loader = shadowLoad
                 ? new ShadowCopyAnalyzerAssemblyLoader(tempRoot.CreateDirectory().Path)
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             finally
             {
-                testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory.Path}");
+                testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory}");
 
                 testOutputHelper.WriteLine($"Loaded Assemblies");
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().OrderByDescending(x => x.FullName))

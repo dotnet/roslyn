@@ -3562,6 +3562,11 @@ Der Standardformatbezeichner "f" repräsentiert eine Kombination aus den Mustern
         <target state="translated">generische Überladungen</target>
         <note />
       </trans-unit>
+      <trans-unit id="get_only_property">
+        <source>get-only property</source>
+        <target state="new">get-only property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement">
         <source>if statement</source>
         <target state="translated">Wenn-Anweisung</target>

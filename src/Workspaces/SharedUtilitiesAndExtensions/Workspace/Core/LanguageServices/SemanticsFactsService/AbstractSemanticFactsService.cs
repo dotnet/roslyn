@@ -163,6 +163,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement)
             => SemanticFacts.GetForEachSymbols(semanticModel, forEachStatement);
 
+        public SymbolInfo GetCollectionInitializerSymbolInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => SemanticFacts.GetCollectionInitializerSymbolInfo(semanticModel, node, cancellationToken);
+
         public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
             => SemanticFacts.GetGetAwaiterMethod(semanticModel, node);
 

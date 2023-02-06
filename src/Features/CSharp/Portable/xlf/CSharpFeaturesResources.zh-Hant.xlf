@@ -282,6 +282,11 @@
         <target state="translated">外部別名</target>
         <note />
       </trans-unit>
+      <trans-unit id="init_only_property">
+        <source>init-only property</source>
+        <target state="new">init-only property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
         <target state="translated">&lt;Lambda 運算式&gt;</target>
