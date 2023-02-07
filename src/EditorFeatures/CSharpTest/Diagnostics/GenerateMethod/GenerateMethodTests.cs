@@ -9282,5 +9282,42 @@ class C
     void Goo(string x, int y) { }
 }");
         }
+
+        [Fact, WorkItem(12708, "https://github.com/dotnet/roslyn/issues/12708")]
+        public async Task GenerateEventHookupWithExistingMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Specialized;
+
+class Program
+{
+    void Main(string[] args)
+    {
+        INotifyCollectionChanged collection = null;
+        collection.CollectionChanged += [|OnChanged|];
+    }
+
+    private void OnChanged() { }
+}",
+@"using System;
+using System.Collections.Specialized;
+
+class Program
+{
+    void Main(string[] args)
+    {
+        INotifyCollectionChanged collection = null;
+        collection.CollectionChanged += OnChanged;
+    }
+
+    private void OnChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnChanged() { }
+}");
+        }
     }
 }
