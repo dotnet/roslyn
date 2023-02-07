@@ -2730,6 +2730,27 @@ class Goo
             End Using
         End Sub
 
+        <WpfTheory, CombinatorialData, WorkItem(8320, "https://github.com/dotnet/roslyn/issues/8320")>
+        Public Sub EnumParamsCompletion(showCompletionInArgumentLists As Boolean)
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+class C
+{
+    void X(params DayOfWeek[] x)
+    {
+        X($$);
+    }
+}
+                </Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                state.AssertSelectedCompletionItem("DayOfWeek", isHardSelected:=True)
+            End Using
+        End Sub
+
         <WpfTheory, CombinatorialData>
         Public Async Function EnumCompletionNotTriggeredOnPlusCommitCharacter(showCompletionInArgumentLists As Boolean) As Task
             Await EnumCompletionNotTriggeredOn("+"c, showCompletionInArgumentLists)
@@ -7863,16 +7884,13 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
-                ' trigger completion with import completion disabled
                 Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 ' make sure expander is selected
-                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
 
                 state.SendEscape()
                 Await state.AssertNoCompletionSession()
-
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
                 state.SendTypeChars("mytask")
                 Await state.WaitForAsynchronousOperationsAsync()

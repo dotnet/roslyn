@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 ruleSetFileFullPath = null;
             }
 
-            VisualStudioProjectOptionsProcessor.ExplicitRuleSetFilePath = ruleSetFileFullPath;
+            ProjectSystemProjectOptionsProcessor.ExplicitRuleSetFilePath = ruleSetFileFullPath;
         }
 
         void IAnalyzerHost.AddAdditionalFile(string additionalFilePath)

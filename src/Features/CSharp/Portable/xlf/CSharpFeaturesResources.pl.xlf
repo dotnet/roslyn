@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_solution">
         <source>Enable nullable reference types in solution</source>
-        <target state="new">Enable nullable reference types in solution</target>
+        <target state="translated">Włączanie typów referencyjnych dopuszczających wartość null w rozwiązaniu</target>
         <note />
       </trans-unit>
       <trans-unit id="Global_using_directives">
@@ -280,6 +280,11 @@
       <trans-unit id="extern_alias">
         <source>extern alias</source>
         <target state="translated">alias zewnętrzny</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="init_only_property">
+        <source>init-only property</source>
+        <target state="new">init-only property</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">

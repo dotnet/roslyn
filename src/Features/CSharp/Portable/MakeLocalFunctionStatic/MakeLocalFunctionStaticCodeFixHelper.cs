@@ -140,16 +140,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 }
             }
 
-            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var info = options.GetInfo(CodeGenerationContext.Default, document.Project);
+            var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             // Updates the local function declaration with variables passed in as parameters
             syntaxEditor.ReplaceNode(
                 localFunction,
                 (node, generator) =>
                 {
-                    var localFunctionWithNewParameters = codeGenerator.AddParameters(
+                    var localFunctionWithNewParameters = info.Service.AddParameters(
                         node,
                         parameterAndCapturedSymbols.SelectAsArray(p => p.symbol),
                         info,

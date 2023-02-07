@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -22,12 +24,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A singleton object that performs only one type of instrumentation - addition of debugging sequence points. 
         /// </summary>
-        public static readonly DebugInfoInjector Singleton = new DebugInfoInjector(Instrumenter.NoOp);
+        private static readonly DebugInfoInjector s_singleton = new DebugInfoInjector(NoOp);
 
-        public DebugInfoInjector(Instrumenter previous)
+        private DebugInfoInjector(Instrumenter previous)
             : base(previous)
         {
         }
+
+        public static DebugInfoInjector Create(Instrumenter previous)
+            => (previous == NoOp) ? s_singleton : new DebugInfoInjector(previous);
+
+        protected override CompoundInstrumenter WithPreviousImpl(Instrumenter previous)
+            => Create(previous);
 
         public override BoundStatement InstrumentNoOpStatement(BoundNoOpStatement original, BoundStatement rewritten)
         {
@@ -134,39 +142,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddSequencePoint(base.InstrumentYieldReturnStatement(original, rewritten));
         }
 
-        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
+        public override void InstrumentBlock(BoundBlock original, LocalRewriter rewriter, ref TemporaryArray<LocalSymbol> additionalLocals, out BoundStatement? prologue, out BoundStatement? epilogue)
         {
-            var previous = base.CreateBlockPrologue(original, out synthesizedLocal);
-            if (original.Syntax.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
-            {
-                var oBspan = ((BlockSyntax)original.Syntax).OpenBraceToken.Span;
-                return new BoundSequencePointWithSpan(original.Syntax, previous, oBspan);
-            }
-            else if (previous != null)
-            {
-                return new BoundSequencePoint(original.Syntax, previous);
-            }
+            base.InstrumentBlock(original, rewriter, ref additionalLocals, out var previousPrologue, out var previousEpilogue);
 
-            return null;
-        }
+            prologue = previousPrologue;
+            epilogue = previousEpilogue;
 
-        public override BoundStatement? CreateBlockEpilogue(BoundBlock original)
-        {
-            var previous = base.CreateBlockEpilogue(original);
-
-            if (original.Syntax.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
+            if (original.Syntax is BlockSyntax blockSyntax && !original.WasCompilerGenerated)
             {
+                prologue = new BoundSequencePointWithSpan(original.Syntax, previousPrologue, blockSyntax.OpenBraceToken.Span);
+
                 // no need to mark "}" on the outermost block
                 // as it cannot leave it normally. The block will have "return" at the end.
                 SyntaxNode? parent = original.Syntax.Parent;
                 if (parent == null || !(parent.IsAnonymousFunction() || parent is BaseMethodDeclarationSyntax))
                 {
-                    var cBspan = ((BlockSyntax)original.Syntax).CloseBraceToken.Span;
-                    return new BoundSequencePointWithSpan(original.Syntax, previous, cBspan);
+                    epilogue = new BoundSequencePointWithSpan(original.Syntax, previousEpilogue, blockSyntax.CloseBraceToken.Span);
                 }
             }
+            else if (original == rewriter.CurrentMethodBody)
+            {
+                if (previousPrologue != null)
+                {
+                    prologue = BoundSequencePoint.CreateHidden(previousPrologue);
+                }
+                else if (rewriter.Factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol)
+                {
+                    prologue = BoundSequencePoint.CreateHidden();
+                }
 
-            return previous;
+                if (previousEpilogue != null)
+                {
+                    epilogue = BoundSequencePoint.CreateHidden(previousEpilogue);
+                }
+            }
         }
 
         public override BoundExpression InstrumentDoStatementCondition(BoundDoStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)

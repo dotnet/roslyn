@@ -2006,5 +2006,22 @@ int M(int _, int v) => M({|Rename:v|}, 1234);
 
             await TestInRegularAndScriptAsync(code, expected, 0);
         }
+        
+        public async Task TestIntroduceParameterOnAttributeArgument()
+        {
+            var code =
+@"
+public class C
+{
+    [Theory]
+    [InlineData([|""A""|])]
+    public void Test(string s)
+    {
+    }
+}
+";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
     }
 }
