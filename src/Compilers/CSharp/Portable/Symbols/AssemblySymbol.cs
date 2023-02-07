@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsStaticAbstractMembersInInterfaces
         {
-            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsStaticAbstractMembersInInterfaces
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsVirtualStaticsInInterfaces
             get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces);
         }
 

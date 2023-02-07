@@ -3140,7 +3140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Protected Overrides Function SupportsRuntimeCapabilityCore(capability As RuntimeCapability) As Boolean
-            Return RuntimeCapabilityHelpers.RuntimeSupportsCapability(Me.Assembly, capability)
+            Return Me.Assembly.SupportsRuntimeCapability(capability)
         End Function
 
 #End Region
