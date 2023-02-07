@@ -15,7 +15,7 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class PlatformInformation
     {
-#if NETCOREAPP
+#if NET5_0_OR_GREATER
         [SupportedOSPlatformGuard("windows")]
 #endif
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
