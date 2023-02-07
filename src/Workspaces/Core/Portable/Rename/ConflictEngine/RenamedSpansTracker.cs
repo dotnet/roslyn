@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             var documentComplexifiedSpans = _documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans)
                 ? complexifiedSpans.Where(c => c.OriginalSpan.Start <= startingPosition) :
-            SpecializedCollections.EmptyEnumerable<MutableComplexifiedSpan>();
+                SpecializedCollections.EmptyEnumerable<MutableComplexifiedSpan>();
 
             var appliedTextSpans = new HashSet<TextSpan>();
             foreach (var c in documentComplexifiedSpans.Reverse())
