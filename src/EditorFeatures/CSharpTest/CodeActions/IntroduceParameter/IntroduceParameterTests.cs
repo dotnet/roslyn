@@ -2001,7 +2001,7 @@ int M(int _) => M([|1234|]);
 
             var expected =
 @"M();
-int M(int _, int v) => M(v, 1234);
+int M(int _, int v) => M({|Rename:v|}, 1234);
 ";
 
             await TestInRegularAndScriptAsync(code, expected, 0);
