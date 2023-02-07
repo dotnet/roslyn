@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Moq;
 using Nerdbank.Streams;
 using StreamJsonRpc;
