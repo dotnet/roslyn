@@ -52,6 +52,7 @@ internal sealed class LanguageServerProjectSystem
         _projectsToLoadAndReload = new AsyncBatchingWorkQueue<string>(
             TimeSpan.FromMilliseconds(100),
             LoadOrReloadProjectsAsync,
+            StringComparer.Ordinal,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
 
