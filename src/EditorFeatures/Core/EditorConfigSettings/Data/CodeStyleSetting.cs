@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
     {
         private static readonly bool[] s_boolValues = new[] { true, false };
 
-        public CodeStyleSetting(IOptionWithGroup option, OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location)
-            : base(option, optionKey, description, updater, location)
+        public CodeStyleSetting(OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location)
+            : base(optionKey, description, updater, location)
         {
         }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 falseValueDescription ?? EditorFeaturesResources.No
             };
 
-            return new CodeStyleSetting<bool>(option, optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
+            return new CodeStyleSetting<bool>(optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
         }
 
         internal static CodeStyleSetting Create(
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 falseValueDescription ?? EditorFeaturesResources.No
             };
 
-            return new CodeStyleSetting<bool>(option, optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
+            return new CodeStyleSetting<bool>(optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
         }
 
         internal static CodeStyleSetting Create<T>(
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         {
             var optionKey = new OptionKey2(option);
             options.GetInitialLocationAndValue<CodeStyleOption2<T>>(option, out var initialLocation, out var initialValue);
-            return new CodeStyleSetting<T>(option, optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
+            return new CodeStyleSetting<T>(optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
         }
 
         internal static CodeStyleSetting Create<T>(
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         {
             var optionKey = new OptionKey2(option, options.Language);
             options.GetInitialLocationAndValue<CodeStyleOption2<T>>(option, out var initialLocation, out var initialValue);
-            return new CodeStyleSetting<T>(option, optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
+            return new CodeStyleSetting<T>(optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
         }
     }
 }

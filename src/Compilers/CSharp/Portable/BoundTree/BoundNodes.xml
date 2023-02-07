@@ -335,7 +335,7 @@
 
     <Field Name="OperatorKind" Type="UnaryOperatorKind"/>
     <Field Name="Operand" Type="BoundExpression"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
     <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
@@ -631,7 +631,7 @@
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundExpression"/>
     <Field Name="Alternative" Type="BoundExpression"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
     <Field Name="NoCommonTypeError" Type="ErrorCode"/>
   </Node>
 
@@ -643,7 +643,7 @@
     <Field Name="Consequence" Type="BoundExpression"/>
     <Field Name="Alternative" Type="BoundExpression"/>
 
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
 
     <Field Name="NaturalTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="WasTargetTyped" Type="bool" />
@@ -776,7 +776,7 @@
     <!-- Converted default expression must have a type. -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="TargetType" Type="BoundTypeExpression?" SkipInVisitor="true"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </Node>
 
   <Node Name="BoundIsOperator" Base="BoundExpression">
@@ -808,7 +808,7 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="SourceType" Type="BoundTypeExpression"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </Node>
 
   <Node Name="BoundConversion" Base="BoundExpression">
@@ -821,7 +821,7 @@
     <Field Name="IsBaseConversion" Type="bool"/>
     <Field Name="Checked" Type="bool"/>
     <Field Name="ExplicitCastInCode" Type="bool"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
      <!--
          A group instance common to all BoundConversions that represent a single Conversion. The
          field is used in NullableWalker to identify the chained conversions in user-defined
@@ -1141,6 +1141,7 @@
     <Field Name="Expression" Type="BoundExpression" Null="disallow" />
     <Field Name="Cases" Type="ImmutableArray&lt;(ConstantValue value, LabelSymbol label)&gt;" />
     <Field Name="DefaultLabel" Type="LabelSymbol" Null="disallow" />
+    <Field Name="LengthBasedStringSwitchDataOpt" Type="LengthBasedStringSwitchData?" />
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
@@ -1306,7 +1307,7 @@
   </Node>
 
   <Node Name="BoundLiteral" Base="BoundExpression">
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </Node>
 
   <Node Name="BoundUtf8String" Base="BoundExpression">
@@ -1341,7 +1342,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="LocalSymbol" Type="LocalSymbol"/>
     <Field Name="DeclarationKind" Type="BoundLocalDeclarationKind" Null="NotApplicable"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
     <!-- True if LocalSymbol.Type.IsNullable could not be inferred. -->
     <Field Name="IsNullableUnknown" Type="bool"/>
   </Node>
@@ -1704,6 +1705,7 @@
     matching Id that are integers unique for the containing method body.
     -->
     <Field Name="Id" Type="int"/>
+    <Field Name="ForceCopyOfNullableValueType" Type="bool"/>
   </Node>
   
   <!-- represents the receiver of a conditional access expression -->
@@ -1716,7 +1718,7 @@
   <!--  This node represents a complex receiver for a call, or a conditional access.  
         At runtime, when its type is a value type, ValueTypeReceiver should be used as a receiver. 
         Otherwise, ReferenceTypeReceiver should be used.  
-        This kind of receiver is created only by SpillSequenceSpiller rewriter. 
+        This kind of receiver is created only by SpillSequenceSpiller and LocalRewriter. 
   -->
   <Node Name="BoundComplexConditionalReceiver" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -1823,7 +1825,7 @@
     <Field Name="Expanded" Type="bool" PropertyOverrides="true"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow" PropertyOverrides="true"/>
     <Field Name="DefaultArguments" Type="BitVector" PropertyOverrides="true"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
     <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
     <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
@@ -2045,7 +2047,7 @@
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
     <Field Name="FieldSymbol" Type="FieldSymbol"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <Field Name="IsByValue" Type="bool"/>
     <Field Name="IsDeclaration" Type="bool" />
@@ -2184,7 +2186,7 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Argument" Type="BoundExpression" Null="disallow"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue" Null="disallow"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue" PropertyOverrides="true"/>
   </Node>
 
   <AbstractNode Name="BoundInterpolatedStringBase" Base="BoundExpression">
@@ -2192,7 +2194,7 @@
          from the literal parts of the input. The odd numbered positions are the string inserts. If the interpolated
          string has been bound using the builder pattern, literals are replaced with calls. -->
     <Field Name="Parts" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </AbstractNode>
 
   <Node Name="BoundUnconvertedInterpolatedString" Base="BoundInterpolatedStringBase">

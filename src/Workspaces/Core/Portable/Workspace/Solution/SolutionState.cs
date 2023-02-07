@@ -35,14 +35,17 @@ namespace Microsoft.CodeAnalysis
     internal partial class SolutionState
     {
         // the version of the workspace this solution is from
-        private readonly int _workspaceVersion;
+        public int WorkspaceVersion { get; }
+        public string? WorkspaceKind { get; }
+        public SolutionServices Services { get; }
+        public SolutionOptionSet Options { get; }
+        public bool PartialSemanticsEnabled { get; }
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
 
         private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
-
-        public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
 
         // Values for all these are created on demand.
         private ImmutableDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
@@ -73,7 +76,7 @@ namespace Microsoft.CodeAnalysis
             string? workspaceKind,
             int workspaceVersion,
             bool partialSemanticsEnabled,
-            HostWorkspaceServices solutionServices,
+            SolutionServices services,
             SolutionInfo.SolutionAttributes solutionAttributes,
             IReadOnlyList<ProjectId> projectIds,
             SolutionOptionSet options,
@@ -86,10 +89,10 @@ namespace Microsoft.CodeAnalysis
             SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
         {
             WorkspaceKind = workspaceKind;
-            _workspaceVersion = workspaceVersion;
+            WorkspaceVersion = workspaceVersion;
             PartialSemanticsEnabled = partialSemanticsEnabled;
             _solutionAttributes = solutionAttributes;
-            Services = solutionServices;
+            Services = services;
             ProjectIds = projectIds;
             Options = options;
             AnalyzerReferences = analyzerReferences;
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState(
             string? workspaceKind,
             bool partialSemanticsEnabled,
-            HostWorkspaceServices services,
+            SolutionServices services,
             SolutionInfo.SolutionAttributes solutionAttributes,
             SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
@@ -136,13 +139,6 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public SolutionState WithNewWorkspace(Workspace workspace, int workspaceVersion)
-        {
-            // Note: this will potentially have problems if the workspace services are different, as some services
-            // get locked-in by document states and project states when first constructed.
-            return CreatePrimarySolution(workspace.Kind, workspaceVersion, workspace.Services);
-        }
-
         public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
 
         public SolutionInfo.SolutionAttributes SolutionAttributes => _solutionAttributes;
@@ -150,21 +146,6 @@ namespace Microsoft.CodeAnalysis
         public SourceGeneratedDocumentState? FrozenSourceGeneratedDocumentState => _frozenSourceGeneratedDocumentState;
 
         public ImmutableDictionary<ProjectId, ProjectState> ProjectStates => _projectIdToProjectStateMap;
-
-        public string? WorkspaceKind { get; }
-
-        public bool PartialSemanticsEnabled { get; }
-
-        public int WorkspaceVersion => _workspaceVersion;
-
-        public HostWorkspaceServices Services { get; }
-
-        public SolutionOptionSet Options { get; }
-
-        /// <summary>
-        /// The Workspace this solution is associated with.
-        /// </summary>
-        public Workspace Workspace => Services.Workspace;
 
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
@@ -241,7 +222,7 @@ namespace Microsoft.CodeAnalysis
 
             return new SolutionState(
                 WorkspaceKind,
-                _workspaceVersion,
+                WorkspaceVersion,
                 PartialSemanticsEnabled,
                 Services,
                 solutionAttributes,
@@ -256,18 +237,25 @@ namespace Microsoft.CodeAnalysis
                 newFrozenSourceGeneratedDocumentState);
         }
 
-        private SolutionState CreatePrimarySolution(
+        /// <summary>
+        /// Updates the solution with specified workspace kind, workspace version and services.
+        /// This implicitly also changes the value of <see cref="Solution.Workspace"/> for this solution,
+        /// since that is extracted from <see cref="SolutionServices"/> for backwards compatibility.
+        /// </summary>
+        public SolutionState WithNewWorkspace(
             string? workspaceKind,
             int workspaceVersion,
-            HostWorkspaceServices services)
+            SolutionServices services)
         {
             if (workspaceKind == WorkspaceKind &&
-                workspaceVersion == _workspaceVersion &&
+                workspaceVersion == WorkspaceVersion &&
                 services == Services)
             {
                 return this;
             }
 
+            // Note: this will potentially have problems if the workspace services are different, as some services
+            // get locked-in by document states and project states when first constructed.
             return new SolutionState(
                 workspaceKind,
                 workspaceVersion,
@@ -512,13 +500,13 @@ namespace Microsoft.CodeAnalysis
 
             CheckNotContainsProject(projectId);
 
-            var languageServices = this.Workspace.Services.GetLanguageServices(language);
+            var languageServices = Services.GetLanguageServices(language);
             if (languageServices == null)
             {
                 throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
             }
 
-            var newProject = new ProjectState(projectInfo, languageServices, Services);
+            var newProject = new ProjectState(languageServices, projectInfo);
 
             return this.AddProject(newProject.Id, newProject);
         }
@@ -1128,7 +1116,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
             return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new AdditionalDocumentState(documentInfo, new LoadTextOptions(project.ChecksumAlgorithm), Services),
+                (documentInfo, project) => new AdditionalDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
                 (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
         }
 
@@ -1136,7 +1124,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Adding a new analyzer config potentially modifies the compilation options
             return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, new LoadTextOptions(project.ChecksumAlgorithm), Services),
+                (documentInfo, project) => new AnalyzerConfigDocumentState(Services, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
                 (oldProject, documents) =>
                 {
                     var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
@@ -1368,6 +1356,23 @@ namespace Microsoft.CodeAnalysis
             }
 
             return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
+        }
+
+        public SolutionState WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        {
+            var oldDocument = GetRequiredDocumentState(documentId);
+            if (oldDocument == documentState)
+                return this;
+
+            if (oldDocument.TextAndVersionSource == documentState.TextAndVersionSource &&
+                oldDocument.TreeSource == documentState.TreeSource)
+            {
+                return this;
+            }
+
+            return UpdateDocumentState(
+                oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource),
+                contentChanged: true);
         }
 
         private static async Task<Compilation> UpdateDocumentInCompilationAsync(
@@ -1818,8 +1823,7 @@ namespace Microsoft.CodeAnalysis
                     documentIdentity,
                     sourceText,
                     projectState.ParseOptions!,
-                    projectState.LanguageServices,
-                    Services);
+                    projectState.LanguageServices);
             }
 
             var projectId = documentIdentity.DocumentId.ProjectId;

@@ -8,9 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal sealed class DocumentOutlineOptionsMetadata
     {
-        private const string FeatureName = "DocumentOutlineOptions";
-
-        public static readonly Option2<bool> EnableDocumentOutline = new(FeatureName, nameof(EnableDocumentOutline), defaultValue: false,
-            storageLocation: new FeatureFlagStorageLocation("Roslyn.DocumentOutline"));
+        public static readonly Option2<bool> EnableDocumentOutline = new("DocumentOutlineOptions_EnableDocumentOutline", defaultValue: false);
     }
 }

@@ -1182,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public new TypeSymbol Type => base.Type!;
         public UnaryOperatorKind OperatorKind { get; }
         public BoundExpression Operand { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public MethodSymbol? MethodOpt { get; }
         public TypeSymbol? ConstrainedToTypeOpt { get; }
         public override LookupResultKind ResultKind { get; }
@@ -1965,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Condition { get; }
         public BoundExpression Consequence { get; }
         public BoundExpression Alternative { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public ErrorCode NoCommonTypeError { get; }
 
         [DebuggerStepThrough]
@@ -2008,7 +2008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Condition { get; }
         public BoundExpression Consequence { get; }
         public BoundExpression Alternative { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public TypeSymbol? NaturalTypeOpt { get; }
         public bool WasTargetTyped { get; }
 
@@ -2555,7 +2555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new TypeSymbol Type => base.Type!;
         public BoundTypeExpression? TargetType { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDefaultExpression(this);
@@ -2659,7 +2659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new TypeSymbol Type => base.Type!;
         public BoundTypeExpression SourceType { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSizeOfOperator(this);
@@ -2701,7 +2701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsBaseConversion { get; }
         public bool Checked { get; }
         public bool ExplicitCastInCode { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public ConversionGroup? ConversionGroupOpt { get; }
         public ImmutableArray<MethodSymbol> OriginalUserDefinedConversionsOpt { get; }
 
@@ -3540,7 +3540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchDispatch : BoundStatement
     {
-        public BoundSwitchDispatch(SyntaxNode syntax, BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, bool hasErrors = false)
+        public BoundSwitchDispatch(SyntaxNode syntax, BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, LengthBasedStringSwitchData? lengthBasedStringSwitchDataOpt, bool hasErrors = false)
             : base(BoundKind.SwitchDispatch, syntax, hasErrors || expression.HasErrors())
         {
 
@@ -3551,20 +3551,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Expression = expression;
             this.Cases = cases;
             this.DefaultLabel = defaultLabel;
+            this.LengthBasedStringSwitchDataOpt = lengthBasedStringSwitchDataOpt;
         }
 
         public BoundExpression Expression { get; }
         public ImmutableArray<(ConstantValue value, LabelSymbol label)> Cases { get; }
         public LabelSymbol DefaultLabel { get; }
+        public LengthBasedStringSwitchData? LengthBasedStringSwitchDataOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchDispatch(this);
 
-        public BoundSwitchDispatch Update(BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel)
+        public BoundSwitchDispatch Update(BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, LengthBasedStringSwitchData? lengthBasedStringSwitchDataOpt)
         {
-            if (expression != this.Expression || cases != this.Cases || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel))
+            if (expression != this.Expression || cases != this.Cases || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || lengthBasedStringSwitchDataOpt != this.LengthBasedStringSwitchDataOpt)
             {
-                var result = new BoundSwitchDispatch(this.Syntax, expression, cases, defaultLabel, this.HasErrors);
+                var result = new BoundSwitchDispatch(this.Syntax, expression, cases, defaultLabel, lengthBasedStringSwitchDataOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4035,7 +4037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstantValueOpt = constantValueOpt;
         }
 
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitLiteral(this);
@@ -4257,7 +4259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public new TypeSymbol Type => base.Type!;
         public LocalSymbol LocalSymbol { get; }
         public BoundLocalDeclarationKind DeclarationKind { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public bool IsNullableUnknown { get; }
 
         [DebuggerStepThrough]
@@ -5685,7 +5687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLoweredConditionalAccess : BoundExpression
     {
-        public BoundLoweredConditionalAccess(SyntaxNode syntax, BoundExpression receiver, MethodSymbol? hasValueMethodOpt, BoundExpression whenNotNull, BoundExpression? whenNullOpt, int id, TypeSymbol type, bool hasErrors = false)
+        public BoundLoweredConditionalAccess(SyntaxNode syntax, BoundExpression receiver, MethodSymbol? hasValueMethodOpt, BoundExpression whenNotNull, BoundExpression? whenNullOpt, int id, bool forceCopyOfNullableValueType, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.LoweredConditionalAccess, syntax, type, hasErrors || receiver.HasErrors() || whenNotNull.HasErrors() || whenNullOpt.HasErrors())
         {
 
@@ -5698,6 +5700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.WhenNotNull = whenNotNull;
             this.WhenNullOpt = whenNullOpt;
             this.Id = id;
+            this.ForceCopyOfNullableValueType = forceCopyOfNullableValueType;
         }
 
         public new TypeSymbol Type => base.Type!;
@@ -5706,15 +5709,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression WhenNotNull { get; }
         public BoundExpression? WhenNullOpt { get; }
         public int Id { get; }
+        public bool ForceCopyOfNullableValueType { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitLoweredConditionalAccess(this);
 
-        public BoundLoweredConditionalAccess Update(BoundExpression receiver, MethodSymbol? hasValueMethodOpt, BoundExpression whenNotNull, BoundExpression? whenNullOpt, int id, TypeSymbol type)
+        public BoundLoweredConditionalAccess Update(BoundExpression receiver, MethodSymbol? hasValueMethodOpt, BoundExpression whenNotNull, BoundExpression? whenNullOpt, int id, bool forceCopyOfNullableValueType, TypeSymbol type)
         {
-            if (receiver != this.Receiver || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(hasValueMethodOpt, this.HasValueMethodOpt) || whenNotNull != this.WhenNotNull || whenNullOpt != this.WhenNullOpt || id != this.Id || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiver != this.Receiver || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(hasValueMethodOpt, this.HasValueMethodOpt) || whenNotNull != this.WhenNotNull || whenNullOpt != this.WhenNullOpt || id != this.Id || forceCopyOfNullableValueType != this.ForceCopyOfNullableValueType || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundLoweredConditionalAccess(this.Syntax, receiver, hasValueMethodOpt, whenNotNull, whenNullOpt, id, type, this.HasErrors);
+                var result = new BoundLoweredConditionalAccess(this.Syntax, receiver, hasValueMethodOpt, whenNotNull, whenNullOpt, id, forceCopyOfNullableValueType, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6090,7 +6094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool Expanded { get; }
         public override ImmutableArray<int> ArgsToParamsOpt { get; }
         public override BitVector DefaultArguments { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public override BoundObjectInitializerExpressionBase? InitializerExpressionOpt { get; }
         public override bool WasTargetTyped { get; }
 
@@ -6838,7 +6842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public new TypeSymbol Type => base.Type!;
         public BoundExpression? ReceiverOpt { get; }
         public FieldSymbol FieldSymbol { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
         public override LookupResultKind ResultKind { get; }
         public bool IsByValue { get; }
         public bool IsDeclaration { get; }
@@ -7271,7 +7275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new TypeSymbol Type => base.Type!;
         public BoundExpression Argument { get; }
-        public ConstantValue ConstantValueOpt { get; }
+        public override ConstantValue ConstantValueOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitNameOfOperator(this);
@@ -7301,7 +7305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public ImmutableArray<BoundExpression> Parts { get; }
-        public ConstantValue? ConstantValueOpt { get; }
+        public override ConstantValue? ConstantValueOpt { get; }
     }
 
     internal sealed partial class BoundUnconvertedInterpolatedString : BoundInterpolatedStringBase
@@ -10741,7 +10745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitSwitchDispatch(BoundSwitchDispatch node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
-            return node.Update(expression, node.Cases, node.DefaultLabel);
+            return node.Update(expression, node.Cases, node.DefaultLabel, node.LengthBasedStringSwitchDataOpt);
         }
         public override BoundNode? VisitIfStatement(BoundIfStatement node)
         {
@@ -11094,7 +11098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression whenNotNull = (BoundExpression)this.Visit(node.WhenNotNull);
             BoundExpression? whenNullOpt = (BoundExpression?)this.Visit(node.WhenNullOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, type);
+            return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.ForceCopyOfNullableValueType, type);
         }
         public override BoundNode? VisitConditionalReceiver(BoundConditionalReceiver node)
         {
@@ -13104,12 +13108,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(receiver, hasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, infoAndType.Type!);
+                updatedNode = node.Update(receiver, hasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.ForceCopyOfNullableValueType, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(receiver, hasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.Type);
+                updatedNode = node.Update(receiver, hasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.ForceCopyOfNullableValueType, node.Type);
             }
             return updatedNode;
         }
@@ -14952,6 +14956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("cases", node.Cases, null),
             new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
+            new TreeDumperNode("lengthBasedStringSwitchDataOpt", node.LengthBasedStringSwitchDataOpt, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
@@ -15460,6 +15465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("whenNotNull", null, new TreeDumperNode[] { Visit(node.WhenNotNull, null) }),
             new TreeDumperNode("whenNullOpt", null, new TreeDumperNode[] { Visit(node.WhenNullOpt, null) }),
             new TreeDumperNode("id", node.Id, null),
+            new TreeDumperNode("forceCopyOfNullableValueType", node.ForceCopyOfNullableValueType, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
