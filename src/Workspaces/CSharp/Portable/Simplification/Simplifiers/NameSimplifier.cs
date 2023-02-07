@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             replacementNode = null;
             issueSpan = default;
 
-            if (name.IsVar)
+            if (name.IsVar || name.IsNint || name.IsNuint)
             {
                 return false;
             }
