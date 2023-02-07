@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Width = original.Width;
         }
 
-        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
             return new SyntaxDiagnosticInfo(this, severity);
         }

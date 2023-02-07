@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _binderFlags = original._binderFlags;
         }
 
-        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
             return new LazyObsoleteDiagnosticInfo(this, severity);
         }

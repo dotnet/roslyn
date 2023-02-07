@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _lazyInfo = original._lazyInfo;
         }
 
-        internal abstract override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity);
+        protected abstract override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity);
 
         protected abstract DiagnosticInfo? ResolveInfo();
     }

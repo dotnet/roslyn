@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _info = original._info;
         }
 
-        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
             return new LazyMissingNonNullTypesContextDiagnosticInfo(this, severity);
         }

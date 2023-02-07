@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _possiblyRestrictedTypeSymbol = original._possiblyRestrictedTypeSymbol;
         }
 
-        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
             return new LazyArrayElementCantBeRefAnyDiagnosticInfo(this, severity);
         }

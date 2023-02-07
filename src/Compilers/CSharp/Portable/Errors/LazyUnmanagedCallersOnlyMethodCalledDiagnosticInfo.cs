@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _isDelegateConversion = original._isDelegateConversion;
         }
 
-        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
             return new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(this, severity);
         }

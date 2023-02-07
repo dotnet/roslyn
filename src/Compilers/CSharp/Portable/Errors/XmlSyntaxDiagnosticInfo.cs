@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _xmlErrorCode = original._xmlErrorCode;
         }
 
-        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
             return new XmlSyntaxDiagnosticInfo(this, severity);
         }
