@@ -191,6 +191,14 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                 try
                 {
                     var (work, activityId, cancellationToken) = queueItem;
+
+                    // Verify this queueitem hasn't already been cancelled before creating a linked
+                    // CancellationTokenSource based on it.
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+
                     lspServices = work.LspServices;
 
                     var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
