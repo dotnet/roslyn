@@ -5054,14 +5054,16 @@ class Derived : Base<int>
             {
                 // We no longer report a runtime ambiguous override because the compiler
                 // produces a methodimpl record to disambiguate.
-                compilation.VerifyDiagnostics();
+                compilation.VerifyDiagnostics(
+                    );
             }
             else
             {
                 compilation.VerifyDiagnostics(
                     // (5,25): warning CS1957: Member 'Derived.Method(int, ref int)' overrides 'Base<int>.Method(int, ref int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
                     //     public virtual void Method(int @in, ref int @ref) { }
-                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int>.Method(int, ref int)", "Derived.Method(int, ref int)").WithLocation(5, 25));
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int>.Method(int, ref int)", "Derived.Method(int, ref int)").WithLocation(5, 25)
+                    );
             }
         }
 
