@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -90,6 +90,8 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         return handler;
     }
 
+    protected virtual bool EmptyQueueUponSerialRequest => false;
+
     /// <summary>
     /// Queues a request to be handled by the specified handler, with mutating requests blocking subsequent requests
     /// from starting until the mutation is complete.
@@ -113,7 +115,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
         var combinedCancellationToken = combinedTokenSource.Token;
         var (item, resultTask) = CreateQueueItem<TRequest, TResponse>(
-            handler.Concurrency,
+            handler.MutatesSolutionState,
             methodName,
             handler,
             request,
@@ -137,13 +139,13 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     }
 
     internal (IQueueItem<TRequestContext>, Task<TResponse>) CreateQueueItem<TRequest, TResponse>(
-        RequestConcurrency concurrency,
+        bool mutatesSolutionState,
         string methodName,
         IMethodHandler methodHandler,
         TRequest request,
         IMethodHandler handler,
         ILspServices lspServices,
-        CancellationToken cancellationToken) => QueueItem<TRequest, TResponse, TRequestContext>.Create(concurrency,
+        CancellationToken cancellationToken) => QueueItem<TRequest, TResponse, TRequestContext>.Create(mutatesSolutionState,
             methodName,
             methodHandler,
             request,
@@ -157,7 +159,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         ILspServices? lspServices = null;
         try
         {
-            var pendingTasks = new Dictionary<Task, CancellationTokenSource>();
+            var pendingTasks = new ConcurrentDictionary<Task, CancellationTokenSource>();
 
             while (!_cancelSource.IsCancellationRequested)
             {
@@ -182,34 +184,39 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
                     var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
 
+                    // Use the linked cancellation token so it can be cancelled if a RequestConcurrency.RequiresPreviousQueueItemsCancelled
+                    // request is encountered before this request completes.
+                    cancellationToken = cancellationTokenSource.Token;
+
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
                     Trace.CorrelationManager.ActivityId = activityId;
                     // The request context must be created serially inside the queue to so that requests always run
                     // on the correct snapshot as of the last request.
                     var context = await work.CreateRequestContextAsync(cancellationToken).ConfigureAwait(false);
-                    if ((work.Concurrency & RequestConcurrency.RequiresPreviousQueueItemsCancelled) == RequestConcurrency.RequiresPreviousQueueItemsCancelled
-                        && pendingTasks.Count > 0)
+                    if (work.MutatesServerState)
                     {
-                        // Cancel all pending tasks
-                        var pendingTasksArray = pendingTasks.ToArray();
-                        for (var i = 0; i < pendingTasksArray.Length; i++)
+                        if (EmptyQueueUponSerialRequest)
                         {
-                            pendingTasksArray[i].Value.Cancel();
+                            if (pendingTasks.Count > 0)
+                            {
+                                // Cancel all pending tasks
+                                var pendingTasksArray = pendingTasks.ToArray();
+                                for (var i = 0; i < pendingTasksArray.Length; i++)
+                                {
+                                    pendingTasksArray[i].Value.Cancel();
+                                }
+
+                                try
+                                {
+                                    // wait for all pending tasks to complete their cancellation
+                                    await Task.WhenAll(pendingTasksArray.Select(kvp => kvp.Key)).ConfigureAwait(false);
+                                }
+                                catch (TaskCanceledException)
+                                {
+                                }
+                            }
                         }
 
-                        try
-                        {
-                            // wait for all pending tasks to complete their cancellation
-                            await Task.WhenAll(pendingTasksArray.Select(kvp => kvp.Key)).ConfigureAwait(false);
-                        }
-                        catch (TaskCanceledException)
-                        {
-                        }
-                    }
-
-
-                    if ((work.Concurrency & RequestConcurrency.RequiresCompletionBeforeFurtherQueueing) == RequestConcurrency.RequiresCompletionBeforeFurtherQueueing)
-                    {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
                         await WrapStartRequestTaskAsync(work.StartRequestAsync(context, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
@@ -223,9 +230,15 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                         // blocking the request queue for longer periods of time (it enforces parallelizability).
                         var pendingTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken), rethrowExceptions: false);
 
-                        pendingTasks.Add(pendingTask, cancellationTokenSource);
+                        pendingTasks.TryAdd(pendingTask, cancellationTokenSource);
 
-                        _ = pendingTask.ContinueWith(t => pendingTasks.Remove(t), TaskScheduler.Default);
+                        _ = pendingTask.ContinueWith(t =>
+                        {
+                            if (pendingTasks.TryRemove(t, out var pendingCancellationTokenSource))
+                            {
+                                pendingCancellationTokenSource.Dispose();
+                            }
+                        }, TaskScheduler.Default);
                     }
                 }
                 catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)

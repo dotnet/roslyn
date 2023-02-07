@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
 
@@ -37,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             Title = "Re-trigger completions"
         };
 
-        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
+        public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]

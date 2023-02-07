@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
@@ -43,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             _globalOptions = globalOptions;
         }
 
-        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
+        public bool MutatesSolutionState => false;
 
         public bool RequiresLSPSolution => true;
 

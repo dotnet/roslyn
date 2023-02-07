@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Xunit;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
@@ -97,7 +96,7 @@ public partial class HandlerProviderTests
     [LanguageServerEndpoint(_method)]
     internal class TestMethodHandler : IRequestHandler<int, string, TestRequestContext>
     {
-        public RequestConcurrency Concurrency => RequestConcurrency.RequiresCompletionBeforeFurtherQueueing;
+        public bool MutatesSolutionState => true;
 
         public static string Method = _method;
 
@@ -113,7 +112,7 @@ public partial class HandlerProviderTests
 
     private class TestMethodHandlerWithoutAttribute : INotificationHandler<TestRequestContext>
     {
-        public RequestConcurrency Concurrency => RequestConcurrency.RequiresCompletionBeforeFurtherQueueing;
+        public bool MutatesSolutionState => true;
 
         public Task HandleNotificationAsync(TestRequestContext requestContext, CancellationToken cancellationToken)
         {

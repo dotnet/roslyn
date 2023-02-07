@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
@@ -33,14 +32,14 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
 
     public ILspServices LspServices { get; }
 
-    public RequestConcurrency Concurrency { get; }
+    public bool MutatesServerState { get; }
 
     public string MethodName { get; }
 
     public IMethodHandler MethodHandler { get; }
 
     private QueueItem(
-        RequestConcurrency concurrency,
+        bool mutatesSolutionState,
         string methodName,
         IMethodHandler methodHandler,
         TRequest request,
@@ -58,12 +57,12 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         LspServices = lspServices;
         MethodHandler = methodHandler;
 
-        Concurrency = concurrency;
+        MutatesServerState = mutatesSolutionState;
         MethodName = methodName;
     }
 
     public static (IQueueItem<TRequestContext>, Task<TResponse>) Create(
-        RequestConcurrency concurrency,
+        bool mutatesSolutionState,
         string methodName,
         IMethodHandler methodHandler,
         TRequest request,
@@ -73,7 +72,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         CancellationToken cancellationToken)
     {
         var queueItem = new QueueItem<TRequest, TResponse, TRequestContext>(
-            concurrency,
+            mutatesSolutionState,
             methodName,
             methodHandler,
             request,

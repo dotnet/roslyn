@@ -13,7 +13,7 @@ public class InitializedHandler<TRequest, TRequestContext> : INotificationHandle
 {
     private bool HasBeenInitialized = false;
 
-    public RequestConcurrency Concurrency => RequestConcurrency.RequiresCompletionBeforeFurtherQueueing;
+    public bool MutatesSolutionState => true;
 
     public bool RequiresLSPSolution => true;
 

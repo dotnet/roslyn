@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Moq;
 using Nerdbank.Streams;
 using StreamJsonRpc;
@@ -88,7 +86,7 @@ public class RequestExecutionQueueTests
 
     public class ThrowingHandler : IRequestHandler<int, string, TestRequestContext>
     {
-        public RequestConcurrency Concurrency => RequestConcurrency.Parallel;
+        public bool MutatesSolutionState => false;
 
         public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
         {

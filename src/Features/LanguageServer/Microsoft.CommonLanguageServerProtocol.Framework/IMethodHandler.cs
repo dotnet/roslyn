@@ -10,7 +10,8 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 public interface IMethodHandler
 {
     /// <summary>
-    /// Specifies allowed concurrency when processing this method in the queue.
+    /// Whether or not the solution state on the server is modified as a part of handling this request.
+    /// This may affect queuing behavior (IE mutating requests are run in serial rather than paralel) depending on the <see cref="IRequestExecutionQueue{TRequestContext}"/> implementation.
     /// </summary>
-    RequestConcurrency Concurrency { get; }
+    bool MutatesSolutionState { get; }
 }

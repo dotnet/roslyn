@@ -33,9 +33,9 @@ public interface IQueueItem<TRequestContext>
     ILspServices LspServices { get; }
 
     /// <summary>
-    /// The concurrency required for this work item.
+    /// Indicates that this request may mutate the server state, so that the queue may handle its execution appropriatly.
     /// </summary>
-    RequestConcurrency Concurrency { get; }
+    bool MutatesServerState { get; }
 
     /// <summary>
     /// The method being executed.
