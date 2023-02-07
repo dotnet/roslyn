@@ -4518,7 +4518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private protected override bool SupportsRuntimeCapabilityCore(RuntimeCapability capability)
-            => RuntimeCapabilityHelpers.RuntimeSupportsCapability(this.Assembly, capability);
+            => this.Assembly.SupportsRuntimeCapability(capability);
 
         private abstract class AbstractSymbolSearcher
         {
