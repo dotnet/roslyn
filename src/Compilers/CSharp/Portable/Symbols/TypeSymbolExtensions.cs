@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly string[] s_systemNamespaceNames = new[] { "System", "" };
         private static readonly string[] s_systemCollectionsGenericNamespaceNames = new[] { "Generic", "Collections", "System", "" };
 
-        private static bool IsNamedTypeWithOneTypeArgument(TypeSymbol type, string[] namespaceNames, string metadataName, out TypeWithAnnotations typeArgument)
+        private static bool IsNamedTypeWithOneTypeArgument(TypeSymbol? type, string[] namespaceNames, string metadataName, out TypeWithAnnotations typeArgument)
         {
             if (type is NamedTypeSymbol { Arity: 1, TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: var typeArguments } namedType
                 && namedType.MetadataName == metadataName
@@ -1288,7 +1288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private static bool IsNamedTypeWithTwoTypeArguments(TypeSymbol type, string[] namespaceNames, string metadataName, out TypeWithAnnotations typeArgument1, out TypeWithAnnotations typeArgument2)
+        private static bool IsNamedTypeWithTwoTypeArguments(TypeSymbol? type, string[] namespaceNames, string metadataName, out TypeWithAnnotations typeArgument1, out TypeWithAnnotations typeArgument2)
         {
             if (type is NamedTypeSymbol { Arity: 2, TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: var typeArguments } namedType
                 && namedType.MetadataName == metadataName
@@ -1304,37 +1304,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static bool IsKeyValuePair(this TypeSymbol type)
+        internal static bool IsKeyValuePair(this TypeSymbol? type)
             => IsNamedTypeWithTwoTypeArguments(type, s_systemCollectionsGenericNamespaceNames, "KeyValuePair`2", out _, out _);
 
-        internal static bool IsIDictionaryKV(this TypeSymbol type)
+        internal static bool IsIDictionaryKV(this TypeSymbol? type)
             => IsNamedTypeWithTwoTypeArguments(type, s_systemCollectionsGenericNamespaceNames, "IDictionary`2", out _, out _);
 
-        internal static bool IsIReadOnlyDictionaryKV(this TypeSymbol type)
+        internal static bool IsIReadOnlyDictionaryKV(this TypeSymbol? type)
             => IsNamedTypeWithTwoTypeArguments(type, s_systemCollectionsGenericNamespaceNames, "IReadOnlyDictionary`2", out _, out _);
 
-        internal static bool IsSpanT(this TypeSymbol type, out TypeWithAnnotations typeArgument)
+        internal static bool IsSpanT(this TypeSymbol? type, out TypeWithAnnotations typeArgument)
             => IsNamedTypeWithOneTypeArgument(type, s_systemNamespaceNames, "Span`1", out typeArgument);
 
-        internal static bool IsReadOnlySpanT(this TypeSymbol type, out TypeWithAnnotations typeArgument)
+        internal static bool IsReadOnlySpanT(this TypeSymbol? type, out TypeWithAnnotations typeArgument)
             => IsNamedTypeWithOneTypeArgument(type, s_systemNamespaceNames, "ReadOnlySpan`1", out typeArgument);
 
-        internal static bool IsSpanOrReadOnlySpanT(this TypeSymbol type, out TypeWithAnnotations typeArgument)
+        internal static bool IsSpanOrReadOnlySpanT(this TypeSymbol? type, out TypeWithAnnotations typeArgument)
             => type.IsSpanT(out typeArgument) || type.IsReadOnlySpanT(out typeArgument);
 
-        internal static bool IsSpanChar(this TypeSymbol type)
+        internal static bool IsSpanChar(this TypeSymbol? type)
         {
             return type.IsSpanT(out var typeArgument)
                 && typeArgument.SpecialType == SpecialType.System_Char;
         }
 
-        internal static bool IsReadOnlySpanChar(this TypeSymbol type)
+        internal static bool IsReadOnlySpanChar(this TypeSymbol? type)
         {
             return type.IsReadOnlySpanT(out var typeArgument)
                 && typeArgument.SpecialType == SpecialType.System_Char;
         }
 
-        internal static bool IsSpanOrReadOnlySpanChar(this TypeSymbol type)
+        internal static bool IsSpanOrReadOnlySpanChar(this TypeSymbol? type)
         {
             return type.IsSpanOrReadOnlySpanT(out var typeArgument)
                 && typeArgument.SpecialType == SpecialType.System_Char;

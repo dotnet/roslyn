@@ -6669,12 +6669,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionLiteralSpreadElement : BoundExpression
     {
-        public BoundCollectionLiteralSpreadElement(SyntaxNode syntax, BoundExpression expression, ForEachEnumeratorInfo enumeratorInfo, BoundValuePlaceholder? elementPlaceholder, BoundExpression? elementConversion, BoundValuePlaceholder? addElementPlaceholder, BoundExpression? addMethodInvocation, TypeSymbol type, bool hasErrors = false)
+        public BoundCollectionLiteralSpreadElement(SyntaxNode syntax, BoundExpression expression, ForEachEnumeratorInfo enumeratorInfo, BoundValuePlaceholder elementPlaceholder, BoundExpression? elementConversion, BoundValuePlaceholder? addElementPlaceholder, BoundExpression? addMethodInvocation, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.CollectionLiteralSpreadElement, syntax, type, hasErrors || expression.HasErrors() || elementPlaceholder.HasErrors() || elementConversion.HasErrors() || addElementPlaceholder.HasErrors() || addMethodInvocation.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(enumeratorInfo is object, "Field 'enumeratorInfo' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(elementPlaceholder is object, "Field 'elementPlaceholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Expression = expression;
@@ -6688,7 +6689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public new TypeSymbol Type => base.Type!;
         public BoundExpression Expression { get; }
         public ForEachEnumeratorInfo EnumeratorInfo { get; }
-        public BoundValuePlaceholder? ElementPlaceholder { get; }
+        public BoundValuePlaceholder ElementPlaceholder { get; }
         public BoundExpression? ElementConversion { get; }
         public BoundValuePlaceholder? AddElementPlaceholder { get; }
         public BoundExpression? AddMethodInvocation { get; }
@@ -6696,7 +6697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionLiteralSpreadElement(this);
 
-        public BoundCollectionLiteralSpreadElement Update(BoundExpression expression, ForEachEnumeratorInfo enumeratorInfo, BoundValuePlaceholder? elementPlaceholder, BoundExpression? elementConversion, BoundValuePlaceholder? addElementPlaceholder, BoundExpression? addMethodInvocation, TypeSymbol type)
+        public BoundCollectionLiteralSpreadElement Update(BoundExpression expression, ForEachEnumeratorInfo enumeratorInfo, BoundValuePlaceholder elementPlaceholder, BoundExpression? elementConversion, BoundValuePlaceholder? addElementPlaceholder, BoundExpression? addMethodInvocation, TypeSymbol type)
         {
             if (expression != this.Expression || enumeratorInfo != this.EnumeratorInfo || elementPlaceholder != this.ElementPlaceholder || elementConversion != this.ElementConversion || addElementPlaceholder != this.AddElementPlaceholder || addMethodInvocation != this.AddMethodInvocation || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -11501,7 +11502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
-            BoundValuePlaceholder? elementPlaceholder = node.ElementPlaceholder;
+            BoundValuePlaceholder elementPlaceholder = node.ElementPlaceholder;
             BoundExpression? elementConversion = node.ElementConversion;
             BoundValuePlaceholder? addElementPlaceholder = node.AddElementPlaceholder;
             BoundExpression? addMethodInvocation = node.AddMethodInvocation;
@@ -13822,7 +13823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
-            BoundValuePlaceholder? elementPlaceholder = node.ElementPlaceholder;
+            BoundValuePlaceholder elementPlaceholder = node.ElementPlaceholder;
             BoundExpression? elementConversion = node.ElementConversion;
             BoundValuePlaceholder? addElementPlaceholder = node.AddElementPlaceholder;
             BoundExpression? addMethodInvocation = node.AddMethodInvocation;

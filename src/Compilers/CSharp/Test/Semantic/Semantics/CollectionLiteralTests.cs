@@ -361,6 +361,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
+        [Fact]
+        public void DictionaryElements_04()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Dictionary<int, object> d = Create();
+                        Console.WriteLine(d.Count);
+                    }
+                    static Dictionary<int, object> Create() => [null, default];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Report error cannot convert null to KeyValuePair<int, object>.
+            comp.VerifyEmitDiagnostics(
+                // (4,67): error CS0029: Cannot implicitly convert type 'object' to 'string'
+                //     static Dictionary<string, int> Create(object k, object v) => [k:v];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "k:v").WithArguments("object", "string").WithLocation(4, 67));
+        }
+
         // PROTOTYPE: Test type with TValue this[TKey] indexer but no Add(KeyValuePair<TKey, TValue>) method, and without a definition for KeyValuePair<TKey, TValue>. It should compile without errors.
         // PROTOTYPE: Test type with TValue this[TKey] indexer and Add(KeyValuePair<TKey, TValue>) method, and without a definition for KeyValuePair<TKey, TValue>. It should bind to Add() but report a use-site error.
         // PROTOTYPE: Test type with Add(KeyValuePair<TKey, TValue>) method with or without corresponding TValue this[TKey] indexer. Test adding k:v and e.

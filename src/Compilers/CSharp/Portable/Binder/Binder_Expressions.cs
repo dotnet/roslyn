@@ -6263,6 +6263,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder? collectionInitializerAddMethodBinder,
             BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(targetType is { }); // PROTOTYPE: This may not be true. Test with ..M where M is a method group for instance.
+
             var elementPlaceholder = new BoundValuePlaceholder(syntax.Expression, enumeratorInfo.ElementType);
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion conversion = Conversions.ClassifyConversionFromType(enumeratorInfo.ElementType, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo, forCast: true);

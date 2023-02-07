@@ -750,6 +750,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             GeneratedLabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
+            Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
+
             var forEachSyntax = (CSharpSyntaxNode)node.Syntax;
 
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)collectionExpression.Type;

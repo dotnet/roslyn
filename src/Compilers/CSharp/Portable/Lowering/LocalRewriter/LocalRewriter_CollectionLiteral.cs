@@ -221,6 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(enumeratorInfo is { });
             Debug.Assert(addElementPlaceholder is { });
+            Debug.Assert(addElementPlaceholder.Type is { }); // PROTOTYPE: Is this guaranteed?
 
             var syntax = (CSharpSyntaxNode)initializer.Syntax;
             var iterationVariable = _factory.SynthesizedLocal(addElementPlaceholder.Type, syntax);
