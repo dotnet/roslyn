@@ -6,7 +6,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
