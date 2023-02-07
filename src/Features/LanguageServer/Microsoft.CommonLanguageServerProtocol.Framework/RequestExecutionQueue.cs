@@ -90,7 +90,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         return handler;
     }
 
-    protected virtual bool EmptyQueueUponSerialRequest => false;
+    protected virtual bool CancelInProgressWorkUponMutatingRequest => false;
 
     /// <summary>
     /// Queues a request to be handled by the specified handler, with mutating requests blocking subsequent requests
@@ -184,8 +184,8 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
                     var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
 
-                    // Use the linked cancellation token so it can be cancelled if a RequestConcurrency.RequiresPreviousQueueItemsCancelled
-                    // request is encountered before this request completes.
+                    // Use the linked cancellation token so it's task can be cancelled if necessary during a mutating request
+                    // on a queue that specifies CancelInProgressWorkUponMutatingRequest
                     cancellationToken = cancellationTokenSource.Token;
 
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
@@ -195,7 +195,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                     var context = await work.CreateRequestContextAsync(cancellationToken).ConfigureAwait(false);
                     if (work.MutatesServerState)
                     {
-                        if (EmptyQueueUponSerialRequest)
+                        if (CancelInProgressWorkUponMutatingRequest)
                         {
                             if (pendingTasks.Count > 0)
                             {
