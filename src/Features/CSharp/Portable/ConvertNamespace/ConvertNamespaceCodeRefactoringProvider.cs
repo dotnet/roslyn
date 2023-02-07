@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         }
 
         private static bool CanOfferRefactoring(
-            BaseNamespaceDeclarationSyntax namespaceDecl,
+            BaseNamespaceDeclarationSyntax? namespaceDecl,
             CompilationUnitSyntax root,
             CSharpCodeFixOptionsProvider options,
             [NotNullWhen(true)] out (string title, string equivalenceKey)? info)
@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 CanOfferUseBlockScoped(options.NamespaceDeclarations, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.BlockScoped) :
                 CanOfferUseFileScoped(options.NamespaceDeclarations, root, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.FileScoped) :
                 null;
+
             return info != null;
         }
 
@@ -97,8 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetCSharpCodeFixOptionsProviderAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
             var namespaceDecl = root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
-            if (namespaceDecl is null
-                || !CanOfferRefactoring(namespaceDecl, root, options, out var info)
+            if (!CanOfferRefactoring(namespaceDecl, root, options, out var info)
                 || info.Value.equivalenceKey != equivalenceKey)
             {
                 return;

@@ -45,10 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return ifStatement.Condition;
         }
 
-        private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        private static string GetIndentation(Document document, IfStatementSyntax ifStatementSyntax, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var ifStatementSyntax = (IfStatementSyntax)node;
             var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(ifStatementSyntax.Statement.SpanStart).LineNumber;
 
             var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
@@ -65,12 +64,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).First();
+            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+
+            if (snippet is not IfStatementSyntax ifStatementSyntax)
+                return document;
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, snippet, syntaxFormattingOptions, cancellationToken);
+            var indentationString = GetIndentation(document, ifStatementSyntax, syntaxFormattingOptions, cancellationToken);
 
-            var ifStatementSyntax = (IfStatementSyntax)snippet;
             var blockStatement = (BlockSyntax)ifStatementSyntax.Statement;
             blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
             var newIfStatementSyntax = ifStatementSyntax.ReplaceNode(ifStatementSyntax.Statement, blockStatement);

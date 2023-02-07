@@ -45,9 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 {
                     var substringMethod = stringType.GetMembers(nameof(string.Substring))
                                                     .OfType<IMethodSymbol>()
-                                                    .First(m => IsTwoArgumentSliceLikeMethod(m));
+                                                    .FirstOrDefault(m => IsTwoArgumentSliceLikeMethod(m));
 
-                    _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
+                    if (substringMethod is not null)
+                        _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
                 }
             }
 

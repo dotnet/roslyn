@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -59,10 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return line.Span.End;
         }
 
-        private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        private static string GetIndentation(Document document, TypeDeclarationSyntax typeDeclaration, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var typeDeclaration = (TypeDeclarationSyntax)node;
             var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(typeDeclaration.OpenBraceToken.SpanStart).LineNumber;
 
             var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
@@ -79,12 +76,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).First();
+            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+
+            if (snippet is not TypeDeclarationSyntax originalTypeDeclaration)
+                return document;
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, snippet, syntaxFormattingOptions, cancellationToken);
+            var indentationString = GetIndentation(document, originalTypeDeclaration, syntaxFormattingOptions, cancellationToken);
 
-            var originalTypeDeclaration = (TypeDeclarationSyntax)snippet;
             var newTypeDeclaration = originalTypeDeclaration.WithCloseBraceToken(
                 originalTypeDeclaration.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
 

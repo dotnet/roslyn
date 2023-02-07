@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -21,7 +19,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
-using static Humanizer.In;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
@@ -103,8 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).First();
-            var elseClauseSyntax = (ElseClauseSyntax)snippet;
+            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+
+            if (snippet is not ElseClauseSyntax elseClauseSyntax)
+                return document;
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
             var indentationString = GetIndentationString(document, elseClauseSyntax, syntaxFormattingOptions, cancellationToken);

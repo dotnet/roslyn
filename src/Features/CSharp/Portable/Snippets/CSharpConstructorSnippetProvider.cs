@@ -3,22 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets;
@@ -69,10 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return ImmutableArray.Create(new SnippetPlaceholder(identifier.ToString(), ImmutableArray.Create(identifier.SpanStart)));
         }
 
-        private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        private static string GetIndentation(Document document, ConstructorDeclarationSyntax constructorDeclaration, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var constructorDeclaration = (ConstructorDeclarationSyntax)node;
             var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(constructorDeclaration.Body!.SpanStart).LineNumber;
 
             var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
@@ -89,12 +84,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).First();
+            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+
+            if (snippet is not ConstructorDeclarationSyntax constructorDeclaration)
+                return document;
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, snippet, syntaxFormattingOptions, cancellationToken);
+            var indentationString = GetIndentation(document, constructorDeclaration, syntaxFormattingOptions, cancellationToken);
 
-            var constructorDeclaration = (ConstructorDeclarationSyntax)snippet;
             var blockStatement = constructorDeclaration.Body;
             blockStatement = blockStatement!.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
             var newConstructorDeclaration = constructorDeclaration.ReplaceNode(constructorDeclaration.Body!, blockStatement);

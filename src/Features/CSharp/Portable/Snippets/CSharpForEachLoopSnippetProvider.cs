@@ -68,10 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         }
 
-        private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        private static string GetIndentation(Document document, ForEachStatementSyntax foreachStatement, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var foreachStatement = (ForEachStatementSyntax)node;
             var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(foreachStatement.Statement.SpanStart).LineNumber;
 
             var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
@@ -88,12 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).First();
+            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+
+            if (snippet is not ForEachStatementSyntax foreachStatement)
+                return document;
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, snippet, syntaxFormattingOptions, cancellationToken);
+            var indentationString = GetIndentation(document, foreachStatement, syntaxFormattingOptions, cancellationToken);
 
-            var foreachStatement = (ForEachStatementSyntax)snippet;
             var blockStatement = (BlockSyntax)foreachStatement.Statement;
             blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
             var newForEachStatement = foreachStatement.ReplaceNode(foreachStatement.Statement, blockStatement);

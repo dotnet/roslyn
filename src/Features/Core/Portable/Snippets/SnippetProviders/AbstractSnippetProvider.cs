@@ -103,12 +103,15 @@ namespace Microsoft.CodeAnalysis.Snippets
             // Goes through and calls upon the formatting engines that the previous step annotated.
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
 
-            // Finds the added snippet and adds identation where necessary (braces).
+            // Finds the added snippet and adds indentation where necessary (braces).
             var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, position, syntaxFacts, cancellationToken).ConfigureAwait(false);
 
             var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).First();
-            var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).First();
+            var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
+            var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+
+            Contract.ThrowIfNull(caretTarget);
+            Contract.ThrowIfNull(mainChangeNode);
 
             var annotatedReformattedDocument = documentWithIndentation.WithSyntaxRoot(reformattedRoot);
 
@@ -121,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             var placeholders = GetPlaceHolderLocationsList(mainChangeNode, syntaxFacts, cancellationToken);
 
             // All the changes from the original document to the most updated. Will later be
-            // collpased into one collapsed TextChange.
+            // collapsed into one collapsed TextChange.
             var changesArray = changes.ToImmutableArray();
             var sourceText = await annotatedReformattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
