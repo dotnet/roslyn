@@ -14582,7 +14582,7 @@ public class Generator : ISourceGenerator
         [InlineData("abc/a.txt", "./../ABC/a.txt", 2)]
         public void TestDuplicateAdditionalFiles_Linux(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
 
-        [Fact]
+        [Fact, WorkItem(1434159, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1434159")]
         public void CanSuppressAnalyzerLoadWarning()
         {
             var dir = Temp.CreateDirectory();
