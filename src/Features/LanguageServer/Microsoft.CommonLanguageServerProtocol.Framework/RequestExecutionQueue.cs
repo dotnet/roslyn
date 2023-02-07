@@ -90,6 +90,17 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         return handler;
     }
 
+    /// <summary>
+    /// Indicates this queue requires in-progress work to be cancelled before servicing
+    /// a mutating request.
+    /// </summary>
+    /// <remarks>
+    /// This was added for WebTools consumption as they aren't resilient to
+    /// incomplete requests continuing execution during didChange notifications. As their
+    /// parse trees are mutable, a didChange notification requires all previous requests
+    /// to be completed before processing. This is similar to the O#
+    /// WithContentModifiedSupport(false) behavior.
+    /// </remarks>
     protected virtual bool CancelInProgressWorkUponMutatingRequest => false;
 
     /// <summary>
