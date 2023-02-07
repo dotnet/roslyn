@@ -14603,7 +14603,7 @@ class C {}
             Assert.Contains("error CS8034", output, StringComparison.Ordinal);
         }
 
-        [Fact]
+        [Fact, WorkItem(1434159, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1434159")]
         public void GlobalAnalyzerConfigCanSuppressAnalyzerLoadWarning()
         {
             var dir = Temp.CreateDirectory();
