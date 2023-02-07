@@ -170,7 +170,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         ILspServices? lspServices = null;
         try
         {
-            var pendingTasks = new ConcurrentDictionary<Task, CancellationTokenSource>();
+            var pendingTasks = new ConcurrentDictionary<Task, CancellationTokenSource?>();
 
             while (!_cancelSource.IsCancellationRequested)
             {
@@ -191,21 +191,24 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                 try
                 {
                     var (work, activityId, cancellationToken) = queueItem;
-
-                    // Verify this queueitem hasn't already been cancelled before creating a linked
-                    // CancellationTokenSource based on it.
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                    }
-
+                    CancellationTokenSource? cancellationTokenSource = null;
                     lspServices = work.LspServices;
 
-                    var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
+                    if (CancelInProgressWorkUponMutatingRequest)
+                    {
+                        // Verify this queueitem hasn't already been cancelled before creating a linked
+                        // CancellationTokenSource based on it.
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                        }
 
-                    // Use the linked cancellation token so it's task can be cancelled if necessary during a mutating request
-                    // on a queue that specifies CancelInProgressWorkUponMutatingRequest
-                    cancellationToken = cancellationTokenSource.Token;
+                        cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
+
+                        // Use the linked cancellation token so it's task can be cancelled if necessary during a mutating request
+                        // on a queue that specifies CancelInProgressWorkUponMutatingRequest
+                        cancellationToken = cancellationTokenSource.Token;
+                    }
 
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
                     Trace.CorrelationManager.ActivityId = activityId;
@@ -249,15 +252,18 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                         // blocking the request queue for longer periods of time (it enforces parallelizability).
                         var pendingTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken), rethrowExceptions: false);
 
-                        pendingTasks.TryAdd(pendingTask, cancellationTokenSource);
-
-                        _ = pendingTask.ContinueWith(t =>
+                        if (CancelInProgressWorkUponMutatingRequest)
                         {
-                            if (pendingTasks.TryRemove(t, out var pendingCancellationTokenSource))
+                            pendingTasks.TryAdd(pendingTask, cancellationTokenSource);
+
+                            _ = pendingTask.ContinueWith(t =>
                             {
-                                pendingCancellationTokenSource.Dispose();
-                            }
-                        }, TaskScheduler.Default);
+                                if (pendingTasks.TryRemove(t, out var pendingCancellationTokenSource))
+                                {
+                                    pendingCancellationTokenSource?.Dispose();
+                                }
+                            }, TaskScheduler.Default);
+                        }
                     }
                 }
                 catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)
