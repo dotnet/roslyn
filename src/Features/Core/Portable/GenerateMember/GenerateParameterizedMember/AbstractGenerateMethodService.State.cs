@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!TryDetermineTypeToGenerateIn(
                         semanticDocument, ContainingType, SimpleNameOrMemberAccessExpression, cancellationToken,
-                        out var typeToGenerateIn, out var isStatic))
+                        out var typeToGenerateIn, out var isStatic, out _))
                 {
                     return false;
                 }

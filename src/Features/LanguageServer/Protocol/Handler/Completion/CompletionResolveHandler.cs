@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var cacheEntry = _completionListCache.GetCachedCompletionList(resolveData.ResultId.Value);
+            var cacheEntry = _completionListCache.GetCachedEntry(resolveData.ResultId.Value);
             if (cacheEntry == null)
             {
                 // No cache for associated completion item. Log some telemetry so we can understand how frequently this actually happens.

@@ -35,7 +35,6 @@ param (
   [string]$bootstrapConfiguration = "Release",
   [switch][Alias('bl')]$binaryLog,
   [string]$binaryLogName = "",
-  [switch]$buildServerLog,
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
@@ -81,7 +80,6 @@ function Print-Usage() {
   Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
   Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
   Write-Host "  -binaryLogName            Name of the binary log (default Build.binlog)"
-  Write-Host "  -buildServerLog           Create Roslyn build server log"
   Write-Host ""
   Write-Host "Actions:"
   Write-Host "  -restore                  Restore packages (short: -r)"
@@ -174,9 +172,6 @@ function Process-Arguments() {
 
   if ($ci) {
     $script:binaryLog = $true
-    if ($bootstrap) {
-      $script:buildServerLog = $true
-    }
   }
 
   if ($binaryLog -and ($binaryLogName -eq "")) {
@@ -228,12 +223,16 @@ function BuildSolution() {
     $binaryLogPath = Join-Path $LogDir $binaryLogName
     $bl = "/bl:" + $binaryLogPath
     if ($ci -and (Test-Path $binaryLogPath)) {
-      Write-LogIssue -Type "warning" -Message "Overwriting binary log file $($binaryLogPath)"
+      Write-LogIssue -Type "error" -Message "Overwriting binary log file $($binaryLogPath)"
+      throw "Overwriting binary log files"
     }
+
   }
 
-  if ($buildServerLog) {
+  if ($ci) {
     ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
+    ${env:MSBUILDDEBUGCOMM} = 1
+    ${env:MSBUILDDEBUGPATH} = Join-Path $LogDir "MSbuild.Comm.log"
   }
 
   $projects = Join-Path $RepoRoot $solution
@@ -293,9 +292,10 @@ function BuildSolution() {
   }
   finally {
     ${env:ROSLYNCOMMANDLINELOGFILE} = $null
+    ${env:MSBUILDDEBUGCOMM} = 0
+    ${env:MSBUILDDEBUGPATH} = $null
   }
 }
-
 
 # Get the branch that produced the IBC data this build is going to consume.
 # IBC data are only merged in official built, but we want to test some of the logic in CI builds as well.

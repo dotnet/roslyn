@@ -2730,6 +2730,27 @@ class Goo
             End Using
         End Sub
 
+        <WpfTheory, CombinatorialData, WorkItem(8320, "https://github.com/dotnet/roslyn/issues/8320")>
+        Public Sub EnumParamsCompletion(showCompletionInArgumentLists As Boolean)
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+class C
+{
+    void X(params DayOfWeek[] x)
+    {
+        X($$);
+    }
+}
+                </Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                state.AssertSelectedCompletionItem("DayOfWeek", isHardSelected:=True)
+            End Using
+        End Sub
+
         <WpfTheory, CombinatorialData>
         Public Async Function EnumCompletionNotTriggeredOnPlusCommitCharacter(showCompletionInArgumentLists As Boolean) As Task
             Await EnumCompletionNotTriggeredOn("+"c, showCompletionInArgumentLists)

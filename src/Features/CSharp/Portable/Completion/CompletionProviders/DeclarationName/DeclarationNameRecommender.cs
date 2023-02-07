@@ -221,8 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                             {
                                 var uniqueName = semanticFactsService.GenerateUniqueName(
                                     context.SemanticModel,
-                                    context.TargetToken.Parent,
-                                    containerOpt: null,
+                                    context.TargetToken.GetRequiredParent(),
+                                    container: null,
                                     baseName: name,
                                     filter: s => IsRelevantSymbolKind(s),
                                     usedNames: Enumerable.Empty<string>(),

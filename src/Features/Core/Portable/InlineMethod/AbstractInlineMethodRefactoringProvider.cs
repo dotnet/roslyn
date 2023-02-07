@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         _semanticFactsService.GenerateUniqueLocalName(
                             semanticModel,
                             calleeInvocationNode,
-                            containerOpt: null,
+                            container: null,
                             TemporaryName,
                             cancellationToken);
 

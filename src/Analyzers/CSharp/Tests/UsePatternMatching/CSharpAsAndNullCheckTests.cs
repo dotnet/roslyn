@@ -1693,5 +1693,252 @@ class Program
 }
 ");
         }
+
+        [Fact, WorkItem(55782, "https://github.com/dotnet/roslyn/issues/55782")]
+        public async Task TestLocalReferencedAcrossScopes1()
+        {
+            var code = """
+                using System.Transactions;
+
+                class BaseObject { }
+                class ObjectFactory
+                {
+                    internal static BaseObject CreateObject(int x)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                struct Repro
+                {
+                    static int Main(string[] args)
+                    {
+                        int x = 0;
+                        [|BaseObject|] obj;
+
+                        var tso = new TransactionOptions { IsolationLevel = IsolationLevel.RepeatableRead };
+                        using (var trans = new TransactionScope(TransactionScopeOption.Required, tso))
+                        {
+                            try
+                            {
+                                if ((obj = ObjectFactory.CreateObject(x) as BaseObject) == null)
+                                {
+                                    return -1;
+                                }
+                                // uses of obj in the transaction
+                            }
+                            catch (TransactionAbortedException)
+                            {
+                                return -1;
+                            }
+                        }
+
+                        // local used here.
+                        Console.WriteLine(obj);
+                        return 0;
+                    }
+                }
+                """;
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, WorkItem(55782, "https://github.com/dotnet/roslyn/issues/55782")]
+        public async Task TestLocalReferencedAcrossScopes2()
+        {
+            await TestInRegularAndScript1Async("""
+                using System.Transactions;
+
+                class BaseObject { }
+                class ObjectFactory
+                {
+                    internal static BaseObject CreateObject(int x)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                struct Repro
+                {
+                    static int Main(string[] args)
+                    {
+                        int x = 0;
+                        [|BaseObject|] obj;
+
+                        var tso = new TransactionOptions { IsolationLevel = IsolationLevel.RepeatableRead };
+                        using (var trans = new TransactionScope(TransactionScopeOption.Required, tso))
+                        {
+                            try
+                            {
+                                if ((obj = ObjectFactory.CreateObject(x) as BaseObject) == null)
+                                {
+                                    return -1;
+                                }
+                                // uses of obj in the transaction
+                            }
+                            catch (TransactionAbortedException)
+                            {
+                                return -1;
+                            }
+                        }
+
+                        // not used
+                        return 0;
+                    }
+                }
+                """,
+                """
+                using System.Transactions;
+
+                class BaseObject { }
+                class ObjectFactory
+                {
+                    internal static BaseObject CreateObject(int x)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                struct Repro
+                {
+                    static int Main(string[] args)
+                    {
+                        int x = 0;
+
+                        var tso = new TransactionOptions { IsolationLevel = IsolationLevel.RepeatableRead };
+                        using (var trans = new TransactionScope(TransactionScopeOption.Required, tso))
+                        {
+                            try
+                            {
+                                if (ObjectFactory.CreateObject(x) is not BaseObject obj)
+                                {
+                                    return -1;
+                                }
+                                // uses of obj in the transaction
+                            }
+                            catch (TransactionAbortedException)
+                            {
+                                return -1;
+                            }
+                        }
+
+                        // not used
+                        return 0;
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo1()
+        {
+            await TestInRegularAndScript1Async("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                        }
+                    }
+                }
+                """,
+                """
+                #nullable enable
+                using System;
+                
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        if (o1 is not string s)
+                        {
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo2()
+        {
+            await TestInRegularAndScript1Async("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                            s = "";
+                        }
+                    }
+                }
+                """,
+                """
+                #nullable enable
+                using System;
+                
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        if (o1 is not string s)
+                        {
+                            s = "";
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo3()
+        {
+            await TestMissingInRegularAndScriptAsync("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                            s = o2 as string;
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo4()
+        {
+            await TestMissingInRegularAndScriptAsync("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                            s = null;
+                        }
+                    }
+                }
+                """);
+        }
     }
 }

@@ -43,8 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Me.Methods = methods
 
             If testData IsNot Nothing Then
-                SetMethodTestData(testData.Methods)
-                testData.Module = Me
+                SetTestData(testData)
             End If
         End Sub
 

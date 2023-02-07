@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     /// in-proc and OOP e.g. in-proc (VS) running on desktop clr and OOP running on ServiceHub .Net6
     /// host. We need to make sure to use the ones from the same location as the remote.
     /// </summary>
-    internal sealed class RemoteAnalyzerAssemblyLoader : DefaultAnalyzerAssemblyLoader
+    internal sealed class RemoteAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         private readonly string _baseDirectory;
 
