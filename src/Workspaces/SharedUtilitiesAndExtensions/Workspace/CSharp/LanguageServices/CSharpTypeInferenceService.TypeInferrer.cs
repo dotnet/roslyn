@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(int index, IEnumerable<IMethodSymbol> methods, AttributeArgumentSyntax argumentOpt = null)
-                => InferTypeInAttributeArgument(index, methods.Select(m => m.Parameters), argumentOpt);
+                => InferTypeInAttributeArgument(index, methods.SelectAsArray(m => m.Parameters), argumentOpt);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgument(int index, IEnumerable<IMethodSymbol> methods, ArgumentSyntax argumentOpt, InvocationExpressionSyntax parentInvocationExpressionToTypeInfer)
             {
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(
                 int index,
-                IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
+                ImmutableArray<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 AttributeArgumentSyntax argumentOpt = null)
             {
                 if (argumentOpt != null && argumentOpt.NameEquals != null)
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 int index,
-                IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
+                ImmutableArray<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 string name,
                 RefKind refKind)
             {
