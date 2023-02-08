@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class CreateProjectTests : AbstractIntegrationTest
     {
+        private static readonly XUnitVerifier s_verifier = new XUnitVerifier();
+
         [IdeFact]
         public async Task CreateFromTemplateAsync()
         {
@@ -22,14 +24,14 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.Editor.SetTextAsync(@"using System", HangMitigatingCancellationToken);
 
             var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
-            Assert.Equal("========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+            s_verifier.EqualOrDiff("========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========", buildSummary!);
 
             await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
             // Verify that intentional errors get validated by the test
             var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken);
             var expected = "(Compiler) Class1.cs(1, 13): error CS1002: ; expected";
-            new XUnitVerifier().EqualOrDiff(expected, string.Join(Environment.NewLine, errors));
+            s_verifier.EqualOrDiff(expected, string.Join(Environment.NewLine, errors));
             Assert.Equal(1, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
         }
 
@@ -41,17 +43,17 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
             var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
-            Assert.Equal("========== Build: 5 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+            s_verifier.EqualOrDiff("========== Build: 5 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary!);
 
             await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
             var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken);
-            new XUnitVerifier().EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
+            s_verifier.EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
 
             // Currently have two analyzer warnings in the template.
             var warnings = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken);
-            new XUnitVerifier().EqualOrDiff(string.Empty, string.Join(Environment.NewLine, warnings));
+            s_verifier.EqualOrDiff(string.Empty, string.Join(Environment.NewLine, warnings));
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken));
         }
 
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
             var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
-            Assert.Equal("========== Build: 2 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+            s_verifier.EqualOrDiff("========== Build: 2 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary!);
 
             await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
             var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
-            Assert.Equal("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+            s_verifier.EqualOrDiff("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary!);
 
             await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
@@ -95,17 +97,17 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
             var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
-            Assert.Equal("========== Build: 5 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+            s_verifier.EqualOrDiff("========== Build: 5 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary!);
 
             await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
             var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken);
-            new XUnitVerifier().EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
+            s_verifier.EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
 
             // Currently have two analyzer warnings in the template.
             var warnings = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken);
-            new XUnitVerifier().EqualOrDiff(string.Empty, string.Join(Environment.NewLine, warnings));
+            s_verifier.EqualOrDiff(string.Empty, string.Join(Environment.NewLine, warnings));
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken));
         }
 
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
             var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
-            Assert.Equal("========== Build: 2 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+            s_verifier.EqualOrDiff("========== Build: 2 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary!);
 
             await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
@@ -133,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
             var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
-            Assert.Equal("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+            s_verifier.EqualOrDiff("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary!);
 
             await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 

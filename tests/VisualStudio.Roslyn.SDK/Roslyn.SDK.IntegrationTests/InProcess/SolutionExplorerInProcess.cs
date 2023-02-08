@@ -241,7 +241,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 return string.Empty;
             }
 
-            return lines[lines.Count - 2].Extent.GetText();
+            var summary = lines[lines.Count - 2].Extent.GetText();
+            if (!summary.Contains("Build:") && lines.Count > 1)
+            {
+                var priorToSummary = lines[lines.Count - 3].Extent.GetText();
+                if (priorToSummary.Contains("Build:"))
+                {
+                    summary = priorToSummary;
+                }
+            }
+
+            return summary;
         }
 
         private string CreateTemporaryPath()
