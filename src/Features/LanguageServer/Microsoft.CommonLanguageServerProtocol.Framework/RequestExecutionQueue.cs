@@ -264,6 +264,8 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         public TestAccessor(RequestExecutionQueue<TRequestContext> queue)
             => _queue = queue;
 
+        public IHandlerProvider GetHandlerProvider() => _queue._handlerProvider;
+
         public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
 
         public async Task WaitForProcessingToStopAsync()
