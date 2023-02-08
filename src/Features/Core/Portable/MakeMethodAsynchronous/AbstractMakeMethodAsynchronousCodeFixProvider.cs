@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         asyncVoidTitle,
-                        c => FixNodeAsync(document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c),
+                        cancellationToken => FixNodeAsync(document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken),
                         asyncVoidTitle),
                     context.Diagnostics);
             }
