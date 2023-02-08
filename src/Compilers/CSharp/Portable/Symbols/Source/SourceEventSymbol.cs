@@ -436,13 +436,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                    bool isFieldLike, Location location,
                                                    BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
-            bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface && !explicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            bool inInterface = this.ContainingType.IsInterface;
+            bool inExtension = this.ContainingType.IsExtension;
+            var defaultAccess = inInterface && !explicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Unsafe;
-            if (!explicitInterfaceImplementation)
+            if (inExtension)
+            {
+                allowedModifiers |= DeclarationModifiers.New |
+                                    DeclarationModifiers.Static |
+                                    DeclarationModifiers.Private |
+                                    DeclarationModifiers.Internal |
+                                    DeclarationModifiers.Public;
+            }
+            else if (!explicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
                                     DeclarationModifiers.Sealed |
@@ -451,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     DeclarationModifiers.Virtual |
                                     DeclarationModifiers.AccessibilityMask;
 
-                if (!isInterface)
+                if (!inInterface)
                 {
                     allowedModifiers |= DeclarationModifiers.Override;
                 }
@@ -474,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(explicitInterfaceImplementation);
 
-                if (isInterface)
+                if (inInterface)
                 {
                     allowedModifiers |= DeclarationModifiers.Abstract;
                 }
@@ -487,12 +496,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
-            if (!isInterface)
+            if (!inInterface)
             {
                 allowedModifiers |= DeclarationModifiers.Extern;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: inInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, explicitInterfaceImplementation, location, diagnostics);
@@ -503,9 +512,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                         defaultInterfaceImplementationModifiers,
                                                                         location, diagnostics);
 
-            // Let's overwrite modifiers for interface events with what they are supposed to be. 
+            // Let's overwrite modifiers for interface events with what they are supposed to be.
             // Proper errors must have been reported by now.
-            if (isInterface)
+            if (inInterface)
             {
                 mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, !isFieldLike, explicitInterfaceImplementation);
             }
@@ -575,6 +584,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ContainingType.IsStatic && !IsStatic)
             {
                 diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, location, Name);
+            }
+            else if (containingType.IsExtension && HasAssociatedField && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_StateInExtension, location, this);
             }
             else if (this.Type.IsVoidType())
             {

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -44,12 +45,6 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
     public override TypeKind TypeKind => TypeKind.Class;
 
     public override bool IsStatic => true;
-
-    internal override bool IsRecord => false;
-
-    internal override bool IsRecordStruct => false;
-
-    internal override bool HasPossibleWellKnownCloneMethod() => false;
 
     internal FieldSymbol GetOrAddCacheField(SyntheticBoundNodeFactory factory, BoundDelegateCreationExpression boundDelegateCreation)
     {

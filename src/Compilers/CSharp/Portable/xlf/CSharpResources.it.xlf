@@ -167,6 +167,11 @@
         <target state="translated">Non è possibile usare una raccolta di tipo dinamico in un'istruzione foreach asincrona</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadExtensionUnderlyingType">
+        <source>Extension '{0}' cannot augment underlying type '{1}'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</source>
+        <target state="new">Extension '{0}' cannot augment underlying type '{1}'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
         <source>The type '{0}' may not be used for a field of a record.</source>
         <target state="translated">Il tipo '{0}' non può essere usato per un campo di un record.</target>
@@ -230,6 +235,16 @@
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Errore di sintassi della riga di comando: '{0}' non è un valore valido per l'opzione '{1}'. Il valore deve essere espresso nel formato '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadVisBaseExtension">
+        <source>Inconsistent accessibility: base extension '{1}' is less accessible than extension '{0}'</source>
+        <target state="new">Inconsistent accessibility: base extension '{1}' is less accessible than extension '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadVisUnderlyingType">
+        <source>Inconsistent accessibility: underlying type '{1}' is less accessible than extension '{0}'</source>
+        <target state="new">Inconsistent accessibility: underlying type '{1}' is less accessible than extension '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -362,6 +377,11 @@
         <target state="translated">Un costruttore di copia '{0}' deve essere pubblico o protetto perché il record non è sealed.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CycleInBaseExtensions">
+        <source>Base extension '{1}' causes a cycle in the extension hierarchy of '{0}'.</source>
+        <target state="new">Base extension '{1}' causes a cycle in the extension hierarchy of '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Il nome '{0}' non corrisponde al parametro '{1}' di 'Deconstruct' corrispondente.</target>
@@ -425,6 +445,21 @@
       <trans-unit id="ERR_DuplicateExplicitImpl">
         <source>'{0}' is explicitly implemented more than once.</source>
         <target state="translated">'{0}' è implementato più di una volta in modo esplicito.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicateExtensionInBaseList">
+        <source>'{0}' is already listed in the base extension list</source>
+        <target state="new">'{0}' is already listed in the base extension list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicateExtensionWithDifferencesInBaseList">
+        <source>'{0}' is already listed in the base extension list on type '{2}' as '{1}'.</source>
+        <target state="new">'{0}' is already listed in the base extension list on type '{2}' as '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicateExtensionWithTupleNamesInBaseList">
+        <source>'{0}' is already listed in the base extension list on type '{2}' with different tuple element names, as '{1}'.</source>
+        <target state="new">'{0}' is already listed in the base extension list on type '{2}' with different tuple element names, as '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
@@ -552,6 +587,11 @@
         <target state="translated">Un albero delle espressioni non può contenere un'espressione with.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionMissingUnderlyingType">
+        <source>No part of a partial extension '{0}' includes an underlying type specification.</source>
+        <target state="new">No part of a partial extension '{0}' includes an underlying type specification.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': l'evento extern non può avere inizializzatori</target>
@@ -645,6 +685,11 @@
       <trans-unit id="ERR_FileTypeNonUniquePath">
         <source>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</source>
         <target state="translated">Il tipo locale di file '{0}' deve essere dichiarato in un file con un percorso univoco. Il percorso '{1}' viene usato in più file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeUnderlying">
+        <source>File-local type '{0}' cannot be used as a underlying type of non-file-local extension '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used as a underlying type of non-file-local extension '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -1147,6 +1192,11 @@
         <target state="translated">Nel contesto corrente non è possibile omettere l'argomento tipo</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OnlyBaseExtensionAllowed">
+        <source>'{0}' is not an un-annotated extension type.</source>
+        <target state="new">'{0}' is not an un-annotated extension type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OperatorCantBeChecked">
         <source>User-defined operator '{0}' cannot be declared checked</source>
         <target state="translated">Impossibile dichiarare controllato l'operatore '{0}' definito dall'utente</target>
@@ -1180,6 +1230,11 @@
       <trans-unit id="ERR_ParameterNullCheckingNotSupported">
         <source>The 'parameter null-checking' feature is not supported.</source>
         <target state="translated">La funzionalità 'parameter null-checking' non è supportata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialDifferentExtensionModifiers">
+        <source>Partial declarations of '{0}' must specify the same extension modifier ('implicit' or 'explicit').</source>
+        <target state="new">Partial declarations of '{0}' must specify the same extension modifier ('implicit' or 'explicit').</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -1225,6 +1280,11 @@
       <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
         <target state="translated">Il metodo parziale '{0}' deve contenere modificatori di accessibilità perché include parametri 'out'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMultipleUnderlyingTypes">
+        <source>Partial declarations of '{0}' must not specify different underlying types.</source>
+        <target state="new">Partial declarations of '{0}' must not specify different underlying types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
@@ -1507,6 +1567,11 @@
         <target state="translated">Per risolvere le ambiguità, è necessario usare una sintassi diversa per il criterio di decostruzione di singoli elementi. È consigliabile aggiungere un indicatore di rimozione '_' dopo la parentesi di chiusura ')'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StateInExtension">
+        <source>'{0}': cannot declare instance members with state in extension types.</source>
+        <target state="new">'{0}': cannot declare instance members with state in extension types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">Il membro di record '{0}' non può essere statico.</target>
@@ -1520,6 +1585,11 @@
       <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureVariable">
         <source>A static anonymous function cannot contain a reference to '{0}'.</source>
         <target state="translated">Una funzione anonima statica non può contenere un riferimento a '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticBaseTypeOnInstanceExtension">
+        <source>Instance extension '{0}' cannot augment underlying type '{1}' because it is static.</source>
+        <target state="new">Instance extension '{0}' cannot augment underlying type '{1}' because it is static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
@@ -1630,6 +1700,11 @@
       <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
         <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
         <target state="translated">Il campo '{0}' deve essere assegnato completamente prima che il controllo sia restituito al chiamante. Provare a eseguire l'aggiornamento alla versione del linguaggio '{1}' per impostare automaticamente il campo come predefinito.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnderlyingTypesMismatch">
+        <source>Extension '{0}' has underlying type '{1}' but a base extension has underlying type '{2}'.</source>
+        <target state="new">Extension '{0}' has underlying type '{1}' but a base extension has underlying type '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -2035,6 +2110,16 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Riferimento analizzatore specificato più volte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList">
+        <source>'{0}' is already listed in the base extension list on type '{1}' with different nullability of reference types.</source>
+        <target state="new">'{0}' is already listed in the base extension list on type '{1}' with different nullability of reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList_Title">
+        <source>Extension is already listed in the base extension list with different nullability of reference types.</source>
+        <target state="new">Extension is already listed in the base extension list with different nullability of reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -2458,8 +2543,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceInterfaceNesting">
-        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
-        <target state="translated">Non è possibile dichiarare enumerazioni, classi e strutture in un'interfaccia che contiene un parametro di tipo 'in' o 'out'.</target>
+        <source>Enums, classes, structures, and extensions cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="needs-review-translation">Non è possibile dichiarare enumerazioni, classi e strutture in un'interfaccia che contiene un parametro di tipo 'in' o 'out'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongFuncPtrCallingConvention">
@@ -5557,8 +5642,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">Le dichiarazioni parziali di '{0}' devono essere costituite solo da classi, classi di record, struct di record o interfacce</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, all interfaces, or all extensions.</source>
+        <target state="needs-review-translation">Le dichiarazioni parziali di '{0}' devono essere costituite solo da classi, classi di record, struct di record o interfacce</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -5587,8 +5672,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="translated">Il modificatore 'partial' può trovarsi solo immediatamente prima di 'class', 'record', 'struct', 'interface' o il tipo restituito di un metodo.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'implicit/explicit extension', or a method return type.</source>
+        <target state="needs-review-translation">Il modificatore 'partial' può trovarsi solo immediatamente prima di 'class', 'record', 'struct', 'interface' o il tipo restituito di un metodo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -7016,8 +7101,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="translated">'{0}': non è possibile dichiarare i membri di istanza in una classe statica</target>
+        <source>'{0}': cannot declare instance members in a static type</source>
+        <target state="needs-review-translation">'{0}': non è possibile dichiarare i membri di istanza in una classe statica</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">

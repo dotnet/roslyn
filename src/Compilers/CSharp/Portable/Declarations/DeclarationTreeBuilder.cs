@@ -156,6 +156,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression, ImmutableArray<Diagnostic> diagnostics)
         {
+            // PROTOTYPE: workaround for https://github.com/dotnet/roslyn/issues/67050 should be undone
+            var nameToken = firstGlobalStatement.GetFirstToken();
+            var nameLocation = new SourceLocation(nameToken.Kind() == SyntaxKind.None ? firstGlobalStatement : nameToken);
+
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Class,
                 name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
@@ -166,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                            (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None) |
                            SingleTypeDeclaration.TypeDeclarationFlags.IsSimpleProgram,
                 syntaxReference: firstGlobalStatement.SyntaxTree.GetReference(firstGlobalStatement.Parent),
-                nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
+                nameLocation: nameLocation,
                 memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: diagnostics,
@@ -591,6 +595,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitTypeDeclaration(node, declarationKind);
         }
 
+        public override SingleNamespaceOrTypeDeclaration VisitExtensionDeclaration(ExtensionDeclarationSyntax node)
+        {
+            return VisitTypeDeclaration(node, DeclarationKind.Extension);
+        }
+
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
             var declFlags = node.AttributeLists.Any()
@@ -903,6 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 
                 case SyntaxKind.DelegateDeclaration:

@@ -127,6 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsRecordStruct => throw ExceptionUtilities.Unreachable();
 
+        internal override bool IsExtension => false;
+
+        protected override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
+        protected override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
         internal override ObsoleteAttributeData ObsoleteAttributeData => throw ExceptionUtilities.Unreachable();
 
         public override void Accept(CSharpSymbolVisitor visitor) => throw ExceptionUtilities.Unreachable();

@@ -483,13 +483,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsRecordStruct => false;
 
+        internal override bool IsExtension => false;
+
+        protected override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
+        protected override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
         internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
 
         /// <summary>
-        /// Represents SZARRAY - zero-based one-dimensional array 
+        /// Represents SZARRAY - zero-based one-dimensional array
         /// </summary>
         private sealed class SZArray : ArrayTypeSymbol
         {
@@ -521,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             /// <summary>
             /// SZArray is an array type encoded in metadata with ELEMENT_TYPE_SZARRAY (always single-dim array with 0 lower bound).
-            /// Non-SZArray type is encoded in metadata with ELEMENT_TYPE_ARRAY and with optional sizes and lower bounds. Even though 
+            /// Non-SZArray type is encoded in metadata with ELEMENT_TYPE_ARRAY and with optional sizes and lower bounds. Even though
             /// non-SZArray can also be a single-dim array with 0 lower bound, the encoding of these types in metadata is distinct.
             /// </summary>
             public override bool IsSZArray

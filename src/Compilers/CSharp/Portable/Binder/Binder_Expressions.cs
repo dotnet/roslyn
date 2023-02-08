@@ -4022,8 +4022,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol containingType = constructor.ContainingType;
 
-            // Structs and enums do not have implicit constructor initializers.
-            if ((containingType.TypeKind == TypeKind.Enum || containingType.TypeKind == TypeKind.Struct) && initializerArgumentListOpt == null)
+            // Structs, enums and extensions do not have implicit constructor initializers.
+            if ((containingType.TypeKind is TypeKind.Enum or TypeKind.Struct or TypeKind.Extension) && initializerArgumentListOpt == null)
             {
                 return null;
             }

@@ -222,6 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case IncompleteMember:
                         return ((IncompleteMemberSyntax)parent).Type == node;
+
+                    case ForType:
+                        return ((ForTypeSyntax)parent).UnderlyingType == node;
                 }
             }
 

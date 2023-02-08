@@ -164,6 +164,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRecord => false;
         internal sealed override bool IsRecordStruct => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
+#nullable enable
+        internal sealed override bool IsExtension => false;
+
+        protected sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
+        protected sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
+            => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
+            => throw ExceptionUtilities.Unreachable();
+#nullable disable
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {

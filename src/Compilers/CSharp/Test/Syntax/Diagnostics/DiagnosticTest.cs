@@ -188,12 +188,14 @@ class X
                 if (errorCodeName.StartsWith("WRN", StringComparison.Ordinal))
                 {
                     Assert.True(ErrorFacts.IsWarning(errorCode));
-                    Assert.NotEqual(0, ErrorFacts.GetWarningLevel(errorCode));
+                    var warningLevel = ErrorFacts.GetWarningLevel(errorCode);
+                    Assert.True(warningLevel != 0, $"Unexpected warning level {warningLevel} for {errorCodeName}");
                 }
                 else if (errorCodeName.StartsWith("ERR", StringComparison.Ordinal))
                 {
                     Assert.False(ErrorFacts.IsWarning(errorCode));
-                    Assert.Equal(0, ErrorFacts.GetWarningLevel(errorCode));
+                    var warningLevel = ErrorFacts.GetWarningLevel(errorCode);
+                    Assert.True(warningLevel == 0, $"Unexpected warning level {warningLevel} for {errorCodeName}");
                 }
             }
         }
@@ -377,6 +379,7 @@ class X
                         case ErrorCode.WRN_RefReturnOnlyParameter:
                         case ErrorCode.WRN_RefReturnOnlyParameter2:
                         case ErrorCode.WRN_RefAssignValEscapeWider:
+                        case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

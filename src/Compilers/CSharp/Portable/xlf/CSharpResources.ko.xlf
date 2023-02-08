@@ -167,6 +167,11 @@
         <target state="translated">비동기 foreach에는 동적 형식 컬렉션을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadExtensionUnderlyingType">
+        <source>Extension '{0}' cannot augment underlying type '{1}'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</source>
+        <target state="new">Extension '{0}' cannot augment underlying type '{1}'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
         <source>The type '{0}' may not be used for a field of a record.</source>
         <target state="translated">'{0}' 형식은 레코드의 필드에 사용할 수 없습니다.</target>
@@ -230,6 +235,16 @@
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">명령줄 구문 오류: '{0}'은(는) '{1}' 옵션에 유효한 값이 아닙니다. 값은 '{2}' 형식이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadVisBaseExtension">
+        <source>Inconsistent accessibility: base extension '{1}' is less accessible than extension '{0}'</source>
+        <target state="new">Inconsistent accessibility: base extension '{1}' is less accessible than extension '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadVisUnderlyingType">
+        <source>Inconsistent accessibility: underlying type '{1}' is less accessible than extension '{0}'</source>
+        <target state="new">Inconsistent accessibility: underlying type '{1}' is less accessible than extension '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -362,6 +377,11 @@
         <target state="translated">레코드가 봉인되지 않았으므로 복사 생성자 '{0}'이(가) 퍼블릭이거나 보호되어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CycleInBaseExtensions">
+        <source>Base extension '{1}' causes a cycle in the extension hierarchy of '{0}'.</source>
+        <target state="new">Base extension '{1}' causes a cycle in the extension hierarchy of '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">'{0}' 이름이 해당 'Deconstruct' 매개 변수 '{1}'과(와) 일치하지 않습니다.</target>
@@ -425,6 +445,21 @@
       <trans-unit id="ERR_DuplicateExplicitImpl">
         <source>'{0}' is explicitly implemented more than once.</source>
         <target state="translated">'{0}'은(는) 두 번 이상 명시적으로 구현됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicateExtensionInBaseList">
+        <source>'{0}' is already listed in the base extension list</source>
+        <target state="new">'{0}' is already listed in the base extension list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicateExtensionWithDifferencesInBaseList">
+        <source>'{0}' is already listed in the base extension list on type '{2}' as '{1}'.</source>
+        <target state="new">'{0}' is already listed in the base extension list on type '{2}' as '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicateExtensionWithTupleNamesInBaseList">
+        <source>'{0}' is already listed in the base extension list on type '{2}' with different tuple element names, as '{1}'.</source>
+        <target state="new">'{0}' is already listed in the base extension list on type '{2}' with different tuple element names, as '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
@@ -552,6 +587,11 @@
         <target state="translated">식 트리에는 with 식이 포함될 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionMissingUnderlyingType">
+        <source>No part of a partial extension '{0}' includes an underlying type specification.</source>
+        <target state="new">No part of a partial extension '{0}' includes an underlying type specification.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': extern 이벤트에는 이니셜라이저를 사용할 수 없습니다.</target>
@@ -645,6 +685,11 @@
       <trans-unit id="ERR_FileTypeNonUniquePath">
         <source>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</source>
         <target state="translated">파일 로컬 유형 '{0}'은(는) 고유한 경로가 있는 파일에서 선언되어야 합니다. 경로 '{1}'은(는) 여러 파일에서 사용됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeUnderlying">
+        <source>File-local type '{0}' cannot be used as a underlying type of non-file-local extension '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used as a underlying type of non-file-local extension '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -1147,6 +1192,11 @@
         <target state="translated">현재 컨텍스트에서는 형식 인수를 생략할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OnlyBaseExtensionAllowed">
+        <source>'{0}' is not an un-annotated extension type.</source>
+        <target state="new">'{0}' is not an un-annotated extension type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OperatorCantBeChecked">
         <source>User-defined operator '{0}' cannot be declared checked</source>
         <target state="translated">사용자 정의 연산자 '{0}'은(는) 선언할 수 없습니다.</target>
@@ -1180,6 +1230,11 @@
       <trans-unit id="ERR_ParameterNullCheckingNotSupported">
         <source>The 'parameter null-checking' feature is not supported.</source>
         <target state="translated">'parameter null-checking' 기능은 지원되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialDifferentExtensionModifiers">
+        <source>Partial declarations of '{0}' must specify the same extension modifier ('implicit' or 'explicit').</source>
+        <target state="new">Partial declarations of '{0}' must specify the same extension modifier ('implicit' or 'explicit').</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -1225,6 +1280,11 @@
       <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
         <target state="translated">부분 메서드 '{0}'에는 'out' 매개 변수가 있으므로 접근성 한정자가 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMultipleUnderlyingTypes">
+        <source>Partial declarations of '{0}' must not specify different underlying types.</source>
+        <target state="new">Partial declarations of '{0}' must not specify different underlying types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
@@ -1507,6 +1567,11 @@
         <target state="translated">단일 요소 분해 패턴은 명확성을 위해 다른 구문이 필요합니다. 닫는 괄호 ')' 뒤에 무시 항목 지정자 '_'을 추가하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StateInExtension">
+        <source>'{0}': cannot declare instance members with state in extension types.</source>
+        <target state="new">'{0}': cannot declare instance members with state in extension types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">레코드 멤버 '{0}'이(가) 정적이지 않을 수 있습니다.</target>
@@ -1520,6 +1585,11 @@
       <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureVariable">
         <source>A static anonymous function cannot contain a reference to '{0}'.</source>
         <target state="translated">정적 익명 함수는 '{0}'에 대한 참조를 포함할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticBaseTypeOnInstanceExtension">
+        <source>Instance extension '{0}' cannot augment underlying type '{1}' because it is static.</source>
+        <target state="new">Instance extension '{0}' cannot augment underlying type '{1}' because it is static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
@@ -1630,6 +1700,11 @@
       <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
         <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
         <target state="translated">제어가 호출자에게 반환되기 전에 필드 '{0}'이(가) 완전히 할당되어야 합니다. 필드를 자동으로 기본 설정하려면 언어 버전 '{1}'으로 업데이트하는 것이 좋습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnderlyingTypesMismatch">
+        <source>Extension '{0}' has underlying type '{1}' but a base extension has underlying type '{2}'.</source>
+        <target state="new">Extension '{0}' has underlying type '{1}' but a base extension has underlying type '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -2035,6 +2110,16 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">여러 번 지정된 분석기 참조</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList">
+        <source>'{0}' is already listed in the base extension list on type '{1}' with different nullability of reference types.</source>
+        <target state="new">'{0}' is already listed in the base extension list on type '{1}' with different nullability of reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList_Title">
+        <source>Extension is already listed in the base extension list with different nullability of reference types.</source>
+        <target state="new">Extension is already listed in the base extension list with different nullability of reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -2458,8 +2543,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceInterfaceNesting">
-        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
-        <target state="translated">'in' 또는 'out' 형식 매개 변수가 있는 인터페이스에서 열거형, 클래스, 구조체를 선언할 수 없습니다.</target>
+        <source>Enums, classes, structures, and extensions cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="needs-review-translation">'in' 또는 'out' 형식 매개 변수가 있는 인터페이스에서 열거형, 클래스, 구조체를 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongFuncPtrCallingConvention">
@@ -5556,8 +5641,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">'{0}'의 partial 선언은 모든 클래스, 모든 레코드 클래스, 모든 구조체, 모든 레코드 구조체 또는 모든 인터페이스여야 합니다.</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, all interfaces, or all extensions.</source>
+        <target state="needs-review-translation">'{0}'의 partial 선언은 모든 클래스, 모든 레코드 클래스, 모든 구조체, 모든 레코드 구조체 또는 모든 인터페이스여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -5586,8 +5671,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="translated">'partial' 한정자는 'class', 'record', 'struct', 'interface' 또는 메서드 반환 형식 바로 앞에만 올 수 있습니다.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'implicit/explicit extension', or a method return type.</source>
+        <target state="needs-review-translation">'partial' 한정자는 'class', 'record', 'struct', 'interface' 또는 메서드 반환 형식 바로 앞에만 올 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -7015,8 +7100,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="translated">'{0}': 정적 클래스에 인스턴스 멤버를 선언할 수 없습니다.</target>
+        <source>'{0}': cannot declare instance members in a static type</source>
+        <target state="needs-review-translation">'{0}': 정적 클래스에 인스턴스 멤버를 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">

@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             // We don't want to blow the stack if we have a type like T***************...***,
-            // so we do not recurse until we have a non-array. 
+            // so we do not recurse until we have a non-array.
 
             int indirections = 0;
             TypeSymbol current = this;
@@ -310,6 +310,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsRecord => false;
 
         internal override bool IsRecordStruct => false;
+
+        internal override bool IsExtension => false;
+
+        protected override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
+        protected override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
 
         internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {

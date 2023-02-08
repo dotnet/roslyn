@@ -501,6 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
+            // PROTOTYPE handle hiding/new for extensions
             if (this.BaseTypeNoUseSiteDiagnostics?.IsErrorType() == true)
             {
                 // Avoid cascading diagnostics
@@ -509,9 +510,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             switch (this.TypeKind)
             {
-                // These checks don't make sense for enums and delegates:
+                // These checks don't make sense for enums, delegates or extensions:
                 case TypeKind.Enum:
                 case TypeKind.Delegate:
+                case TypeKind.Extension:
                     return;
 
                 case TypeKind.Class:

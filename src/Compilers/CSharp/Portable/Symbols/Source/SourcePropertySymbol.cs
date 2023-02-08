@@ -274,14 +274,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             out bool modifierErrors)
         {
-            bool isInterface = containingType.IsInterface;
-            var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            bool inInterface = containingType.IsInterface;
+            bool inExtension = containingType.IsExtension;
+            var defaultAccess = inInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Unsafe;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
-            if (!isExplicitInterfaceImplementation)
+            if (inExtension)
+            {
+                allowedModifiers |= DeclarationModifiers.New |
+                                    DeclarationModifiers.Private |
+                                    DeclarationModifiers.Internal |
+                                    DeclarationModifiers.Public;
+
+                if (!isIndexer)
+                {
+                    allowedModifiers |= DeclarationModifiers.Static;
+                }
+            }
+            else if (!isExplicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
                                     DeclarationModifiers.Sealed |
@@ -294,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     allowedModifiers |= DeclarationModifiers.Static;
                 }
 
-                if (!isInterface)
+                if (!inInterface)
                 {
                     allowedModifiers |= DeclarationModifiers.Override;
 
@@ -321,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(isExplicitInterfaceImplementation);
 
-                if (isInterface)
+                if (inInterface)
                 {
                     allowedModifiers |= DeclarationModifiers.Abstract;
                 }
@@ -339,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allowedModifiers |= DeclarationModifiers.Extern;
 
-            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: inInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
@@ -352,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Let's overwrite modifiers for interface properties with what they are supposed to be.
             // Proper errors must have been reported by now.
-            if (isInterface)
+            if (inInterface)
             {
                 mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, accessorsHaveImplementation, isExplicitInterfaceImplementation);
             }

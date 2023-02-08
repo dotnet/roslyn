@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.RecordStruct:
                     return TypeKind.Struct;
 
+                case DeclarationKind.Extension:
+                    return TypeKind.Extension;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

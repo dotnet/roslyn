@@ -249,6 +249,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsRecordStruct => false;
 
+        internal override bool IsExtension => false;
+
+        protected override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
+        protected override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();

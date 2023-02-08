@@ -331,6 +331,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal override bool IsRecord => false;
         internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
+#nullable enable
+        internal override bool IsExtension => false;
+        protected override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore => throw ExceptionUtilities.Unreachable();
+        protected override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore => throw ExceptionUtilities.Unreachable();
+        internal override TypeSymbol? GetDeclaredExtensionUnderlyingType() => throw ExceptionUtilities.Unreachable();
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions() => throw ExceptionUtilities.Unreachable();
+#nullable disable
         internal override bool IsInterpolatedStringHandlerType => false;
 
         internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()

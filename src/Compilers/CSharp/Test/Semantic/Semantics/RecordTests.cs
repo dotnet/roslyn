@@ -30419,5 +30419,22 @@ record R1(int x);
             Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(attrApplication.ArgumentList!.OpenParenToken.SpanStart + 1).Select(s => s.ToTestDisplayString()));
             Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(mDefinition.SpanStart).Select(s => s.ToTestDisplayString()));
         }
+
+        [Fact]
+        public void MemberNamedAfterType()
+        {
+            var src = """
+record R
+{
+    public void R() { }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,17): error CS0542: 'R': member names cannot be the same as their enclosing type
+                //     public void R() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "R").WithArguments("R").WithLocation(3, 17)
+                );
+        }
     }
 }

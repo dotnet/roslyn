@@ -2162,6 +2162,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
         ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
         ERR_BadSpecialByRefUsing = 9104,
+        ERR_BadExtensionUnderlyingType = 9105,
+        ERR_StaticBaseTypeOnInstanceExtension = 9106,
+        ERR_OnlyBaseExtensionAllowed = 9107,
+        ERR_PartialMultipleUnderlyingTypes = 9108,
+        ERR_BadVisUnderlyingType = 9109,
+        ERR_BadVisBaseExtension = 9110,
+        ERR_CycleInBaseExtensions = 9111,
+        ERR_FileTypeUnderlying = 9112,
+        ERR_StateInExtension = 9113,
+        ERR_ExtensionMissingUnderlyingType = 9114,
+        ERR_PartialDifferentExtensionModifiers = 9115,
+        ERR_UnderlyingTypesMismatch = 9116,
+        WRN_DuplicateExtensionWithNullabilityMismatchInBaseList = 9117,
+        ERR_DuplicateExtensionWithTupleNamesInBaseList = 9118,
+        ERR_DuplicateExtensionWithDifferencesInBaseList = 9119,
+        ERR_DuplicateExtensionInBaseList = 9120,
         #endregion
 
         // Note: you will need to do the following after adding warnings:

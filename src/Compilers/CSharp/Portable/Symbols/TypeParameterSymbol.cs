@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract int Ordinal
         {
-            // This is needed to determine hiding in C#: 
+            // This is needed to determine hiding in C#:
             //
             // interface IB { void M<T>(C<T> x); }
             // interface ID : IB { new void M<U>(C<U> x); }
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // even if T is indirectly constrained to a struct, 
+                // even if T is indirectly constrained to a struct,
                 // we only can use members via constrained calls, so "true" would have no effect
                 return false;
             }
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns whether the reference type constraint (the 'class' constraint) should also be treated as nullable ('class?') or non-nullable (class!).
-        /// In some cases this aspect is unknown (null value is returned). For example, when 'class' constraint is specified in a NonNullTypes(false) context.  
+        /// In some cases this aspect is unknown (null value is returned). For example, when 'class' constraint is specified in a NonNullTypes(false) context.
         /// This API returns false when <see cref="HasReferenceTypeConstraint"/> is false.
         /// </summary>
         internal abstract bool? ReferenceTypeConstraintIsNullable { get; }
@@ -711,5 +711,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
+
+#nullable enable
+        internal sealed override bool IsExtension => false;
+
+        protected sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
+        protected sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
     }
 }

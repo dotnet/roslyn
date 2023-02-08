@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Class:
                 case TypeKind.Struct:
                 case TypeKind.Enum:
+                case TypeKind.Extension:
                     break;
                 case TypeKind.Interface:
                 case TypeKind.Delegate:

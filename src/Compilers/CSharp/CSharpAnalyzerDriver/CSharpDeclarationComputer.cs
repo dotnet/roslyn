@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         goto case SyntaxKind.ClassDeclaration;
                     }
+                // PROTOTYPE
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:

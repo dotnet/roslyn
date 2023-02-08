@@ -555,6 +555,12 @@
   <data name="ERR_BadVisBaseInterface" xml:space="preserve">
     <value>Inconsistent accessibility: base interface '{1}' is less accessible than interface '{0}'</value>
   </data>
+  <data name="ERR_BadVisUnderlyingType" xml:space="preserve">
+    <value>Inconsistent accessibility: underlying type '{1}' is less accessible than extension '{0}'</value>
+  </data>
+  <data name="ERR_BadVisBaseExtension" xml:space="preserve">
+    <value>Inconsistent accessibility: base extension '{1}' is less accessible than extension '{0}'</value>
+  </data>
   <data name="ERR_EventNeedsBothAccessors" xml:space="preserve">
     <value>'{0}': event property must have both add and remove accessors</value>
   </data>
@@ -1141,7 +1147,7 @@
     <value>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</value>
   </data>
   <data name="ERR_PartialTypeKindConflict" xml:space="preserve">
-    <value>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</value>
+    <value>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, all interfaces, or all extensions.</value>
   </data>
   <data name="ERR_PartialModifierConflict" xml:space="preserve">
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
@@ -1159,7 +1165,7 @@
     <value>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</value>
   </data>
   <data name="ERR_PartialMisplaced" xml:space="preserve">
-    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</value>
+    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'implicit/explicit extension', or a method return type.</value>
   </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
     <value>Imported type '{0}' is invalid. It contains a circular base type dependency.</value>
@@ -1619,6 +1625,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_CycleInInterfaceInheritance" xml:space="preserve">
     <value>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</value>
   </data>
+  <data name="ERR_CycleInBaseExtensions" xml:space="preserve">
+    <value>Base extension '{1}' causes a cycle in the extension hierarchy of '{0}'.</value>
+  </data>
   <data name="ERR_HidingAbstractMethod" xml:space="preserve">
     <value>'{0}' hides inherited abstract member '{1}'</value>
   </data>
@@ -2073,7 +2082,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</value>
   </data>
   <data name="ERR_InstanceMemberInStaticClass" xml:space="preserve">
-    <value>'{0}': cannot declare instance members in a static class</value>
+    <value>'{0}': cannot declare instance members in a static type</value>
   </data>
   <data name="ERR_StaticBaseClass" xml:space="preserve">
     <value>'{1}': cannot derive from static class '{0}'</value>
@@ -6377,7 +6386,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>relational pattern</value>
   </data>
   <data name="ERR_VarianceInterfaceNesting" xml:space="preserve">
-    <value>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</value>
+    <value>Enums, classes, structures, and extensions cannot be declared in an interface that has an 'in' or 'out' type parameter.</value>
   </data>
   <data name="ERR_ExternEventInitializer" xml:space="preserve">
     <value>'{0}': extern event cannot have initializer</value>
@@ -7295,6 +7304,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FileTypeBase" xml:space="preserve">
     <value>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</value>
   </data>
+  <data name="ERR_FileTypeUnderlying" xml:space="preserve">
+    <value>File-local type '{0}' cannot be used as a underlying type of non-file-local extension '{1}'.</value>
+  </data>
   <data name="ERR_FileTypeNested" xml:space="preserve">
     <value>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</value>
   </data>
@@ -7417,5 +7429,44 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_ParamsArrayInLambdaOnly_Title" xml:space="preserve">
     <value>Parameter has params modifier in lambda but not in target delegate type.</value>
+  </data>
+  <data name="ERR_BadExtensionUnderlyingType" xml:space="preserve">
+    <value>Extension '{0}' cannot augment underlying type '{1}'. The extension underlying type may not be dynamic, a pointer, a nullable reference type, a ref struct or an extension.</value>
+  </data>
+  <data name="ERR_StaticBaseTypeOnInstanceExtension" xml:space="preserve">
+    <value>Instance extension '{0}' cannot augment underlying type '{1}' because it is static.</value>
+  </data>
+  <data name="ERR_OnlyBaseExtensionAllowed" xml:space="preserve">
+    <value>'{0}' is not an un-annotated extension type.</value>
+  </data>
+  <data name="ERR_PartialMultipleUnderlyingTypes" xml:space="preserve">
+    <value>Partial declarations of '{0}' must not specify different underlying types.</value>
+  </data>
+  <data name="ERR_StateInExtension" xml:space="preserve">
+    <value>'{0}': cannot declare instance members with state in extension types.</value>
+  </data>
+  <data name="ERR_ExtensionMissingUnderlyingType" xml:space="preserve">
+    <value>No part of a partial extension '{0}' includes an underlying type specification.</value>
+  </data>
+  <data name="ERR_PartialDifferentExtensionModifiers" xml:space="preserve">
+    <value>Partial declarations of '{0}' must specify the same extension modifier ('implicit' or 'explicit').</value>
+  </data>
+  <data name="ERR_UnderlyingTypesMismatch" xml:space="preserve">
+    <value>Extension '{0}' has underlying type '{1}' but a base extension has underlying type '{2}'.</value>
+  </data>
+  <data name="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the base extension list on type '{1}' with different nullability of reference types.</value>
+  </data>
+  <data name="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList_Title" xml:space="preserve">
+    <value>Extension is already listed in the base extension list with different nullability of reference types.</value>
+  </data>
+  <data name="ERR_DuplicateExtensionInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the base extension list</value>
+  </data>
+  <data name="ERR_DuplicateExtensionWithTupleNamesInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the base extension list on type '{2}' with different tuple element names, as '{1}'.</value>
+  </data>
+  <data name="ERR_DuplicateExtensionWithDifferencesInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the base extension list on type '{2}' as '{1}'.</value>
   </data>
 </root>

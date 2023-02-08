@@ -575,6 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TypeKind.Array:
                     case TypeKind.Pointer:
                     case TypeKind.FunctionPointer:
+                    case TypeKind.Extension:
                         // "Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter."
                         Error(diagnostics, ErrorCode.ERR_BadConstraintType, syntax.GetLocation());
                         return false;

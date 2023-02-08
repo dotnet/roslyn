@@ -68,6 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldsInRoStruct, ErrorLocation);
             }
+            else if (containingType.IsExtension && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_StateInExtension, ErrorLocation, this);
+            }
 
             // TODO: Consider checking presence of core type System.Runtime.CompilerServices.IsVolatile
             // if there is a volatile modifier. Perhaps an appropriate error should be reported if the

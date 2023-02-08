@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class BaseTypeAnalysis
     {
-        internal static bool TypeDependsOn(NamedTypeSymbol depends, NamedTypeSymbol on)
+        internal static bool TypeDependsOn(TypeSymbol depends, NamedTypeSymbol on)
         {
             Debug.Assert((object)depends != null);
             Debug.Assert((object)on != null);
@@ -29,32 +28,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static void TypeDependsClosure(NamedTypeSymbol type, CSharpCompilation currentCompilation, HashSet<Symbol> partialClosure)
+        private static void TypeDependsClosure(TypeSymbol type, CSharpCompilation currentCompilation, HashSet<Symbol> partialClosure)
         {
             if ((object)type == null)
             {
                 return;
             }
 
-            type = type.OriginalDefinition;
-            if (partialClosure.Add(type))
+            if (type is NamedTypeSymbol namedType)
             {
-                if (type.IsInterface)
+                namedType = namedType.OriginalDefinition;
+                if (partialClosure.Add(namedType))
                 {
-                    foreach (var bt in type.GetDeclaredInterfaces(null))
+                    if (namedType.IsInterface)
                     {
-                        TypeDependsClosure(bt, currentCompilation, partialClosure);
+                        foreach (var bt in namedType.GetDeclaredInterfaces(null))
+                        {
+                            TypeDependsClosure(bt, currentCompilation, partialClosure);
+                        }
                     }
-                }
-                else
-                {
-                    TypeDependsClosure(type.GetDeclaredBaseType(null), currentCompilation, partialClosure);
-                }
+                    else if (namedType.IsExtension)
+                    {
+                        TypeDependsClosure(namedType.GetDeclaredExtensionUnderlyingType(), currentCompilation, partialClosure);
 
-                // containment is interesting only for the current compilation
-                if (currentCompilation != null && type.IsFromCompilation(currentCompilation))
-                {
-                    TypeDependsClosure(type.ContainingType, currentCompilation, partialClosure);
+                        foreach (var bt in namedType.GetDeclaredBaseExtensions())
+                        {
+                            TypeDependsClosure(bt, currentCompilation, partialClosure);
+                        }
+                    }
+                    else
+                    {
+                        TypeDependsClosure(namedType.GetDeclaredBaseType(null), currentCompilation, partialClosure);
+                    }
+
+                    // containment is interesting only for the current compilation
+                    if (currentCompilation != null && type.IsFromCompilation(currentCompilation))
+                    {
+                        TypeDependsClosure(type.ContainingType, currentCompilation, partialClosure);
+                    }
                 }
             }
         }
@@ -288,6 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Enum:
                     return (ThreeState.False, hasGenerics);
                 case TypeKind.Struct:
+                case TypeKind.Extension:
                     return (ThreeState.Unknown, hasGenerics);
                 default:
                     return (ThreeState.True, hasGenerics);

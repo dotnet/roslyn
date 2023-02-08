@@ -7980,6 +7980,50 @@ readonly record struct Person(string First, string Last);
                 SymbolDisplayPartKind.RecordStructName);
         }
 
+        [Fact]
+        public void ImplicitExtensionDeclaration()
+        {
+            var text = @"
+class C { }
+implicit extension R for C { }
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global => global.GetTypeMembers("R").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.RegularNext,
+                "extension R",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ExtensionName);
+        }
+
+        [Fact]
+        public void ExplicitExtensionDeclaration()
+        {
+            var text = @"
+class C { }
+explicit extension R for C { }
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global => global.GetTypeMembers("R").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.RegularNext,
+                "extension R",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ExtensionName);
+        }
+
         [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
         public void TestFunctionPointerWithoutIncludeTypesInParameterOptions()
         {

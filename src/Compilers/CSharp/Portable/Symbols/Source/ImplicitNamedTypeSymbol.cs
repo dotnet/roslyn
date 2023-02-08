@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void CheckBase(BindingDiagnosticBag diagnostics)
         {
-            // check that System.Object is available. 
+            // check that System.Object is available.
             // Although submission semantically doesn't have a base class we need to emit one.
             diagnostics.ReportUseSite(this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object), Locations[0]);
         }
@@ -170,5 +170,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+#nullable enable
+        internal override bool IsExtension => false;
+        protected override TypeSymbol ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
+        protected override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
+            => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
+            => throw ExceptionUtilities.Unreachable();
+
+        protected override void CheckUnderlyingType(BindingDiagnosticBag diagnostics)
+            => throw ExceptionUtilities.Unreachable();
+
+        protected override void CheckBaseExtensions(BindingDiagnosticBag diagnostics)
+            => throw ExceptionUtilities.Unreachable();
     }
 }

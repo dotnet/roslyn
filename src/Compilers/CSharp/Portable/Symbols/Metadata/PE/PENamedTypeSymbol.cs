@@ -51,13 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ImmutableArray<Symbol> _lazyMembersInDeclarationOrder;
 
         /// <summary>
-        /// A map of members immediately contained within this type 
+        /// A map of members immediately contained within this type
         /// grouped by their name (case-sensitively).
         /// </summary>
         private Dictionary<string, ImmutableArray<Symbol>> _lazyMembersByName;
 
         /// <summary>
-        /// A map of types immediately contained within this type 
+        /// A map of types immediately contained within this type
         /// grouped by their name (case-sensitively).
         /// </summary>
         private Dictionary<string, ImmutableArray<PENamedTypeSymbol>> _lazyNestedTypes;
@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         // There is a bunch of type properties relevant only for enums or types with custom attributes.
-        // It is fairly easy to check whether a type s is not "uncommon". So we store uncommon properties in 
+        // It is fairly easy to check whether a type s is not "uncommon". So we store uncommon properties in
         // a separate class with a noUncommonProperties singleton used for cases when type is "common".
-        // this is done purely to save memory with expectation that "uncommon" cases are indeed uncommon. 
+        // this is done purely to save memory with expectation that "uncommon" cases are indeed uncommon.
         #region "Uncommon properties"
         private static readonly UncommonProperties s_noUncommonProperties = new UncommonProperties();
         private UncommonProperties _lazyUncommonProperties;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private class UncommonProperties
         {
             /// <summary>
-            /// Need to import them for an enum from a linked assembly, when we are embedding it. These symbols are not included into lazyMembersInDeclarationOrder.  
+            /// Need to import them for an enum from a linked assembly, when we are embedding it. These symbols are not included into lazyMembersInDeclarationOrder.
             /// </summary>
             internal ImmutableArray<PEFieldSymbol> lazyInstanceEnumFields;
             internal NamedTypeSymbol lazyEnumUnderlyingType;
@@ -615,6 +615,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return SynthesizedRecordClone.FindValidCloneMethod(this, ref discardedUseSiteInfo) != null;
             }
         }
+
+#nullable enable
+        internal sealed override bool IsExtension => false; // PROTOTYPE Extension symbols not yet supported in metadata
+
+        protected sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
+
+        protected sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
+
+        internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
+            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
+            => throw ExceptionUtilities.Unreachable(); // PROTOTYPE
+#nullable disable
 
         // Record structs get erased when emitted to metadata
         internal override bool IsRecordStruct => false;
@@ -1360,8 +1376,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         else
                         {
                             // As for source symbols, our public API presents the fiction that all
-                            // operations are performed on the event, rather than on the backing field.  
-                            // The backing field is not accessible through the API.  As an additional 
+                            // operations are performed on the event, rather than on the backing field.
+                            // The backing field is not accessible through the API.  As an additional
                             // bonus, lookup is easier when the names don't collide.
                             Debug.Assert(field.AssociatedSymbol.Kind == SymbolKind.Event);
                         }
@@ -1887,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // for ordinary struct types we import private fields so that we can distinguish empty structs from non-empty structs
             var isOrdinaryStruct = false;
-            // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used 
+            // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used
             var isOrdinaryEmbeddableStruct = false;
 
             if (this.TypeKind == TypeKind.Struct)
@@ -1945,7 +1961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var module = moduleSymbol.Module;
             var map = PooledDictionary<MethodDefinitionHandle, PEMethodSymbol>.GetInstance();
 
-            // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used 
+            // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
 
             try

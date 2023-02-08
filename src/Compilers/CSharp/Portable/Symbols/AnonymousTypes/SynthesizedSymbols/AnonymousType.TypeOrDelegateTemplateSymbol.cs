@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// <summary> Name to be used as metadata name during emit </summary>
             private NameAndIndex? _nameAndIndex;
 
-            /// <summary> Smallest location of the template, actually contains the smallest location 
+            /// <summary> Smallest location of the template, actually contains the smallest location
             /// of all the anonymous type instances created using this template during EMIT </summary>
             private Location _smallestLocation;
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.Manager = manager;
                 _smallestLocation = location;
 
-                // Will be set when the type's metadata is ready to be emitted, 
+                // Will be set when the type's metadata is ready to be emitted,
                 // <anonymous-type>.Name will throw exception if requested
                 // before that moment.
                 _nameAndIndex = null;
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 => throw ExceptionUtilities.Unreachable();
 
             /// <summary>
-            /// Smallest location of the template, actually contains the smallest location 
+            /// Smallest location of the template, actually contains the smallest location
             /// of all the anonymous type instances created using this template during EMIT;
-            /// 
+            ///
             /// NOTE: if this property is queried, smallest location must not be null.
             /// </summary>
             internal Location SmallestLocation
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             /// <summary>
-            /// In emit phase every time a created anonymous type is referenced we try to store the lowest 
+            /// In emit phase every time a created anonymous type is referenced we try to store the lowest
             /// location of the template. It will be used for ordering templates and assigning emitted type names.
             /// </summary>
             internal void AdjustLocation(Location location)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 while (true)
                 {
-                    // Loop until we managed to set location OR we detected that we don't need to set it 
+                    // Loop until we managed to set location OR we detected that we don't need to set it
                     // in case 'location' in type descriptor is bigger that the one in smallestLocation
 
                     Location currentSmallestLocation = _smallestLocation;
@@ -311,6 +311,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal sealed override bool IsRecord => false;
 
             internal sealed override bool IsRecordStruct => false;
+
+            internal sealed override bool IsExtension => false;
+
+            protected sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+                => throw ExceptionUtilities.Unreachable();
+
+            protected sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+                => throw ExceptionUtilities.Unreachable();
+
+            internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
+                => throw ExceptionUtilities.Unreachable();
+
+            internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
+                => throw ExceptionUtilities.Unreachable();
 
             internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 

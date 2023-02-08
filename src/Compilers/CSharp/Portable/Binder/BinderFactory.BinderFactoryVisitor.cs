@@ -761,6 +761,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder VisitRecordDeclaration(RecordDeclarationSyntax node)
                 => VisitTypeDeclarationCore(node);
 
+            public override Binder VisitExtensionDeclaration(ExtensionDeclarationSyntax node)
+                => VisitTypeDeclarationCore(node);
+
             public sealed override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
             {
                 if (!LookupPosition.IsInNamespaceDeclaration(_position, parent))

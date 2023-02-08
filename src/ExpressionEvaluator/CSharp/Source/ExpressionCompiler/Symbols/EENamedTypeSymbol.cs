@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // (since the old ones have the wrong owners).  Unfortunately, we have a circular dependency:
             //   1) Each new type parameter requires the entire map in order to be able to construct its constraint list.
             //   2) The map cannot be constructed until all new type parameters exist.
-            // Our solution is to pass each new type parameter a lazy reference to the type map.  We then 
-            // initialize the map as soon as the new type parameters are available - and before they are 
+            // Our solution is to pass each new type parameter a lazy reference to the type map.  We then
+            // initialize the map as soon as the new type parameters are available - and before they are
             // handed out - so that there is never a period where they can require the type map and find
             // it uninitialized.
 
@@ -356,6 +356,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
         internal override bool IsInterpolatedStringHandlerType => false;
+        internal override bool IsExtension => false;
+        internal override TypeSymbol GetDeclaredExtensionUnderlyingType() => throw ExceptionUtilities.Unreachable();
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions() => throw ExceptionUtilities.Unreachable();
+        protected override TypeSymbol ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore => throw ExceptionUtilities.Unreachable();
+        protected override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore => throw ExceptionUtilities.Unreachable();
 
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)

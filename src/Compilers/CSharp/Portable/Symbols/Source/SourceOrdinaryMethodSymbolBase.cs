@@ -202,18 +202,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodKind methodKind, bool isReadOnly, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
-            bool isInterface = this.ContainingType.IsInterface;
+            bool inInterface = this.ContainingType.IsInterface;
+            bool inExtension = this.ContainingType.IsExtension;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
 
             // This is needed to make sure we can detect 'public' modifier specified explicitly and
             // check it against language version below.
-            var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.Private;
+            var defaultAccess = inInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
-            if (!isExplicitInterfaceImplementation)
+            if (inExtension)
+            {
+                allowedModifiers |= DeclarationModifiers.New |
+                                    DeclarationModifiers.Static |
+                                    DeclarationModifiers.Private |
+                                    DeclarationModifiers.Internal |
+                                    DeclarationModifiers.Public;
+            }
+            else if (!isExplicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
                                     DeclarationModifiers.Sealed |
@@ -222,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     DeclarationModifiers.Virtual |
                                     DeclarationModifiers.AccessibilityMask;
 
-                if (!isInterface)
+                if (!inInterface)
                 {
                     allowedModifiers |= DeclarationModifiers.Override;
                 }
@@ -242,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(isExplicitInterfaceImplementation);
 
-                if (isInterface)
+                if (inInterface)
                 {
                     allowedModifiers |= DeclarationModifiers.Abstract;
                 }
@@ -285,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                         defaultInterfaceImplementationModifiers,
                                                                         location, diagnostics);
 
-            mods = AddImpliedModifiers(mods, isInterface, methodKind, hasBody);
+            mods = AddImpliedModifiers(mods, inInterface, methodKind, hasBody);
             return (mods, hasExplicitAccessMod);
         }
 

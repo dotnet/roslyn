@@ -275,9 +275,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Symbol containingSymbol = this.ContainingSymbol;
             DeclarationModifiers defaultAccess;
+            bool inExtension = containingSymbol is NamedTypeSymbol { IsExtension: true };
 
             // note: we give a specific diagnostic when a file-local type is nested
-            var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.File;
+            var allowedModifiers = inExtension
+                ? DeclarationModifiers.Private | DeclarationModifiers.Internal | DeclarationModifiers.Public | DeclarationModifiers.File
+                : DeclarationModifiers.AccessibilityMask | DeclarationModifiers.File;
 
             if (containingSymbol.Kind == SymbolKind.Namespace)
             {
@@ -301,8 +304,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Submission:
-                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed
                         | DeclarationModifiers.Unsafe;
+
+                    if (!inExtension)
+                    {
+                        allowedModifiers |= DeclarationModifiers.Abstract;
+                    }
 
                     if (!this.IsRecord)
                     {
@@ -324,6 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 case TypeKind.Delegate:
                     allowedModifiers |= DeclarationModifiers.Unsafe;
+                    break;
+                case TypeKind.Extension:
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Static | DeclarationModifiers.Unsafe;
                     break;
             }
 
@@ -519,6 +530,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract void CheckBase(BindingDiagnosticBag diagnostics);
         protected abstract void CheckInterfaces(BindingDiagnosticBag diagnostics);
+        protected abstract void CheckUnderlyingType(BindingDiagnosticBag diagnostics);
+        protected abstract void CheckBaseExtensions(BindingDiagnosticBag diagnostics);
 
         internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
@@ -538,7 +551,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (state.NotePartComplete(CompletionPart.StartBaseType))
                         {
                             var diagnostics = BindingDiagnosticBag.GetInstance();
-                            CheckBase(diagnostics);
+                            if (IsExtension)
+                            {
+                                CheckUnderlyingType(diagnostics);
+                                CheckBaseExtensions(diagnostics);
+                            }
+                            else
+                            {
+                                CheckBase(diagnostics);
+                            }
                             AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishBaseType);
                             diagnostics.Free();
@@ -558,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.EnumUnderlyingType:
-                        var discarded = this.EnumUnderlyingType;
+                        _ = this.EnumUnderlyingType;
                         break;
 
                     case CompletionPart.TypeArguments:
@@ -1350,6 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Struct:
+                case TypeKind.Extension:
                     if (member.Name == this.Name)
                     {
                         diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.Locations[0], this.Name);
@@ -3098,6 +3120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var builder = new DeclaredMembersAndInitializersBuilder();
                 AddDeclaredNontypeMembers(builder, diagnostics);
 
+                // PROTOTYPE what are the rules for constructors in extensions?
                 switch (TypeKind)
                 {
                     case TypeKind.Struct:
@@ -3132,7 +3155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> GetSimpleProgramEntryPoints()
         {
-
             if (_lazySimpleProgramEntryPoints.IsDefault)
             {
                 var diagnostics = BindingDiagnosticBag.GetInstance();
@@ -3199,6 +3221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Class:
                 case TypeKind.Interface:
                 case TypeKind.Submission:
+                case TypeKind.Extension:
                     AddSynthesizedRecordMembersIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
                     break;
@@ -3250,6 +3273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.ExtensionDeclaration:
                         var typeDecl = (TypeDeclarationSyntax)syntax;
                         AddNonTypeMembers(builder, typeDecl.Members, diagnostics);
                         break;
@@ -4393,7 +4417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // We won't insert a parameterless constructor for a struct if there already is one.
             // The synthesized constructor will only be emitted if there are field initializers, but it should be in the symbol table.
             if ((!hasParameterlessInstanceConstructor && this.IsStructType()) ||
-                (!hasInstanceConstructor && !this.IsStatic && !this.IsInterface))
+                (!hasInstanceConstructor && !this.IsStatic && !this.IsInterface && !this.IsExtension))
             {
                 builder.AddNonTypeMember((this.TypeKind == TypeKind.Submission) ?
                     new SynthesizedSubmissionConstructor(this, diagnostics) :

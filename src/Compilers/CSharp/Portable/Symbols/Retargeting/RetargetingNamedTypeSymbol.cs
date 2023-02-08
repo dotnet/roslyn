@@ -4,24 +4,18 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
     /// <summary>
-    /// Represents a type of a RetargetingModuleSymbol. Essentially this is a wrapper around 
-    /// another NamedTypeSymbol that is responsible for retargeting referenced symbols from one assembly to another. 
+    /// Represents a type of a RetargetingModuleSymbol. Essentially this is a wrapper around
+    /// another NamedTypeSymbol that is responsible for retargeting referenced symbols from one assembly to another.
     /// It can retarget symbols for multiple assemblies at the same time.
     /// </summary>
     internal sealed class RetargetingNamedTypeSymbol : WrappedNamedTypeSymbol
@@ -398,6 +392,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal sealed override bool IsRecord => _underlyingType.IsRecord;
         internal sealed override bool IsRecordStruct => _underlyingType.IsRecordStruct;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => _underlyingType.HasPossibleWellKnownCloneMethod();
+#nullable enable
+        internal sealed override bool IsExtension => false; // PROTOTYPE
+
+        protected sealed override TypeSymbol? ExtensionUnderlyingTypeNoUseSiteDiagnosticsCore
+            => throw new System.Exception("PROTOTYPE");
+
+        protected sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnosticsCore
+            => throw new System.Exception("PROTOTYPE");
+
+        internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
+            => throw new System.Exception("PROTOTYPE");
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions()
+            => throw new System.Exception("PROTOTYPE");
+#nullable disable
 
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {
