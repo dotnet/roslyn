@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Options
             if (optionalValue.HasValue)
             {
                 result = optionalValue.Value;
-                return result != null;
+                return true;
             }
             else
             {

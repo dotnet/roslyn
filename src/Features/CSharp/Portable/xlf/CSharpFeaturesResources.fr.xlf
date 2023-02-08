@@ -282,6 +282,11 @@
         <target state="translated">alias externe</target>
         <note />
       </trans-unit>
+      <trans-unit id="init_only_property">
+        <source>init-only property</source>
+        <target state="new">init-only property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
         <target state="translated">&lt;expression lambda&gt;</target>

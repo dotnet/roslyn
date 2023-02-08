@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-internal readonly record struct OptionsTestInfo(IOption2 Option, string? ContainingAssemblyLanguage, List<(string qualifiedName, bool isPublic, IOption2 option)> Accessors)
+internal readonly record struct OptionsTestInfo(IOption2 Option, List<(string namespaceName, string qualifiedName, bool isPublic, IOption2 option)> Accessors)
 {
     public static Dictionary<string, OptionsTestInfo> CollectOptions(string directory)
     {
@@ -33,8 +33,6 @@ internal readonly record struct OptionsTestInfo(IOption2 Option, string? Contain
                     continue;
                 }
 
-                var language = file.Contains("CSharp") ? "CSharp" : file.Contains("VisualBasic") ? "VisualBasic" : null;
-
                 foreach (var type in types)
                 {
                     foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
@@ -54,15 +52,17 @@ internal readonly record struct OptionsTestInfo(IOption2 Option, string? Contain
                             var unmangledName = isBackingField ? field.Name[(field.Name.IndexOf('<') + 1)..field.Name.IndexOf('>')] : field.Name;
                             var accessor = type.FullName + "." + unmangledName;
                             var isPublic = type.IsPublic && (isBackingField ? type.GetProperty(unmangledName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)!.GetMethod!.IsPublic : field.IsPublic);
+                            var accessorNamespace = type.Namespace;
+                            Assert.NotNull(accessorNamespace);
 
                             var configName = option.Definition.ConfigName;
                             if (result.TryGetValue(configName, out var optionInfo))
                             {
-                                optionInfo.Accessors.Add((accessor, isPublic, option));
+                                optionInfo.Accessors.Add((accessorNamespace!, accessor, isPublic, option));
                             }
                             else
                             {
-                                optionInfo = new OptionsTestInfo(option, language, new List<(string, bool, IOption2)> { (accessor, isPublic, option) });
+                                optionInfo = new OptionsTestInfo(option, new List<(string, string, bool, IOption2)> { (accessorNamespace!, accessor, isPublic, option) });
                             }
 
                             result[configName] = optionInfo;

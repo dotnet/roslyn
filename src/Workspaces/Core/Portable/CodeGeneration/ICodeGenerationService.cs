@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         CodeGenerationOptions DefaultOptions { get; }
         CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options, CodeGenerationOptions? fallbackOptions);
+        CodeGenerationContextInfo GetInfo(CodeGenerationContext context, CodeGenerationOptions options, ParseOptions parseOptions);
 
         /// <summary>
         /// Returns a newly created event declaration node from the provided event.
