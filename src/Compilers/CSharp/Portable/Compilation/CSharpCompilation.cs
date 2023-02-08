@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
+using Metalama.Compiler;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -3068,11 +3069,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddRange(methodBodyDiagnostics);
             }
 
+            // <Metalama>
+            DiagnosticBag mappedToFinal = DiagnosticBag.GetInstance();
+
+            CommonCompiler.MapDiagnosticsToFinalCompilation(builder, mappedToFinal, this, logger: null);
+            builder.Free();
+            // </Metalama>
+
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (/nowarn, /warnaserror and /warn) and the pragmas.
             var result = DiagnosticBag.GetInstance();
-            FilterAndAppendAndFreeDiagnostics(result, ref builder, cancellationToken);
-            return result.ToReadOnlyAndFree<Diagnostic>();
+            FilterAndAppendAndFreeDiagnostics(result, ref mappedToFinal, cancellationToken);
+
+            // <Metalama>
+            var resultMappedBack = result.AsEnumerable().SelectAsArray(TreeTracker.MapDiagnostic);
+            result.Free();
+
+            return resultMappedBack;
+            // </Metalama>
         }
 
         #endregion
