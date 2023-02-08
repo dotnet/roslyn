@@ -3639,7 +3639,7 @@ class P {
             await TestInRegularAndScriptAsync(
     $@"
 <Workspace>
-    <Project Language=""C#"" CommonReferences=""false"">
+    <Project Language=""C#"" CommonReferencesMinCorlib=""true"">
         <Document><![CDATA[
 class C
 {{
@@ -3675,9 +3675,9 @@ class C
 
 internal class Class
 {{
-    private global::System.Object method;
+    private object method;
 
-    public Class(global::System.Object method)
+    public Class(object method)
     {{
         this.method = method;
     }}

@@ -4408,7 +4408,7 @@ End Namespace")
         Public Async Function TestAcrossFiles() As Task
             Await TestInRegularAndScriptAsync(
 "<Workspace>
-    <Project Language=""Visual Basic"">
+    <Project Language=""Visual Basic"" CommonReferences=""true"">
         <Document>
 Public Class DataContainer
     Property PossibleInProcessTests As string
@@ -4462,6 +4462,7 @@ Public Class DataContainer
     End Sub
 
     Friend Sub ArbitraryPositionMethod()
+        Throw New NotImplementedException()
     End Sub
 
     Function Bazz() As Object
