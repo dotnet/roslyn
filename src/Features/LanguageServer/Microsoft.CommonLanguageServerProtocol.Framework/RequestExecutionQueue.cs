@@ -8,7 +8,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -196,10 +198,6 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
                     if (CancelInProgressWorkUponMutatingRequest)
                     {
-                        // Verify queueItem hasn't already been cancelled before creating a linked
-                        // CancellationTokenSource based on it.
-                        cancellationToken.ThrowIfCancellationRequested();
-
                         currentWorkCts = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
 
                         // Use the linked cancellation token so it's task can be cancelled if necessary during a mutating request
@@ -223,14 +221,8 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                                 concurrentlyExecutingTasksArray[i].Value.Cancel();
                             }
 
-                            try
-                            {
-                                // wait for all pending tasks to complete their cancellation
-                                await Task.WhenAll(concurrentlyExecutingTasksArray.Select(kvp => kvp.Key)).ConfigureAwait(false);
-                            }
-                            catch (TaskCanceledException)
-                            {
-                            }
+                            // wait for all pending tasks to complete their cancellation, ignoring any exceptions
+                            await Task.WhenAll(concurrentlyExecutingTasksArray.Select(kvp => kvp.Key)).NoThrowAwaitableInternal(captureContext: false); ;
                         }
 
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
@@ -248,34 +240,29 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
                         if (CancelInProgressWorkUponMutatingRequest)
                         {
-                            if (currentWorkCts is null)
-                            {
-                                throw new InvalidOperationException($"unexpected null value for {nameof(currentWorkCts)}");
-                            }
-
-                            if (!concurrentlyExecutingTasks.TryAdd(currentWorkTask, currentWorkCts))
-                            {
-                                throw new InvalidOperationException($"unable to add {currentWorkTask} into {concurrentlyExecutingTasks}");
-                            }
+                            Contract.ThrowIfNull(currentWorkCts);
+                            Contract.ThrowIfFalse(concurrentlyExecutingTasks.TryAdd(currentWorkTask, currentWorkCts));
 
                             _ = currentWorkTask.ContinueWith(t =>
                             {
-                                if (!concurrentlyExecutingTasks.TryRemove(t, out var concurrentlyExecutingTaskCts))
-                                {
-                                    throw new InvalidOperationException($"unexpected failure to remove task from {nameof(concurrentlyExecutingTasks)}");
-                                }
+                                Contract.ThrowIfFalse(concurrentlyExecutingTasks.TryRemove(t, out var concurrentlyExecutingTaskCts));
 
                                 concurrentlyExecutingTaskCts.Dispose();
                             }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
                         }
                     }
                 }
-                catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)
+                catch (OperationCanceledException)
                 {
                     // Explicitly ignore this exception as cancellation occurred as a result of our linked cancellation token.
                     // This means either the queue is shutting down or the request itself was cancelled.
                     //   1.  If the queue is shutting down, then while loop will exit before the next iteration since it checks for cancellation.
                     //   2.  Request cancellations are normal so no need to report anything there.
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Explicitly ignore this exception as this can occur during the CreateLinkTokenSource call, and means one of the
+                    // linked cancellationTokens has been cancelled.
                 }
             }
         }
