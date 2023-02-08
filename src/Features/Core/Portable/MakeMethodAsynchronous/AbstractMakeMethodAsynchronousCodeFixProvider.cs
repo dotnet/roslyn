@@ -116,49 +116,31 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var methodSymbol = GetMethodSymbol(semanticModel, node, cancellationToken);
             Contract.ThrowIfNull(methodSymbol);
 
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var knownTypes = new KnownTypes(compilation);
+            var knownTypes = new KnownTypes(semanticModel.Compilation);
 
-            if (NeedsRename())
-            {
-                return await RenameThenAddAsyncTokenAsync(
-                    keepVoid, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return await AddAsyncTokenAsync(
-                    keepVoid, document, methodSymbol, knownTypes, node, cancellationToken).ConfigureAwait(false);
-            }
+            return NeedsRename()
+                ? await RenameThenAddAsyncTokenAsync(keepVoid, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false)
+                : await AddAsyncTokenAsync(keepVoid, document, methodSymbol, knownTypes, node, cancellationToken).ConfigureAwait(false);
 
             bool NeedsRename()
             {
+                // We don't need to rename methods that don't have a name
                 if (!methodSymbol.IsOrdinaryMethodOrLocalFunction())
-                {
-                    // We don't need to rename methods that don't have a name
                     return false;
-                }
 
+                // We don't need to rename methods that already have an Async suffix
                 if (methodSymbol.Name.EndsWith(AsyncSuffix))
-                {
-                    // We don't need to rename methods that already have an Async suffix
                     return false;
-                }
 
+                // We don't need to rename entry point methods
                 if (isEntryPoint)
-                {
-                    // We don't need to rename entry point methods
                     return false;
-                }
 
                 // Only rename if the return type will change
                 if (methodSymbol.ReturnsVoid)
-                {
                     return !keepVoid;
-                }
-                else
-                {
-                    return !@this.IsAsyncReturnType(methodSymbol.ReturnType, knownTypes);
-                }
+
+                return !IsAsyncReturnType(methodSymbol.ReturnType, knownTypes);
             }
         }
 
