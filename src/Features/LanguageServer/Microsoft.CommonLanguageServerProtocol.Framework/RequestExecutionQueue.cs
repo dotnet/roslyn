@@ -170,7 +170,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         ILspServices? lspServices = null;
         try
         {
-            var pendingTasks = new ConcurrentDictionary<Task, CancellationTokenSource?>();
+            var concurrentlyExecutingTasks = new ConcurrentDictionary<Task, CancellationTokenSource>();
 
             while (!_cancelSource.IsCancellationRequested)
             {
@@ -191,23 +191,20 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                 try
                 {
                     var (work, activityId, cancellationToken) = queueItem;
-                    CancellationTokenSource? cancellationTokenSource = null;
+                    CancellationTokenSource? currentWorkCts = null;
                     lspServices = work.LspServices;
 
                     if (CancelInProgressWorkUponMutatingRequest)
                     {
-                        // Verify this queueitem hasn't already been cancelled before creating a linked
+                        // Verify queueItem hasn't already been cancelled before creating a linked
                         // CancellationTokenSource based on it.
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                        }
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                        cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
+                        currentWorkCts = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
 
                         // Use the linked cancellation token so it's task can be cancelled if necessary during a mutating request
                         // on a queue that specifies CancelInProgressWorkUponMutatingRequest
-                        cancellationToken = cancellationTokenSource.Token;
+                        cancellationToken = currentWorkCts.Token;
                     }
 
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
@@ -219,23 +216,20 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                     {
                         if (CancelInProgressWorkUponMutatingRequest)
                         {
-                            if (pendingTasks.Count > 0)
+                            // Cancel all concurrently executing tasks
+                            var concurrentlyExecutingTasksArray = concurrentlyExecutingTasks.ToArray();
+                            for (var i = 0; i < concurrentlyExecutingTasksArray.Length; i++)
                             {
-                                // Cancel all pending tasks
-                                var pendingTasksArray = pendingTasks.ToArray();
-                                for (var i = 0; i < pendingTasksArray.Length; i++)
-                                {
-                                    pendingTasksArray[i].Value.Cancel();
-                                }
+                                concurrentlyExecutingTasksArray[i].Value.Cancel();
+                            }
 
-                                try
-                                {
-                                    // wait for all pending tasks to complete their cancellation
-                                    await Task.WhenAll(pendingTasksArray.Select(kvp => kvp.Key)).ConfigureAwait(false);
-                                }
-                                catch (TaskCanceledException)
-                                {
-                                }
+                            try
+                            {
+                                // wait for all pending tasks to complete their cancellation
+                                await Task.WhenAll(concurrentlyExecutingTasksArray.Select(kvp => kvp.Key)).ConfigureAwait(false);
+                            }
+                            catch (TaskCanceledException)
+                            {
                             }
                         }
 
@@ -250,19 +244,29 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                         // though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizability).
-                        var pendingTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken), rethrowExceptions: false);
+                        var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken), rethrowExceptions: false);
 
                         if (CancelInProgressWorkUponMutatingRequest)
                         {
-                            pendingTasks.TryAdd(pendingTask, cancellationTokenSource);
-
-                            _ = pendingTask.ContinueWith(t =>
+                            if (currentWorkCts is null)
                             {
-                                if (pendingTasks.TryRemove(t, out var pendingCancellationTokenSource))
+                                throw new InvalidOperationException($"unexpected null value for {nameof(currentWorkCts)}");
+                            }
+
+                            if (!concurrentlyExecutingTasks.TryAdd(currentWorkTask, currentWorkCts))
+                            {
+                                throw new InvalidOperationException($"unable to add {currentWorkTask} into {concurrentlyExecutingTasks}");
+                            }
+
+                            _ = currentWorkTask.ContinueWith(t =>
+                            {
+                                if (!concurrentlyExecutingTasks.TryRemove(t, out var concurrentlyExecutingTaskCts))
                                 {
-                                    pendingCancellationTokenSource?.Dispose();
+                                    throw new InvalidOperationException($"unexpected failure to remove task from {nameof(concurrentlyExecutingTasks)}");
                                 }
-                            }, TaskScheduler.Default);
+
+                                concurrentlyExecutingTaskCts.Dispose();
+                            }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
                         }
                     }
                 }
