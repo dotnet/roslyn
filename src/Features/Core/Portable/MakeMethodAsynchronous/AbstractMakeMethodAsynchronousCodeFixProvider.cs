@@ -20,10 +20,13 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         protected abstract bool IsSupportedDiagnostic(Diagnostic diagnostic, CancellationToken cancellationToken);
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
 
+        protected abstract string GetMakeAsyncTaskFunctionResource();
+        protected abstract string GetMakeAsyncVoidFunctionResource();
+
         protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes);
 
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
-            bool keepVoid, IMethodSymbol? methodSymbol, SyntaxNode node, KnownTypes knownTypes, CancellationToken cancellationToken);
+            bool keepVoid, IMethodSymbol methodSymbol, SyntaxNode node, KnownTypes knownTypes, CancellationToken cancellationToken);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -52,10 +55,12 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             if (knownTypes.TaskType == null || knownTypes.TaskOfTType == null)
                 return;
 
-            var methodSymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
+            var methodSymbol = GetMethodSymbol(semanticModel, node, cancellationToken);
+            if (methodSymbol is null)
+                return;
 
             // Heuristic to recognize the common case for entry point method
-            var isEntryPoint = methodSymbol != null && methodSymbol.IsStatic && IsLikelyEntryPointName(methodSymbol.Name, document);
+            var isEntryPoint = methodSymbol.IsStatic && IsLikelyEntryPointName(methodSymbol.Name, document);
 
             // Offer to convert to a Task return type.
             var taskTitle = GetMakeAsyncTaskFunctionResource();
@@ -79,35 +84,42 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
         }
 
+        private static IMethodSymbol? GetMethodSymbol(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            // GetDeclaredSymbol for methods/local-functions.  GetSymbolInfo for lambdas.
+            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) ?? semanticModel.GetSymbolInfo(node, cancellationToken).GetAnySymbol();
+            return symbol as IMethodSymbol;
+        }
+
         private static bool IsLikelyEntryPointName(string name, Document document)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             return syntaxFacts.StringComparer.Equals(name, "Main");
         }
 
-        protected abstract string GetMakeAsyncTaskFunctionResource();
-
-        protected abstract string GetMakeAsyncVoidFunctionResource();
-
         private const string AsyncSuffix = "Async";
 
         private async Task<Solution> FixNodeAsync(
-            Document document, Diagnostic diagnostic,
-            bool keepVoid, bool isEntryPoint, CancellationToken cancellationToken)
+            Document document,
+            Diagnostic diagnostic,
+            bool keepVoid,
+            bool isEntryPoint,
+            CancellationToken cancellationToken)
         {
             var node = GetContainingFunction(diagnostic, cancellationToken);
-            if (node is null)
-                return document.Project.Solution;
+            Contract.ThrowIfNull(node);
 
             // See if we're on an actual method declaration (otherwise we're on a lambda declaration).
             // If we're on a method declaration, we'll get an IMethodSymbol back.  In that case, check
             // if it has the 'Async' suffix, and remove that suffix if so.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var methodSymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
+            var methodSymbol = GetMethodSymbol(semanticModel, node, cancellationToken);
+            Contract.ThrowIfNull(methodSymbol);
+
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var knownTypes = new KnownTypes(compilation);
 
-            if (NeedsRename(this, methodSymbol, keepVoid, isEntryPoint, in knownTypes))
+            if (NeedsRename())
             {
                 return await RenameThenAddAsyncTokenAsync(
                     keepVoid, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false);
@@ -118,7 +130,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                     keepVoid, document, methodSymbol, knownTypes, node, cancellationToken).ConfigureAwait(false);
             }
 
-            static bool NeedsRename(AbstractMakeMethodAsynchronousCodeFixProvider @this, [NotNullWhen(true)] IMethodSymbol? methodSymbol, bool keepVoid, bool isEntryPoint, in KnownTypes knownTypes)
+            bool NeedsRename()
             {
                 if (!methodSymbol.IsOrdinaryMethodOrLocalFunction())
                 {
@@ -190,7 +202,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         private async Task<Solution> AddAsyncTokenAsync(
             bool keepVoid,
             Document document,
-            IMethodSymbol? methodSymbol,
+            IMethodSymbol methodSymbol,
             KnownTypes knownTypes,
             SyntaxNode node,
             CancellationToken cancellationToken)

@@ -65,34 +65,26 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             => node.IsAsyncSupportingFunctionSyntax();
 
         protected override bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes)
-        {
-            return IsIAsyncEnumerableOrEnumerator(type, knownTypes)
-                || IsTaskLike(type, knownTypes);
-        }
+            => IsIAsyncEnumerableOrEnumerator(type, knownTypes) ||
+               IsTaskLike(type, knownTypes);
 
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid,
-            IMethodSymbol? methodSymbol,
+            IMethodSymbol methodSymbol,
             SyntaxNode node,
             KnownTypes knownTypes,
             CancellationToken cancellationToken)
         {
-            switch (node)
+            return node switch
             {
-                case MethodDeclarationSyntax method:
-                    Contract.ThrowIfNull(methodSymbol);
-                    return FixMethod(keepVoid, methodSymbol, method, knownTypes, cancellationToken);
-                case LocalFunctionStatementSyntax localFunction:
-                    Contract.ThrowIfNull(methodSymbol);
-                    return FixLocalFunction(keepVoid, methodSymbol, localFunction, knownTypes, cancellationToken);
-                case AnonymousFunctionExpressionSyntax anonymous:
-                    return FixAnonymousFunction(anonymous);
-                default:
-                    return node;
-            }
+                MethodDeclarationSyntax method => FixMethod(keepVoid, methodSymbol, method, knownTypes, cancellationToken),
+                LocalFunctionStatementSyntax localFunction => FixLocalFunction(keepVoid, methodSymbol, localFunction, knownTypes, cancellationToken),
+                AnonymousFunctionExpressionSyntax anonymous => FixAnonymousFunction(anonymous),
+                _ => node,
+            };
         }
 
-        private static SyntaxNode FixMethod(
+        private static MethodDeclarationSyntax FixMethod(
             bool keepVoid,
             IMethodSymbol methodSymbol,
             MethodDeclarationSyntax method,
@@ -104,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
-        private static SyntaxNode FixLocalFunction(
+        private static LocalFunctionStatementSyntax FixLocalFunction(
             bool keepVoid,
             IMethodSymbol methodSymbol,
             LocalFunctionStatementSyntax localFunction,
@@ -163,8 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
             static TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
             {
-                var result = SyntaxFactory.GenericName(SyntaxFactory.Identifier(type),
-                        SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax())));
+                var result = SyntaxFactory.GenericName(
+                    SyntaxFactory.Identifier(type),
+                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax())));
 
                 return result.WithAdditionalAnnotations(Simplifier.Annotation);
             }
@@ -175,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         private static bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)
             => returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTTypeOpt) ||
-                returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTTypeOpt);
+               returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTTypeOpt);
 
         private static bool IsIEnumerable(ITypeSymbol returnType, KnownTypes knownTypes)
             => returnType.OriginalDefinition.Equals(knownTypes.IEnumerableOfTType);
@@ -194,10 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             return result;
         }
 
-        private static SyntaxNode FixAnonymousFunction(AnonymousFunctionExpressionSyntax anonymous)
-        {
-            return anonymous.WithoutLeadingTrivia()
-                         .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(anonymous.GetLeadingTrivia()));
-        }
+        private static AnonymousFunctionExpressionSyntax FixAnonymousFunction(AnonymousFunctionExpressionSyntax anonymous)
+            => anonymous
+                .WithoutLeadingTrivia()
+                .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(anonymous.GetLeadingTrivia()));
     }
 }
