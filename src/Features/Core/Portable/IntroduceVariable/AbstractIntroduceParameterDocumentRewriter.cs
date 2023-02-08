@@ -452,15 +452,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private async Task<SyntaxNode> CreateMethodDeclarationAsync(SyntaxNode newStatement, ImmutableArray<IParameterSymbol>? validParameters,
                 string? newMethodIdentifier, ITypeSymbol? typeSymbol, bool isTrampoline, CancellationToken cancellationToken)
             {
-                var codeGenerationService = _originalDocument.GetRequiredLanguageService<ICodeGenerationService>();
-                var codeGenOptions = await _originalDocument.GetCodeGenerationOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
-                var info = codeGenOptions.GetInfo(CodeGenerationContext.Default, _originalDocument.Project);
+                var info = await _originalDocument.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var newMethod = isTrampoline
                     ? CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, name: newMethodIdentifier, parameters: validParameters, statements: ImmutableArray.Create(newStatement), returnType: typeSymbol)
                     : CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, statements: ImmutableArray.Create(newStatement), containingType: _methodSymbol.ContainingType);
 
-                var newMethodDeclaration = codeGenerationService.CreateMethodDeclaration(newMethod, CodeGenerationDestination.Unspecified, info, cancellationToken);
+                var newMethodDeclaration = info.Service.CreateMethodDeclaration(newMethod, CodeGenerationDestination.Unspecified, info, cancellationToken);
                 Contract.ThrowIfNull(newMethodDeclaration);
                 return newMethodDeclaration;
             }

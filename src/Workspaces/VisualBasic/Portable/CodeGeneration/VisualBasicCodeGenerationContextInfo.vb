@@ -9,15 +9,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Inherits CodeGenerationContextInfo
 
         Private ReadOnly _options As VisualBasicCodeGenerationOptions
+        Private ReadOnly _service As VisualBasicCodeGenerationService
 
-        Public Sub New(context As CodeGenerationContext, options As VisualBasicCodeGenerationOptions)
+        Public Sub New(context As CodeGenerationContext, options As VisualBasicCodeGenerationOptions, service As VisualBasicCodeGenerationService)
             MyBase.New(context)
             _options = options
+            _service = service
         End Sub
 
         Public Shadows ReadOnly Property Options As VisualBasicCodeGenerationOptions
             Get
                 Return _options
+            End Get
+        End Property
+
+        Public Shadows ReadOnly Property Service As VisualBasicCodeGenerationService
+            Get
+                Return _service
             End Get
         End Property
 
@@ -27,8 +35,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Get
         End Property
 
+        Protected Overrides ReadOnly Property ServiceImpl As ICodeGenerationService
+            Get
+                Return _service
+            End Get
+        End Property
+
         Protected Overrides Function WithContextImpl(value As CodeGenerationContext) As CodeGenerationContextInfo
-            Return New VisualBasicCodeGenerationContextInfo(value, Options)
+            Return New VisualBasicCodeGenerationContextInfo(value, _options, _service)
         End Function
     End Class
 End Namespace

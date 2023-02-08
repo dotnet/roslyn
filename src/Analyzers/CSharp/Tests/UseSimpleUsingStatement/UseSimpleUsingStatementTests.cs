@@ -1813,5 +1813,78 @@ class C
 }
 ");
         }
+
+        [Fact, WorkItem(58897, "https://github.com/dotnet/roslyn/issues/58897")]
+        public async Task TestOpenBraceTrivia1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Security.Cryptography;
+
+class C
+{
+    public static byte[] ComputeMD5Hash(byte[] source)
+    {
+#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+        [||]using (var md5 = MD5.Create())
+#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+        {
+            return md5.ComputeHash(source);
+        }
+    }
+}
+",
+@"
+using System.Security.Cryptography;
+
+class C
+{
+    public static byte[] ComputeMD5Hash(byte[] source)
+    {
+#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+        using var md5 = MD5.Create();
+#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+        return md5.ComputeHash(source);
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(58897, "https://github.com/dotnet/roslyn/issues/58897")]
+        public async Task TestOpenBraceTrivia2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Security.Cryptography;
+
+class C
+{
+    public static byte[] ComputeMD5Hash(byte[] source)
+    {
+#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+        [||]using (var md5 = MD5.Create())
+#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+        { // comment
+            return md5.ComputeHash(source);
+        }
+    }
+}
+",
+@"
+using System.Security.Cryptography;
+
+class C
+{
+    public static byte[] ComputeMD5Hash(byte[] source)
+    {
+#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+        using var md5 = MD5.Create();
+#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+        // comment
+        return md5.ComputeHash(source);
+    }
+}
+");
+        }
     }
 }

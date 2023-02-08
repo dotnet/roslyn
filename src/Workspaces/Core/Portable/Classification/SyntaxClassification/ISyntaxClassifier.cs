@@ -4,11 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers

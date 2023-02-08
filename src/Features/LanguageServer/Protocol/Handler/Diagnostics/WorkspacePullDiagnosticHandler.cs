@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 foreach (var document in project.Documents)
                 {
                     if (!ShouldSkipDocument(context, document))
-                        result.Add(new TaskListDiagnosticSource(document));
+                        result.Add(new TaskListDiagnosticSource(document, globalOptions));
                 }
             }
 

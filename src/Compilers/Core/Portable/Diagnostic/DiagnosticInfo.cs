@@ -78,7 +78,11 @@ namespace Microsoft.CodeAnalysis
 
         private static DiagnosticDescriptor GetOrCreateDescriptor(int errorCode, DiagnosticSeverity defaultSeverity, CommonMessageProvider messageProvider)
         {
-            return ImmutableInterlocked.GetOrAdd(ref s_errorCodeToDescriptorMap, errorCode, code => CreateDescriptor(code, defaultSeverity, messageProvider));
+            return ImmutableInterlocked.GetOrAdd(
+                ref s_errorCodeToDescriptorMap,
+                errorCode,
+                static (code, arg) => CreateDescriptor(code, arg.defaultSeverity, arg.messageProvider),
+                (defaultSeverity, messageProvider));
         }
 
         private static DiagnosticDescriptor CreateDescriptor(int errorCode, DiagnosticSeverity defaultSeverity, CommonMessageProvider messageProvider)
