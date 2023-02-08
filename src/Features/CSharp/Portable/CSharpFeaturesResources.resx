@@ -638,4 +638,7 @@
   <data name="Selection_cannot_be_in_constructor_initializer" xml:space="preserve">
     <value>Selection cannot be in constructor initializer</value>
   </data>
+  <data name="init_only_property" xml:space="preserve">
+    <value>init-only property</value>
+  </data>
 </root>

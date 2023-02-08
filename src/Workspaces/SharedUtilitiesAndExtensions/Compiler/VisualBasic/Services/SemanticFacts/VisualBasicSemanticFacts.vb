@@ -165,7 +165,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetForEachSymbols(model As SemanticModel, forEachStatement As SyntaxNode) As ForEachSymbols Implements ISemanticFacts.GetForEachSymbols
-
             Dim vbForEachStatement = TryCast(forEachStatement, ForEachStatementSyntax)
             If vbForEachStatement IsNot Nothing Then
                 Dim info = model.GetForEachStatementInfo(vbForEachStatement)
@@ -189,6 +188,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return Nothing
+        End Function
+
+        Public Function GetCollectionInitializerSymbolInfo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As SymbolInfo Implements ISemanticFacts.GetCollectionInitializerSymbolInfo
+            Return semanticModel.GetCollectionInitializerSymbolInfo(DirectCast(node, ExpressionSyntax), cancellationToken)
         End Function
 
         Public Function GetGetAwaiterMethod(model As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFacts.GetGetAwaiterMethod

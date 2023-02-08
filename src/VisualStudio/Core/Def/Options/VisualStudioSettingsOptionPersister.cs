@@ -134,21 +134,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
                 return Enum.ToObject(storageType, enumValue);
             }
 
-            if (storageType == typeof(NamingStylePreferences) || typeof(ICodeStyleOption).IsAssignableFrom(storageType))
+            if (storageType == typeof(NamingStylePreferences))
             {
                 if (_settingManager.TryGetValue(storageKey, out string stringValue) == GetValueResult.Success)
                 {
                     try
                     {
-                        if (storageType == typeof(NamingStylePreferences))
-                        {
-                            return NamingStylePreferences.FromXElement(XElement.Parse(stringValue));
-                        }
-                        else
-                        {
-                            var fromXElement = storageType.GetMethod(nameof(CodeStyleOption<object>.FromXElement), BindingFlags.Public | BindingFlags.Static);
-                            return fromXElement.Invoke(null, new object[] { XElement.Parse(stringValue) });
-                        }
+                        return NamingStylePreferences.FromXElement(XElement.Parse(stringValue));
+                    }
+                    catch
+                    {
+                        return default;
+                    }
+                }
+            }
+
+            if (optionKey.Option.DefaultValue is ICodeStyleOption2 codeStyle)
+            {
+                if (_settingManager.TryGetValue(storageKey, out string stringValue) == GetValueResult.Success)
+                {
+                    try
+                    {
+                        return new Optional<object?>(codeStyle.FromXElement(XElement.Parse(stringValue)));
                     }
                     catch
                     {

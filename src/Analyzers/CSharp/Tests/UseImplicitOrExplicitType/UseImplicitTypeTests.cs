@@ -3007,5 +3007,27 @@ class C
     }
 }",
 options: ImplicitTypeEverywhere());
+
+        [WpfFact, WorkItem(41780, "https://github.com/dotnet/roslyn/issues/41780")]
+        public async Task SuggestOnRefType1()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void Method(ref int x)
+    {
+      ref [|int|] y = ref x;
+    }
+}",
+@"
+class C
+{
+    void Method(ref int x)
+    {
+      ref var y = ref x;
+    }
+}", CSharpParseOptions.Default, options: ImplicitTypeEverywhere());
+        }
     }
 }

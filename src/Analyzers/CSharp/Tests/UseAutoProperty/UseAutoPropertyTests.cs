@@ -2511,5 +2511,40 @@ class Class
     public readonly int P { get; }
 }");
         }
+
+        [Fact, WorkItem(38286, "https://github.com/dotnet/roslyn/issues/38286")]
+        public async Task TestPointer1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|int* i|];
+
+    int* P => i;
+}",
+@"class Class
+{
+    int* P { get; }
+}");
+        }
+
+        [Fact, WorkItem(38286, "https://github.com/dotnet/roslyn/issues/38286")]
+        public async Task TestPointer2()
+        {
+            await TestMissingAsync(
+@"class Class
+{
+    [|int* i|];
+
+    int* P => i;
+
+    void M()
+    {
+        fixed (int** ii = &i)
+        {
+        }
+    }
+}");
+        }
     }
 }

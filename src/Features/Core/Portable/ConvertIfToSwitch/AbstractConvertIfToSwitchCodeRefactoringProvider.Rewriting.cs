@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         public abstract SyntaxNode CreateSwitchStatement(TIfStatementSyntax ifStatement, SyntaxNode target, IEnumerable<SyntaxNode> sectionList);
         public abstract IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation);
         public abstract SyntaxNode AsSwitchLabelSyntax(AnalyzedSwitchLabel label, Feature feature);
+        protected abstract SyntaxTriviaList GetLeadingTriviaToTransfer(SyntaxNode syntaxToRemove);
 
         private async Task<Document> UpdateDocumentAsync(
             Document document,
@@ -59,9 +60,13 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         private SyntaxNode AsSwitchSectionSyntax(AnalyzedSwitchSection section, SyntaxGenerator generator, Feature feature)
         {
             var statements = AsSwitchSectionStatements(section.Body);
-            return section.Labels.IsDefault
+            var sectionNode = section.Labels.IsDefault
                 ? generator.DefaultSwitchSection(statements)
                 : generator.SwitchSectionFromLabels(section.Labels.Select(label => AsSwitchLabelSyntax(label, feature)), statements);
+
+            sectionNode = sectionNode.WithPrependedLeadingTrivia(GetLeadingTriviaToTransfer(section.SyntaxToRemove));
+
+            return sectionNode;
         }
     }
 }
