@@ -8,9 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -240,12 +238,22 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
                         if (CancelInProgressWorkUponMutatingRequest)
                         {
-                            Contract.ThrowIfNull(currentWorkCts);
-                            Contract.ThrowIfFalse(concurrentlyExecutingTasks.TryAdd(currentWorkTask, currentWorkCts));
+                            if (currentWorkCts is null)
+                            {
+                                throw new InvalidOperationException($"unexpected null value for {nameof(currentWorkCts)}");
+                            }
+
+                            if (!concurrentlyExecutingTasks.TryAdd(currentWorkTask, currentWorkCts))
+                            {
+                                throw new InvalidOperationException($"unable to add {nameof(currentWorkTask)} into {nameof(concurrentlyExecutingTasks)}");
+                            }
 
                             _ = currentWorkTask.ContinueWith(t =>
                             {
-                                Contract.ThrowIfFalse(concurrentlyExecutingTasks.TryRemove(t, out var concurrentlyExecutingTaskCts));
+                                if (!concurrentlyExecutingTasks.TryRemove(t, out var concurrentlyExecutingTaskCts))
+                                {
+                                    throw new InvalidOperationException($"unexpected failure to remove task from {nameof(concurrentlyExecutingTasks)}");
+                                }
 
                                 concurrentlyExecutingTaskCts.Dispose();
                             }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
