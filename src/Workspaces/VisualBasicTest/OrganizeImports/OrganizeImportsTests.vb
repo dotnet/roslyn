@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
 
                 Dim formattingOptions = New VisualBasicSyntaxFormattingOptions() With
                 {
-                    .Common = New SyntaxFormattingOptions.CommonOptions() With {.SeparateImportDirectiveGroups = separateImportGroups}
+                    .SeparateImportDirectiveGroups = separateImportGroups
                 }
 
                 Dim organizeOptions = New OrganizeImportsOptions() With

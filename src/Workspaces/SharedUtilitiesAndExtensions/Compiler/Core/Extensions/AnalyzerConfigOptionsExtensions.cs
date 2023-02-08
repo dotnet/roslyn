@@ -4,92 +4,56 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using TOption = Microsoft.CodeAnalysis.Options.IOption2;
-#else
-using TOption = Microsoft.CodeAnalysis.Options.IOption;
-#endif
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class AnalyzerConfigOptionsExtensions
     {
-        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option2<T> option)
-            => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
+        public static T GetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, T defaultValue)
+            => TryGetEditorConfigOption<T>(analyzerConfigOptions, option, out var value) ? value! : defaultValue;
 
-        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption2<T> option)
-            => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
+        public static T GetEditorConfigOptionValue<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, T defaultValue)
+            => TryGetEditorConfigOption<CodeStyleOption2<T>>(analyzerConfigOptions, option, out var style) ? style!.Value : defaultValue;
 
-        private static T GetOptionWithAssertOnFailure<T>(AnalyzerConfigOptions analyzerConfigOptions, TOption option)
+        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption2 option, out T value)
         {
-            if (!TryGetEditorConfigOptionOrDefault(analyzerConfigOptions, option, out T value))
+            Contract.ThrowIfFalse(option.Definition.IsEditorConfigOption);
+
+            if (option.Definition.Type == typeof(NamingStylePreferences))
             {
-                // There are couple of reasons this assert might fire:
-                //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
-                //  2. Attempting to access an option which is not exposed from any option provider, i.e. IOptionProvider.Options.
-                Debug.Fail("Failed to find a .editorconfig key for the option.");
-                value = (T)option.DefaultValue!;
-            }
-
-            return value;
-        }
-
-        private static bool TryGetEditorConfigOptionOrDefault<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, out T value)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, (T?)option.DefaultValue, out value!);
-
-        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, [MaybeNullWhen(false)] out T value)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, defaultValue: default, out value);
-
-        public static T GetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<T?>(defaultValue), out var value) ? value! : throw ExceptionUtilities.Unreachable();
-
-        public static T GetEditorConfigOptionValue<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<CodeStyleOption2<T>?>(new CodeStyleOption2<T>(defaultValue, NotificationOption2.None)), out var style) ? style!.Value : throw ExceptionUtilities.Unreachable();
-
-        private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, Optional<T?> defaultValue, out T? value)
-        {
-            var hasEditorConfigStorage = false;
-            foreach (var storageLocation in option.StorageLocations)
-            {
-                // This code path will avoid allocating a Dictionary wrapper since we can get direct access to the KeyName.
-                if (storageLocation is EditorConfigStorageLocation<T> editorConfigStorageLocation &&
-                    analyzerConfigOptions.TryGetValue(editorConfigStorageLocation.KeyName, out var stringValue) &&
-                    editorConfigStorageLocation.TryGetOption(stringValue, out value))
+                if (StructuredAnalyzerConfigOptions.TryGetStructuredOptions(analyzerConfigOptions, out var structuredOptions))
                 {
-                    return true;
+                    var preferences = structuredOptions.GetNamingStylePreferences();
+                    value = (T)(object)preferences;
+                    return !preferences.IsEmpty;
                 }
-
-                if (storageLocation is not IEditorConfigStorageLocation configStorageLocation)
-                {
-                    continue;
-                }
-
-                // This option has .editorconfig storage defined, even if the current configuration does not provide a
-                // value for it.
-                hasEditorConfigStorage = true;
-                if (StructuredAnalyzerConfigOptions.TryGetStructuredOptions(analyzerConfigOptions, out var structuredOptions) &&
-                    configStorageLocation.TryGetOption(structuredOptions, option.Type, out var objectValue))
-                {
-                    value = (T?)objectValue;
-                    return true;
-                }
-            }
-
-            if (defaultValue.HasValue)
-            {
-                value = defaultValue.Value;
-                return hasEditorConfigStorage;
             }
             else
             {
-                value = default;
-                return false;
+                if (analyzerConfigOptions.TryGetValue(option.Definition.ConfigName, out var stringValue))
+                {
+                    // Avoid boxing when reading typed value:
+                    if (typeof(T) != typeof(object))
+                    {
+                        return ((OptionDefinition<T>)option.Definition).Serializer.TryParseValue(stringValue, out value!);
+                    }
+
+                    if (option.Definition.Serializer.TryParse(stringValue, out var objectValue))
+                    {
+                        value = (T)objectValue!;
+                        return true;
+                    }
+                }
             }
+
+            value = default!;
+            return false;
         }
     }
 }

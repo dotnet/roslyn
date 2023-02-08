@@ -45,4 +45,7 @@ internal static partial class Extensions
            (value.HasFlag(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers) ? NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers : 0) |
            (value.HasFlag(NewLineBeforeOpenBracePlacement.LambdaExpressionBody) ? NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody : 0) |
            (value.HasFlag(NewLineBeforeOpenBracePlacement.Accessors) ? NewLinePlacement.BeforeOpenBraceInAccessors : 0);
+
+    public static NewLineBeforeOpenBracePlacement WithFlagValue(this NewLineBeforeOpenBracePlacement flags, NewLineBeforeOpenBracePlacement flag, bool value)
+        => (flags & ~flag) | (value ? flag : 0);
 }

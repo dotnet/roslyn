@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
             IAnalyzerAssemblyLoader loader,
             ICompilerServerLogger? logger,
-            [NotNullWhen(false)]
-            out List<string>? errorMessages)
+            [NotNullWhen(false)] out List<string>? errorMessages)
         {
             errorMessages = null;
             var resolvedPaths = new List<string>();

@@ -519,7 +519,7 @@ public class Bar
                     Assert.Equal(ParameterAttributes.HasDefault, theParameter.Flags); // native compiler has None instead
 
                     // let's find the attribute in the PE metadata
-                    var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute);
+                    var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute, out _);
                     Assert.True(attributeInfo.HasValue);
 
                     long attributeValue;
@@ -10311,7 +10311,7 @@ public class C
 
         #region SkipLocalsInitAttribute
 
-        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpCompilationOptions options, CSharpParseOptions parseOptions = null, Verification verify = Verification.Fails)
+        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpCompilationOptions options, CSharpParseOptions parseOptions = null, Verification? verify = null)
         {
             const string skipLocalsInitDef = @"
 namespace System.Runtime.CompilerServices
@@ -10322,12 +10322,12 @@ namespace System.Runtime.CompilerServices
 }";
 
             var comp = CreateCompilation(new[] { src, skipLocalsInitDef }, options: options, parseOptions: parseOptions);
-            return CompileAndVerify(comp, verify: verify);
+            return CompileAndVerify(comp, verify: verify ?? Verification.Fails);
         }
 
-        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpParseOptions parseOptions = null, Verification verify = Verification.Fails)
+        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpParseOptions parseOptions = null, Verification? verify = null)
         {
-            return CompileAndVerifyWithSkipLocalsInit(src, TestOptions.UnsafeReleaseDll, parseOptions, verify);
+            return CompileAndVerifyWithSkipLocalsInit(src, TestOptions.UnsafeReleaseDll, parseOptions, verify ?? Verification.Fails);
         }
 
         [Fact]

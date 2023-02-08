@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             // # of sessions where import completion is enabled by default
             SessionWithTypeImportCompletionEnabled,
-            // # of sessions that we wait for import compeltion task to complete before return
-            // curerntly it's decided by "responsive completion" options
+            // # of sessions that we wait for import completion task to complete before return.
+            // Currently it's decided by "responsive completion" options
             SessionWithImportCompletionBlocking,
-            // # of sessions where items from import completion are not included intially 
+            // # of sessions where items from import completion are not included initially 
             SessionWithImportCompletionDelayed,
             // # of session among SessionWithImportCompletionDelayed where import completion items
             // are later included in list update. Note this doesn't include using of expander.
@@ -28,11 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Among sessions in SessionWithImportCompletionDelayed, how much longer it takes 
             // for import completion task to finish after regular item task is completed.
             // Knowing this would help us to decide whether a short wait would have ensure import completion
-            // items to be included in the intial list.
+            // items to be included in the initial list.
             AdditionalTicksToCompleteDelayedImportCompletion,
             ExpanderUsageCount,
-
-            GetDefaultsMatchTicks,
 
             SourceInitializationTicks,
             SourceGetContextCompletedTicks,
@@ -65,9 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         internal static void LogExpanderUsage()
             => s_countLogAggregator.IncreaseCount(ActionInfo.ExpanderUsageCount);
-
-        internal static void LogGetDefaultsMatchTicksDataPoint(int count)
-            => s_statisticLogAggregator.AddDataPoint(ActionInfo.GetDefaultsMatchTicks, count);
 
         internal static void LogSourceInitializationTicksDataPoint(TimeSpan elapsed)
         {

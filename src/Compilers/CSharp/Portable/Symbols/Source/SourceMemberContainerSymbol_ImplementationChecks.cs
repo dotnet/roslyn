@@ -1466,9 +1466,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool isValidScopedConversion(
                 bool allowVariance,
-                DeclarationScope baseScope,
+                ScopedKind baseScope,
                 bool baseHasUnscopedRefAttribute,
-                DeclarationScope overrideScope,
+                ScopedKind overrideScope,
                 bool overrideHasUnscopedRefAttribute)
             {
                 if (baseScope == overrideScope)
@@ -1479,7 +1479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     return allowVariance && !overrideHasUnscopedRefAttribute;
                 }
-                return allowVariance && baseScope == DeclarationScope.Unscoped;
+                return allowVariance && baseScope == ScopedKind.None;
             }
         }
 #nullable disable

@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (TransformCompoundAssignmentFieldOrEventAccessReceiver(eventAccess.EventSymbol, ref receiverOpt, stores, temps))
                         {
-                            return MakeEventAccess(eventAccess.Syntax, receiverOpt, eventAccess.EventSymbol, eventAccess.ConstantValue, eventAccess.ResultKind, eventAccess.Type);
+                            return MakeEventAccess(eventAccess.Syntax, receiverOpt, eventAccess.EventSymbol, eventAccess.ConstantValueOpt, eventAccess.ResultKind, eventAccess.Type);
                         }
                     }
                     break;
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion.Boxing,
                 memberContainingType,
                 @checked: false,
-                constantValueOpt: rewrittenReceiver.ConstantValue);
+                constantValueOpt: rewrittenReceiver.ConstantValueOpt);
         }
 
         private BoundExpression SpillArrayElementAccess(
@@ -812,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (expression.ConstantValue != null)
+            if (expression.ConstantValueOpt != null)
             {
                 var type = expression.Type;
                 return !ConstantValueIsTrivial(type);
@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool ReadIsSideeffecting(
             BoundExpression expression)
         {
-            if (expression.ConstantValue != null)
+            if (expression.ConstantValueOpt != null)
             {
                 return false;
             }

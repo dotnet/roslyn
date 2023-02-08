@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
@@ -43,16 +44,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // On load focus the first tab target
             Loaded += (s, e) =>
             {
+                // Wait until load to position adornment for space negotiation
+                PositionAdornment();
+
                 IdentifierTextBox.Focus();
                 IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
-
-                // Don't hook up our close events until we're done loading and have focused within the textbox
-                _textView.LostAggregateFocus += TextView_LostFocus;
-                IsKeyboardFocusWithinChanged += RenameFlyout_IsKeyboardFocusWithinChanged;
             };
 
             InitializeComponent();
-            PositionAdornment();
 
             if (themeService is not null)
             {
@@ -89,39 +88,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SubmitText => EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 
-        private void RenameFlyout_IsKeyboardFocusWithinChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            // When previewing changes, focus will be lost and put 
-            // into a preview changes window. If we're returning back
-            // to this UI, reset the flag to false. Otherwise, just ignore
-            // this focus change. No need to cancel in that case 
-            if (_viewModel.PreviewChangesFlag)
-            {
-                if (IsKeyboardFocused)
-                {
-                    _viewModel.PreviewChangesFlag = false;
-                }
-
-                return;
-            }
-
-            if (!IsKeyboardFocused)
-            {
-                _viewModel.Cancel();
-            }
-        }
-
-        private void TextView_LostFocus(object sender, EventArgs e)
-        {
-            // Preview changes is happening, no need to act on focus changes.
-            if (_viewModel.PreviewChangesFlag)
-            {
-                return;
-            }
-
-            _viewModel.Cancel();
-        }
-
         private void TextView_ViewPortChanged(object sender, EventArgs e)
             => PositionAdornment();
 
@@ -138,8 +104,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void PositionAdornment()
         {
-            var top = _textView.Caret.Bottom + 5;
-            var left = _textView.Caret.Left - 5;
+            var span = _viewModel.InitialTrackingSpan.GetSpan(_textView.TextSnapshot);
+            var line = _textView.GetTextViewLineContainingBufferPosition(span.Start);
+            var charBounds = line.GetCharacterBounds(span.Start);
+
+            var height = DesiredSize.Height;
+            var width = DesiredSize.Width;
+
+            var desiredTop = charBounds.TextBottom + 5;
+            var desiredLeft = charBounds.Left;
+
+            var top = (desiredTop + height) > _textView.ViewportBottom
+                ? _textView.ViewportBottom - height
+                : desiredTop;
+
+            var left = (desiredLeft + width) > _textView.ViewportRight
+                ? _textView.ViewportRight - width
+                : desiredLeft;
 
             Canvas.SetTop(this, top);
             Canvas.SetLeft(this, left);
@@ -152,7 +133,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.LayoutChanged -= TextView_LayoutChanged;
             _textView.ViewportHeightChanged -= TextView_ViewPortChanged;
             _textView.ViewportWidthChanged -= TextView_ViewPortChanged;
-            _textView.LostAggregateFocus -= TextView_LostFocus;
 
             // Restore focus back to the textview
             _textView.VisualElement.Focus();

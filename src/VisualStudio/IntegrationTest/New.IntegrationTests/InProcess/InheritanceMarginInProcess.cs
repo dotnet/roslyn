@@ -33,18 +33,18 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 
             if (showInheritanceMargin != true)
             {
-                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.ShowInheritanceMargin, languageName), true);
+                optionService.SetGlobalOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName, true);
             }
 
             if (!showGlobalUsings)
             {
-                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName), true);
+                optionService.SetGlobalOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName, true);
             }
 
             if (combinedWithIndicatorMargin)
             {
                 // Glyphs in Indicator margin are owned by editor, and we don't know when the glyphs would be added/removed.
-                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin), false);
+                optionService.SetGlobalOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, false);
             }
         }
 
@@ -56,12 +56,12 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 
             if (showInheritanceMargin != false)
             {
-                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.ShowInheritanceMargin, languageName), false);
+                optionService.SetGlobalOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName, false);
             }
 
             if (showGlobalUsings)
             {
-                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName), false);
+                optionService.SetGlobalOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName, false);
             }
         }
 

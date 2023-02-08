@@ -17217,7 +17217,14 @@ class Program
 System.Threading.Tasks.Task`1[System.Object]
 Success
 True
-", verify: Verification.FailsILVerify).VerifyDiagnostics();
+", verify: Verification.FailsILVerify with
+            {
+                ILVerifyMessage =
+                    """
+                    [GetReference]: TypedReference not supported in .NET Core
+                    [MoveNext]: TypedReference not supported in .NET Core
+                    """
+            }).VerifyDiagnostics();
         }
     }
 }

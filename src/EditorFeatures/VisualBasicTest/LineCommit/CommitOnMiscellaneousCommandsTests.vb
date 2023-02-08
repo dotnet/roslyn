@@ -72,7 +72,7 @@ End Class
 
                 Dim workspace = testData.Workspace
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
+                globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
 
                 testData.CommandHandler.ExecuteCommand(New PasteCommandArgs(testData.View, testData.Buffer),
                                                        Sub() testData.EditorOperations.InsertText("Class Program" & vbCrLf & "    Sub M(abc As Integer)" & vbCrLf & "        Dim a  = 7" & vbCrLf & "    End Sub" & vbCrLf & "End Class"),
@@ -131,7 +131,7 @@ End Class
                                                    </Workspace>)
                 Dim workspace = testData.Workspace
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
+                globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
 
                 testData.Buffer.Insert(57, "    ")
                 testData.CommandHandler.ExecuteCommand(New SaveCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub, TestCommandExecutionContext.Create())
@@ -180,7 +180,7 @@ End Module
                 ' Turn off pretty listing
                 Dim workspace = testData.Workspace
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
+                globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
 
                 testData.CommandHandler.ExecuteCommand(New FormatDocumentCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub, TestCommandExecutionContext.Create())
                 Assert.Equal("    Sub Main()", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(1).GetText())

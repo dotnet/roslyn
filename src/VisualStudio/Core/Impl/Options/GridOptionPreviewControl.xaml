@@ -165,7 +165,7 @@
                                             Grid.Column="0"/>
                                             <TextBlock
                                             Margin="5, 0, 0, 0"
-                                            Text="{Binding Notification}"
+                                            Text="{Binding Name}"
                                             Grid.Column="1"/>
                                         </Grid>
                                     </DataTemplate>

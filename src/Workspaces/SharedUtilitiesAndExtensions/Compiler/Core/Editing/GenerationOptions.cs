@@ -13,16 +13,16 @@ namespace Microsoft.CodeAnalysis.Editing
     internal class GenerationOptions
     {
         public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new(
-            "GenerationOptions", CodeStyleOptionGroups.Usings, "PlaceSystemNamespaceFirst",
-            AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst,
-            EditorConfigStorageLocation.ForBoolOption("dotnet_sort_system_directives_first"),
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst"));
+            "dotnet_sort_system_directives_first",
+            defaultValue: AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst,
+            group: CodeStyleOptionGroups.Usings,
+            isEditorConfigOption: true);
 
         public static readonly PerLanguageOption2<bool> SeparateImportDirectiveGroups = new(
-            "GenerationOptions", CodeStyleOptionGroups.Usings, "SeparateImportDirectiveGroups",
-            SyntaxFormattingOptions.CommonOptions.Default.SeparateImportDirectiveGroups,
-            EditorConfigStorageLocation.ForBoolOption("dotnet_separate_import_directive_groups"),
-            new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(SeparateImportDirectiveGroups)}"));
+            "dotnet_separate_import_directive_groups",
+            defaultValue: SyntaxFormattingOptions.CommonDefaults.SeparateImportDirectiveGroups,
+            group: CodeStyleOptionGroups.Usings,
+            isEditorConfigOption: true);
 
         public static readonly ImmutableArray<IOption2> AllOptions = ImmutableArray.Create<IOption2>(
             PlaceSystemNamespaceFirst,
