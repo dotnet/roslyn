@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember
 {
@@ -137,6 +138,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             if (syntaxFacts.IsAttributeNamedArgumentIdentifier(expression))
             {
                 var attributeNode = expression.GetAncestors().FirstOrDefault(syntaxFacts.IsAttribute);
+                Contract.ThrowIfNull(attributeNode);
+
                 var attributeName = syntaxFacts.GetNameOfAttribute(attributeNode);
                 var attributeType = semanticModel.GetTypeInfo(attributeName, cancellationToken);
 

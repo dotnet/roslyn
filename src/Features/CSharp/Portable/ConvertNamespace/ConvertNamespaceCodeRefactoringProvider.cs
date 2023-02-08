@@ -104,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 return;
             }
 
+            Contract.ThrowIfNull(namespaceDecl);
             document = await ConvertAsync(document, namespaceDecl, options.GetFormattingOptions(), cancellationToken).ConfigureAwait(false);
             var newRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(editor.OriginalRoot, newRoot);
