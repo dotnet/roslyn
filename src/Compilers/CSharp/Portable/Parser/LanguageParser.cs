@@ -622,6 +622,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.DelegateDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
+                    case SyntaxKind.RoleDeclaration:
+                    case SyntaxKind.ExtensionDeclaration:
                         if (seen < NamespaceParts.TypesAndNamespaces)
                         {
                             seen = NamespaceParts.TypesAndNamespaces;
@@ -719,12 +721,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public bool IsEndOfNamespace()
         {
             return this.CurrentToken.Kind == SyntaxKind.CloseBraceToken;
-        }
-
-        public bool IsGobalAttributesTerminator()
-        {
-            return this.IsEndOfNamespace()
-                || this.IsPossibleNamespaceMemberDeclaration();
         }
 
         private bool IsNamespaceMemberStartOrStop()
@@ -1345,6 +1341,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
                 // older code that is not using C# 9 we conditionally parse based on langversion
                 return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+            }
+
+            if (nextToken.ContextualKind is SyntaxKind.RoleKeyword or SyntaxKind.ExtensionKeyword)
+            {
+                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+                // does not support a feature, but in this case we are effectively making a language breaking
+                // change to consider "role" or "extension" a type declaration in all ambiguous cases.
+                // To avoid breaking older code that is not using C# 11 we conditionally parse based on langversion
+                return IsFeatureEnabled(MessageID.IDS_FeatureRoles);
             }
 
             return false;
@@ -2087,6 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // older code that is not using C# 9 we conditionally parse based on langversion
                         return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
                     }
+
                     if (CurrentToken.ContextualKind is SyntaxKind.RoleKeyword or SyntaxKind.ExtensionKeyword)
                     {
                         // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
@@ -2123,6 +2129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.FileScopedNamespaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.RoleDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                     return true;
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.MethodDeclaration:
@@ -4846,6 +4854,8 @@ parse_member_name:;
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
+                    case SyntaxKind.RoleDeclaration:
+                    case SyntaxKind.ExtensionDeclaration:
                         return ((CSharp.Syntax.TypeDeclarationSyntax)decl).Modifiers;
                     case SyntaxKind.DelegateDeclaration:
                         return ((CSharp.Syntax.DelegateDeclarationSyntax)decl).Modifiers;

@@ -177,6 +177,253 @@ public sealed class RoleParsingTests : ParsingTests
     }
 
     [Theory, CombinatorialData]
+    public void RoleParsing_WithPartial(bool isExtension)
+    {
+        Assert.True(SyntaxFacts.IsTypeDeclaration(isExtension ? SyntaxKind.ExtensionDeclaration : SyntaxKind.RoleDeclaration));
+
+        var keyword = isExtension ? "extension" : "role";
+        var text = $$"""partial {{keyword}} C : UnderlyingType { }""";
+        UsingTree(text);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(isExtension ? SyntaxKind.ExtensionDeclaration : SyntaxKind.RoleDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(isExtension ? SyntaxKind.ExtensionKeyword : SyntaxKind.RoleKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.BaseList);
+                {
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "UnderlyingType");
+                        }
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        var expectedDiagnostics = isExtension ? new[]
+        {
+            // (1,1): error CS1031: Type expected
+            // partial extension C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
+            // (1,1): error CS1525: Invalid expression term 'partial'
+            // partial extension C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
+            // (1,1): error CS1003: Syntax error, ',' expected
+            // partial extension C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 1),
+            // (1,21): error CS1002: ; expected
+            // partial extension C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 21),
+            // (1,21): error CS1022: Type or namespace definition, or end-of-file expected
+            // partial extension C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 21),
+            // (1,38): error CS1001: Identifier expected
+            // partial extension C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 38),
+            // (1,38): error CS1003: Syntax error, ',' expected
+            // partial extension C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 38),
+            // (1,40): error CS1002: ; expected
+            // partial extension C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 40),
+            // (1,40): error CS1022: Type or namespace definition, or end-of-file expected
+            // partial extension C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 40)
+        } : new[]
+        {
+            // (1,1): error CS1031: Type expected
+            // partial role C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
+            // (1,1): error CS1525: Invalid expression term 'partial'
+            // partial role C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
+            // (1,1): error CS1003: Syntax error, ',' expected
+            // partial role C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 1),
+            // (1,16): error CS1002: ; expected
+            // partial role C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 16),
+            // (1,16): error CS1022: Type or namespace definition, or end-of-file expected
+            // partial role C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 16),
+            // (1,33): error CS1001: Identifier expected
+            // partial role C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 33),
+            // (1,33): error CS1003: Syntax error, ',' expected
+            // partial role C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 33),
+            // (1,35): error CS1002: ; expected
+            // partial role C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 35),
+            // (1,35): error CS1022: Type or namespace definition, or end-of-file expected
+            // partial role C : UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 35)
+        };
+        UsingTree(text, options: TestOptions.Regular10, expectedDiagnostics);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            M(SyntaxKind.GlobalStatement);
+            {
+                M(SyntaxKind.LocalDeclarationStatement);
+                {
+                    M(SyntaxKind.VariableDeclaration);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "UnderlyingType");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void RoleParsing_WithReadonlyPartial()
+    {
+        var text = "readonly partial role S : U { }";
+        UsingTree(text);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.RoleDeclaration);
+            {
+                N(SyntaxKind.ReadOnlyKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.RoleKeyword);
+                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.BaseList);
+                {
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        UsingTree(text, options: TestOptions.Regular10,
+            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
+            // readonly partial role S : U { }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
+            // (1,10): error CS1031: Type expected
+            // readonly partial role S : U { }
+            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 10),
+            // (1,10): error CS1525: Invalid expression term 'partial'
+            // readonly partial role S : U { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 10),
+            // (1,10): error CS1003: Syntax error, ',' expected
+            // readonly partial role S : U { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 10),
+            // (1,25): error CS1002: ; expected
+            // readonly partial role S : U { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 25),
+            // (1,25): error CS1022: Type or namespace definition, or end-of-file expected
+            // readonly partial role S : U { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 25),
+            // (1,29): error CS1001: Identifier expected
+            // readonly partial role S : U { }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 29),
+            // (1,29): error CS1003: Syntax error, ',' expected
+            // readonly partial role S : U { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 29),
+            // (1,31): error CS1002: ; expected
+            // readonly partial role S : U { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 31),
+            // (1,31): error CS1022: Type or namespace definition, or end-of-file expected
+            // readonly partial role S : U { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 31)
+            );
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    M(SyntaxKind.VariableDeclaration);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
     public void RoleParsing_WithModifiers(bool isExtension)
     {
         var keyword = isExtension ? "extension" : "role";
@@ -422,6 +669,9 @@ public sealed class RoleParsingTests : ParsingTests
             // (1,12): error CS1513: } expected
             // extension C() { }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
+            // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
+            // extension C() { }
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "() ").WithLocation(1, 12),
             // (1,13): error CS1525: Invalid expression term ')'
             // extension C() { }
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 13),
@@ -436,6 +686,9 @@ public sealed class RoleParsingTests : ParsingTests
             // (1,7): error CS1513: } expected
             // role C() { }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 7),
+            // (1,7): error CS8803: Top-level statements must precede namespace and type declarations.
+            // role C() { }
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "() ").WithLocation(1, 7),
             // (1,8): error CS1525: Invalid expression term ')'
             // role C() { }
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 8),
@@ -633,6 +886,311 @@ public sealed class RoleParsingTests : ParsingTests
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void RoleParsing_AfterIncompleteUsing(bool isExtension)
+    {
+        var keyword = isExtension ? "extension" : "role";
+        var text = $$"""
+using
+partial {{keyword}} R : U { }
+""";
+
+        UsingTree(text,
+            // (1,6): error CS1031: Type expected
+            // using
+            Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 6),
+            // (1,6): error CS1525: Invalid expression term 'partial'
+            // using
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 6),
+            // (1,6): error CS1002: ; expected
+            // using
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 6)
+            );
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    M(SyntaxKind.VariableDeclaration);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(isExtension ? SyntaxKind.ExtensionDeclaration : SyntaxKind.RoleDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(isExtension ? SyntaxKind.ExtensionKeyword : SyntaxKind.RoleKeyword);
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.BaseList);
+                {
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        var expectedDiagnostics = isExtension ? new[]
+        {
+            // (1,6): error CS1031: Type expected
+            // using
+            Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 6),
+            // (1,6): error CS1525: Invalid expression term 'partial'
+            // using
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 6),
+            // (1,6): error CS1003: Syntax error, ',' expected
+            // using
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 6),
+            // (2,9): error CS1002: ; expected
+            // partial extension R : U { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "extension").WithLocation(2, 9),
+            // (2,21): error CS1002: ; expected
+            // partial extension R : U { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(2, 21),
+            // (2,21): error CS1022: Type or namespace definition, or end-of-file expected
+            // partial extension R : U { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 21),
+            // (2,25): error CS1001: Identifier expected
+            // partial extension R : U { }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 25),
+            // (2,25): error CS1003: Syntax error, ',' expected
+            // partial extension R : U { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 25),
+            // (2,27): error CS1002: ; expected
+            // partial extension R : U { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 27),
+            // (2,27): error CS1022: Type or namespace definition, or end-of-file expected
+            // partial extension R : U { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 27)
+        } : new[]
+        {
+            // (1,6): error CS1031: Type expected
+            // using
+            Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 6),
+            // (1,6): error CS1525: Invalid expression term 'partial'
+            // using
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 6),
+            // (1,6): error CS1003: Syntax error, ',' expected
+            // using
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 6),
+            // (2,9): error CS1002: ; expected
+            // partial role R : U { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "role").WithLocation(2, 9),
+            // (2,16): error CS1002: ; expected
+            // partial role R : U { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(2, 16),
+            // (2,16): error CS1022: Type or namespace definition, or end-of-file expected
+            // partial role R : U { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 16),
+            // (2,20): error CS1001: Identifier expected
+            // partial role R : U { }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),
+            // (2,20): error CS1003: Syntax error, ',' expected
+            // partial role R : U { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 20),
+            // (2,22): error CS1002: ; expected
+            // partial role R : U { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 22),
+            // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
+            // partial role R : U { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 22)
+        };
+
+        UsingTree(text, options: TestOptions.Regular10, expectedDiagnostics);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    M(SyntaxKind.VariableDeclaration);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, isExtension ? "extension" : "role");
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "R");
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void RoleParsing_PartialInIncompleteNamespace()
+    {
+        var text = """
+namespace N
+partial role S : U { }
+""";
+        UsingTree(text,
+            // (1,12): error CS1514: { expected
+            // namespace N
+            Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 12),
+            // (2,23): error CS1513: } expected
+            // partial role S : U { }
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 23)
+            );
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.NamespaceDeclaration);
+            {
+                N(SyntaxKind.NamespaceKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "N");
+                }
+                M(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.RoleDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RoleKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "U");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                M(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void RoleParsing_BeforeTopLevelStatement(bool isExtension)
+    {
+        var keyword = isExtension ? "extension" : "role";
+        var text = $$"""
+{{keyword}} R : U { }
+Write();
+""";
+
+        UsingTree(text,
+            // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+            // Write();
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "Write();").WithLocation(2, 1)
+            );
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(isExtension ? SyntaxKind.ExtensionDeclaration : SyntaxKind.RoleDeclaration);
+            {
+                N(isExtension ? SyntaxKind.ExtensionKeyword : SyntaxKind.RoleKeyword);
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.BaseList);
+                {
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Write");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
             }
             N(SyntaxKind.EndOfFileToken);
         }
