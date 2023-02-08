@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12019,6 +12018,36 @@ class C
 ref struct MyRefStruct { }
 ";
             await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        [WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")]
+        public async Task DoNotProvideMemberOnSystemVoid()
+        {
+            var source = @"
+class C
+{
+    void M1(){}
+    void M2()
+    {
+        this.M1().$$
+    }
+}
+
+public static class Extension
+{
+    public static bool ExtMethod(this object x) => false;
+}
+";
+            await VerifyItemIsAbsentAsync(MakeMarkup(source), "ExtMethod");
+        }
+
+        [Fact]
+        public async Task NoSymbolCompletionsInEnumBaseList()
+        {
+            var source = "enum E : $$";
+
+            await VerifyNoItemsExistAsync(source);
         }
 
         private static string MakeMarkup(string source, string languageVersion = "Preview")

@@ -5318,11 +5318,9 @@ static class Test
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
         }
 
-        [WorkItem(536674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536674")]
-        [Fact]
-        public void CS1733ERR_ExpressionExpected()
+        [Fact, WorkItem(536674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536674")]
+        public void CS1525ERR_InvalidExprTerm_02()
         {
-            // diff error msg - CS1525
             var test = @"
 using System.Collections.Generic;
 using System.Collections;
@@ -5335,7 +5333,10 @@ static class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ExpressionExpected, "}"));
+            ParseAndValidate(test,
+                // (8,33): error CS1525: Invalid expression term '}'
+                //         A a = new A { 5, {9, 5, }, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(8, 33));
         }
 
         [WorkItem(536674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536674")]

@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var category = diagnosticsParams.QueryingDiagnosticKind?.Value;
 
             if (category == PullDiagnosticCategories.Task)
-                return new(GetDiagnosticSources(diagnosticKind: default, taskList: true, context));
+                return new(GetDiagnosticSources(diagnosticKind: default, taskList: true, context, GlobalOptions));
 
             var diagnosticKind = category switch
             {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (diagnosticKind is null)
                 return new(ImmutableArray<IDiagnosticSource>.Empty);
 
-            return new(GetDiagnosticSources(diagnosticKind.Value, taskList: false, context));
+            return new(GetDiagnosticSources(diagnosticKind.Value, taskList: false, context, GlobalOptions));
         }
 
         protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         internal static ImmutableArray<IDiagnosticSource> GetDiagnosticSources(
-            DiagnosticKind diagnosticKind, bool taskList, RequestContext context)
+            DiagnosticKind diagnosticKind, bool taskList, RequestContext context, IGlobalOptionService globalOptions)
         {
             // For the single document case, that is the only doc we want to process.
             //
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
 
             return taskList
-                ? ImmutableArray.Create<IDiagnosticSource>(new TaskListDiagnosticSource(document))
+                ? ImmutableArray.Create<IDiagnosticSource>(new TaskListDiagnosticSource(document, globalOptions))
                 : ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(diagnosticKind, document));
         }
     }

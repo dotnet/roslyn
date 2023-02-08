@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Symbol ContainingSymbol => _containingSymbol;
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
-        internal override DeclarationScope EffectiveScope
-            => ParameterHelpers.IsRefScopedByDefault(this) ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
+        internal override ScopedKind EffectiveScope
+            => ParameterHelpers.IsRefScopedByDefault(this) ? ScopedKind.ScopedRef : ScopedKind.None;
         internal override bool HasUnscopedRefAttribute => false;
         internal override bool UseUpdatedEscapeRules => _containingSymbol.UseUpdatedEscapeRules;
 

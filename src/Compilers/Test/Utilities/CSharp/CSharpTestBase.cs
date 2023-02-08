@@ -726,7 +726,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification verify = default) =>
             CompileAndVerify(
                 source,
                 references,
@@ -762,7 +762,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification verify = default) =>
             CompileAndVerify(
                 source,
                 references,
@@ -799,7 +799,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes)
+            Verification verify = default)
         {
             options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
             var compilation = CreateExperimentalCompilationWithMscorlib45(source, feature, references, options, parseOptions, assemblyName: GetUniqueName());
@@ -840,7 +840,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification verify = default) =>
             CompileAndVerify(
                 source,
                 references,
@@ -876,7 +876,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification verify = default) =>
             CompileAndVerify(
                 source,
                 references,
@@ -913,7 +913,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
             TargetFramework targetFramework = TargetFramework.Standard,
-            Verification verify = Verification.Passes)
+            Verification verify = default)
         {
             options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : CheckForTopLevelStatements(source.GetSyntaxTrees(parseOptions)));
             var compilation = CreateCompilation(source, references, options, parseOptions, targetFramework, assemblyName: GetUniqueName());
@@ -946,7 +946,7 @@ namespace System.Diagnostics.CodeAnalysis
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes)
+            Verification verify = default)
         {
             Action<IModuleSymbol> translate(Action<ModuleSymbol> action)
             {
@@ -1014,7 +1014,7 @@ namespace System.Diagnostics.CodeAnalysis
                 return new SyntaxTree[] { };
             }
 
-            return sources.Select(src => Parse(src, options: options)).ToArray();
+            return sources.Select((src, index) => Parse(src, filename: $"{index}.cs", options: options)).ToArray();
         }
 
         public static SyntaxTree ParseWithRoundTripCheck(string text, CSharpParseOptions options = null)
@@ -1449,13 +1449,13 @@ namespace System.Diagnostics.CodeAnalysis
         /// <typeparam name="T">Expected type of the exception.</typeparam>
         /// <param name="source">Program to compile and execute.</param>
         /// <param name="expectedMessage">Ignored if null.</param>
-        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false, Verification verify = Verification.Passes) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false, Verification verify = default) where T : Exception
         {
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe));
             return CompileAndVerifyException<T>(comp, expectedMessage, verify);
         }
 
-        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null, Verification verify = Verification.Passes) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null, Verification verify = default) where T : Exception
         {
             try
             {

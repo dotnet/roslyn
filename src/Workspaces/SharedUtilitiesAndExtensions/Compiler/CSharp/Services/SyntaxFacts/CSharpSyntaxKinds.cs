@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct
             => (TSyntaxKind)(object)(SyntaxKind)kind;
 
+        // Boxing/Unboxing casts from Object to TSyntaxKind will be erased by jit.
+        public int Convert<TSyntaxKind>(TSyntaxKind kind) where TSyntaxKind : struct
+            => (int)(SyntaxKind)(object)kind;
+
         public int ConflictMarkerTrivia => (int)SyntaxKind.ConflictMarkerTrivia;
         public int DisabledTextTrivia => (int)SyntaxKind.DisabledTextTrivia;
         public int EndOfLineTrivia => (int)SyntaxKind.EndOfLineTrivia;
@@ -31,10 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int IfDirectiveTrivia => (int)SyntaxKind.IfDirectiveTrivia;
 
         public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
+        public int? CloseBracketToken => (int)SyntaxKind.CloseBracketToken;
+        public int CloseParenToken => (int)SyntaxKind.CloseParenToken;
         public int ColonToken => (int)SyntaxKind.ColonToken;
         public int CharacterLiteralToken => (int)SyntaxKind.CharacterLiteralToken;
         public int DotToken => (int)SyntaxKind.DotToken;
+        public int GreaterThanToken => (int)SyntaxKind.GreaterThanToken;
         public int InterpolatedStringTextToken => (int)SyntaxKind.InterpolatedStringTextToken;
+        public int LessThanToken => (int)SyntaxKind.LessThanToken;
+        public int OpenBraceToken => (int)SyntaxKind.OpenBraceToken;
+        public int? OpenBracketToken => (int)SyntaxKind.OpenBracketToken;
+        public int OpenParenToken => (int)SyntaxKind.OpenParenToken;
         public int QuestionToken => (int)SyntaxKind.QuestionToken;
         public int StringLiteralToken => (int)SyntaxKind.StringLiteralToken;
         public int? SingleLineRawStringLiteralToken => (int)SyntaxKind.SingleLineRawStringLiteralToken;
@@ -49,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int IfKeyword => (int)SyntaxKind.IfKeyword;
         public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
         public int FalseKeyword => (int)SyntaxKind.FalseKeyword;
+        public int UsingKeyword => (int)SyntaxKind.UsingKeyword;
 
         public int GenericName => (int)SyntaxKind.GenericName;
         public int IdentifierName => (int)SyntaxKind.IdentifierName;

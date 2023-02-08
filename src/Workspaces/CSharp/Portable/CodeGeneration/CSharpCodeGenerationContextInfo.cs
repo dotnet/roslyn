@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
@@ -12,20 +10,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     {
         public readonly LanguageVersion LanguageVersion;
 
-        public CSharpCodeGenerationContextInfo(CodeGenerationContext context, CSharpCodeGenerationOptions options, LanguageVersion languageVersion)
+        public CSharpCodeGenerationContextInfo(CodeGenerationContext context, CSharpCodeGenerationOptions options, CSharpCodeGenerationService service, LanguageVersion languageVersion)
             : base(context)
         {
             Options = options;
+            Service = service;
             LanguageVersion = languageVersion;
         }
 
         public new CSharpCodeGenerationOptions Options { get; }
+        public new CSharpCodeGenerationService Service { get; }
 
         protected override CodeGenerationOptions OptionsImpl
             => Options;
 
+        protected override ICodeGenerationService ServiceImpl
+            => Service;
+
         public new CSharpCodeGenerationContextInfo WithContext(CodeGenerationContext value)
-            => (Context == value) ? this : new(value, Options, LanguageVersion);
+            => (Context == value) ? this : new(value, Options, Service, LanguageVersion);
 
         protected override CodeGenerationContextInfo WithContextImpl(CodeGenerationContext value)
             => WithContext(value);

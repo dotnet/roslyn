@@ -7,10 +7,10 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
@@ -31,8 +31,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Get
         End Property
 
-        Public Overrides Function GetCodeGenerationOptions(options As AnalyzerConfigOptions, fallbackOptions As CodeGenerationOptions) As CodeGenerationOptions
-            Return VisualBasicCodeGenerationOptions.Default
+        Public Overrides Function GetCodeGenerationOptions(options As IOptionsReader, fallbackOptions As CodeGenerationOptions) As CodeGenerationOptions
+            Return New VisualBasicCodeGenerationOptions(options, DirectCast(fallbackOptions, VisualBasicCodeGenerationOptions))
+        End Function
+
+        Public Overrides Function GetInfo(context As CodeGenerationContext, options As CodeGenerationOptions, parseOptions As ParseOptions) As VisualBasicCodeGenerationContextInfo
+            Return New VisualBasicCodeGenerationContextInfo(context, DirectCast(options, VisualBasicCodeGenerationOptions), Me)
         End Function
 
         Public Overloads Overrides Function GetDestination(containerNode As SyntaxNode) As CodeGenerationDestination

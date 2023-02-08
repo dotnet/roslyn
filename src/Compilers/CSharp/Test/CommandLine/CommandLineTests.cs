@@ -7191,6 +7191,29 @@ public class C
         }
 
         [Fact]
+        public void CreateCompilationWithDisableLengthBasedSwitch()
+        {
+            string source = """
+public class C
+{
+}
+""";
+
+            var fileName = "a.cs";
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile(fileName);
+            file.WriteAllText(source);
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] { "a.cs", "/features:disable-length-based-switch" });
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
+            Assert.True(((CSharpCompilation)comp).FeatureDisableLengthBasedSwitch);
+
+            cmd = CreateCSharpCompiler(null, dir.Path, new[] { "a.cs" });
+            comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
+            Assert.False(((CSharpCompilation)comp).FeatureDisableLengthBasedSwitch);
+        }
+
+        [Fact]
         public void CreateCompilation_MainAndTargetIncompatibilities()
         {
             string source = @"
@@ -13355,8 +13378,22 @@ class C
             Directory.Delete(dir.Path, true);
         }
 
-        [Fact]
-        public void SourceGenerators_WriteGeneratedSources()
+        [Theory]
+        [InlineData("generatedSource.cs", "", "generatedSource.cs")]
+        [InlineData("..", "", "...cs")]
+        [InlineData(".", "", "..cs")]
+        [InlineData("abc/", "abc", ".cs")]
+        [InlineData("abc\\", "abc", ".cs")]
+        [InlineData("abc/ ", "abc", " .cs")]
+        [InlineData("a/b/c", "a/b", "c.cs")]
+        [InlineData("a/b\\c", "a/b", "c.cs")]
+        [InlineData("a\\b\\c", "a/b", "c.cs")]
+        [InlineData(" abc ", "", " abc .cs")]
+        [InlineData(" abc/generated.cs", " abc", "generated.cs")]
+        [InlineData(" abc\\generated.cs", " abc", "generated.cs")]
+        [InlineData(" a/ b/ generated.cs", " a/ b", " generated.cs")]
+        [InlineData(" a\\ b\\ generated.cs", " a/ b", " generated.cs")]
+        public void SourceGenerators_WriteGeneratedSources(string hintName, string expectedDir, string expectedFileName)
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText(@"
@@ -13366,12 +13403,15 @@ class C
             var generatedDir = dir.CreateDirectory("generated");
 
             var generatedSource = "public class D { }";
-            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+            var generator = new SingleFileTestGenerator(generatedSource, hintName);
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
-            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
+            ValidateWrittenSources(new()
+            {
+                { Path.Combine(generatedDir.Path, generatorPrefix, expectedDir), new() { { expectedFileName, generatedSource } } }
+            });
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -13435,6 +13475,44 @@ class C
             {
                 { Path.Combine(generatedDir.Path, generator1Prefix), new() { { source1Name, source1 } } },
                 { Path.Combine(generatedDir.Path, generator2Prefix), new() { { source2Name, source2 } } }
+            });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Theory]
+        [InlineData("subdir")]
+        [InlineData("a/b/c")]
+        [InlineData("a\\b\\c", "a/b/c")]
+        [InlineData(" subdir")]
+        [InlineData(" a/ b/ c")]
+        [InlineData(" a\\ b/ c", " a/ b/ c")]
+        [InlineData("abc/")]
+        public void SourceGenerators_WriteGeneratedSources_WithDirectories(string subdir, string expectedDir = null)
+        {
+            expectedDir ??= subdir;
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("""
+                class C
+                {
+                }
+                """);
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generatedFileName = "generatedSource.cs";
+            var generatedPath = Path.Combine(subdir, generatedFileName);
+            var generator = new SingleFileTestGenerator(generatedSource, generatedPath);
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateWrittenSources(new()
+            {
+                { Path.Combine(generatedDir.Path, generatorPrefix, expectedDir), new() { { generatedFileName, generatedSource } } }
             });
 
             // Clean up temp files
@@ -13780,6 +13858,96 @@ key7 = value7");
             Assert.False(generatedOptions.TryGetValue("key5", out _));
             Assert.False(generatedOptions.TryGetValue("key6", out _));
             Assert.False(generatedOptions.TryGetValue("key7", out _));
+        }
+
+        internal class FailsExecuteGenerator : ISourceGenerator
+        {
+            public void Initialize(GeneratorInitializationContext context) { }
+            public void Execute(GeneratorExecutionContext context) => throw new System.Exception("THROW");
+        }
+
+        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        public void FailedGeneratorExecuteWarning_AsError()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("""
+class C
+{
+}
+""");
+
+            var cmd = CreateCSharpCompiler(null, dir.Path,
+                new[] { "/t:library", "/nologo", "/warnaserror+", src.Path },
+                generators: new[] { new FailsExecuteGenerator() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.StartsWith($"error CS8785: Generator 'FailsExecuteGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type 'Exception' with message 'THROW'",
+                outWriter.ToString());
+        }
+
+        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        public void FailedGeneratorExecuteWarning_Suppressed()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("""
+class C
+{
+}
+""");
+
+            var cmd = CreateCSharpCompiler(null, dir.Path,
+                new[] { "/t:library", "/nologo", "/nowarn:CS8785", src.Path },
+                generators: new[] { new FailsExecuteGenerator() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+        }
+
+        internal class FailsInitializeGenerator : ISourceGenerator
+        {
+            public void Initialize(GeneratorInitializationContext context) => throw new System.Exception("THROW");
+            public void Execute(GeneratorExecutionContext context) { }
+        }
+
+        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        public void FailedGeneratorInitializeWarning_AsError()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("""
+class C
+{
+}
+""");
+
+            var cmd = CreateCSharpCompiler(null, dir.Path,
+                new[] { "/t:library", "/nologo", "/warnaserror+", src.Path },
+                generators: new[] { new FailsInitializeGenerator() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.StartsWith($"error CS8784: Generator 'FailsInitializeGenerator' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type 'Exception' with message 'THROW'",
+                outWriter.ToString());
+        }
+
+        [Fact, WorkItem(65313, "https://github.com/dotnet/roslyn/issues/65313")]
+        public void FailedGeneratorInitializeWarning_Suppressed()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("""
+class C
+{
+}
+""");
+
+            var cmd = CreateCSharpCompiler(null, dir.Path,
+                new[] { "/t:library", "/nologo", "/nowarn:CS8784", src.Path },
+                generators: new[] { new FailsInitializeGenerator() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
         }
 
         [Theory]

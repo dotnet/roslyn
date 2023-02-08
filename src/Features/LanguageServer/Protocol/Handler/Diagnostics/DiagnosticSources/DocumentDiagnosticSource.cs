@@ -9,9 +9,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed record DocumentDiagnosticSource(DiagnosticKind DiagnosticKind, Document Document)
-    : AbstractDocumentDiagnosticSource<Document>(Document)
+internal sealed class DocumentDiagnosticSource
+    : AbstractDocumentDiagnosticSource<Document>
 {
+    public DiagnosticKind DiagnosticKind { get; }
+
+    public DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Document document)
+        : base(document)
+    {
+        DiagnosticKind = diagnosticKind;
+    }
+
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
     {

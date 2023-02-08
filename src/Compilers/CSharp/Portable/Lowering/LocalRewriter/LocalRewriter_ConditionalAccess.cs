@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         loweredAccessExpression,
                         null,
                         currentConditionalAccessID,
+                        forceCopyOfNullableValueType: true,
                         type);
 
                     break;

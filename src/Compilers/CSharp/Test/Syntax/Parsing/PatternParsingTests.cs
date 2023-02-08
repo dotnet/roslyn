@@ -11891,6 +11891,9 @@ switch (e)
             var source = @"_ = this is Program { P1: (1,  }";
             var expectedErrors = new[]
             {
+                // (1,32): error CS8504: Pattern missing
+                // _ = this is Program { P1: (1,  }
+                Diagnostic(ErrorCode.ERR_MissingPattern, "}").WithLocation(1, 32),
                 // (1,32): error CS1026: ) expected
                 // _ = this is Program { P1: (1,  }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 32),
@@ -11962,6 +11965,16 @@ switch (e)
                                                     }
                                                 }
                                                 N(SyntaxKind.CommaToken);
+                                                M(SyntaxKind.Subpattern);
+                                                {
+                                                    M(SyntaxKind.ConstantPattern);
+                                                    {
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                    }
+                                                }
                                                 M(SyntaxKind.CloseParenToken);
                                             }
                                         }
@@ -11986,6 +11999,9 @@ switch (e)
                 // (1,1): error CS1073: Unexpected token '}'
                 // _ = i is (1,   }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = i is (1,   ").WithArguments("}").WithLocation(1, 1),
+                // (1,16): error CS8504: Pattern missing
+                // _ = i is (1,   }
+                Diagnostic(ErrorCode.ERR_MissingPattern, "}").WithLocation(1, 16),
                 // (1,16): error CS1026: ) expected
                 // _ = i is (1,   }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 16),
@@ -12038,6 +12054,16 @@ switch (e)
                                         }
                                     }
                                     N(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.Subpattern);
+                                    {
+                                        M(SyntaxKind.ConstantPattern);
+                                        {
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                        }
+                                    }
                                     M(SyntaxKind.CloseParenToken);
                                 }
                             }
@@ -12698,6 +12724,67 @@ switch (e)
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(53011, "https://github.com/dotnet/roslyn/issues/53011")]
+        public void InvalidPropertyPattern()
+        {
+            UsingExpression(@"new object() is { {}: 1 }", TestOptions.RegularWithPatternCombinators,
+                // (1,21): error CS1003: Syntax error, ',' expected
+                // new object() is { {}: 1 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 21),
+                // (1,23): error CS1003: Syntax error, ',' expected
+                // new object() is { {}: 1 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments(",").WithLocation(1, 23));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.ObjectCreationExpression);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.ObjectKeyword);
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.PropertyPatternClause);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
             }
             EOF();
         }
