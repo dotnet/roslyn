@@ -13559,6 +13559,979 @@ struct S4(S3 x)
         }
 
         [Fact]
+        public void ParameterCapturing_111_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(int x)
+{
+    void M()
+    {
+        x = 1;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+
+            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //         x = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "x").WithLocation(6, 9)
+                );
+
+            Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
+        }
+
+        [Fact]
+        public void ParameterCapturing_112_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(int x, ref int y, out int z)
+{
+    public readonly int z = (x = x + 1) + (y = 2) + (z = 3);
+
+    public int X 
+    {
+        get
+        {
+            return x;
+        }
+        init
+        {
+            x = value;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        int y = 0;
+        int z;
+        var s1 = new S1(0, ref y, out z) { X = -1 };
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(z);
+        System.Console.WriteLine(s1.z);
+        System.Console.WriteLine(s1.X);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"
+2
+3
+6
+-1
+", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_113_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(int x)
+{
+    readonly void M()
+    {
+        x = 1;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS1604: Cannot assign to 'x' because it is read-only
+                //         x = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "x").WithArguments("x").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_114_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(int x)
+{
+    readonly int X 
+    {
+        get
+        {
+            return x;
+        }
+        set
+        {
+            x = value;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (12,13): error CS1604: Cannot assign to 'x' because it is read-only
+                //             x = value;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "x").WithArguments("x").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_115_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(int x)
+{
+    int X 
+    {
+        get
+        {
+            return x;
+        }
+        readonly set
+        {
+            x = value;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (12,13): error CS1604: Cannot assign to 'x' because it is read-only
+                //             x = value;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "x").WithArguments("x").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_116_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(int x)
+{
+    readonly int X 
+    {
+        get
+        {
+            return x;
+        }
+        init
+        {
+            x = value;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_117_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(in int x, ref int y, out int z)
+{
+    public readonly int a = x + y + (z = 3);
+    void M1()
+    {
+        x = 1;
+    }
+    void M2()
+    {
+        y = 1;
+    }
+    void M3()
+    {
+        z = 1;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         x = 1;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(7, 9),
+                // (7,9): error CS8331: Cannot assign to variable 'x' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         x = 1;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "x").WithArguments("variable", "x").WithLocation(7, 9),
+                // (11,9): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         y = 1;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 9),
+                // (15,9): error CS1628: Cannot use ref, out, or in parameter 'z' inside an anonymous method, lambda expression, query expression, or local function
+                //         z = 1;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "z").WithArguments("z").WithLocation(15, 9)
+                );
+
+            Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
+        }
+
+        [Fact]
+        public void ParameterCapturing_118_ReadonlyContext()
+        {
+            var source =
+@"
+unsafe readonly struct S1(int x)
+{
+    readonly int y;
+    void M()
+    {
+        fixed (void* p = &x)
+        {}
+        fixed (void* p = &y)
+        {}
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_119_ReadonlyContext()
+        {
+            var source =
+@"
+unsafe readonly struct S1(int x)
+{
+    readonly int y;
+    void* M1() => &x;
+    void* M2() => &y;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,19): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     void* M1() => &x;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(5, 19),
+                // (6,19): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     void* M2() => &y;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&y").WithLocation(6, 19)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_120_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(int x)
+{
+    ref int M1() => ref x;
+}
+";
+            var comp = CreateCompilation(source);
+
+            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
+            comp.VerifyEmitDiagnostics(
+                // (4,25): error CS8160: A readonly field cannot be returned by writable reference
+                //     ref int M1() => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "x").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_121_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(int x)
+{
+    readonly object y = ref int () => ref x;
+    int M1() => x;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (4,43): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //     readonly object y = ref int () => ref x;
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(4, 43),
+                // (4,43): error CS8160: A readonly field cannot be returned by writable reference
+                //     readonly object y = ref int () => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "x").WithLocation(4, 43)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_122_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(int x)
+{
+    void M1() => M2(out x);
+
+    static void M2(out int x) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+
+            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
+            comp.VerifyEmitDiagnostics(
+                // (4,25): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                //     void M1() => M2(out x);
+                Diagnostic(ErrorCode.ERR_RefReadonly, "x").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_123_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(int x)
+{
+    readonly int y = M2(out x);
+
+    public int M1() => x;
+
+    static int M2(out int x)
+    {
+        x = 123;
+        return 0;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1(0);
+        System.Console.Write(s1.M1());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_124_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(S2 x)
+{
+    void M()
+    {
+        x.F = 1;
+    }
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(source);
+
+            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS1648: Members of readonly field 'S2 x' cannot be modified (except in a constructor or a variable initializer)
+                //         x.F = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonly2, "x.F").WithArguments("S2 x").WithLocation(6, 9)
+                );
+
+            Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
+        }
+
+        [Fact]
+        public void ParameterCapturing_125_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(S2 x, ref S2 y, out S2 z)
+{
+    public readonly int z = (x.F = x.F + 1) + (y.F = 2) + (z = new S2() { F = 3 }).F;
+
+    public S2 X 
+    {
+        get
+        {
+            return x;
+        }
+        init
+        {
+            x = value;
+        }
+    }
+}
+
+struct S2
+{
+    public int F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S2 y = default;
+        S2 z;
+        var s1 = new S1(default, ref y, out z) { X = new S2() { F = -1 } };
+        System.Console.WriteLine(y.F);
+        System.Console.WriteLine(z.F);
+        System.Console.WriteLine(s1.z);
+        System.Console.WriteLine(s1.X.F);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"
+2
+3
+6
+-1
+", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_126_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(S2 x)
+{
+    readonly void M()
+    {
+        x.F = 1;
+    }
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS1604: Cannot assign to 'x.F' because it is read-only
+                //         x.F = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "x.F").WithArguments("x.F").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_127_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(S2 x)
+{
+    readonly int X 
+    {
+        get
+        {
+            return x.F;
+        }
+        set
+        {
+            x.F = value;
+        }
+    }
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (12,13): error CS1604: Cannot assign to 'x.F' because it is read-only
+                //             x.F = value;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "x.F").WithArguments("x.F").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_128_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(S2 x)
+{
+    int X 
+    {
+        get
+        {
+            return x.F;
+        }
+        readonly set
+        {
+            x.F = value;
+        }
+    }
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (12,13): error CS1604: Cannot assign to 'x.F' because it is read-only
+                //             x.F = value;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "x.F").WithArguments("x.F").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_129_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(S2 x)
+{
+    readonly int X 
+    {
+        get
+        {
+            return x.F;
+        }
+        init
+        {
+            x.F = value;
+        }
+    }
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_130_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(in S2 x, ref S2 y, out S2 z)
+{
+    public readonly int a = x.F + y.F + (z = new S2() { F = 3 }).F;
+    void M1()
+    {
+        x.F = 1;
+    }
+    void M2()
+    {
+        y.F = 1;
+    }
+    void M3()
+    {
+        z.F = 1;
+    }
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         x.F = 1;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(7, 9),
+                // (7,9): error CS8332: Cannot assign to a member of variable 'x' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         x.F = 1;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "x.F").WithArguments("variable", "x").WithLocation(7, 9),
+                // (11,9): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                //         y.F = 1;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 9),
+                // (15,9): error CS1628: Cannot use ref, out, or in parameter 'z' inside an anonymous method, lambda expression, query expression, or local function
+                //         z.F = 1;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "z").WithArguments("z").WithLocation(15, 9)
+                );
+
+            Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
+        }
+
+        [Fact]
+        public void ParameterCapturing_131_ReadonlyContext()
+        {
+            var source =
+@"
+unsafe readonly struct S1(S2 x)
+{
+    readonly S2 y;
+    void M()
+    {
+        fixed (void* p = &x.F)
+        {}
+        fixed (void* p = &y.F)
+        {}
+    }
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_132_ReadonlyContext()
+        {
+            var source =
+@"
+unsafe readonly struct S1(S2 x)
+{
+    readonly S2 y;
+    void* M1() => &x.F;
+    void* M2() => &y.F;
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,19): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     void* M1() => &x.F;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&x.F").WithLocation(5, 19),
+                // (6,19): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     void* M2() => &y.F;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&y.F").WithLocation(6, 19)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_133_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(S2 x)
+{
+    ref int M1() => ref x.F;
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(source);
+
+            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
+            comp.VerifyEmitDiagnostics(
+                // (4,25): error CS8162: Members of readonly field 'S2 x' cannot be returned by writable reference
+                //     ref int M1() => ref x.F;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonly2, "x.F").WithArguments("S2 x").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_134_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(S2 x)
+{
+    readonly object y = ref int () => ref x.F;
+    int M1() => x.F;
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (4,43): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //     readonly object y = ref int () => ref x.F;
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(4, 43),
+                // (4,43): error CS8162: Members of readonly field 'S2 x' cannot be returned by writable reference
+                //     readonly object y = ref int () => ref x.F;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonly2, "x.F").WithArguments("S2 x").WithLocation(4, 43)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_135_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(S2 x)
+{
+    void M1() => M2(out x.F);
+
+    static void M2(out int x) => throw null;
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(source);
+
+            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
+            comp.VerifyEmitDiagnostics(
+                // (4,25): error CS1649: Members of readonly field 'S2 x' cannot be used as a ref or out value (except in a constructor)
+                //     void M1() => M2(out x.F);
+                Diagnostic(ErrorCode.ERR_RefReadonly2, "x.F").WithArguments("S2 x").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_136_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(S2 x)
+{
+    readonly int y = M2(out x.F);
+
+    public int M1() => x.F;
+
+    static int M2(out int x)
+    {
+        x = 123;
+        return 0;
+    }
+}
+
+struct S2
+{
+    public int F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1(default);
+        System.Console.Write(s1.M1());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"123", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_137_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(int x)
+{
+    readonly void M1() => M2(out x);
+
+    static void M2(out int x) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (4,34): error CS1605: Cannot use 'x' as a ref or out value because it is read-only
+                //     readonly void M1() => M2(out x);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "x").WithArguments("x").WithLocation(4, 34)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_138_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(S2 x)
+{
+    readonly void M1() => M2(out x.F);
+
+    static void M2(out int x) => throw null;
+}
+
+struct S2
+{
+    public int F;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (4,34): error CS1605: Cannot use 'x.F' as a ref or out value because it is read-only
+                //     readonly void M1() => M2(out x.F);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "x.F").WithArguments("x.F").WithLocation(4, 34)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_139_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(int x)
+{
+    readonly void M()
+    {
+        x++;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS1604: Cannot assign to 'x' because it is read-only
+                //         x++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "x").WithArguments("x").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_140_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(int x)
+{
+    readonly ref int M1() => ref x;
+}
+";
+            var comp = CreateCompilation(source);
+
+            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
+            comp.VerifyEmitDiagnostics(
+                // (4,34): error CS8354: Cannot return 'this' by reference.
+                //     readonly ref int M1() => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnThis, "x").WithLocation(4, 34)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_141_ReadonlyContext()
+        {
+            var source =
+@"
+readonly struct S1(S2 x)
+{
+    void M(ref int y)
+    {
+        x.F = ref y; 
+    }
+}
+
+ref struct S2
+{
+    public ref int F;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            // PROTOTYPE(PrimaryConstructors): Adjust wording of ERR_AssgReadonly2 to mention primary constructor parameter or use a dedicated error.
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         x.F = ref y; 
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 9),
+                // (6,9): error CS1648: Members of readonly field 'S2 x' cannot be modified (except in a constructor or a variable initializer)
+                //         x.F = ref y; 
+                Diagnostic(ErrorCode.ERR_AssgReadonly2, "x.F").WithArguments("S2 x").WithLocation(6, 9)
+                );
+
+            Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
+        }
+
+        [Fact]
+        public void ParameterCapturing_142_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(S2 x)
+{
+    readonly void M(ref int y)
+    {
+        x.F = ref y; 
+    }
+}
+
+ref struct S2
+{
+    public ref int F;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //         x.F = ref y; 
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 9),
+                // (6,9): error CS1604: Cannot assign to 'x.F' because it is read-only
+                //         x.F = ref y; 
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "x.F").WithArguments("x.F").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_143_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(ref int x)
+{
+    readonly void M1(ref int y) =>  x = ref y;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (4,37): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //     readonly void M1(ref int y) =>  x = ref y;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(4, 37)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_144_ReadonlyContext()
+        {
+            var source =
+@"
+struct S1(int x)
+{
+    readonly void M1(ref int y) =>  y = ref x;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (4,45): error CS1510: A ref or out value must be an assignable variable
+                //     readonly void M1(ref int y) =>  y = ref x;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x").WithLocation(4, 45)
+                );
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute_01()
         {
             var source = @"
