@@ -408,10 +408,6 @@ namespace Xunit.Harness
             IntegrationHelper.KillProcess("dexplore");
 
             var process = Process.Start(CreateStartInfo(vsExeFile, silent: false, vsLaunchArgs));
-
-            // Run the snapshot collection operation, but don't block on its completion for the actual test execution
-            _ = Task.Run(() => TakeSnapshotEveryTimeSpanUntilProcessExit(process, $"devenv{process.Id}"));
-
             Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {process.Id})");
 
             return process;
