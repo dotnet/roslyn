@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.MakeMethodAsynchronous;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 {
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         {
             if (diagnostic.Id == CS0246)
             {
-                // "The type or namespace name '0' could not be found"
+                // "The type or namespace name '{0}' could not be found"
                 // Needs to be reported on an identifier caller 'await'.
                 if (diagnostic.Location.SourceTree is null)
                     return false;
@@ -71,17 +72,23 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid,
-            IMethodSymbol methodSymbolOpt,
+            IMethodSymbol? methodSymbol,
             SyntaxNode node,
             KnownTypes knownTypes,
             CancellationToken cancellationToken)
         {
             switch (node)
             {
-                case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, knownTypes, cancellationToken);
-                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(keepVoid, methodSymbolOpt, localFunction, knownTypes, cancellationToken);
-                case AnonymousFunctionExpressionSyntax anonymous: return FixAnonymousFunction(anonymous);
-                default: return node;
+                case MethodDeclarationSyntax method:
+                    Contract.ThrowIfNull(methodSymbol);
+                    return FixMethod(keepVoid, methodSymbol, method, knownTypes, cancellationToken);
+                case LocalFunctionStatementSyntax localFunction:
+                    Contract.ThrowIfNull(methodSymbol);
+                    return FixLocalFunction(keepVoid, methodSymbol, localFunction, knownTypes, cancellationToken);
+                case AnonymousFunctionExpressionSyntax anonymous:
+                    return FixAnonymousFunction(anonymous);
+                default:
+                    return node;
             }
         }
 

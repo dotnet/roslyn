@@ -237,16 +237,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsOrdinaryMethod([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => (symbol as IMethodSymbol)?.MethodKind == MethodKind.Ordinary;
 
-        public static bool IsOrdinaryMethodOrLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            if (symbol is not IMethodSymbol method)
-            {
-                return false;
-            }
-
-            return method.MethodKind is MethodKind.Ordinary
-                or MethodKind.LocalFunction;
-        }
+        public static bool IsOrdinaryMethodOrLocalFunction([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol is IMethodSymbol { MethodKind: MethodKind.Ordinary or MethodKind.LocalFunction };
 
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol is ITypeSymbol { TypeKind: TypeKind.Delegate };
