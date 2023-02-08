@@ -284,7 +284,7 @@ base_type_declaration
   ;
 
 enum_declaration
-  : attribute_list* modifier* 'enum' identifier_token base_list? '{' (enum_member_declaration (',' enum_member_declaration)* ','?)? '}' ';'?
+  : attribute_list* modifier* 'enum' identifier_token base_list? '{'? (enum_member_declaration (',' enum_member_declaration)* ','?)? '}'? ';'?
   ;
 
 base_list
@@ -320,7 +320,7 @@ class_declaration
   ;
 
 interface_declaration
-  : attribute_list* modifier* 'interface' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{' member_declaration* '}' ';'?
+  : attribute_list* modifier* 'interface' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 record_declaration

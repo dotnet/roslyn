@@ -629,10 +629,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MessageID.IDS_FeatureRecordStructs.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
                 }
             }
-            else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration)
+            else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.InterfaceDeclaration)
             {
                 if (node.ParameterList != null)
                 {
+                    Debug.Assert(node.Kind() is not SyntaxKind.InterfaceDeclaration);
+
                     MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node.ParameterList);
                 }
                 else if (node.OpenBraceToken == default && node.CloseBraceToken == default && node.SemicolonToken != default)
@@ -740,6 +742,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnostics = DiagnosticBag.GetInstance();
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
+
+            if (node.OpenBraceToken == default && node.CloseBraceToken == default && node.SemicolonToken != default)
+            {
+                MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node, node.SemicolonToken.GetLocation());
+            }
 
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Enum,
