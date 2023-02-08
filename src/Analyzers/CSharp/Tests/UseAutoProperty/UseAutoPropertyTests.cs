@@ -2546,5 +2546,41 @@ class Class
     }
 }");
         }
+
+        [Fact, WorkItem(25408, "https://github.com/dotnet/roslyn/issues/25408")]
+        public async Task TestLinkedFile()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>class C
+{
+    private readonly [|int _value|];
+
+    public C(int value)
+    {
+        _value = value;
+    }
+
+    public int Value
+    {
+        get { return _value; }
+    }
+}</Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>",
+@"class C
+{
+    public C(int value)
+    {
+        Value = value;
+    }
+
+    public int Value { get; }
+}");
+        }
     }
 }
