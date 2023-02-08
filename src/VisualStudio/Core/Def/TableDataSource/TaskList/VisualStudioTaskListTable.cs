@@ -26,17 +26,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal sealed class VisualStudioTaskListTable : AbstractTable
     {
+        internal const string IdentifierString = nameof(VisualStudioTaskListTable);
+
         private readonly TableDataSource _source;
 
         public VisualStudioTaskListTable(
             Workspace workspace,
             IThreadingContext threadingContext,
             ITableManagerProvider provider,
-            ITaskListProvider taskProvider,
-            string identifier)
+            ITaskListProvider taskProvider)
             : base(workspace, provider, StandardTables.TasksTable)
         {
-            _source = new TableDataSource(workspace, threadingContext, taskProvider, identifier);
+            _source = new TableDataSource(workspace, threadingContext, taskProvider, IdentifierString);
             AddInitialTableSource(workspace.CurrentSolution, _source);
             ConnectWorkspaceEvents();
         }
