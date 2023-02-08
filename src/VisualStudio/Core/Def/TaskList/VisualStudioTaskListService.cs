@@ -19,21 +19,22 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.TableManager;
 using TaskListItem = Microsoft.CodeAnalysis.TaskList.TaskListItem;
 
 namespace Microsoft.VisualStudio.LanguageServices.TaskList
 {
-    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class VisualStudioTaskListService :
-        ITaskListProvider,
-        IEventListener<object>
+    [Export(typeof(VisualStudioTaskListService)), Shared]
+    internal class VisualStudioTaskListService : ITaskListProvider
     {
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly ITableManagerProvider _tableManagerProvider;
         private readonly IAsyncServiceProvider _asyncServiceProvider;
-        private readonly EventListenerTracker<ITaskListProvider> _eventListenerTracker;
+        private readonly IAsynchronousOperationListener _asyncOperationListener;
         private readonly TaskListListener _listener;
 
         public event EventHandler<TaskListUpdatedArgs>? TaskListUpdated;
@@ -44,14 +45,16 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
             IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+            ITableManagerProvider tableManagerProvider,
             SVsServiceProvider asyncServiceProvider,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
+            _tableManagerProvider = tableManagerProvider;
             _asyncServiceProvider = (IAsyncServiceProvider)asyncServiceProvider;
-            _eventListenerTracker = new EventListenerTracker<ITaskListProvider>(eventListeners, WellKnownEventListeners.TaskListProvider);
+            _asyncOperationListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TaskList);
 
             _listener = new TaskListListener(
                 globalOptions,
@@ -65,13 +68,13 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 threadingContext.DisposalToken);
         }
 
-        void IEventListener<object>.StartListening(Workspace workspace, object _)
+        public void Start(VisualStudioWorkspace workspace)
         {
-            if (workspace is VisualStudioWorkspace)
-                _ = StartAsync(workspace);
+            var token = _asyncOperationListener.BeginAsyncOperation(nameof(Start));
+            StartAsync(workspace).CompletesAsyncOperation(token);
         }
 
-        private async Task StartAsync(Workspace workspace)
+        private async Task StartAsync(VisualStudioWorkspace workspace)
         {
             // Have to catch all exceptions coming through here as this is called from a
             // fire-and-forget method and we want to make sure nothing leaks out.
@@ -83,13 +86,13 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 await workspaceStatus.WaitUntilFullyLoadedAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
 
                 // Wait until the task list is actually visible so that we don't perform pointless work analyzing files
-                // when the user would not even see the results.  When we actually do register the analyer (in
-                // _listener.Start below), solution-crawler will reanalyze everything with this analayzer, so it will
+                // when the user would not even see the results.  When we actually do register the analyzer (in
+                // _listener.Start below), solution-crawler will reanalyze everything with this analyzer, so it will
                 // still find and present all the relevant items to the user.
                 await WaitUntilTaskListActivatedAsync().ConfigureAwait(false);
 
-                // Now that we've started, let the VS todo list know to start listening to us
-                _eventListenerTracker.EnsureEventListener(_workspace, this);
+                // Now that we've started, create the actual VS todo list and have them hookup to us.
+                _ = new VisualStudioTaskListTable(workspace, _threadingContext, _tableManagerProvider, this);
 
                 _listener.Start();
             }

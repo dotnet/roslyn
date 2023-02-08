@@ -52,6 +52,7 @@ using Solution = Microsoft.CodeAnalysis.Solution;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.TaskList;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -225,6 +226,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             Logger.Log(FunctionId.Run_Environment,
                 KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
+
+            // Initialize task-list
+            var taskListService = this.Services.SolutionServices.ExportProvider.GetExports<VisualStudioTaskListService>().Single().Value;
+            taskListService.Start(this);
         }
 
         public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)

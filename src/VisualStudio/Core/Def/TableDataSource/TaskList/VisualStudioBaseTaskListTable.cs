@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.TaskList;
 using Microsoft.CodeAnalysis.Navigation;
@@ -25,15 +24,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class VisualStudioBaseTaskListTable : AbstractTable
+    internal sealed class VisualStudioTaskListTable : AbstractTable
     {
         private readonly TableDataSource _source;
 
-        protected VisualStudioBaseTaskListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider taskProvider, string identifier, ITableManagerProvider provider)
+        public VisualStudioTaskListTable(
+            Workspace workspace,
+            IThreadingContext threadingContext,
+            ITableManagerProvider provider,
+            ITaskListProvider taskProvider,
+            string identifier)
             : base(workspace, provider, StandardTables.TasksTable)
         {
             _source = new TableDataSource(workspace, threadingContext, taskProvider, identifier);
             AddInitialTableSource(workspace.CurrentSolution, _source);
+            ConnectWorkspaceEvents();
         }
 
         internal override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
