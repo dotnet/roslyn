@@ -73,6 +73,9 @@ internal partial class XmlSnippetParser
         private static ImmutableArray<XElement>? ReadCodeSnippetElements(XDocument document)
         {
             var codeSnippetsElement = document.Root;
+            if (codeSnippetsElement is null)
+                return null;
+
             if (codeSnippetsElement.Name.LocalName.Equals("CodeSnippets", StringComparison.OrdinalIgnoreCase))
             {
                 return codeSnippetsElement.Elements().Where(e => e.Name.LocalName.Equals("CodeSnippet", StringComparison.OrdinalIgnoreCase)).ToImmutableArray();
@@ -275,7 +278,7 @@ internal partial class XmlSnippetParser
             return new ParsedXmlSnippet(snippetParts.ToImmutable());
         }
 
-        private ExpansionField FindField(string fieldName)
+        private ExpansionField? FindField(string fieldName)
         {
             return _tokens.FirstOrDefault(t => string.Equals(t.ID, fieldName, StringComparison.Ordinal));
         }

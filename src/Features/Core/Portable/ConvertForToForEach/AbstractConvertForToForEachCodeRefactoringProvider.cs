@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             return methods.Where(m => m.Name == memberName);
         }
 
-        private static TSymbol TryFindMemberInThisOrBaseTypes<TSymbol>(
+        private static TSymbol? TryFindMemberInThisOrBaseTypes<TSymbol>(
             INamedTypeSymbol containingType, ITypeSymbol type, string memberName) where TSymbol : class, ISymbol
         {
             return TryFindMembersInThisOrBaseTypes<TSymbol>(containingType, type, memberName).FirstOrDefault();

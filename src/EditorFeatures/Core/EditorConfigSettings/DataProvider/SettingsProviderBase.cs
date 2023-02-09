@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         protected void Update()
         {
             var givenFolder = new DirectoryInfo(FileName).Parent;
+            if (givenFolder is null)
+            {
+                return;
+            }
+
             var solution = Workspace.CurrentSolution;
             var projects = solution.GetProjectsUnderEditorConfigFile(FileName);
             var project = projects.FirstOrDefault();

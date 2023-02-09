@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class FieldGenerator
     {
-        private static MemberDeclarationSyntax LastField(
+        private static MemberDeclarationSyntax? LastField(
             SyntaxList<MemberDeclarationSyntax> members,
             FieldDeclarationSyntax fieldDeclaration)
         {

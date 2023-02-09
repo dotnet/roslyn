@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
+using RoslynEnumerableExtensions = Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions.EnumerableExtensions;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.NamingStyles
 {
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Naming
 
             var fileName = (location.LocationKind != LocationKind.VisualStudio) ? options.EditorConfigFileName : null;
             var namingRules = namingPreferences.NamingRules.Select(r => r.GetRule(namingPreferences));
-            var allStyles = namingPreferences.NamingStyles.DistinctBy(s => s.Name).ToArray();
+            var allStyles = RoslynEnumerableExtensions.DistinctBy(namingPreferences.NamingStyles, s => s.Name).ToArray();
             var namingStyles = namingRules.Select(namingRule => new NamingStyleSetting(namingRule, allStyles, SettingsUpdater, fileName));
 
             AddRange(namingStyles);
