@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.TaskList
     /// </remarks>
     internal sealed class TaskListIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly TaskListListener _listener;
+        private readonly ITaskListListener _listener;
 
-        public TaskListIncrementalAnalyzerProvider(TaskListListener listener)
+        public TaskListIncrementalAnalyzerProvider(ITaskListListener listener)
             => _listener = listener;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)

@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.TaskList
         /// </summary>
         private readonly HashSet<DocumentId> _documentsWithTaskListItems = new();
 
-        private readonly TaskListListener _listener;
+        private readonly ITaskListListener _listener;
 
-        public TaskListIncrementalAnalyzer(TaskListListener listener)
+        public TaskListIncrementalAnalyzer(ITaskListListener listener)
             => _listener = listener;
 
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
