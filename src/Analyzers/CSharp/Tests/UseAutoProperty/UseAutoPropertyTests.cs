@@ -2511,5 +2511,76 @@ class Class
     public readonly int P { get; }
 }");
         }
+
+        [Fact, WorkItem(38286, "https://github.com/dotnet/roslyn/issues/38286")]
+        public async Task TestPointer1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|int* i|];
+
+    int* P => i;
+}",
+@"class Class
+{
+    int* P { get; }
+}");
+        }
+
+        [Fact, WorkItem(38286, "https://github.com/dotnet/roslyn/issues/38286")]
+        public async Task TestPointer2()
+        {
+            await TestMissingAsync(
+@"class Class
+{
+    [|int* i|];
+
+    int* P => i;
+
+    void M()
+    {
+        fixed (int** ii = &i)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(25408, "https://github.com/dotnet/roslyn/issues/25408")]
+        public async Task TestLinkedFile()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>class C
+{
+    private readonly [|int _value|];
+
+    public C(int value)
+    {
+        _value = value;
+    }
+
+    public int Value
+    {
+        get { return _value; }
+    }
+}</Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>",
+@"class C
+{
+    public C(int value)
+    {
+        Value = value;
+    }
+
+    public int Value { get; }
+}");
+        }
     }
 }

@@ -2,13 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     /// <summary>
@@ -27,8 +20,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             => WithContextImpl(value);
 
         public CodeGenerationOptions Options => OptionsImpl;
+        public ICodeGenerationService Service => ServiceImpl;
 
         protected abstract CodeGenerationOptions OptionsImpl { get; }
+        protected abstract ICodeGenerationService ServiceImpl { get; }
         protected abstract CodeGenerationContextInfo WithContextImpl(CodeGenerationContext value);
     }
 }

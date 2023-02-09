@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
             Dim fixedExpectations = expectedText.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
-            Assert.Equal(fixedExpectations, normalized)
+            AssertEx.Equal(fixedExpectations, normalized)
         End Sub
 
         Private Shared Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
@@ -1561,6 +1561,21 @@ End Interface")
 End Interface")
         End Sub
 
+        <Fact, WorkItem(66377, "https://github.com/dotnet/roslyn/issues/66377")>
+        Public Sub TestInterfaceVariance()
+            Dim compilation = Compile("
+interface I(of in X, out Y)
+end interface
+                ")
+
+            Dim symbol = compilation.GlobalNamespace.GetMembers("I").Single()
+
+            VerifySyntax(Of InterfaceBlockSyntax)(
+                Generator.Declaration(symbol),
+"Friend Interface I(Of In X, Out Y)
+End Interface")
+        End Sub
+
         <Fact>
         Public Sub TestEnumDeclarations()
             VerifySyntax(Of EnumBlockSyntax)(
@@ -2399,6 +2414,23 @@ End Class"))
     End Set
 End Property")
         End Sub
+
+        <Fact, WorkItem(66374, "https://github.com/dotnet/roslyn/issues/66374")>
+        Public Sub TestDestructor1()
+            Dim compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Protected Overrides Sub Finalize()
+    End Sub
+End Class"))
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim method = type.GetMembers(WellKnownMemberNames.DestructorName).Single()
+
+            VerifySyntax(Of MethodBlockSyntax)(Generator.Declaration(method),
+"Protected Overrides Sub Finalize()
+End Sub")
+        End Sub
+
 #End Region
 
 #Region "Add/Insert/Remove/Get/Set members & elements"

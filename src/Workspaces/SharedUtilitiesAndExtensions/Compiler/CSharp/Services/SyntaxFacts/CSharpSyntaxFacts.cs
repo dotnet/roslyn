@@ -370,10 +370,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 case SyntaxKind.MinusEqualsToken:
                     return PredefinedOperator.Subtraction;
 
+                case SyntaxKind.AmpersandAmpersandToken: // overridden bitwise & can be accessed through &&
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.AmpersandEqualsToken:
                     return PredefinedOperator.BitwiseAnd;
 
+                case SyntaxKind.BarBarToken: // overridden bitwise | can be accessed through ||
                 case SyntaxKind.BarToken:
                 case SyntaxKind.BarEqualsToken:
                     return PredefinedOperator.BitwiseOr;

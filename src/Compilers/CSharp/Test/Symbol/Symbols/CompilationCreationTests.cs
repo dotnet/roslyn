@@ -3000,5 +3000,41 @@ Console.WriteLine(2);
             Assert.IsAssignableFrom<PENamedTypeSymbol>(addedModuleType);
             Assert.Null(addedModuleType.DeclaringCompilation);
         }
+
+        [Fact]
+        public void RuntimeCapabilitiesSupported()
+        {
+            var compilation = CreateCompilation("Compilation");
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention));
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+
+            compilation = CreateCompilation("Compilation", targetFramework: TargetFramework.Net50);
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention));
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+
+            compilation = CreateCompilation("Compilation", targetFramework: TargetFramework.Net60);
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+
+            compilation = CreateCompilation("Compilation", targetFramework: TargetFramework.Net70);
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+        }
     }
 }

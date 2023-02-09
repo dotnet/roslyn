@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sectionBuilder.Add(_factory.Label(arm.Label));
                     var loweredValue = _localRewriter.VisitExpression(arm.Value);
                     if (GenerateInstrumentation)
-                        loweredValue = this._localRewriter._instrumenter.InstrumentSwitchExpressionArmExpression(arm.Value, loweredValue, _factory);
+                        loweredValue = this._localRewriter.Instrumenter.InstrumentSwitchExpressionArmExpression(arm.Value, loweredValue, _factory);
 
                     sectionBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), loweredValue));
                     sectionBuilder.Add(_factory.Goto(afterSwitchExpression));

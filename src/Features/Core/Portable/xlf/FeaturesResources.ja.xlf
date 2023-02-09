@@ -350,6 +350,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">アクセス不可能な未実装のメンバーが基底クラスに含まれています</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_VisualBasic_References">
+        <source>C# and Visual Basic References</source>
+        <target state="new">C# and Visual Basic References</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">変更を適用できません。予期しないエラー: '{0}'</target>
@@ -748,6 +753,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">データ フローを分析できませんでした: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Find_All_References_not_invoked_on_applicable_symbol">
+        <source>'Find All References' not invoked on applicable symbol</source>
+        <target state="new">'Find All References' not invoked on applicable symbol</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -2700,6 +2710,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">シンボルに実装がありません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="This_0_has_1_references">
+        <source>This {0} has {1} reference(s).</source>
+        <target state="new">This {0} has {1} reference(s).</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Timeout_SourceLink">
         <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
         <target state="translated">SourceLink からソース コードをダウンロードしようとしてタイムアウトしました。後続の要求は成功する可能性があります。</target>
@@ -3130,9 +3145,19 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">ここでは、'{0}' は null である可能性があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_reference_unquoted">
+        <source>{0} reference</source>
+        <target state="new">{0} reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
         <target state="translated">'{0}' の参照</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references_unquoted">
+        <source>{0} references</source>
+        <target state="new">{0} references</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unexpected">
@@ -3540,6 +3565,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">ジェネリック オーバーロード</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="get_only_property">
+        <source>get-only property</source>
+        <target state="new">get-only property</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement">
