@@ -6,10 +6,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -100,6 +102,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, d3.AdditionalLocations.Count());
             Assert.Equal(new TextSpan(14, 8), d3.AdditionalLocations.First().SourceSpan);
             Assert.Equal("OtherSymbol", (d3.Info as CustomErrorInfo).OtherSymbol);
+        }
+
+        [Fact, WorkItem(66037, "https://github.com/dotnet/roslyn/issues/66037")]
+        public void DiagnosticInfo_WithSeverity()
+        {
+            var comp = CreateCompilation("");
+            var args = new object[] { comp.GlobalNamespace };
+            var symbol = (Symbol)comp.GlobalNamespace;
+            var type = TypeWithAnnotations.Create(comp.GetSpecialType(SpecialType.System_Object));
+
+            verifyWithSeverity(new CSDiagnosticInfo(ErrorCode.ERR_AbstractField));
+            verifyWithSeverity(new DiagnosticInfoWithSymbols(ErrorCode.ERR_DuplicateTypeParameter, args,
+                ImmutableArray.Create(symbol)));
+            verifyWithSeverity(new LazyArrayElementCantBeRefAnyDiagnosticInfo(type));
+            verifyWithSeverity(new LazyObsoleteDiagnosticInfo(symbol, symbol, BinderFlags.None));
+            verifyWithSeverity(new LazyUseSiteDiagnosticsInfoForNullableType(LanguageVersion.CSharp11, type));
+            verifyWithSeverity(new SyntaxDiagnosticInfo(1, 2, ErrorCode.ERR_DuplicateTypeParameter, args));
+            verifyWithSeverity(new XmlSyntaxDiagnosticInfo(XmlParseErrorCode.XML_EndTagExpected, args));
+
+            static void verifyWithSeverity(DiagnosticInfo diagnostic)
+            {
+                var other = diagnostic.GetInstanceWithSeverity(DiagnosticSeverity.Info);
+                Assert.NotSame(diagnostic, other);
+                Assert.Equal(DiagnosticSeverity.Info, other.Severity);
+            }
         }
 
         [WorkItem(537801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537801")]
