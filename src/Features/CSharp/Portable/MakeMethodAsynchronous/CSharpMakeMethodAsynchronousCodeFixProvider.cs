@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -17,6 +14,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.MakeMethodAsynchronous;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 {
@@ -26,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         private const string CS4032 = nameof(CS4032); // The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
         private const string CS4033 = nameof(CS4033); // The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
         private const string CS4034 = nameof(CS4034); // The 'await' operator can only be used within an async lambda expression. Consider marking this method with the 'async' modifier.
+        private const string CS0246 = nameof(CS0246); // The type or namespace name 'await' could not be found
 
         private static readonly SyntaxToken s_asyncToken = SyntaxFactory.Token(SyntaxKind.AsyncKeyword);
 
@@ -36,7 +35,25 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS4032, CS4033, CS4034);
+            ImmutableArray.Create(CS4032, CS4033, CS4034, CS0246);
+
+        protected override bool IsSupportedDiagnostic(Diagnostic diagnostic, CancellationToken cancellationToken)
+        {
+            if (diagnostic.Id == CS0246)
+            {
+                // "The type or namespace name '{0}' could not be found"
+                // Needs to be reported on an identifier caller 'await'.
+                if (diagnostic.Location.SourceTree is null)
+                    return false;
+
+                var root = diagnostic.Location.SourceTree.GetRoot(cancellationToken);
+                var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
+                return token.Kind() == SyntaxKind.IdentifierToken && token.Text == "await";
+            }
+
+            // All the other diagnostics IDs are fine to use without additional checks.
+            return true;
+        }
 
         protected override string GetMakeAsyncTaskFunctionResource()
             => CSharpFeaturesResources.Make_method_async;
@@ -48,28 +65,26 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             => node.IsAsyncSupportingFunctionSyntax();
 
         protected override bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes)
-        {
-            return IsIAsyncEnumerableOrEnumerator(type, knownTypes)
-                || IsTaskLike(type, knownTypes);
-        }
+            => IsIAsyncEnumerableOrEnumerator(type, knownTypes) ||
+               IsTaskLike(type, knownTypes);
 
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid,
-            IMethodSymbol methodSymbolOpt,
+            IMethodSymbol methodSymbol,
             SyntaxNode node,
             KnownTypes knownTypes,
             CancellationToken cancellationToken)
         {
-            switch (node)
+            return node switch
             {
-                case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, knownTypes, cancellationToken);
-                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(keepVoid, methodSymbolOpt, localFunction, knownTypes, cancellationToken);
-                case AnonymousFunctionExpressionSyntax anonymous: return FixAnonymousFunction(anonymous);
-                default: return node;
-            }
+                MethodDeclarationSyntax method => FixMethod(keepVoid, methodSymbol, method, knownTypes, cancellationToken),
+                LocalFunctionStatementSyntax localFunction => FixLocalFunction(keepVoid, methodSymbol, localFunction, knownTypes, cancellationToken),
+                AnonymousFunctionExpressionSyntax anonymous => FixAnonymousFunction(anonymous),
+                _ => node,
+            };
         }
 
-        private static SyntaxNode FixMethod(
+        private static MethodDeclarationSyntax FixMethod(
             bool keepVoid,
             IMethodSymbol methodSymbol,
             MethodDeclarationSyntax method,
@@ -81,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
-        private static SyntaxNode FixLocalFunction(
+        private static LocalFunctionStatementSyntax FixLocalFunction(
             bool keepVoid,
             IMethodSymbol methodSymbol,
             LocalFunctionStatementSyntax localFunction,
@@ -140,8 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
             static TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
             {
-                var result = SyntaxFactory.GenericName(SyntaxFactory.Identifier(type),
-                        SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax())));
+                var result = SyntaxFactory.GenericName(
+                    SyntaxFactory.Identifier(type),
+                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax())));
 
                 return result.WithAdditionalAnnotations(Simplifier.Annotation);
             }
@@ -152,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         private static bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)
             => returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTTypeOpt) ||
-                returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTTypeOpt);
+               returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTTypeOpt);
 
         private static bool IsIEnumerable(ITypeSymbol returnType, KnownTypes knownTypes)
             => returnType.OriginalDefinition.Equals(knownTypes.IEnumerableOfTType);
@@ -171,10 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             return result;
         }
 
-        private static SyntaxNode FixAnonymousFunction(AnonymousFunctionExpressionSyntax anonymous)
-        {
-            return anonymous.WithoutLeadingTrivia()
-                         .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(anonymous.GetLeadingTrivia()));
-        }
+        private static AnonymousFunctionExpressionSyntax FixAnonymousFunction(AnonymousFunctionExpressionSyntax anonymous)
+            => anonymous
+                .WithoutLeadingTrivia()
+                .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(anonymous.GetLeadingTrivia()));
     }
 }

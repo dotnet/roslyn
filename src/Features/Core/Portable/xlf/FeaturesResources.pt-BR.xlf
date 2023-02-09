@@ -755,6 +755,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Falha ao analisar o fluxo de dados para: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Find_All_References_not_invoked_on_applicable_symbol">
+        <source>'Find All References' not invoked on applicable symbol</source>
+        <target state="new">'Find All References' not invoked on applicable symbol</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corrigir erro de digitação '{0}'</target>

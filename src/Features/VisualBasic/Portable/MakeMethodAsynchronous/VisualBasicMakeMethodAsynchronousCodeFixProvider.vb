@@ -31,6 +31,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
         Public Sub New()
         End Sub
 
+        Protected Overrides Function IsSupportedDiagnostic(diagnostic As Diagnostic, cancellationToken As CancellationToken) As Boolean
+            Return True
+        End Function
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return s_diagnosticIds
