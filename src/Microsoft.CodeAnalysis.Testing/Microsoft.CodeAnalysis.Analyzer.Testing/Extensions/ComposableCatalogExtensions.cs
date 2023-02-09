@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     internal static class ComposableCatalogExtensions
     {
+        private static readonly string AssemblyQualifiedServiceTypeName = "Microsoft.CodeAnalysis.IDocumentTextDifferencingService, " + typeof(Workspace).GetTypeInfo().Assembly.GetName().ToString();
+
         public static ComposableCatalog WithDocumentTextDifferencingService(this ComposableCatalog catalog)
         {
-            var assemblyQualifiedServiceTypeName = "Microsoft.CodeAnalysis.IDocumentTextDifferencingService, " + typeof(Workspace).GetTypeInfo().Assembly.GetName().ToString();
-
             // Check to see if IDocumentTextDifferencingService is exported
             foreach (var part in catalog.Parts)
             {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         continue;
                     }
 
-                    if (serviceType != assemblyQualifiedServiceTypeName)
+                    if (serviceType != AssemblyQualifiedServiceTypeName)
                     {
                         continue;
                     }
@@ -47,12 +47,22 @@ namespace Microsoft.CodeAnalysis.Testing
             }
 
             // If IDocumentTextDifferencingService is not exported by default, export it manually
+            return AddDefaultDocumentTextDifferencingServiceToCatalog(catalog);
+        }
+
+        // This method references APIs that changed in more recent versions of Microsoft.VisualStudio.Composition. Since
+        // the methods are only used for testing old Roslyn versions (which won't need to use the newer version of this
+        // dependency, we extracted the API usage to a method that won't be visible to the JIT on test paths involving
+        // new versions of Roslyn.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static ComposableCatalog AddDefaultDocumentTextDifferencingServiceToCatalog(ComposableCatalog catalog)
+        {
             var manualExportDefinition = new ExportDefinition(
                 typeof(IWorkspaceService).FullName,
                 metadata: new Dictionary<string, object?>
                 {
                     { "ExportTypeIdentity", typeof(IWorkspaceService).FullName },
-                    { nameof(ExportWorkspaceServiceAttribute.ServiceType), assemblyQualifiedServiceTypeName },
+                    { nameof(ExportWorkspaceServiceAttribute.ServiceType), AssemblyQualifiedServiceTypeName },
                     { nameof(ExportWorkspaceServiceAttribute.Layer), ServiceLayer.Default },
                     { typeof(CreationPolicy).FullName!, CreationPolicy.Shared },
                     { "ContractType", typeof(IWorkspaceService) },
