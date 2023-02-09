@@ -362,7 +362,7 @@ class Program
         {
             await TestLanguageVersionUpgradedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
         <Document>
 class C
 {
@@ -373,9 +373,9 @@ class C
 }
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""7"">
+    <Project Language=""C#"" LanguageVersion=""7"" CommonReferences=""true"">
     </Project>
     <Project Language=""Visual Basic"">
     </Project>
@@ -390,7 +390,7 @@ class C
         {
             await TestLanguageVersionUpgradedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
         <Document>
 class C
 {
@@ -398,11 +398,11 @@ class C
 }
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""7"">
+    <Project Language=""C#"" LanguageVersion=""7"" CommonReferences=""true"">
     </Project>
-    <Project Language=""Visual Basic"">
+    <Project Language=""Visual Basic"" CommonReferences=""true"">
     </Project>
 </Workspace>",
                 LanguageVersion.CSharp8,
@@ -444,18 +444,18 @@ class C
         {
             await TestLanguageVersionUpgradedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
         <Document>
 [|System.Console.WriteLine();|]
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""7"">
+    <Project Language=""C#"" LanguageVersion=""7"" CommonReferences=""true"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""8"">
+    <Project Language=""C#"" LanguageVersion=""8"" CommonReferences=""true"">
     </Project>
-    <Project Language=""Visual Basic"">
+    <Project Language=""Visual Basic"" CommonReferences=""true"">
     </Project>
 </Workspace>",
                 LanguageVersion.CSharp9,
@@ -469,7 +469,7 @@ class C
             await TestExactActionSetOfferedAsync(
 
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
         <Document>
 class C
 {
@@ -480,9 +480,9 @@ class C
 }
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""7"">
+    <Project Language=""C#"" LanguageVersion=""7"" CommonReferences=""true"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
     </Project>
 </Workspace>",
                 new[] {
@@ -527,7 +527,7 @@ class C
             await TestExactActionSetOfferedAsync(
 
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
         <Document>
 class C
 {
@@ -538,7 +538,7 @@ class C
 }
         </Document>
     </Project>
-    <Project Language=""Visual Basic"">
+    <Project Language=""Visual Basic"" CommonReferences=""true"">
     </Project>
 </Workspace>",
                 new[] {
@@ -552,7 +552,7 @@ class C
             await TestExactActionSetOfferedAsync(
 
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
         <Document>
 class C
 {
@@ -563,9 +563,9 @@ class C
 }
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""7"">
+    <Project Language=""C#"" LanguageVersion=""7"" CommonReferences=""true"">
     </Project>
-    <Project Language=""Visual Basic"">
+    <Project Language=""Visual Basic"" CommonReferences=""true"">
     </Project>
 </Workspace>",
                 new[] {
@@ -608,7 +608,7 @@ class C
             await TestExactActionSetOfferedAsync(
 
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
         <Document>
 class C
 {
@@ -616,9 +616,9 @@ class C
 }
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""8"">
+    <Project Language=""C#"" LanguageVersion=""8"" CommonReferences=""true"">
     </Project>
-    <Project Language=""Visual Basic"">
+    <Project Language=""Visual Basic"" CommonReferences=""true"">
     </Project>
 </Workspace>",
             new[] {
