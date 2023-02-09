@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static async Task<bool> IsProjectReadyForSemanticDiagnosticRequestsAsync(this Project project, CancellationToken cancellationToken)
+        public static async Task<bool> IsReadyForSemanticDiagnosticRequestsAsync(this Project project, CancellationToken cancellationToken)
         {
             var service = project.Solution.Services.GetRequiredService<IWorkspaceStatusService>();
             if (!await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))

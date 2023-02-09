@@ -28,7 +28,7 @@ internal sealed class DocumentDiagnosticSource
             return true;
 
         // Otherwise, we need our containing project to be ready before allowing requests to go through.
-        return await this.Document.Project.IsProjectReadyForSemanticDiagnosticRequestsAsync(cancellationToken).ConfigureAwait(false);
+        return await this.Document.Project.IsReadyForSemanticDiagnosticRequestsAsync(cancellationToken).ConfigureAwait(false);
     }
 
     protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(

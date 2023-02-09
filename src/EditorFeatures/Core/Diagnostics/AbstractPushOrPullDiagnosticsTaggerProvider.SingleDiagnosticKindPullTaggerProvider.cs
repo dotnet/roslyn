@@ -118,7 +118,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
                 // of loading.  We do keep compiler-syntax as that's based purely on the parse tree, and doesn't need
                 // correct project info to get reasonable results.
                 if (_diagnosticKind != DiagnosticKind.CompilerSyntax &&
-                    !await project.IsProjectReadyForSemanticDiagnosticRequestsAsync(cancellationToken).ConfigureAwait(false))
+                    !await project.IsReadyForSemanticDiagnosticRequestsAsync(cancellationToken).ConfigureAwait(false))
                 {
                     return;
                 }
