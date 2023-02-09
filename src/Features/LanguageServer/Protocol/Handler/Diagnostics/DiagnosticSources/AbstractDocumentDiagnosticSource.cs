@@ -18,6 +18,10 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     public AbstractDocumentDiagnosticSource(TDocument document)
         => Document = document;
 
+    protected abstract Task<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken);
+    protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
+        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);
+
     public ProjectOrDocumentId GetId() => new(Document.Id);
     public Project GetProject() => Document.Project;
 
@@ -26,8 +30,15 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
             ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Document.Project), Uri = Document.GetURI() }
             : null;
 
-    public string ToDisplayString() => $"{this.GetType().Name}: {Document.FilePath ?? Document.Name} in {Document.Project.Name}";
+    public string ToDisplayString()
+        => $"{this.GetType().Name}: {Document.FilePath ?? Document.Name} in {Document.Project.Name}";
 
-    public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);
+    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
+    {
+        if (!await this.IsReadyForDiagnosticRequestsAsync(context, cancellationToken).ConfigureAwait(false))
+            return ImmutableArray<DiagnosticData>.Empty;
+
+        return await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false);
+    }
 }

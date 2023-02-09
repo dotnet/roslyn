@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -18,7 +16,10 @@ internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagno
     {
     }
 
-    public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+    protected override Task<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken)
+        => this.Document.Project.IsProjectReadyForSemanticDiagnosticRequestsAsync(cancellationToken);
+
+    protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
         CancellationToken cancellationToken)

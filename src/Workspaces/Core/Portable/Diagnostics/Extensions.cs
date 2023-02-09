@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -419,6 +420,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 await suppressionAnalyzer.AnalyzeAsync(semanticModel, span, compilationWithAnalyzers,
                     analyzerInfoCache.GetDiagnosticDescriptors, reportDiagnostic, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        public static async Task<bool> IsProjectReadyForSemanticDiagnosticRequestsAsync(this Project project, CancellationToken cancellationToken)
+        {
+            var service = project.Solution.Services.GetRequiredService<IWorkspaceStatusService>();
+            if (!await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
+                return false;
+
+            using var _ = PooledHashSet<Project>.GetInstance(out var seenProjects);
+            if (!HasSuccessfullyLoaded(project, seenProjects))
+                return false;
+
+            return true;
+        }
+
+        private static bool HasSuccessfullyLoaded(Project? project, HashSet<Project> seenProjects)
+        {
+            if (project != null && seenProjects.Add(project))
+            {
+                if (!project.State.HasAllInformation)
+                    return false;
+
+                // Ensure our dependencies have all information as well.  That's necessary so we can properly get
+                // compilations for them.
+                foreach (var reference in project.ProjectReferences)
+                {
+                    if (!HasSuccessfullyLoaded(project.Solution.GetProject(reference.ProjectId), seenProjects))
+                        return false;
+                }
+            }
+
+            return true;
         }
     }
 }

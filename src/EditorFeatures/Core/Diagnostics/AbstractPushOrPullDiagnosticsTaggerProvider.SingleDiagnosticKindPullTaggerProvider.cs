@@ -117,15 +117,10 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
                 // loaded.  This prevents the user from seeing spurious diagnostics while the project is in the process
                 // of loading.  We do keep compiler-syntax as that's based purely on the parse tree, and doesn't need
                 // correct project info to get reasonable results.
-                if (_diagnosticKind != DiagnosticKind.CompilerSyntax)
+                if (_diagnosticKind != DiagnosticKind.CompilerSyntax &&
+                    !await project.IsProjectReadyForSemanticDiagnosticRequestsAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    var service = project.Solution.Services.GetRequiredService<IWorkspaceStatusService>();
-                    if (!await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
-                        return;
-
-                    using var _ = PooledHashSet<Project>.GetInstance(out var seenProjects);
-                    if (!HasSuccessfullyLoaded(document.Project, seenProjects))
-                        return;
+                    return;
                 }
 
                 var requestedSpan = documentSpanToTag.SnapshotSpan;
@@ -161,25 +156,6 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
                 // occasions
                 return;
             }
-        }
-
-        private bool HasSuccessfullyLoaded(Project? project, HashSet<Project> seenProjects)
-        {
-            if (project != null && seenProjects.Add(project))
-            {
-                if (!project.State.HasAllInformation)
-                    return false;
-
-                // Ensure our dependencies have all information as well.  That's necessary so we can properly get
-                // compilations for them.
-                foreach (var reference in project.ProjectReferences)
-                {
-                    if (!HasSuccessfullyLoaded(project.Solution.GetProject(reference.ProjectId), seenProjects))
-                        return false;
-                }
-            }
-
-            return true;
         }
 
         private static bool IsSuppressed(NormalizedSnapshotSpanCollection? suppressedSpans, SnapshotSpan span)

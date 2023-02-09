@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.TaskList;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -35,7 +36,13 @@ internal sealed class TaskListDiagnosticSource : AbstractDocumentDiagnosticSourc
         _globalOptions = globalOptions;
     }
 
-    public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+    protected override Task<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken)
+    {
+        // TaskList is purely syntactic.  So we're always ready to requests diagnostics for them.
+        return SpecializedTasks.True;
+    }
+
+    protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
     {
         var service = this.Document.GetLanguageService<ITaskListService>();

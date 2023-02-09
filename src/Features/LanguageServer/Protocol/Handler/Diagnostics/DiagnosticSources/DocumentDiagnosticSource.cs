@@ -20,7 +20,18 @@ internal sealed class DocumentDiagnosticSource
         DiagnosticKind = diagnosticKind;
     }
 
-    public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+    protected override async Task<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken)
+    {
+        // Compiler syntax requests can always go through.  They just depend on syntax and don't need the
+        // solution/project to be fully loaded yet.
+        if (this.DiagnosticKind == DiagnosticKind.CompilerSyntax)
+            return true;
+
+        // Otherwise, we need our containing project to be ready before allowing requests to go through.
+        return await this.Document.Project.IsProjectReadyForSemanticDiagnosticRequestsAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
     {
         // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf
