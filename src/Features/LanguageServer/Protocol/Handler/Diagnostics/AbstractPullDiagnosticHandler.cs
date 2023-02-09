@@ -123,9 +123,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
 
+            var diagnosticMode = GetDiagnosticMode(context);
             // For this handler to be called, we must have already checked the diagnostic mode
             // and set the appropriate capabilities.
-            var diagnosticMode = GetDiagnosticMode(context);
             Contract.ThrowIfFalse(diagnosticMode == DiagnosticMode.LspPull, $"{diagnosticMode} is not pull");
 
             // The progress object we will stream reports to.
