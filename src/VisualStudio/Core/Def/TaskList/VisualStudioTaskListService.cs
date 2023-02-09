@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.Shell;
@@ -34,7 +33,7 @@ using TaskListItem = Microsoft.CodeAnalysis.TaskList.TaskListItem;
 namespace Microsoft.VisualStudio.LanguageServices.TaskList
 {
     [Export(typeof(VisualStudioTaskListService)), Shared]
-    internal class VisualStudioTaskListService : ITaskListProvider, ITaskListListener
+    internal class VisualStudioTaskListService : ITaskListProvider
     {
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
@@ -102,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 _ = new VisualStudioTaskListTable(workspace, _threadingContext, _tableManagerProvider, this);
 
                 // Now that we've hooked everything up, kick off the work to actually start computing and reporting items.
-                StartComputingTaskListItems();
+                RegisterIncrementalAnalayzerAndStartComputingTaskListItems();
             }
             catch (OperationCanceledException)
             {
@@ -150,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 ? values
                 : ImmutableArray<TaskListItem>.Empty;
 
-        private void StartComputingTaskListItems()
+        private void RegisterIncrementalAnalayzerAndStartComputingTaskListItems()
         {
             // If we're in pull-diagnostics mode, then todo-comments will be handled by LSP.
             var diagnosticMode = _globalOptions.GetDiagnosticMode();
@@ -159,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
 
             var services = _workspace.Services.SolutionServices;
             var registrationService = services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            var analyzerProvider = new TaskListIncrementalAnalyzerProvider(this);
+            var analyzerProvider = new TaskListIncrementalAnalyzerProvider(_globalOptions, this);
 
             registrationService.AddAnalyzerProvider(
                 analyzerProvider,
@@ -172,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        ValueTask ITaskListListener.ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> items, CancellationToken cancellationToken)
+        public ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> items, CancellationToken cancellationToken)
         {
             try
             {
@@ -185,12 +184,6 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 throw ExceptionUtilities.Unreachable();
             }
         }
-
-        /// <summary>
-        /// Callback from the OOP service back into us.
-        /// </summary>
-        ValueTask<TaskListOptions> ITaskListListener.GetOptionsAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetTaskListOptions());
 
         private ValueTask ProcessTaskListItemsAsync(
             ImmutableSegmentedList<(DocumentId documentId, ImmutableArray<TaskListItem> items)> docAndCommentsArray, CancellationToken cancellationToken)

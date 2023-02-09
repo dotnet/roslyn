@@ -9,10 +9,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 
-namespace Microsoft.CodeAnalysis.TaskList
+namespace Microsoft.VisualStudio.LanguageServices.TaskList
 {
     internal sealed class TaskListIncrementalAnalyzer : IncrementalAnalyzerBase
     {
@@ -26,11 +28,16 @@ namespace Microsoft.CodeAnalysis.TaskList
         /// this set as the incremental analyzer is guaranteed to make all calls sequentially to us.
         /// </summary>
         private readonly HashSet<DocumentId> _documentsWithTaskListItems = new();
+        private readonly IGlobalOptionService _globalOptions;
+        private readonly VisualStudioTaskListService _listener;
 
-        private readonly ITaskListListener _listener;
-
-        public TaskListIncrementalAnalyzer(ITaskListListener listener)
-            => _listener = listener;
+        public TaskListIncrementalAnalyzer(
+            IGlobalOptionService globalOptions,
+            VisualStudioTaskListService listener)
+        {
+            _globalOptions = globalOptions;
+            _listener = listener;
+        }
 
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
@@ -65,7 +72,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             if (service == null)
                 return;
 
-            var options = await _listener.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = _globalOptions.GetTaskListOptions();
             var descriptors = GetDescriptors(options.Descriptors);
 
             // We're out of date.  Recompute this info.
