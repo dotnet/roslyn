@@ -97,8 +97,8 @@ public class RequestExecutionQueueTests
     {
         // Arrange
         var mutatingHandler = new MutatingHandler();
-        var cancellingHandler = new CancellingHandler(mutatingHandler);
-        var completingHandler = new CompletingHandler(mutatingHandler);
+        var cancellingHandler = new CancellingHandler();
+        var completingHandler = new CompletingHandler();
         var requestExecutionQueue = GetRequestExecutionQueue(cancelInProgressWorkUponMutatingRequest: true, methodHandlers: new IMethodHandler[] { cancellingHandler, completingHandler, mutatingHandler });
         var lspServices = GetLspServices();
 
@@ -197,13 +197,6 @@ public class RequestExecutionQueueTests
     [LanguageServerEndpoint(CompletingMethod)]
     public class CompletingHandler : IRequestHandler<int, string, TestRequestContext>
     {
-        private readonly MutatingHandler _mutatingHandler;
-
-        public CompletingHandler(MutatingHandler mutatingHandler) : base()
-        {
-            _mutatingHandler = mutatingHandler;
-        }
-
         public bool MutatesSolutionState => false;
 
         public async Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
@@ -222,10 +215,6 @@ public class RequestExecutionQueueTests
     [LanguageServerEndpoint(CancellingMethod)]
     public class CancellingHandler : IRequestHandler<int, string, TestRequestContext>
     {
-        public CancellingHandler(MutatingHandler mutatingHandler) : base()
-        {
-        }
-
         public bool MutatesSolutionState => false;
 
         public async Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
