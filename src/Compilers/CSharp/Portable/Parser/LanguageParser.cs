@@ -1291,13 +1291,12 @@ tryAgain:
             // ... 'TOKEN' [partial] <typename> <membername> ...
             // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
             // anything other than async methods are detected as erroneous later, during the define phase
-            // The comments in general were not updated to add "async or required" everywhere to preserve
-            // history, but generally wherever async occurs, it can also be required.
+            // Generally wherever we refer to 'async' here, it can also be 'required' or 'file'.
 
             if (!parsingStatementNotDeclaration)
             {
                 var currentTokenKind = this.CurrentToken.Kind;
-                if (IsPossibleStartOfTypeDeclaration(currentTokenKind) ||
+                if ((IsPossibleStartOfTypeDeclaration(currentTokenKind) && currentTokenKind != SyntaxKind.OpenBracketToken) ||
                     currentTokenKind == SyntaxKind.EventKeyword ||
                     (currentTokenKind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword && PeekToken(1).Kind == SyntaxKind.OperatorKeyword))
                 {

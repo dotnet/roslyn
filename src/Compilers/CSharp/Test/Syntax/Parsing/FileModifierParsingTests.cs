@@ -1539,6 +1539,434 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
+    public void TypeNamedFile_03_CSharp10()
+    {
+        UsingNode($$"""
+            public struct file { public int item; }
+
+            public unsafe class C
+            {
+                public file _file;
+                public file[] _array;
+                public file* _ptr;
+                public delegate*<file, file> _funcPtr;
+                public (file, file) _tuple;
+            }
+            """,
+            options: TestOptions.Regular10,
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,15): warning CS8981: The type name 'file' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // public struct file { public int item; }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "file").WithArguments("file").WithLocation(1, 15),
+                // (3,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // public unsafe class C
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(3, 21)
+            });
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.StructDeclaration);
+            {
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "file");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "item");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "file");
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_file");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "file");
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_array");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PointerType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "file");
+                            }
+                            N(SyntaxKind.AsteriskToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_ptr");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.FunctionPointerType);
+                        {
+                            N(SyntaxKind.DelegateKeyword);
+                            N(SyntaxKind.AsteriskToken);
+                            N(SyntaxKind.FunctionPointerParameterList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "file");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerParameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "file");
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_funcPtr");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.TupleType);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "file");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "file");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_tuple");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TypeNamedFile_03_CSharp11()
+    {
+        UsingNode($$"""
+            public struct file { public int item; }
+
+            public unsafe class C
+            {
+                public file _file;
+                public file[] _array;
+                public file* _ptr;
+                public delegate*<file, file> _funcPtr;
+                public (file, file) _tuple;
+            }
+            """,
+            expectedParsingDiagnostics: new[]
+            {
+                // (5,22): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     public file _file;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 22),
+                // (5,22): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     public file _file;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 22),
+                // (6,16): error CS1031: Type expected
+                //     public file[] _array;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 16),
+                // (7,16): error CS1031: Type expected
+                //     public file* _ptr;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(7, 16)
+            },
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,15): error CS9056: Types and aliases cannot be named 'file'.
+                // public struct file { public int item; }
+                Diagnostic(ErrorCode.ERR_FileTypeNameDisallowed, "file").WithLocation(1, 15),
+                // (3,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // public unsafe class C
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(3, 21),
+                // (5,22): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     public file _file;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 22),
+                // (5,22): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     public file _file;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 22),
+                // (6,16): error CS1031: Type expected
+                //     public file[] _array;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 16),
+                // (6,19): error CS0106: The modifier 'file' is not valid for this item
+                //     public file[] _array;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "_array").WithArguments("file").WithLocation(6, 19),
+                // (7,16): error CS1031: Type expected
+                //     public file* _ptr;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(7, 16),
+                // (7,18): error CS0106: The modifier 'file' is not valid for this item
+                //     public file* _ptr;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "_ptr").WithArguments("file").WithLocation(7, 18),
+                // (7,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('?')
+                //     public file* _ptr;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "_ptr").WithArguments("?").WithLocation(7, 18)
+            });
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.StructDeclaration);
+            {
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "file");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "item");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.FileKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_file");
+                    }
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.FileKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.ArrayType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_array");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.FileKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PointerType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.AsteriskToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_ptr");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.FunctionPointerType);
+                        {
+                            N(SyntaxKind.DelegateKeyword);
+                            N(SyntaxKind.AsteriskToken);
+                            N(SyntaxKind.FunctionPointerParameterList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "file");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerParameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "file");
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_funcPtr");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.TupleType);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "file");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "file");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_tuple");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
     public void Errors_01_CSharp10()
     {
         UsingNode($$"""
