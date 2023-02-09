@@ -13,11 +13,17 @@ namespace Microsoft.CodeAnalysis.Options
     {
         public static readonly OptionGroup Default = new(string.Empty, int.MaxValue);
 
-        public OptionGroup(string description, int priority)
+        public OptionGroup(string description, int priority, OptionGroup? parent = null)
         {
-            Description = description ?? throw new ArgumentNullException(nameof(description));
+            Description = description;
             Priority = priority;
+            Parent = parent;
         }
+
+        /// <summary>
+        /// Optional parent group.
+        /// </summary>
+        public OptionGroup? Parent { get; }
 
         /// <summary>
         /// A localizable resource description string for the option group.

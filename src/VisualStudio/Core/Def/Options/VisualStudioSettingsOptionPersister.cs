@@ -10,7 +10,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
@@ -18,37 +20,38 @@ using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Settings;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Options
 {
     /// <summary>
-    /// Serializes settings marked with <see cref="ClientSettingsStorageLocation"/> to and from VS Settings storage.
+    /// Serializes settings to and from VS Settings storage.
     /// </summary>
-    internal sealed class VisualStudioSettingsOptionPersister : IOptionPersister
+    internal sealed class VisualStudioSettingsOptionPersister
     {
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
         private class SVsSettingsPersistenceManager { };
 
         private readonly ISettingsManager? _settingManager;
-        private readonly IGlobalOptionService _globalOptionService;
+        private readonly ILegacyGlobalOptionService _legacyGlobalOptions;
+        private readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> _readFallbacks;
 
         /// <summary>
-        /// The list of options that have been been fetched from <see cref="_settingManager"/>, by key. We track this so
-        /// if a later change happens, we know to refresh that value. This is synchronized with monitor locks on
-        /// <see cref="_optionsToMonitorForChangesGate" />.
+        /// Options that have been been fetched from <see cref="_settingManager"/>, by key. We track this so
+        /// if a later change happens, we know to refresh that value.
         /// </summary>
-        private readonly Dictionary<string, List<OptionKey>> _optionsToMonitorForChanges = new();
-        private readonly object _optionsToMonitorForChangesGate = new();
+        private ImmutableDictionary<string, (OptionKey2 optionKey, Type storageType)> _optionsToMonitorForChanges
+            = ImmutableDictionary<string, (OptionKey2 optionKey, Type storageType)>.Empty;
 
         /// <remarks>
         /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
         /// </remarks>
-        public VisualStudioSettingsOptionPersister(IGlobalOptionService globalOptionService, ISettingsManager? settingsManager)
+        public VisualStudioSettingsOptionPersister(ILegacyGlobalOptionService globalOptionService, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks, ISettingsManager? settingsManager)
         {
             Contract.ThrowIfNull(globalOptionService);
 
             _settingManager = settingsManager;
-            _globalOptionService = globalOptionService;
+            _legacyGlobalOptions = globalOptionService;
+            _readFallbacks = readFallbacks;
 
             // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
             // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
@@ -60,171 +63,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        private System.Threading.Tasks.Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
+        private Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
         {
-            List<OptionKey>? optionsToRefresh = null;
-
-            lock (_optionsToMonitorForChangesGate)
+            var storageKey = args.PropertyName;
+            if (_optionsToMonitorForChanges.TryGetValue(storageKey, out var entry))
             {
-                if (_optionsToMonitorForChanges.TryGetValue(args.PropertyName, out var optionsToRefreshInsideLock))
+                var optionValue = TryReadOptionValue(entry.optionKey, storageKey, entry.storageType);
+                if (optionValue.HasValue && _legacyGlobalOptions.GlobalOptions.RefreshOption(entry.optionKey, optionValue.Value))
                 {
-                    // Make a copy of the list so we aren't using something that might mutate underneath us.
-                    optionsToRefresh = optionsToRefreshInsideLock.ToList();
+                    // We may be updating the values of internally defined public options.
+                    // Update solution snapshots of all workspaces to reflect the new values.
+                    _legacyGlobalOptions.UpdateRegisteredWorkspaces();
                 }
             }
 
-            if (optionsToRefresh != null)
-            {
-                // Refresh the actual options outside of our _optionsToMonitorForChangesGate so we avoid any deadlocks by calling back
-                // into the global option service under our lock. There isn't some race here where if we were fetching an option for the first time
-                // while the setting was changed we might not refresh it. Why? We call RecordObservedValueToWatchForChanges before we fetch the value
-                // and since this event is raised after the setting is modified, any new setting would have already been observed in GetFirstOrDefaultValue.
-                // And if it wasn't, this event will then refresh it.
-                foreach (var optionToRefresh in optionsToRefresh)
-                {
-                    if (TryFetch(optionToRefresh, out var optionValue))
-                    {
-                        _globalOptionService.RefreshOption(optionToRefresh, optionValue);
-                    }
-                }
-            }
-
-            return System.Threading.Tasks.Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
-        private object? GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<ClientSettingsStorageLocation> storageLocations)
+        private void RecordObservedValueToWatchForChanges(OptionKey2 optionKey, string storageKey, Type storageType)
         {
-            Contract.ThrowIfNull(_settingManager);
-
-            // There can be more than 1 storage location in the order of their priority.
-            // When fetching a value, we iterate all of them until we find the first one that exists.
-            // When persisting a value, we always use the first location.
-            // This functionality exists to accomodate breaking changes to persistence of some options. In such a case, there
-            // will be a new location added to the beginning with a new name. When fetching a value, we might find the old
-            // location (and can upgrade the value accordingly) but we only write to the new location so that
-            // we don't interfere with older versions. This will essentially "fork" the user's options at the time of upgrade.
-
-            foreach (var storageLocation in storageLocations)
-            {
-                var storageKey = storageLocation.GetKeyNameForLanguage(optionKey.Language);
-
-                RecordObservedValueToWatchForChanges(optionKey, storageKey);
-
-                if (optionKey.Option.Type == typeof(ImmutableArray<string>) &&
-                    _settingManager.TryGetValue(storageKey, out string[] stringArray) == GetValueResult.Success)
-                {
-                    return stringArray.ToImmutableArray();
-                }
-
-                if (_settingManager.TryGetValue(storageKey, out object value) == GetValueResult.Success)
-                {
-                    return value;
-                }
-            }
-
-            return optionKey.Option.DefaultValue;
+            ImmutableInterlocked.GetOrAdd(ref _optionsToMonitorForChanges, storageKey, _ => (optionKey, storageType));
         }
 
-        public bool TryFetch(OptionKey optionKey, out object? value)
+        public bool TryFetch(OptionKey2 optionKey, string storageKey, out object? value)
         {
-            if (_settingManager == null)
+            var result = TryReadOptionValue(optionKey, storageKey, optionKey.Option.Type);
+            if (result.HasValue)
             {
-                Debug.Fail("Manager field is unexpectedly null.");
-                value = null;
-                return false;
-            }
-
-            var storageLocations = optionKey.Option.StorageLocations.OfType<ClientSettingsStorageLocation>();
-            if (!storageLocations.Any())
-            {
-                value = null;
-                return false;
-            }
-
-            value = GetFirstOrDefaultValue(optionKey, storageLocations);
-
-            // VS's ISettingsManager has some quirks around storing enums.  Specifically,
-            // it *can* persist and retrieve enums, but only if you properly call 
-            // GetValueOrDefault<EnumType>.  This is because it actually stores enums just
-            // as ints and depends on the type parameter passed in to convert the integral
-            // value back to an enum value.  Unfortunately, we call GetValueOrDefault<object>
-            // and so we get the value back as boxed integer.
-            //
-            // Because of that, manually convert the integer to an enum here so we don't
-            // crash later trying to cast a boxed integer to an enum value.
-            if (optionKey.Option.Type.IsEnum)
-            {
-                if (value != null)
-                {
-                    value = Enum.ToObject(optionKey.Option.Type, value);
-                }
-            }
-            else if (typeof(ICodeStyleOption).IsAssignableFrom(optionKey.Option.Type))
-            {
-                return DeserializeCodeStyleOption(ref value, optionKey.Option.Type);
-            }
-            else if (optionKey.Option.Type == typeof(NamingStylePreferences))
-            {
-                // We store these as strings, so deserialize
-                if (value is string serializedValue)
-                {
-                    try
-                    {
-                        value = NamingStylePreferences.FromXElement(XElement.Parse(serializedValue));
-                    }
-                    catch (Exception)
-                    {
-                        value = null;
-                        return false;
-                    }
-                }
-                else
-                {
-                    value = null;
-                    return false;
-                }
-            }
-            else if (optionKey.Option.Type == typeof(bool) && value is int intValue)
-            {
-                // TypeScript used to store some booleans as integers. We now handle them properly for legacy sync scenarios.
-                value = intValue != 0;
+                value = result.Value;
                 return true;
             }
-            else if (optionKey.Option.Type == typeof(bool) && value is long longValue)
-            {
-                // TypeScript used to store some booleans as integers. We now handle them properly for legacy sync scenarios.
-                value = longValue != 0;
-                return true;
-            }
-            else if (optionKey.Option.Type == typeof(bool?))
-            {
-                // code uses object to hold onto any value which will use boxing on value types.
-                // see boxing on nullable types - https://msdn.microsoft.com/en-us/library/ms228597.aspx
-                return value is bool or null;
-            }
-            else if (value != null && optionKey.Option.Type != value.GetType())
-            {
-                // We got something back different than we expected, so fail to deserialize
-                value = null;
-                return false;
-            }
 
-            return true;
-        }
-
-        private static bool DeserializeCodeStyleOption(ref object? value, Type type)
-        {
-            if (value is string serializedValue)
+            if (_readFallbacks.TryGetValue(optionKey.Option.Definition.ConfigName, out var lazyReadFallback))
             {
-                try
+                var fallbackResult = lazyReadFallback.Value.TryRead(optionKey.Language, (storageKey, storageType) => TryReadOptionValue(optionKey, storageKey, storageType));
+                if (fallbackResult.HasValue)
                 {
-                    var fromXElement = type.GetMethod(nameof(CodeStyleOption<object>.FromXElement), BindingFlags.Public | BindingFlags.Static);
-
-                    value = fromXElement.Invoke(null, new object[] { XElement.Parse(serializedValue) });
+                    value = fallbackResult.Value;
                     return true;
-                }
-                catch (Exception)
-                {
                 }
             }
 
@@ -232,38 +108,81 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return false;
         }
 
-        private void RecordObservedValueToWatchForChanges(OptionKey optionKey, string storageKey)
+        public Optional<object?> TryReadOptionValue(OptionKey2 optionKey, string storageKey, Type storageType)
         {
-            // We're about to fetch the value, so make sure that if it changes we'll know about it
-            lock (_optionsToMonitorForChangesGate)
-            {
-                var optionKeysToMonitor = _optionsToMonitorForChanges.GetOrAdd(storageKey, _ => new List<OptionKey>());
+            Contract.ThrowIfNull(_settingManager);
 
-                if (!optionKeysToMonitor.Contains(optionKey))
+            RecordObservedValueToWatchForChanges(optionKey, storageKey, storageType);
+
+            if (storageType == typeof(bool) && _settingManager.TryGetValue(storageKey, out bool boolValue) == GetValueResult.Success)
+            {
+                return boolValue;
+            }
+
+            if (storageType == typeof(bool?) && _settingManager.TryGetValue(storageKey, out bool? nullableBoolValue) == GetValueResult.Success)
+            {
+                return nullableBoolValue;
+            }
+
+            if (storageType == typeof(int) && _settingManager.TryGetValue(storageKey, out int intValue) == GetValueResult.Success)
+            {
+                return intValue;
+            }
+
+            if (storageType.IsEnum && _settingManager.TryGetValue(storageKey, out int enumValue) == GetValueResult.Success)
+            {
+                return Enum.ToObject(storageType, enumValue);
+            }
+
+            if (storageType == typeof(NamingStylePreferences))
+            {
+                if (_settingManager.TryGetValue(storageKey, out string stringValue) == GetValueResult.Success)
                 {
-                    optionKeysToMonitor.Add(optionKey);
+                    try
+                    {
+                        return NamingStylePreferences.FromXElement(XElement.Parse(stringValue));
+                    }
+                    catch
+                    {
+                        return default;
+                    }
                 }
             }
+
+            if (optionKey.Option.DefaultValue is ICodeStyleOption2 codeStyle)
+            {
+                if (_settingManager.TryGetValue(storageKey, out string stringValue) == GetValueResult.Success)
+                {
+                    try
+                    {
+                        return new Optional<object?>(codeStyle.FromXElement(XElement.Parse(stringValue)));
+                    }
+                    catch
+                    {
+                        return default;
+                    }
+                }
+            }
+
+            if (storageType == typeof(ImmutableArray<string>) && _settingManager.TryGetValue(storageKey, out string[] stringArray) == GetValueResult.Success)
+            {
+                return stringArray.ToImmutableArray();
+            }
+
+            if (_settingManager.TryGetValue(storageKey, out object? value) == GetValueResult.Success &&
+                (value is null || value.GetType() == storageType))
+            {
+                return value;
+            }
+
+            return default;
         }
 
-        public bool TryPersist(OptionKey optionKey, object? value)
+        public Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
         {
-            if (_settingManager == null)
-            {
-                Debug.Fail("Manager field is unexpectedly null.");
-                return false;
-            }
+            Contract.ThrowIfNull(_settingManager);
 
-            // Do we roam this at all?
-            var storageLocation = optionKey.Option.StorageLocations.OfType<ClientSettingsStorageLocation>().FirstOrDefault();
-            if (storageLocation == null)
-            {
-                return false;
-            }
-
-            var storageKey = storageLocation.GetKeyNameForLanguage(optionKey.Language);
-
-            RecordObservedValueToWatchForChanges(optionKey, storageKey);
+            RecordObservedValueToWatchForChanges(optionKey, storageKey, optionKey.Option.Type);
 
             if (value is ICodeStyleOption codeStyleOption)
             {
@@ -278,9 +197,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     value = valueToSerialize.CreateXElement().ToString();
                 }
             }
+            else if (value is ImmutableArray<string> stringArray)
+            {
+                value = stringArray.IsDefault ? null : stringArray.ToArray();
+            }
 
-            _settingManager.SetValueAsync(storageKey, value, storageLocation.IsMachineLocal);
-            return true;
+            return _settingManager.SetValueAsync(storageKey, value, isMachineLocal: false);
         }
     }
 }

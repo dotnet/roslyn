@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         where TExportAttribute : Attribute
         where TExtension : class
     {
-        public record class ExtensionInfo(ImmutableArray<TextDocumentKind> DocumentKinds, string[]? DocumentExtensions);
+        public record class ExtensionInfo(string[] DocumentKinds, string[]? DocumentExtensions);
 
         // Following CWTs are used to cache completion providers from projects' references,
         // so we can avoid the slow path unless there's any change to the references.
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
                 if (extensionInfo == null)
                     return true;
 
-                if (!extensionInfo.DocumentKinds.Contains(document.Kind))
+                if (!extensionInfo.DocumentKinds.Contains(document.Kind.ToString()))
                     return false;
 
                 if (document.FilePath != null &&

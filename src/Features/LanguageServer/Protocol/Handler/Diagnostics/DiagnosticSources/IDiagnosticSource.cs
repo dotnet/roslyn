@@ -19,7 +19,8 @@ internal interface IDiagnosticSource
 {
     Project GetProject();
     ProjectOrDocumentId GetId();
-    TextDocumentIdentifier GetDocumentIdentifier();
+    TextDocumentIdentifier? GetDocumentIdentifier();
+    string ToDisplayString();
 
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,

@@ -28,6 +28,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <!-- BEGIN MONODEVELOP

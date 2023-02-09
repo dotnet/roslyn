@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var statementParentScopes);
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             var languageVersion = tree.Options.LanguageVersion();
 
             foreach (var diagnostic in diagnostics)
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (declaratorLocations.Add(diagnostic.AdditionalLocations[0]))
-                    AddEdits(editor, diagnostic, languageVersion, RemoveStatement, cancellationToken);
+                    AddEdits(editor, semanticModel, diagnostic, languageVersion, RemoveStatement, cancellationToken);
             }
 
             foreach (var parentScope in statementParentScopes)
@@ -80,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         private static void AddEdits(
             SyntaxEditor editor,
+            SemanticModel semanticModel,
             Diagnostic diagnostic,
             LanguageVersion languageVersion,
             Action<StatementSyntax> removeStatement,
@@ -100,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 .WithoutTrivia().WithTrailingTrivia(rightSideOfComparison.GetTrailingTrivia());
 
             var declarationPattern = SyntaxFactory.DeclarationPattern(
-                ((TypeSyntax)asExpression.Right).WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                GetPatternType().WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticMarker),
                 SyntaxFactory.SingleVariableDesignation(newIdentifier));
 
             var condition = GetCondition(languageVersion, comparison, asExpression, declarationPattern);
@@ -124,6 +127,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             editor.ReplaceNode(comparison, condition.WithTriviaFrom(comparison));
+
+            return;
+
+            TypeSyntax GetPatternType()
+            {
+                // Complex case: object?[]? arr = obj as object[];
+                //
+                // Because of array variance, the above is legal.  We want the `object?[]` from the LHS here.
+                if (semanticModel.GetDeclaredSymbol(declarator, cancellationToken) is ILocalSymbol local)
+                {
+                    var asExpressionTypeInfo = semanticModel.GetTypeInfo(asExpression, cancellationToken);
+                    if (asExpressionTypeInfo.Type != null)
+                    {
+                        // Strip off the outer ? if present.  But the inner ? will still be there.
+                        var localType = local.Type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                        var asType = asExpressionTypeInfo.Type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+
+                        // If they're the same types, except for the inner ?, then use the local's type here.
+                        if (SymbolEqualityComparer.Default.Equals(localType, asType) &&
+                            !SymbolEqualityComparer.IncludeNullability.Equals(localType, asType))
+                        {
+                            return localType.GenerateTypeSyntax(allowVar: false);
+                        }
+                    }
+                }
+
+                return (TypeSyntax)asExpression.Right;
+            }
         }
 
         private static ExpressionSyntax GetCondition(

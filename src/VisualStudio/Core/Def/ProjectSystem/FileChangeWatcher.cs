@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -19,9 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     /// <summary>
     /// A service that wraps the Visual Studio file watching APIs to make them more convenient for use. With this, a consumer can create
-    /// an <see cref="IContext"/> which lets you add/remove files being watched, and an event is raised when a file is modified.
+    /// an <see cref="IFileChangeContext"/> which lets you add/remove files being watched, and an event is raised when a file is modified.
     /// </summary>
-    internal sealed class FileChangeWatcher
+    internal sealed class FileChangeWatcher : IFileChangeWatcher
     {
         private readonly Task<IVsAsyncFileChangeEx> _fileChangeService;
 
@@ -75,78 +77,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             await prior.ApplyAsync(service, cancellationToken).ConfigureAwait(false);
         }
 
-        public IContext CreateContext(params WatchedDirectory[] watchedDirectories)
+        public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
         {
             return new Context(this, watchedDirectories.ToImmutableArray());
-        }
-
-        /// <summary>
-        /// Gives a hint to the <see cref="IContext"/> that we should watch a top-level directory for all changes in addition
-        /// to any files called by <see cref="IContext.EnqueueWatchingFile(string)"/>.
-        /// </summary>
-        /// <remarks>
-        /// This is largely intended as an optimization; consumers should still call <see cref="IContext.EnqueueWatchingFile(string)" />
-        /// for files they want to watch. This allows the caller to give a hint that it is expected that most of the files being
-        /// watched is under this directory, and so it's more efficient just to watch _all_ of the changes in that directory
-        /// rather than creating and tracking a bunch of file watcher state for each file separately. A good example would be
-        /// just creating a single directory watch on the root of a project for source file changes: rather than creating a file watcher
-        /// for each individual file, we can just watch the entire directory and that's it.
-        /// </remarks>
-        public sealed class WatchedDirectory
-        {
-            public WatchedDirectory(string path, string? extensionFilter)
-            {
-                // We are doing string comparisons with this path, so ensure it has a trailing \ so we don't get confused with sibling
-                // paths that won't actually be covered.
-                if (!path.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
-                {
-                    path += System.IO.Path.DirectorySeparatorChar;
-                }
-
-                if (extensionFilter != null && !extensionFilter.StartsWith("."))
-                {
-                    throw new ArgumentException($"{nameof(extensionFilter)} should start with a period.", nameof(extensionFilter));
-                }
-
-                Path = path;
-                ExtensionFilter = extensionFilter;
-            }
-
-            public string Path { get; }
-
-            /// <summary>
-            /// If non-null, only watch the directory for changes to a specific extension. String always starts with a period.
-            /// </summary>
-            public string? ExtensionFilter { get; }
-        }
-
-        /// <summary>
-        /// A context that is watching one or more files.
-        /// </summary>
-        /// <remarks>This is only implemented today by <see cref="Context"/> but we don't want to leak implementation details out.</remarks>
-        public interface IContext : IDisposable
-        {
-            /// <summary>
-            /// Raised when a file has been changed. This may be a file watched explicitly by <see cref="EnqueueWatchingFile(string)"/> or it could be any
-            /// file in the directory if the <see cref="IContext"/> was watching a directory.
-            /// </summary>
-            event EventHandler<string> FileChanged;
-
-            /// <summary>
-            /// Starts watching a file but doesn't wait for the file watcher to be registered with the operating system. Good if you know
-            /// you'll need a file watched (eventually) but it's not worth blocking yet.
-            /// </summary>
-            IFileWatchingToken EnqueueWatchingFile(string filePath);
-
-            void StopWatchingFile(IFileWatchingToken token);
-        }
-
-        /// <summary>
-        /// A marker interface for tokens returned from <see cref="IContext.EnqueueWatchingFile(string)"/>. This is just to ensure type safety and avoid
-        /// leaking the full surface area of the nested types.
-        /// </summary>
-        public interface IFileWatchingToken
-        {
         }
 
         /// <summary>
@@ -195,15 +128,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly List<uint> _cookies;
 
             /// <summary>
-            /// A file watcher token. The <see cref="Context.FileWatchingToken.Cookie"/> field is assigned by the
+            /// A file watcher token. The <see cref="Context.RegularWatchedFile.Cookie"/> field is assigned by the
             /// operation for <see cref="Kind.WatchFile"/>, or read by the operation for <see cref="Kind.UnwatchFile"/>.
             /// </summary>
-            private readonly Context.FileWatchingToken _token;
+            private readonly Context.RegularWatchedFile _token;
 
             /// <summary>
             /// A collection of file watcher tokens to remove for <see cref="Kind.UnwatchFiles"/>.
             /// </summary>
-            private readonly IEnumerable<Context.FileWatchingToken> _tokens;
+            private readonly IEnumerable<Context.RegularWatchedFile> _tokens;
 
             private WatcherOperation(Kind kind)
             {
@@ -236,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _tokens = null!;
             }
 
-            private WatcherOperation(Kind kind, string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, Context.FileWatchingToken token)
+            private WatcherOperation(Kind kind, string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, Context.RegularWatchedFile token)
             {
                 Contract.ThrowIfFalse(kind is Kind.WatchFile);
                 _kind = kind;
@@ -268,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _tokens = null!;
             }
 
-            private WatcherOperation(Kind kind, IEnumerable<Context.FileWatchingToken> tokens)
+            private WatcherOperation(Kind kind, IEnumerable<Context.RegularWatchedFile> tokens)
             {
                 Contract.ThrowIfFalse(kind is Kind.UnwatchFiles);
                 _kind = kind;
@@ -284,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _token = null!;
             }
 
-            private WatcherOperation(Kind kind, Context.FileWatchingToken token)
+            private WatcherOperation(Kind kind, Context.RegularWatchedFile token)
             {
                 Contract.ThrowIfFalse(kind is Kind.UnwatchFile);
                 _kind = kind;
@@ -319,16 +252,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public static WatcherOperation WatchDirectory(string directory, string? filter, IVsFreeThreadedFileChangeEvents2 sink, List<uint> cookies)
                 => new(Kind.WatchDirectory, directory, filter, sink, cookies);
 
-            public static WatcherOperation WatchFile(string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, Context.FileWatchingToken token)
+            public static WatcherOperation WatchFile(string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, Context.RegularWatchedFile token)
                 => new(Kind.WatchFile, path, fileChangeFlags, sink, token);
 
             public static WatcherOperation UnwatchDirectories(List<uint> cookies)
                 => new(Kind.UnwatchDirectories, cookies);
 
-            public static WatcherOperation UnwatchFiles(IEnumerable<Context.FileWatchingToken> tokens)
+            public static WatcherOperation UnwatchFiles(IEnumerable<Context.RegularWatchedFile> tokens)
                 => new(Kind.UnwatchFiles, tokens);
 
-            public static WatcherOperation UnwatchFile(Context.FileWatchingToken token)
+            public static WatcherOperation UnwatchFile(Context.RegularWatchedFile token)
                 => new(Kind.UnwatchFile, token);
 
             /// <summary>
@@ -432,18 +365,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private sealed class Context : IVsFreeThreadedFileChangeEvents2, IContext
+        private sealed class Context : IVsFreeThreadedFileChangeEvents2, IFileChangeContext
         {
             private readonly FileChangeWatcher _fileChangeWatcher;
             private readonly ImmutableArray<WatchedDirectory> _watchedDirectories;
-            private readonly IFileWatchingToken _noOpFileWatchingToken;
 
             /// <summary>
-            /// Gate to guard mutable fields in this class and any mutation of any <see cref="FileWatchingToken"/>s.
+            /// Gate to guard mutable fields in this class and any mutation of any <see cref="RegularWatchedFile"/>s.
             /// </summary>
             private readonly object _gate = new();
             private bool _disposed = false;
-            private readonly HashSet<FileWatchingToken> _activeFileWatchingTokens = new();
+            private readonly HashSet<RegularWatchedFile> _activeFileWatchingTokens = new();
 
             /// <summary>
             /// The list of cookies we used to make watchers for <see cref="_watchedDirectories"/>.
@@ -458,7 +390,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _fileChangeWatcher = fileChangeWatcher;
                 _watchedDirectories = watchedDirectories;
-                _noOpFileWatchingToken = new FileWatchingToken();
 
                 foreach (var watchedDirectory in watchedDirectories)
                 {
@@ -483,24 +414,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _fileChangeWatcher._taskQueue.AddWork(WatcherOperation.UnwatchFiles(_activeFileWatchingTokens));
             }
 
-            public IFileWatchingToken EnqueueWatchingFile(string filePath)
+            public IWatchedFile EnqueueWatchingFile(string filePath)
             {
                 // If we already have this file under our path, we may not have to do additional watching
                 foreach (var watchedDirectory in _watchedDirectories)
                 {
-                    if (watchedDirectory != null && filePath.StartsWith(watchedDirectory.Path))
+                    if (filePath.StartsWith(watchedDirectory.Path, StringComparison.OrdinalIgnoreCase))
                     {
                         // If ExtensionFilter is null, then we're watching for all files in the directory so the prior check
                         // of the directory containment was sufficient. If it isn't null, then we have to check the extension
                         // matches.
-                        if (watchedDirectory.ExtensionFilter == null || filePath.EndsWith(watchedDirectory.ExtensionFilter))
+                        if (watchedDirectory.ExtensionFilter == null || filePath.EndsWith(watchedDirectory.ExtensionFilter, StringComparison.OrdinalIgnoreCase))
                         {
-                            return _noOpFileWatchingToken;
+                            return NoOpWatchedFile.Instance;
                         }
                     }
                 }
 
-                var token = new FileWatchingToken();
+                var token = new RegularWatchedFile(this);
 
                 lock (_gate)
                 {
@@ -512,24 +443,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return token;
             }
 
-            public void StopWatchingFile(IFileWatchingToken token)
+            private void StopWatchingFile(RegularWatchedFile watchedFile)
             {
-                var typedToken = token as FileWatchingToken;
-
-                Contract.ThrowIfNull(typedToken, "The token passed did not originate from this service.");
-
-                if (typedToken == _noOpFileWatchingToken)
-                {
-                    // This file never required a direct file watch, our main subscription covered it.
-                    return;
-                }
-
                 lock (_gate)
                 {
-                    Contract.ThrowIfFalse(_activeFileWatchingTokens.Remove(typedToken), "This token was no longer being watched.");
+                    Contract.ThrowIfFalse(_activeFileWatchingTokens.Remove(watchedFile), "This token was no longer being watched.");
                 }
 
-                _fileChangeWatcher._taskQueue.AddWork(WatcherOperation.UnwatchFile(typedToken));
+                _fileChangeWatcher._taskQueue.AddWork(WatcherOperation.UnwatchFile(watchedFile));
             }
 
             public event EventHandler<string>? FileChanged;
@@ -589,16 +510,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             int IVsFileChangeEvents.DirectoryChanged(string pszDirectory)
                 => VSConstants.E_NOTIMPL;
 
-            public class FileWatchingToken : IFileWatchingToken
+            /// <summary>
+            /// When a FileChangeWatcher already has a watch on a directory, a request to watch a specific file is a no-op. In that case, we return this token,
+            /// which when disposed also does nothing.
+            /// </summary>
+            internal sealed class NoOpWatchedFile : IWatchedFile
             {
+                public static readonly IWatchedFile Instance = new NoOpWatchedFile();
+
+                private NoOpWatchedFile()
+                {
+                }
+
+                public void Dispose()
+                {
+                }
+            }
+
+            public sealed class RegularWatchedFile : IWatchedFile
+            {
+                public RegularWatchedFile(Context context)
+                {
+                    _context = context;
+                }
+
+                private readonly Context _context;
+
                 /// <summary>
-                /// The cookie we have for requesting a watch on this file. Any files that didn't need
-                /// to be watched specifically are equal to <see cref="_noOpFileWatchingToken"/>, so
-                /// any other instance is something that should be watched. Null means we either haven't
+                /// The cookie we have for requesting a watch on this file. Null means we either haven't
                 /// done the subscription (and it's still in the queue) or we had some sort of error
                 /// subscribing in the first place.
                 /// </summary>
                 public uint? Cookie;
+
+                public void Dispose()
+                {
+                    _context.StopWatchingFile(this);
+                }
             }
 
             int IVsFreeThreadedFileChangeEvents2.FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)

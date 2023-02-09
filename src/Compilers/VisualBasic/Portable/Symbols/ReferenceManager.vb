@@ -327,8 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim implicitReferenceResolutions = If(compilation.ScriptCompilationInfo?.PreviousScriptCompilation?.GetBoundReferenceManager().ImplicitReferenceResolutions,
                         ImmutableDictionary(Of AssemblyIdentity, PortableExecutableReference).Empty)
 
-                    Dim bindingResult() As BoundInputAssembly = Bind(compilation,
-                                                                     explicitAssemblyData,
+                    Dim bindingResult() As BoundInputAssembly = Bind(explicitAssemblyData,
                                                                      modules,
                                                                      explicitReferences,
                                                                      referenceMap,
@@ -783,8 +782,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Public Overrides Function BindAssemblyReferences(assemblies As ImmutableArray(Of AssemblyData), assemblyIdentityComparer As AssemblyIdentityComparer) As AssemblyReferenceBinding()
-                    Return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, definitionStartIndex:=0, assemblyIdentityComparer:=assemblyIdentityComparer)
+                Public Overrides Function BindAssemblyReferences(assemblies As MultiDictionary(Of String, (DefinitionData As AssemblyData, DefinitionIndex As Integer)), assemblyIdentityComparer As AssemblyIdentityComparer) As AssemblyReferenceBinding()
+                    Return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, resolveAgainstAssemblyBeingBuilt:=True, assemblyIdentityComparer:=assemblyIdentityComparer)
                 End Function
 
                 Public NotOverridable Overrides ReadOnly Property IsLinked As Boolean

@@ -315,7 +315,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     validateBranch(block, nextBranch);
                 }
 
-
                 if (currentRegion.LastBlockOrdinal == block.Ordinal && i != blocks.Length - 1)
                 {
                     leaveRegions(block.EnclosingRegion, block.Ordinal);

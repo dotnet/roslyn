@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     }
 
     /// <summary>
-    /// Note: This is the new version of the language service and superceded the same named type
+    /// Note: This is the new version of the language service and superseded the same named type
     /// in the EditorFeatures layer.
     /// </summary>
     internal interface IDocumentHighlightsService : ILanguageService

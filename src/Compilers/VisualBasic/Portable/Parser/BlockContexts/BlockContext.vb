@@ -83,7 +83,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
             End Select
 
-
             _endKind = GetEndKind(kind)
             _level = If(prev IsNot Nothing, prev.Level + 1, 0)
 

@@ -283,15 +283,13 @@ record struct Point(int x, int y);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8));
 
             comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8)
-                );
+                // record struct Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8));
 
             comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
@@ -378,22 +376,19 @@ namespace NS
             comp.VerifyDiagnostics(
                 // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12));
 
             comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
-                //     record struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
-                );
+                //     record struct Point { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12));
 
             comp = CreateCompilation(src4, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12));
 
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
@@ -1025,7 +1020,7 @@ record struct S2
                 // (3,5): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     S1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S1").WithArguments("parameterless struct constructors", "10.0").WithLocation(3, 5),
-                // (3,5): error CS8938: The parameterless struct constructor must be 'public'.
+                // (3,5): error CS8958: The parameterless struct constructor must be 'public'.
                 //     S1() { }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S1").WithLocation(3, 5),
                 // (5,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
@@ -1034,7 +1029,7 @@ record struct S2
                 // (7,14): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     internal S2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(7, 14),
-                // (7,14): error CS8938: The parameterless struct constructor must be 'public'.
+                // (7,14): error CS8958: The parameterless struct constructor must be 'public'.
                 //     internal S2() { }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(7, 14));
 
@@ -5377,21 +5372,24 @@ record struct C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       38 (0x26)
+  // Code size       41 (0x29)
   .maxstack  2
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldstr      ""field = ""
   IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_000b:  pop
   IL_000c:  ldarg.1
   IL_000d:  ldarg.0
-  IL_000e:  ldflda     ""int C1.field""
-  IL_0013:  constrained. ""int""
-  IL_0019:  callvirt   ""string object.ToString()""
-  IL_001e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0023:  pop
-  IL_0024:  ldc.i4.1
-  IL_0025:  ret
+  IL_000e:  ldfld      ""int C1.field""
+  IL_0013:  stloc.0
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  constrained. ""int""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0026:  pop
+  IL_0027:  ldc.i4.1
+  IL_0028:  ret
 }
 ");
         }
@@ -10589,8 +10587,7 @@ record struct A(int X)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(8, 8),
                 // (8,17): error CS8773: Feature 'positional fields in records' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct A(int X)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int X").WithArguments("positional fields in records", "10.0").WithLocation(8, 17)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int X").WithArguments("positional fields in records", "10.0").WithLocation(8, 17));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();

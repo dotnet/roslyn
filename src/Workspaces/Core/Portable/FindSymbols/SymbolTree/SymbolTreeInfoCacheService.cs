@@ -177,7 +177,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
                         project, checksum, cancellationToken).ConfigureAwait(false);
 
                     Contract.ThrowIfNull(info);
-                    Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
+                    Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum must match our checksum.");
 
                     // Mark that we're up to date with this project.  Future calls with the same semantic-version or
                     // checksum can bail out immediately.
@@ -199,7 +199,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
                     project.Solution, reference, checksum, cancellationToken).ConfigureAwait(false);
 
                 Contract.ThrowIfNull(info);
-                Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
+                Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum must match our checksum.");
 
                 metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                 _peReferenceToInfo[reference] = metadataInfo;

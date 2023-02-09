@@ -83,14 +83,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                         // An argument will disqualify a field if that field is used in a ref/out position.  
                         // We can't change such field references to be property references in C#.
                         if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
-                        {
                             AddIneligibleFields(semanticModel, argument.Expression, ineligibleFields, cancellationToken);
-                        }
                     }
 
                     foreach (var refExpression in typeDeclaration.DescendantNodesAndSelf().OfType<RefExpressionSyntax>())
-                    {
                         AddIneligibleFields(semanticModel, refExpression.Expression, ineligibleFields, cancellationToken);
+
+                    // Can't take the address of an auto-prop.  So disallow for fields that we do `&x` on.
+                    foreach (var addressOfExpression in typeDeclaration.DescendantNodesAndSelf().OfType<PrefixUnaryExpressionSyntax>())
+                    {
+                        if (addressOfExpression.Kind() == SyntaxKind.AddressOfExpression)
+                            AddIneligibleFields(semanticModel, addressOfExpression.Operand, ineligibleFields, cancellationToken);
                     }
                 }
             }

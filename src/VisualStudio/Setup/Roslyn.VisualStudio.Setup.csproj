@@ -328,7 +328,6 @@
     <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol" />
     <NugetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" />
     <NugetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" />
-    <NugetPackageToIncludeInVsix Include="System.Threading.Channels" PkgDefEntry="CodeBase" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x64\native\e_sqlite3.dll">

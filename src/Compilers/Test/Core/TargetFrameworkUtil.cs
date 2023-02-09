@@ -28,11 +28,23 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         Empty,
 
-        // These are the preferred values that we should be targeting 
         NetStandard20,
+
+        /// <summary>
+        /// The latest .NET Core target framework
+        /// </summary>
         NetCoreApp,
+
+        /// <summary>
+        /// The latest .NET Framework
+        /// </summary>
         NetFramework,
-        StandardLatest,
+
+        /// <summary>
+        /// This will be <see cref="NetCoreApp" /> when running on .NET Core and <see cref="NetFramework"/>
+        /// when running on .NET Framework.
+        /// </summary>
+        NetLatest,
 
         // Eventually these will be deleted and replaced with NetStandard20. Short term this creates the "standard"
         // API set across desktop and coreclr. It's also helpful because there are no null annotations hence error
@@ -103,12 +115,31 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public static class NetFramework
     {
-        public static ImmutableArray<MetadataReference> StandardReferences => ImmutableArray.Create<MetadataReference>(
-            Net461.mscorlib,
-            Net461.System,
-            Net461.SystemCore,
-            NetFx.ValueTuple.tuplelib,
-            Net461.SystemRuntime);
+        /// <summary>
+        /// This is the full set of references provided by default on the .NET Framework TFM
+        /// </summary>
+        /// <remarks>
+        /// Need to special case tuples until we move to net472
+        /// </remarks>
+        public static ImmutableArray<MetadataReference> References { get; } =
+            ImmutableArray
+                .CreateRange<MetadataReference>(Net461.All)
+                .Add(NetFx.ValueTuple.tuplelib);
+
+        /// <summary>
+        /// This is a limited set of references on this .NET Framework TFM. This should be avoided in new code 
+        /// as it represents the way reference hookup used to work.
+        /// </summary>
+        /// <remarks>
+        /// Need to special case tuples until we move to net472
+        /// </remarks>
+        public static ImmutableArray<MetadataReference> Standard { get; } =
+            ImmutableArray.Create<MetadataReference>(
+                Net461.mscorlib,
+                Net461.System,
+                Net461.SystemCore,
+                NetFx.ValueTuple.tuplelib,
+                Net461.SystemRuntime);
 
         public static PortableExecutableReference mscorlib { get; } = Net461.mscorlib;
         public static PortableExecutableReference System { get; } = Net461.System;
@@ -123,8 +154,8 @@ namespace Roslyn.Test.Utilities
     {
         private static readonly ConcurrentDictionary<string, ImmutableArray<PortableExecutableReference>> s_dynamicReferenceMap = new ConcurrentDictionary<string, ImmutableArray<PortableExecutableReference>>(StringComparer.Ordinal);
 
-        public static ImmutableArray<MetadataReference> StandardLatestReferences => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp.References : NetFramework.StandardReferences;
-        public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : NetFramework.StandardReferences;
+        public static ImmutableArray<MetadataReference> NetLatest => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp.References : NetFramework.References;
+        public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : NetFramework.Standard;
         public static MetadataReference StandardCSharpReference => RuntimeUtilities.IsCoreClrRuntime ? MicrosoftCSharp.Netstandard13Lib : NetFramework.MicrosoftCSharp;
         public static MetadataReference StandardVisualBasicReference => RuntimeUtilities.IsCoreClrRuntime ? MicrosoftVisualBasic.Netstandard11 : NetFramework.MicrosoftVisualBasic;
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
@@ -146,7 +177,7 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences => ImmutableArray.Create<MetadataReference>(Net451.mscorlib, Net451.SystemCore, Net451.MicrosoftCSharp);
         public static ImmutableArray<MetadataReference> Mscorlib45AndVBRuntimeReferences => ImmutableArray.Create<MetadataReference>(Net451.mscorlib, Net451.System, Net451.MicrosoftVisualBasic);
         public static ImmutableArray<MetadataReference> Mscorlib46References => ImmutableArray.Create<MetadataReference>(Net461.mscorlib);
-        public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlib, Net461.System, TestMetadata.Net461.SystemCore, TestBase.ValueTupleRef, Net461.SystemRuntime);
+        public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlib, Net461.System, Net461.SystemCore, TestBase.ValueTupleRef, Net461.SystemRuntime);
         public static ImmutableArray<MetadataReference> Mscorlib461References => ImmutableArray.Create<MetadataReference>(Net461.mscorlib);
         public static ImmutableArray<MetadataReference> Mscorlib461ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlib, Net461.System, Net461.SystemCore, NetFx.ValueTuple.tuplelib, Net461.SystemRuntime);
         public static ImmutableArray<MetadataReference> NetStandard20References => ImmutableArray.Create<MetadataReference>(NetStandard20.netstandard, NetStandard20.mscorlib, NetStandard20.SystemRuntime, NetStandard20.SystemCore, NetStandard20.SystemDynamicRuntime, NetStandard20.SystemLinq, NetStandard20.SystemLinqExpressions);
@@ -159,7 +190,9 @@ namespace Roslyn.Test.Utilities
 
         static TargetFrameworkUtil()
         {
+            // Asserts to ensure these two values keep in sync
             Debug.Assert(GetReferences(TargetFramework.NetCoreApp).SequenceEqual(NetCoreApp.References));
+            Debug.Assert(GetReferences(TargetFramework.NetFramework).SequenceEqual(NetFramework.References));
         }
 
 #endif
@@ -171,9 +204,11 @@ namespace Roslyn.Test.Utilities
             TargetFramework.Empty => ImmutableArray<MetadataReference>.Empty,
             TargetFramework.NetStandard20 => NetStandard20References,
             TargetFramework.Net50 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net50")),
-            TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(Net60.All),
+            TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net60")),
             TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.All),
-            TargetFramework.NetFramework => NetFramework.StandardReferences,
+            TargetFramework.NetFramework => NetFramework.References,
+            TargetFramework.NetLatest => NetLatest,
+            TargetFramework.Standard => StandardReferences,
 
             // Legacy we should be phasing out
             TargetFramework.Mscorlib40 => Mscorlib40References,
@@ -189,13 +224,11 @@ namespace Roslyn.Test.Utilities
             TargetFramework.Mscorlib461 => Mscorlib46References,
             TargetFramework.Mscorlib461Extended => Mscorlib461ExtendedReferences,
             TargetFramework.WinRT => WinRTReferences,
-            TargetFramework.Standard => StandardReferences,
             TargetFramework.StandardAndCSharp => StandardAndCSharpReferences,
             TargetFramework.StandardAndVBRuntime => StandardAndVBRuntimeReferences,
             TargetFramework.DefaultVb => DefaultVbReferences,
             TargetFramework.Minimal => MinimalReferences,
             TargetFramework.MinimalAsync => MinimalAsyncReferences,
-            TargetFramework.StandardLatest => StandardLatestReferences,
             _ => throw new InvalidOperationException($"Unexpected target framework {targetFramework}"),
         };
 

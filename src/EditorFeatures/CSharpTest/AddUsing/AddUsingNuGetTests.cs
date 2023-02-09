@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 
         protected override void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.CSharp), true);
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.CSharp), true);
+            workspace.GlobalOptions.SetGlobalOption(SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.CSharp, true);
+            workspace.GlobalOptions.SetGlobalOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.CSharp, true);
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(

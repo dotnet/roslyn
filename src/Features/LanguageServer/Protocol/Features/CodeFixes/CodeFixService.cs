@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
-                includeSuppressedDiagnostics: false, priority, cancellationToken).ConfigureAwait(false);
+                includeSuppressedDiagnostics: false, priority, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
@@ -726,9 +726,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                                .Select(d => d.Id)
                                                .ToImmutableHashSet();
 
-                var diagnosticProvider = fixAllForInSpan ?
-                    new FixAllPredefinedDiagnosticProvider(allDiagnostics) :
-                    (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(_diagnosticService, diagnosticIds);
+                var diagnosticProvider = fixAllForInSpan
+                    ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
+                    : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(_diagnosticService, diagnosticIds);
 
                 var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
 
@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static ProjectCodeFixProvider.ExtensionInfo GetExtensionInfo(ExportCodeFixProviderAttribute attribute)
-                => new(attribute.DocumentKinds.ToImmutableArray(), attribute.DocumentExtensions);
+                => new(attribute.DocumentKinds, attribute.DocumentExtensions);
 
         private sealed class FixerComparer : IComparer<CodeFixProvider>
         {

@@ -3039,7 +3039,6 @@ IInvocationOperation (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKin
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void GettingInOutConversionFromCSharpArgumentShouldThrowException()
@@ -4065,7 +4064,7 @@ class C
             string expectedOperationTree = @"
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M0();')
   Expression: 
-    IInvocationOperation ( void C.M0([E? e = 1])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M0()')
+    IInvocationOperation ( void C.M0([E? e = E.E1])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M0()')
       Instance Receiver: 
         IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M0')
       Arguments(1):

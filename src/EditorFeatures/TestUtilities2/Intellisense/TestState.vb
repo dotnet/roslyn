@@ -157,6 +157,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendTypeChars(typeChars, Sub(a, n, c) ExecuteTypeCharCommand(a, n, c))
         End Sub
 
+        Public Async Function SendTypeCharsAndWaitForUiRenderAsync(typeChars As String) As Task
+            Dim uiRender = WaitForUIRenderedAsync()
+            SendTypeChars(typeChars)
+            Await uiRender
+        End Function
+
         Public Overloads Sub SendEscape()
             MyBase.SendEscape(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
         End Sub
@@ -193,6 +199,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overloads Sub SendInvokeCompletionList()
             MyBase.SendInvokeCompletionList(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
+
+        Public Async Function SendInvokeCompletionListAndWaitForUiRenderAsync() As Task
+            Dim uiRender = WaitForUIRenderedAsync()
+            MyBase.SendInvokeCompletionList(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
+            Await uiRender
+        End Function
 
         Public Overloads Sub SendInsertSnippetCommand()
             MyBase.SendInsertSnippetCommand(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
@@ -472,12 +484,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
         End Sub
 
-        Public Sub SetCompletionItemExpanderState(isSelected As Boolean)
+        Public Async Function SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected As Boolean) As Task
+            Dim uiRender = WaitForUIRenderedAsync()
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
             Dim expander = presenter.GetExpander()
             Assert.NotNull(expander)
             presenter.SetExpander(isSelected)
-        End Sub
+            Await uiRender
+        End Function
 
         Public Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             Await WaitForAsynchronousOperationsAsync()
@@ -519,11 +533,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return roslynItemData.RoslynItem
         End Function
 
-        Public Sub RaiseFiltersChanged(args As ImmutableArray(Of Data.CompletionFilterWithState))
+        Public Async Function RaiseFiltersChangedAndWaitForUiRenderAsync(args As ImmutableArray(Of Data.CompletionFilterWithState)) As Task
+            Dim uiRender = WaitForUIRenderedAsync()
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
             Dim newArgs = New Data.CompletionFilterChangedEventArgs(args)
             presenter.TriggerFiltersChanged(Me, newArgs)
-        End Sub
+            Await uiRender
+        End Function
 
         Public Function GetCompletionItemFilters() As ImmutableArray(Of Data.CompletionFilterWithState)
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)

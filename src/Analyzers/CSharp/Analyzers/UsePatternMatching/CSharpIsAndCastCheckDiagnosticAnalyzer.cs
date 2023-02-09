@@ -44,7 +44,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
+        {
+            context.RegisterCompilationStartAction(context =>
+            {
+                // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
+                // in projects targeting a lesser version.
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp7)
+                    return;
+
+                context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
+            });
+        }
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
@@ -52,16 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
-                return;
-            }
-
-            var severity = styleOption.Notification.Severity;
-
-            // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targeting a lesser version.
-            var syntaxTree = syntaxContext.Node.SyntaxTree;
-            if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp7)
-            {
                 return;
             }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 localDeclarationStatement.GetLocation(),
-                severity,
+                styleOption.Notification.Severity,
                 additionalLocations,
                 properties: null));
         }
@@ -161,42 +161,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // The is check has to be in an if check: "if (x is Type)
             if (!isExpression.Parent.IsKind(SyntaxKind.IfStatement, out ifStatement))
-            {
                 return false;
-            }
 
-            if (ifStatement.Statement is not BlockSyntax ifBlock)
-            {
+            if (ifStatement.Statement is not BlockSyntax block)
                 return false;
-            }
 
-            if (ifBlock.Statements.Count == 0)
-            {
+            if (block.Statements is [TryStatementSyntax tryStatement, ..])
+                block = tryStatement.Block;
+
+            if (block.Statements.Count == 0)
                 return false;
-            }
 
-            var firstStatement = ifBlock.Statements[0];
+            var firstStatement = block.Statements[0];
             if (!firstStatement.IsKind(SyntaxKind.LocalDeclarationStatement, out localDeclarationStatement))
-            {
                 return false;
-            }
 
             if (localDeclarationStatement.Declaration.Variables.Count != 1)
-            {
                 return false;
-            }
 
             declarator = localDeclarationStatement.Declaration.Variables[0];
             if (declarator.Initializer == null)
-            {
                 return false;
-            }
 
             var declaratorValue = declarator.Initializer.Value.WalkDownParentheses();
             if (!declaratorValue.IsKind(SyntaxKind.CastExpression, out castExpression))
-            {
                 return false;
-            }
 
             if (!SyntaxFactory.AreEquivalent(isExpression.Left.WalkDownParentheses(), castExpression.Expression.WalkDownParentheses(), topLevel: false) ||
                 !SyntaxFactory.AreEquivalent(isExpression.Right.WalkDownParentheses(), castExpression.Type, topLevel: false))

@@ -15,10 +15,11 @@ using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
+    using static SymbolSpecification;
+
     [Trait(Traits.Feature, Traits.Features.Completion)]
     public class DeclarationNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
@@ -2835,6 +2836,53 @@ class C
             await VerifyItemExistsAsync(markup, "cancellationToken");
         }
 
+        [Fact, WorkItem(43602, "https://github.com/dotnet/roslyn/issues/43602")]
+        public async Task TestForOutParam2()
+        {
+            var markup = @"
+class C
+{
+    void Main()
+    {
+        int.TryParse("""", out var $$)
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "result");
+        }
+
+        [Fact, WorkItem(49791, "https://github.com/dotnet/roslyn/issues/49791")]
+        public async Task TestForErrorType1()
+        {
+            var markup = @"
+class C
+{
+    void Main(string _rootPath)
+    {
+        _rootPath $$
+        _rootPath = null;
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, WorkItem(49791, "https://github.com/dotnet/roslyn/issues/49791")]
+        public async Task TestForErrorType2()
+        {
+            var markup = @"
+class C
+{
+    void Main()
+    {
+        Goo $$
+        Goo = null;
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "goo");
+        }
+
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
         {
             var styles = new[]
@@ -2944,13 +2992,11 @@ class C
         }
 
         private static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
-        {
-            return new SerializableNamingRule()
+            => new()
             {
                 SymbolSpecificationID = specification.ID,
                 NamingStyleID = style.ID,
                 EnforcementLevel = ReportDiagnostic.Error
             };
-        }
     }
 }

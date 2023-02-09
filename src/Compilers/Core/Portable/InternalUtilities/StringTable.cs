@@ -283,7 +283,6 @@ namespace Roslyn.Utilities
             return chars;
         }
 
-
         private static string? FindSharedEntry(char[] chars, int start, int len, int hashCode)
         {
             var arr = s_sharedTable;
@@ -493,7 +492,6 @@ namespace Roslyn.Utilities
             return e;
         }
 
-
         private string AddItem(char[] chars, int start, int len, int hashCode)
         {
             var text = new String(chars, start, len);
@@ -521,7 +519,6 @@ namespace Roslyn.Utilities
             AddCore(text, hashCode);
             return text;
         }
-
 
         private void AddCore(string chars, int hashCode)
         {
@@ -701,6 +698,16 @@ foundIdx:
                 return false;
             }
 
+#if NETCOREAPP3_1_OR_GREATER
+            int chunkOffset = 0;
+            foreach (var chunk in text.GetChunks())
+            {
+                if (!chunk.Span.Equals(array.AsSpan().Slice(chunkOffset, chunk.Length), StringComparison.Ordinal))
+                    return false;
+
+                chunkOffset += chunk.Length;
+            }
+#else
             // interestingly, stringbuilder holds the list of chunks by the tail
             // so accessing positions at the beginning may cost more than those at the end.
             for (var i = array.Length - 1; i >= 0; i--)
@@ -710,6 +717,7 @@ foundIdx:
                     return false;
                 }
             }
+#endif
 
             return true;
         }

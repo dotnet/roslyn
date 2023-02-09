@@ -37,14 +37,14 @@
         <target state="translated">Converter o tipo em '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">Corrigir Violação de Nome: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
         <target state="translated">Corrigir todas as ocorrências em</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_name_violation_colon_0">
+        <source>Fix name violation: {0}</source>
+        <target state="translated">Corrigir violação de nome: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -57,6 +57,11 @@
         <target state="translated">Tornar estático</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_type_partial">
+        <source>Make type partial</source>
+        <target state="translated">Tornar o tipo parcial</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
         <source>Remove extra blank lines</source>
         <target state="translated">Remover as linhas em branco extras</target>
@@ -67,9 +72,9 @@
         <target state="translated">Remover a atribuição redundante</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
-        <target state="translated">Suprimir ou Configurar os problemas</target>
+      <trans-unit id="Suppress_or_configure_issues">
+        <source>Suppress or configure issues</source>
+        <target state="translated">Suprimir ou configurar problemas</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

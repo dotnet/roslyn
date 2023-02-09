@@ -1216,6 +1216,23 @@ class C
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
+        [Fact, WorkItem(48247, "https://github.com/dotnet/roslyn/issues/48247")]
+        public async Task GenericMethodInDocComment()
+        {
+            var code = @"
+class C<T>
+{
+    /// <summary>
+    /// <see cref=""C{Int32}.M2()""/>
+    /// </summary>
+    public void M1() { }
+
+    private void {|IDE0052:M2|}() { }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
         [Fact]
         public async Task FieldIsOnlyWritten()
         {

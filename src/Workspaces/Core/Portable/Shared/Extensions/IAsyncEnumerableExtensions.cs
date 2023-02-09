@@ -12,20 +12,20 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class AsyncEnumerable<T>
-    {
-        public static readonly IAsyncEnumerable<T> Empty = GetEmptyAsync();
-
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        private static async IAsyncEnumerable<T> GetEmptyAsync()
-        {
-            yield break;
-        }
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-    }
-
     internal static class IAsyncEnumerableExtensions
     {
+        internal static class AsyncEnumerable<T>
+        {
+            public static readonly IAsyncEnumerable<T> Empty = GetEmptyAsync();
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+            private static async IAsyncEnumerable<T> GetEmptyAsync()
+            {
+                yield break;
+            }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        }
+
         public static async Task<ImmutableArray<T>> ToImmutableArrayAsync<T>(this IAsyncEnumerable<T> values, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<T>.GetInstance(out var result);
@@ -60,26 +60,38 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //
             // Note: passing CancellationToken.None here is intentional/correct.  We must complete all the channels to
             // allow reading to complete as well.
-            Task.WhenAll(tasks).ContinueWith(
-                t => channel.Writer.Complete(t.Exception),
-                CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+            Task.WhenAll(tasks).CompletesChannel(channel);
 
-            return ReadAllAsync(channel.Reader, cancellationToken);
+            return channel.Reader.ReadAllAsync(cancellationToken);
 
             static async Task Process(IAsyncEnumerable<T> stream, ChannelWriter<T> writer, CancellationToken cancellationToken)
             {
                 await foreach (var value in stream)
                     await writer.WriteAsync(value, cancellationToken).ConfigureAwait(false);
             }
+        }
 
-            static async IAsyncEnumerable<T> ReadAllAsync(ChannelReader<T> reader, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public static async IAsyncEnumerable<T> ReadAllAsync<T>(
+            this ChannelReader<T> reader, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    while (reader.TryRead(out var item))
-                        yield return item;
-                }
+                while (reader.TryRead(out var item))
+                    yield return item;
             }
+        }
+
+        /// <summary>
+        /// Runs after task completes in any fashion (success, cancellation, faulting) and ensures the channel writer is
+        /// always completed.  If the task faults then the exception from that task will be used to complete the channel
+        /// </summary>
+        public static void CompletesChannel<T>(this Task task, Channel<T> channel)
+        {
+            // Note: using `Complete(task.Exception)` is always fine.  Exception is only produced in the case of
+            // faulting. it is null otherwise.
+            task.ContinueWith(
+                static (task, channel) => ((Channel<T>)channel!).Writer.Complete(task.Exception),
+                channel, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
         }
     }
 }

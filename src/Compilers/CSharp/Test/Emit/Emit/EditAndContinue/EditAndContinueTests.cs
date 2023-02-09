@@ -7548,24 +7548,73 @@ class C
         [Fact]
         public void PrivateImplementationDetails_ComputeStringHash()
         {
-            var source =
-@"class C
+            var source = """
+class C
 {
     static int F(string s)
     {
-        switch (s)
+        return s switch
         {
-            case ""1"": return 1;
-            case ""2"": return 2;
-            case ""3"": return 3;
-            case ""4"": return 4;
-            case ""5"": return 5;
-            case ""6"": return 6;
-            case ""7"": return 7;
-            default: return 0;
-        }
+            "00" => 00,
+            "01" => 01,
+            "02" => 02,
+            "03" => 03,
+            "04" => 04,
+            "05" => 05,
+            "06" => 06,
+            "07" => 07,
+            "08" => 08,
+            "09" => 09,
+            "10" => 10,
+            "11" => 11,
+            "12" => 12,
+            "13" => 13,
+            "14" => 14,
+            "15" => 15,
+            "16" => 16,
+            "17" => 17,
+            "18" => 18,
+            "19" => 19,
+            "20" => 20,
+            "21" => 21,
+            "22" => 22,
+            "23" => 23,
+            "24" => 24,
+            "25" => 25,
+            "26" => 26,
+            "27" => 27,
+            "28" => 28,
+            "29" => 29,
+            "30" => 30,
+            "31" => 31,
+            "32" => 32,
+            "33" => 33,
+            "34" => 34,
+            "35" => 35,
+            "36" => 36,
+            "37" => 37,
+            "38" => 38,
+            "39" => 39,
+            "40" => 40,
+            "41" => 41,
+            "42" => 42,
+            "43" => 43,
+            "44" => 44,
+            "45" => 45,
+            "46" => 46,
+            "47" => 47,
+            "48" => 48,
+            "49" => 49,
+            "59" => 59,
+            "69" => 69,
+            "79" => 79,
+            "89" => 89,
+            "99" => 99,
+            _ => 0
+        };
     }
-}";
+}
+""";
             const string ComputeStringHashName = "ComputeStringHash";
             var compilation0 = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
@@ -15688,6 +15737,138 @@ class C
                               // Code size        6 (0x6)
                               .maxstack  8
                               IL_0000:  newobj     0x0A000008
+                              IL_0005:  throw
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Method_InsertAndDeleteParameter()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void M(int someInt) { someInt.ToString(); }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("M", ".ctor");
+                    })
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void M(int someInt, bool someBool) { someInt.ToString(); }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyDeletedMembers("C: {M}");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(3, TableIndex.Param)
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A000006
+                              IL_0005:  throw
+                            }
+                            {
+                              // Code size       10 (0xa)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ldarga.s   V_1
+                              IL_0003:  call       0x0A000007
+                              IL_0008:  pop
+                              IL_0009:  ret
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void M(int someInt) { someInt.ToString(); }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyDeletedMembers("C: {M}");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(3, TableIndex.Param)
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size       10 (0xa)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ldarga.s   V_1
+                              IL_0003:  call       0x0A000008
+                              IL_0008:  pop
+                              IL_0009:  ret
+                            }
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A000009
                               IL_0005:  throw
                             }
                             """;

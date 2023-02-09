@@ -220,13 +220,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundLiteral literal:
                         {
-                            var value = literal.ConstantValue?.Value?.ToString();
+                            var value = literal.ConstantValueOpt?.Value?.ToString();
                             if (value is null)
                             {
                                 append("null");
                                 break;
                             }
-                            switch (literal.ConstantValue?.Discriminator)
+                            switch (literal.ConstantValueOpt?.Discriminator)
                             {
                                 case ConstantValueTypeDiscriminator.String:
                                     append($@"""{value}""");

@@ -2922,7 +2922,6 @@ class classAttribute : System.Attribute { }
                 "classAttribute",
                 SymbolDisplayPartKind.ClassName);
 
-
             TestSymbolDescription(text, findSymbol,
                 new SymbolDisplayFormat(miscellaneousOptions: SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix),
                 "classAttribute",
@@ -3986,6 +3985,124 @@ struct S
                 SymbolDisplayPartKind.Punctuation, //,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation, // =
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation, // (
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, // )
+                SymbolDisplayPartKind.NumericLiteral,
+                SymbolDisplayPartKind.Punctuation); //)
+        }
+
+        [Fact]
+        public void DefaultParameterValues_NullableEnum()
+        {
+            var text = @"
+[System.FlagsAttribute]
+enum E : sbyte
+{
+    A = -2,
+    A1 = -2,
+    B = 1,
+    B1 = 1,
+    C = 0,
+    C1 = 0,
+}
+
+struct S
+{
+    void P(E? e = null, E? f = E.A, E? g = E.A | E.B, E?h = 0, E? i = (E)(-3))
+    {
+    }
+}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetMember<NamedTypeSymbol>("S").GetMember<MethodSymbol>("P");
+
+            var format =
+             new SymbolDisplayFormat(
+                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                 memberOptions:
+                     SymbolDisplayMemberOptions.IncludeParameters |
+                     SymbolDisplayMemberOptions.IncludeType |
+                     SymbolDisplayMemberOptions.IncludeContainingType,
+                 parameterOptions:
+                     SymbolDisplayParameterOptions.IncludeName |
+                     SymbolDisplayParameterOptions.IncludeType |
+                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                     SymbolDisplayParameterOptions.IncludeDefaultValue,
+                 localOptions: SymbolDisplayLocalOptions.IncludeType,
+                 miscellaneousOptions:
+                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(text, findSymbol,
+                format,
+                @"void S.P(E? e = null, E? f = E.A, E? g = E.A | E.B, E? h = E.C, E? i = (E)-3)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation, //.
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation, //(
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, //?
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation, //=
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation, //,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, //?
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation, //=
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, //.
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation, //,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, //?
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation, //=
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, //.
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation, //|
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, //.
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation, //,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, //?
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation, //=
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, //.
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation, //,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation, //?
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Space,
@@ -6597,7 +6714,6 @@ enum E : long
                 SymbolDisplayPartKind.NumericLiteral);
         }
 
-
         [Fact]
         public void TestRefStructs()
         {
@@ -7587,7 +7703,6 @@ class C
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.ClassName);
         }
-
 
         [Fact]
         public void StructConstructorDeclaration()

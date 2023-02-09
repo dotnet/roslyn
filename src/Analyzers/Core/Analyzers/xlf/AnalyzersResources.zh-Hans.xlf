@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="Remove_accessibility_modifiers">
         <source>Remove accessibility modifiers</source>
-        <target state="new">Remove accessibility modifiers</target>
+        <target state="translated">删除辅助功能修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_equality">
@@ -327,6 +327,11 @@
         <target state="translated">简化名称</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_check">
+        <source>Simplify check</source>
+        <target state="translated">简化检查</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
         <source>Simplify collection initialization</source>
         <target state="translated">简化集合初始化</target>
@@ -377,14 +382,9 @@
         <target state="translated">使用自动属性</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression_for_non_nullable_types">
-        <source>Use coalesce expression for non-nullable types</source>
-        <target state="new">Use coalesce expression for non-nullable types</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_coalesce_expression_for_nullable_types">
-        <source>Use coalesce expression for nullable types</source>
-        <target state="new">Use coalesce expression for nullable types</target>
+      <trans-unit id="Use_coalesce_expression">
+        <source>Use coalesce expression</source>
+        <target state="translated">使用 COALESCE 表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_compound_assignment">

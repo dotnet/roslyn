@@ -380,6 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenNotNull: pinAndGetPtr,
                     whenNullOpt: null, // just return default(T*)
                     currentConditionalAccessID,
+                    forceCopyOfNullableValueType: false,
                     localType);
             }
 

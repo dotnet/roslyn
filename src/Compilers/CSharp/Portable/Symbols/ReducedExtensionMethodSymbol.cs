@@ -230,7 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return method.Construct(typeArgsForConstruct);
         }
 
-
         internal override MethodSymbol CallsiteReducedFromMethod
         {
             get { return _reducedFrom.ConstructIfGeneric(_typeArguments); }

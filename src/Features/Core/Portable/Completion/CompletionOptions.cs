@@ -19,14 +19,23 @@ namespace Microsoft.CodeAnalysis.Completion
         public SnippetsRule SnippetsBehavior { get; init; } = SnippetsRule.Default;
         public bool HideAdvancedMembers { get; init; } = false;
         public bool ShowNameSuggestions { get; init; } = true;
-        public bool? ShowItemsFromUnimportedNamespaces { get; init; } = null;
+        public bool? ShowItemsFromUnimportedNamespaces { get; init; } = true;
         public bool UnnamedSymbolCompletionDisabled { get; init; } = false;
         public bool TargetTypedCompletionFilter { get; init; } = false;
-        public bool TypeImportCompletion { get; init; } = false;
         public bool ProvideDateAndTimeCompletions { get; init; } = true;
         public bool ProvideRegexCompletions { get; init; } = true;
+
+        /// <summary>
+        /// Test-only option.
+        /// </summary>
         public bool ForceExpandedCompletionIndexCreation { get; init; } = false;
+
+        /// <summary>
+        /// Set to true to update import completion cache in background if the provider isn't supposed to be triggered in the context.
+        /// (cache will always be refreshed when provider is triggered)
+        /// </summary>
         public bool UpdateImportCompletionCacheInBackground { get; init; } = false;
+
         public bool FilterOutOfScopeLocals { get; init; } = true;
         public bool ShowXmlDocCommentCompletion { get; init; } = true;
         public bool? ShowNewSnippetExperienceUserOption { get; init; } = null;
@@ -37,20 +46,17 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly CompletionOptions Default = new();
 
         public RecommendationServiceOptions ToRecommendationServiceOptions()
-            => new(
-                FilterOutOfScopeLocals: FilterOutOfScopeLocals,
-                HideAdvancedMembers: HideAdvancedMembers);
+            => new()
+            {
+                FilterOutOfScopeLocals = FilterOutOfScopeLocals,
+                HideAdvancedMembers = HideAdvancedMembers
+            };
 
         /// <summary>
         /// Whether items from unimported namespaces should be included in the completion list.
-        /// This takes into consideration the experiment we are running in addition to the value
-        /// from user facing options.
         /// </summary>
-        public bool ShouldShowItemsFromUnimportedNamespaces()
-        {
-            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
-            return ShowItemsFromUnimportedNamespaces ?? TypeImportCompletion;
-        }
+        public bool ShouldShowItemsFromUnimportedNamespaces
+            => !ShowItemsFromUnimportedNamespaces.HasValue || ShowItemsFromUnimportedNamespaces.Value;
 
         /// <summary>
         /// Whether items from new snippet experience should be included in the completion list.

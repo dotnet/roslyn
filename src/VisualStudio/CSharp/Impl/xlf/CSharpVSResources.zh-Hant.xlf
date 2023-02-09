@@ -7,9 +7,19 @@
         <target state="translated">在貼上時新增缺少的 using 指示詞</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+      <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
         <target state="translated">允許在建構函式初始設定式的冒號後面加上空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">在箭頭運算式子句中的權杖後允許空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="translated">在條件運算式中的權杖後允許空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -104,12 +114,12 @@
       </trans-unit>
       <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
         <source>Insert space between called method name and its opening parenthesis</source>
-        <target state="new">Insert space between called method name and its opening parenthesis</target>
+        <target state="translated">在方法名稱和左括弧之間插入空格</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
         <source>Insert space between method name and its opening parenthesis</source>
-        <target state="new">Insert space between method name and its opening parenthesis</target>
+        <target state="translated">在方法名稱和左括號之間插入空格</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
