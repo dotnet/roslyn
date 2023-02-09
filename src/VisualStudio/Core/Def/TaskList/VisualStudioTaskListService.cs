@@ -34,7 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly ITableManagerProvider _tableManagerProvider;
         private readonly IAsyncServiceProvider _asyncServiceProvider;
-        private readonly IAsynchronousOperationListener _asyncOperationListener;
         private readonly TaskListListener _listener;
 
         public event EventHandler<TaskListUpdatedArgs>? TaskListUpdated;
@@ -54,7 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
             _workspace = workspace;
             _tableManagerProvider = tableManagerProvider;
             _asyncServiceProvider = (IAsyncServiceProvider)asyncServiceProvider;
-            _asyncOperationListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TaskList);
 
             _listener = new TaskListListener(
                 globalOptions,
@@ -70,8 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
 
         public void Start(VisualStudioWorkspace workspace)
         {
-            var token = _asyncOperationListener.BeginAsyncOperation(nameof(Start));
-            StartAsync(workspace).CompletesAsyncOperation(token);
+            // Fire and forget.
+            _ = StartAsync(workspace);
         }
 
         private async Task StartAsync(VisualStudioWorkspace workspace)
