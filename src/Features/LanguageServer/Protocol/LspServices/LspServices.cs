@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 

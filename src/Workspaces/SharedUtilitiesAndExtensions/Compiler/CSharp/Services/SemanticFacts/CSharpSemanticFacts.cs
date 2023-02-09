@@ -182,6 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public SymbolInfo GetCollectionInitializerSymbolInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => semanticModel.GetCollectionInitializerSymbolInfo((ExpressionSyntax)node, cancellationToken);
+
         public IMethodSymbol? GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
         {
             if (node is AwaitExpressionSyntax awaitExpression)

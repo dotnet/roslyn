@@ -499,6 +499,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node);
         bool IsElementAccessInitializer([NotNullWhen(true)] SyntaxNode? node);
+
         bool IsObjectMemberInitializer([NotNullWhen(true)] SyntaxNode? node);
         bool IsObjectCollectionInitializer([NotNullWhen(true)] SyntaxNode? node);
 

@@ -1382,5 +1382,34 @@ class Program
 }" + IAsyncEnumerable;
             await TestInRegularAndScriptAsync(initial, expected);
         }
+
+        [Fact, WorkItem(25446, "https://github.com/dotnet/roslyn/issues/25446")]
+        public async Task TestOnAwaitParsedAsType()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Task task = null;
+        [|await|] task;
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task MAsync()
+    {
+        Task task = null;
+        await task;
+    }
+}";
+            await TestInRegularAndScript1Async(initial, expected);
+        }
     }
 }

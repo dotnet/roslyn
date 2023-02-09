@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 using CompilerInvocationsReader = Microsoft.Build.Logging.StructuredLogger.CompilerInvocationsReader;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
@@ -89,12 +90,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                 if (solution != null)
                 {
-                    await LocateAndRegisterMSBuild(logFile);
+                    await LocateAndRegisterMSBuild(logFile, solution.Directory);
                     await GenerateFromSolutionAsync(solution, lsifWriter, logFile, cancellationToken);
                 }
                 else if (project != null)
                 {
-                    await LocateAndRegisterMSBuild(logFile);
+                    await LocateAndRegisterMSBuild(logFile, project.Directory);
                     await GenerateFromProjectAsync(project, lsifWriter, logFile, cancellationToken);
                 }
                 else if (compilerInvocation != null)
@@ -103,8 +104,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }
                 else
                 {
-                    await LocateAndRegisterMSBuild(logFile);
-                    await GenerateFromBinaryLogAsync(binLog!, lsifWriter, logFile, cancellationToken);
+                    Contract.ThrowIfNull(binLog);
+                    await LocateAndRegisterMSBuild(logFile, binLog.Directory);
+                    await GenerateFromBinaryLogAsync(binLog, lsifWriter, logFile, cancellationToken);
                 }
             }
             catch (Exception e)
@@ -120,20 +122,25 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync("Generation complete.");
         }
 
-        private static async Task LocateAndRegisterMSBuild(TextWriter logFile)
+        private static async Task LocateAndRegisterMSBuild(TextWriter logFile, DirectoryInfo? workingDirectory)
         {
             // Make sure we pick the highest version
-            var msbuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
-            if (msbuildInstance == null)
+            var options = VisualStudioInstanceQueryOptions.Default;
+
+            if (workingDirectory != null)
+                options.WorkingDirectory = workingDirectory.FullName;
+
+            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances(options).OrderByDescending(i => i.Version).FirstOrDefault();
+            if (msBuildInstance == null)
             {
-                throw new Exception("No MSBuild instances installed with Visual Studio could be found.");
+                throw new Exception($"No MSBuild instances could be found; discovery types being used: {options.DiscoveryTypes}.");
             }
             else
             {
-                await logFile.WriteLineAsync($"Using the MSBuild instance located at {msbuildInstance.MSBuildPath}.");
+                await logFile.WriteLineAsync($"Using the MSBuild instance located at {msBuildInstance.MSBuildPath}.");
             }
 
-            MSBuildLocator.RegisterInstance(msbuildInstance);
+            MSBuildLocator.RegisterInstance(msBuildInstance);
         }
 
         private static async Task GenerateFromProjectAsync(

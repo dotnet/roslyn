@@ -2730,6 +2730,27 @@ class Goo
             End Using
         End Sub
 
+        <WpfTheory, CombinatorialData, WorkItem(8320, "https://github.com/dotnet/roslyn/issues/8320")>
+        Public Sub EnumParamsCompletion(showCompletionInArgumentLists As Boolean)
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+class C
+{
+    void X(params DayOfWeek[] x)
+    {
+        X($$);
+    }
+}
+                </Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                state.AssertSelectedCompletionItem("DayOfWeek", isHardSelected:=True)
+            End Using
+        End Sub
+
         <WpfTheory, CombinatorialData>
         Public Async Function EnumCompletionNotTriggeredOnPlusCommitCharacter(showCompletionInArgumentLists As Boolean) As Task
             Await EnumCompletionNotTriggeredOn("+"c, showCompletionInArgumentLists)
@@ -11047,6 +11068,29 @@ class Program
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("string", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/21055")>
+        Public Async Function CompletionInOutParamWithVariableDirectlyAfter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class Program
+{
+    static void Main(string[] args)
+    {
+        if (TryParse("", out $$
+
+        Program p = null;
+    }
+
+    static bool TryParse(string s, out Program p) { }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("P")
+                Await state.AssertSelectedCompletionItem(displayText:="Program", isHardSelected:=True)
             End Using
         End Function
     End Class
