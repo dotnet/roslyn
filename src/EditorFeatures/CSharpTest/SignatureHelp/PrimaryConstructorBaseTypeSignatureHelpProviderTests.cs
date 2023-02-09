@@ -38,6 +38,24 @@ record Derived(int Other) : [|Base($$1|]);
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public async Task PrimaryConstructorClassBaseType_FirstParameter()
+        {
+            var markup = @"
+class Base(int Identifier)
+{
+    private Base(string ignored) : this(1, 2) { }
+}
+class Derived(int Other) : [|Base($$1|]);
+";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
         [Fact]
         public async Task PrimaryConstructorBaseType_SecondParameter()
         {
@@ -47,6 +65,25 @@ record Base(int Identifier1, int Identifier2)
     protected Base(string name) : this(1, 2) { }
 }
 record Derived(int Other) : [|Base(1, $$2|]);
+";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", string.Empty, null, currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public async Task PrimaryConstructorClassBaseType_SecondParameter()
+        {
+            var markup = @"
+class Base(int Identifier1, int Identifier2)
+{
+    protected Base(string name) : this(1, 2) { }
+}
+class Derived(int Other) : [|Base(1, $$2|]);
 ";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
@@ -77,6 +114,26 @@ record Derived(int Other) : [|Base(1, $$2|]);
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public async Task CommentOnClassBaseConstructor()
+        {
+            var markup = @"
+class Base(int Identifier1, int Identifier2)
+{
+    /// <summary>Summary for constructor</summary>
+    protected Base(string name) : this(1, 2) { }
+}
+class Derived(int Other) : [|Base(1, $$2|]);
+";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", "Summary for constructor", null, currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
         [Fact]
         public async Task CommentOnBaseConstructorAndParameters()
         {
@@ -88,6 +145,27 @@ record Base(int Identifier1, int Identifier2)
     protected Base(string name) : this(1, 2) { }
 }
 record Derived(int Other) : [|Base($$1, 2|]);
+";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(Base original)", string.Empty, null, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(string name)", "Summary for constructor", "Param name", currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 0, isSelected: true));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public async Task CommentOnClassBaseConstructorAndParameters()
+        {
+            var markup = @"
+class Base(int Identifier1, int Identifier2)
+{
+    /// <summary>Summary for constructor</summary>
+    /// <param name=""name"">Param name</param>
+    protected Base(string name) : this(1, 2) { }
+}
+class Derived(int Other) : [|Base($$1, 2|]);
 ";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();

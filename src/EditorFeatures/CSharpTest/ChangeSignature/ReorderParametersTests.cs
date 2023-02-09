@@ -975,5 +975,53 @@ record R(int C, int B, int A)
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
+
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public async Task ReorderParamTagsInDocComments_PrimaryConstructor_Class()
+        {
+            var markup = @"
+/// <param name=""A""></param>
+/// <param name=""B""></param>
+/// <param name=""C""></param>
+class $$R(int A, int B, int C)
+{
+    public static R Instance = new(0, 1, 2);
+}";
+            var permutation = new[] { 2, 1, 0 };
+            var updatedCode = @"
+/// <param name=""C""></param>
+/// <param name=""B""></param>
+/// <param name=""A""></param>
+class R(int C, int B, int A)
+{
+    public static R Instance = new(2, 1, 0);
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public async Task ReorderParamTagsInDocComments_PrimaryConstructor_Struct()
+        {
+            var markup = @"
+/// <param name=""A""></param>
+/// <param name=""B""></param>
+/// <param name=""C""></param>
+struct $$R(int A, int B, int C)
+{
+    public static R Instance = new(0, 1, 2);
+}";
+            var permutation = new[] { 2, 1, 0 };
+            var updatedCode = @"
+/// <param name=""C""></param>
+/// <param name=""B""></param>
+/// <param name=""A""></param>
+struct R(int C, int B, int A)
+{
+    public static R Instance = new(2, 1, 0);
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
     }
 }

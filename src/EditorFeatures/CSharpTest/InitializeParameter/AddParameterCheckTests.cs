@@ -2732,5 +2732,31 @@ record C([||]string s) { public string s; }";
                 FixedCode = code,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestNotInClass()
+        {
+            var code = @"
+class C([||]string s) { public string s; }";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotInStruct()
+        {
+            var code = @"
+struct C([||]string s) { public string s; }";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
     }
 }

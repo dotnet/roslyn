@@ -433,5 +433,26 @@ record DerivedR() : BaseR(1, 3, 0);";
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
+
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public async Task AddParameter_Cascade_PrimaryConstructor()
+        {
+            var markup = @"
+class $$BaseR(int A, int B);
+
+class DerivedR() : BaseR(0, 1);";
+            var permutation = new AddedParameterOrExistingIndex[]
+            {
+                new(1),
+                new(new AddedParameter(null, "int", "C", CallSiteKind.Value, "3"), "int"),
+                new(0)
+            };
+            var updatedCode = @"
+class BaseR(int B, int C, int A);
+
+class DerivedR() : BaseR(1, 3, 0);";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
     }
 }

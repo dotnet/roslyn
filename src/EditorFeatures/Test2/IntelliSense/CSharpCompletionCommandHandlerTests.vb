@@ -610,6 +610,40 @@ record Derived(int Other) : [|Base$$|]
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        Public Async Function CompletionOnClassBaseType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class Base(int Alice, int Bob);
+class Derived(int Other) : [|Base$$|]
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp9)
+
+                state.SendTypeChars("(")
+                If showCompletionInArgumentLists Then
+                    Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=False)
+                End If
+
+                state.SendTypeChars("A")
+
+                If showCompletionInArgumentLists Then
+                    Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
+                End If
+
+                state.SendTypeChars(": 1, B")
+
+                If showCompletionInArgumentLists Then
+                    Await state.AssertSelectedCompletionItem(displayText:="Bob:", isHardSelected:=True)
+                End If
+
+                state.SendTab()
+                state.SendTypeChars(": 2)")
+
+                Await state.AssertNoCompletionSession()
+                Assert.Contains(": Base(Alice: 1, Bob: 2)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnImplicitObjectCreationExpressionInitializer(showCompletionInArgumentLists As Boolean) As Task

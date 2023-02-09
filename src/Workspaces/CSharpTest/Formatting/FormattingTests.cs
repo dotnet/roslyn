@@ -9988,6 +9988,18 @@ record  class  R(int X);
         }
 
         [Fact]
+        public async Task Class()
+        {
+            await AssertFormatAsync(
+                @"
+class R(int X);
+",
+                @"
+class  R(int X)  ;
+");
+        }
+
+        [Fact]
         public async Task RecordStruct()
         {
             await AssertFormatAsync(
@@ -9996,6 +10008,18 @@ record struct R(int X);
 ",
                 @"
 record  struct  R(int X);
+");
+        }
+
+        [Fact]
+        public async Task Struct()
+        {
+            await AssertFormatAsync(
+                @"
+struct R(int X);
+",
+                @"
+struct  R(int X)  ;
 ");
         }
 

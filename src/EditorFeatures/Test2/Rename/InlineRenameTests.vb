@@ -1978,6 +1978,66 @@ class [|C|]
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameClassWithNoBody1(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class [|$$Goo|](int a);
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameStructWithNoBody1(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                struct [|$$Goo|](int a);
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameRecordWithBody(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -2008,12 +2068,132 @@ class [|C|]
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameClassWithBody(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameStructWithBody(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                struct [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameRecordConstructorCalled(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
                             <Document>
                                 record [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g = new [|Goo|](1);
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameClassConstructorCalled(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                class [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g = new [|Goo|](1);
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameStructConstructorCalled(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                struct [|$$Goo|](int a) { }
                                 class C
                                 {
                                     [|Goo|] g = new [|Goo|](1);

@@ -3655,6 +3655,24 @@ $@"public {typeKind} C
 }}");
         }
 
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public void TestInsertMembersOnClass_SemiColon()
+        {
+            var comp = Compile(
+$@"public class C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+$@"public class C
+{{
+    T A;
+}}");
+        }
+
         [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
         public void TestInsertMembersOnRecordStruct_SemiColon()
         {
@@ -3674,6 +3692,24 @@ $@"public {typeKind} C
 {
     T A;
 }");
+        }
+
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public void TestInsertMembersOnStruct_SemiColon()
+        {
+            var comp = Compile(
+$@"public struct C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<StructDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+$@"public struct C
+{{
+    T A;
+}}");
         }
 
         [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]

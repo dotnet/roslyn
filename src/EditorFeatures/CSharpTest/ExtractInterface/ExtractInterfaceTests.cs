@@ -1597,6 +1597,34 @@ public interface IA
                 expectedInterfaceCode: expectedInterfaceCode);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestClass1()
+        {
+            var markup =
+@"namespace Test
+{
+    class $$Whatever(int X, string Y);
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestStruct1()
+        {
+            var markup =
+@"namespace Test
+{
+    struct $$Whatever(int X, string Y);
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
+        }
+
         [WorkItem(49739, "https://github.com/dotnet/roslyn/issues/49739")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task TestRecord2()
@@ -1634,6 +1662,34 @@ public interface IA
                 expectedSuccess: true,
                 expectedUpdatedOriginalDocumentCode: updatedMarkup,
                 expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestClass2()
+        {
+            var markup =
+@"namespace Test
+{
+    class $$Whatever(int X, string Y) { }
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestStruct2()
+        {
+            var markup =
+@"namespace Test
+{
+    struct $$Whatever(int X, string Y) { }
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
         }
 
         [WorkItem(49739, "https://github.com/dotnet/roslyn/issues/49739")]
@@ -1675,6 +1731,36 @@ public interface IA
                 expectedSuccess: true,
                 expectedUpdatedOriginalDocumentCode: updatedMarkup,
                 expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestClass3()
+        {
+            var markup =
+@"namespace Test
+{
+    /// <summary></summary>
+    class $$Whatever(int X, string Y);
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestStruct3()
+        {
+            var markup =
+@"namespace Test
+{
+    /// <summary></summary>
+    struct $$Whatever(int X, string Y);
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
         }
     }
 }
