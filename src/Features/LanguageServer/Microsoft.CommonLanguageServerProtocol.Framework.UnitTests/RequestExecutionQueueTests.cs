@@ -222,11 +222,8 @@ public class RequestExecutionQueueTests
     [LanguageServerEndpoint(CancellingMethod)]
     public class CancellingHandler : IRequestHandler<int, string, TestRequestContext>
     {
-        private readonly MutatingHandler _mutatingHandler;
-
         public CancellingHandler(MutatingHandler mutatingHandler) : base()
         {
-            _mutatingHandler = mutatingHandler;
         }
 
         public bool MutatesSolutionState => false;
