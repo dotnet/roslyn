@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -19,14 +17,15 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructorFromMembers
 {
-    public class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+    public sealed class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpGenerateConstructorFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
-        private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+        private readonly NamingStylesTestOptionSets options = new(LanguageNames.CSharp);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestSingleField()
         {
             await TestInRegularAndScriptAsync(
@@ -49,7 +48,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestSingleFieldWithCodeStyle()
         {
             await TestInRegularAndScriptAsync(
@@ -70,7 +69,7 @@ class Z
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsSingleLine()
         {
             await TestInRegularAndScriptAsync(
@@ -91,7 +90,7 @@ class Z
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsNotSingleLine()
         {
             await TestInRegularAndScriptAsync(
@@ -118,7 +117,7 @@ class Z
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMultipleFields()
         {
             await TestInRegularAndScriptAsync(
@@ -144,7 +143,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMultipleFields_VerticalSelection()
         {
             await TestInRegularAndScriptAsync(
@@ -170,7 +169,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMultipleFields_VerticalSelectionUpToExcludedField()
         {
             await TestInRegularAndScriptAsync(
@@ -198,7 +197,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMultipleFields_VerticalSelectionUpToMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -226,7 +225,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMultipleFields_SelectionIncludingClassOpeningBrace()
         {
             await TestMissingAsync(
@@ -239,7 +238,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestSecondField()
         {
             await TestInRegularAndScriptAsync(
@@ -274,7 +273,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestFieldAssigningConstructor()
         {
             await TestInRegularAndScriptAsync(
@@ -310,7 +309,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestFieldAssigningConstructor2()
         {
             await TestInRegularAndScriptAsync(
@@ -346,7 +345,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestDelegatingConstructor()
         {
             await TestInRegularAndScriptAsync(
@@ -382,7 +381,7 @@ class Z
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestDelegatingConstructorWithNullabilityDifferences()
         {
             // For this test we have a problem: the existing constructor has different nullability than
@@ -425,7 +424,7 @@ class Z
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMissingWithExistingConstructor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -449,7 +448,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMultipleProperties()
         {
             await TestInRegularAndScriptAsync(
@@ -471,7 +470,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMultiplePropertiesWithQualification()
         {
             await TestInRegularAndScriptAsync(
@@ -493,7 +492,7 @@ class Z
 }", options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestStruct()
         {
             await TestInRegularAndScriptAsync(
@@ -516,7 +515,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestStructInitializingAutoProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -539,7 +538,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestStructNotInitializingAutoProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -564,7 +563,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestStruct2()
         {
             await TestInRegularAndScriptAsync(
@@ -591,7 +590,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestStruct3()
         {
             await TestInRegularAndScriptAsync(
@@ -618,7 +617,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestGenericType()
         {
             await TestInRegularAndScriptAsync(
@@ -641,7 +640,7 @@ class Program<T>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestSmartTagText1()
         {
             await TestSmartTagTextAsync(
@@ -655,7 +654,7 @@ class Program
 string.Format(FeaturesResources.Generate_constructor_0_1, "Program", "bool, HashSet<string>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestSmartTagText2()
         {
             await TestSmartTagTextAsync(
@@ -674,7 +673,7 @@ class Program
 string.Format(FeaturesResources.Generate_field_assigning_constructor_0_1, "Program", "bool, HashSet<string>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestSmartTagText3()
         {
             await TestSmartTagTextAsync(
@@ -694,7 +693,7 @@ string.Format(FeaturesResources.Generate_delegating_constructor_0_1, "Program", 
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestContextualKeywordName()
         {
             await TestInRegularAndScriptAsync(
@@ -713,7 +712,7 @@ index: 1);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestGenerateConstructorNotOfferedForDuplicate()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -732,7 +731,7 @@ class X
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task Tuple()
         {
             await TestInRegularAndScriptAsync(
@@ -755,7 +754,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task NullableReferenceType()
         {
             await TestInRegularAndScriptAsync(
@@ -778,7 +777,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
         public async Task TestUnderscoreInName1()
         {
@@ -798,7 +797,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(62162, "https://github.com/dotnet/roslyn/issues/62162")]
         public async Task TestUnderscoreInName_KeepIfNameWithoutUnderscoreIsInvalid()
         {
@@ -818,7 +817,7 @@ class Z
 }");
         }
 
-        [Theory, WorkItem(62162, "https://github.com/dotnet/roslyn/issues/62162"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Theory, WorkItem(62162, "https://github.com/dotnet/roslyn/issues/62162")]
         [InlineData('m')]
         [InlineData('s')]
         [InlineData('t')]
@@ -840,7 +839,7 @@ $@"class Program
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
         public async Task TestUnderscoreInName_PreferThis()
         {
@@ -861,7 +860,7 @@ $@"class Program
 options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
         public async Task TestGetter_Only_Auto_Props()
         {
@@ -885,7 +884,7 @@ options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWith
 options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
         public async Task TestAbstract_Getter_Only_Auto_Props()
         {
@@ -898,7 +897,7 @@ options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWith
 new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestSingleFieldWithDialog()
         {
             await TestWithPickMembersDialogAsync(
@@ -923,7 +922,7 @@ class Z
 chosenSymbols: new[] { "a" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestSingleFieldWithDialog2()
         {
             await TestWithPickMembersDialogAsync(
@@ -947,7 +946,7 @@ class Z
 chosenSymbols: new[] { "a" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMissingOnClassAttributes()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -960,7 +959,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestPickNoFieldWithDialog()
         {
             await TestWithPickMembersDialogAsync(
@@ -984,7 +983,7 @@ class Z
 chosenSymbols: new string[] { });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestReorderFieldsWithDialog()
         {
             await TestWithPickMembersDialogAsync(
@@ -1012,7 +1011,7 @@ class Z
 chosenSymbols: new string[] { "b", "a" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestAddNullChecks1()
         {
             await TestWithPickMembersDialogAsync(
@@ -1045,7 +1044,7 @@ chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
         public async Task TestAddNullChecksWithNullableReferenceType()
         {
@@ -1084,7 +1083,7 @@ chosenSymbols: new string[] { "a", "b", "c" },
 optionsCallback: options => options[0].Value = true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
         public async Task TestAddNullChecksWithNullableReferenceTypeForGenerics()
         {
@@ -1123,7 +1122,7 @@ chosenSymbols: new string[] { "a", "b", "c" },
 optionsCallback: options => options[0].Value = true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestAddNullChecks2()
         {
             await TestWithPickMembersDialogAsync(
@@ -1163,7 +1162,7 @@ parameters: new TestParameters(options:
     Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestAddNullChecks3()
         {
             await TestWithPickMembersDialogAsync(
@@ -1198,7 +1197,7 @@ parameters: new TestParameters(options:
     Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestAddNullChecks_CSharp6()
         {
             await TestWithPickMembersDialogAsync(
@@ -1239,7 +1238,7 @@ parameters: new TestParameters(
     options: Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMissingOnMember1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1253,7 +1252,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMissingOnMember2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1271,7 +1270,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         public async Task TestMissingOnMember3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1290,7 +1289,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(21067, "https://github.com/dotnet/roslyn/pull/21067")]
         public async Task TestFinalCaretPosition()
         {
@@ -1314,7 +1313,7 @@ class Z
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(20595, "https://github.com/dotnet/roslyn/issues/20595")]
         public async Task ProtectedConstructorShouldBeGeneratedForAbstractClass()
         {
@@ -1335,7 +1334,7 @@ class Z
 options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
         public async Task TestWithDialogNoBackingField()
         {
@@ -1359,7 +1358,7 @@ class Program
 chosenSymbols: null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")]
         public async Task TestWithDialogNoIndexer()
         {
@@ -1411,7 +1410,7 @@ class Program
 chosenSymbols: null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelection()
         {
@@ -1431,7 +1430,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelection2()
         {
@@ -1451,7 +1450,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelection3()
         {
@@ -1471,7 +1470,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelectionBeforeIdentifier()
         {
@@ -1491,7 +1490,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelectionAfterIdentifier()
         {
@@ -1511,7 +1510,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelectionIdentifierNotSelected()
         {
@@ -1522,7 +1521,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelectionIdentifierNotSelected2()
         {
@@ -1533,7 +1532,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestMultiplePartialFieldSelection()
         {
@@ -1556,7 +1555,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestMultiplePartialFieldSelection2()
         {
@@ -1578,7 +1577,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestMultiplePartialFieldSelection3_1()
         {
@@ -1598,7 +1597,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestMultiplePartialFieldSelection3_2()
         {
@@ -1619,7 +1618,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestMultiplePartialFieldSelection4()
         {
@@ -1630,7 +1629,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestNoFieldNamingStyle()
         {
@@ -1650,7 +1649,7 @@ chosenSymbols: null);
 }", options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestCommonFieldNamingStyle()
         {
@@ -1670,7 +1669,7 @@ chosenSymbols: null);
 }", options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestSpecifiedNamingStyle()
         {
@@ -1690,7 +1689,7 @@ chosenSymbols: null);
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestSpecifiedAndCommonFieldNamingStyle()
         {
@@ -1710,7 +1709,7 @@ chosenSymbols: null);
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestSpecifiedAndCommonFieldNamingStyle2()
         {
@@ -1730,7 +1729,7 @@ chosenSymbols: null);
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestBaseNameEmpty()
         {
@@ -1741,7 +1740,7 @@ chosenSymbols: null);
 }", new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestSomeBaseNamesEmpty()
         {
@@ -1763,7 +1762,7 @@ chosenSymbols: null);
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
         public async Task TestUnsafeField()
         {
@@ -1785,7 +1784,7 @@ class Z
 }", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
         public async Task TestUnsafeFieldInUnsafeClass()
         {
@@ -1807,7 +1806,7 @@ unsafe class Z
 }", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [Fact]
         [WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
         public async Task TestMissingWhenTypeNotInCompilation()
         {
@@ -1830,6 +1829,155 @@ using System.Collections.Generic;
         </Document>
     </Project>
 </Workspace>");
+        }
+
+        [Fact, WorkItem(29198, "https://github.com/dotnet/roslyn/issues/29198")]
+        public async Task TestWithSelectedGetPropertyThatReturnsField1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    private int _value;
+
+    [|public int Foo
+    {
+        get { return _value; }
+    }|]
+}",
+@"
+class Program
+{
+    private int _value;
+
+    public Program(int value{|Navigation:)|}
+    {
+        _value = value;
+    }
+
+    public int Foo
+    {
+        get { return _value; }
+    }
+}");
+        }
+
+        [Fact, WorkItem(29198, "https://github.com/dotnet/roslyn/issues/29198")]
+        public async Task TestWithSelectedGetPropertyThatReturnsField2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    private int _value;
+
+    [|public int Foo
+    {
+        get { return this._value; }
+    }|]
+}",
+@"
+class Program
+{
+    private int _value;
+
+    public Program(int value{|Navigation:)|}
+    {
+        _value = value;
+    }
+
+    public int Foo
+    {
+        get { return this._value; }
+    }
+}");
+        }
+
+        [Fact, WorkItem(29198, "https://github.com/dotnet/roslyn/issues/29198")]
+        public async Task TestWithSelectedGetPropertyThatReturnsField3()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    private int _value;
+
+    [|public int Foo
+    {
+        get => this._value;
+    }|]
+}",
+@"
+class Program
+{
+    private int _value;
+
+    public Program(int value{|Navigation:)|}
+    {
+        _value = value;
+    }
+
+    public int Foo
+    {
+        get => this._value;
+    }
+}");
+        }
+
+        [Fact, WorkItem(29198, "https://github.com/dotnet/roslyn/issues/29198")]
+        public async Task TestWithSelectedGetPropertyThatReturnsField4()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    private int _value;
+
+    [|public int Foo => this._value;|]
+}",
+@"
+class Program
+{
+    private int _value;
+
+    public Program(int value{|Navigation:)|}
+    {
+        _value = value;
+    }
+
+    public int Foo => this._value;
+}");
+        }
+
+        [Fact, WorkItem(29198, "https://github.com/dotnet/roslyn/issues/29198")]
+        public async Task TestWithSelectedGetPropertyThatReturnsField5()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    [|private int _value;
+
+    public int Foo
+    {
+        get { return _value; }
+    }|]
+}",
+@"
+class Program
+{
+    private int _value;
+
+    public Program(int value{|Navigation:)|}
+    {
+        _value = value;
+    }
+
+    public int Foo
+    {
+        get { return _value; }
+    }
+}");
         }
     }
 }
