@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                         {
                             syntaxEditor.ReplaceNode(
                                 identifierNode,
-                                (node, generator) => generator.IdentifierName(parameter.Name.ToIdentifierToken()).WithTriviaFrom(node));
+                                (node, generator) => SyntaxFactory.IdentifierName(parameter.Name.ToIdentifierToken()).WithTriviaFrom(node));
                         }
                     }
                 }
