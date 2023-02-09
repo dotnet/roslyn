@@ -36,9 +36,10 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
     {
-        if (!await this.IsReadyForDiagnosticRequestsAsync(context, cancellationToken).ConfigureAwait(false))
-            return ImmutableArray<DiagnosticData>.Empty;
-
-        return await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false);
+        // If we're not ready for requests, return no results.  This ensures the user does not see a bunch of spurious
+        // errors for things like "System.Object not found".
+        return await this.IsReadyForDiagnosticRequestsAsync(context, cancellationToken).ConfigureAwait(false)
+            ? await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false)
+            : ImmutableArray<DiagnosticData>.Empty;
     }
 }
