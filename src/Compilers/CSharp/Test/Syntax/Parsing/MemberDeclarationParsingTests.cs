@@ -1870,7 +1870,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-
         [Fact]
         public void TypeNamedRequired_CSharp10()
         {

@@ -1415,7 +1415,7 @@ class C
         [Fact]
         public void TestNewPartialArray()
         {
-            UsingTree("new partial[1]");
+            UsingTree("new partial[1];");
 
             N(SyntaxKind.CompilationUnit);
             {
