@@ -1116,6 +1116,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
             }
+
             var net7 = element.Attribute(CommonReferencesNet7Name);
             if (net7 != null &&
                 ((bool?)net7).HasValue &&
