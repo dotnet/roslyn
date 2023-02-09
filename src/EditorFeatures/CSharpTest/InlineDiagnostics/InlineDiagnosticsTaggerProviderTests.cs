@@ -21,9 +21,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ErrorSquiggles), Trait(Traits.Feature, Traits.Features.Tagging)]
     public class InlineDiagnosticsTaggerProviderTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task ErrorTagGeneratedForError()
         {
             var spans = await GetTagSpansAsync("class C {");
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task ErrorTagGeneratedForErrorInSourceGeneratedDocument()
         {
             var spans = await GetTagSpansInSourceGeneratedDocumentAsync("class C {");
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
 
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(TestWorkspace workspace)
         {
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp), true);
+            workspace.GlobalOptions.SetGlobalOption(InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp, true);
             return (await TestDiagnosticTagProducer<InlineDiagnosticsTaggerProvider, InlineDiagnosticsTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }
     }

@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     /// ordinal value. The ordinal value is used to distinguish nodes which have the same
     /// qualified name -- for example, across partial classes within the same tree.
     /// </summary>
-    internal struct SyntaxNodeKey : IEquatable<SyntaxNodeKey>
+    internal readonly struct SyntaxNodeKey : IEquatable<SyntaxNodeKey>
     {
         private readonly string _name;
         private readonly int _ordinal;

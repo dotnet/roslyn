@@ -19,6 +19,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Workspace)]
     public class SyntaxReferenceTests : TestBase
     {
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
@@ -27,7 +28,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static Workspace CreateWorkspaceWithRecoverableSyntaxTrees()
             => CreateWorkspace(new[]
             {
-                typeof(TestProjectCacheService),
                 typeof(TestTemporaryStorageServiceFactory)
             });
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(did, "Test.vb", SourceText.From(source));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestCSharpReferenceToZeroWidthNode()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
@@ -68,14 +68,13 @@ public class C<>
             Assert.Equal(0, node.FullSpan.Length);
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PathSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 
             Assert.Equal(node, refNode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestVisualBasicReferenceToZeroWidthNode()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
@@ -91,14 +90,13 @@ End Class
             Assert.Equal(0, node.FullSpan.Length);
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PathSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 
             Assert.Equal(node, refNode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestCSharpReferenceToNodeInStructuredTrivia()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
@@ -115,14 +113,13 @@ public class C
             var node = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<CS.Syntax.BinaryExpressionSyntax>().First();
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PositionalSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 
             Assert.Equal(node, refNode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestVisualBasicReferenceToNodeInStructuredTrivia()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
@@ -139,14 +136,13 @@ End Class
             var node = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<VB.Syntax.BinaryExpressionSyntax>().First();
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PositionalSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 
             Assert.Equal(node, refNode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestCSharpReferenceToZeroWidthNodeInStructuredTrivia()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
@@ -168,14 +164,13 @@ public class C
             Assert.Equal(0, node.FullSpan.Length);
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PathSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 
             Assert.Equal(node, refNode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async System.Threading.Tasks.Task TestVisualBasicReferenceToZeroWidthNodeInStructuredTriviaAsync()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
@@ -197,7 +192,6 @@ End Class
             Assert.Equal(0, node.Span.Length);
 
             var syntaxRef = tree.GetReference(node);
-            Assert.Equal("PathSyntaxReference", syntaxRef.GetType().Name);
 
             var refNode = syntaxRef.GetSyntax();
 

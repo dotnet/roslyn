@@ -6,8 +6,9 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestPrivateMethodNotSeenInDownstreamProjectWithoutIVT(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInternalMethodNotSeenInDownstreamProjectWithoutIVT(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -67,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestPrivateMethodNotSeenInDownstreamProjectWithIVT(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -101,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInternalMethodSeenInDownstreamProjectWithIVT_SimpleString(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -135,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInternalMethodSeenInDownstreamProjectWithIVT_WithAttributeSuffix(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -169,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInternalMethodSeenInDownstreamProjectWithIVT_QualifiedAttributeName(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -201,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInternalMethodSeenInDownstreamProjectWithIVT_VerbatimString(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -235,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInternalMethodSeenInDownstreamProjectWithIVT_UsingAlias(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -269,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInternalMethodSeenInDownstreamProjectWithIVT_NonLiteralString(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNullPropagation
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
     Partial Public Class UseNullPropagationTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNullPropagation
                     New VisualBasicUseNullPropagationCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestLeft_Equals() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -37,7 +38,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestMissingInVB12() As Task
             Await TestMissingAsync(
 "
@@ -50,7 +51,7 @@ Class C
 End Class", New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestMissingInVB12_IfStatement() As Task
             Await TestMissingAsync(
 "
@@ -65,7 +66,7 @@ Class C
 End Class", New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestRight_Equals() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -86,7 +87,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestLeft_NotEquals() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -107,7 +108,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestLeft_NotEquals_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -130,7 +131,22 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
+        Public Async Function TestIfStatement_NotIfTrue() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        [||]If True
+            o.ToString()
+        End If
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
         Public Async Function TestIfStatement_NotWithElse() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -146,7 +162,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestIfStatement_NotWithElseIf() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -162,7 +178,25 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
+        Public Async Function TestIfStatement_NotIfTrueInsideElse() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As Object)
+        If True
+        Else
+            [||]If True
+                o.ToString()
+            End If
+        End If
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
         Public Async Function TestIfStatement_NotWithMultipleStatements() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -178,7 +212,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestWithNullableType() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -201,7 +235,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestWithNullableType_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -226,7 +260,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestWithNullableTypeAndObjectCast() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -249,7 +283,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestWithNullableTypeAndObjectCast_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -274,7 +308,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestRight_NotEquals() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -295,7 +329,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestRight_NotEquals_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -318,7 +352,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestIndexer() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -339,7 +373,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestIndexer_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -362,7 +396,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestConditionalAccess() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -383,7 +417,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestConditionalAccess_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -406,7 +440,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestMemberAccess() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -427,7 +461,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestMemberAccess_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -450,7 +484,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestMissingOnSimpleMatch() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -463,7 +497,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestParenthesizedCondition() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -484,7 +518,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestParenthesizedCondition_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -507,7 +541,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestFixAll1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -530,7 +564,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestFixAll2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -551,7 +585,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestNullable1() As Task
             Await TestMissingAsync(
 "
@@ -564,7 +598,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact>
         Public Async Function TestNullable2() As Task
             Await TestMissingAsync(
 "
@@ -577,8 +611,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEquals1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -599,8 +632,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEquals1_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -623,8 +655,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEquals2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -645,8 +676,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsOtherValue1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -659,8 +689,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsOtherValue2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -673,8 +702,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsWithObject1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -695,8 +723,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsWithObject2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -717,8 +744,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsOtherValueWithObject1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -731,8 +757,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsOtherValueWithObject2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -745,8 +770,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsWithOmittedArgument1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -759,8 +783,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsWithOmittedArgument2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -773,8 +796,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEquals1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -795,8 +817,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEquals2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -817,8 +838,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -831,8 +851,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -845,8 +864,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -867,8 +885,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -889,8 +906,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -903,8 +919,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -917,8 +932,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestEqualsWithLogicalNot() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -939,8 +953,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestEqualsWithLogicalNot_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -963,8 +976,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestNotEqualsWithLogicalNot() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -985,8 +997,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestEqualsOtherValueWithLogicalNot() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -999,8 +1010,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestNotEqualsOtherValueWithLogicalNot() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1013,8 +1023,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
         Public Async Function TestExpressionTree1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1030,8 +1039,7 @@ Public Class Class1
 End Class")
         End Function
 
-        <WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
         Public Async Function TestExpressionTree2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1048,8 +1056,7 @@ Public Class Class1
 End Class")
         End Function
 
-        <WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        <Fact, WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
         Public Async Function TestExpressionTree3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1066,8 +1073,7 @@ Public Class Class1
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
-        <WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")>
+        <Fact, WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")>
         Public Async Function TestNotWithColorColorStaticCase() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1091,8 +1097,7 @@ public class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
-        <WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")>
+        <Fact, WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")>
         Public Async Function TestWithColorColorInstanceCase() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -1131,6 +1136,21 @@ public class C
         D?.InstanceMethod()
     end sub
 end class")
+        End Function
+
+        <Fact>
+        Public Async Function TestElseIf() As Task
+            ' Subject to improve
+            Await TestMissingInRegularAndScriptAsync(
+"
+Class C
+    Sub M(s as String)
+        If True Then
+        ElseIf s [||]IsNot Nothing
+            s.ToString()
+        End If
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace

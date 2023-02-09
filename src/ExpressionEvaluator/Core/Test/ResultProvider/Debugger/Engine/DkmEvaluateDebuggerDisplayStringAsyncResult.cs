@@ -12,7 +12,7 @@ using System;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
-    public struct DkmEvaluateDebuggerDisplayStringAsyncResult
+    public readonly struct DkmEvaluateDebuggerDisplayStringAsyncResult
     {
         private readonly string _result;
 

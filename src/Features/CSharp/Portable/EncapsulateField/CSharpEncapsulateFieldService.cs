@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             => field.DeclaringSyntaxReferences.Any(static d => d.GetSyntax().GetAncestor<FieldDeclarationSyntax>().Modifiers.Any(SyntaxKind.NewKeyword));
 
         private static string GenerateFieldName(string correspondingPropertyName)
-            => char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName.Substring(1);
+            => char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName[1..];
 
         protected static string MakeUnique(string baseName, INamedTypeSymbol containingType)
         {

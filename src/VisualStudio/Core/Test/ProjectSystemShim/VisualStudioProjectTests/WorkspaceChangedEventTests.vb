@@ -92,8 +92,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(34309, "https://github.com/dotnet/roslyn/issues/34309")>
+        <WpfFact, WorkItem(34309, "https://github.com/dotnet/roslyn/issues/34309")>
         Public Async Function StartingAndEndingBatchWithNoChangesDoesNothing() As Task
             Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
@@ -123,8 +122,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(1581896, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1581896")>
+        <WpfFact, WorkItem(1581896, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1581896")>
         Public Async Function RemovingLastProjectCorrectlyClosesFiles() As Task
             Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(

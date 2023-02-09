@@ -207,11 +207,6 @@
         <target state="translated">Nie można zastosować operatora „{0}” do operandu „{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source> The parameter modifier '{0}' cannot follow '{1}'</source>
-        <target state="new"> The parameter modifier '{0}' cannot follow '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Nieprawidłowy operand dla dopasowania wzorca; wymagana jest wartość, a znaleziono „{0}”.</target>
@@ -225,6 +220,11 @@
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
         <target state="translated">Składowa rekordu "{0}" musi być możliwą do odczytu właściwością wystąpienia typu "{1}", aby dopasować parametr pozycyjny "{2}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
-        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</target>
+        <target state="translated">Nie można użyć stałej liczbowej lub wzorca relacyjnego w „{0}”, ponieważ dziedziczy on lub rozszerza element "INumberBase&lt;T&gt;". Rozważ użycie wzorca typu w celu zawężenia do określonego typu liczbowego.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -365,6 +365,11 @@
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Nazwa „{0}” nie jest zgodna z odpowiednim parametrem „Deconstruct” „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
+        <source>A deconstruction variable cannot be declared as a ref local</source>
+        <target state="translated">Nie można zadeklarować zmiennej dekonstrukcji jako lokalnej wartości ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
@@ -484,7 +489,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitScopedRef">
         <source>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</source>
-        <target state="new">Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</target>
+        <target state="translated">Nie używaj atrybutu "System.Runtime.CompilerServices.ScopedRefAttribute". Zamiast tego użyj słowa kluczowego „scoped”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -569,7 +574,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion11">
         <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</target>
+        <target state="translated">Funkcja „{0}” nie jest dostępna w języku C# 11.0. Użyj języka w wersji {1} lub nowszej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -592,6 +597,16 @@
         <target state="translated">Zdarzenie-pole „{0}” nie może być zadeklarowane jako „readonly”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileLocalDuplicateNameInNS">
+        <source>The namespace '{1}' already contains a definition for '{0}' in this file.</source>
+        <target state="translated">Przestrzeń nazw „{1}” już zawiera definicję dla „{0}” w tym pliku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FilePathCannotBeConvertedToUtf8">
+        <source>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</source>
+        <target state="translated">Nie można użyć typu pliku lokalnego „{0}”, ponieważ zawierającej ścieżki pliku nie można przekonwertować na równoważną reprezentację bajtów UTF-8. {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FileScopedAndNormalNamespace">
         <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
         <target state="translated">Plik źródłowy nie może zawierać deklaracji przestrzeni nazw z określonym zakresem plików ani deklaracji zwykłych przestrzeni nazw.</target>
@@ -604,27 +619,32 @@
       </trans-unit>
       <trans-unit id="ERR_FileTypeBase">
         <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
-        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
+        <target state="translated">Typ pliku lokalnego „{0}” nie może być używany jako typ podstawowy typu innego niż plik lokalny „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeDisallowedInSignature">
         <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
-        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
+        <target state="translated">Nie można użyć typu pliku lokalnego „{0}” w sygnaturze elementu składowego w typie innym niż plik lokalny „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNameDisallowed">
         <source>Types and aliases cannot be named 'file'.</source>
-        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <target state="translated">Typy i aliasy nie mogą mieć nazwy „file”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNested">
         <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
-        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <target state="translated">Typ pliku lokalnego „{0}” musi być zdefiniowany w typie najwyższego poziomu; „{0}” jest typem zagnieżdżonym.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
         <source>File-local type '{0}' cannot use accessibility modifiers.</source>
-        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
+        <target state="translated">Typ pliku lokalnego „{0}” nie może używać modyfikatorów ułatwień dostępu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNonUniquePath">
+        <source>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</source>
+        <target state="translated">Typ pliku lokalnego „{0}” musi być zadeklarowany w pliku z unikatową ścieżką. Ścieżka „{1}” jest używana w wielu plikach.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -648,8 +668,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">Użycie typu wskaźnika funkcji w elemencie „typeof” w atrybucie nie jest obsługiwane.</target>
+        <source>Using a function pointer type in this context is not supported.</source>
+        <target state="needs-review-translation">Użycie typu wskaźnika funkcji w elemencie „typeof” w atrybucie nie jest obsługiwane.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -674,7 +694,7 @@
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingStaticFileType">
         <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
-        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
+        <target state="translated">Nie można użyć typu pliku lokalnego „{0}” w dyrektywie „global using static”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -735,6 +755,11 @@
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">W wywołaniu niejawnego indeksatora zakresu nie może być nazwy argumentu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="translated">Niejawnie typizowany parametr wyrażenia lambda „{0}” nie może mieć wartości domyślnej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -932,11 +957,6 @@
         <target state="translated">Nieoczekiwane słowo kluczowe „record”. Czy chodziło o „record struct” lub „record class”?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MisplacedScoped">
-        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
-        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">Wzorce wycinków mogą być używane tylko raz i bezpośrednio wewnątrz wzorca listy.</target>
@@ -979,7 +999,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
-        <target state="needs-review-translation">Metoda inicjatora modułu „{0}” musi być statyczna, nie może mieć parametrów i musi zwracać typ „void”</target>
+        <target state="translated">Metoda inicjatora modułu „{0}” musi być statyczna, nie wirtualna, nie może mieć parametrów i musi zwracać typ „void”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -1262,6 +1282,11 @@
         <target state="translated">„{0}”: modyfikatora „readonly” można użyć dla metod dostępu tylko wtedy, gdy właściwość lub indeksator mają metody dostępu get i set</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
+        <source>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</source>
+        <target state="translated">Element „readonly” nie jest obsługiwany jako modyfikator parametrów. Czy chodziło Ci o „in”?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">Konstruktor podstawowy powoduje konflikt z konstruktorem syntetyzowanej kopii.</target>
@@ -1277,6 +1302,16 @@
         <target state="translated">Nie można przypisać odwołania elementu „{1}” do elementu „{0}”, ponieważ element „{1}” ma węższy zakres wyjścia niż element „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefAssignReturnOnly">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</source>
+        <target state="translated">Nie można przypisać odwołania „{1}” do „{0}”, ponieważ „{1}” może jedynie opuścić bieżącą metodę za pomocą instrukcji return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefAssignValEscapeWider">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">Nie można przypisać wartości ref „{1}” do „{0}”, ponieważ „{1}” ma szerszy zakres ucieczki wartości niż „{0}”, umożliwiając przypisanie za pośrednictwem „{0}” wartości z węższymi zakresami ucieczki niż „{1}”.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
         <target state="translated">Pole referencyjne nie może odwoływać się do struktury referencyjnej.</target>
@@ -1284,12 +1319,32 @@
       </trans-unit>
       <trans-unit id="ERR_RefFieldInNonRefStruct">
         <source>A ref field can only be declared in a ref struct.</source>
-        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <target state="translated">Pole referencyjne można zadeklarować tylko w strukturze referencyjnej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">Lewa strona przypisania referencyjnego musi być zmienną referencyjną.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter">
+        <source>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="translated">Nie można zwrócić parametru przez odwołanie „{0}” za pomocą parametru ref; można go zwrócić tylko w instrukcji return</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="translated">Nie można zwrócić przez odwołanie składowej parametru „{0}” za pomocą parametru ref; może on być zwracany tylko w instrukcji return</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter">
+        <source>Cannot return a parameter by reference '{0}' because it is scoped to the current method</source>
+        <target state="translated">Nie można zwrócić parametru przez odwołanie „{0}”, ponieważ jest on ograniczony do bieżącej metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</source>
+        <target state="translated">Nie można zwrócić przez odwołanie składowej parametru „{0}”, ponieważ jest on ograniczony do bieżącej metody</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1359,7 +1414,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportRefFields">
         <source>Target runtime doesn't support ref fields.</source>
-        <target state="new">Target runtime doesn't support ref fields.</target>
+        <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje pól referencyjnych.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
@@ -1375,6 +1430,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje rozszerzalnych ani domyślnych dla środowiska uruchomieniowego konwencji wywoływania.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedDiscard">
+        <source>The 'scoped' modifier cannot be used with discard.</source>
+        <target state="translated">Modyfikator „scoped” nie może być używany z odrzuceniem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
@@ -1399,7 +1459,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedTypeNameDisallowed">
         <source>Types and aliases cannot be named 'scoped'.</source>
-        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <target state="translated">Typy i aliasy nie mogą mieć nazwy „scoped”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
@@ -1582,14 +1642,29 @@
         <target state="translated">Element „{0}” ma atrybut „UnmanagedCallersOnly” i nie można go przekonwertować na typ delegowany. Uzyskaj wskaźnik funkcji do tej metody.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
+        <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
+        <target state="translated">Nie można zastosować atrybutu UnscopedRefAttribute do implementacji interfejsu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
+        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="translated">Atrybut UnscopedRefAttribute można stosować tylko do metod i właściwości wystąpienia struktury i nie można go stosować do konstruktorów ani składowych tylko do inicjowania.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</target>
+        <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
+        <target state="translated">Nie można zastosować atrybutu UnscopedRefAttribute do tego elementu, ponieważ jest on domyślnie nieobjęty zakresem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
         <source>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</target>
+        <target state="translated">Nie można zastosować atrybutu UnscopedRefAttribute do parametrów, które mają modyfikator „scoped”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
@@ -1644,7 +1719,7 @@
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
         <source>array access</source>
-        <target state="new">array access</target>
+        <target state="translated">dostęp do macierzy</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
@@ -1689,7 +1764,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFileTypes">
         <source>file types</source>
-        <target state="new">file types</target>
+        <target state="translated">typy plików</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -1720,6 +1795,16 @@
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
         <target state="translated">atrybuty lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaOptionalParameters">
+        <source>lambda optional parameters</source>
+        <target state="translated">opcjonalne parametry wyrażenia lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaParamsArray">
+        <source>lambda params array</source>
+        <target state="translated">tablica parametrów lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
@@ -1809,12 +1894,17 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
-        <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
+        <target state="translated">dopasowanie wzorca ReadOnly/Span&lt;char&gt; w ciągu stałym</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Missing">
+        <source>&lt;missing&gt;</source>
+        <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
-        <target state="new">pointer element access</target>
+        <target state="translated">dostęp do elementu wskaźnika</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1845,6 +1935,16 @@
       <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
         <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">Typ nie może być używany w tym kontekście, ponieważ nie może być reprezentowany w metadanych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallArgMixing">
+        <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">Ta kombinacja argumentów „{0}” może uwidaczniać zmienne przywoływane przez parametr „{1}” poza zakresem deklaracji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallArgMixing_Title">
+        <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">Ta kombinacja argumentów może uwidaczniać zmienne przywoływane przez parametr poza zakresem deklaracji</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -1927,6 +2027,56 @@
         <target state="translated">Nie porównuj wartości wskaźników funkcji</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Odwołanie analizatora „{0}” określono wiele razy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Odwołanie do analizatora określono wiele razy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall">
+        <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">Użycie wyniku „{0}” w tym kontekście może uwidocznić zmienne przywoływane przez parametr „{1}” poza zakresem deklaracji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall2">
+        <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">Nie można używać składowej wyniku elementu „{0}” w tym kontekście, ponieważ może uwidaczniać zmienne przywoływane przez parametr „{1}” poza ich zakresem deklaracji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall2_Title">
+        <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">Nie można używać składowej wyniku elementu w tym kontekście, ponieważ może uwidaczniać zmienne przywoływane przez parametr poza ich zakresem deklaracji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall_Title">
+        <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">Użycie wyniku w tym kontekście może uwidaczniać zmienne przywoływane przez parametr poza zakresem deklaracji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeStackAlloc">
+        <source>A result of a stackalloc expression of type '{0}' in this context may be exposed outside of the containing method</source>
+        <target state="translated">Nie można używać wyniku wyrażenia stackalloc typu „{0}” w tym kontekście, ponieważ może zostać ujawniony poza metodą zawierającą</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeStackAlloc_Title">
+        <source>A result of a stackalloc expression of this type in this context may be exposed outside of the containing method</source>
+        <target state="translated">Wynik wyrażenia stackalloc tego typu w tym kontekście może być uwidoczniony poza metodą zawierającą</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeVariable">
+        <source>Use of variable '{0}' in this context may expose referenced variables outside of their declaration scope</source>
+        <target state="translated">Nie można używać zmiennej „{0}” w tym kontekście, ponieważ może uwidaczniać odwoływane zmienne poza ich zakresem deklaracji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeVariable_Title">
+        <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
+        <target state="translated">Nie można używać zmiennej w tym kontekście, ponieważ może uwidaczniać odwoływane zmienne poza ich zakresem deklaracji</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
         <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
         <target state="translated">Argument InterpolatedStringHandlerArgument nie odniesie żadnego skutku po zastosowaniu do parametrów lambda i zostanie zignorowany w lokacji wywołania.</target>
@@ -1947,6 +2097,16 @@
         <target state="translated">Nazwa typu zawiera tylko małe litery ascii. Takie nazwy mogą zostać zarezerwowane dla języka.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ManagedAddr">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</source>
+        <target state="translated">Przyjmuje adres, pobiera rozmiar lub deklaruje wskaźnik do typu zarządzanego („{0}”)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr_Title">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type</source>
+        <target state="translated">Przyjmuje adres, pobiera rozmiar lub deklaruje wskaźnik do typu zarządzanego</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
         <target state="translated">Konwertowanie grupy metod „{0}” na typ inny niż delegowany „{1}”. Czy zamierzasz wywołać metodę?</target>
@@ -1957,6 +2117,16 @@
         <target state="translated">Konwertowanie grupy metod na typ inny niż delegowany</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInTernary">
+        <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
+        <target state="translated">Gałęzie operatora warunkowego ref nie mogą przywoływać zmiennych z niezgodnymi zakresami deklaracji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
+        <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
+        <target state="translated">Gałęzie operatora warunkowego ref nie mogą przywoływać zmiennych z niezgodnymi zakresami deklaracji</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
         <source>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">Wymagana składowa „{0}” nie powinna mieć atrybutu „ObsoleteAttribute”, chyba że zawierający typ jest przestarzały lub wszystkie konstruktory są przestarzałe.</target>
@@ -1965,6 +2135,16 @@
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
         <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">Składowe z atrybutem „ObsoleteAttribute” nie powinny być wymagane, chyba że typ zawierający jest przestarzały lub wszystkie konstruktory są przestarzałe.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
+        <target state="translated">Parametr {0} ma wartość domyślną „{1:10}” w wyrażeniu lambda, ale wartość „{2:10}” w docelowym typie delegata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch_Title">
+        <source>The default parameter value does not match in the target delegate type.</source>
+        <target state="translated">Domyślna wartość parametru nie jest zgodna w docelowym typie delegata.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1985,6 +2165,16 @@
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
         <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
         <target state="translated">Parametr konwersji procedury obsługi ciągu interpolowanego występuje po parametrze procedury obsługi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">Parametr {0} ma modyfikator params w wyrażeniu lambda, ale nie ma w docelowym typie delegata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
+        <source>Parameter has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">Parametr ma modyfikator params w wyrażeniu lambda, ale nie ma w docelowym typie delegata.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2022,6 +2212,146 @@
         <target state="translated">Typy i aliasy nie powinny mieć nazwy „record”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RefAssignNarrower">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
+        <target state="translated">To odwołanie przypisuje element „{1}” do elementu „{0}”, ale „{1}” ma węższy zakres ucieczki niż „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignNarrower_Title">
+        <source>This ref-assigns a value that has a narrower escape scope than the target.</source>
+        <target state="translated">To odwołanie przypisuje wartość, która ma węższy zakres ucieczki niż element docelowy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignReturnOnly">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' can only escape the current method through a return statement.</source>
+        <target state="translated">To odwołanie przypisuje element „{1}” do „{0}”, ale „{1}” może tylko pominąć bieżącą metodę za pośrednictwem instrukcji return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignReturnOnly_Title">
+        <source>This ref-assigns a value that can only escape the current method through a return statement.</source>
+        <target state="translated">To odwołanie przypisuje wartość, która może tylko pomijać bieżącą metodę za pośrednictwem instrukcji return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">Ta wartość ref przypisuje „{1}” do „{0}”, ale „{1}” ma szerszy zakres ucieczki wartości niż „{0}”, umożliwiając przypisanie za pośrednictwem „{0}” wartości z węższymi zakresami ucieczki niż „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider_Title">
+        <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
+        <target state="translated">Ta wartość ref przypisuje wartość, która ma szerszy zakres ucieczki wartości niż wartość docelowa, umożliwiając przypisanie za pośrednictwem wartości docelowej wartości z węższymi zakresami ucieczki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal">
+        <source>This returns local '{0}' by reference but it is not a ref local</source>
+        <target state="translated">Spowoduje to zwrócenie lokalnego elementu „{0}” przez odwołanie, ale nie jest to odwołanie lokalne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal2">
+        <source>This returns a member of local '{0}' by reference but it is not a ref local</source>
+        <target state="translated">Zwraca to składową lokalnego elementu „{0}” przez odwołanie, ale nie jest odwołaniem lokalnym</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal2_Title">
+        <source>This returns a member of local by reference but it is not a ref local</source>
+        <target state="translated">Zwraca składową elementu lokalnego przez odwołanie, ale nie jest odwołaniem lokalnym</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal_Title">
+        <source>This returns local by reference but it is not a ref local</source>
+        <target state="translated">Spowoduje to zwrócenie wartości lokalnej przez odwołanie, ale nie jest odwołaniem lokalnym</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal">
+        <source>Local '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">Nie można zwrócić elementu „{0}” przez referencję, ponieważ został on zainicjowany przy użyciu wartości, której nie można zwrócić przez referencję</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal2">
+        <source>A member of '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">Składowa elementu „{0}” jest zwracana przez odwołanie, ale została zainicjowana do wartości, która nie może być zwracana przez odwołanie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal2_Title">
+        <source>A member is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">Składowa jest zwracana przez odwołanie, ale została zainicjowany do wartości, która nie może być zwracana przez odwołanie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal_Title">
+        <source>Local is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">Nie można zwrócić elementu przez referencję, ponieważ został on zainicjowany przy użyciu wartości, której nie można zwrócić przez referencję</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter">
+        <source>This returns a parameter by reference '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Zwraca to parametr przez odwołanie „{0}” za pomocą parametru ref, ale można go bezpiecznie zwrócić tylko w instrukcji return</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter2">
+        <source>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Zwraca to przez odwołanie składową parametru „{0}” za pomocą parametru ref, ale można ją bezpiecznie zwrócić tylko w instrukcji return</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter2_Title">
+        <source>This returns by reference a member of parameter through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Zwraca to przez odwołanie składową parametru za pomocą parametru ref; ale można je bezpiecznie zwrócić tylko w instrukcji return</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter_Title">
+        <source>This returns a parameter by reference through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Zwraca parametr przez odwołanie za pomocą parametru ref; ale można je bezpiecznie zwrócić tylko w instrukcji return</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter">
+        <source>This returns a parameter by reference '{0}' but it is not a ref parameter</source>
+        <target state="translated">Zwraca parametr przez odwołanie „{0}”, ale nie jest to parametr ref</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter2">
+        <source>This returns by reference a member of parameter '{0}' that is not a ref or out parameter</source>
+        <target state="translated">Zwraca to przez odwołanie składową parametru „{0}”, który nie jest parametrem ref ani out</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter2_Title">
+        <source>This returns by reference a member of parameter that is not a ref or out parameter</source>
+        <target state="translated">Zwraca to przez odwołanie składową parametru, który nie jest parametrem ref ani out</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter_Title">
+        <source>This returns a parameter by reference but it is not a ref parameter</source>
+        <target state="translated">Zwraca parametr przez odwołanie, ale nie jest parametrem ref</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter">
+        <source>This returns a parameter by reference '{0}' but it is scoped to the current method</source>
+        <target state="translated">Spowoduje to zwrócenie parametru przez odwołanie „{0}”, ale jest on ograniczony do bieżącej metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter2">
+        <source>This returns by reference a member of parameter '{0}' that is scoped to the current method</source>
+        <target state="translated">Zwraca to przez odwołanie składową parametru „{0}” w zakresie do bieżącej metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter2_Title">
+        <source>This returns by reference a member of parameter that is scoped to the current method</source>
+        <target state="translated">Zwraca to przez odwołanie składową parametru o zakresie do bieżącej metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter_Title">
+        <source>This returns a parameter by reference but it is scoped to the current method</source>
+        <target state="translated">Spowoduje to zwrócenie parametru przez referencję, ale jego zakres jest ograniczony do bieżącej metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnStructThis">
+        <source>Struct member returns 'this' or other instance members by reference</source>
+        <target state="translated">Składowa struktury zwraca element „this” lub inne składowe wystąpienia według odwołania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnStructThis_Title">
+        <source>Struct member returns 'this' or other instance members by reference</source>
+        <target state="translated">Składowa struktury zwraca element „this” lub inne składowe wystąpienia według odwołania</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">Wartość zwracana musi być inna niż null, ponieważ parametr „{0}” ma wartość inną niż null.</target>
@@ -2030,6 +2360,26 @@
       <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
         <source>Return value must be non-null because parameter is non-null.</source>
         <target state="translated">Wartość zwracana musi być inna niż null, ponieważ parametr ma wartość inną niż null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="translated">Modyfikator „scoped” parametru „{0}” nie jest zgodny z przesłoniętą lub zaimplementowaną składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title">
+        <source>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</source>
+        <target state="translated">Modyfikator „scoped” parametru nie jest zgodny z przesłoniętą lub zaimplementowaną składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="translated">Modyfikator „scoped” 'parametru „{0}” nie jest zgodny z 'elementem docelowym „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget_Title">
+        <source>The 'scoped' modifier of parameter doesn't match target.</source>
+        <target state="translated">Modyfikator „scoped” parametru nie jest zgodny z elementem docelowym.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
@@ -2293,35 +2643,35 @@
                              Opcje kompilatora Visual C#
 
                         - PLIKI WYJŚCIOWE -
--out:&lt;plik&gt;                   Określ nazwę pliku wyjściowego (domyślnie: nazwa podstawowa
+-out:&lt;plik&gt;                   Określ nazwę pliku wyjściowego (domyślnie: nazwa podstawowa 
                               pliku z klasą główną lub pierwszego pliku)
--target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (krótka
+-target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (krótka 
                               wersja: -t:exe)
--target:winexe                Kompiluj plik wykonywalny systemu Windows (krótka wersja:
+-target:winexe                Kompiluj plik wykonywalny systemu Windows (krótka wersja: 
                               -t:winexe)
 -target:library               Kompiluj bibliotekę (krótka wersja: -t:library)
--target:module                Kompiluj moduł, który można dodać do innego
+-target:module                Kompiluj moduł, który można dodać do innego 
                               zestawu (krótka wersja: -t:module)
--target:appcontainerexe       Kompiluj plik wykonywalny kontenera aplikacji (krótka wersja:
+-target:appcontainerexe       Kompiluj plik wykonywalny kontenera aplikacji (krótka wersja: 
                               -t:appcontainerexe)
--target:winmdobj              Kompiluj plik pośredni środowiska uruchomieniowego systemu Windows
+-target:winmdobj              Kompiluj plik pośredni środowiska uruchomieniowego systemu Windows 
                               przeznaczony dla narzędzia WinMDExp (krótka wersja: -t:winmdobj)
 -doc:&lt;plik&gt;                   Plik dokumentacji XML do wygenerowania
 -refout:&lt;plik&gt;                Dane wyjściowe zestawu odwołania do wygenerowania
 -platform:&lt;ciąg&gt;              Ogranicz platformy, na których można uruchamiać ten kod: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred lub
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred lub 
                               anycpu. Wartość domyślna to anycpu.
 
                         - PLIKI WEJŚCIOWE -
--recurse:&lt;symbol wieloznaczny&gt; Uwzględnij wszystkie pliki zawarte w bieżącym katalogu i
-                               podkatalogach zgodnie ze specyfikacją określoną przy użyciu
+-recurse:&lt;symbol wieloznaczny&gt; Uwzględnij wszystkie pliki zawarte w bieżącym katalogu i 
+                               podkatalogach zgodnie ze specyfikacją określoną przy użyciu 
                                symboli wieloznacznych
--reference:&lt;alias&gt;=&lt;plik&gt;     Odwołuj się do metadanych z określonego pliku
+-reference:&lt;alias&gt;=&lt;plik&gt;     Odwołuj się do metadanych z określonego pliku 
                               zestawu przy użyciu podanego aliasu (krótka wersja: -r)
--reference:&lt;lista_plików&gt;     Odwołuj się do metadanych z określonych
+-reference:&lt;lista_plików&gt;     Odwołuj się do metadanych z określonych 
                               plików zestawów (krótka wersja: -r)
 -addmodule:&lt;lista plików&gt;     Połącz określone moduły z tym zestawem
--link:&lt;lista_plików&gt;          Osadź metadane z określonych plików
+-link:&lt;lista_plików&gt;          Osadź metadane z określonych plików 
                               zestawów międzyoperacyjnych (krótka wersja: -l)
 -analyzer:&lt;lista_plików&gt;      Uruchom analizatory z tego zestawu
                               (krótka wersja: -a)
@@ -2337,16 +2687,16 @@
 -win32manifest:&lt;plik&gt;         Określ plik manifestu środowiska Win32 (xml)
 -nowin32manifest              Nie dołączaj domyślnego manifestu środowiska Win32
 -resource:&lt;informacje_o_zasobie&gt; Osadź określony zasób (krótka wersja: -res)
--linkresource:&lt;informacje_o_zasobie&gt; Połącz określony zasób z tym zestawem
-                               (krótka wersja: -linkres), gdzie format informacji o zasobie
+-linkresource:&lt;informacje_o_zasobie&gt; Połącz określony zasób z tym zestawem 
+                               (krótka wersja: -linkres), gdzie format informacji o zasobie 
                                to &lt;plik&gt;[,&lt;nazwa ciągu&gt;[,public|private]]
 
                         - GENEROWANIE KODU -
 -debug[+|-]                   Emituj informacje o debugowaniu
 -debug:{full|pdbonly|portable|embedded}
-                              Określ typ debugowania (wartość domyślna to „full”,
+                              Określ typ debugowania (wartość domyślna to „full”, 
                               wartość „portable” to format międzyplatformowy,
-                              a wartość „embedded” to format międzyplatformowy wbudowany w
+                              a wartość „embedded” to format międzyplatformowy wbudowany w 
                               docelowym pliku dll lub exe)
 -optimize[+|-]                Włącz optymalizacje (krótka wersja: -o)
 -deterministic                Utwórz zestaw deterministyczny
@@ -2373,11 +2723,11 @@
 -reportanalyzer               Zgłaszaj dodatkowe informacje analizatora, takie jak
                               czas wykonywania.
 -skipanalyzers[+|-]           Pomiń wykonywanie analizatorów diagnostycznych.
-
+ 
                         -JĘZYK -
 -checked[+|-]                 Generuj operacje sprawdzenia przepełnienia
 -unsafe[+|-]                  Zezwalaj na niebezpieczny kod
--define:&lt;lista symboli&gt;       Zdefiniuj symbole kompilacji warunkowej (krótka
+-define:&lt;lista symboli&gt;       Zdefiniuj symbole kompilacji warunkowej (krótka 
                               wersja: -d)
 -langversion:?                Wyświetl dozwolone wartości dla wersji języka
 -langversion:&lt;ciąg&gt;           Określ wersję języka, na przykład
@@ -2391,7 +2741,7 @@
                               Określ opcję kontekstu dopuszczającego wartość null: enable|disable|warnings|annotations.
 
                         - ZABEZPIECZENIA -
--delaysign[+|-]               Podpisz z opóźnieniem zestaw, używając tylko
+-delaysign[+|-]               Podpisz z opóźnieniem zestaw, używając tylko 
                               części publicznej klucza o silnej nazwie
 -publicsign[+|-]              Podpisz publicznie zestaw, używając tylko
                               części publicznej klucza o silnej nazwie
@@ -2412,34 +2762,34 @@
 -checksumalgorithm:&lt;algorytm&gt; Określ algorytm do obliczania sumy kontrolnej
                               pliku źródłowego przechowywanej w pliku PDB.
                               Obsługiwane wartości: SHA1 lub SHA256 (domyślnie).
--codepage:&lt;n&gt;                 Określ stronę kodową do użycia podczas otwierania
+-codepage:&lt;n&gt;                 Określ stronę kodową do użycia podczas otwierania 
                               plików źródłowych
 -utf8output                   Wyprowadź komunikaty kompilatora przy użyciu kodowania UTF-8
--main:&lt;typ&gt;                   Określ typ zawierający punkt wejścia
-                              (zignoruj wszystkie pozostałe możliwe punkty wejścia) (krótka
+-main:&lt;typ&gt;                   Określ typ zawierający punkt wejścia 
+                              (zignoruj wszystkie pozostałe możliwe punkty wejścia) (krótka 
                               wersja: -m)
 -fullpaths                    Kompilator generuje w pełni kwalifikowane ścieżki
--filealign:&lt;n&gt;                Określ wyrównanie stosowane dla sekcji
+-filealign:&lt;n&gt;                Określ wyrównanie stosowane dla sekcji 
                               plików wyjściowych
--pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,...
-                              Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez
+-pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,... 
+                              Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez 
                               kompilator.
--pdb:&lt;plik&gt;                   Określ nazwę pliku z informacjami o debugowaniu (domyślnie:
+-pdb:&lt;plik&gt;                   Określ nazwę pliku z informacjami o debugowaniu (domyślnie: 
                               nazwa pliku wyjściowego z rozszerzeniem pdb)
--errorendlocation             Wyprowadź wiersz i kolumnę lokalizacji końcowej dla
+-errorendlocation             Wyprowadź wiersz i kolumnę lokalizacji końcowej dla 
                               każdego błędu
 -preferreduilang              Określ nazwę preferowanego języka wyjściowego.
 -nosdkpath                    Wyłącz przeszukiwanie domyślnej ścieżki zestawu SDK dla zestawów biblioteki standardowej.
 -nostdlib[+|-]                Nie odwołuj się do biblioteki standardowej (mscorlib.dll)
 -subsystemversion:&lt;ciąg&gt;      Określ wersję podsystemu tego zestawu
--lib:&lt;lista plików&gt;           Określ dodatkowe katalogi do przeszukania pod kątem
+-lib:&lt;lista plików&gt;           Określ dodatkowe katalogi do przeszukania pod kątem 
                               odwołań
--errorreport:&lt;ciąg&gt;           Określ, w jaki sposób obsługiwać wewnętrzne błędy kompilatora:
-                              prompt, send, queue lub none. Wartość domyślna to
+-errorreport:&lt;ciąg&gt;           Określ, w jaki sposób obsługiwać wewnętrzne błędy kompilatora: 
+                              prompt, send, queue lub none. Wartość domyślna to 
                               queue.
--appconfig:&lt;plik&gt;             Określ plik konfiguracji aplikacji
+-appconfig:&lt;plik&gt;             Określ plik konfiguracji aplikacji 
                               zawierający ustawienia powiązania zestawu
--moduleassemblyname:&lt;ciąg&gt;    Nazwa zestawu, którego częścią
+-moduleassemblyname:&lt;ciąg&gt;    Nazwa zestawu, którego częścią 
                               ma być ten moduł
 -modulename:&lt;ciąg&gt;            Określ nazwę modułu źródłowego
 -generatedfilesout:&lt;katalog&gt;      Umieść pliki wygenerowane podczas kompilacji
@@ -4972,8 +5322,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
-        <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="translated">Nie można przekazać właściwości lub indeksatora jako parametru „out” lub „ref”.</target>
+        <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
+        <target state="translated">Nie można używać właściwości zwracającej inną wartość niż ref lub indeksatora jako wartości out lub ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -5082,7 +5432,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
-        <source>A params parameter must be the last parameter in a formal parameter list</source>
+        <source>A params parameter must be the last parameter in a parameter list</source>
         <target state="translated">Parametr params musi być ostatnim parametrem na liście parametrów formalnych</target>
         <note />
       </trans-unit>
@@ -5197,7 +5547,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
-        <source>An __arglist parameter must be the last parameter in a formal parameter list</source>
+        <source>An __arglist parameter must be the last parameter in a parameter list</source>
         <target state="translated">Parametr __arglist musi być ostatnim parametrem formalnej listy parametrów</target>
         <note />
       </trans-unit>
@@ -8100,13 +8450,13 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
-        <source>Cannot assign to {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">Nie można przypisać do elementu {0} „{1}”, ponieważ jest to zmienna tylko do odczytu.</target>
+        <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="translated">Nie można przypisać do {0} „{1}” lub użyć go jako prawej strony przypisania odwołania, ponieważ jest to zmienna tylko do odczytu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
-        <source>Cannot assign to a member of {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">Nie można przypisać do składowej {0} „{1}”, ponieważ jest to zmienna tylko do odczytu</target>
+        <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="translated">Nie można przypisać składowej{0} „{1}” lub użyć jej jako prawej strony przypisania odwołania, ponieważ jest to zmienna tylko do odczytu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">
@@ -8180,8 +8530,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
-        <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">Ponieważ jest to metoda asynchroniczna, zwracane wyrażenie musi być typu „{0}”, a nie „Task&lt;{0}&gt;”</target>
+        <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
+        <target state="translated">Ponieważ jest to metoda asynchroniczna, zwracane wyrażenie musi być typu „{0}”, a nie „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9343,8 +9693,8 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
-        <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Ponieważ „{0}” to metoda asynchroniczna zwracająca typ „Task”, po słowie kluczowym return nie może następować wyrażenie obiektu. Czy zamierzony zwracany typ to „Task&lt;T&gt;”?</target>
+        <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
+        <target state="translated">Ponieważ „{0}” jest metodą asynchroniczną, która zwraca wartość „{1}”, po zwrotnym słowie kluczowym nie może występować wyrażenie obiektu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -9910,8 +10260,8 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
-        <source>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</source>
-        <target state="translated">Nie podano argumentu odpowiadającego wymaganemu parametrowi formalnemu „{0}” elementu „{1}”</target>
+        <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
+        <target state="translated">Nie podano argumentu odpowiadającego wymaganemu parametrowi „{0}” z „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">
@@ -10773,8 +11123,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
-        <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Asynchroniczne wyrażenie lambda przekonwertowane na delegata zwracającego typ „Task” nie może zwracać wartości. Czy zamierzony zwracany typ to „Task&lt;T&gt;”?</target>
+        <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
+        <target state="translated">Asynchroniczne wyrażenie lambda przekonwertowana na delegata zwracającego „{0}” nie może zwracać wartości</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

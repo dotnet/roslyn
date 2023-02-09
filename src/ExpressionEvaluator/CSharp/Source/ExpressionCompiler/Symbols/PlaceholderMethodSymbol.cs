@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
@@ -213,12 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
-        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable;
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable();
 
         internal override bool HasUnscopedRefAttribute => false;
+
+        internal override bool UseUpdatedEscapeRules => false;
 
         internal override bool RequiresSecurityObject
         {
@@ -237,17 +239,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool IsMetadataFinal
@@ -270,12 +272,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool IsNullableAnalysisEnabled() => false;
 
-        protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
 #if DEBUG
         protected override MethodSymbolAdapter CreateCciAdapter()

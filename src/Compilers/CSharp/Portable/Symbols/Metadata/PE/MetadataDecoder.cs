@@ -113,12 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return moduleSymbol.TypeRefHandleToTypeMap;
         }
 
+#nullable enable
+
         protected override TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName)
         {
             var result = container.LookupMetadataType(ref emittedName);
-            Debug.Assert((object)result != null);
+            Debug.Assert(result?.IsErrorType() != true);
 
-            return result;
+            return result ?? new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)container, ref emittedName);
+
         }
 
         /// <summary>
@@ -138,11 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             try
             {
-                return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
+                return assembly.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies: null);
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e)) // Trying to get more useful Watson dumps.
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -157,12 +160,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     if ((object)m == (object)moduleSymbol)
                     {
-                        return moduleSymbol.LookupTopLevelMetadataType(ref emittedName, out isNoPiaLocalType);
+                        return moduleSymbol.LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref emittedName, out isNoPiaLocalType);
                     }
                     else
                     {
                         isNoPiaLocalType = false;
-                        return m.LookupTopLevelMetadataType(ref emittedName);
+                        var result = m.LookupTopLevelMetadataType(ref emittedName);
+                        Debug.Assert(result?.IsErrorType() != true);
+
+                        return result ?? new MissingMetadataTypeSymbol.TopLevel(m, ref emittedName);
                     }
                 }
             }
@@ -180,8 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         protected override TypeSymbol LookupTopLevelTypeDefSymbol(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
         {
-            return moduleSymbol.LookupTopLevelMetadataType(ref emittedName, out isNoPiaLocalType);
+            return moduleSymbol.LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref emittedName, out isNoPiaLocalType);
         }
+
+#nullable disable
 
         protected override int GetIndexOfReferencedAssembly(AssemblyIdentity identity)
         {
@@ -310,6 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return newresult;
         }
 
+#nullable enable
+
         /// <summary>
         /// Find canonical type for NoPia embedded type.
         /// </summary>
@@ -320,12 +330,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ref MetadataTypeName name,
             bool isInterface,
             TypeSymbol baseType,
-            string interfaceGuid,
-            string scope,
-            string identifier,
+            string? interfaceGuid,
+            string? scope,
+            string? identifier,
             AssemblySymbol referringAssembly)
         {
-            NamedTypeSymbol result = null;
+            NamedTypeSymbol? result = null;
 
             Guid interfaceGuidValue = new Guid();
             bool haveInterfaceGuidValue = false;
@@ -357,12 +367,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     continue;
                 }
 
-                NamedTypeSymbol candidate = assembly.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: false);
-                Debug.Assert(!candidate.IsGenericType);
+                // Ignore type forwarders
+                NamedTypeSymbol? candidate = assembly.LookupDeclaredTopLevelMetadataType(ref name);
+                Debug.Assert(candidate?.IsGenericType != true);
+                Debug.Assert(candidate?.IsErrorType() != true);
+                Debug.Assert(candidate is null || ReferenceEquals(candidate.ContainingAssembly, assembly));
 
-                // Ignore type forwarders, error symbols and non-public types
-                if (candidate.Kind == SymbolKind.ErrorType ||
-                    !ReferenceEquals(candidate.ContainingAssembly, assembly) ||
+                // Ignore non-public types
+                if (candidate is null ||
                     candidate.DeclaredAccessibility != Accessibility.Public)
                 {
                     continue;
@@ -448,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // OK. It looks like we found canonical type definition.
-                if ((object)result != null)
+                if ((object?)result != null)
                 {
                     // Ambiguity 
                     result = new NoPiaAmbiguousCanonicalTypeSymbol(referringAssembly, result, candidate);
@@ -458,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 result = candidate;
             }
 
-            if ((object)result == null)
+            if ((object?)result == null)
             {
                 result = new NoPiaMissingCanonicalTypeSymbol(
                                 referringAssembly,
@@ -470,6 +482,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return result;
         }
+
+#nullable disable
 
         protected override MethodSymbol FindMethodSymbolInType(TypeSymbol typeSymbol, MethodDefinitionHandle targetMethodDef)
         {

@@ -468,8 +468,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             _ = CloneAsset(serializer, assetFromFile);
         }
 
-        [Fact]
-        [WorkItem(1107294, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107294")]
+        [Fact, WorkItem(1107294, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107294")]
         public async Task SnapshotWithIdenticalAnalyzerFiles()
         {
             using var workspace = CreateWorkspace();
@@ -479,8 +478,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var dir = temp.CreateDirectory();
 
             // create two analyzer assembly files whose content is identical but path is different:
-            var file1 = dir.CreateFile("analyzer1.dll").CopyContentFrom(_testFixture.FaultyAnalyzer.Path);
-            var file2 = dir.CreateFile("analyzer2.dll").CopyContentFrom(_testFixture.FaultyAnalyzer.Path);
+            var file1 = dir.CreateFile("analyzer1.dll").CopyContentFrom(_testFixture.FaultyAnalyzer);
+            var file2 = dir.CreateFile("analyzer2.dll").CopyContentFrom(_testFixture.FaultyAnalyzer);
 
             var analyzer1 = new AnalyzerFileReference(file1.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
             var analyzer2 = new AnalyzerFileReference(file2.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
@@ -706,8 +705,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
-            protected override Assembly LoadFromPathUncheckedImpl(string fullPath)
-                => throw new FileNotFoundException(fullPath);
+            protected override string PreparePathToLoad(string fullPath) =>
+                throw new FileNotFoundException(fullPath);
         }
 
         private class MissingMetadataReference : PortableExecutableReference

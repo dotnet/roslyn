@@ -207,11 +207,6 @@
         <target state="translated">Operátor {0} nejde použít pro operand {1}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source> The parameter modifier '{0}' cannot follow '{1}'</source>
-        <target state="new"> The parameter modifier '{0}' cannot follow '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Neplatný operand pro porovnávací vzorek. Vyžaduje se hodnota, ale nalezeno: {0}.</target>
@@ -225,6 +220,11 @@
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
         <target state="translated">Člen záznamu {0} musí být čitelná vlastnost instance nebo pole typu {1}, která se bude shodovat s pozičním parametrem {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
-        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</target>
+        <target state="translated">Nelze použít číselnou konstantu ani relační vzor pro „{0}“, protože dědí z nebo rozšiřuje INumberBase&lt;T&gt;. Zvažte použití vzoru typu k zúžení na konkrétní číselný typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -365,6 +365,11 @@
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Název {0} neodpovídá příslušnému parametru Deconstruct {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
+        <source>A deconstruction variable cannot be declared as a ref local</source>
+        <target state="translated">Dekonstrukční proměnná nemůže být deklarovaná jako místní odkaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
@@ -484,7 +489,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitScopedRef">
         <source>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</source>
-        <target state="new">Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</target>
+        <target state="translated">Nepoužívejte System.Runtime.CompilerServices.ScopedRefAttribute. Místo toho použijte klíčové slovo scoped.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -569,7 +574,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion11">
         <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</target>
+        <target state="translated">Funkce{0}není v jazyce C# 11.0 k dispozici. Použijte prosím jazyková verze {1} nebo vyšší.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -592,6 +597,16 @@
         <target state="translated">Událost podobná poli {0} nemůže mít modifikátor readonly.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileLocalDuplicateNameInNS">
+        <source>The namespace '{1}' already contains a definition for '{0}' in this file.</source>
+        <target state="translated">Obor názvů {1} již obsahuje definici pro {0} v tomto souboru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FilePathCannotBeConvertedToUtf8">
+        <source>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</source>
+        <target state="translated">Místní typ souboru {0} není možné použít, protože cestu k souboru není možné převést na ekvivalentní reprezentaci UTF-8 bajtů.{1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FileScopedAndNormalNamespace">
         <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
         <target state="translated">Zdrojový soubor nemůže obsahovat deklarace normálních oborů názvů i oborů názvů pro celý soubor.</target>
@@ -604,27 +619,32 @@
       </trans-unit>
       <trans-unit id="ERR_FileTypeBase">
         <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
-        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
+        <target state="translated">Místní typ souboru {0} nelze použít jako základní typ místního typu souboru {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeDisallowedInSignature">
         <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
-        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
+        <target state="translated">Místní typ souboru {0} nelze použít v podpisu člena v nesouborovém místním typu{1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNameDisallowed">
         <source>Types and aliases cannot be named 'file'.</source>
-        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <target state="translated">Typy a aliasy nemůžou mít název file.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNested">
         <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
-        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <target state="translated">Místní typ souboru{0}musí být definován v typu nejvyšší úrovně. „{0}“ je vnořený typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
         <source>File-local type '{0}' cannot use accessibility modifiers.</source>
-        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
+        <target state="translated">Místní typ souboru{0}nemůže používat modifikátory přístupnosti.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNonUniquePath">
+        <source>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</source>
+        <target state="translated">Místní typ souboru {0} musí být deklarován v souboru s jedinečnou cestou. Cesta {1} se používá ve více souborech.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -648,8 +668,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">V typeof v atributu se nepodporuje používání typu ukazatele funkce.</target>
+        <source>Using a function pointer type in this context is not supported.</source>
+        <target state="needs-review-translation">V typeof v atributu se nepodporuje používání typu ukazatele funkce.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -674,7 +694,7 @@
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingStaticFileType">
         <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
-        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
+        <target state="translated">Místní typ souboru {0} nejde použít v direktivě „global using static“.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -735,6 +755,11 @@
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">Volání implicitního indexeru rozsahů nemůže pojmenovat argument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="translated">Implicitně zadaný parametr lambda {0} nemůže mít výchozí hodnotu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -932,11 +957,6 @@
         <target state="translated">Neočekávané klíčové slovo record. Měli jste na mysli record struct nebo record class?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MisplacedScoped">
-        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
-        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">Vzory řezů se dají použít jenom jednou a přímo uvnitř vzoru seznamu.</target>
@@ -979,7 +999,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
-        <target state="needs-review-translation">Inicializační metoda modulu {0} musí být statická, nesmí mít žádné parametry a musí vracet void.</target>
+        <target state="translated">Metoda inicializátoru modulu „{0}“ musí být statická a ne virtual, nesmí mít žádné parametry a musí vracet void.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -1262,6 +1282,11 @@
         <target state="translated">{0}: U přístupových objektů se modifikátor readonly může použít jenom v případě, že vlastnost nebo indexer má přístupový objekt get i set.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
+        <source>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</source>
+        <target state="translated">Readonly není podporován jako modifikátor parametru. Měli jste na mysli in?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">Primární konstruktor je v konfliktu se syntetizovaně zkopírovaným konstruktorem.</target>
@@ -1277,6 +1302,16 @@
         <target state="translated">Přiřazení odkazu {1} k {0} nelze provést, protože {1} má užší řídicí obor než {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefAssignReturnOnly">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</source>
+        <target state="translated">Není možné znovu přiřadit {1} k {0}, protože {1} může opustit aktuální metodu pouze prostřednictvím příkazu return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefAssignValEscapeWider">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">Tento odkaz přiřazuje {1} k {0}, protože {1} má širší obor řídicích hodnot než {0}, který povoluje přiřazení prostřednictvím {0} hodnot s užšími řídicími obory než {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
         <target state="translated">Pole ref nemůže odkazovat na hodnotu ref struct.</target>
@@ -1284,12 +1319,32 @@
       </trans-unit>
       <trans-unit id="ERR_RefFieldInNonRefStruct">
         <source>A ref field can only be declared in a ref struct.</source>
-        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <target state="translated">Pole ref lze deklarovat pouze ve struktuře ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">Levá strana přiřazení odkazu musí být parametr Ref.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter">
+        <source>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="translated">Člen parametru {0} není možné vrátit podle odkazu prostřednictvím parametru odkazu; je ho možné vrátit pouze v příkazu return</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="translated">Člen parametru {0} není možné vrátit podle odkazu prostřednictvím parametru odkazu; je ho možné vrátit pouze v příkazu return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter">
+        <source>Cannot return a parameter by reference '{0}' because it is scoped to the current method</source>
+        <target state="translated">Parametr není možné vrátit podle odkazu {0}, protože je přiřazen k aktuální metodě.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</source>
+        <target state="translated">Člen parametru {0} není možné vrátit podle odkazu, protože je přiřazen k aktuální metodě.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1359,7 +1414,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportRefFields">
         <source>Target runtime doesn't support ref fields.</source>
-        <target state="new">Target runtime doesn't support ref fields.</target>
+        <target state="translated">Cílový modul runtime nepodporuje referenční pole.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
@@ -1375,6 +1430,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">Cílový modul runtime nepodporuje rozšiřitelné konvence volání ani konvence volání výchozí pro prostředí modulu runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedDiscard">
+        <source>The 'scoped' modifier cannot be used with discard.</source>
+        <target state="translated">Modifikátor scoped nejde použít s proměnnou typu discard.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
@@ -1399,7 +1459,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedTypeNameDisallowed">
         <source>Types and aliases cannot be named 'scoped'.</source>
-        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <target state="translated">Typy a aliasy nemůžou mít název „scoped“.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
@@ -1582,14 +1642,29 @@
         <target state="translated">{0} má atribut UnmanagedCallersOnly a nedá se převést na typ delegáta. Pro tuto metodu získejte ukazatel na funkci.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
+        <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
+        <target state="translated">UnscopedRefAttribute nelze použít na implementaci rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
+        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="translated">Atribut UnscopedRefAttribute lze použít pouze pro metody a vlastnosti instance struktury a nelze ho použít u konstruktorů nebo členů init-only.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</target>
+        <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
+        <target state="translated">U tohoto parametru není možné použít atribut UnscopedRefAttribute, protože ve výchozím nastavení není nastaven obor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
         <source>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</target>
+        <target state="translated">Atribut UnscopedRefAttribute nelze použít u parametrů, které mají modifikátor scoped.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
@@ -1644,7 +1719,7 @@
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
         <source>array access</source>
-        <target state="new">array access</target>
+        <target state="translated">přístup k poli</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
@@ -1689,7 +1764,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFileTypes">
         <source>file types</source>
-        <target state="new">file types</target>
+        <target state="translated">typy souborů</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -1720,6 +1795,16 @@
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
         <target state="translated">atributy lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaOptionalParameters">
+        <source>lambda optional parameters</source>
+        <target state="translated">volitelné parametry lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaParamsArray">
+        <source>lambda params array</source>
+        <target state="translated">pole parametrů lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
@@ -1809,12 +1894,17 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
-        <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
+        <target state="translated">vzor odpovídající ReadOnly/Span&lt;char&gt; na konstantním řetězci</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Missing">
+        <source>&lt;missing&gt;</source>
+        <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
-        <target state="new">pointer element access</target>
+        <target state="translated">přístup k elementu ukazatele</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1845,6 +1935,16 @@
       <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
         <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">Typ nelze v tomto kontextu použít, protože se nedá reprezentovat v metadatech.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallArgMixing">
+        <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">Tato kombinace argumentů parametru {0} může vystavit proměnné, na které odkazuje parametr {1}, mimo obor jejich deklarace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallArgMixing_Title">
+        <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">Tato kombinace argumentů parametru může vystavit proměnné, na které odkazuje parametr, mimo obor jejich deklarace</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -1927,6 +2027,56 @@
         <target state="translated">Neporovnávat hodnoty ukazatelů funkcí</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Odkaz analyzátoru {0} byl zadán vícekrát</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Odkaz analyzátoru byl zadán vícekrát</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall">
+        <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">Použití výsledku {0} v tomto kontextu může vystavit proměnné, na které odkazuje parametr {1}, mimo rozsah jejich oboru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall2">
+        <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">Použití člena výsledku {0} v tomto kontextu může vystavit proměnné, na které odkazuje parametr {1}, mimo rozsah jejich oboru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall2_Title">
+        <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">Použití člena výsledku v tomto kontextu může vystavit proměnné, na které odkazuje parametr, mimo rozsah jejich oboru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall_Title">
+        <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">Použití výsledku v tomto kontextu může vystavit proměnné, na které odkazuje parametr, mimo rozsah jejich oboru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeStackAlloc">
+        <source>A result of a stackalloc expression of type '{0}' in this context may be exposed outside of the containing method</source>
+        <target state="translated">Výsledek výrazu stackalloc typu {0} v tomto kontextu může být vystaven mimo obsahující metodu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeStackAlloc_Title">
+        <source>A result of a stackalloc expression of this type in this context may be exposed outside of the containing method</source>
+        <target state="translated">Výsledek výrazu stackalloc tohoto typu v tomto kontextu může být vystaven mimo obsahující metodu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeVariable">
+        <source>Use of variable '{0}' in this context may expose referenced variables outside of their declaration scope</source>
+        <target state="translated">Použití proměnné {0} v tomto kontextu může vystavit odkazované proměnné mimo rozsah jejich oboru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeVariable_Title">
+        <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
+        <target state="translated">Použití proměnné v tomto kontextu může vystavit odkazované proměnné mimo rozsah jejich oboru.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
         <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
         <target state="translated">Argument InterpolatedStringHandlerArgument nemá při použití u parametrů lambda žádný účinek a bude se ignorovat v lokalitě volání.</target>
@@ -1947,6 +2097,16 @@
         <target state="translated">Název typu obsahuje jenom malá písmena ASCII. Tyto názvy se můžou stát vyhrazenými pro daný jazyk.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ManagedAddr">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</source>
+        <target state="translated">Přebírá adresu, získává velikost nebo deklaruje ukazatel na spravovaný typ ({0})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr_Title">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type</source>
+        <target state="translated">Přebírá adresu, získává velikost nebo deklaruje ukazatel na spravovaný typ</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
         <target state="translated">Převádí se skupina metod {0} na nedelegující typ {1}. Chtěli jste volat tuto metodu?</target>
@@ -1957,6 +2117,16 @@
         <target state="translated">Převádí se skupina metod na nedelegující typ.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInTernary">
+        <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
+        <target state="translated">Větve podmíněného operátoru odkazu odkazují na proměnné s nekompatibilními obory deklarací</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
+        <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
+        <target state="translated">Větve podmíněného operátoru odkazu odkazují na proměnné s nekompatibilními obory deklarací</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
         <source>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">Požadovaný člen {0} by neměl být přiřazen atributem ObsoleteAttribute, pokud není obsahující typ zastaralý nebo jsou zastaralé všechny konstruktory.</target>
@@ -1965,6 +2135,16 @@
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
         <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">Členy s atributem ObsoleteAttribute by se neměly vyžadovat, pokud není nadřazený typ zastaralý nebo nejsou všechny konstruktory zastaralé.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
+        <target state="translated">Parametr {0} má výchozí hodnotu {1:10} ve výrazu lambda, ale v cílovém typu delegáta má {2:10}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch_Title">
+        <source>The default parameter value does not match in the target delegate type.</source>
+        <target state="translated">Výchozí hodnota parametru neodpovídá v cílovém typu delegáta.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1985,6 +2165,16 @@
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
         <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
         <target state="translated">Po parametru obslužné rutiny dojde k převodu parametru na obslužnou rutinu interpolovaného řetězce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">Parametr {0} má modifikátor params ve výrazu lambda, ale ne v cílovém typu delegáta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
+        <source>Parameter has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">Parametr má modifikátor params ve výrazu lambda, ale ne v cílovém typu delegáta.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2022,6 +2212,146 @@
         <target state="translated">Typy a aliasy by neměly mít název record</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RefAssignNarrower">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
+        <target state="translated">Tento odkaz přiřadí {1} k {0}, ale {1} má užší řídicí obor než {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignNarrower_Title">
+        <source>This ref-assigns a value that has a narrower escape scope than the target.</source>
+        <target state="translated">Tento odkaz přiřadí hodnotu, která má užší řídicí obor než cíl.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignReturnOnly">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' can only escape the current method through a return statement.</source>
+        <target state="translated">Tento příkaz znovu přiřadí {1} k {0}, ale {1} může opustit aktuální metodu pouze prostřednictvím příkazu return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignReturnOnly_Title">
+        <source>This ref-assigns a value that can only escape the current method through a return statement.</source>
+        <target state="translated">Tento příkaz přiřazuje hodnotu, která může opustit aktuální metodu pouze prostřednictvím příkazu return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">Tento odkaz přiřazuje {1} k {0}, ale {1} má širší obor řídicích hodnot než {0}, který povoluje přiřazení prostřednictvím {0} hodnot s užšími řídicími obory než {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider_Title">
+        <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
+        <target state="translated">Tento odkaz přiřazuje hodnotu, která má širší řídicí obor hodnot než cíl, který povoluje přiřazení prostřednictvím cíle hodnot s užšími řídicími obory.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal">
+        <source>This returns local '{0}' by reference but it is not a ref local</source>
+        <target state="translated">Tato funkce vrací místní {0} podle odkazu, ale nejedná se o místní odkaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal2">
+        <source>This returns a member of local '{0}' by reference but it is not a ref local</source>
+        <target state="translated">Vrací člen místního {0} podle odkazu, ale nejedná se o místní odkaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal2_Title">
+        <source>This returns a member of local by reference but it is not a ref local</source>
+        <target state="translated">Vrací místní člen podle odkazu, ale nejedná se o místní odkaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal_Title">
+        <source>This returns local by reference but it is not a ref local</source>
+        <target state="translated">Tato funkce vrací místní podle odkazu, ale nejedná se o místní odkaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal">
+        <source>Local '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">Místní {0} je vráceno podle odkazu, ale bylo inicializováno na hodnotu, kterou není možné vrátit podle odkazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal2">
+        <source>A member of '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">Člen {0} je vrácen podle odkazu, ale byl inicializován na hodnotu, kterou není možné vrátit podle odkazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal2_Title">
+        <source>A member is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">Člen je vrácen podle odkazu, ale byl inicializován na hodnotu, kterou není možné vrátit podle odkazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal_Title">
+        <source>Local is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">Místní je vráceno podle odkazu, ale bylo inicializováno na hodnotu, kterou není možné vrátit podle odkazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter">
+        <source>This returns a parameter by reference '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Vrací parametr podle odkazu {0} prostřednictvím parametru odkazu; je možné ho však bezpečně vrátit pouze v příkazu return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter2">
+        <source>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Tento příkaz vrací podle odkazu člen parametru {0} prostřednictvím parametru odkazu; je ho však možné bezpečně vrátit pouze v příkazu return</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter2_Title">
+        <source>This returns by reference a member of parameter through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Vrací podle odkazu člen parametru prostřednictvím parametru odkazy; je možné jej však bezpečně vrátit pouze v příkazu return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter_Title">
+        <source>This returns a parameter by reference through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">Vrací parametr podle odkazu prostřednictvím parametru odkazu; je možné ho však bezpečně vrátit pouze v příkazu return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter">
+        <source>This returns a parameter by reference '{0}' but it is not a ref parameter</source>
+        <target state="translated">Vrací parametr podle odkazu {0}, ale nejedná se o parametr odkazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter2">
+        <source>This returns by reference a member of parameter '{0}' that is not a ref or out parameter</source>
+        <target state="translated">Vrací podle odkazu člen parametru {0}, který není parametrem odkazu nebo out.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter2_Title">
+        <source>This returns by reference a member of parameter that is not a ref or out parameter</source>
+        <target state="translated">Vrací podle odkazu člen parametru, který není parametrem odkazu nebo out</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter_Title">
+        <source>This returns a parameter by reference but it is not a ref parameter</source>
+        <target state="translated">Vrací parametr podle odkazu, ale nejedná se o parametr odkazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter">
+        <source>This returns a parameter by reference '{0}' but it is scoped to the current method</source>
+        <target state="translated">Vrací parametr pomocí odkazu {0}, ale má obor vymezený na aktuální metodu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter2">
+        <source>This returns by reference a member of parameter '{0}' that is scoped to the current method</source>
+        <target state="translated">Vrací podle odkazu člen parametru {0}, který je přiřazen k aktuální metodě</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter2_Title">
+        <source>This returns by reference a member of parameter that is scoped to the current method</source>
+        <target state="translated">Vrací podle odkazu člen parametru, který je přiřazen k aktuální metodě.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter_Title">
+        <source>This returns a parameter by reference but it is scoped to the current method</source>
+        <target state="translated">Vrací parametr pomocí odkazu, ale má obor vymezený na aktuální metodu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnStructThis">
+        <source>Struct member returns 'this' or other instance members by reference</source>
+        <target state="translated">Člen struktury vrací this nebo jiné členy instance pomocí odkazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnStructThis_Title">
+        <source>Struct member returns 'this' or other instance members by reference</source>
+        <target state="translated">Člen struktury vrací this nebo jiné členy instance pomocí odkazu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">Návratová hodnota musí být jiná než null, protože parametr {0} není null.</target>
@@ -2030,6 +2360,26 @@
       <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
         <source>Return value must be non-null because parameter is non-null.</source>
         <target state="translated">Návratová hodnota musí být jiná než null, protože parametr není null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="translated">Modifikátor scoped parametru {0} neodpovídá přepsanému nebo implementovanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title">
+        <source>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</source>
+        <target state="translated">Modifikátor scoped parametru neodpovídá přepsanému nebo implementovanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="translated">Modifikátor scoped parametru {0} neodpovídá cílovému objektu {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget_Title">
+        <source>The 'scoped' modifier of parameter doesn't match target.</source>
+        <target state="translated">Modifikátor scoped parametru neodpovídá cílovému objektu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
@@ -2355,7 +2705,7 @@
 -instrument:TestCoverage Vytvoří sestavení instrumentované ke shromažďování
  informací o pokrytí.
 -sourcelink:&lt;file&gt; Informace o zdrojovém odkazu vkládané do souboru PDB..
-
+ 
  - CHYBY A UPOZORNĚNÍ -
 -warnaserror[+|-] Hlásí všechna upozornění jako chyby.
 -warnaserror[+|-]:&lt;warn list&gt; Hlásí zadaná upozornění jako chyby.
@@ -4972,8 +5322,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
-        <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="translated">Vlastnost nebo indexer nejde předat jako parametr ref nebo out.</target>
+        <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
+        <target state="translated">Vlastnost nebo indexer nevracející odkaz nejde použít jako hodnotu out nebo ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -5082,8 +5432,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
-        <source>A params parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Parametr params musí být posledním parametrem v seznamu formálních parametrů.</target>
+        <source>A params parameter must be the last parameter in a parameter list</source>
+        <target state="translated">Parametr params musí být posledním parametrem v seznamu parametrů</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5197,8 +5547,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
-        <source>An __arglist parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">Parametr __arglist musí být posledním parametrem v seznamu formálních parametrů.</target>
+        <source>An __arglist parameter must be the last parameter in a parameter list</source>
+        <target state="translated">Parametr __arglist musí být posledním parametrem v seznamu parametrů</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -8100,13 +8450,13 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
-        <source>Cannot assign to {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">Nejde přiřadit k položce {0} {1}, protože to je proměnná jen pro čtení.</target>
+        <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="translated">Není možné k {0} {1} nebo jej použít jako pravou stranu přiřazení odkazu, protože se jedná o proměnnou pouze pro čtení</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
-        <source>Cannot assign to a member of {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">Nejde přiřadit členovi {0} {1}, protože to je proměnná jen pro čtení.</target>
+        <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="translated">Není možné přiřadit členovi {0} {1} nebo jej použít jako pravou stranu přiřazení odkazu, protože se jedná o proměnnou pouze pro čtení</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">
@@ -8180,8 +8530,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
-        <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">Protože se jedná o asynchronní metodu, vrácený výraz musí být typu {0} a ne typu Task&lt;{0}&gt;.</target>
+        <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
+        <target state="translated">Protože se jedná o asynchronní metodu, vrácený výraz musí být typu {0} a ne typu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9343,8 +9693,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
-        <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Protože metoda {0} je asynchronní a její návratový typ je Task, za klíčovým slovem return nesmí následovat objektový výraz. Měli jste v úmyslu vrátit hodnotu typu Task&lt;T&gt;?</target>
+        <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
+        <target state="translated">Protože {0} je asynchronní metoda, která vrací {1}, nesmí za klíčovým slovem return následovat výraz objektu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -9910,8 +10260,8 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
-        <source>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</source>
-        <target state="translated">Není dán žádný argument, který by odpovídal požadovanému formálnímu parametru {0} v {1}.</target>
+        <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
+        <target state="translated">Není zadán žádný argument, který by odpovídal požadovanému parametru {0} v {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">
@@ -10773,8 +11123,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
-        <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Asynchronní lambda výraz převedený na Task a vracející delegáta nemůže vrátit hodnotu. Měli jste v úmyslu vrátit Task&lt;T&gt;?</target>
+        <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
+        <target state="translated">Asynchronní výraz lambda převedený na návratový delegát {0}nemůže vrátit hodnotu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

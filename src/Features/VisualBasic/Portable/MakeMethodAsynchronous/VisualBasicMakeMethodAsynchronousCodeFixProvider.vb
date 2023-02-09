@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous
 Imports Microsoft.CodeAnalysis.Simplification
@@ -30,6 +31,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
         Public Sub New()
         End Sub
 
+        Protected Overrides Function IsSupportedDiagnostic(diagnostic As Diagnostic, cancellationToken As CancellationToken) As Boolean
+            Return True
+        End Function
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return s_diagnosticIds
@@ -53,8 +58,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
         End Function
 
         Protected Overrides Function AddAsyncTokenAndFixReturnType(
-                keepVoid As Boolean, methodSymbolOpt As IMethodSymbol, node As SyntaxNode,
-                knownTypes As KnownTypes) As SyntaxNode
+                keepVoid As Boolean,
+                methodSymbolOpt As IMethodSymbol,
+                node As SyntaxNode,
+                knownTypes As KnownTypes,
+                cancellationToken As CancellationToken) As SyntaxNode
 
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then
@@ -65,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
                 Return FixMultiLineLambdaExpression(DirectCast(node, MultiLineLambdaExpressionSyntax))
             ElseIf node.IsKind(SyntaxKind.SubBlock) Then
-                Return FixSubBlock(keepVoid, DirectCast(node, MethodBlockSyntax), knownTypes._taskType)
+                Return FixSubBlock(keepVoid, DirectCast(node, MethodBlockSyntax), knownTypes.TaskType)
             Else
                 Return FixFunctionBlock(
                     methodSymbolOpt, DirectCast(node, MethodBlockSyntax), knownTypes)
@@ -73,13 +81,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
         End Function
 
         Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTypes) As SyntaxNode
-
             Dim functionStatement = node.SubOrFunctionStatement
             Dim newFunctionStatement = AddAsyncKeyword(functionStatement)
 
             If Not IsTaskLike(methodSymbol.ReturnType, knownTypes) Then
                 ' if the current return type is not already task-list, then wrap it in Task(of ...)
-                Dim returnType = knownTypes._taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
+                Dim returnType = knownTypes.TaskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
                 newFunctionStatement = newFunctionStatement.WithAsClause(
                 newFunctionStatement.AsClause.WithType(returnType))
             End If

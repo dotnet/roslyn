@@ -771,7 +771,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.ContainingModule.DefaultMarshallingCharSet;
         }
 
-
         internal bool IsFromCompilation(CSharpCompilation compilation)
         {
             Debug.Assert(compilation != null);
@@ -1379,6 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CaseSensitiveExtensionAttribute = 1 << 10,
             RequiredMemberAttribute = 1 << 11,
             ScopedRefAttribute = 1 << 12,
+            RefSafetyRulesAttribute = 1 << 13,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1444,6 +1444,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitScopedRef, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.RefSafetyRulesAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RefSafetyRulesAttribute))
+            {
             }
             else
             {

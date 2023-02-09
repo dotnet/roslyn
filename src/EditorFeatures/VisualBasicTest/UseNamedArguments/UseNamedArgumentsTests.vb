@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNamedArguments
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
     Public Class UseNamedArgumentsTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNamedArguments
         Private Shared ReadOnly s_vb15Parameters As TestParameters =
             New TestParameters(parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestFirstArgument() As Task
             Await TestInRegularAndScript1Async(
 "Class C
@@ -32,7 +33,7 @@ End Class",
 End Class", parameters:=s_vb15Parameters)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestNonFirstArgument() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -47,7 +48,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestDelegate() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -66,7 +67,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestConditionalDelegate() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -85,7 +86,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestConditionalMethod() As Task
             Await TestInRegularAndScript1Async(
 "Class C
@@ -100,7 +101,7 @@ End Class",
 End Class", parameters:=s_vb15Parameters)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestConditionalIndexer() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -115,7 +116,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestConstructor() As Task
             Await TestInRegularAndScript1Async(
 "Class C
@@ -130,7 +131,7 @@ End Class",
 End Class", parameters:=s_vb15Parameters)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestIndexer() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -145,7 +146,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestMissingOnArrayIndexer() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -155,7 +156,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestMissingOnConditionalArrayIndexer() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -165,7 +166,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestMissingOnEmptyArgumentList() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -175,7 +176,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestMissingOnNamedArgument() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -185,7 +186,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestMissingOnParamArray() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -195,7 +196,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestEmptyParamArray() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -210,7 +211,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestOmittedArguments1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -220,7 +221,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestOmittedArguments2() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -235,7 +236,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestMissingOnOmittedArgument() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -245,7 +246,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestMissingOnNameOf() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -255,7 +256,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact>
         Public Async Function TestMissingOnAttribute() As Task
             Await TestMissingInRegularAndScriptAsync(
 "<C([||]1)>
@@ -266,8 +267,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
         Public Async Function TestCaretPositionAtTheEnd1() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -282,8 +282,7 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
         Public Async Function TestCaretPositionAtTheEnd2() As Task
             Await TestInRegularAndScript1Async(
 "Class C
@@ -298,8 +297,7 @@ End Class",
 End Class", parameters:=s_vb15Parameters)
         End Function
 
-        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
         Public Async Function TestCaretPositionAtTheEnd3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -309,8 +307,7 @@ End Class", parameters:=s_vb15Parameters)
 End Class")
         End Function
 
-        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
         Public Async Function TestCaretPositionAtTheEnd4() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -320,8 +317,7 @@ End Class")
 End Class")
         End Function
 
-        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact, WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
         Public Async Function TestCaretPositionAtTheEnd5() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -331,8 +327,7 @@ End Class")
 End Class")
         End Function
 
-        <WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact, WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")>
         Public Async Function TestOnTuple() As Task
             Await TestInRegularAndScript1Async(
 "Imports System.Linq
@@ -349,8 +344,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        <Fact, WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")>
         Public Async Function TestCharacterEscape() As Task
             Await TestInRegularAndScript1Async(
 "Class C

@@ -77,36 +77,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var declaratorToRemoveLocation = diagnostic.AdditionalLocations.ElementAtOrDefault(1);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                SyntaxNode? declaratorToRemoveNode = null;
+                VariableDeclaratorSyntax? declaratorToRemoveNode = null;
                 ITypeSymbol? declaratorToRemoveType = null;
 
                 if (declaratorToRemoveLocation != null)
                 {
-                    declaratorToRemoveNode = declaratorToRemoveLocation.FindNode(cancellationToken);
+                    declaratorToRemoveNode = (VariableDeclaratorSyntax)declaratorToRemoveLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
                     declaratorToRemoveType = semanticModel.GetDeclaredSymbol(declaratorToRemoveNode, cancellationToken).GetSymbolType();
                 }
 
                 var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-                var switchExpression = Rewriter.Rewrite(
+                var switchExpressionStatement = Rewriter.Rewrite(
                    switchStatement, semanticModel, declaratorToRemoveType, nodeToGenerate,
                    shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
                    generateDeclaration: declaratorToRemoveLocation is not null,
                    cancellationToken);
 
-                editor.ReplaceNode(switchStatement, switchExpression.WithAdditionalAnnotations(Formatter.Annotation));
-
-                if (declaratorToRemoveLocation is not null)
+                if (declaratorToRemoveNode is not null)
                 {
-                    editor.RemoveNode(declaratorToRemoveLocation.FindNode(cancellationToken));
+                    editor.RemoveNode(declaratorToRemoveNode);
+
+                    // If we are removing the declarator statement entirely, transfer its leading trivia to the
+                    // expression-statement are converting to.
+                    if (declaratorToRemoveNode.Parent is VariableDeclarationSyntax { Parent: LocalDeclarationStatementSyntax declStatement, Variables.Count: 1 })
+                        switchExpressionStatement = switchExpressionStatement.WithPrependedLeadingTrivia(declStatement.GetLeadingTrivia());
                 }
+
+                editor.ReplaceNode(switchStatement, switchExpressionStatement.WithAdditionalAnnotations(Formatter.Annotation));
 
                 if (shouldRemoveNextStatement)
                 {
                     // Already morphed into the top-level switch expression.
                     var nextStatement = switchStatement.GetNextStatement();
                     Contract.ThrowIfNull(nextStatement);
-                    Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
+                    Debug.Assert(nextStatement.Kind() is SyntaxKind.ThrowStatement or SyntaxKind.ReturnStatement);
                     editor.RemoveNode(nextStatement.IsParentKind(SyntaxKind.GlobalStatement) ? nextStatement.GetRequiredParent() : nextStatement);
                 }
             }

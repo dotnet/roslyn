@@ -6,6 +6,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports System.Text
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -70,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 "End Class" & vbCrLf
 
             ' TODO: It looks like Dev11 respects project level conditional compilation here.
-            Dim tree = VisualBasicSyntaxTree.ParseText(codeToParse)
+            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(codeToParse, Encoding.UTF8, SourceHashAlgorithms.Default))
             Dim attributeSyntax = PropertyOrEvent.AttributeSyntax.GetVisualBasicSyntax()
             Dim diagnosticLocation As Location = attributeSyntax.GetLocation()
             Dim root As CompilationUnitSyntax = tree.GetCompilationUnitRoot()

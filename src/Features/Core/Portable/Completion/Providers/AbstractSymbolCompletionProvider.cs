@@ -28,11 +28,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected abstract Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(CompletionContext? completionContext, TSyntaxContext syntaxContext, int position, CompletionOptions options, CancellationToken cancellationToken);
         protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, TSyntaxContext context);
 
-        protected virtual CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols)
-            => CompletionItemRules.Default;
+        protected abstract Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
+            CompletionContext? completionContext,
+            TSyntaxContext syntaxContext,
+            int position,
+            CompletionOptions options,
+            CancellationToken cancellationToken);
+
+        protected abstract CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            ImmutableArray<SymbolAndSelectionInfo> symbols,
+            TSyntaxContext context,
+            SupportedPlatformData? supportedPlatformData);
 
         /// <param name="typeConvertibilityCache">A cache to use for repeated lookups. This should be created with <see cref="SymbolEqualityComparer.Default"/>
         /// because we ignore nullability.</param>
@@ -87,8 +99,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// </summary>
         private ImmutableArray<CompletionItem> CreateItems(
             CompletionContext completionContext,
-            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
-            Func<(ISymbol symbol, bool preselect), TSyntaxContext> contextLookup,
+            ImmutableArray<SymbolAndSelectionInfo> symbols,
+            Func<SymbolAndSelectionInfo, TSyntaxContext> contextLookup,
             Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
             List<ProjectId>? totalProjects)
         {
@@ -96,12 +108,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // need to filter them out.
             // https://github.com/dotnet/roslyn/issues/47690
             var symbolGroups = from symbol in symbols
-                               let texts = GetDisplayAndSuffixAndInsertionText(symbol.symbol, contextLookup(symbol))
+                               let texts = GetDisplayAndSuffixAndInsertionText(symbol.Symbol, contextLookup(symbol))
                                where !string.IsNullOrWhiteSpace(texts.displayText)
                                group symbol by texts into g
                                select g;
 
-            var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
+            using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var itemListBuilder);
             var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>(SymbolEqualityComparer.Default);
 
             foreach (var symbolGroup in symbolGroups)
@@ -123,9 +135,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 
+                var supportedPlatformData = ComputeSupportedPlatformData(completionContext, symbolList, invalidProjectMap, totalProjects);
                 var item = CreateItem(
-                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText,
-                    symbolList, arbitraryFirstContext, invalidProjectMap, totalProjects);
+                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolList, arbitraryFirstContext, supportedPlatformData);
 
                 if (includeItemInTargetTypedCompletion)
                 {
@@ -139,8 +151,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected static bool TryFindFirstSymbolMatchesTargetTypes(
-            Func<(ISymbol symbol, bool preselect), TSyntaxContext> contextLookup,
-            ImmutableArray<(ISymbol symbol, bool preselect)> symbolList,
+            Func<SymbolAndSelectionInfo, TSyntaxContext> contextLookup,
+            ImmutableArray<SymbolAndSelectionInfo> symbolList,
             Dictionary<ITypeSymbol, bool> typeConvertibilityCache,
             out int index)
         {
@@ -148,35 +160,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var symbol = symbolList[index];
                 var syntaxContext = contextLookup(symbol);
-                if (ShouldIncludeInTargetTypedCompletionList(symbol.symbol, syntaxContext.InferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
+                if (ShouldIncludeInTargetTypedCompletionList(symbol.Symbol, syntaxContext.InferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
                     break;
             }
 
             return index < symbolList.Length;
         }
 
-        /// <summary>
-        /// Given a Symbol, creates the completion item for it.
-        /// </summary>
-        private CompletionItem CreateItem(
-            CompletionContext completionContext,
-            string displayText,
-            string displayTextSuffix,
-            string insertionText,
-            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
-            TSyntaxContext context,
-            Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
-            List<ProjectId>? totalProjects)
+        private static SupportedPlatformData? ComputeSupportedPlatformData(CompletionContext completionContext, ImmutableArray<SymbolAndSelectionInfo> symbols, Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap, List<ProjectId>? totalProjects)
         {
-            Contract.ThrowIfTrue(symbols.IsDefault);
-
             SupportedPlatformData? supportedPlatformData = null;
             if (invalidProjectMap != null)
             {
                 List<ProjectId>? invalidProjects = null;
                 foreach (var symbol in symbols)
                 {
-                    if (invalidProjectMap.TryGetValue(symbol.symbol, out invalidProjects))
+                    if (invalidProjectMap.TryGetValue(symbol.Symbol, out invalidProjects))
                         break;
                 }
 
@@ -184,34 +183,32 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     supportedPlatformData = new SupportedPlatformData(completionContext.Document.Project.Solution, invalidProjects, totalProjects);
             }
 
-            return CreateItem(
-                completionContext, displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData);
+            return supportedPlatformData;
         }
 
-        protected virtual CompletionItem CreateItem(
-            CompletionContext completionContext,
+        protected static CompletionItem CreateItemDefault(
             string displayText,
             string displayTextSuffix,
             string insertionText,
-            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
+            ImmutableArray<SymbolAndSelectionInfo> symbols,
             TSyntaxContext context,
             SupportedPlatformData? supportedPlatformData)
         {
-            var preselect = symbols.Any(static t => t.preselect);
+            var preselect = symbols.Any(static t => t.Preselect);
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbols[0].symbol, displayText, context),
+                filterText: GetFilterTextDefault(symbols[0].Symbol, displayText, context),
                 contextPosition: context.Position,
-                symbols: symbols.SelectAsArray(t => t.symbol),
+                symbols: symbols.SelectAsArray(t => t.Symbol),
                 supportedPlatforms: supportedPlatformData,
-                rules: GetCompletionItemRules(symbols)
+                rules: CompletionItemRules.Default
                     .WithMatchPriority(preselect ? MatchPriority.Preselect : MatchPriority.Default)
                     .WithSelectionBehavior(context.IsRightSideOfNumericType ? CompletionItemSelectionBehavior.SoftSelection : CompletionItemSelectionBehavior.Default));
         }
 
-        protected virtual string GetFilterText(ISymbol symbol, string displayText, TSyntaxContext context)
+        protected static string GetFilterTextDefault(ISymbol symbol, string displayText, TSyntaxContext context)
         {
             return (displayText == symbol.Name) ||
                 (displayText.Length > 0 && displayText[0] == '@') ||
@@ -291,18 +288,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected virtual Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
             => SpecializedTasks.True;
 
-        private static Dictionary<(ISymbol symbol, bool preselect), TSyntaxContext> UnionSymbols(
-            ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)> linkedContextSymbolLists)
+        private static Dictionary<SymbolAndSelectionInfo, TSyntaxContext> UnionSymbols(
+            ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)> linkedContextSymbolLists)
         {
             // To correctly map symbols back to their SyntaxContext, we do care about assembly identity.
-            var result = new Dictionary<(ISymbol symbol, bool preselect), TSyntaxContext>(CompletionLinkedFilesSymbolEquivalenceComparer.Instance);
-
             // We don't care about assembly identity when creating the union.
+            var result = new Dictionary<SymbolAndSelectionInfo, TSyntaxContext>();
             foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
                 // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
                 // Therefore, when we add a symbol to set of union symbols, add a mapping from it to its SyntaxContext.
-                foreach (var symbol in symbols.GroupBy(s => new { s.symbol.Name, s.symbol.Kind }).Select(g => g.First()))
+                foreach (var symbol in symbols.GroupBy(s => new { s.Symbol.Name, s.Symbol.Kind }).Select(g => g.First()))
                 {
                     if (!result.ContainsKey(symbol))
                         result.Add(symbol, syntaxContext);
@@ -312,13 +308,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return result;
         }
 
-        private async Task<ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>> GetPerContextSymbolsAsync(
+        private async Task<ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>> GetPerContextSymbolsAsync(
             CompletionContext completionContext, Document document, CompletionOptions options, IEnumerable<DocumentId> relatedDocuments, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
 
-            using var _1 = ArrayBuilder<Task<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>>.GetInstance(out var tasks);
-            using var _2 = ArrayBuilder<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>.GetInstance(out var perContextSymbols);
+            using var _1 = ArrayBuilder<Task<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>>.GetInstance(out var tasks);
+            using var _2 = ArrayBuilder<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.GetInstance(out var perContextSymbols);
 
             foreach (var relatedDocumentId in relatedDocuments)
             {
@@ -349,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <summary>
         /// If current context is in active region, returns available symbols. Otherwise, returns null.
         /// </summary>
-        protected async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> TryGetSymbolsForContextAsync(
+        protected async Task<ImmutableArray<SymbolAndSelectionInfo>> TryGetSymbolsForContextAsync(
             CompletionContext? completionContext, TSyntaxContext syntaxContext, CompletionOptions options, CancellationToken cancellationToken)
         {
             var syntaxFacts = syntaxContext.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -365,14 +361,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <param name="linkedContextSymbolLists">The symbols recommended in linked documents</param>
         /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
         private static Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
-            Dictionary<(ISymbol symbol, bool preselect), TSyntaxContext> symbolToContext,
-            ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)> linkedContextSymbolLists)
+            Dictionary<SymbolAndSelectionInfo, TSyntaxContext> symbolToContext,
+            ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)> linkedContextSymbolLists)
         {
             var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
             foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
-                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols, CompletionLinkedFilesSymbolEquivalenceComparer.Instance);
+                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols);
                 foreach (var (symbol, _) in symbolsMissingInLinkedContext)
                     missingSymbols.GetOrAdd(symbol, m => new List<ProjectId>()).Add(documentId.ProjectId);
             }

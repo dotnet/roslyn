@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         }
     }
 
-    internal struct DiagnosticAnalysisResultMap<TKey, TValue>
+    internal readonly struct DiagnosticAnalysisResultMap<TKey, TValue>
         where TKey : notnull
     {
         public static readonly DiagnosticAnalysisResultMap<TKey, TValue> Empty = new(

@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {

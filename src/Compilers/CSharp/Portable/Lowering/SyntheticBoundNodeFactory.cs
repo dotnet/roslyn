@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode Syntax { get; set; }
         public PEModuleBuilder? ModuleBuilderOpt { get { return CompilationState.ModuleBuilderOpt; } }
         public BindingDiagnosticBag Diagnostics { get; }
+        public InstrumentationState? InstrumentationState { get; }
         public TypeCompilationState CompilationState { get; }
 
         // Current enclosing type, or null if not available.
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class SyntheticBinderImpl : BuckStopsHereBinder
         {
             private readonly SyntheticBoundNodeFactory _factory;
-            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation, associatedSyntaxTree: null)
+            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation, associatedFileIdentifier: null)
             {
                 _factory = factory;
             }
@@ -145,8 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">The syntax node to which generated code should be attributed</param>
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
-        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, SyntaxNode node, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
-            : this(topLevelMethod, topLevelMethod.ContainingType, node, compilationState, diagnostics)
+        /// <param name="instrumentationState">Instrumentation state, if the factory is used for local lowering phase.</param>
+        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, SyntaxNode node, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics, InstrumentationState? instrumentationState = null)
+            : this(topLevelMethod, topLevelMethod.ContainingType, node, compilationState, diagnostics, instrumentationState)
         {
         }
 
@@ -155,7 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">The syntax node to which generated code should be attributed</param>
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
-        public SyntheticBoundNodeFactory(MethodSymbol? topLevelMethodOpt, NamedTypeSymbol? currentClassOpt, SyntaxNode node, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        /// <param name="instrumentationState">Instrumentation state, if the factory is used for local lowering phase.</param>
+        public SyntheticBoundNodeFactory(MethodSymbol? topLevelMethodOpt, NamedTypeSymbol? currentClassOpt, SyntaxNode node, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics, InstrumentationState? instrumentationState = null)
         {
             Debug.Assert(node != null);
             Debug.Assert(compilationState != null);
@@ -167,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentFunction = topLevelMethodOpt;
             this.Syntax = node;
             this.Diagnostics = diagnostics;
+            this.InstrumentationState = instrumentationState;
         }
 
         [Conditional("DEBUG")]
@@ -357,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A symbol for the well-known member, or null if it is missing and <paramref name="isOptional"/> == true</returns>
         public Symbol? WellKnownMember(WellKnownMember wm, bool isOptional)
         {
-            Symbol wellKnownMember = Binder.GetWellKnownTypeMember(Compilation, wm, Diagnostics, syntax: Syntax, isOptional: true);
+            Symbol? wellKnownMember = Binder.GetWellKnownTypeMember(Compilation, wm, Diagnostics, syntax: Syntax, isOptional: true);
             if (wellKnownMember is null && !isOptional)
             {
                 RuntimeMembers.MemberDescriptor memberDescriptor = WellKnownMembers.GetDescriptor(wm);
@@ -466,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
         {
-            return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
+            return new BoundBlock(Syntax, locals, localFunctions, hasUnsafeModifier: false, statements) { WasCompilerGenerated = true };
         }
 
         public BoundExtractedFinallyBlock ExtractedFinallyBlock(BoundBlock finallyBlock)
@@ -531,6 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type,
             SyntaxNode? syntax = null,
             bool isPinned = false,
+            bool isKnownToReferToTempIfReferenceType = false,
             RefKind refKind = RefKind.None,
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp
 #if DEBUG
@@ -540,7 +545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), kind, syntax, isPinned, refKind
+            return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), kind, syntax, isPinned,
+                isKnownToReferToTempIfReferenceType, refKind
 #if DEBUG
                 , createdAtLineNumber, createdAtFilePath
 #endif
@@ -549,7 +555,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public LocalSymbol InterpolatedStringHandlerLocal(
             TypeSymbol type,
-            uint valEscapeScope,
             SyntaxNode syntax
 #if DEBUG
             ,
@@ -558,11 +563,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            return new SynthesizedLocalWithValEscape(
+            return new SynthesizedLocal(
                 CurrentFunction,
                 TypeWithAnnotations.Create(type),
                 SynthesizedLocalKind.LoweringTemp,
-                valEscapeScope,
                 syntax
 #if DEBUG
                 , createdAtLineNumber: createdAtLineNumber, createdAtFilePath: createdAtFilePath
@@ -809,12 +813,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)
+        public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type, bool isRef = false)
         {
-            return new BoundConditionalOperator(Syntax, false, condition, consequence, alternative, constantValueOpt: null, type, wasTargetTyped: false, type) { WasCompilerGenerated = true };
+            return new BoundConditionalOperator(Syntax, isRef, condition, consequence, alternative, constantValueOpt: null, type, wasTargetTyped: false, type) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)
+        public BoundComplexConditionalReceiver ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)
         {
             Debug.Assert(valueTypeReceiver.Type is { });
             Debug.Assert(TypeSymbol.Equals(valueTypeReceiver.Type, referenceTypeReceiver.Type, TypeCompareKind.ConsiderEverything2));
@@ -1008,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             statements.Add(Label(breakLabel));
             Debug.Assert(statements[0] is null);
-            statements[0] = new BoundSwitchDispatch(Syntax, ex, caseBuilder.ToImmutableAndFree(), breakLabel) { WasCompilerGenerated = true };
+            statements[0] = new BoundSwitchDispatch(Syntax, ex, caseBuilder.ToImmutableAndFree(), breakLabel, lengthBasedStringSwitchDataOpt: null) { WasCompilerGenerated = true };
             return Block(statements.ToImmutableAndFree());
         }
 
@@ -1461,6 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundAssignmentOperator store,
             RefKind refKind = RefKind.None,
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
+            bool isKnownToReferToTempIfReferenceType = false,
             SyntaxNode? syntaxOpt = null
 #if DEBUG
             , [CallerLineNumber] int callerLineNumber = 0
@@ -1514,6 +1519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                     syntaxOpt: syntaxOpt ?? (kind.IsLongLived() ? syntax : null),
                     isPinned: false,
+                    isKnownToReferToTempIfReferenceType: isKnownToReferToTempIfReferenceType,
                     refKind: refKind),
                 null,
                 type);
@@ -1581,14 +1587,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol boolType = Compilation.GetSpecialType(CodeAnalysis.SpecialType.System_Boolean);
 
             // Fold compile-time comparisons.
-            if (rewrittenExpr.ConstantValue != null)
+            if (rewrittenExpr.ConstantValueOpt != null)
             {
                 switch (operatorKind)
                 {
                     case BinaryOperatorKind.Equal:
-                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValueOpt.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
                     case BinaryOperatorKind.NotEqual:
-                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValueOpt.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
                 }
             }
 
@@ -1683,7 +1689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var whenNull = kind == BinaryOperatorKind.NullableNullEqual ? Literal(true) : null;
 
-                return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.HasValueMethodOpt, whenNotNull, whenNull, conditionalAccess.Id, whenNotNull.Type);
+                return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.HasValueMethodOpt, whenNotNull, whenNull, conditionalAccess.Id, conditionalAccess.ForceCopyOfNullableValueType, whenNotNull.Type);
             }
 
             BoundExpression call = MakeNullableHasValue(syntax, nullable);

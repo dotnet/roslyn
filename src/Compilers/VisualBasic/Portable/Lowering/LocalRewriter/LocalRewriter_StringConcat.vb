@@ -105,7 +105,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-
         ''' <summary>
         ''' digs into known concat operators and unwraps their arguments
         ''' otherwise returns the expression as-is

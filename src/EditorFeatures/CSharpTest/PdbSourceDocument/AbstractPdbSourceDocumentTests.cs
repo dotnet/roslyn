@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             try
             {
                 // Using default settings here because none of the tests exercise any of the settings
-                var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, MetadataAsSourceOptions.GetDefault(project.Services), CancellationToken.None).ConfigureAwait(false);
+                var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, MetadataAsSourceOptions.GetDefault(project.Services), CancellationToken.None).ConfigureAwait(false);
 
                 if (expectNullResult)
                 {
@@ -157,9 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
                 var masWorkspace = service.TryGetWorkspace();
 
-                var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
-
-                Assert.Equal(document.FilePath, file.FilePath);
+                var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First(d => d.FilePath == file.FilePath);
 
                 // Mapping the project from the generated document should map back to the original project
                 var provider = workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().OfType<PdbSourceDocumentMetadataAsSourceFileProvider>().Single();
@@ -252,13 +250,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
         protected static void CompileTestSource(string dllFilePath, string sourceCodePath, string? pdbFilePath, string assemblyName, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
         {
+            CompileTestSource(dllFilePath, new[] { sourceCodePath }, pdbFilePath, assemblyName, new[] { source }, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
+        }
+
+        protected static void CompileTestSource(string dllFilePath, string[] sourceCodePaths, string? pdbFilePath, string assemblyName, SourceText[] sources, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
+        {
             var compilationFactory = project.Solution.Services.GetRequiredLanguageService<ICompilationFactoryService>(LanguageNames.CSharp);
             var options = compilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
             var parseOptions = project.ParseOptions;
 
             var compilation = compilationFactory
                 .CreateCompilation(assemblyName, options)
-                .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(source, options: parseOptions, path: sourceCodePath))
+                .AddSyntaxTrees(sources.Select((s, i) => SyntaxFactory.ParseSyntaxTree(s, options: parseOptions, path: sourceCodePaths[i])))
                 .AddReferences(project.MetadataReferences);
 
             IEnumerable<EmbeddedText>? embeddedTexts;
@@ -269,11 +272,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             else if (sourceLocation == Location.OnDisk)
             {
                 embeddedTexts = null;
-                File.WriteAllText(sourceCodePath, source.ToString(), source.Encoding);
+                for (var i = 0; i < sources.Length; i++)
+                {
+                    File.WriteAllText(sourceCodePaths[i], sources[i].ToString(), sources[i].Encoding);
+                }
             }
             else
             {
-                embeddedTexts = new[] { EmbeddedText.FromSource(sourceCodePath, source) };
+                embeddedTexts = sources.Select((s, i) => EmbeddedText.FromSource(sourceCodePaths[i], s)).ToArray();
             }
 
             EmitOptions emitOptions;
@@ -300,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
             if (fallbackEncoding is null)
             {
-                emitOptions = emitOptions.WithDefaultSourceFileEncoding(source.Encoding);
+                emitOptions = emitOptions.WithDefaultSourceFileEncoding(sources[0].Encoding);
             }
             else
             {

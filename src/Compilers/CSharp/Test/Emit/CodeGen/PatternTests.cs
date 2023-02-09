@@ -96,7 +96,7 @@ static class C {
     public static bool M() => ((object)123) is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -119,7 +119,7 @@ static class C {
     public static bool M() => ((object)123) is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -149,7 +149,7 @@ static class C {
     static bool M2(int? x) => x is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -197,7 +197,7 @@ static class C {
     static bool M2(int? x) => x is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -3312,7 +3312,7 @@ static class C {
     public static bool M(int i) => i switch { 1 => true };
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics().Verify(
                 // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
                 //     public static bool M(int i) => i switch { 1 => true };
@@ -5517,46 +5517,83 @@ class C
             compilation.VerifyDiagnostics();
             var expectedOutput = @"TrueFalseTrueFalse";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
-            var code = @"
-    {
-      // Code size       21 (0x15)
-      .maxstack  2
-      IL_0000:  ldarg.0
-      IL_0001:  isinst     ""int""
-      IL_0006:  brtrue.s   IL_0013
-      IL_0008:  ldarg.0
-      IL_0009:  isinst     ""long""
-      IL_000e:  ldnull
-      IL_000f:  cgt.un
-      IL_0011:  br.s       IL_0014
-      IL_0013:  ldc.i4.1
-      IL_0014:  ret
-    }
-";
-            compVerifier.VerifyIL("C.M1", code);
-            compVerifier.VerifyIL("C.M2", code);
+            compVerifier.VerifyIL("C.M1", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     "int"
+  IL_0006:  brtrue.s   IL_0012
+  IL_0008:  ldarg.0
+  IL_0009:  isinst     "long"
+  IL_000e:  brtrue.s   IL_0012
+  IL_0010:  br.s       IL_0016
+  IL_0012:  ldc.i4.1
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0018
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}
+""");
+            compVerifier.VerifyIL("C.M2", """
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     "int"
+  IL_0006:  brtrue.s   IL_0013
+  IL_0008:  ldarg.0
+  IL_0009:  isinst     "long"
+  IL_000e:  ldnull
+  IL_000f:  cgt.un
+  IL_0011:  br.s       IL_0014
+  IL_0013:  ldc.i4.1
+  IL_0014:  ret
+}
+""");
 
             compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics();
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
-            code = @"
-    {
-      // Code size       20 (0x14)
-      .maxstack  2
-      IL_0000:  ldarg.0
-      IL_0001:  isinst     ""int""
-      IL_0006:  brtrue.s   IL_0012
-      IL_0008:  ldarg.0
-      IL_0009:  isinst     ""long""
-      IL_000e:  ldnull
-      IL_000f:  cgt.un
-      IL_0011:  ret
-      IL_0012:  ldc.i4.1
-      IL_0013:  ret
-    }
-";
-            compVerifier.VerifyIL("C.M1", code);
-            compVerifier.VerifyIL("C.M2", code);
+            compVerifier.VerifyIL("C.M1", """
+{
+  // Code size       24 (0x18)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     "int"
+  IL_0006:  brtrue.s   IL_0010
+  IL_0008:  ldarg.0
+  IL_0009:  isinst     "long"
+  IL_000e:  brfalse.s  IL_0014
+  IL_0010:  ldc.i4.1
+  IL_0011:  stloc.0
+  IL_0012:  br.s       IL_0016
+  IL_0014:  ldc.i4.0
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ret
+}
+""");
+            compVerifier.VerifyIL("C.M2", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""int""
+  IL_0006:  brtrue.s   IL_0012
+  IL_0008:  ldarg.0
+  IL_0009:  isinst     ""long""
+  IL_000e:  ldnull
+  IL_000f:  cgt.un
+  IL_0011:  ret
+  IL_0012:  ldc.i4.1
+  IL_0013:  ret
+}
+");
         }
 
         [Fact]
@@ -5580,46 +5617,91 @@ class C
             compilation.VerifyDiagnostics();
             var expectedOutput = @"TrueFalseTrueFalse";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
-            var code = @"
-    {
-      // Code size       29 (0x1d)
-      .maxstack  1
-      IL_0000:  ldarg.0
-      IL_0001:  isinst     ""int""
-      IL_0006:  brtrue.s   IL_0017
-      IL_0008:  ldarg.0
-      IL_0009:  isinst     ""long""
-      IL_000e:  brtrue.s   IL_0017
-      IL_0010:  ldstr      ""False""
-      IL_0015:  br.s       IL_001c
-      IL_0017:  ldstr      ""True""
-      IL_001c:  ret
-    }
-";
-            compVerifier.VerifyIL("C.M1", code);
-            compVerifier.VerifyIL("C.M2", code);
+            compVerifier.VerifyIL("C.M1", """
+{
+  // Code size       40 (0x28)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     "int"
+  IL_0006:  brtrue.s   IL_0012
+  IL_0008:  ldarg.0
+  IL_0009:  isinst     "long"
+  IL_000e:  brtrue.s   IL_0012
+  IL_0010:  br.s       IL_0016
+  IL_0012:  ldc.i4.1
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0018
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  brtrue.s   IL_0022
+  IL_001b:  ldstr      "False"
+  IL_0020:  br.s       IL_0027
+  IL_0022:  ldstr      "True"
+  IL_0027:  ret
+}
+""");
+            compVerifier.VerifyIL("C.M2", """
+{
+  // Code size       29 (0x1d)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     "int"
+  IL_0006:  brtrue.s   IL_0017
+  IL_0008:  ldarg.0
+  IL_0009:  isinst     "long"
+  IL_000e:  brtrue.s   IL_0017
+  IL_0010:  ldstr      "False"
+  IL_0015:  br.s       IL_001c
+  IL_0017:  ldstr      "True"
+  IL_001c:  ret
+}
+""");
 
             compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics();
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
-            code = @"
-    {
-      // Code size       28 (0x1c)
-      .maxstack  1
-      IL_0000:  ldarg.0
-      IL_0001:  isinst     ""int""
-      IL_0006:  brtrue.s   IL_0016
-      IL_0008:  ldarg.0
-      IL_0009:  isinst     ""long""
-      IL_000e:  brtrue.s   IL_0016
-      IL_0010:  ldstr      ""False""
-      IL_0015:  ret
-      IL_0016:  ldstr      ""True""
-      IL_001b:  ret
-    }
-";
-            compVerifier.VerifyIL("C.M1", code);
-            compVerifier.VerifyIL("C.M2", code);
+            compVerifier.VerifyIL("C.M1", """
+{
+  // Code size       37 (0x25)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     "int"
+  IL_0006:  brtrue.s   IL_0010
+  IL_0008:  ldarg.0
+  IL_0009:  isinst     "long"
+  IL_000e:  brfalse.s  IL_0014
+  IL_0010:  ldc.i4.1
+  IL_0011:  stloc.0
+  IL_0012:  br.s       IL_0016
+  IL_0014:  ldc.i4.0
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_001f
+  IL_0019:  ldstr      "False"
+  IL_001e:  ret
+  IL_001f:  ldstr      "True"
+  IL_0024:  ret
+}
+""");
+            compVerifier.VerifyIL("C.M2", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""int""
+  IL_0006:  brtrue.s   IL_0016
+  IL_0008:  ldarg.0
+  IL_0009:  isinst     ""long""
+  IL_000e:  brtrue.s   IL_0016
+  IL_0010:  ldstr      ""False""
+  IL_0015:  ret
+  IL_0016:  ldstr      ""True""
+  IL_001b:  ret
+}
+");
         }
 
         [Fact]

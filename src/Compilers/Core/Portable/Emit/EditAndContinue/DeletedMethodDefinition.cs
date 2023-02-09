@@ -4,113 +4,107 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal sealed class DeletedMethodDefinition : IMethodDefinition
+    internal sealed class DeletedMethodDefinition : DeletedDefinition<IMethodDefinition>, IMethodDefinition
     {
-        private readonly IMethodDefinition _oldMethod;
         private readonly ITypeDefinition _containingTypeDef;
-        private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
         private readonly ImmutableArray<DeletedParameterDefinition> _parameters;
         private DeletedMethodBody? _body;
 
         public DeletedMethodDefinition(IMethodDefinition oldMethod, ITypeDefinition containingTypeDef, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
+            : base(oldMethod, typesUsedByDeletedMembers)
         {
-            _oldMethod = oldMethod;
             _containingTypeDef = containingTypeDef;
-            _typesUsedByDeletedMembers = typesUsedByDeletedMembers;
 
-            _parameters = _oldMethod.Parameters.SelectAsArray(p => new DeletedParameterDefinition(p, typesUsedByDeletedMembers));
+            _parameters = WrapParameters(oldMethod.Parameters);
         }
 
         public IEnumerable<IGenericMethodParameter> GenericParameters
         {
             get
             {
-                return _oldMethod.GenericParameters.Select(gp => new DeletedGenericParameter(gp, this, _typesUsedByDeletedMembers));
+                return WrapGenericMethodParameters(this, OldDefinition.GenericParameters);
             }
         }
 
-        public bool HasDeclarativeSecurity => _oldMethod.HasDeclarativeSecurity;
+        public bool HasDeclarativeSecurity => OldDefinition.HasDeclarativeSecurity;
 
-        public bool IsAbstract => _oldMethod.IsAbstract;
+        public bool IsAbstract => OldDefinition.IsAbstract;
 
-        public bool IsAccessCheckedOnOverride => _oldMethod.IsAccessCheckedOnOverride;
+        public bool IsAccessCheckedOnOverride => OldDefinition.IsAccessCheckedOnOverride;
 
-        public bool IsConstructor => _oldMethod.IsConstructor;
+        public bool IsConstructor => OldDefinition.IsConstructor;
 
-        public bool IsExternal => _oldMethod.IsExternal;
+        public bool IsExternal => OldDefinition.IsExternal;
 
-        public bool IsHiddenBySignature => _oldMethod.IsHiddenBySignature;
+        public bool IsHiddenBySignature => OldDefinition.IsHiddenBySignature;
 
-        public bool IsNewSlot => _oldMethod.IsNewSlot;
+        public bool IsNewSlot => OldDefinition.IsNewSlot;
 
-        public bool IsPlatformInvoke => _oldMethod.IsPlatformInvoke;
+        public bool IsPlatformInvoke => OldDefinition.IsPlatformInvoke;
 
-        public bool IsRuntimeSpecial => _oldMethod.IsRuntimeSpecial;
+        public bool IsRuntimeSpecial => OldDefinition.IsRuntimeSpecial;
 
-        public bool IsSealed => _oldMethod.IsSealed;
+        public bool IsSealed => OldDefinition.IsSealed;
 
-        public bool IsSpecialName => _oldMethod.IsSpecialName;
+        public bool IsSpecialName => OldDefinition.IsSpecialName;
 
-        public bool IsStatic => _oldMethod.IsStatic;
+        public bool IsStatic => OldDefinition.IsStatic;
 
-        public bool IsVirtual => _oldMethod.IsVirtual;
+        public bool IsVirtual => OldDefinition.IsVirtual;
 
         public ImmutableArray<IParameterDefinition> Parameters => StaticCast<IParameterDefinition>.From(_parameters);
 
-        public IPlatformInvokeInformation PlatformInvokeData => _oldMethod.PlatformInvokeData;
+        public IPlatformInvokeInformation PlatformInvokeData => OldDefinition.PlatformInvokeData;
 
-        public bool RequiresSecurityObject => _oldMethod.RequiresSecurityObject;
+        public bool RequiresSecurityObject => OldDefinition.RequiresSecurityObject;
 
-        public bool ReturnValueIsMarshalledExplicitly => _oldMethod.ReturnValueIsMarshalledExplicitly;
+        public bool ReturnValueIsMarshalledExplicitly => OldDefinition.ReturnValueIsMarshalledExplicitly;
 
-        public IMarshallingInformation ReturnValueMarshallingInformation => _oldMethod.ReturnValueMarshallingInformation;
+        public IMarshallingInformation ReturnValueMarshallingInformation => OldDefinition.ReturnValueMarshallingInformation;
 
-        public ImmutableArray<byte> ReturnValueMarshallingDescriptor => _oldMethod.ReturnValueMarshallingDescriptor;
+        public ImmutableArray<byte> ReturnValueMarshallingDescriptor => OldDefinition.ReturnValueMarshallingDescriptor;
 
-        public IEnumerable<SecurityAttribute> SecurityAttributes => _oldMethod.SecurityAttributes;
+        public IEnumerable<SecurityAttribute> SecurityAttributes => OldDefinition.SecurityAttributes;
 
-        public INamespace ContainingNamespace => _oldMethod.ContainingNamespace;
+        public INamespace ContainingNamespace => OldDefinition.ContainingNamespace;
 
         public ITypeDefinition ContainingTypeDefinition => _containingTypeDef;
 
-        public TypeMemberVisibility Visibility => _oldMethod.Visibility;
+        public TypeMemberVisibility Visibility => OldDefinition.Visibility;
 
-        public bool AcceptsExtraArguments => _oldMethod.AcceptsExtraArguments;
+        public bool AcceptsExtraArguments => OldDefinition.AcceptsExtraArguments;
 
-        public ushort GenericParameterCount => _oldMethod.GenericParameterCount;
+        public ushort GenericParameterCount => OldDefinition.GenericParameterCount;
 
-        public bool IsGeneric => _oldMethod.IsGeneric;
+        public bool IsGeneric => OldDefinition.IsGeneric;
 
-        public ImmutableArray<IParameterTypeInformation> ExtraParameters => _oldMethod.ExtraParameters;
+        public ImmutableArray<IParameterTypeInformation> ExtraParameters => OldDefinition.ExtraParameters;
 
-        public IGenericMethodInstanceReference? AsGenericMethodInstanceReference => _oldMethod.AsGenericMethodInstanceReference;
+        public IGenericMethodInstanceReference? AsGenericMethodInstanceReference => OldDefinition.AsGenericMethodInstanceReference;
 
-        public ISpecializedMethodReference? AsSpecializedMethodReference => _oldMethod.AsSpecializedMethodReference;
+        public ISpecializedMethodReference? AsSpecializedMethodReference => OldDefinition.AsSpecializedMethodReference;
 
-        public CallingConvention CallingConvention => _oldMethod.CallingConvention;
+        public CallingConvention CallingConvention => OldDefinition.CallingConvention;
 
         public ushort ParameterCount => (ushort)_parameters.Length;
 
-        public ImmutableArray<ICustomModifier> ReturnValueCustomModifiers => _oldMethod.ReturnValueCustomModifiers;
+        public ImmutableArray<ICustomModifier> ReturnValueCustomModifiers => OldDefinition.ReturnValueCustomModifiers;
 
-        public ImmutableArray<ICustomModifier> RefCustomModifiers => _oldMethod.RefCustomModifiers;
+        public ImmutableArray<ICustomModifier> RefCustomModifiers => OldDefinition.RefCustomModifiers;
 
-        public bool ReturnValueIsByRef => _oldMethod.ReturnValueIsByRef;
+        public bool ReturnValueIsByRef => OldDefinition.ReturnValueIsByRef;
 
-        public string? Name => _oldMethod.Name;
+        public string? Name => OldDefinition.Name;
 
         public IDefinition? AsDefinition(EmitContext context)
         {
-            return _oldMethod.AsDefinition(context);
+            return OldDefinition.AsDefinition(context);
         }
 
         public void Dispatch(MetadataVisitor visitor)
@@ -120,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
-            return _oldMethod.GetAttributes(context).Select(a => new DeletedCustomAttribute(a, _typesUsedByDeletedMembers));
+            return WrapAttributes(OldDefinition.GetAttributes(context));
         }
 
         public IMethodBody GetBody(EmitContext context)
@@ -136,12 +130,12 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public MethodImplAttributes GetImplementationAttributes(EmitContext context)
         {
-            return _oldMethod.GetImplementationAttributes(context);
+            return OldDefinition.GetImplementationAttributes(context);
         }
 
         public ISymbolInternal? GetInternalSymbol()
         {
-            return _oldMethod.GetInternalSymbol();
+            return OldDefinition.GetInternalSymbol();
         }
 
         public ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context)
@@ -156,24 +150,24 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public IEnumerable<ICustomAttribute> GetReturnValueAttributes(EmitContext context)
         {
-            return _oldMethod.GetReturnValueAttributes(context).Select(a => new DeletedCustomAttribute(a, _typesUsedByDeletedMembers));
+            return WrapAttributes(OldDefinition.GetReturnValueAttributes(context));
         }
 
         public ITypeReference GetType(EmitContext context)
         {
-            return DeletedTypeDefinition.TryCreate(_oldMethod.GetType(context), _typesUsedByDeletedMembers);
+            return WrapType(OldDefinition.GetType(context));
         }
 
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
     }
 }

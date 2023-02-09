@@ -21,9 +21,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.CommentSelection)]
     public class CSharpCommentSelectionTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [WpfFact]
         public void UncommentAndFormat1()
         {
             var code = @"class A
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
             UncommentSelection(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [WpfFact]
         public void UncommentAndFormat2()
         {
             var code = @"class A
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
             UncommentSelection(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [WpfFact]
         public void UncommentSingleLineCommentInPseudoBlockComment()
         {
             var code = @"
@@ -91,7 +92,7 @@ class C
             UncommentSelection(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [WpfFact]
         public void UncommentAndFormat3()
         {
             var code = @"class A

@@ -1051,8 +1051,7 @@ goo()
         }
 
         // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
-        [WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
-        [Fact]
+        [Fact, WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
         public void Workaround7976()
         {
             Thread.Sleep(TimeSpan.FromSeconds(10));

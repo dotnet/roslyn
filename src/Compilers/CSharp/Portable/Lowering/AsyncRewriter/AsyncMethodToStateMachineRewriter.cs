@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory F,
             FieldSymbol state,
             FieldSymbol builder,
-            IReadOnlySet<Symbol> hoistedVariables,
+            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             // await expressions must, by now, have been moved to the top level.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override BoundNode VisitBadExpression(BoundBadExpression node)

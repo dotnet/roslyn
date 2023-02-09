@@ -33,7 +33,7 @@ try {
 
   if (-not $noBuild) {
     Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
   }
 
   Subst-TempDir
@@ -57,10 +57,8 @@ try {
   " --exclude net6.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
-  " --exclude net45\Microsoft.CodeAnalysis.Debugging.Package.dll" +
-  " --exclude netstandard1.3\Microsoft.CodeAnalysis.Debugging.Package.dll" +
-  " --exclude net45\Microsoft.CodeAnalysis.PooledObjects.Package.dll" +
-  " --exclude netstandard1.3\Microsoft.CodeAnalysis.PooledObjects.Package.dll" +
+  " --exclude netstandard2.0\Microsoft.CodeAnalysis.Debugging.Package.dll" +
+  " --exclude netstandard2.0\Microsoft.CodeAnalysis.PooledObjects.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.UnitTests.dll" +
   " --exclude net472\Zip\tools\vsixexpinstaller\System.ValueTuple.dll" +
   " --exclude net472\Zip\tools\vsixexpinstaller\VSIXExpInstaller.exe" +

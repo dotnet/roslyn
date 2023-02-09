@@ -14,12 +14,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
+    [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
     public class PrimaryConstructorBaseTypeSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
         internal override Type GetSignatureHelpProviderType()
             => typeof(PrimaryConstructorBaseTypeSignatureHelpProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task PrimaryConstructorBaseType_FirstParameter()
         {
             var markup = @"
@@ -37,7 +38,7 @@ record Derived(int Other) : [|Base($$1|]);
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task PrimaryConstructorBaseType_SecondParameter()
         {
             var markup = @"
@@ -56,7 +57,7 @@ record Derived(int Other) : [|Base(1, $$2|]);
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task CommentOnBaseConstructor()
         {
             var markup = @"
@@ -76,7 +77,7 @@ record Derived(int Other) : [|Base(1, $$2|]);
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact]
         public async Task CommentOnBaseConstructorAndParameters()
         {
             var markup = @"

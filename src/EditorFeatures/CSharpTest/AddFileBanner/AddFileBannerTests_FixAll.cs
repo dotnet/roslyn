@@ -11,9 +11,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddFileBanner
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public partial class AddFileBannerTests : AbstractCSharpCodeActionTest
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAllInProject()
         {
             await TestInRegularAndScriptAsync(
@@ -73,7 +74,7 @@ class Program3
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAllInSolution()
         {
             await TestInRegularAndScriptAsync(
@@ -137,7 +138,7 @@ class Program3
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAll_AlreadyHasBanner()
         {
             await TestInRegularAndScriptAsync(
@@ -227,7 +228,7 @@ class Program5
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Fact]
         public async Task FixAll_UpdatedFileNameInBanner()
         {
             await TestInRegularAndScriptAsync(
@@ -295,7 +296,7 @@ class Program3
 </Workspace>");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [Theory]
         [InlineData(FixAllScope.ContainingMember)]
         [InlineData(FixAllScope.ContainingType)]
         [InlineData(FixAllScope.Document)]

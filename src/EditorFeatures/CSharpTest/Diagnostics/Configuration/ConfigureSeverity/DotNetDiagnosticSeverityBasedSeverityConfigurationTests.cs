@@ -51,11 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                         new CustomDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
         }
 
+        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public class NoneConfigurationTests : DotNetDiagnosticSeverityBasedSeverityConfigurationTests
         {
             protected override int CodeActionIndex => 0;
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_Empty_None()
             {
                 var input = @"
@@ -85,7 +86,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_RuleExists_None()
             {
                 var input = @"
@@ -115,7 +116,7 @@ dotnet_diagnostic.XYZ0001.severity = none   # Comment
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidHeader_None()
             {
                 var input = @"
@@ -150,7 +151,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_MaintainExistingEntry_None()
             {
                 var input = @"
@@ -168,7 +169,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 await TestMissingInRegularAndScriptAsync(input);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidRule_None()
             {
                 var input = @"
@@ -201,7 +202,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             [WorkItem(45446, "https://github.com/dotnet/roslyn/issues/45446")]
             public async Task ConfigureEditorconfig_MissingRule_None()
             {
@@ -235,7 +236,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_RegexHeaderMatch_None()
             {
                 var input = @"
@@ -267,7 +268,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_RegexHeaderNonMatch_None()
             {
                 var input = @"
@@ -304,7 +305,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureGlobalconfig_Empty_None()
             {
                 var input = @"
@@ -334,7 +335,7 @@ dotnet_diagnostic.XYZ0001.severity = none
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureGlobalconfig_RuleExists_None()
             {
                 var input = @"
@@ -364,7 +365,7 @@ dotnet_diagnostic.XYZ0001.severity = none   # Comment
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureGlobalconfig_InvalidHeader_None()
             {
                 var input = @"

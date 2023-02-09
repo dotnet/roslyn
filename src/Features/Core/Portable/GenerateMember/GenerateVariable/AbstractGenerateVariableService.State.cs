@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // into, and if it's valid then proceed.
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!TryDetermineTypeToGenerateIn(semanticDocument, ContainingType, SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
-                    out var typeToGenerateIn, out var isStatic))
+                        out var typeToGenerateIn, out var isStatic, out _))
                 {
                     return false;
                 }
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     index++;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             private void DetermineFieldType(

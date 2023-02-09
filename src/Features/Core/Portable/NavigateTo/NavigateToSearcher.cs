@@ -122,6 +122,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
                     // that support that.
                     isFullyLoaded = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Let the UI know if we're not fully loaded (and then might be reporting cached results).
+                    if (!isFullyLoaded)
+                        _callback.ReportIncomplete();
+
                     await SearchAllProjectsAsync(isFullyLoaded, scope, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -148,7 +153,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             await AddProgressItemsAsync(1, cancellationToken).ConfigureAwait(false);
             await service.SearchDocumentAsync(
-                _activeDocument, _searchPattern, _kinds,
+                _activeDocument, _searchPattern, _kinds, _activeDocument,
                 r => _callback.AddItemAsync(project, r, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -349,7 +354,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: true,
                 orderedProjects,
                 seenItems,
-                (s, p, cb) => s.SearchProjectAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, cb, cancellationToken),
+                (s, p, cb) => s.SearchProjectAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
                 cancellationToken);
         }
 
@@ -366,7 +371,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: true,
                 orderedProjects,
                 seenItems,
-                (s, p, cb) => s.SearchCachedDocumentsAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, cb, cancellationToken),
+                (s, p, cb) => s.SearchCachedDocumentsAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
                 cancellationToken);
         }
 
@@ -394,7 +399,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: false,
                 allProjects,
                 seenItems,
-                (s, p, cb) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, cb, cancellationToken),
+                (s, p, cb) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
                 cancellationToken);
         }
     }

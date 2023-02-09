@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
-    internal struct TypeStyleResult
+    internal readonly struct TypeStyleResult
     {
         private readonly CSharpTypeStyleHelper _helper;
         private readonly TypeSyntax _typeName;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             TypeSyntax typeName, SemanticModel semanticModel,
             CSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
-            if (typeName?.FirstAncestorOrSelf<SyntaxNode>(a => a.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement)) is not { } declaration)
+            if (typeName?.FirstAncestorOrSelf<SyntaxNode>(a => a.Kind() is SyntaxKind.DeclarationExpression or SyntaxKind.VariableDeclaration or SyntaxKind.ForEachStatement) is not { } declaration)
             {
                 return default;
             }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         internal TypeSyntax? FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            Debug.Assert(node.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
+            Debug.Assert(node.Kind() is SyntaxKind.VariableDeclaration or SyntaxKind.ForEachStatement or SyntaxKind.DeclarationExpression);
 
             return node switch
             {
@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // implicit type is applicable only for local variables and
             // such declarations cannot have multiple declarators and
             // must have an initializer.
-            var isSupportedParentKind = variableDeclaration.IsParentKind(
-                SyntaxKind.LocalDeclarationStatement,
-                SyntaxKind.ForStatement,
+            var isSupportedParentKind = variableDeclaration.Parent is (kind:
+                SyntaxKind.LocalDeclarationStatement or
+                SyntaxKind.ForStatement or
                 SyntaxKind.UsingStatement);
 
             return isSupportedParentKind &&

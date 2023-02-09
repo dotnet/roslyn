@@ -5198,6 +5198,8 @@
 -errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
 -filealign:&lt;number&gt;               Specify the alignment used for output file
                                   sections.
 -highentropyva[+|-]               Enable high-entropy ASLR.
@@ -5661,5 +5663,11 @@
   </data>
   <data name="ERR_DoNotUseCompilerFeatureRequired" xml:space="preserve">
     <value>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference" xml:space="preserve">
+    <value>Analyzer reference '{0}' specified multiple times</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference_Title" xml:space="preserve">
+    <value>Analyzer reference specified multiple times</value>
   </data>
 </root>

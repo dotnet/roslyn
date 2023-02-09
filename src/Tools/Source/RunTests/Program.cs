@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,7 +72,7 @@ namespace RunTests
                 int result;
                 if (options.Timeout is { } timeout)
                 {
-                    result = await RunAsync(options, timeout, cts.Token);
+                    result = await RunCoreAsync(options, cts.Token);
                 }
                 else
                 {
@@ -95,7 +96,7 @@ namespace RunTests
             }
         }
 
-        private static async Task<int> RunAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
+        private static async Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = RunAsync(options, cts.Token);
@@ -251,6 +252,15 @@ namespace RunTests
                     ConsoleUtil.WriteLine(ex.Message);
                     Logger.Log("Failed to dump process", ex);
                 }
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var screenshotPath = Path.Combine(options.LogFilesDirectory, $"timeout.png");
+                ConsoleUtil.WriteLine($"Taking screenshot on timeout at {screenshotPath}");
+                var output = await ProcessRunner.CreateProcess("Powershell.exe", $"-command \"& {{ . .\\eng\\build-utils-win.ps1; Capture-Screenshot {screenshotPath} }}\"", displayWindow: false, cancellationToken: cancellationToken).Result;
+                ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.OutputLines));
+                ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.ErrorLines));
             }
 
             if (options.CollectDumps && !string.IsNullOrEmpty(options.ProcDumpFilePath))

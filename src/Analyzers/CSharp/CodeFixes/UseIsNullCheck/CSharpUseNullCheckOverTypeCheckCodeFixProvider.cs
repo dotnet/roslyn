@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                     UnaryPatternSyntax =>
                         s_nullConstantPattern,
                     // The analyzer reports diagnostic only on BinaryExpressionSyntax and UnaryPatternSyntax.
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
 
                 editor.ReplaceNode(node, replacement.WithTriviaFrom(node));

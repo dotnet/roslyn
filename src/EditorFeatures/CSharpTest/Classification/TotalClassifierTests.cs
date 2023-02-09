@@ -485,8 +485,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [WorkItem(545611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545611")]
-        [Theory]
+        [Theory, WorkItem(545611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545611")]
         [CombinatorialData]
         public async Task TestVarConstructor(TestHost testHost)
         {
@@ -516,8 +515,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545609")]
-        [Theory]
+        [Theory, WorkItem(545609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545609")]
         [CombinatorialData]
         public async Task TestVarTypeParameter(TestHost testHost)
         {
@@ -548,8 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
-        [Theory]
+        [Theory, WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
         [CombinatorialData]
         public async Task TestVarAttribute1(TestHost testHost)
         {
@@ -575,8 +572,7 @@ class var : Attribute
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
-        [Theory]
+        [Theory, WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
         [CombinatorialData]
         public async Task TestVarAttribute2(TestHost testHost)
         {
@@ -602,8 +598,7 @@ class varAttribute : Attribute
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(546170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546170")]
-        [Theory]
+        [Theory, WorkItem(546170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546170")]
         [CombinatorialData]
         public async Task TestStandaloneTypeName(TestHost testHost)
         {
@@ -640,8 +635,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")]
-        [Theory]
+        [Theory, WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")]
         [CombinatorialData]
         public async Task TestNamespaceClassAmbiguities(TestHost testHost)
         {
@@ -1469,8 +1463,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
-        [Theory]
+        [Theory, WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOperatorOverloading(TestHost testHost)
         {
@@ -1960,8 +1953,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(10174, "https://github.com/dotnet/roslyn/issues/10174")]
-        [Theory]
+        [Theory, WorkItem(10174, "https://github.com/dotnet/roslyn/issues/10174")]
         [CombinatorialData]
         public async Task VarInPropertyPattern(TestHost testHost)
         {
@@ -2012,7 +2004,7 @@ class Program
                 Field("Name"),
                 Punctuation.Colon,
                 Keyword("var"),
-                Identifier("n"),
+                Local("n"),
                 Punctuation.CloseCurly,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -2030,8 +2022,7 @@ class Program
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Theory]
+        [Theory, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task NotPattern(TestHost testHost)
         {
@@ -2071,8 +2062,7 @@ class Person
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Theory]
+        [Theory, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task OrPattern(TestHost testHost)
         {
@@ -2112,8 +2102,46 @@ class Person
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Theory]
+        [Theory, WorkItem(59484, "https://github.com/dotnet/roslyn/issues/59484")]
+        [CombinatorialData]
+        public async Task TestPatternVariables(TestHost testHost)
+        {
+            await TestAsync(
+                @"
+void M(object o) {
+    _ = o is [var (x, y), {} z] list;
+} 
+",
+                testHost,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("_"),
+                Operators.Equals,
+                Parameter("o"),
+                Keyword("is"),
+                Punctuation.OpenBracket,
+                Keyword("var"),
+                Punctuation.OpenParen,
+                Local("x"),
+                Punctuation.Comma,
+                Local("y"),
+                Punctuation.CloseParen,
+                Punctuation.Comma,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Local("z"),
+                Punctuation.CloseBracket,
+                Local("list"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task RelationalPattern(TestHost testHost)
         {
@@ -2626,6 +2654,74 @@ Keyword("async"));
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestScopedVar(TestHost testHost)
+        {
+            await TestAsync("""
+                static void method(scoped in S s)
+                {
+                    scoped var rs1 = s;
+                }
+
+                file readonly ref struct S { }
+                """, testHost,
+                Keyword("static"),
+                Keyword("void"),
+                Method("method"),
+                Static("method"),
+                Punctuation.OpenParen,
+                Keyword("scoped"),
+                Keyword("in"),
+                Struct("S"),
+                Parameter("s"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("scoped"),
+                Keyword("var"),
+                Local("rs1"),
+                Operators.Equals,
+                Parameter("s"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Keyword("file"),
+                Keyword("readonly"),
+                Keyword("ref"),
+                Keyword("struct"),
+                Struct("S"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Lambda_DefaultParameterValue(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                class C
+                {
+                    const int N = 10;
+
+                    void M()
+                    {
+                        var lam = [|(int x = N) => x|];
+                    }
+                }
+
+                """,
+                testHost,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Operators.Equals,
+                Constant("N"),
+                Static("N"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Parameter("x"));
         }
     }
 }

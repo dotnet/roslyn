@@ -231,6 +231,8 @@
 -errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
 -filealign:&lt;number&gt;               Specify the alignment used for output file
                                   sections.
 -highentropyva[+|-]               Enable high-entropy ASLR.
@@ -267,7 +269,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Opcje kompilatora Visual Basic
+        <target state="needs-review-translation">                  Opcje kompilatora Visual Basic
 
                                   - OUTPUT FILE -
 -out:&lt;file&gt;                       Określa nazwę pliku wyjściowego.
@@ -556,6 +558,16 @@
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
         <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
         <target state="translated">Atrybut CallerArgumentExpressionAttribute zastosowany do parametru nie będzie działać, ponieważ jest to odwołanie samodzielne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Odwołanie analizatora „{0}” określono wiele razy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Odwołanie do analizatora określono wiele razy</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

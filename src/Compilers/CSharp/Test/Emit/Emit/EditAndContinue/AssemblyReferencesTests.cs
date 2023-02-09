@@ -63,7 +63,7 @@ class C
 }
 ";
 
-            var c1 = CreateEmptyCompilation(src1, references);
+            var c1 = CreateEmptyCompilation(src1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: references);
             var c2 = c1.WithSource(src2);
             var md1 = AssemblyMetadata.CreateFromStream(c1.EmitToStream());
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
@@ -133,9 +133,10 @@ class C
     public static void Main() { F(null); }
 }
 ";
-            var md1 = AssemblyMetadata.CreateFromStream(CreateEmptyCompilation(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var md1 = AssemblyMetadata.CreateFromStream(CreateEmptyCompilation(srcPE, parseOptions: parseOptions, references: new[] { MscorlibRef, SystemRef }).EmitToStream());
 
-            var c1 = CreateEmptyCompilation(src1, new[] { MscorlibRef });
+            var c1 = CreateEmptyCompilation(src1, parseOptions: parseOptions, references: new[] { MscorlibRef });
             var c2 = c1.WithSource(src2);
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
 

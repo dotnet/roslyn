@@ -43,7 +43,7 @@ class C
                 "(Compiler) Class1.cs(4, 12): error CS0246: The type or namespace name 'P' could not be found (are you missing a using directive or an assembly reference?)",
                 "(Compiler) Class1.cs(6, 24): error CS0117: 'Console' does not contain a definition for 'WriteLin'",
             };
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),
@@ -52,9 +52,9 @@ class C
             var target = await TestServices.ErrorList.NavigateToErrorListItemAsync(0, isPreview: false, shouldActivate: true, HangMitigatingCancellationToken);
             Assert.Equal(expectedContents[0], target);
             Assert.Equal(25, await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken));
-            await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),
@@ -77,7 +77,7 @@ class C
             var expectedContents = new[] {
                 "(Compiler) Class1.cs(6, 13): warning CS0219: The variable 'unused' is assigned but its value is never used",
             };
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),
@@ -99,7 +99,7 @@ class Program2
 ", HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             var expectedContents = new string[] { };
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),
@@ -107,15 +107,15 @@ class Program2
 
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("a = aa", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync("a");
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendAsync("a", HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             expectedContents =
                 new[]
                 {
                     "(Compiler) Class1.cs(7, 13): error CS0128: A local variable or function named 'aa' is already defined in this scope",
                 };
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),
@@ -123,10 +123,10 @@ class Program2
 
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("aa = aa", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKeyCode.DELETE);
+            await TestServices.Input.SendAsync(VirtualKeyCode.DELETE, HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             expectedContents = new string[] { };
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),
@@ -148,7 +148,7 @@ class Program2
 ", HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             var expectedContents = new string[] { };
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join<string>(Environment.NewLine, expectedContents),
@@ -156,12 +156,12 @@ class Program2
 
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("a = aa", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync("a");
+            await TestServices.Input.SendAsync("a", HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             expectedContents = new[] {
                 "(Compiler) Class1.cs(7, 13): error CS0128: A local variable or function named 'aa' is already defined in this scope",
             };
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join<string>(Environment.NewLine, expectedContents),
@@ -174,9 +174,9 @@ class Program2
             // Assert the window title is Class1.cs, which also means the file has no unsaved changes
             Assert.Equal("Class1.cs", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F4, VirtualKeyCode.CONTROL));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F4, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
             actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(
                 string.Join<string>(Environment.NewLine, expectedContents),

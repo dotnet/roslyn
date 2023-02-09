@@ -37,9 +37,9 @@ stages:
       jobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      queueName: Build.Windows.Amd64.VS2022.Pre.Open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      queueName: windows.vs2022preview.amd64.open
+      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Windows_Release_Build
   dependsOn: []
@@ -49,9 +49,9 @@ stages:
       jobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      queueName: Build.Windows.Amd64.VS2022.Pre.Open
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+      queueName: windows.vs2022preview.amd64.open
+      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - stage: Unix_Build
   dependsOn: []
@@ -98,7 +98,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
-      
+
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
       parameters:
@@ -206,12 +206,14 @@ stages:
           include:
           - src/Compilers/*
           - src/Dependencies/*
+          - eng/*
+          - src/Tools/Source/CompilerGeneratorTools/*
 
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
     pool:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+      name: NetCore-Public
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     variables:
       compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
@@ -222,16 +224,19 @@ stages:
         displayName: Restore
         inputs:
           filePath: eng/build.ps1
-          arguments: -configuration Release -prepareMachine -ci -restore -binaryLog
+          arguments: -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
 
       - task: PowerShell@2
         displayName: Build
         inputs:
           filePath: eng/build.ps1
-          arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLog
+          arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog
 
       - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
         displayName: Validate Build Artifacts
+
+      - script: eng/validate-rules-missing-documentation.cmd -ci
+        displayName: Validate rules missing documentation
 
       - task: PowerShell@2
         displayName: Generate Syntax Files
@@ -239,26 +244,26 @@ stages:
           filePath: eng/generate-compiler-code.ps1
           arguments: -test -configuration Release
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
-        
+
       - script: $(Build.SourcesDirectory)\.dotnet\dotnet.exe tool run dotnet-format whitespace  $(Build.SourcesDirectory)\src --folder --include-generated --include $(Build.SourcesDirectory)\src\Compilers\CSharp\Portable\Generated\ $(Build.SourcesDirectory)\src\Compilers\VisualBasic\Portable\Generated\ $(Build.SourcesDirectory)\src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ --verify-no-changes
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
-        
+
       - template: eng/pipelines/publish-logs.yml
         parameters:
           jobName: Correctness_Build_Artifacts
           configuration: Release
-      
+
   - job: Correctness_Determinism
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+      name: NetCore-Public
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
-      
+
       - script: eng/test-determinism.cmd -configuration Debug
         displayName: Build - Validate determinism
 
@@ -271,8 +276,8 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+      name: NetCore-Public
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
@@ -313,17 +318,11 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+      name: NetCore-Public
+      demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
-
-      - task: PowerShell@2
-        displayName: Restore
-        inputs:
-          filePath: eng/build.ps1
-          arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
 
       - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
         displayName: Run BuildValidator
@@ -344,11 +343,11 @@ stages:
 
   - job: Correctness_Analyzers
     pool:
-      name: NetCore1ESPool-Public
+      name: NetCore-Public
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
     timeoutInMinutes: 35
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
-        
+
       - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
         displayName: Build with analyzers

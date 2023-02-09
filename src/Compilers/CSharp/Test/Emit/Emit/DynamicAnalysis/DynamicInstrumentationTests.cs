@@ -33,11 +33,11 @@ public class Program
 ";
 
             string expectedOutput = @"Flushing
-Method 1
+Method 3
 File 1
 True
 True
-Method 4
+Method 6
 File 1
 True
 True
@@ -340,24 +340,8 @@ public class Program
             string expectedOutput = @"goo
 bar
 Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
-True
-False
-True
-True
-True
 Method 3
 File 1
-True
-True
 True
 True
 True
@@ -369,19 +353,35 @@ True
 False
 True
 True
+True
 Method 5
 File 1
 True
 True
 True
-False
-False
-False
+True
+True
 Method 6
 File 1
 True
 True
-Method 9
+True
+False
+True
+True
+Method 7
+File 1
+True
+True
+True
+False
+False
+False
+Method 8
+File 1
+True
+True
+Method 11
 File 1
 True
 True
@@ -519,26 +519,15 @@ public class Program
     }
 }
 ";
-            // All instrumentation points in method 2 are True because they are covered by at least one specialization.
+            // All instrumentation points in method 4 are True because they are covered by at least one specialization.
             //
             // This test verifies that the payloads of methods of generic types are in terms of method definitions and
             // not method references -- the indices for the methods would be different for references.
             string expectedOutput = @"null
 Hello
 Flushing
-Method 1
-File 1
-True
-True
-Method 2
-File 1
-True
-True
-True
-True
 Method 3
 File 1
-True
 True
 True
 Method 4
@@ -547,8 +536,19 @@ True
 True
 True
 True
+Method 5
+File 1
 True
-Method 7
+True
+True
+Method 6
+File 1
+True
+True
+True
+True
+True
+Method 9
 File 1
 True
 True
@@ -716,19 +716,19 @@ public class Program
 " + InstrumentationHelperSource;
 
             var checker = new CSharpInstrumentationChecker();
-            checker.Method(3, 1, "public int Prop3")
+            checker.Method(5, 1, "public int Prop3")
                 .True("get");
-            checker.Method(4, 1, "public int Prop3")
+            checker.Method(6, 1, "public int Prop3")
                 .True("set");
-            checker.Method(5, 1, "public Program()")
+            checker.Method(7, 1, "public Program()")
                 .True("25")
                 .True("Prop = 12;")
                 .True("Prop3 = 12;")
                 .True("Prop2 = Prop3;");
-            checker.Method(6, 1, "public static void Main")
+            checker.Method(8, 1, "public static void Main")
                 .True("new Program();")
                 .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
-            checker.Method(8, 1)
+            checker.Method(10, 1)
                 .True()
                 .False()
                 .True()
@@ -793,28 +793,20 @@ public class Program
     // Method 11 is a synthesized static constructor.
 }
 ";
-            // There is no entry for method '8' since it's a Prop2_set which is never called.
+            // There is no entry for method '10' since it's a Prop2_set which is never called.
             string expectedOutput = @"Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
-True
-True
-True
-True
-True
 Method 3
 File 1
 True
 True
+True
 Method 4
 File 1
+True
+True
+True
+True
+True
 True
 True
 Method 5
@@ -829,6 +821,10 @@ Method 7
 File 1
 True
 True
+Method 8
+File 1
+True
+True
 Method 9
 File 1
 True
@@ -836,7 +832,11 @@ True
 Method 11
 File 1
 True
+True
 Method 13
+File 1
+True
+Method 15
 File 1
 True
 True
@@ -914,12 +914,12 @@ public class D
 " + InstrumentationHelperSource;
 
             var checker = new CSharpInstrumentationChecker();
-            checker.Method(1, 1, "public static void Main")
+            checker.Method(3, 1, "public static void Main")
                 .True("TestMain();")
                 .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
-            checker.Method(2, 1, "static void TestMain")
+            checker.Method(4, 1, "static void TestMain")
                 .True("new D().M1();");
-            checker.Method(4, 1, "public void M1()")
+            checker.Method(6, 1, "public void M1()")
                 .True("L1();")
                 .True("1")
                 .True("var f = new Func<int>")
@@ -931,8 +931,8 @@ public class D
                 .True("var f3 = new Func<int, int>")
                 .True("f();")
                 .True("f3(2);");
-            checker.Method(5, 1, snippet: null, expectBodySpan: false);
-            checker.Method(7, 1)
+            checker.Method(7, 1, snippet: null, expectBodySpan: false);
+            checker.Method(9, 1)
                 .True()
                 .False()
                 .True()
@@ -995,24 +995,24 @@ public class Program
 ";
 
             string expectedOutput = @"Flushing
-Method 1
+Method 3
 File 1
 True
 True
 True
-Method 2
+Method 4
 File 2
 True
 True
 True
 True
-Method 3
+Method 5
 File 3
 True
 True
-Method 4
-File 4
 Method 6
+File 4
+Method 8
 File 5
 True
 True
@@ -1084,21 +1084,8 @@ public class Program
 }
 ";
             string expectedOutput = @"Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
-True
 Method 3
 File 1
-True
-True
-True
 True
 True
 True
@@ -1107,11 +1094,24 @@ File 1
 True
 True
 True
+Method 5
+File 1
+True
+True
+True
+True
+True
+True
+Method 6
+File 1
+True
+True
+True
 False
 False
 False
 True
-Method 7
+Method 9
 File 1
 True
 True
@@ -1187,12 +1187,12 @@ public class Program
 }
 ";
             string expectedOutput = @"Flushing
-Method 1
+Method 3
 File 1
 True
 True
 True
-Method 2
+Method 4
 File 1
 True
 True
@@ -1209,7 +1209,7 @@ True
 True
 True
 True
-Method 5
+Method 7
 File 1
 True
 True
@@ -1349,56 +1349,56 @@ public class Program
 ";
             string expectedOutput = @"103
 Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
-True
 Method 3
 File 1
-True
-True
-False
-True
-False
-False
-True
-True
-False
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-False
-True
-True
-True
-True
-True
-False
 True
 True
 True
 Method 4
 File 1
 True
-Method 7
+True
+True
+Method 5
+File 1
+True
+True
+False
+True
+False
+False
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+False
+True
+True
+True
+True
+True
+False
+True
+True
+True
+Method 6
+File 1
+True
+Method 9
 File 1
 True
 True
@@ -1464,35 +1464,35 @@ class Person { public string Name; }
 class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
 
-    // Methods 5 and 7 are implicit constructors.
+    // Methods 7 and 9 are implicit constructors.
 ";
             string expectedOutput = @"Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
-True
-True
-True
 Method 3
 File 1
 True
 True
-False
 True
-False
-False
+Method 4
+File 1
+True
+True
+True
+True
 True
 Method 5
 File 1
+True
+True
+False
+True
+False
+False
+True
 Method 7
 File 1
 Method 9
+File 1
+Method 11
 File 1
 True
 True
@@ -1554,18 +1554,18 @@ public class C
 }
 ";
             string expectedOutput = @"Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
 Method 3
 File 1
 True
+True
+True
+Method 4
+File 1
+True
+True
+Method 5
+File 1
+True
 False
 True
 False
@@ -1573,7 +1573,7 @@ False
 True
 False
 True
-Method 6
+Method 8
 File 1
 True
 True
@@ -1631,24 +1631,24 @@ public class C
 }
 ";
             string expectedOutput = @"Flushing
-Method 1
+Method 3
 File 1
 True
-True
-True
-Method 2
-File 1
 True
 True
 Method 4
 File 1
 True
-Method 5
+True
+Method 6
+File 1
+True
+Method 7
 File 1
 True
 True
 True
-Method 7
+Method 9
 File 1
 True
 True
@@ -1713,31 +1713,31 @@ public class C
 }
 ";
             string expectedOutput = @"Flushing
-Method 1
-File 1
-True
-True
-True
-True
-Method 2
-File 1
-True
-True
-True
 Method 3
 File 1
 True
-False
-False
+True
+True
+True
 Method 4
 File 1
+True
+True
 True
 Method 5
 File 1
 True
-True
+False
+False
+Method 6
+File 1
 True
 Method 7
+File 1
+True
+True
+True
+Method 9
 File 1
 True
 True
@@ -1796,12 +1796,12 @@ public class Program
 ";
             string expectedOutput = @"OK
 Flushing
-Method 1
+Method 3
 File 1
 True
 True
 True
-Method 2
+Method 4
 File 1
 True
 True
@@ -1813,7 +1813,7 @@ True
 True
 False
 True
-Method 5
+Method 7
 File 1
 True
 True
@@ -1887,18 +1887,8 @@ public class Program
 ";
             string expectedOutput = @"GooGooGlueGooGoo
 Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
 Method 3
 File 1
-True
 True
 True
 True
@@ -1906,10 +1896,20 @@ Method 4
 File 1
 True
 True
+Method 5
+File 1
+True
+True
+True
+True
+Method 6
+File 1
+True
+True
 True
 False
 True
-Method 5
+Method 7
 File 1
 True
 True
@@ -1918,7 +1918,7 @@ False
 True
 True
 True
-Method 8
+Method 10
 File 1
 True
 True
@@ -1988,25 +1988,25 @@ public class Program
 3
 4
 Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
-True
-True
-True
 Method 3
 File 1
 True
 True
 True
+Method 4
+File 1
 True
-Method 6
+True
+True
+True
+True
+Method 5
+File 1
+True
+True
+True
+True
+Method 8
 File 1
 True
 True
@@ -2084,18 +2084,9 @@ public class C
 ";
             string expectedOutput = @"
 Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
-True
 Method 3
 File 1
+True
 True
 True
 Method 4
@@ -2103,9 +2094,11 @@ File 1
 True
 True
 True
-True
-True
 Method 5
+File 1
+True
+True
+Method 6
 File 1
 True
 True
@@ -2119,7 +2112,14 @@ True
 True
 True
 True
-Method 11
+Method 9
+File 1
+True
+True
+True
+True
+True
+Method 13
 File 1
 True
 True
@@ -2141,6 +2141,73 @@ True
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
+
+            verifier.VerifyMethodBody("C..ctor", @"
+{
+  // Code size      120 (0x78)
+  .maxstack  5
+  .locals init (bool[] V_0)
+  // sequence point: <hidden>
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0005:  ldtoken    ""C..ctor()""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_0034
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""C..ctor()""
+  IL_0019:  ldtoken    Source Document 0
+  IL_001e:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0023:  ldtoken    ""C..ctor()""
+  IL_0028:  ldelema    ""bool[]""
+  IL_002d:  ldc.i4.5
+  IL_002e:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldc.i4.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  // sequence point: int _x = Init();
+  IL_0038:  ldloc.0
+  IL_0039:  ldc.i4.1
+  IL_003a:  ldc.i4.1
+  IL_003b:  stelem.i1
+  IL_003c:  ldarg.0
+  IL_003d:  call       ""int C.Init()""
+  IL_0042:  stfld      ""int C._x""
+  // sequence point: int _y = Init() + 12;
+  IL_0047:  ldloc.0
+  IL_0048:  ldc.i4.2
+  IL_0049:  ldc.i4.1
+  IL_004a:  stelem.i1
+  IL_004b:  ldarg.0
+  IL_004c:  call       ""int C.Init()""
+  IL_0051:  ldc.i4.s   12
+  IL_0053:  add
+  IL_0054:  stfld      ""int C._y""
+  // sequence point: 15
+  IL_0059:  ldloc.0
+  IL_005a:  ldc.i4.3
+  IL_005b:  ldc.i4.1
+  IL_005c:  stelem.i1
+  IL_005d:  ldarg.0
+  IL_005e:  ldc.i4.s   15
+  IL_0060:  stfld      ""int C.<Prop1>k__BackingField""
+  // sequence point: C()
+  IL_0065:  ldarg.0
+  IL_0066:  call       ""object..ctor()""
+  // sequence point: _z = 12;
+  IL_006b:  ldloc.0
+  IL_006c:  ldc.i4.4
+  IL_006d:  ldc.i4.1
+  IL_006e:  stelem.i1
+  IL_006f:  ldarg.0
+  IL_0070:  ldc.i4.s   12
+  IL_0072:  stfld      ""int C._z""
+  // sequence point: }
+  IL_0077:  ret
+}
+");
         }
 
         [Fact]
@@ -2180,32 +2247,32 @@ public class C
 ";
             string expectedOutput = @"
 Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
-True
 Method 3
 File 1
 True
 True
-Method 6
+True
+Method 4
 File 1
 True
 True
 True
-Method 7
+Method 5
 File 1
 True
+True
+Method 8
+File 1
 True
 True
 True
 Method 9
+File 1
+True
+True
+True
+True
+Method 11
 File 1
 True
 True
@@ -2297,40 +2364,40 @@ partial struct E
 ";
             string expectedOutput = @"
 Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
-True
-True
-True
-True
 Method 3
 File 1
+True
 True
 True
 Method 4
 File 1
 True
 True
+True
+True
+True
+True
 Method 5
 File 1
-True
-True
 True
 True
 Method 6
 File 1
 True
+True
+Method 7
+File 1
+True
+True
+True
+True
+Method 8
+File 1
+True
 False
 True
 True
-Method 9
+Method 11
 File 1
 True
 True
@@ -3000,25 +3067,25 @@ public class Program
 " + InstrumentationHelperSource;
 
             var checker = new CSharpInstrumentationChecker();
-            checker.Method(1, 1, "partial void Method1<U>(int x)")
+            checker.Method(3, 1, "partial void Method1<U>(int x)")
                 .True(@"Console.WriteLine($""Method1: x = {x}"");")
                 .True(@"Console.WriteLine(""Method1: x > 0"");")
                 .True("Method1<U>(0);")
                 .False(@"Console.WriteLine(""Method1: x < 0"");")
                 .True("x < 0)")
                 .True("x > 0)");
-            checker.Method(2, 1, "public void Method2(int x)")
+            checker.Method(4, 1, "public void Method2(int x)")
                 .True(@"Console.WriteLine($""Method2: x = {x}"");")
                 .True("Method1<T>(x);");
-            checker.Method(3, 1, ".ctor()", expectBodySpan: false);
-            checker.Method(4, 1, "public static void Main(string[] args)")
+            checker.Method(5, 1, ".ctor()", expectBodySpan: false);
+            checker.Method(6, 1, "public static void Main(string[] args)")
                 .True("Test();")
                 .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
-            checker.Method(5, 1, "static void Test()")
+            checker.Method(7, 1, "static void Test()")
                 .True(@"Console.WriteLine(""Test"");")
                 .True("var c = new Class1<int>();")
                 .True("c.Method2(1);");
-            checker.Method(8, 1)
+            checker.Method(10, 1)
                 .True()
                 .False()
                 .True()
@@ -3085,17 +3152,17 @@ public class Program
 " + InstrumentationHelperSource;
 
             var checker = new CSharpInstrumentationChecker();
-            checker.Method(1, 1, "public void Method2(int x)")
+            checker.Method(3, 1, "public void Method2(int x)")
                 .True(@"Console.WriteLine($""Method2: x = {x}"");");
-            checker.Method(2, 1, ".ctor()", expectBodySpan: false);
-            checker.Method(3, 1, "public static void Main(string[] args)")
+            checker.Method(4, 1, ".ctor()", expectBodySpan: false);
+            checker.Method(5, 1, "public static void Main(string[] args)")
                 .True("Test();")
                 .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
-            checker.Method(4, 1, "static void Test()")
+            checker.Method(6, 1, "static void Test()")
                 .True(@"Console.WriteLine(""Test"");")
                 .True("var c = new Class1<int>();")
                 .True("c.Method2(1);");
-            checker.Method(7, 1)
+            checker.Method(9, 1)
                 .True()
                 .False()
                 .True()
@@ -3195,14 +3262,14 @@ public partial class Class1<T>
 2
 3
 Flushing
-Method 1
+Method 3
 File 1
 True
 True
 True
 True
 True
-Method 2
+Method 4
 File 1
 File 2
 File 3
@@ -3211,18 +3278,18 @@ True
 True
 True
 True
-Method 3
+Method 5
 File 2
 True
 True
 True
-Method 4
+Method 6
 File 2
 True
 True
 True
 True
-Method 7
+Method 9
 File 2
 True
 True
@@ -3319,16 +3386,16 @@ public partial class Class1<T>
 2
 3
 Flushing
-Method 1
+Method 3
 File 1
 True
 True
 True
 True
 True
-Method 2
+Method 4
 File 2
-Method 3
+Method 5
 File 1
 File 2
 File 3
@@ -3337,18 +3404,18 @@ True
 True
 True
 True
-Method 4
+Method 6
 File 2
 True
 True
 True
-Method 5
+Method 7
 File 2
 True
 True
 True
 True
-Method 8
+Method 10
 File 2
 True
 True
@@ -3408,12 +3475,12 @@ Hidden
 Visible
 End
 Flushing
-Method 1
+Method 3
 File 1
 True
 True
 True
-Method 2
+Method 4
 File 1
 File 2
 File 3
@@ -3422,7 +3489,7 @@ True
 True
 True
 True
-Method 5
+Method 7
 File 3
 True
 True
@@ -3514,7 +3581,7 @@ static void Test()
             Assert.True(expected == instrumented, $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented. Actual IL:{Environment.NewLine}{il}");
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, Verification verify = Verification.Passes)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, Verification verify = default)
         {
             return base.CompileAndVerify(
                 source,

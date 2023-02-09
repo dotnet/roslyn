@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
     internal interface ISyntaxKinds
     {
         TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct;
+        int Convert<TSyntaxKind>(TSyntaxKind kind) where TSyntaxKind : struct;
 
         #region trivia
 
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int? GlobalStatement { get; }
         int TrueKeyword { get; }
         int FalseKeyword { get; }
+        int UsingKeyword { get; }
 
         #endregion
 
@@ -66,12 +68,19 @@ namespace Microsoft.CodeAnalysis.LanguageService
         #region tokens
 
         int CloseBraceToken { get; }
+        int? CloseBracketToken { get; }
+        int CloseParenToken { get; }
         int ColonToken { get; }
         int DotToken { get; }
         int EndOfFileToken { get; }
         int HashToken { get; }
+        int GreaterThanToken { get; }
         int IdentifierToken { get; }
         int InterpolatedStringTextToken { get; }
+        int LessThanToken { get; }
+        int OpenBraceToken { get; }
+        int? OpenBracketToken { get; }
+        int OpenParenToken { get; }
         int QuestionToken { get; }
 
         #endregion
@@ -151,6 +160,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int? OrPattern { get; }
         int? ParenthesizedPattern { get; }
         int? RecursivePattern { get; }
+        int? RelationalPattern { get; }
         int? TypePattern { get; }
         int? VarPattern { get; }
 
@@ -167,6 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int ReturnStatement { get; }
         int ThrowStatement { get; }
         int UsingStatement { get; }
+        int WhileStatement { get; }
         int YieldReturnStatement { get; }
 
         #endregion
@@ -175,12 +186,14 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         int Attribute { get; }
         int ClassDeclaration { get; }
-        int? RecordDeclaration { get; }
-        int? RecordStructDeclaration { get; }
+        int ConstructorDeclaration { get; }
+        int InterfaceDeclaration { get; }
+        int? StructDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }
         int FieldDeclaration { get; }
+        int PropertyDeclaration { get; }
 
         int IncompleteMember { get; }
         int TypeArgumentList { get; }
@@ -190,12 +203,14 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region clauses
 
+        int ElseClause { get; }
         int EqualsValueClause { get; }
 
         #endregion
 
         #region other
 
+        int? ImplicitElementAccess { get; }
         int Interpolation { get; }
         int InterpolatedStringText { get; }
         int? IndexerMemberCref { get; }

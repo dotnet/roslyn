@@ -19,6 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case ERRID.ERR_TypeRefResolutionError3,
                      ERRID.ERR_MissingRuntimeHelper,
                      ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
+                    ' Update src\EditorFeatures\VisualBasic\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
+                    ' whenever new values are added here.
                     Return True
                 Case ERRID.Void,
                      ERRID.Unknown,
@@ -1526,7 +1528,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_AnalyzerReferencesFramework,
                      ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential,
                      ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName,
-                     ERRID.WRN_AnalyzerReferencesNewerCompiler
+                     ERRID.WRN_AnalyzerReferencesNewerCompiler,
+                     ERRID.WRN_DuplicateAnalyzerReference
                     Return False
                 Case Else
                     ' NOTE: All error codes must be explicitly handled in the below select case statement

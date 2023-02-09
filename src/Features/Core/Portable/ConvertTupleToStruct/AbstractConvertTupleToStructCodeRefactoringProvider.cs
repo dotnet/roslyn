@@ -560,18 +560,16 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var container = tupleExprOrTypeNode.GetAncestor<TNamespaceDeclarationSyntax>() ?? root;
 
-            var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
             var context = new CodeGenerationContext(
                 generateMembers: true,
                 sortMembers: false,
                 autoInsertionLocation: false);
 
-            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var info = options.GetInfo(context, document.Project);
+            var info = await document.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             // Then, actually insert the new class in the appropriate container.
             editor.ReplaceNode(container, (currentContainer, _) =>
-                codeGenService.AddNamedType(currentContainer, namedTypeSymbol, info, cancellationToken));
+                info.Service.AddNamedType(currentContainer, namedTypeSymbol, info, cancellationToken));
         }
 
         private static async Task<Solution> ApplyChangesAsync(

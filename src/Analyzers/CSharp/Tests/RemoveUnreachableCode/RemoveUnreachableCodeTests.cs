@@ -14,9 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
 {
     using VerifyCS = CSharpCodeFixVerifier<CSharpRemoveUnreachableCodeDiagnosticAnalyzer, CSharpRemoveUnreachableCodeCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
     public class RemoveUnreachableCodeTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestSingleUnreachableStatement()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -39,7 +40,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestInUnreachableIfBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -66,7 +67,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestInIfWithNoBlock()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -91,7 +92,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestRemoveSubsequentStatements()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -115,7 +116,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestFromSubsequentStatement()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -139,7 +140,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestRemoveSubsequentStatementsExcludingLocalFunction()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -168,7 +169,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestRemoveSubsequentStatementsExcludingMultipleLocalFunctions()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -199,7 +200,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestRemoveSubsequentStatementsInterspersedWithMultipleLocalFunctions()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -234,7 +235,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestRemoveSubsequentStatementsInterspersedWithMultipleLocalFunctions2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -270,7 +271,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestRemoveSubsequentStatementsUpToNextLabel()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -298,7 +299,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestOnUnreachableLabel()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -326,7 +327,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestMissingOnReachableLabel()
         {
             var code = @"
@@ -369,7 +370,7 @@ class C
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestInLambda()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -403,7 +404,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestInLambdaInExpressionBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -433,7 +434,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestSingleRemovalDoesNotTouchCodeInUnrelatedLocalFunction()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -467,7 +468,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -501,7 +502,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -543,7 +544,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestFixAll3()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -596,7 +597,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestFixAll4()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -639,7 +640,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestFixAll5()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -668,7 +669,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestInUnreachableInSwitchSection1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -700,7 +701,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestDirectives1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -729,7 +730,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestDirectives2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -756,7 +757,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestDirectives3()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -784,7 +785,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestForLoop1()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -820,7 +821,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [Fact]
         public async Task TestInfiniteForLoop()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -843,8 +844,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_EndingWithNewLine()
         {
             var code = @"
@@ -866,8 +866,7 @@ throw new System.Exception();
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_NotEndingWithNewLine()
         {
             var code = @"
@@ -888,8 +887,7 @@ throw new System.Exception();
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements()
         {
             var code = @"
@@ -912,8 +910,7 @@ throw new System.Exception();
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements_HasClassDeclarationInBetween()
         {
             var code = @"
@@ -942,8 +939,7 @@ public class C { }
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements_AfterClassDeclaration1()
         {
             var code = @"
@@ -969,8 +965,7 @@ public class C { }
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
-        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        [Fact, WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
         public async Task TestTopLevel_MultipleUnreachableStatements_AfterClassDeclaration2()
         {
             var code = @"

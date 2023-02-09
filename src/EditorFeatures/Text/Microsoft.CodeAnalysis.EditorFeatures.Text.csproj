@@ -44,6 +44,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
     <!-- BEGIN MONODEVELOP
     These MonoDevelop dependencies don't ship with Visual Studio, so can't break our
     binary insertions and are exempted from the ExternalAccess adapter assembly policies.
@@ -56,7 +57,6 @@
     <InternalsVisibleTo Include="MonoDevelop.Refactoring.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="MonoDevelop.VBNetBinding.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
-    <!-- this is currently built externally, as part of the MonoDevelop build -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Cocoa" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Cocoa.UnitTests" LoadsWithinVisualStudio="false" />
     <!-- END MONODEVELOP -->

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// these to <see cref="Node"/>s.
         /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        private struct BuilderNode
+        private readonly struct BuilderNode
         {
             public static readonly BuilderNode RootNode = new("", RootNodeParentIndex, default);
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        private struct Node
+        private readonly struct Node
         {
             /// <summary>
             /// The Name of this Node.

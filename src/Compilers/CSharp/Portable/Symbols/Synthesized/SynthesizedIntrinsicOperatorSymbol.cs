@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
@@ -409,14 +409,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override bool IsNullableAnalysisEnabled() => false;
 
-        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => false;
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
@@ -463,9 +465,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol type,
                 int ordinal,
                 string name
-            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, DeclarationScope.Unscoped, name)
+            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, ScopedKind.None, name)
             {
             }
+
+            internal override bool IsMetadataIn => RefKind == RefKind.In;
+
+            internal override bool IsMetadataOut => RefKind == RefKind.Out;
 
             public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
@@ -498,6 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return null; }
             }
+
+            internal override bool HasUnscopedRefAttribute => false;
         }
     }
 }

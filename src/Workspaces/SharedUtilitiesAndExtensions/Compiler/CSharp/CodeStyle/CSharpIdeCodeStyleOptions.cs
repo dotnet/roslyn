@@ -3,19 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle;
 
 [DataContract]
-internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatable<CSharpIdeCodeStyleOptions>
+internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatable<CSharpIdeCodeStyleOptions>
 {
     private static readonly ImmutableArray<SyntaxKind> s_preferredModifierOrderDefault = ImmutableArray.Create(
         SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
@@ -51,6 +49,8 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
     [DataMember] public CodeStyleOption2<bool> PreferNullCheckOverTypeCheck { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> AllowBlankLinesBetweenConsecutiveBraces { get; init; } = s_trueWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterColonInConstructorInitializer { get; init; } = s_trueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterTokenInArrowExpressionClause { get; init; } = s_trueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterTokenInConditionalExpression { get; init; } = s_trueWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferConditionalDelegateCall { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferSwitchExpression { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferPatternMatching { get; init; } = s_trueWithSilentEnforcement;
@@ -72,66 +72,45 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
     [DataMember] public CodeStyleOption2<bool> PreferMethodGroupConversion { get; init; } = s_trueWithSilentEnforcement;
 
     // the following are also used in code generation features, consider sharing:
+    [DataMember] public CodeStyleOption2<bool> PreferReadOnlyStruct { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
 
-    public override bool Equals(object? obj)
-        => Equals(obj as CSharpIdeCodeStyleOptions);
+    public CSharpIdeCodeStyleOptions()
+        : base()
+    {
+    }
 
-    public bool Equals([AllowNull] CSharpIdeCodeStyleOptions other)
-        => other is not null &&
-           Common.Equals(Common) &&
-           ImplicitObjectCreationWhenTypeIsApparent.Equals(ImplicitObjectCreationWhenTypeIsApparent) &&
-           PreferNullCheckOverTypeCheck.Equals(PreferNullCheckOverTypeCheck) &&
-           AllowBlankLinesBetweenConsecutiveBraces.Equals(AllowBlankLinesBetweenConsecutiveBraces) &&
-           AllowBlankLineAfterColonInConstructorInitializer.Equals(AllowBlankLineAfterColonInConstructorInitializer) &&
-           PreferConditionalDelegateCall.Equals(PreferConditionalDelegateCall) &&
-           PreferSwitchExpression.Equals(PreferSwitchExpression) &&
-           PreferPatternMatching.Equals(PreferPatternMatching) &&
-           PreferPatternMatchingOverAsWithNullCheck.Equals(PreferPatternMatchingOverAsWithNullCheck) &&
-           PreferPatternMatchingOverIsWithCastCheck.Equals(PreferPatternMatchingOverIsWithCastCheck) &&
-           PreferNotPattern.Equals(PreferNotPattern) &&
-           PreferExtendedPropertyPattern.Equals(PreferExtendedPropertyPattern) &&
-           PreferInlinedVariableDeclaration.Equals(PreferInlinedVariableDeclaration) &&
-           PreferDeconstructedVariableDeclaration.Equals(PreferDeconstructedVariableDeclaration) &&
-           PreferIndexOperator.Equals(PreferIndexOperator) &&
-           PreferRangeOperator.Equals(PreferRangeOperator) &&
-           PreferUtf8StringLiterals.Equals(PreferUtf8StringLiterals) &&
-           PreferredModifierOrder.Equals(PreferredModifierOrder) &&
-           PreferSimpleUsingStatement.Equals(PreferSimpleUsingStatement) &&
-           PreferLocalOverAnonymousFunction.Equals(PreferLocalOverAnonymousFunction) &&
-           PreferTupleSwap.Equals(PreferTupleSwap) &&
-           UnusedValueExpressionStatement.Equals(UnusedValueExpressionStatement) &&
-           UnusedValueAssignment.Equals(UnusedValueAssignment) &&
-           PreferMethodGroupConversion.Equals(PreferMethodGroupConversion) &&
-           PreferStaticLocalFunction.Equals(PreferStaticLocalFunction) &&
-           PreferExpressionBodiedLambdas.Equals(PreferExpressionBodiedLambdas);
-
-    public override int GetHashCode()
-        => Hash.Combine(Common,
-           Hash.Combine(ImplicitObjectCreationWhenTypeIsApparent,
-           Hash.Combine(PreferNullCheckOverTypeCheck,
-           Hash.Combine(AllowBlankLinesBetweenConsecutiveBraces,
-           Hash.Combine(AllowBlankLineAfterColonInConstructorInitializer,
-           Hash.Combine(PreferConditionalDelegateCall,
-           Hash.Combine(PreferSwitchExpression,
-           Hash.Combine(PreferPatternMatching,
-           Hash.Combine(PreferPatternMatchingOverAsWithNullCheck,
-           Hash.Combine(PreferPatternMatchingOverIsWithCastCheck,
-           Hash.Combine(PreferNotPattern,
-           Hash.Combine(PreferExtendedPropertyPattern,
-           Hash.Combine(PreferInlinedVariableDeclaration,
-           Hash.Combine(PreferDeconstructedVariableDeclaration,
-           Hash.Combine(PreferIndexOperator,
-           Hash.Combine(PreferRangeOperator,
-           Hash.Combine(PreferUtf8StringLiterals,
-           Hash.Combine(PreferredModifierOrder,
-           Hash.Combine(PreferSimpleUsingStatement,
-           Hash.Combine(PreferLocalOverAnonymousFunction,
-           Hash.Combine(PreferTupleSwap,
-           Hash.Combine(UnusedValueExpressionStatement,
-           Hash.Combine(UnusedValueAssignment,
-           Hash.Combine(PreferMethodGroupConversion,
-           Hash.Combine(PreferStaticLocalFunction,
-           Hash.Combine(PreferExpressionBodiedLambdas, 0))))))))))))))))))))))))));
+    internal CSharpIdeCodeStyleOptions(IOptionsReader options, CSharpIdeCodeStyleOptions? fallbackOptions)
+        : base(options, fallbackOptions ??= Default, LanguageNames.CSharp)
+    {
+        ImplicitObjectCreationWhenTypeIsApparent = options.GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, fallbackOptions.ImplicitObjectCreationWhenTypeIsApparent);
+        PreferNullCheckOverTypeCheck = options.GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, fallbackOptions.PreferNullCheckOverTypeCheck);
+        AllowBlankLinesBetweenConsecutiveBraces = options.GetOption(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, fallbackOptions.AllowBlankLinesBetweenConsecutiveBraces);
+        AllowBlankLineAfterColonInConstructorInitializer = options.GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, fallbackOptions.AllowBlankLineAfterColonInConstructorInitializer);
+        AllowBlankLineAfterTokenInConditionalExpression = options.GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, fallbackOptions.AllowBlankLineAfterTokenInConditionalExpression);
+        AllowBlankLineAfterTokenInArrowExpressionClause = options.GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, fallbackOptions.AllowBlankLineAfterTokenInArrowExpressionClause);
+        PreferConditionalDelegateCall = options.GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall, fallbackOptions.PreferConditionalDelegateCall);
+        PreferSwitchExpression = options.GetOption(CSharpCodeStyleOptions.PreferSwitchExpression, fallbackOptions.PreferSwitchExpression);
+        PreferPatternMatching = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatching, fallbackOptions.PreferPatternMatching);
+        PreferPatternMatchingOverAsWithNullCheck = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, fallbackOptions.PreferPatternMatchingOverAsWithNullCheck);
+        PreferPatternMatchingOverIsWithCastCheck = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, fallbackOptions.PreferPatternMatchingOverIsWithCastCheck);
+        PreferNotPattern = options.GetOption(CSharpCodeStyleOptions.PreferNotPattern, fallbackOptions.PreferNotPattern);
+        PreferExtendedPropertyPattern = options.GetOption(CSharpCodeStyleOptions.PreferExtendedPropertyPattern, fallbackOptions.PreferExtendedPropertyPattern);
+        PreferInlinedVariableDeclaration = options.GetOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration, fallbackOptions.PreferInlinedVariableDeclaration);
+        PreferDeconstructedVariableDeclaration = options.GetOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration, fallbackOptions.PreferDeconstructedVariableDeclaration);
+        PreferIndexOperator = options.GetOption(CSharpCodeStyleOptions.PreferIndexOperator, fallbackOptions.PreferIndexOperator);
+        PreferRangeOperator = options.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, fallbackOptions.PreferRangeOperator);
+        PreferUtf8StringLiterals = options.GetOption(CSharpCodeStyleOptions.PreferUtf8StringLiterals, fallbackOptions.PreferUtf8StringLiterals);
+        PreferredModifierOrder = options.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder, fallbackOptions.PreferredModifierOrder);
+        PreferSimpleUsingStatement = options.GetOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement, fallbackOptions.PreferSimpleUsingStatement);
+        PreferLocalOverAnonymousFunction = options.GetOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, fallbackOptions.PreferLocalOverAnonymousFunction);
+        PreferTupleSwap = options.GetOption(CSharpCodeStyleOptions.PreferTupleSwap, fallbackOptions.PreferTupleSwap);
+        UnusedValueExpressionStatement = options.GetOption(CSharpCodeStyleOptions.UnusedValueExpressionStatement, fallbackOptions.UnusedValueExpressionStatement);
+        UnusedValueAssignment = options.GetOption(CSharpCodeStyleOptions.UnusedValueAssignment, fallbackOptions.UnusedValueAssignment);
+        PreferMethodGroupConversion = options.GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion, fallbackOptions.PreferMethodGroupConversion);
+        PreferExpressionBodiedLambdas = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, fallbackOptions.PreferExpressionBodiedLambdas);
+        PreferReadOnlyStruct = options.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, fallbackOptions.PreferReadOnlyStruct);
+        PreferStaticLocalFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, fallbackOptions.PreferStaticLocalFunction);
+    }
 }

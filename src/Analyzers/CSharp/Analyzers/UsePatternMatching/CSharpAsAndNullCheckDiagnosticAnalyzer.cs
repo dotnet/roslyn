@@ -15,16 +15,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
+
     /// <summary>
     /// Looks for code of the forms:
-    /// 
+    /// <code>
     ///     var x = o as Type;
     ///     if (x != null) ...
-    /// 
+    /// </code>
     /// and converts it to:
-    /// 
+    /// <code>
     ///     if (o is Type x) ...
-    ///     
+    /// </code>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
@@ -37,6 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
+
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(SyntaxNodeAction,
@@ -53,9 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // "x is Type y" is only available in C# 7.0 and above. Don't offer this refactoring
             // in projects targeting a lesser version.
             if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp7)
-            {
                 return;
-            }
 
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferPatternMatchingOverAsWithNullCheck;
             if (!styleOption.Value)
@@ -69,30 +71,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 BinaryExpressionSyntax binaryExpression => (binaryExpression.Left, (SyntaxNode)binaryExpression.Right),
                 IsPatternExpressionSyntax isPattern => (isPattern.Expression, isPattern.Pattern),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
+
             var operand = GetNullCheckOperand(comparisonLeft, comparison.Kind(), comparisonRight)?.WalkDownParentheses();
             if (operand == null)
-            {
                 return;
-            }
 
             var semanticModel = syntaxContext.SemanticModel;
-            if (operand.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax? castExpression))
+            if (operand is CastExpressionSyntax castExpression)
             {
                 // Unwrap object cast
                 var castType = semanticModel.GetTypeInfo(castExpression.Type).Type;
                 if (castType?.SpecialType == SpecialType.System_Object)
-                {
                     operand = castExpression.Expression;
-                }
             }
 
             var cancellationToken = syntaxContext.CancellationToken;
             if (semanticModel.GetSymbolInfo(comparison, cancellationToken).GetAnySymbol().IsUserDefinedOperator())
-            {
                 return;
-            }
 
             if (!TryGetTypeCheckParts(semanticModel, operand,
                     out var declarator,
@@ -113,16 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // Don't convert if the as is part of a using statement
             // eg using (var x = y as MyObject) { }
             if (localStatement is UsingStatementSyntax)
-            {
                 return;
-            }
 
             // Don't convert if the as is part of a local declaration with a using keyword
             // eg using var x = y as MyObject;
             if (localStatement is LocalDeclarationStatementSyntax localDecl && localDecl.UsingKeyword != default)
-            {
                 return;
-            }
 
             var typeNode = asExpression.Right;
             var asType = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
@@ -177,16 +170,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 var descendentNodeSpanStart = descendentNode.SpanStart;
                 if (descendentNodeSpanStart <= localStatementStart)
-                {
                     continue;
-                }
 
                 if (descendentNodeSpanStart >= comparisonSpanStart)
-                {
                     break;
-                }
 
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
+                if (descendentNode is IdentifierNameSyntax identifierName)
                 {
                     // Check if this is a 'write' to the asOperand.
                     if (identifierName.Identifier.ValueText == asOperand?.Name &&
@@ -198,17 +187,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
                     // Check is a reference of any sort (i.e. read/write/nameof) to the local.
                     if (identifierName.Identifier.ValueText == localSymbol.Name)
+                        return;
+                }
+            }
+
+            if (!Analyzer.CanSafelyConvertToPatternMatching(
+                    semanticModel, localSymbol, comparison, operand,
+                    localStatement, enclosingBlock, cancellationToken))
+            {
+                return;
+            }
+
+            var comparisonEnclosingBlock = comparison.AncestorsAndSelf().FirstOrDefault(n => n is BlockSyntax);
+            if (comparisonEnclosingBlock is null)
+                return;
+
+            if (comparisonEnclosingBlock != enclosingBlock)
+            {
+                // ok, the local variable is defined in a different block than the block that the `x != null` is in. If
+                // we then update the `x != null` to `o is X x` we may break scoping if the variable is referenced
+                // before/after that scope.
+                foreach (var descendentNode in enclosingBlock.DescendantNodes())
+                {
+                    var descendentNodeSpanStart = descendentNode.SpanStart;
+                    if (descendentNodeSpanStart <= localStatementStart)
+                        continue;
+
+                    if (descendentNode is IdentifierNameSyntax identifierName && !
+                        descendentNode.Span.IntersectsWith(comparisonEnclosingBlock.Span) &&
+                        identifierName.Identifier.ValueText == localSymbol.Name &&
+                        localSymbol.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol))
                     {
                         return;
                     }
                 }
             }
 
-            if (!Analyzer.CanSafelyConvertToPatternMatching(
-                semanticModel, localSymbol, comparison, operand,
-                localStatement, enclosingBlock, cancellationToken))
+            // If we have an annotated local (like `string? s = o as string`) we can't convert this to `o is string s`
+            // if there are any assignments to `s` that end up assigning a `string?`.  These will now give a nullable
+            // warning.
+            if (localSymbol.Type.NullableAnnotation == NullableAnnotation.Annotated)
             {
-                return;
+                foreach (var descendentNode in enclosingBlock.DescendantNodes())
+                {
+                    var descendentNodeSpanStart = descendentNode.SpanStart;
+                    if (descendentNodeSpanStart <= localStatementStart)
+                        continue;
+
+                    if (descendentNode is IdentifierNameSyntax identifierName &&
+                        identifierName.Identifier.ValueText == localSymbol.Name &&
+                        localSymbol.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol))
+                    {
+                        if (identifierName.Parent is AssignmentExpressionSyntax assignmentExpression &&
+                            assignmentExpression.Left == identifierName)
+                        {
+                            var rightType = semanticModel.GetTypeInfo(assignmentExpression.Right);
+                            if (rightType.Type is null or { NullableAnnotation: NullableAnnotation.Annotated })
+                                return;
+                        }
+                    }
+                }
             }
 
             // Looks good!
@@ -241,15 +279,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         // if (x != null) F(x);
                         var identifier = (IdentifierNameSyntax)operand;
                         if (!TryFindVariableDeclarator(semanticModel, identifier, out localSymbol, out declarator))
-                        {
                             break;
-                        }
 
                         var initializerValue = declarator.Initializer?.Value;
                         if (!initializerValue.IsKind(SyntaxKind.AsExpression, out asExpression))
-                        {
                             break;
-                        }
 
                         return true;
                     }
@@ -260,15 +294,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         // if ((x = e as T) != null) F(x);
                         var assignment = (AssignmentExpressionSyntax)operand;
                         if (!assignment.Right.IsKind(SyntaxKind.AsExpression, out asExpression) ||
-                            !assignment.Left.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifier))
+                            assignment.Left is not IdentifierNameSyntax identifier)
                         {
                             break;
                         }
 
                         if (!TryFindVariableDeclarator(semanticModel, identifier, out localSymbol, out declarator))
-                        {
                             break;
-                        }
 
                         return true;
                     }
@@ -307,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return left;
             }
 
-            if (right.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax? predefinedType)
+            if (right is PredefinedTypeSyntax predefinedType
                 && predefinedType.Keyword.IsKind(SyntaxKind.ObjectKeyword)
                 && comparisonKind == SyntaxKind.IsExpression)
             {
@@ -315,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return left;
             }
 
-            if (right.IsKind(SyntaxKind.ConstantPattern, out ConstantPatternSyntax? constantPattern)
+            if (right is ConstantPatternSyntax constantPattern
                 && constantPattern.Expression.IsKind(SyntaxKind.NullLiteralExpression)
                 && comparisonKind == SyntaxKind.IsPatternExpression)
             {
@@ -325,8 +357,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             return null;
         }
-
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

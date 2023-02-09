@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
+
             comp.VerifyDiagnostics(
                 // (3,5): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     nint Add(nint x, nuint y);
@@ -82,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
         }
 
@@ -169,24 +172,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     void F1(System.IntPtr x, nint y);
     void F2(System.UIntPtr x, nuint y);
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 
-            comp = CreateEmptyCompilation(sourceA);
+            comp = CreateEmptyCompilation(sourceA, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -685,20 +692,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint").WithArguments("System.UIntPtr").WithLocation(4, 31)
             };
 
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(diagnostics);
             verify(comp);
 
-            comp = CreateEmptyCompilation(sourceA);
+            comp = CreateEmptyCompilation(sourceA, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(diagnostics);
             verify(comp);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(diagnostics);
             verify(comp);
 
@@ -824,6 +831,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public struct Int32 { }
     public struct IntPtr { }
     public struct UIntPtr { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 }";
             var assemblyName = GetUniqueName();
             var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
@@ -854,6 +870,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 }";
             comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), new[] { source2 }, references: null);
             var ref2 = comp.EmitToImageReference();
@@ -917,6 +942,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 }";
             var assemblyName = GetUniqueName();
             var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
@@ -953,6 +987,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public struct Int32 { }
     public struct IntPtr { }
     public struct UIntPtr { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 }";
             comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), new[] { source2 }, references: null);
             var ref2 = comp.EmitToImageReference();
@@ -1254,6 +1297,8 @@ class Program
         [Fact]
         public void IEquatable()
         {
+            var parseOptions = TestOptions.Regular9.WithNoRefSafetyRulesAttribute();
+
             // Minimal definitions.
             verifyAll(includesIEquatable: true,
 @"namespace System
@@ -1421,7 +1466,7 @@ namespace System
     public struct IntPtr : IEquatable<nint> { }
     public struct UIntPtr : IEquatable<nuint> { }
 }",
-                parseOptions: TestOptions.Regular9);
+                parseOptions: parseOptions);
             verifyReference(comp.EmitToImageReference(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0")), includesIEquatable: true);
 
             // IEquatable<nuint> and  IEquatable<nint>.
@@ -1447,10 +1492,10 @@ namespace System
     public struct IntPtr : IEquatable<nuint> { }
     public struct UIntPtr : IEquatable<nint> { }
 }",
-                parseOptions: TestOptions.Regular9);
+                parseOptions: parseOptions);
             verifyReference(comp.EmitToImageReference(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0")), includesIEquatable: false);
 
-            static void verifyAll(bool includesIEquatable, string sourceA)
+            void verifyAll(bool includesIEquatable, string sourceA)
             {
                 var sourceB =
 @"interface I
@@ -1458,25 +1503,25 @@ namespace System
     nint F1();
     nuint F2();
 }";
-                var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
+                var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: parseOptions);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
 
-                comp = CreateEmptyCompilation(sourceA);
+                comp = CreateEmptyCompilation(sourceA, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
                 comp.VerifyDiagnostics();
                 var ref1 = comp.ToMetadataReference();
                 var ref2 = comp.EmitToImageReference();
 
-                comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
+                comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: parseOptions);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
 
-                comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
+                comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: parseOptions);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
             }
 
-            static void verifyReference(MetadataReference reference, bool includesIEquatable)
+            void verifyReference(MetadataReference reference, bool includesIEquatable)
             {
                 var sourceB =
 @"interface I
@@ -1484,7 +1529,7 @@ namespace System
     nint F1();
     nuint F2();
 }";
-                var comp = CreateEmptyCompilation(sourceB, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+                var comp = CreateEmptyCompilation(sourceB, references: new[] { reference }, parseOptions: parseOptions);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
             }
@@ -1667,6 +1712,15 @@ namespace System
             return false;
         }
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
@@ -1826,6 +1880,15 @@ namespace System
         public string ToString(IFormatProvider provider) => default;
         public string ToString(string format, IFormatProvider provider) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
@@ -1980,6 +2043,15 @@ class Program
         public static bool operator==(UIntPtr x, UIntPtr y) => default;
         public static bool operator!=(UIntPtr x, UIntPtr y) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
@@ -2121,6 +2193,15 @@ class Program
         public override int GetHashCode() => 0;
         public override bool Equals(object obj) => false;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
@@ -2204,6 +2285,15 @@ class Program
         UIntPtr I<UIntPtr>.P => this;
         UIntPtr I<UIntPtr>.F() => this;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
@@ -2494,6 +2584,15 @@ class Program
         internal UIntPtr F2() => default;
         public static UIntPtr F3() => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
@@ -2583,6 +2682,14 @@ class Program
         public UIntPtr this[int index] => default;
     }
     public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 namespace System.Reflection
 {
@@ -4361,6 +4468,15 @@ class Program
         public static UIntPtr MaxValue => default;
         public static UIntPtr MinValue => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
@@ -14721,7 +14837,6 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             verify(sourceType: "nuint", destType: "nuint");
             verify(sourceType: "nuint", destType: "System.IntPtr", noConversion: true);
             verify(sourceType: "nuint", destType: "System.UIntPtr");
-
 
             // type to System.IntPtr
             verify(sourceType: "object", destType: "System.IntPtr", isExplicit: true);

@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveAsyncModifier
@@ -15,9 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveAsync
         EmptyDiagnosticAnalyzer,
         CodeAnalysis.CSharp.RemoveAsyncModifier.CSharpRemoveAsyncModifierCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
     public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CSharpTestBase
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_Task_MultipleAndNested()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -133,7 +133,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_Task_EmptyBlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -156,7 +156,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_Task_BlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -190,7 +190,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_ValueTask_BlockBody()
         {
             var source = @"
@@ -231,7 +231,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_ValueTaskOfT_BlockBody()
         {
             var source = @"
@@ -273,7 +273,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_ValueTask_ExpressionBody()
         {
             var source = @"
@@ -304,7 +304,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_ValueTaskOfT_ExpressionBody()
         {
             var source = @"
@@ -331,7 +331,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_Task_BlockBody_Throws()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -367,7 +367,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_Task_BlockBody_WithLocalFunction()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -411,7 +411,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_Task_BlockBody_WithLambda()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -454,7 +454,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_TaskOfT_BlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -490,7 +490,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_TaskOfT_ExpressionBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -510,7 +510,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_Task_ExpressionBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -536,7 +536,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task LocalFunction_Task_BlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -574,7 +574,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task LocalFunction_Task_ExpressionBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -600,7 +600,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task LocalFunction_TaskOfT_BlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -630,7 +630,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task LocalFunction_TaskOfT_ExpressionBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -654,7 +654,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task AnonymousFunction_Task_BlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -693,7 +693,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task AnonymousFunction_TaskOfT_BlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -725,7 +725,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task SimpleLambda_TaskOfT_ExpressionBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -751,7 +751,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task SimpleLambda_TaskOfT_BlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -782,7 +782,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task SimpleLambda_Task_ExpressionBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -808,7 +808,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task SimpleLambda_Task_BlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -847,7 +847,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task ParenthesisedLambda_TaskOfT_ExpressionBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -873,7 +873,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task ParenthesisedLambda_TaskOfT_BlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -904,7 +904,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task ParenthesisedLambda_Task_ExpressionBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -930,7 +930,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task ParenthesisedLambda_Task_BlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -969,7 +969,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_Task_BlockBody_FullyQualified()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -999,7 +999,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_TaskOfT_BlockBody_FullyQualified()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -1031,7 +1031,35 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact, WorkItem(65536, "https://github.com/dotnet/roslyn/issues/65536")]
+        public async Task Method_TaskOfT_BlockBody_QualifyTaskFromResultType()
+        {
+            await VerifyCS.VerifyCodeFixAsync("""
+                using System.Threading.Tasks;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public async Task<IReadOnlyCollection<int>> {|CS1998:M|}()
+                    {
+                        return new int[0];
+                    }
+                }
+                """, """
+                using System.Threading.Tasks;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    public Task<IReadOnlyCollection<int>> M()
+                    {
+                        return Task.FromResult<IReadOnlyCollection<int>>(new int[0]);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
         public async Task IAsyncEnumerable_Missing()
         {
             var source = @"
@@ -1059,7 +1087,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task Method_AsyncVoid_Missing()
         {
             var source = @"
@@ -1086,7 +1114,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task ParenthesisedLambda_AsyncVoid_Missing()
         {
             var source = @"
@@ -1114,7 +1142,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        [Fact]
         public async Task SimpleLambda_AsyncVoid_Missing()
         {
             var source = @"

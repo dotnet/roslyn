@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly ImmutableArray<Location> _locations;
         private readonly RefKind _refKind;
-        private readonly DeclarationScope _scope;
+        private readonly ScopedKind _scope;
 
         public static SourceParameterSymbol Create(
             Binder context,
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             bool isExtensionMethodThis,
             bool addRefReadOnlyModifier,
-            DeclarationScope scope,
+            ScopedKind scope,
             BindingDiagnosticBag declarationDiagnostics)
         {
             Debug.Assert(!(owner is LambdaSymbol)); // therefore we don't need to deal with discard parameters
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
-            DeclarationScope scope,
+            ScopedKind scope,
             string name,
             ImmutableArray<Location> locations)
             : base(owner, ordinal)
@@ -222,9 +222,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override DeclarationScope DeclaredScope => _scope;
+        /// <summary>
+        /// The declared scope. From source, this is from the <c>scope</c> keyword only.
+        /// </summary>
+        internal ScopedKind DeclaredScope => _scope;
 
-        internal abstract override DeclarationScope EffectiveScope { get; }
+        internal abstract override ScopedKind EffectiveScope { get; }
+
+        protected ScopedKind CalculateEffectiveScopeIgnoringAttributes()
+        {
+            var declaredScope = this.DeclaredScope;
+            return declaredScope == ScopedKind.None && ParameterHelpers.IsRefScopedByDefault(this) ?
+                ScopedKind.ScopedRef :
+                declaredScope;
+        }
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
         public sealed override string Name
         {

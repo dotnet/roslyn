@@ -1808,7 +1808,6 @@ End Module
         ParseAndVerify(code, Diagnostic(ERRID.ERR_ExpectedEOS, "{"))
     End Sub
 
-
     <WorkItem(527673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527673")>
     <WorkItem(99258, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=99258")>
     <Fact>

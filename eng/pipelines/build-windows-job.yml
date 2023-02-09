@@ -26,7 +26,7 @@ jobs:
 - job: ${{ parameters.jobName }}
   pool:
     ${{ if ne(parameters.queueName, '') }}:
-      name: NetCore1ESPool-Public
+      name: NetCore-Public
       demands: ImageOverride -equals ${{ parameters.queueName }}
 
     ${{ if ne(parameters.vmImageName, '') }}:
@@ -42,13 +42,13 @@ jobs:
       displayName: Restore
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog ${{ parameters.restoreArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }}
 
     - task: PowerShell@2
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLog -skipDocumentation ${{ parameters.buildArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
 
     - task: PowerShell@2
       displayName: Prepare Unit Tests

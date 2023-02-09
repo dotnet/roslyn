@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -235,9 +235,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                     {
                                         // case a.
                                         var closingSpans = braceMatcher.FindMatchingSpanAsync(document, matchingSpan.Value.Start, options, cancellationToken).WaitAndGetResult(cancellationToken);
-                                        var vsClosingSpans = textView.GetSpanInView(closingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).ToList().First().ToVsTextSpan();
+                                        var vsClosingSpans = textView.GetSpanInView(closingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).First().ToVsTextSpan();
                                         pSpan[0].iEndIndex = vsClosingSpans.iStartIndex;
                                     }
+
+                                    return VSConstants.S_OK;
                                 }
                                 else if (matchingSpan.Value.End > position) // caret is at open parenthesis
                                 {
@@ -252,9 +254,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                                         // case b.
                                         var openingSpans = braceMatcher.FindMatchingSpanAsync(document, matchingSpan.Value.End, options, cancellationToken).WaitAndGetResult(cancellationToken);
-                                        var vsOpeningSpans = textView.GetSpanInView(openingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).ToList().First().ToVsTextSpan();
+                                        var vsOpeningSpans = textView.GetSpanInView(openingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).First().ToVsTextSpan();
                                         pSpan[0].iStartIndex = vsOpeningSpans.iStartIndex;
                                     }
+
+                                    return VSConstants.S_OK;
                                 }
                             }
                         }
@@ -262,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            return VSConstants.S_OK;
+            return VSConstants.S_FALSE;
         }
 
         int IVsTextViewFilter.GetWordExtent(int iLine, int iIndex, uint dwFlags, TextSpan[] pSpan)

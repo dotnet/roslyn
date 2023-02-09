@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
@@ -57,6 +55,21 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
                 case SyntaxKind.VariableDeclarator:
                     var variableDeclarator = (VariableDeclaratorSyntax)node;
+                    if (newName.ValueText == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName &&
+                        variableDeclarator.Initializer?.Value is ImplicitObjectCreationExpressionSyntax implicitObjectCreation &&
+                        variableDeclarator.Parent is VariableDeclarationSyntax parent)
+                    {
+                        // If we are generating a discard on the left of an initialization with an implicit object creation on the right,
+                        // then we need to replace the implicit object creation with an explicit one.
+                        // For example: 'TypeName v = new();' must be changed to '_ = new TypeName();'
+                        var objectCreationNode = SyntaxFactory.ObjectCreationExpression(
+                            newKeyword: implicitObjectCreation.NewKeyword,
+                            type: parent.Type,
+                            argumentList: implicitObjectCreation.ArgumentList,
+                            initializer: implicitObjectCreation.Initializer);
+                        variableDeclarator = variableDeclarator.WithInitializer(variableDeclarator.Initializer.WithValue(objectCreationNode));
+                    }
+
                     return variableDeclarator.WithIdentifier(newName.WithTriviaFrom(variableDeclarator.Identifier));
 
                 case SyntaxKind.SingleVariableDesignation:
@@ -79,10 +92,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             }
         }
 
-        protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
+        protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel)
         {
             if (newNameNode.IsKind(SyntaxKind.DiscardDesignation)
-                && parent.IsKind(SyntaxKind.DeclarationPattern, out DeclarationPatternSyntax declarationPattern)
+                && parent is DeclarationPatternSyntax declarationPattern
                 && parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
             {
                 var trailingTrivia = declarationPattern.Type.GetTrailingTrivia()
@@ -90,6 +103,21 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     .AddRange(newNameNode.GetTrailingTrivia());
 
                 return SyntaxFactory.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
+            }
+            else if (parent is AssignmentExpressionSyntax assignment &&
+                assignment.Right is ImplicitObjectCreationExpressionSyntax implicitObjectCreation &&
+                newNameNode is IdentifierNameSyntax { Identifier.ValueText: AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName } &&
+                semanticModel.GetTypeInfo(implicitObjectCreation).Type is { } type)
+            {
+                // If we are generating a discard on the left of an assignment with an implicit object creation on the right,
+                // then we need to replace the implicit object creation with an explicit one.
+                // For example: 'v = new();' must be changed to '_ = new TypeOfV();'
+                var objectCreationNode = SyntaxFactory.ObjectCreationExpression(
+                    newKeyword: implicitObjectCreation.NewKeyword,
+                    type: type.GenerateTypeSyntax(allowVar: false),
+                    argumentList: implicitObjectCreation.ArgumentList,
+                    initializer: implicitObjectCreation.Initializer);
+                return assignment.Update((ExpressionSyntax)newNameNode, assignment.OperatorToken, objectCreationNode);
             }
 
             return null;
@@ -171,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override SyntaxNode GetReplacementNodeForVarPattern(SyntaxNode originalVarPattern, SyntaxNode newNameNode)
         {
             if (originalVarPattern is not VarPatternSyntax pattern)
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
 
             // If the replacement node is DiscardDesignationSyntax
             // then we need to just change the incoming var's pattern designation

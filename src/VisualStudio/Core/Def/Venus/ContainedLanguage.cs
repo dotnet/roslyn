@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         protected readonly Workspace Workspace;
         protected readonly IComponentModel ComponentModel;
 
-        public VisualStudioProject? Project { get; }
+        public ProjectSystemProject? Project { get; }
 
         protected readonly ContainedDocument ContainedDocument;
 
@@ -71,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             IComponentModel componentModel,
             Workspace workspace,
             ProjectId projectId,
-            VisualStudioProject? project,
+            ProjectSystemProject? project,
             Guid languageServiceGuid,
             AbstractFormattingRule? vbHelperFormattingRule = null)
         {
@@ -115,7 +116,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 documentId = DocumentId.CreateNewId(projectId, $"{nameof(ContainedDocument)}: {filePath}");
 
                 // We must jam a document into an existing workspace, which we'll assume is safe to do with OnDocumentAdded
-                Workspace.OnDocumentAdded(DocumentInfo.Create(documentId, filePath, filePath: filePath));
+                Workspace.OnDocumentAdded(DocumentInfo.Create(
+                    documentId,
+                    name: filePath,
+                    loader: null,
+                    filePath: filePath));
+
                 Workspace.OnDocumentOpened(documentId, SubjectBuffer.AsTextContainer());
             }
 

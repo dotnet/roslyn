@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
     /// for the range of characters for '\\p{0}' (even though the regex engine would only see the \\ 
     /// translated as a virtual char to the single \ character.
     /// </summary>
-    internal struct EmbeddedDiagnostic : IEquatable<EmbeddedDiagnostic>
+    internal readonly struct EmbeddedDiagnostic : IEquatable<EmbeddedDiagnostic>
     {
         public readonly string Message;
         public readonly TextSpan Span;

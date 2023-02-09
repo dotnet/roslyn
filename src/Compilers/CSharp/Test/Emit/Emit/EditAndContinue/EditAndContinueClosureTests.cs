@@ -41,7 +41,7 @@ class C
         return ((D)(() => o))();
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
@@ -2317,7 +2317,7 @@ public class C
     }
 }";
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -2434,7 +2434,7 @@ public class C
     }
 }";
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -2567,7 +2567,7 @@ public class C
     }
 }";
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var compilation3 = compilation2.WithSource(source3);
@@ -3706,9 +3706,9 @@ class C
     }</N:0>
 }
 ";
-            var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
-            var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
-            var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
+            var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"), options: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
+            var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"), options: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
+            var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"), options: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
@@ -4597,7 +4597,7 @@ class C
     void F() { var x = new Action(() => {}); Console.WriteLine(2); }
 }";
 
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
+            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
             var compilation1 = compilation0.WithSource(source1);
 
             var c0 = compilation0.GetMember<NamedTypeSymbol>("C");

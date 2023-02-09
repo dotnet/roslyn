@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-    internal struct BinaryOperatorAnalysisResult
+    internal readonly struct BinaryOperatorAnalysisResult
     {
         public readonly Conversion LeftConversion;
         public readonly Conversion RightConversion;
@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool Equals(object obj)
         {
             // implement if needed
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override int GetHashCode()
         {
             // implement if needed
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public static BinaryOperatorAnalysisResult Applicable(BinaryOperatorSignature signature, Conversion leftConversion, Conversion rightConversion)

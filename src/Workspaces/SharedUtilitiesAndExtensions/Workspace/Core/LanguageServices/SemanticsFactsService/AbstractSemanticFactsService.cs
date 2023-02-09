@@ -97,6 +97,31 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     baseName, usedNames, this.SyntaxFacts.IsCaseSensitive));
         }
 
+#nullable enable
+
+        protected static IMethodSymbol? FindDisposeMethod(Compilation compilation, ITypeSymbol? type, bool isAsync)
+        {
+            if (type is null)
+                return null;
+
+            var methodToLookFor = isAsync
+                ? GetDisposeMethod(typeof(IAsyncDisposable).FullName!, nameof(IAsyncDisposable.DisposeAsync))
+                : GetDisposeMethod(typeof(IDisposable).FullName!, nameof(IDisposable.Dispose));
+            if (methodToLookFor is null)
+                return null;
+
+            var impl = type.FindImplementationForInterfaceMember(methodToLookFor) ?? methodToLookFor;
+            return impl as IMethodSymbol;
+
+            IMethodSymbol? GetDisposeMethod(string typeName, string methodName)
+            {
+                var disposableType = compilation.GetBestTypeByMetadataName(typeName);
+                return disposableType?.GetMembers().OfType<IMethodSymbol>().FirstOrDefault(m => m.Parameters.Length == 0 && m.Name == methodName);
+            }
+        }
+
+#nullable disable
+
         #region ISemanticFacts implementation
 
         public bool SupportsImplicitInterfaceImplementation => SemanticFacts.SupportsImplicitInterfaceImplementation;
@@ -138,6 +163,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement)
             => SemanticFacts.GetForEachSymbols(semanticModel, forEachStatement);
 
+        public SymbolInfo GetCollectionInitializerSymbolInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => SemanticFacts.GetCollectionInitializerSymbolInfo(semanticModel, node, cancellationToken);
+
         public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
             => SemanticFacts.GetGetAwaiterMethod(semanticModel, node);
 
@@ -153,11 +181,11 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
             => SemanticFacts.GetDeclaredSymbols(semanticModel, memberDeclaration, cancellationToken);
 
-        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, CancellationToken cancellationToken)
-            => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates, cancellationToken);
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates, allowParams, cancellationToken);
 
-        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, CancellationToken cancellationToken)
-            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, allowUncertainCandidates, cancellationToken);
+        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, allowUncertainCandidates, allowParams, cancellationToken);
 
         public ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
             => SemanticFacts.FindFieldOrPropertyForArgument(semanticModel, argumentNode, cancellationToken);

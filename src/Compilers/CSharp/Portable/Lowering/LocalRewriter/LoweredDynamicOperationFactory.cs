@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // as well as the alternative where x is a const null of type object.
 
-            if (boundArgument.ConstantValue != null)
+            if (boundArgument.ConstantValueOpt != null)
             {
                 flags |= CSharpArgumentInfoFlags.Constant;
             }

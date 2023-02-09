@@ -231,6 +231,8 @@
 -errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
 -filealign:&lt;number&gt;               Specify the alignment used for output file
                                   sections.
 -highentropyva[+|-]               Enable high-entropy ASLR.
@@ -267,7 +269,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Možnosti kompilátoru Visual Basic
+        <target state="needs-review-translation">                  Možnosti kompilátoru Visual Basic
 
                                   - VÝSTUPNÍ SOUBOR -
 -out:&lt;soubor&gt;                       Určuje název výstupního souboru.
@@ -556,6 +558,16 @@
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
         <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
         <target state="translated">CallerArgumentExpressionAttribute použitý u parametru nebude mít žádný vliv, protože odkazuje sám na sebe.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Odkaz analyzátoru {0} byl zadán vícekrát</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Odkaz analyzátoru byl zadán vícekrát</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

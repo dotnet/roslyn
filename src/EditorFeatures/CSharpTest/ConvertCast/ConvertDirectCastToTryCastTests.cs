@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertCast;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertConversionOperators
@@ -368,6 +369,99 @@ class Program
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
                 CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(64052, "https://github.com/dotnet/roslyn/issues/64052")]
+        public async Task ConvertFromExplicitToAs_NullableReferenceType_NullableEnable()
+        {
+            var initialMarkup = @"
+#nullable enable
+
+class Program
+{
+    public static void Main()
+    {
+        var x = ([||]string?)null;
+    }
+}";
+            var expectedMarkup = @"
+#nullable enable
+
+class Program
+{
+    public static void Main()
+    {
+        var x = null as string;
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(64052, "https://github.com/dotnet/roslyn/issues/64052")]
+        public async Task ConvertFromExplicitToAs_NullableReferenceType_NullableDisable()
+        {
+            var initialMarkup = @"
+#nullable disable
+
+class Program
+{
+    public static void Main()
+    {
+        var x = ([||]string?)null;
+    }
+}";
+            var expectedMarkup = @"
+#nullable disable
+
+class Program
+{
+    public static void Main()
+    {
+        var x = null as string;
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CompilerDiagnostics = CompilerDiagnostics.None, // Suppress compiler warning about nullable string in non-nullable context
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(64466, "https://github.com/dotnet/roslyn/issues/64466")]
+        public async Task ConvertFromExplicitToAs_NullableValueType()
+        {
+            const string InitialMarkup = @"
+class Program
+{
+    public static void Main()
+    {
+        var x = ([||]byte?)null;
+    }
+}
+";
+            const string FixedCode = @"
+class Program
+{
+    public static void Main()
+    {
+        var x = null as byte?;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = InitialMarkup,
+                FixedCode = FixedCode,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
             }.RunAsync();
         }
     }

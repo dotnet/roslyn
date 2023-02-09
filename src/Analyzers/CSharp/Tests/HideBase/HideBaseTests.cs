@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
     public class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public HideBaseTests(ITestOutputHelper logger)
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new HideBaseCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        [Fact]
         public async Task TestAddNewToProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -49,7 +50,7 @@ class App : Application
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        [Fact]
         public async Task TestAddNewToMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -81,7 +82,7 @@ class App : Application
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        [Fact]
         public async Task TestAddNewToField()
         {
             await TestInRegularAndScriptAsync(
@@ -105,8 +106,7 @@ class App : Application
 }");
         }
 
-        [WorkItem(18391, "https://github.com/dotnet/roslyn/issues/18391")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        [Fact, WorkItem(18391, "https://github.com/dotnet/roslyn/issues/18391")]
         public async Task TestAddNewToConstant()
         {
             await TestInRegularAndScriptAsync(
@@ -130,8 +130,7 @@ class App : Application
 }");
         }
 
-        [WorkItem(14455, "https://github.com/dotnet/roslyn/issues/14455")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        [Fact, WorkItem(14455, "https://github.com/dotnet/roslyn/issues/14455")]
         public async Task TestAddNewToConstantInternalFields()
         {
             await TestInRegularAndScriptAsync(
@@ -143,7 +142,7 @@ class B : A { internal new const int i = 1; }
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        [Fact]
         public async Task TestAddNewToDisorderedModifiers() =>
             await TestInRegularAndScript1Async(
 @"class Application
@@ -165,7 +164,7 @@ class App : Application
     static public new int Test;
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        [Fact]
         public async Task TestAddNewToOrderedModifiersWithTrivia() =>
             await TestInRegularAndScript1Async(
 @"class Application

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static SourceWithMarkedNodes MarkedSource(string markedSource, string fileName = "", CSharpParseOptions options = null, bool removeTags = false)
             => new SourceWithMarkedNodes(
                 WithWindowsLineBreaks(markedSource),
-                parser: s => Parse(s, fileName, options),
+                parser: s => Parse(s, fileName, options ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute()),
                 getSyntaxKind: s => (int)(SyntaxKind)typeof(SyntaxKind).GetField(s).GetValue(null),
                 removeTags);
 

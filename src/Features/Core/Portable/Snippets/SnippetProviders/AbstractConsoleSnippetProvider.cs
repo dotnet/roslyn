@@ -18,32 +18,31 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets;
+using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal abstract class AbstractConsoleSnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractConsoleSnippetProvider : AbstractStatementSnippetProvider
     {
         protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
 
-        public override string SnippetIdentifier => "cw";
+        public override string Identifier => "cw";
 
-        public override string SnippetDescription => FeaturesResources.console_writeline;
+        public override string Description => FeaturesResources.console_writeline;
 
-        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("Console", "WriteLine");
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("WriteLine");
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
             if (consoleSymbol is null)
             {
                 return false;
             }
 
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            return syntaxContext.IsStatementContext || syntaxContext.IsGlobalStatementContext;
+            return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
@@ -52,24 +51,26 @@ namespace Microsoft.CodeAnalysis.Snippets
             return ImmutableArray.Create(snippetTextChange);
         }
 
+        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+        {
+            return syntaxFacts.IsExpressionStatement;
+        }
+
         private async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(consoleSymbol);
             var generator = SyntaxGenerator.GetGenerator(document);
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
             // We know symbol is not null at this point since it was checked when determining
             // if we are in a valid location to insert the snippet.
-            var typeExpression = generator.TypeExpression(consoleSymbol);
             var declaration = GetAsyncSupportingDeclaration(token);
             var isAsync = declaration is not null && generator.GetModifiers(declaration).IsAsync;
 
             var invocation = isAsync
                 ? generator.AwaitExpression(generator.InvocationExpression(
-                    generator.MemberAccessExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.Out))), generator.IdentifierName(nameof(Console.Out.WriteLineAsync)))))
-                : generator.InvocationExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.WriteLine))));
+                    generator.MemberAccessExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), generator.IdentifierName(nameof(Console.Out))), nameof(Console.Out.WriteLineAsync))))
+                : generator.InvocationExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), nameof(Console.WriteLine)));
             var expressionStatement = generator.ExpressionStatement(invocation);
 
             // Need to normalize the whitespace for the asynchronous case because it doesn't insert a space following the await
@@ -103,14 +104,10 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
-            if (snippetExpressionNode is null)
-            {
-                return root;
-            }
+            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts.IsExpressionStatement);
+            Contract.ThrowIfNull(snippetExpressionNode);
 
             var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
-
             var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(consoleSymbol!), Formatter.Annotation);
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
@@ -139,10 +136,17 @@ namespace Microsoft.CodeAnalysis.Snippets
             return openParenToken;
         }
 
-        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
+        private static async Task<INamedTypeSymbol?> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
+        {
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
+            return symbol;
+        }
+
+        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
         {
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
-            var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsExpressionStatement);
+            var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(isCorrectContainer);
             if (nearestExpressionStatement is null)
             {
                 return null;
@@ -157,13 +161,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             }
 
             return nearestExpressionStatement;
-        }
-
-        private static async Task<INamedTypeSymbol?> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
-        {
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
-            return symbol;
         }
     }
 }

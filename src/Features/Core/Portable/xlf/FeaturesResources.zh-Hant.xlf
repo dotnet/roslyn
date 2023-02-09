@@ -350,6 +350,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">基底類別包含無法存取的未實作成員</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_VisualBasic_References">
+        <source>C# and Visual Basic References</source>
+        <target state="new">C# and Visual Basic References</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">無法套用變更 -- 未預期的錯誤: '{0}'</target>
@@ -495,6 +500,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">變更 {0} 的可見度需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_snippet_for_0">
+        <source>Code snippet for '{0}'</source>
+        <target state="translated">'{0}' 的程式碼片段</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
         <target state="translated">不允許的註解</target>
@@ -627,7 +637,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Deleting {0} requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">刪除 {0} 需要重新啟動應用程式，因為執行階段不支援它。</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
@@ -668,6 +678,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Enable_all_JSON_editor_features">
         <source>Enable all JSON editor features</source>
         <target state="translated">啟用所有 JSON 編輯器功能</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="translated">列舉成員</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -717,7 +732,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Extract_base_record">
         <source>Extract base record...</source>
-        <target state="new">Extract base record...</target>
+        <target state="translated">擷取基底 record...</target>
         <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -738,6 +753,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">無法分析下列項目的資料流程: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Find_All_References_not_invoked_on_applicable_symbol">
+        <source>'Find All References' not invoked on applicable symbol</source>
+        <target state="new">'Find All References' not invoked on applicable symbol</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -968,6 +988,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">內嵌並保留 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="translated">內嵌暫存變數</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1285,6 +1310,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
+        <source>Please resolve errors in your code before renaming this element.</source>
+        <target state="translated">請先解決程式碼中的錯誤，再重新命名此元素。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
         <source>Probable JSON string detected</source>
         <target state="translated">偵測到可能的 JSON 字串</target>
@@ -1327,12 +1357,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Pull_selected_members_up">
         <source>Pull selected members up</source>
-        <target state="new">Pull selected members up</target>
+        <target state="translated">向上提取選取的成員</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_selected_members_up_to_0">
         <source>Pull selected members up to {0}</source>
-        <target state="new">Pull selected members up to {0}</target>
+        <target state="translated">將選取的成員最多提取 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2535,6 +2565,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">將擷取到的變數從 '{0}' 重新命名為 '{1}' 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
+        <source>Renaming anonymous type members is not yet supported.</source>
+        <target state="translated">目前尚不支援重新命名匿名類型成員。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">將 ‘{0}’ 取代為 ‘{1}'</target>
@@ -2547,7 +2582,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Required">
         <source>required</source>
-        <target state="new">required</target>
+        <target state="translated">必要項</target>
         <note>Used in the object initializer completion.</note>
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
@@ -2673,6 +2708,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="The_symbol_has_no_implementations">
         <source>The symbol has no implementations.</source>
         <target state="translated">符號沒有任何實作。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_0_has_1_references">
+        <source>This {0} has {1} reference(s).</source>
+        <target state="new">This {0} has {1} reference(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="Timeout_SourceLink">
@@ -2995,6 +3035,31 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">您可以使用導覽列切換內容。</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
+        <source>You cannot rename elements from previous submissions.</source>
+        <target state="translated">您無法重新命名上次提交的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
+        <source>You cannot rename elements that are defined in metadata.</source>
+        <target state="translated">您無法重新命名中繼資料中所定義的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_operators">
+        <source>You cannot rename operators.</source>
+        <target state="translated">您無法重新命名運算子。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element">
+        <source>You cannot rename this element.</source>
+        <target state="translated">您無法重新命名此元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_rename_an_identifier">
+        <source>You must rename an identifier.</source>
+        <target state="translated">您必須重新命名識別項。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
         <target state="translated">'{0}' 個基底</target>
@@ -3080,9 +3145,19 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">'{0}' 在此可能為 null。</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_reference_unquoted">
+        <source>{0} reference</source>
+        <target state="new">{0} reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
         <target state="translated">'{0}' 參考</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references_unquoted">
+        <source>{0} references</source>
+        <target state="new">{0} references</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unexpected">
@@ -3343,7 +3418,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="console_writeline">
         <source>Console.WriteLine</source>
-        <target state="new">Console.WriteLine</target>
+        <target state="translated">Console.WriteLine</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -3413,6 +3488,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <target state="translated">捨棄</target>
         <note />
       </trans-unit>
+      <trans-unit id="else_statement">
+        <source>else statement</source>
+        <target state="translated">else 陳述式</target>
+        <note />
+      </trans-unit>
       <trans-unit id="embedded">
         <source>embedded</source>
         <target state="translated">內嵌</target>
@@ -3422,6 +3502,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <source>external</source>
         <target state="translated">外部</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
+      </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach loop</source>
+        <target state="translated">ForEach 迴圈</target>
+        <note />
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
@@ -3482,9 +3567,14 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">泛型多載</target>
         <note />
       </trans-unit>
+      <trans-unit id="get_only_property">
+        <source>get-only property</source>
+        <target state="new">get-only property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement">
         <source>if statement</source>
-        <target state="new">if statement</target>
+        <target state="translated">If 陳述式</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">
@@ -4270,6 +4360,11 @@ When this standard format specifier is used, the formatting or parsing operation
         <target state="translated">靜態建構函式</target>
         <note />
       </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="translated">結構</target>
+        <note />
+      </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'symbol' 不可為命名空間。</target>
@@ -4925,6 +5020,11 @@ The offset is always displayed with a leading sign. A plus sign (+) indicates ho
 對 DateTimeOffset 值而言，這個格式規範代表 DateTimeOffset 值的 UTC 時差 (以小時為單位)。
 
 時差的開頭永遠會顯示正負號。正號 (+) 表示早於 UTC 的小時數，負號 (-) 則表示晚於 UTC 的小時數。個位數的時差開頭會填補零。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="while_loop">
+        <source>while loop</source>
+        <target state="translated">while 迴圈</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

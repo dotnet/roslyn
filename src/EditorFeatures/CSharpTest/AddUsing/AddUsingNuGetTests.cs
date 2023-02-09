@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 
         protected override void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.CSharp), true);
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.CSharp), true);
+            workspace.GlobalOptions.SetGlobalOption(SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.CSharp, true);
+            workspace.GlobalOptions.SetGlobalOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.CSharp, true);
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(
@@ -311,8 +311,7 @@ class C
             installerServiceMock.Verify();
         }
 
-        [WorkItem(14516, "https://github.com/dotnet/roslyn/pull/14516")]
-        [Fact]
+        [Fact, WorkItem(14516, "https://github.com/dotnet/roslyn/pull/14516")]
         public async Task TestFailedInstallRollsBackFile()
         {
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);

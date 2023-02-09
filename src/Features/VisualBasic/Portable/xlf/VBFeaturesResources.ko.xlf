@@ -67,11 +67,6 @@
         <target state="translated">누락된 '{0}'을(를) 삽입합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">인라인 임시 변수</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">충돌이 감지되었습니다.</target>

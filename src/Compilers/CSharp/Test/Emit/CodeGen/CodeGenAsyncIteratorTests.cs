@@ -633,9 +633,12 @@ ref struct S
 }";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (4,65): error CS0306: The type 'S' may not be used as a type argument
+                // source(4,65): error CS0306: The type 'S' may not be used as a type argument
                 //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("S").WithLocation(4, 65)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("S").WithLocation(4, 65),
+                // source(11,24): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or async lambda expressions.
+                //         await foreach (var s in M())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("S").WithLocation(11, 24)
                 );
         }
 
@@ -2116,7 +2119,7 @@ class C
                     "C.<M>d__0..ctor(System.Int32 <>1__state)",
                     "void C.<M>d__0.MoveNext()",
                     "void C.<M>d__0.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine)",
-                    "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator(System.Threading.CancellationToken token)",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])",
                     "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
                     "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
                     "System.Boolean C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult(System.Int16 token)",
@@ -4950,7 +4953,6 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
-
 
         [ConditionalTheory(typeof(WindowsDesktopOnly))]
         [InlineData(0, "DISPOSAL DONE")]

@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             public virtual void FinishFilterCondition(ILBuilder builder)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public bool IsExceptionHandler
@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal struct ScopeBounds
+        internal readonly struct ScopeBounds
         {
             internal readonly int Begin; // inclusive
             internal readonly int End;   // exclusive

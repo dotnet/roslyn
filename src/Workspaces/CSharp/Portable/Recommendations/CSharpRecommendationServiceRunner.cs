@@ -45,7 +45,7 @@ internal partial class CSharpRecommendationService
 
         public override bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(true)] out ITypeSymbol? explicitLambdaParameterType)
         {
-            if (lambdaSyntax.IsKind<ParenthesizedLambdaExpressionSyntax>(SyntaxKind.ParenthesizedLambdaExpression, out var parenthesizedLambdaSyntax))
+            if (lambdaSyntax is ParenthesizedLambdaExpressionSyntax parenthesizedLambdaSyntax)
             {
                 var parameters = parenthesizedLambdaSyntax.ParameterList.Parameters;
                 if (parameters.Count > ordinalInLambda)
@@ -190,7 +190,7 @@ internal partial class CSharpRecommendationService
 
             return allLabels
                 .WhereAsArray(label => label.DeclaringSyntaxReferences.First().GetSyntax(_cancellationToken)
-                    .IsKind(SyntaxKind.LabeledStatement, SyntaxKind.DefaultSwitchLabel));
+                    .Kind() is SyntaxKind.LabeledStatement or SyntaxKind.DefaultSwitchLabel);
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForTypeOrNamespaceContext()
@@ -216,13 +216,23 @@ internal partial class CSharpRecommendationService
             //
             //     i          // <-- here
             //     I = 0;
-
+            //
             // The problem is that "i I = 0" causes a local to be in scope called "I".  So, later when
             // we look up symbols, it masks any other 'I's in scope (i.e. if there's a field with that 
             // name).  If this is the case, we do not want to filter out inaccessible locals.
+            //
+            // Similar issue for out-vars.  Like:
+            //
+            //              if (TryParse("", out    // <-- here
+            //              X x = null;
             var filterOutOfScopeLocals = _filterOutOfScopeLocals;
             if (filterOutOfScopeLocals)
-                filterOutOfScopeLocals = !_context.LeftToken.GetRequiredParent().IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type);
+            {
+                var contextNode = _context.LeftToken.GetRequiredParent();
+                filterOutOfScopeLocals =
+                    !contextNode.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) &&
+                    !contextNode.IsFoundUnder<DeclarationExpressionSyntax>(d => d.Type);
+            }
 
             var symbols = !_context.IsNameOfContext && _context.LeftToken.GetRequiredParent().IsInStaticContext()
                 ? _context.SemanticModel.LookupStaticMembers(_context.LeftToken.SpanStart)
@@ -246,9 +256,7 @@ internal partial class CSharpRecommendationService
             // should not be included in the completion list, so remove those. Filter them away,
             // unless we're in the debugger, where we show all locals in scope.
             if (filterOutOfScopeLocals)
-            {
                 symbols = symbols.WhereAsArray(symbol => !symbol.IsInaccessibleLocal(_context.Position));
-            }
 
             return symbols;
         }
@@ -365,7 +373,6 @@ internal partial class CSharpRecommendationService
             bool unwrapNullable,
             bool isForDereference)
         {
-            var abstractsOnly = false;
             var excludeInstance = false;
             var excludeStatic = true;
             var excludeBaseMethodsForRefStructs = true;
@@ -412,7 +419,6 @@ internal partial class CSharpRecommendationService
                     // We only want statics and not instance members.
                     excludeInstance = true;
                     excludeStatic = false;
-                    abstractsOnly = symbol.Kind == SymbolKind.TypeParameter;
                     containerSymbol = symbol;
                 }
 
@@ -439,8 +445,12 @@ internal partial class CSharpRecommendationService
             if (containerSymbol == null)
                 return default;
 
+            // We don't provide any member from System.Void (which is valid only in the context of typeof operation).
+            // Try to bail early to avoid unnecessary work even though compiler will handle this case for us.
+            if (containerSymbol is INamedTypeSymbol typeSymbol && typeSymbol.IsSystemVoid())
+                return default;
+
             Debug.Assert(!excludeInstance || !excludeStatic);
-            Debug.Assert(!abstractsOnly || (abstractsOnly && !excludeStatic && excludeInstance));
 
             // nameof(X.|
             // Show static and instance members.
@@ -458,7 +468,7 @@ internal partial class CSharpRecommendationService
             // If we're showing instance members, don't include nested types
             var namedSymbols = excludeStatic
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
-                : (abstractsOnly ? symbols.WhereAsArray(s => s.IsAbstract) : symbols);
+                : symbols;
 
             //If container type is "ref struct" then we should exclude methods from object and ValueType that are not overriden
             //if recomendations are requested not in nameof context,

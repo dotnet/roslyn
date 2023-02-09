@@ -3,16 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Xml.Serialization;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -20,20 +19,20 @@ namespace Microsoft.CodeAnalysis.CodeActions
     internal static class CodeActionOptionsStorage
     {
         public static readonly PerLanguageOption2<int> WrappingColumn =
-            new("FormattingOptions", "WrappingColumn", CodeActionOptions.DefaultWrappingColumn);
+            new("FormattingOptions_WrappingColumn", CodeActionOptions.DefaultWrappingColumn);
 
         public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-            => new(
-                cleanupOptions: globalOptions.GetCodeCleanupOptions(languageServices),
-                codeGenerationOptions: globalOptions.GetCodeGenerationOptions(languageServices),
-                codeStyleOptions: globalOptions.GetCodeStyleOptions(languageServices))
+            => new()
             {
+                CleanupOptions = globalOptions.GetCodeCleanupOptions(languageServices),
+                CodeGenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
+                CodeStyleOptions = globalOptions.GetCodeStyleOptions(languageServices),
                 SearchOptions = globalOptions.GetSymbolSearchOptions(languageServices.Language),
                 ImplementTypeOptions = globalOptions.GetImplementTypeOptions(languageServices.Language),
                 ExtractMethodOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
                 HideAdvancedMembers = globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
                 WrappingColumn = globalOptions.GetOption(WrappingColumn, languageServices.Language),
-                ConditionalExpressionWrappingLength = globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language)
+                ConditionalExpressionWrappingLength = globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language),
             };
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
@@ -43,8 +42,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(
-            "UseConditionalExpressionOptions",
-            "ConditionalExpressionWrappingLength", CodeActionOptions.DefaultConditionalExpressionWrappingLength,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength"));
+            "UseConditionalExpressionOptions_ConditionalExpressionWrappingLength", CodeActionOptions.DefaultConditionalExpressionWrappingLength);
     }
 }

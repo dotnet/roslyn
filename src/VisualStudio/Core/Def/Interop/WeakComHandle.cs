@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 {
-    internal struct WeakComHandle<THandle, TObject>
+    internal readonly struct WeakComHandle<THandle, TObject>
         where THandle : class
         where TObject : class, THandle
     {

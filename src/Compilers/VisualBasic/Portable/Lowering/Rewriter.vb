@@ -46,9 +46,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             dynamicAnalysisSpans = ImmutableArray(Of SourceSpan).Empty
 
             Try
-                Dim dynamicInstrumenter As DynamicAnalysisInjector =
+                Dim dynamicInstrumenter As CodeCoverageInstrumenter =
                     If(instrumentForDynamicAnalysis,
-                        DynamicAnalysisInjector.TryCreate(method, body, New SyntheticBoundNodeFactory(method, method, body.Syntax, compilationState, diagnostics), diagnostics, debugDocumentProvider, Instrumenter.NoOp),
+                        CodeCoverageInstrumenter.TryCreate(method, body, New SyntheticBoundNodeFactory(method, method, body.Syntax, compilationState, diagnostics), diagnostics, debugDocumentProvider, Instrumenter.NoOp),
                         Nothing)
 
                 ' We don't want IL to differ based upon whether we write the PDB to a file/stream or not.

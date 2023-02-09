@@ -13,11 +13,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
+    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
         #region Methods 
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeBeforeMethodName()
         {
             var markup = @"
@@ -42,7 +43,7 @@ class MyClass
                 expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeInParameterList()
         {
             var markup = @"
@@ -67,7 +68,7 @@ class MyClass
                 expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeAfterParameterList()
         {
             var markup = @"
@@ -91,7 +92,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeBeforeMethodDeclaration()
         {
             var markup = @"
@@ -115,7 +116,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnMetadataReference_InIdentifier_ShouldFail()
         {
             var markup = @"
@@ -130,7 +131,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.DefinedInMetadata);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnMetadataReference_AtBeginningOfInvocation_ShouldFail()
         {
             var markup = @"
@@ -145,7 +146,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.DefinedInMetadata);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnMetadataReference_InArgumentsOfInvocation_ShouldFail()
         {
             var markup = @"
@@ -160,7 +161,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.DefinedInMetadata);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnMetadataReference_AfterInvocation_ShouldFail()
         {
             var markup = @"
@@ -172,7 +173,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeInMethodBody_ViaCommand()
         {
             var markup = @"
@@ -189,7 +190,7 @@ class MyClass
                 LanguageNames.CSharp, markup, expectedSuccess: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeInMethodBody_ViaSmartTag()
         {
             var markup = @"
@@ -205,7 +206,7 @@ class MyClass
             await TestMissingAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnReference_BeginningOfIdentifier()
         {
             var markup = @"
@@ -239,7 +240,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnReference_ArgumentList()
         {
             var markup = @"
@@ -273,7 +274,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnReference_NestedCalls1()
         {
             var markup = @"
@@ -317,7 +318,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnReference_NestedCalls2()
         {
             var markup = @"
@@ -361,7 +362,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnReference_NestedCalls3()
         {
             var markup = @"
@@ -405,7 +406,7 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnReference_Attribute()
         {
             var markup = @"
@@ -433,7 +434,7 @@ class MyAttribute : Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnReference_OnlyHasCandidateSymbols()
         {
             var markup = @"
@@ -455,7 +456,7 @@ class Test
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnReference_CallToOtherConstructor()
         {
             var markup = @"
@@ -485,7 +486,7 @@ class Program
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnReference_CallToBaseConstructor()
         {
             var markup = @"
@@ -525,7 +526,7 @@ class D : B
 
         #region Indexers
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderIndexerParameters_InvokeAtBeginningOfDeclaration()
         {
             var markup = @"
@@ -552,7 +553,7 @@ class Program
                 expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderIndexerParameters_InParameters()
         {
             var markup = @"
@@ -579,7 +580,7 @@ class Program
                 expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderIndexerParameters_InvokeAtEndOfDeclaration()
         {
             var markup = @"
@@ -606,7 +607,7 @@ class Program
                 expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderIndexerParameters_InvokeInAccessor()
         {
             var markup = @"
@@ -632,7 +633,7 @@ class Program
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderIndexerParameters_InvokeOnReference_BeforeTarget()
         {
             var markup = @"
@@ -668,7 +669,7 @@ class Program
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderIndexerParameters_InvokeOnReference_InArgumentList()
         {
             var markup = @"
@@ -709,7 +710,7 @@ class Program
 
         #region Delegates
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderDelegateParameters_ObjectCreation1()
         {
             var markup = @"
@@ -738,7 +739,7 @@ public class C
                 expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderDelegateParameters_ObjectCreation2()
         {
             var markup = @"
@@ -773,7 +774,7 @@ class Test
         #endregion
 
         #region CodeRefactoring
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_CodeRefactoring_InvokeBeforeMethodName()
         {
             var markup = @"
@@ -796,7 +797,7 @@ class MyClass
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: true, updatedSignature: permutation, expectedCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_CodeRefactoring_NotInMethodBody()
         {
             var markup = @"
@@ -811,7 +812,7 @@ class MyClass
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_CodeRefactoring_InLambda()
         {
             var markup = @"
@@ -834,7 +835,7 @@ class Program
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: true, updatedSignature: permutation, expectedCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_CodeRefactoring_NotInLambdaBody()
         {
             var markup = @"
@@ -848,7 +849,7 @@ class Program
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_CodeRefactoring_AtCallSite_ViaCommand()
         {
             var markup = @"
@@ -873,7 +874,7 @@ class Program
                 expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_CodeRefactoring_AtCallSite_ViaCodeAction()
         {
             var markup = @"

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public static unsafe MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
             ISymUnmanagedReader3? symReader,
-            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namesapace
+            EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namespace
             int methodToken,
             int methodVersion,
             int ilOffset,
@@ -170,6 +170,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
 
+                // containingDocumentName is not set since ISymUnmanagedMethod.GetDocumentsForMethod()
+                // may fail (see https://github.com/dotnet/roslyn/issues/66260). The result is that
+                // symbols from file-local types will not bind successfully in the EE.
                 return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                     hoistedLocalScopeRecords,
                     importRecordGroups,
@@ -179,7 +182,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     defaultNamespaceName,
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
-                    reuseSpan);
+                    reuseSpan,
+                    containingDocumentName: null);
             }
             catch (InvalidOperationException)
             {

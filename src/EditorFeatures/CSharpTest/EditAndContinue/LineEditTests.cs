@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         #region Top-level Code
 
-        [Fact]
-        [WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
+        [Fact, WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
         public void TopLevelCode_LineChange()
         {
             var src1 = @"
@@ -39,8 +38,7 @@ Console.ReadLine(1);
                 new[] { new SourceLineUpdate(1, 2) });
         }
 
-        [Fact]
-        [WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
+        [Fact, WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
         public void TopLevelCode_LocalFunction_LineChange()
         {
             var src1 = @"

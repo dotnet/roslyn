@@ -2128,7 +2128,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'S.M2(Func<int>)'
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'S.M2(Func<int>)'
                 //         M2(readonly () => 42);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("a", "S.M2(System.Func<int>)").WithLocation(6, 9),
                 // (6,12): error CS1026: ) expected

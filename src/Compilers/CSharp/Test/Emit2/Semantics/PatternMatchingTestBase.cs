@@ -436,7 +436,8 @@ namespace System.Runtime.CompilerServices
 ";
         protected static void AssertEmpty(SymbolInfo info)
         {
-            Assert.NotEqual(default, info);
+            Assert.Equal(default, info);
+            Assert.Empty(info.CandidateSymbols);
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.None, info.CandidateReason);
         }

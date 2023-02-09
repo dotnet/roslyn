@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -116,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal readonly struct DirectiveStack
     {
         public static readonly DirectiveStack Empty = new DirectiveStack(ConsList<Directive>.Empty);
-        public static readonly DirectiveStack Null = new DirectiveStack(null);
 
         private readonly ConsList<Directive>? _directives;
 
@@ -124,6 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             _directives = directives;
         }
+
+        public static void InterlockedInitialize(ref DirectiveStack location, DirectiveStack value)
+            => Interlocked.CompareExchange(ref Unsafe.AsRef(in location._directives), value._directives, null);
 
         public bool IsNull
         {
@@ -351,8 +355,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return current;
         }
 
-        private string GetDebuggerDisplay()
+        internal string GetDebuggerDisplay()
         {
+            if (IsNull)
+            {
+                return "<null>";
+            }
+
+            if (IsEmpty)
+            {
+                return "[]";
+            }
+
             var sb = new StringBuilder();
             for (var current = _directives; current != null && current.Any(); current = current.Tail)
             {

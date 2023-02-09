@@ -145,6 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
 
+            internal ImmutableArray<byte> lazyFilePathChecksum = default;
+            internal string lazyDisplayFileName;
+
 #if DEBUG
             internal bool IsDefaultValue()
             {
@@ -159,7 +162,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
                     !lazyHasEmbeddedAttribute.HasValue() &&
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
-                    !lazyHasRequiredMembers.HasValue();
+                    !lazyHasRequiredMembers.HasValue() &&
+                    lazyFilePathChecksum.IsDefault &&
+                    lazyDisplayFileName == null;
             }
 #endif
         }
@@ -313,6 +318,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 mangleName = !ReferenceEquals(_name, metadataName);
             }
 
+            if (_lazyUncommonProperties is not null)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            // when a file-local type from source is loaded from metadata, we do a best-effort check to identify it as a file type
+            // this is needed to allow EE to bind to file types from metadata, for example.
+            if (container.IsNamespace && GeneratedNameParser.TryParseFileTypeName(_name, out var displayFileName, out var ordinal, out var originalTypeName))
+            {
+                _name = originalTypeName;
+                _lazyUncommonProperties = new UncommonProperties()
+                {
+                    lazyFilePathChecksum = ordinal.ToImmutableArray(),
+                    lazyDisplayFileName = displayFileName
+                };
+            }
+
             // check if this is one of the COR library types
             if (emittedNamespaceName != null &&
                 moduleSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes &&
@@ -372,7 +394,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get;
         }
 
-        internal override SyntaxTree AssociatedSyntaxTree => null;
+        internal override FileIdentifier? AssociatedFileIdentifier =>
+            GetUncommonProperties() is { lazyFilePathChecksum: { IsDefault: false } checksum, lazyDisplayFileName: { } displayFileName }
+                ? new FileIdentifier { FilePathChecksumOpt = checksum, DisplayFilePath = displayFileName }
+                : null;
 
         internal abstract int MetadataArity
         {
@@ -718,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override byte? GetLocalNullableContextValue()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IEnumerable<string> MemberNames
@@ -1111,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // Ensure we explicitly returned from inside loop.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -1668,7 +1693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public sealed override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public override bool MightContainExtensionMethods
@@ -1835,12 +1860,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 yield break;
             }
 
+            // Currently, it appears that we must import ALL types, even private ones,
+            // in order to maintain language semantics. This is because a class may implement
+            // private interfaces, and we use the interfaces (even if inaccessible) to determine
+            // conversions. For example:
+            //
+            // public class A: IEnumerable<A.X>
+            // {
+            //    private class X: ICloneable {}
+            // }
+            //
+            // Code compiling against A can convert A to IEnumerable<ICloneable>. Knowing this requires
+            // importing the type A.X.
             foreach (var typeRid in nestedTypeDefs)
             {
-                if (module.ShouldImportNestedType(typeRid))
-                {
-                    yield return PENamedTypeSymbol.Create(moduleSymbol, this, typeRid);
-                }
+                yield return PENamedTypeSymbol.Create(moduleSymbol, this, typeRid);
             }
         }
 
@@ -2262,7 +2296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override NamedTypeSymbol ComImportCoClass
@@ -2427,7 +2461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public override int Arity
             {
@@ -2507,7 +2541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             protected sealed override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public override int Arity
             {
@@ -2551,7 +2585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
             internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 

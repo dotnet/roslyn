@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public NullableAnnotation ReceiverNullableAnnotation => _symbol.ReceiverNullableAnnotation;
 
-            public IMethodSymbol ReducedFrom =>
+            public IMethodSymbol ReducedFrom
                     // This implementation feels incorrect!
-                    _symbol.ReducedFrom;
+                    => _symbol.ReducedFrom;
 
             public ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
             {

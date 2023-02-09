@@ -207,11 +207,6 @@
         <target state="translated">演算子 '{0}' はオペランド '{1}' に適用できません</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source> The parameter modifier '{0}' cannot follow '{1}'</source>
-        <target state="new"> The parameter modifier '{0}' cannot follow '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">パターン マッチには使用できないオペランドです。値が必要ですが、'{0}' が見つかりました。</target>
@@ -225,6 +220,11 @@
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
         <target state="translated">レコード メンバー '{0}' は、位置指定パラメーター '{2}' に一致させるための型 '{1}' の読み取り可能なインスタンス プロパティまたはフィールドである必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
-        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</target>
+        <target state="translated">'INumberBase&lt;T&gt;' を継承または拡張しているため、'{0}' で数値定数またはリレーショナル パターンを使用することはできません。指定された数値型に絞り込むために、型パターンを使用することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -365,6 +365,11 @@
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">名前 '{0}' は対応する 'Deconstruct' パラメーター '{1}' と一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
+        <source>A deconstruction variable cannot be declared as a ref local</source>
+        <target state="translated">分解変数を ref ローカルと宣言することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
@@ -484,7 +489,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitScopedRef">
         <source>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</source>
-        <target state="new">Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</target>
+        <target state="translated">'System.Runtime.CompilerServices.ScopedRefAttribute' を使用しないでください。キーワード 'scoped' を使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -569,7 +574,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion11">
         <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</target>
+        <target state="translated">機能 '{0}' は C# 11.0 では使用できません。{1} 以上の言語バージョンをお使いください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -592,6 +597,16 @@
         <target state="translated">フィールドに類似したイベント '{0}' を 'readonly' にすることはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileLocalDuplicateNameInNS">
+        <source>The namespace '{1}' already contains a definition for '{0}' in this file.</source>
+        <target state="translated">名前空間 '{1}' は、このファイルの '{0}' の定義を既に含んでいます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FilePathCannotBeConvertedToUtf8">
+        <source>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</source>
+        <target state="translated">ファイル ローカル型 '{0}' は、含んでいるファイル パスを同等の UTF-8 バイト表現に変換できないため使用できません。{1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FileScopedAndNormalNamespace">
         <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
         <target state="translated">ソース ファイルには、ファイルスコープと通常の名前空間の両方の宣言を含めることはできません。</target>
@@ -604,27 +619,32 @@
       </trans-unit>
       <trans-unit id="ERR_FileTypeBase">
         <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
-        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
+        <target state="translated">ファイル ローカル型 '{0}' は、ファイル ローカル型 '{1}' 以外の基本データ型として使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeDisallowedInSignature">
         <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
-        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
+        <target state="translated">ファイル ローカル型 '{0}' は、ファイル ローカル型 '{1}' 以外のメンバーの署名として使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNameDisallowed">
         <source>Types and aliases cannot be named 'file'.</source>
-        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <target state="translated">型とエイリアスに 'file' という名前を付けることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNested">
         <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
-        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <target state="translated">ファイル ローカル型 '{0}' は、最上位レベルの型で定義する必要があります。'{0}' は入れ子にされた型です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
         <source>File-local type '{0}' cannot use accessibility modifiers.</source>
-        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
+        <target state="translated">ファイル ローカル型 '{0}' はアクセシビリティ修飾子を使用することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileTypeNonUniquePath">
+        <source>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</source>
+        <target state="translated">ファイル ローカル型 '{0}' は、一意のパスを持つファイル内で宣言する必要があります。パス '{1}'は複数のファイルで使用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -648,8 +668,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">属性内の 'typeof' で関数ポインター型を使用することはサポートされていません。</target>
+        <source>Using a function pointer type in this context is not supported.</source>
+        <target state="needs-review-translation">属性内の 'typeof' で関数ポインター型を使用することはサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -674,7 +694,7 @@
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingStaticFileType">
         <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
-        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
+        <target state="translated">ファイル ローカル型 '{0}' は、'global using static' ディレクティブでは使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -735,6 +755,11 @@
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">暗黙的な範囲インデクサーの呼び出しでは、引数に名前を付けることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="translated">暗黙的に型指定されたラムダパラメーター '{0}' に既定値を指定することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -932,11 +957,6 @@
         <target state="translated">予期しないキーワード 'record' です。'record struct' または 'record class' のつもりでしたか?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MisplacedScoped">
-        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
-        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">スライス パターンは、1 回限り、リスト パターン内で直接使用される可能性があります。</target>
@@ -979,7 +999,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
-        <target state="needs-review-translation">モジュール初期化子メソッド '{0}' は、static でなければならず、パラメーターを持ってはならず、'void' を返す必要があります</target>
+        <target state="translated">モジュール初期化子メソッド '{0}' は、static でなければならず、仮想であってはならず、パラメーターを持ってはならず、'void' を返す必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -1262,6 +1282,11 @@
         <target state="translated">'{0}': 'readonly' は、プロパティまたはインデクサーが get および set の両方のアクセサーを含む場合にのみ、アクセサーで使用できます</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
+        <source>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</source>
+        <target state="translated">'readonly' はパラメーター修飾子としてサポートされていません。'in' のことですか?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">プライマリ コンストラクターが、合成されたコピー コンストラクターと競合しています。</target>
@@ -1277,6 +1302,16 @@
         <target state="translated">'{1}' を '{0}' に ref 割り当てすることはできません。'{1}' のエスケープ スコープが '{0}' より狭いためです。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefAssignReturnOnly">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</source>
+        <target state="translated">'{1}' は return ステートメントを介してのみ現在のメソッドをエスケープできるため、'{1}' を '{0}' に ref 割り当てすることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefAssignValEscapeWider">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">'{1}' を '{0}' に参照割り当てできません。'{1}' には '{0}' よりも広い値エスケープ スコープがあり、'{0}' を使用して '{1}' より狭いエスケープ スコープを持つ値の割り当てが許可されています。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
         <target state="translated">ref フィールドは ref 構造体を参照できません。</target>
@@ -1284,12 +1319,32 @@
       </trans-unit>
       <trans-unit id="ERR_RefFieldInNonRefStruct">
         <source>A ref field can only be declared in a ref struct.</source>
-        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <target state="translated">ref フィールドは ref 構造体でのみ宣言できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">ref 代入の左辺は ref 変数である必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter">
+        <source>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="translated">ref パラメーター経由で参照渡し '{0}' でパラメーターを返すことはできません。返すことができるのは return ステートメント内のみです</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="translated">ref パラメーター経由で '{0}' パラメーターのメンバーを参照渡しで返すことはできません。return ステートメントでのみ返すことができます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter">
+        <source>Cannot return a parameter by reference '{0}' because it is scoped to the current method</source>
+        <target state="translated">現在のメソッドに範囲指定されているため、参照渡し '{0}' でパラメーターを返すことはできません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</source>
+        <target state="translated">現在のメソッドに範囲指定されているため、パラメーター '{0}' のメンバーを参照渡しで返すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1359,7 +1414,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportRefFields">
         <source>Target runtime doesn't support ref fields.</source>
-        <target state="new">Target runtime doesn't support ref fields.</target>
+        <target state="translated">対象のランタイムは ref フィールドをサポートしていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
@@ -1375,6 +1430,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">ターゲット ランタイムは、拡張可能またはランタイム環境の既定の呼び出し規則をサポートしていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedDiscard">
+        <source>The 'scoped' modifier cannot be used with discard.</source>
+        <target state="translated">'scoped' 修飾子を discard と共に使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
@@ -1399,7 +1459,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedTypeNameDisallowed">
         <source>Types and aliases cannot be named 'scoped'.</source>
-        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <target state="translated">型とエイリアスに 'scoped' という名前を付けることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
@@ -1582,14 +1642,29 @@
         <target state="translated">'{0}' は 'UnmanagedCallersOnly' 属性が設定されているため、デリゲート型に変換できません。このメソッドへの関数ポインターを取得してください。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
+        <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
+        <target state="translated">UnscopedRefAttribute をインターフェイスの実装に適用することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
+        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="translated">UnscopedRefAttribute は構造体インスタンスのメソッドとプロパティにのみ適用でき、コンストラクターまたは init のみのメンバーには適用できません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</target>
+        <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
+        <target state="translated">UnscopedRefAttribute は、既定では範囲外であるため、このパラメーターに適用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
         <source>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</target>
+        <target state="translated">UnscopedRefAttribute は、'scoped' 修飾子を持つパラメーターには適用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
@@ -1644,7 +1719,7 @@
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
         <source>array access</source>
-        <target state="new">array access</target>
+        <target state="translated">配列アクセス</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
@@ -1689,7 +1764,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFileTypes">
         <source>file types</source>
-        <target state="new">file types</target>
+        <target state="translated">ファイルの種類</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -1720,6 +1795,16 @@
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
         <target state="translated">ラムダ属性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaOptionalParameters">
+        <source>lambda optional parameters</source>
+        <target state="translated">ラムダの省略可能なパラメーター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaParamsArray">
+        <source>lambda params array</source>
+        <target state="translated">ラムダ パラメーター配列</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
@@ -1812,9 +1897,14 @@
         <target state="translated">定数文字列の ReadOnly/Span&lt;char&gt; に一致するパターン</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_Missing">
+        <source>&lt;missing&gt;</source>
+        <target state="translated">&lt;missing&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
-        <target state="new">pointer element access</target>
+        <target state="translated">ポインター要素アクセス</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1845,6 +1935,16 @@
       <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
         <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">型は、メタデータで表現できないため、このコンテキストで使用することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallArgMixing">
+        <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">'{0}' に対するこの引数の組み合わせは、パラメーター '{1}' によって参照される変数が宣言のスコープ外に公開される可能性があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallArgMixing_Title">
+        <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">この引数の組み合わせは、パラメーターによって参照される変数が宣言のスコープ外に公開される可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -1927,6 +2027,56 @@
         <target state="translated">関数ポインター値を比較しない</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">複数回指定されたアナライザー参照 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">複数回指定されたアナライザー参照</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall">
+        <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">このコンテキストで '{0}' の結果を使用すると、パラメーター '{1}' によって参照される変数が宣言のスコープ外に公開される可能性があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall2">
+        <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
+        <target state="translated">このコンテキストで '{0}' の結果のメンバーを使用すると、パラメーター '{1}' によって参照される変数が宣言のスコープ外に公開される可能性があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall2_Title">
+        <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">このコンテキストで結果のメンバーを使用すると、パラメーターによって参照される変数が宣言のスコープ外に公開される可能性があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeCall_Title">
+        <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
+        <target state="translated">このコンテキストで結果を使用すると、パラメーターによって参照される変数が宣言のスコープ外に公開される可能性があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeStackAlloc">
+        <source>A result of a stackalloc expression of type '{0}' in this context may be exposed outside of the containing method</source>
+        <target state="translated">このコンテキストにおけるこの種類 '{0}' の stackalloc 式の結果は、それを含んでいるメソッドの外部に公開される可能性があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeStackAlloc_Title">
+        <source>A result of a stackalloc expression of this type in this context may be exposed outside of the containing method</source>
+        <target state="translated">このコンテキストにおけるこの種類の stackalloc 式の結果は、それを含んでいるメソッドの外部に公開される可能性があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeVariable">
+        <source>Use of variable '{0}' in this context may expose referenced variables outside of their declaration scope</source>
+        <target state="translated">このコンテキストでの変数 '{0}' の使用は、参照される変数が宣言のスコープ外に公開される可能性があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_EscapeVariable_Title">
+        <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
+        <target state="translated">このコンテキストでの変数の使用は、参照される変数が宣言のスコープ外に公開される可能性があります</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
         <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
         <target state="translated">ラムダ パラメーターに適用しても InterpolatedStringHandlerArgument は効果がありません。呼び出しサイトでは無視されます。</target>
@@ -1947,6 +2097,16 @@
         <target state="translated">型名には、小文字の ASCII 文字のみが含まれています。このような名前は、プログラミング言語用に予約されている可能性があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ManagedAddr">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</source>
+        <target state="translated">これは、マネージ型 ('{0}') のアドレスの取得、サイズの取得、またはそのマネージ型へのポインターの宣言を行います</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr_Title">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type</source>
+        <target state="translated">これは、マネージ型のアドレスの取得、サイズの取得、またはそのマネージ型へのポインターの宣言を行います</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
         <target state="translated">メソッド グループ '{0}' を非デリゲート型 '{1}' に変換中です。このメソッドを呼び出すつもりでしたか?</target>
@@ -1957,6 +2117,16 @@
         <target state="translated">メソッド グループを非デリゲート型に変換しています</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInTernary">
+        <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
+        <target state="translated">ref 条件演算子のブランチでは、互換性のない宣言スコープを持つ変数を参照します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
+        <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
+        <target state="translated">ref 条件演算子のブランチでは、互換性のない宣言スコープを持つ変数を参照します</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
         <source>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">必要なメンバー '{0}' は、包含する型が古い形式であるか、すべてのコンストラクターが古い形式でない限り、属性 'ObsoleteAttribute' が必要ありません。</target>
@@ -1965,6 +2135,16 @@
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
         <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">'ObsoleteAttribute' 属性を持つメンバーは、包含する型が古い形式であるか、すべてのコンストラクターが古い形式でない限り、必要ありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
+        <target state="translated">パラメーター {0} のラムダでの既定値は '{1:10}' だが、ターゲットデリゲート型では '{2:10}' です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch_Title">
+        <source>The default parameter value does not match in the target delegate type.</source>
+        <target state="translated">既定のパラメーター値がターゲット デリゲート型と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1985,6 +2165,16 @@
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
         <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
         <target state="translated">パラメーターから補間された文字列ハンドラーへの変換は、ハンドラー パラメーターの後に発生します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">パラメーター {0} にラムダの params 修飾子がありますが、ターゲット デリゲート型にはありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
+        <source>Parameter has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">パラメーターにラムダの params 修飾子がありますが、ターゲット デリゲート型にはありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2022,6 +2212,146 @@
         <target state="translated">型およびエイリアスに 'record' という名前を指定することはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RefAssignNarrower">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
+        <target state="translated">これは、'{1}' を '{0}' に ref 割り当てしますが、'{1}' には '{0}' より狭いエスケープ スコープがあります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignNarrower_Title">
+        <source>This ref-assigns a value that has a narrower escape scope than the target.</source>
+        <target state="translated">これは、ターゲットより狭いエスケープ スコープを持つ値を ref 割り当てします。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignReturnOnly">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' can only escape the current method through a return statement.</source>
+        <target state="translated">これは '{1}' を '{0}' に ref 割り当てしますが、'{1}' は return ステートメントを介してのみ現在のメソッドをエスケープできます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignReturnOnly_Title">
+        <source>This ref-assigns a value that can only escape the current method through a return statement.</source>
+        <target state="translated">これは、return ステートメントを介してのみ現在のメソッドをエスケープできる値を ref 割り当てします。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="translated">この参照は '{1}' に '{0}' を割り当てますが、'{1}' の値のエスケープ スコープは、'{0}' よりも狭いエスケープ スコープを持つ値の'{0}' を介した割り当てを許可する '{1}' よりも広い値のエスケープ スコープを持っています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider_Title">
+        <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
+        <target state="translated">この参照により、ターゲットよりも広い値エスケープ スコープを持つ値が割り当てられ、より狭いエスケープ スコープを持つ値のターゲットを介して割り当てることができます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal">
+        <source>This returns local '{0}' by reference but it is not a ref local</source>
+        <target state="translated">これは、ローカル変数 '{0}' を参照渡しで返しますが、ref ローカル変数ではありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal2">
+        <source>This returns a member of local '{0}' by reference but it is not a ref local</source>
+        <target state="translated">これは、ローカル '{0}' のメンバーを参照渡しで返しますが、ref ローカル変数ではありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal2_Title">
+        <source>This returns a member of local by reference but it is not a ref local</source>
+        <target state="translated">これは、ローカルのメンバーを参照渡しで返しますが、ref ローカル変数ではありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnLocal_Title">
+        <source>This returns local by reference but it is not a ref local</source>
+        <target state="translated">これは、ローカル変数を参照渡しで返しますが、ref ローカル変数ではありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal">
+        <source>Local '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">ローカル変数 '{0}' は参照渡しで返されますが、参照渡しで返せない値に初期化されました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal2">
+        <source>A member of '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">'{0}' のメンバーは参照渡しで返されますが、参照渡しで返せない値に初期化されました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal2_Title">
+        <source>A member is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">メンバーは参照渡しで返されますが、参照渡しで返せない値に初期化されました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnNonreturnableLocal_Title">
+        <source>Local is returned by reference but was initialized to a value that cannot be returned by reference</source>
+        <target state="translated">ローカル変数は参照渡しで返されますが、参照渡しで返せない値に初期化されました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter">
+        <source>This returns a parameter by reference '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">これは、ref パラメーター経由で参照渡し '{0}' でパラメーターを返しますが、安全に返すことができるのは return ステートメント内のみです</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter2">
+        <source>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">これは、ref パラメーター経由でパラメーター '{0}' のメンバーを参照渡しで返しますが、安全に返すことができるのは return ステートメント内のみです</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter2_Title">
+        <source>This returns by reference a member of parameter through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">これは、ref パラメーター経由でパラメーターのメンバーを参照渡しで返しますが、安全に返すことができるのは return ステートメント内のみです</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnOnlyParameter_Title">
+        <source>This returns a parameter by reference through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="translated">これは、ref パラメーター経由で参照渡しでパラメーターを返しますが、安全に返すことができるのは return ステートメント内のみです</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter">
+        <source>This returns a parameter by reference '{0}' but it is not a ref parameter</source>
+        <target state="translated">これは、参照返し '{0}' でパラメーターを返しますが、ref パラメーターではありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter2">
+        <source>This returns by reference a member of parameter '{0}' that is not a ref or out parameter</source>
+        <target state="translated">これは、ref パラメーターでも out パラメーターでもないパラメーター '{0}' のメンバーを参照渡しで返します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter2_Title">
+        <source>This returns by reference a member of parameter that is not a ref or out parameter</source>
+        <target state="translated">これは、ref パラメーターでも out パラメーターでもないパラメーターのメンバーを参照渡しで返します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnParameter_Title">
+        <source>This returns a parameter by reference but it is not a ref parameter</source>
+        <target state="translated">これは、参照返しでパラメーターを返しますが、ref パラメーターではありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter">
+        <source>This returns a parameter by reference '{0}' but it is scoped to the current method</source>
+        <target state="translated">これは参照渡し '{0}' でパラメーターを返しますが、現在のメソッドに範囲設定されています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter2">
+        <source>This returns by reference a member of parameter '{0}' that is scoped to the current method</source>
+        <target state="translated">これは、現在のメソッドに範囲指定されているパラメーター '{0}' のメンバーを参照渡しで返します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter2_Title">
+        <source>This returns by reference a member of parameter that is scoped to the current method</source>
+        <target state="translated">これは、現在のメソッドに範囲指定されているパラメーターのメンバーを参照渡しで返します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnScopedParameter_Title">
+        <source>This returns a parameter by reference but it is scoped to the current method</source>
+        <target state="translated">これは参照渡しでパラメーターを返しますが、現在のメソッドに範囲設定されています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnStructThis">
+        <source>Struct member returns 'this' or other instance members by reference</source>
+        <target state="translated">構造体メンバーは 'this' または他のインスタンス メンバーを参照渡しで返します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReturnStructThis_Title">
+        <source>Struct member returns 'this' or other instance members by reference</source>
+        <target state="translated">構造体メンバーは 'this' または他のインスタンス メンバーを参照渡しで返します</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">パラメーター '{0}' が null 以外であるため、戻り値は null 以外でなければなりません。</target>
@@ -2030,6 +2360,26 @@
       <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
         <source>Return value must be non-null because parameter is non-null.</source>
         <target state="translated">パラメーターが null 以外であるため、戻り値は null 以外でなければなりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="translated">パラメーター '{0}' の 'scoped' 修飾子が、オーバーライドされたメンバーまたは実装されたメンバーと一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title">
+        <source>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</source>
+        <target state="translated">パラメーターの 'scoped' 修飾子が、オーバーライドされたメンバーまたは実装されたメンバーと一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="translated">パラメーター '{0}' の 'scoped' 修飾子がターゲット '{1}'と一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget_Title">
+        <source>The 'scoped' modifier of parameter doesn't match target.</source>
+        <target state="translated">パラメーターの 'scoped' 修飾子がターゲットと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
@@ -2355,7 +2705,7 @@
 -instrument:TestCoverage      カバレッジ情報を収集するようにインストルメント化された
                               アセンブリを生成します
 -sourcelink:&lt;file&gt;            PDB に埋め込むソース リンク情報。
-
+ 
                        - エラーと警告 -
 -warnaserror[+|-]             すべての警告をエラーとして報告します
 -warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します
@@ -4972,8 +5322,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
-        <source>A property or indexer may not be passed as an out or ref parameter</source>
-        <target state="translated">プロパティまたはインデクサーを out か ref のパラメーターとして渡すことはできません</target>
+        <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
+        <target state="translated">参照を返さないプロパティまたはインデクサーを out 値または ref 値として使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -5082,8 +5432,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
-        <source>A params parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">params パラメーターは、仮パラメーター リストの最後のパラメーターでなければなりません</target>
+        <source>A params parameter must be the last parameter in a parameter list</source>
+        <target state="translated">params パラメーターは、パラメーター リストの最後のパラメーターでなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5197,8 +5547,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
-        <source>An __arglist parameter must be the last parameter in a formal parameter list</source>
-        <target state="translated">__arglist パラメーターは、仮パラメーター リストの最後のパラメーターでなければなりません</target>
+        <source>An __arglist parameter must be the last parameter in a parameter list</source>
+        <target state="translated">__arglist パラメーターは、パラメーター リストの最後のパラメーターでなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -8100,13 +8450,13 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
-        <source>Cannot assign to {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">読み取り専用の変数であるため、{0} '{1}' に割り当てることができません</target>
+        <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="translated">{0} に割り当てることができません。'{1}' は読み取り専用変数であるため、ref 割り当ての右辺として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
-        <source>Cannot assign to a member of {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">読み取り専用の変数であるため、{0} '{1}' のメンバーに割り当てることはできません</target>
+        <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="translated">{0} のメンバーに割り当てることができません。'{1}' は読み取り専用変数であるため、ref 割り当ての右辺として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">
@@ -8180,8 +8530,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
-        <source>Since this is an async method, the return expression must be of type '{0}' rather than 'Task&lt;{0}&gt;'</source>
-        <target state="translated">これは非同期メソッドであるため、return 式は 'Task&lt;{0}&gt;' ではなく '{0}' 型である必要があります</target>
+        <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
+        <target state="translated">これは非同期メソッドであるため、return 式は '{0}' ではなく '{1}' 型である必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9343,8 +9693,8 @@ C# では out と ref を区別しますが、CLR では同じと認識します
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
-        <source>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">'{0}' は 'Task' を返す非同期メソッドであるため、キーワード return の後にオブジェクト式を指定することはできません。'Task&lt;T&gt;' を返すメソッドを指定したつもりでしたか?</target>
+        <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
+        <target state="translated">'{0}' は '{1}' を返す非同期メソッドであるため、return キーワードの後にオブジェクト式を続けてはなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -9910,8 +10260,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
-        <source>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</source>
-        <target state="translated">'{1}' の必要な仮パラメーター '{0}' に対応する特定の引数がありません</target>
+        <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
+        <target state="translated">'{0}' の必要なパラメーター '{1}' に対応する特定の引数がありません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">
@@ -10773,8 +11123,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
-        <source>Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task&lt;T&gt;'?</source>
-        <target state="translated">Task' に変換されてデリゲートを返す非同期のラムダ式は、値を返すことができません。'Task&lt;T&gt;' を返すメソッドを指定したつもりでしたか?</target>
+        <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
+        <target state="translated">デリゲートを返す '{0}' に変換された非同期ラムダ式は値を返すことができません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

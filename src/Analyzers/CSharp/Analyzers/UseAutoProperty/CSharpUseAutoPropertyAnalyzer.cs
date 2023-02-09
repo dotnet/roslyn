@@ -51,15 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             {
                 AnalyzeMembers(context, namespaceDeclaration.Members, analysisResults);
             }
-            else if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax? typeDeclaration) ||
-                member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKind.RecordStructDeclaration, out typeDeclaration))
+            else if (member is TypeDeclarationSyntax(
+                SyntaxKind.ClassDeclaration or
+                SyntaxKind.StructDeclaration or
+                SyntaxKind.RecordDeclaration or
+                SyntaxKind.RecordStructDeclaration) typeDeclaration)
             {
                 // If we have a class or struct, recurse inwards.
                 AnalyzeMembers(context, typeDeclaration.Members, analysisResults);
             }
-            else if (member.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDeclaration))
+            else if (member is PropertyDeclarationSyntax propertyDeclaration)
             {
                 AnalyzeProperty(context, propertyDeclaration, analysisResults);
             }
@@ -82,14 +83,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                         // An argument will disqualify a field if that field is used in a ref/out position.  
                         // We can't change such field references to be property references in C#.
                         if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
-                        {
                             AddIneligibleFields(semanticModel, argument.Expression, ineligibleFields, cancellationToken);
-                        }
                     }
 
                     foreach (var refExpression in typeDeclaration.DescendantNodesAndSelf().OfType<RefExpressionSyntax>())
-                    {
                         AddIneligibleFields(semanticModel, refExpression.Expression, ineligibleFields, cancellationToken);
+
+                    // Can't take the address of an auto-prop.  So disallow for fields that we do `&x` on.
+                    foreach (var addressOfExpression in typeDeclaration.DescendantNodesAndSelf().OfType<PrefixUnaryExpressionSyntax>())
+                    {
+                        if (addressOfExpression.Kind() == SyntaxKind.AddressOfExpression)
+                            AddIneligibleFields(semanticModel, addressOfExpression.Operand, ineligibleFields, cancellationToken);
                     }
                 }
             }
@@ -123,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 
         private static bool CheckExpressionSyntactically(ExpressionSyntax expression)
         {
-            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? memberAccessExpression))
+            if (expression is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccessExpression)
             {
                 return memberAccessExpression.Expression.Kind() == SyntaxKind.ThisExpression &&
                     memberAccessExpression.Name.Kind() == SyntaxKind.IdentifierName;
@@ -166,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 case ArrowExpressionClauseSyntax arrowExpression:
                     return arrowExpression.Expression;
                 case null: return null;
-                default: throw ExceptionUtilities.Unreachable;
+                default: throw ExceptionUtilities.Unreachable();
             }
         }
 

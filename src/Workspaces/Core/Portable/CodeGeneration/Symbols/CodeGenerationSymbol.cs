@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         protected static ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]> annotationsTable = new();
 
-        private ImmutableArray<AttributeData> _attributes;
+        private readonly ImmutableArray<AttributeData> _attributes;
         protected readonly string _documentationCommentXml;
 
         public Accessibility DeclaredAccessibility { get; }

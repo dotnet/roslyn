@@ -26,7 +26,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpConsoleSnippetProvider : AbstractConsoleSnippetProvider
+    internal sealed class CSharpConsoleSnippetProvider : AbstractConsoleSnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

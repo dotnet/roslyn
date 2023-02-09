@@ -2,63 +2,66 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.AddImport;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
+using System.Diagnostics;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Host;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 /// <summary>
 /// Document-specific options for controlling the code produced by code generation.
 /// </summary>
-internal abstract class CodeGenerationOptions
+internal record CodeGenerationOptions
 {
-    [DataContract]
-    internal sealed record class CommonOptions
-    {
-        public static readonly CommonOptions Default = new();
+    /// <summary>
+    /// Language agnostic defaults.
+    /// </summary>
+    internal static readonly CodeGenerationOptions CommonDefaults = new();
 
-        [DataMember] public NamingStylePreferences NamingStyle { get; init; } = NamingStylePreferences.Default;
+    [DataMember] public NamingStylePreferences NamingStyle { get; init; } = NamingStylePreferences.Default;
+
+    private protected CodeGenerationOptions()
+    {
     }
 
-    [DataMember]
-    public CommonOptions Common { get; init; } = CommonOptions.Default;
-
-    public NamingStylePreferences NamingStyle => Common.NamingStyle;
+    private protected CodeGenerationOptions(IOptionsReader options, CodeGenerationOptions fallbackOptions, string language)
+    {
+        NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language, fallbackOptions.NamingStyle);
+    }
 
 #if !CODE_STYLE
     public static CodeGenerationOptions GetDefault(LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationService>().DefaultOptions;
-
-    public abstract CodeGenerationContextInfo GetInfo(CodeGenerationContext context, ParseOptions parseOptions);
-
-    public CodeGenerationContextInfo GetInfo(CodeGenerationContext context, Project project)
-    {
-        Contract.ThrowIfNull(project.ParseOptions);
-        return GetInfo(context, project.ParseOptions);
-    }
 #endif
 }
 
 [DataContract]
-internal readonly record struct CodeAndImportGenerationOptions(
-    [property: DataMember(Order = 0)] CodeGenerationOptions GenerationOptions,
-    [property: DataMember(Order = 1)] AddImportPlacementOptions AddImportOptions)
+internal readonly record struct CodeAndImportGenerationOptions
 {
+    [DataMember]
+    public required CodeGenerationOptions GenerationOptions { get; init; }
+
+    [DataMember]
+    public required AddImportPlacementOptions AddImportOptions { get; init; }
+
 #if !CODE_STYLE
     internal static CodeAndImportGenerationOptions GetDefault(LanguageServices languageServices)
-        => new(CodeGenerationOptions.GetDefault(languageServices), AddImportPlacementOptions.Default);
+        => new()
+        {
+            GenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
+            AddImportOptions = AddImportPlacementOptions.Default
+        };
 
     internal CodeAndImportGenerationOptionsProvider CreateProvider()
         => new Provider(this);
@@ -104,27 +107,26 @@ internal interface CodeAndImportGenerationOptionsProvider :
 
 internal static class CodeGenerationOptionsProviders
 {
-    public static CodeGenerationOptions.CommonOptions GetCommonCodeGenerationOptions(this AnalyzerConfigOptions options, CodeGenerationOptions.CommonOptions? fallbackOptions)
-    {
-        fallbackOptions ??= CodeGenerationOptions.CommonOptions.Default;
-
-        return new()
-        {
-            NamingStyle = options.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, fallbackOptions.NamingStyle)
-        };
-    }
-
 #if !CODE_STYLE
-    public static CodeGenerationOptions GetCodeGenerationOptions(this AnalyzerConfigOptions options, CodeGenerationOptions? fallbackOptions, HostLanguageServices languageServices)
+    public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeGenerationOptions(fallbackOptions, document.Project.LanguageServices);
+        return configOptions.GetCodeGenerationOptions(document.Project.Services, fallbackOptions);
     }
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await GetCodeGenerationOptionsAsync(document, await ((OptionsProvider<CodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+
+    public static async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(this Document document, CodeGenerationContext context, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(document.Project.ParseOptions);
+
+        var options = await GetCodeGenerationOptionsAsync(document, fallbackOptionsProvider, cancellationToken).ConfigureAwait(false);
+        var service = document.Project.Services.GetRequiredService<ICodeGenerationService>();
+        return service.GetInfo(context, options, document.Project.ParseOptions);
+    }
 #endif
 }
