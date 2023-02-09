@@ -205,7 +205,7 @@ class Z
 
 class Z
 {
-    void Foo() { }[|
+    void Goo() { }[|
     int a;
     string b;|]
 }",
@@ -213,7 +213,7 @@ class Z
 
 class Z
 {
-    void Foo() { }
+    void Goo() { }
     int a;
     string b;
 
@@ -1840,7 +1840,7 @@ class Program
 {
     private int _value;
 
-    [|public int Foo
+    [|public int Goo
     {
         get { return _value; }
     }|]
@@ -1855,7 +1855,7 @@ class Program
         _value = value;
     }
 
-    public int Foo
+    public int Goo
     {
         get { return _value; }
     }
@@ -1871,7 +1871,7 @@ class Program
 {
     private int _value;
 
-    [|public int Foo
+    [|public int Goo
     {
         get { return this._value; }
     }|]
@@ -1886,7 +1886,7 @@ class Program
         _value = value;
     }
 
-    public int Foo
+    public int Goo
     {
         get { return this._value; }
     }
@@ -1902,7 +1902,7 @@ class Program
 {
     private int _value;
 
-    [|public int Foo
+    [|public int Goo
     {
         get => this._value;
     }|]
@@ -1917,7 +1917,7 @@ class Program
         _value = value;
     }
 
-    public int Foo
+    public int Goo
     {
         get => this._value;
     }
@@ -1933,7 +1933,7 @@ class Program
 {
     private int _value;
 
-    [|public int Foo => this._value;|]
+    [|public int Goo => this._value;|]
 }",
 @"
 class Program
@@ -1945,7 +1945,7 @@ class Program
         _value = value;
     }
 
-    public int Foo => this._value;
+    public int Goo => this._value;
 }");
         }
 
@@ -1958,7 +1958,7 @@ class Program
 {
     [|private int _value;
 
-    public int Foo
+    public int Goo
     {
         get { return _value; }
     }|]
@@ -1973,9 +1973,42 @@ class Program
         _value = value;
     }
 
-    public int Foo
+    public int Goo
     {
         get { return _value; }
+    }
+}");
+        }
+
+        [Fact, WorkItem(29198, "https://github.com/dotnet/roslyn/issues/29198")]
+        public async Task TestWithSelectedGetPropertyThatReturnsField6()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    private int _value;
+
+    [|public int Goo
+    {
+        get { return _value; }
+        set { _value = value; }
+    }|]
+}",
+@"
+class Program
+{
+    private int _value;
+
+    public Program(int goo{|Navigation:)|}
+    {
+        Goo = goo;
+    }
+
+    public int Goo
+    {
+        get { return _value; }
+        set { _value = value; }
     }
 }");
         }
