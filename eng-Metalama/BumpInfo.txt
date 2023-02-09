@@ -1,1 +1,1 @@
-{"Dependencies":{"Metalama.Backstage":"2023.0.101"}}
+{"Dependencies":{"Metalama.Backstage":"2023.0.102"}}
