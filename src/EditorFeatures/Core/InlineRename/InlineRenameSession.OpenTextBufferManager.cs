@@ -453,11 +453,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                         // Show merge conflicts comments as unresolvable conflicts, and do not
                         // show any other rename-related spans that overlap a merge conflict comment.
-                        if (!mergeResult.MergeConflictCommentSpans.TryGetValue(document.Id,
-                                out var mergeConflictComments))
-                        {
-                            mergeConflictComments = SpecializedCollections.EmptyEnumerable<TextSpan>();
-                        }
+                        mergeResult.MergeConflictCommentSpans.TryGetValue(document.Id, out var mergeConflictComments);
+                        mergeConflictComments ??= SpecializedCollections.EmptyEnumerable<TextSpan>();
 
                         foreach (var conflict in mergeConflictComments)
                         {
