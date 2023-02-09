@@ -422,11 +422,6 @@
         <target state="translated">Nieznany identyfikator.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_generate_code_for_unsupported_operator_0">
-        <source>Cannot generate code for unsupported operator '{0}'</source>
-        <target state="translated">Nie można wygenerować kodu dla nieobsługiwanego operatora „{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
         <target state="translated">Nie można otworzyć projektu „{0}”, ponieważ rozszerzenie pliku „{1}” nie jest skojarzone z językiem.</target>

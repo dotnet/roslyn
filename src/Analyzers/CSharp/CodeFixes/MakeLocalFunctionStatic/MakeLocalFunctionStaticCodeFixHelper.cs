@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             Document document,
             LocalFunctionStatementSyntax localFunction,
             ImmutableArray<ISymbol> captures,
-            CodeGenerationOptionsProvider fallbackOptions,
+            CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
@@ -39,13 +39,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             LocalFunctionStatementSyntax localFunction,
             ImmutableArray<ISymbol> captures,
             SyntaxEditor syntaxEditor,
-            CodeGenerationOptionsProvider fallbackOptions,
+            CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
-            var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
-            var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
-            Contract.ThrowIfNull(localFunctionSymbol, "We should have gotten a method symbol for a local function.");
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var localFunctionSymbol = semanticModel.GetRequiredDeclaredSymbol(localFunction, cancellationToken);
             var documentImmutableSet = ImmutableHashSet.Create(document);
 
             // Finds all the call sites of the local function
@@ -140,7 +139,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 }
             }
 
+#if CODE_STYLE
+            var info = new CSharpCodeGenerationContextInfo(
+                CodeGenerationContext.Default, CSharpCodeGenerationOptions.Default, new CSharpCodeGenerationService(document.Project.Services), root.SyntaxTree.Options.LanguageVersion());
+#else
             var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+#endif
 
             // Updates the local function declaration with variables passed in as parameters
             syntaxEditor.ReplaceNode(

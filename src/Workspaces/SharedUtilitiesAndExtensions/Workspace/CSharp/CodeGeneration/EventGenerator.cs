@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
                 else
                 {
-                    AddAccessibilityModifiers(@event.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                    CSharpCodeGenerationHelpers.AddAccessibilityModifiers(@event.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                     if (@event.IsStatic)
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));

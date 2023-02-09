@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 // Get the indentation of the original last parameter and give the new parameter the same indentation.
                 // Even if we're adding multiple parameters past the original last parameter, we can give them all the identation of the original 'last' parameter.
                 var leadingIndentation = GetDesiredLeadingIndentation(
-                    generator, syntaxFacts, existingParameters[existingParameters.Count - 1], includeLeadingNewLine: true);
+                    syntaxFacts, existingParameters[existingParameters.Count - 1], includeLeadingNewLine: true);
                 parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation)
                                                            .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     var nextParameter = existingParameters[insertionIndex];
 
                     var nextLeadingIndentation = GetDesiredLeadingIndentation(
-                        generator, syntaxFacts, existingParameters[insertionIndex + 1], includeLeadingNewLine: true);
+                        syntaxFacts, existingParameters[insertionIndex + 1], includeLeadingNewLine: true);
                     editor.ReplaceNode(
                         nextParameter,
                         nextParameter.WithPrependedLeadingTrivia(nextLeadingIndentation)
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     // line.  Give the current first parameter the indentation of the second
                     // parameter in the list.
                     var firstLeadingIndentation = GetDesiredLeadingIndentation(
-                        generator, syntaxFacts, existingParameters[0], includeLeadingNewLine: false);
+                        syntaxFacts, existingParameters[0], includeLeadingNewLine: false);
 
                     editor.InsertParameter(declaration, insertionIndex,
                         parameterDeclaration.WithLeadingTrivia(firstLeadingIndentation));
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
                     editor.ReplaceNode(
                         nextParameter,
-                        nextParameter.WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed)
+                        nextParameter.WithPrependedLeadingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed)
                                      .WithAdditionalAnnotations(Formatter.Annotation));
                 }
             }
@@ -107,25 +107,24 @@ namespace Microsoft.CodeAnalysis.Editing
                 // still stay on a new line.
                 var nextParameter = existingParameters[insertionIndex];
                 var leadingIndentation = GetDesiredLeadingIndentation(
-                    generator, syntaxFacts, existingParameters[insertionIndex], includeLeadingNewLine: false);
+                    syntaxFacts, existingParameters[insertionIndex], includeLeadingNewLine: false);
                 parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation);
 
                 editor.InsertParameter(declaration, insertionIndex, parameterDeclaration);
                 editor.ReplaceNode(
                     nextParameter,
-                    nextParameter.WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed)
+                    nextParameter.WithPrependedLeadingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed)
                                  .WithAdditionalAnnotations(Formatter.Annotation));
             }
         }
 
         private static ImmutableArray<SyntaxTrivia> GetDesiredLeadingIndentation(
-            SyntaxGenerator generator, ISyntaxFacts syntaxFacts,
-            SyntaxNode node, bool includeLeadingNewLine)
+            ISyntaxFacts syntaxFacts, SyntaxNode node, bool includeLeadingNewLine)
         {
             using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var triviaList);
             if (includeLeadingNewLine)
             {
-                triviaList.Add(generator.ElasticCarriageReturnLineFeed);
+                triviaList.Add(syntaxFacts.ElasticCarriageReturnLineFeed);
             }
 
             var lastWhitespace = default(SyntaxTrivia);

@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../WorkspaceExtensionsResources.resx">
     <body>
+      <trans-unit id="Cannot_generate_code_for_unsupported_operator_0">
+        <source>Cannot generate code for unsupported operator '{0}'</source>
+        <target state="new">Cannot generate code for unsupported operator '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
         <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
         <target state="translated">Для выполнения задачи требуется компиляция, но она не поддерживается в проекте {0}.</target>
@@ -90,6 +95,16 @@
       <trans-unit id="Location_must_be_null_or_from_source">
         <source>Location must be null or from source.</source>
         <target state="new">Location must be null or from source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_can_not_be_added_in_this_destination">
+        <source>Namespace can not be added in this destination.</source>
+        <target state="new">Namespace can not be added in this destination.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_available_location_found_to_add_statements_to">
+        <source>No available location found to add statements to.</source>
+        <target state="new">No available location found to add statements to.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_location_provided_to_add_statements_to">

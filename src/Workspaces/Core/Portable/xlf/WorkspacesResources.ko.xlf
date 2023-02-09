@@ -422,11 +422,6 @@
         <target state="translated">알 수 없는 식별자입니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_generate_code_for_unsupported_operator_0">
-        <source>Cannot generate code for unsupported operator '{0}'</source>
-        <target state="translated">지원되지 않는 '{0}' 연산자에 대한 코드를 생성할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
         <target state="translated">'{1}' 파일 확장명이 언어에 연결되어 있지 않아 '{0}' 프로젝트를 열 수 없습니다.</target>

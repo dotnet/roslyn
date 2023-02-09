@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService<CSharpCodeGenerationContextInfo>
     {
-        public CSharpCodeGenerationService(HostLanguageServices languageServices)
-            : base(languageServices.GetRequiredService<ISymbolDeclarationService>())
+        public CSharpCodeGenerationService(LanguageServices languageServices)
+            : base(languageServices)
         {
         }
 
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var seenOptional = currentParameterList != null && parameterCount > 0 && currentParameterList.Parameters[^1].Default != null;
             var isFirstParam = parameterCount == 0;
 
-            var editor = new SyntaxEditor(destination, CSharpSyntaxGenerator.Instance);
+            var editor = new SyntaxEditor(destination, this.LanguageServices.SolutionServices);
             foreach (var parameter in parameters)
             {
                 var parameterSyntax = ParameterGenerator.GetParameter(parameter, info, isExplicit: false, isFirstParam: isFirstParam, seenOptional: seenOptional);
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return destinationMember.ReplaceNode(block, newBlock);
             }
 
-            throw new ArgumentException(CSharpWorkspaceResources.No_available_location_found_to_add_statements_to);
+            throw new ArgumentException(WorkspaceExtensionsResources.No_available_location_found_to_add_statements_to);
         }
 
         private static TDeclarationNode AddStatementsToBaseMethodDeclaration<TDeclarationNode>(

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
@@ -57,17 +58,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return result.ToImmutable();
         }
 
-        internal static ParameterSyntax GetParameter(IParameterSymbol p, CSharpCodeGenerationContextInfo info, bool isExplicit, bool isFirstParam, bool seenOptional)
+        internal static ParameterSyntax GetParameter(IParameterSymbol parameter, CSharpCodeGenerationContextInfo info, bool isExplicit, bool isFirstParam, bool seenOptional)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ParameterSyntax>(p, info);
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ParameterSyntax>(parameter, info);
             if (reusableSyntax != null)
                 return reusableSyntax;
 
-            return SyntaxFactory.Parameter(p.Name.ToIdentifierToken())
-                .WithAttributeLists(GenerateAttributes(p, isExplicit, info))
-                .WithModifiers(GenerateModifiers(p, isFirstParam))
-                .WithType(p.Type.GenerateTypeSyntax())
-                .WithDefault(GenerateEqualsValueClause(p, isExplicit, seenOptional));
+            return SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken())
+                .WithAttributeLists(GenerateAttributes(parameter, isExplicit, info))
+                .WithModifiers(GenerateModifiers(parameter, isFirstParam))
+                .WithType(parameter.Type.GenerateTypeSyntax())
+                .WithDefault(GenerateEqualsValueClause(info.Generator, parameter, isExplicit, seenOptional));
         }
 
         private static SyntaxTokenList GenerateModifiers(
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static EqualsValueClauseSyntax? GenerateEqualsValueClause(
+            SyntaxGenerator generator,
             IParameterSymbol parameter,
             bool isExplicit,
             bool seenOptional)
@@ -104,15 +106,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         return null;
 
                     return SyntaxFactory.EqualsValueClause(
-                        GenerateEqualsValueClauseWorker(parameter, defaultValue));
+                        GenerateEqualsValueClauseWorker(generator, parameter, defaultValue));
                 }
             }
 
             return null;
         }
 
-        private static ExpressionSyntax GenerateEqualsValueClauseWorker(IParameterSymbol parameter, object? value)
-            => ExpressionGenerator.GenerateExpression(parameter.Type, value, canUseFieldReference: true);
+        private static ExpressionSyntax GenerateEqualsValueClauseWorker(SyntaxGenerator generator, IParameterSymbol parameter, object? value)
+            => ExpressionGenerator.GenerateExpression(generator, parameter.Type, value, canUseFieldReference: true);
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributes(
             IParameterSymbol parameter, bool isExplicit, CSharpCodeGenerationContextInfo info)

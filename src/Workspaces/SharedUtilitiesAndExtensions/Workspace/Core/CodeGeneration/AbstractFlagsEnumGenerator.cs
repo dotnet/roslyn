@@ -12,23 +12,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol field, ulong value)>
     {
-        protected abstract SyntaxGenerator GetSyntaxGenerator();
-        protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object constantValue);
+        protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(SyntaxGenerator generator, INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object constantValue);
         protected abstract bool IsValidName(INamedTypeSymbol enumType, string name);
 
-        public SyntaxNode CreateEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
+        public SyntaxNode CreateEnumConstantValue(SyntaxGenerator generator, INamedTypeSymbol enumType, object constantValue)
         {
             // Code copied from System.Enum.
             var isFlagsEnum = IsFlagsEnum(enumType);
             if (isFlagsEnum)
             {
-                return CreateFlagsEnumConstantValue(enumType, constantValue);
+                return CreateFlagsEnumConstantValue(generator, enumType, constantValue);
             }
             else
             {
                 // Try to see if its one of the enum values.  If so, add that.  Otherwise, just add
                 // the literal value of the enum.
-                return CreateNonFlagsEnumConstantValue(enumType, constantValue);
+                return CreateNonFlagsEnumConstantValue(generator, enumType, constantValue);
             }
         }
 
@@ -61,17 +60,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return false;
         }
 
-        private SyntaxNode CreateFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
+        private SyntaxNode CreateFlagsEnumConstantValue(SyntaxGenerator generator, INamedTypeSymbol enumType, object constantValue)
         {
             // These values are sorted by value. Don't change this.
             var allFieldsAndValues = new List<(IFieldSymbol field, ulong value)>();
             GetSortedEnumFieldsAndValues(enumType, allFieldsAndValues);
 
             var usedFieldsAndValues = new List<(IFieldSymbol field, ulong value)>();
-            return CreateFlagsEnumConstantValue(enumType, constantValue, allFieldsAndValues, usedFieldsAndValues);
+            return CreateFlagsEnumConstantValue(generator, enumType, constantValue, allFieldsAndValues, usedFieldsAndValues);
         }
 
         private SyntaxNode CreateFlagsEnumConstantValue(
+            SyntaxGenerator generator,
             INamedTypeSymbol enumType,
             object constantValue,
             List<(IFieldSymbol field, ulong value)> allFieldsAndValues,
@@ -99,8 +99,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 }
             }
 
-            var syntaxFactory = GetSyntaxGenerator();
-
             // We were able to represent this number as a bitwise OR of valid flags.
             if (result == 0 && usedFieldsAndValues.Count > 0)
             {
@@ -109,14 +107,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 for (var i = usedFieldsAndValues.Count - 1; i >= 0; i--)
                 {
                     var field = usedFieldsAndValues[i];
-                    var node = CreateMemberAccessExpression(field.field, enumType, underlyingSpecialType);
+                    var node = CreateMemberAccessExpression(generator, field.field, enumType, underlyingSpecialType);
                     if (finalNode == null)
                     {
                         finalNode = node;
                     }
                     else
                     {
-                        finalNode = syntaxFactory.BitwiseOrExpression(finalNode, node);
+                        finalNode = generator.BitwiseOrExpression(finalNode, node);
                     }
                 }
 
@@ -130,29 +128,28 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var zeroField = GetZeroField(allFieldsAndValues);
             if (constantValueULong == 0 && zeroField != null)
             {
-                return CreateMemberAccessExpression(zeroField, enumType, underlyingSpecialType);
+                return CreateMemberAccessExpression(generator, zeroField, enumType, underlyingSpecialType);
             }
             else
             {
                 // Add anything else in as a literal value.
-                return CreateExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, constantValue);
+                return CreateExplicitlyCastedLiteralValue(generator, enumType, underlyingSpecialType, constantValue);
             }
         }
 
         private SyntaxNode CreateMemberAccessExpression(
-            IFieldSymbol field, INamedTypeSymbol enumType, SpecialType underlyingSpecialType)
+            SyntaxGenerator generator, IFieldSymbol field, INamedTypeSymbol enumType, SpecialType underlyingSpecialType)
         {
             if (IsValidName(enumType, field.Name))
             {
-                var syntaxFactory = GetSyntaxGenerator();
-                return syntaxFactory.MemberAccessExpression(
-                    syntaxFactory.TypeExpression(enumType),
-                    syntaxFactory.IdentifierName(field.Name));
+                return generator.MemberAccessExpression(
+                    generator.TypeExpression(enumType),
+                    generator.IdentifierName(field.Name));
             }
             else
             {
                 Contract.ThrowIfNull(field.ConstantValue);
-                return CreateExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, field.ConstantValue);
+                return CreateExplicitlyCastedLiteralValue(generator, enumType, underlyingSpecialType, field.ConstantValue);
             }
         }
 
@@ -188,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             allFieldsAndValues.Sort(this);
         }
 
-        private SyntaxNode CreateNonFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
+        private SyntaxNode CreateNonFlagsEnumConstantValue(SyntaxGenerator generator, INamedTypeSymbol enumType, object constantValue)
         {
             Contract.ThrowIfNull(enumType.EnumUnderlyingType);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
@@ -202,13 +199,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     var fieldValue = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
                     if (constantValueULong == fieldValue)
                     {
-                        return CreateMemberAccessExpression(field, enumType, underlyingSpecialType);
+                        return CreateMemberAccessExpression(generator, field, enumType, underlyingSpecialType);
                     }
                 }
             }
 
             // Otherwise, just add the enum as a literal.
-            return CreateExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, constantValue);
+            return CreateExplicitlyCastedLiteralValue(generator, enumType, underlyingSpecialType, constantValue);
         }
 
         int IComparer<(IFieldSymbol field, ulong value)>.Compare((IFieldSymbol field, ulong value) x, (IFieldSymbol field, ulong value) y)

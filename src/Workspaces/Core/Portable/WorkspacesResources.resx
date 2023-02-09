@@ -276,9 +276,6 @@
   <data name="Unknown_identifier" xml:space="preserve">
     <value>Unknown identifier.</value>
   </data>
-  <data name="Cannot_generate_code_for_unsupported_operator_0" xml:space="preserve">
-    <value>Cannot generate code for unsupported operator '{0}'</value>
-  </data>
   <data name="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language" xml:space="preserve">
     <value>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</value>
   </data>

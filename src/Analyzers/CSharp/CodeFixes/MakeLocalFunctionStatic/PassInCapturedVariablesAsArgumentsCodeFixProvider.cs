@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                     context.RegisterCodeFix(
                         CodeAction.Create(
                             CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments,
-                            c => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, context.Options, c),
+                            cancellationToken => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, context.GetOptionsProvider(), cancellationToken),
                             nameof(CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments)),
                         diagnostic);
 

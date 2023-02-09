@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var initializer = CodeGenerationFieldInfo.GetInitializer(field) is ExpressionSyntax initializerNode
                 ? SyntaxFactory.EqualsValueClause(initializerNode)
-                : GenerateEqualsValue(field);
+                : GenerateEqualsValue(info.Generator, field);
 
             var fieldDeclaration = SyntaxFactory.FieldDeclaration(
                 AttributeGenerator.GenerateAttributeLists(field.GetAttributes(), info),
@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, info, cancellationToken));
         }
 
-        private static EqualsValueClauseSyntax? GenerateEqualsValue(IFieldSymbol field)
+        private static EqualsValueClauseSyntax? GenerateEqualsValue(SyntaxGenerator generator, IFieldSymbol field)
         {
             if (field.HasConstantValue)
             {
                 var canUseFieldReference = field.Type != null && !field.Type.Equals(field.ContainingType);
-                return SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(field.Type, field.ConstantValue, canUseFieldReference));
+                return SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(generator, field.Type, field.ConstantValue, canUseFieldReference));
             }
 
             return null;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
-            AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, info, Accessibility.Private);
+            CSharpCodeGenerationHelpers.AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, info, Accessibility.Private);
             if (field.IsConst)
             {
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.ConstKeyword));

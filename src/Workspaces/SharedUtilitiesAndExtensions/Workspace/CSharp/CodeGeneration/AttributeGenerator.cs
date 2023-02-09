@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
@@ -75,25 +76,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (attribute.AttributeClass == null)
                 return null;
 
-            var attributeArguments = GenerateAttributeArgumentList(attribute);
+            var attributeArguments = GenerateAttributeArgumentList(info.Generator, attribute);
             return attribute.AttributeClass.GenerateTypeSyntax() is NameSyntax nameSyntax
                 ? SyntaxFactory.Attribute(nameSyntax, attributeArguments)
                 : null;
         }
 
-        private static AttributeArgumentListSyntax? GenerateAttributeArgumentList(AttributeData attribute)
+        private static AttributeArgumentListSyntax? GenerateAttributeArgumentList(SyntaxGenerator generator, AttributeData attribute)
         {
             if (attribute.ConstructorArguments.Length == 0 && attribute.NamedArguments.Length == 0)
                 return null;
 
             var arguments = new List<AttributeArgumentSyntax>();
             arguments.AddRange(attribute.ConstructorArguments.Select(c =>
-                SyntaxFactory.AttributeArgument(ExpressionGenerator.GenerateExpression(c))));
+                SyntaxFactory.AttributeArgument(ExpressionGenerator.GenerateExpression(generator, c))));
 
             arguments.AddRange(attribute.NamedArguments.Select(kvp =>
                 SyntaxFactory.AttributeArgument(
                     SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(kvp.Key)), null,
-                    ExpressionGenerator.GenerateExpression(kvp.Value))));
+                    ExpressionGenerator.GenerateExpression(generator, kvp.Value))));
 
             return SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(arguments));
         }

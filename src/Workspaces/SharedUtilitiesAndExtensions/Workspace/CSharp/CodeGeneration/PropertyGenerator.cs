@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (accessor.DeclaredAccessibility != Accessibility.NotApplicable &&
                 accessor.DeclaredAccessibility != property.DeclaredAccessibility)
             {
-                AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, info, property.DeclaredAccessibility);
+                CSharpCodeGenerationHelpers.AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, info, property.DeclaredAccessibility);
             }
 
             var hasNonReadOnlyAccessor = property.GetMethod?.IsReadOnly == false || property.SetMethod?.IsReadOnly == false;
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
                 else if (destination is not CodeGenerationDestination.CompilationUnit)
                 {
-                    AddAccessibilityModifiers(property.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                    CSharpCodeGenerationHelpers.AddAccessibilityModifiers(property.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                     if (property.IsStatic)
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));

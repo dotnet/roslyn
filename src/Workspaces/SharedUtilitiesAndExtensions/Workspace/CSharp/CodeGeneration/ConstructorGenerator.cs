@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                CSharpCodeGenerationHelpers.AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, info, Accessibility.Private);
             }
 
             if (CodeGenerationConstructorInfo.GetIsUnsafe(constructor))

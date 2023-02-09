@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
@@ -20,6 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public new CSharpCodeGenerationOptions Options { get; }
         public new CSharpCodeGenerationService Service { get; }
+
+        protected override SyntaxGenerator GeneratorImpl
+            => Service.LanguageServices.GetRequiredService<SyntaxGenerator>();
 
         protected override CodeGenerationOptions OptionsImpl
             => Options;

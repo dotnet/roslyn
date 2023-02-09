@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var defaultAccessibility = destination is CodeGenerationDestination.CompilationUnit or CodeGenerationDestination.Namespace
                     ? Accessibility.Internal
                     : Accessibility.Private;
-                AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
+                CSharpCodeGenerationHelpers.AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
             }
             else
             {

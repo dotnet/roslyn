@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,10 +28,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly ISymbolDeclarationService _symbolDeclarationService;
 
         protected AbstractCodeGenerationService(
-            ISymbolDeclarationService symbolDeclarationService)
+            LanguageServices languageServices)
         {
-            _symbolDeclarationService = symbolDeclarationService;
+            LanguageServices = languageServices;
+            _symbolDeclarationService = languageServices.GetRequiredService<ISymbolDeclarationService>();
         }
+
+        public LanguageServices LanguageServices { get; }
 
         public abstract CodeGenerationOptions DefaultOptions { get; }
         public abstract CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options, CodeGenerationOptions? fallbackOptions);

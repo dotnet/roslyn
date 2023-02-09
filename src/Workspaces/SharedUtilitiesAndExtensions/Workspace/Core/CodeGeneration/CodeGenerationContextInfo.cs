@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Editing;
+
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     /// <summary>
@@ -19,9 +21,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public CodeGenerationContextInfo WithContext(CodeGenerationContext value)
             => WithContextImpl(value);
 
+        public SyntaxGenerator Generator => GeneratorImpl;
         public CodeGenerationOptions Options => OptionsImpl;
         public ICodeGenerationService Service => ServiceImpl;
 
+        protected abstract SyntaxGenerator GeneratorImpl { get; }
         protected abstract CodeGenerationOptions OptionsImpl { get; }
         protected abstract ICodeGenerationService ServiceImpl { get; }
         protected abstract CodeGenerationContextInfo WithContextImpl(CodeGenerationContext value);

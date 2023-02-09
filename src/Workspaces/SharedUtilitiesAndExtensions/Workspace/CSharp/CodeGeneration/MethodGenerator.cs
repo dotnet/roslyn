@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 else if (destination is not CodeGenerationDestination.CompilationUnit and
                     not CodeGenerationDestination.Namespace)
                 {
-                    AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                    CSharpCodeGenerationHelpers.AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                     if (method.IsStatic)
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));

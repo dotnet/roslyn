@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -20,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class ExpressionGenerator
     {
-        internal static ExpressionSyntax GenerateExpression(
-            TypedConstant typedConstant)
+        public static ExpressionSyntax GenerateExpression(
+            SyntaxGenerator generator, TypedConstant typedConstant)
         {
             switch (typedConstant.Kind)
             {
                 case TypedConstantKind.Primitive:
                 case TypedConstantKind.Enum:
-                    return GenerateExpression(typedConstant.Type, typedConstant.Value, canUseFieldReference: true);
+                    return GenerateExpression(generator, typedConstant.Type, typedConstant.Value, canUseFieldReference: true);
 
                 case TypedConstantKind.Type:
                     return typedConstant.Value is ITypeSymbol
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         ? GenerateNullLiteral()
                         : SyntaxFactory.ImplicitArrayCreationExpression(
                             SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
-                                SyntaxFactory.SeparatedList(typedConstant.Values.Select(GenerateExpression))));
+                                SyntaxFactory.SeparatedList(typedConstant.Values.Select(v => GenerateExpression(generator, v)))));
 
                 default:
                     return GenerateNullLiteral();
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
         internal static ExpressionSyntax GenerateExpression(
+            SyntaxGenerator generator,
             ITypeSymbol? type,
             object? value,
             bool canUseFieldReference)
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (type.TypeKind == TypeKind.Enum)
                 {
                     var enumType = (INamedTypeSymbol)type;
-                    return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.CreateEnumConstantValue(enumType, value);
+                    return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.CreateEnumConstantValue(generator, enumType, value);
                 }
 
                 if (type.IsNullable())
@@ -67,14 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // If the type of the argument is T?, then the type of the supplied default value can either be T 
                     // (e.g. int? x = 5) or it can be T? (e.g. SomeStruct? x = null). The below statement handles the case
                     // where the type of the supplied default value is T.
-                    return GenerateExpression(((INamedTypeSymbol)type).TypeArguments[0], value, canUseFieldReference);
+                    return GenerateExpression(generator, ((INamedTypeSymbol)type).TypeArguments[0], value, canUseFieldReference);
                 }
             }
 
-            return GenerateNonEnumValueExpression(type, value, canUseFieldReference);
+            return GenerateNonEnumValueExpression(generator, type, value, canUseFieldReference);
         }
 
-        internal static ExpressionSyntax GenerateNonEnumValueExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
+        internal static ExpressionSyntax GenerateNonEnumValueExpression(SyntaxGenerator generator, ITypeSymbol? type, object? value, bool canUseFieldReference)
             => value switch
             {
                 bool val => GenerateBooleanLiteralExpression(val),
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 decimal val => GenerateLiteralExpression(type, val, LiteralSpecialValues.DecimalSpecialValues, formatString: null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, integerMinValueString: null),
                 _ => type == null || type.IsReferenceType || type is IPointerTypeSymbol || type.IsNullable()
                     ? GenerateNullLiteral()
-                    : (ExpressionSyntax)CSharpSyntaxGenerator.Instance.DefaultExpression(type),
+                    : (ExpressionSyntax)generator.DefaultExpression(type),
             };
 
         private static ExpressionSyntax GenerateBooleanLiteralExpression(bool val)

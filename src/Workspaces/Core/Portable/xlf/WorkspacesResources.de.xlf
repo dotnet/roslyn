@@ -422,11 +422,6 @@
         <target state="translated">Unbekannter Bezeichner.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_generate_code_for_unsupported_operator_0">
-        <source>Cannot generate code for unsupported operator '{0}'</source>
-        <target state="translated">Kann keinen Code für nicht unterstützten Operator "{0}" generieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
         <target state="translated">Projekt "{0}" kann nicht geöffnet werden, da die Dateierweiterung "{1}" keiner Sprache zugeordnet ist.</target>

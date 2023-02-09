@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 info,
                 cancellationToken);
             if (declaration is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
-                throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
+                throw new ArgumentException(WorkspaceExtensionsResources.Namespace_can_not_be_added_in_this_destination);
 
             var members = Insert(destination.Members, namespaceDeclaration, info, availableIndices);
             return destination.WithMembers(members);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 cancellationToken);
 
             if (declaration is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
-                throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
+                throw new ArgumentException(WorkspaceExtensionsResources.Namespace_can_not_be_added_in_this_destination);
 
             var members = Insert(destination.Members, namespaceDeclaration, info, availableIndices);
             return destination.WithMembers(members);

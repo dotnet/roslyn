@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var operatorSyntaxKind = SyntaxFacts.GetOperatorKind(method.MetadataName);
             if (operatorSyntaxKind == SyntaxKind.None)
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.Cannot_generate_code_for_unsupported_operator_0, method.Name), nameof(method));
+                throw new ArgumentException(string.Format(WorkspaceExtensionsResources.Cannot_generate_code_for_unsupported_operator_0, method.Name), nameof(method));
             }
 
             var operatorToken = SyntaxFactory.Token(operatorSyntaxKind);

@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            var value = CreateEnumMemberValue(destination, enumMember);
+            var value = CreateEnumMemberValue(info.Generator, destination, enumMember);
             var member = SyntaxFactory.EnumMemberDeclaration(enumMember.Name.ToIdentifierToken())
                 .WithEqualsValue(value == null ? null : SyntaxFactory.EqualsValueClause(value: value));
 
@@ -67,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ConditionallyAddDocumentationCommentTo(member, enumMember, info, cancellationToken));
         }
 
-        private static ExpressionSyntax? CreateEnumMemberValue(EnumDeclarationSyntax? destination, IFieldSymbol enumMember)
+        private static ExpressionSyntax? CreateEnumMemberValue(
+            SyntaxGenerator generator, EnumDeclarationSyntax? destination, IFieldSymbol enumMember)
         {
             if (!enumMember.HasConstantValue)
             {
@@ -157,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var underlyingType = namedType?.EnumUnderlyingType;
 
             return ExpressionGenerator.GenerateNonEnumValueExpression(
+                generator,
                 underlyingType,
                 enumMember.ConstantValue,
                 canUseFieldReference: true);
