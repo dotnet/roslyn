@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                         localFunctionWithNewParameters = localFunctionWithNewParameters.WithAdditionalAnnotations(annotation);
                     }
 
-                    return AddStaticModifier(localFunctionWithNewParameters, CSharpSyntaxGenerator.Instance);
+                    return AddStaticModifier(localFunctionWithNewParameters, generator);
                 });
         }
 

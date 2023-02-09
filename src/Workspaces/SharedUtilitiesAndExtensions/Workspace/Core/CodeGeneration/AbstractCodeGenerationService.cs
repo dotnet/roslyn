@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             if (destination is not TDeclarationNode)
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_but_given_one_is_1, typeof(TDeclarationNode).Name, destination.GetType().Name),
+                    string.Format(WorkspaceExtensionsResources.Destination_type_must_be_a_0_but_given_one_is_1, typeof(TDeclarationNode).Name, destination.GetType().Name),
                     nameof(destination));
             }
         }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 not TDeclarationNode2)
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_or_a_1_but_given_one_is_2,
+                    string.Format(WorkspaceExtensionsResources.Destination_type_must_be_a_0_or_a_1_but_given_one_is_2,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, destination.GetType().Name),
                     nameof(destination));
             }
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 not TDeclarationNode3)
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_1_or_2_but_given_one_is_3,
+                    string.Format(WorkspaceExtensionsResources.Destination_type_must_be_a_0_1_or_2_but_given_one_is_3,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, destination.GetType().Name),
                     nameof(destination));
             }
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 not TDeclarationNode4)
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4,
+                    string.Format(WorkspaceExtensionsResources.Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, typeof(TDeclarationNode4).Name, destination.GetType().Name),
                     nameof(destination));
             }
@@ -234,12 +234,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (destinationDeclaration == null)
             {
-                throw new ArgumentException(WorkspacesResources.Could_not_find_location_to_generation_symbol_into);
+                throw new ArgumentException(WorkspaceExtensionsResources.Could_not_find_location_to_generation_symbol_into);
             }
 
             var destinationTree = destinationDeclaration.SyntaxTree;
             var oldDocument = context.Solution.GetRequiredDocument(destinationTree);
+#if CODE_STYLE
+            var codeGenOptions = CodeGenerationOptions.CommonDefaults;
+#else
             var codeGenOptions = await oldDocument.GetCodeGenerationOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
+#endif
             var info = GetInfo(context.Context, codeGenOptions, destinationDeclaration.SyntaxTree.Options);
             var transformedDeclaration = declarationTransform(destinationDeclaration, info, availableIndices, cancellationToken);
 
@@ -248,11 +252,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             var newDocument = oldDocument.WithSyntaxRoot(currentRoot);
 
+#if !CODE_STYLE
             if (context.Context.AddImports)
             {
                 var addImportsOptions = await newDocument.GetAddImportPlacementOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
                 newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportsOptions, cancellationToken).ConfigureAwait(false);
             }
+#endif
 
             return newDocument;
         }
@@ -473,17 +479,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (location == null)
             {
-                throw new ArgumentException(WorkspacesResources.No_location_provided_to_add_statements_to);
+                throw new ArgumentException(WorkspaceExtensionsResources.No_location_provided_to_add_statements_to);
             }
 
             if (!location.IsInSource)
             {
-                throw new ArgumentException(WorkspacesResources.Destination_location_was_not_in_source);
+                throw new ArgumentException(WorkspaceExtensionsResources.Destination_location_was_not_in_source);
             }
 
             if (location.SourceTree != destinationMember.SyntaxTree)
             {
-                throw new ArgumentException(WorkspacesResources.Destination_location_was_from_a_different_tree);
+                throw new ArgumentException(WorkspaceExtensionsResources.Destination_location_was_from_a_different_tree);
             }
         }
 

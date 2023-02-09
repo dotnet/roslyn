@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return false;
             }
 
+#if !CODE_STYLE
             // If we are avoiding generating into files marked as generated (but are still regular files)
             // then check accordingly. This is distinct from the prior check in that we as a fallback
             // will generate into these files is we have no alternative.
@@ -84,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             {
                 return false;
             }
+#endif
 
             // Anything completely hidden is something you can't add to. Anything completely visible
             // is something you can add to.  Anything that is partially hidden will have to defer to
