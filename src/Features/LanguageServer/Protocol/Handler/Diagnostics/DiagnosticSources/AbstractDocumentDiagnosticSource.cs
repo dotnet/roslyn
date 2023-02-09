@@ -18,7 +18,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
     public AbstractDocumentDiagnosticSource(TDocument document)
         => Document = document;
 
-    protected abstract Task<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken);
+    protected abstract ValueTask<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken);
     protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);
 

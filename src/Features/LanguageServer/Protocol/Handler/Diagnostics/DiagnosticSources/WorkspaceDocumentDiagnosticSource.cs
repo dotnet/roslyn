@@ -16,7 +16,7 @@ internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagno
     {
     }
 
-    protected override Task<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken)
+    protected override ValueTask<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken)
         => this.Document.Project.IsReadyForSemanticDiagnosticRequestsAsync(cancellationToken);
 
     protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(

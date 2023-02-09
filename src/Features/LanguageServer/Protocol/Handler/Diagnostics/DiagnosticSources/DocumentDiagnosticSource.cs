@@ -20,7 +20,7 @@ internal sealed class DocumentDiagnosticSource
         DiagnosticKind = diagnosticKind;
     }
 
-    protected override async Task<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken)
+    protected override async ValueTask<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken)
     {
         // Compiler syntax requests can always go through.  They just depend on syntax and don't need the
         // solution/project to be fully loaded yet.

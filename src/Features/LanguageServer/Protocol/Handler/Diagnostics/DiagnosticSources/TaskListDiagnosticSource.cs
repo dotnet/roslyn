@@ -36,10 +36,10 @@ internal sealed class TaskListDiagnosticSource : AbstractDocumentDiagnosticSourc
         _globalOptions = globalOptions;
     }
 
-    protected override Task<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken)
+    protected override ValueTask<bool> IsReadyForDiagnosticRequestsAsync(RequestContext context, CancellationToken cancellationToken)
     {
         // TaskList is purely syntactic.  So we're always ready to requests diagnostics for them.
-        return SpecializedTasks.True;
+        return ValueTaskFactory.FromResult(true);
     }
 
     protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
