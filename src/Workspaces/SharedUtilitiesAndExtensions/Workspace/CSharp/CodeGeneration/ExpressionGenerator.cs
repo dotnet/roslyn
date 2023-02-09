@@ -58,18 +58,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (type != null && value != null)
             {
-                if (type.TypeKind == TypeKind.Enum)
-                {
-                    var enumType = (INamedTypeSymbol)type;
+                if (type is INamedTypeSymbol { TypeKind: TypeKind.Enum } enumType)
                     return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.CreateEnumConstantValue(generator, enumType, value);
-                }
 
-                if (type.IsNullable())
+                if (type.IsNullable(out var underlyingType))
                 {
                     // If the type of the argument is T?, then the type of the supplied default value can either be T 
                     // (e.g. int? x = 5) or it can be T? (e.g. SomeStruct? x = null). The below statement handles the case
                     // where the type of the supplied default value is T.
-                    return GenerateExpression(generator, ((INamedTypeSymbol)type).TypeArguments[0], value, canUseFieldReference);
+                    return GenerateExpression(generator, underlyingType, value, canUseFieldReference);
                 }
             }
 
