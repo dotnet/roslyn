@@ -119,6 +119,11 @@
         <target state="translated">'{0}' 매개 변수는 이 컴파일 또는 일부 참조된 어셈블리의 기호여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">모듈에 잘못된 특성이 있습니다.</target>

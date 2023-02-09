@@ -119,6 +119,11 @@
         <target state="translated">Parametr {0} musí být symbol z této kompilace nebo některé odkazované sestavení.</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">Modul zahrnuje neplatné atributy.</target>

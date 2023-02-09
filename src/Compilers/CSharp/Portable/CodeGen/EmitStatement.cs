@@ -623,6 +623,54 @@ oneMoreTime:
 
         private void EmitBlock(BoundBlock block)
         {
+            if (block.Instrumentation is not null)
+            {
+                EmitInstrumentedBlock(block.Instrumentation, block);
+            }
+            else
+            {
+                EmitUninstrumentedBlock(block);
+            }
+        }
+
+        private void EmitInstrumentedBlock(BoundBlockInstrumentation instrumentation, BoundBlock block)
+        {
+            _builder.OpenLocalScope();
+            DefineLocal(instrumentation.Local, block.Syntax);
+
+            if (_emitPdbSequencePoints)
+            {
+                EmitHiddenSequencePoint();
+            }
+
+            EmitStatement(instrumentation.Prologue);
+
+            _builder.AssertStackEmpty();
+
+            _builder.OpenLocalScope(ScopeType.TryCatchFinally);
+
+            _builder.OpenLocalScope(ScopeType.Try);
+            EmitUninstrumentedBlock(block);
+            _builder.CloseLocalScope(); // try
+
+            _builder.OpenLocalScope(ScopeType.Finally);
+
+            if (_emitPdbSequencePoints)
+            {
+                EmitHiddenSequencePoint();
+            }
+
+            EmitStatement(instrumentation.Epilogue);
+            _builder.CloseLocalScope(); // finally
+
+            _builder.CloseLocalScope(); // try-finally
+
+            FreeLocal(instrumentation.Local);
+            _builder.CloseLocalScope();
+        }
+
+        private void EmitUninstrumentedBlock(BoundBlock block)
+        {
             var hasLocals = !block.Locals.IsEmpty;
 
             if (hasLocals)
@@ -644,7 +692,15 @@ oneMoreTime:
             if (_indirectReturnState == IndirectReturnState.Needed &&
                 IsLastBlockInMethod(block))
             {
-                HandleReturn();
+                if (block.Instrumentation != null)
+                {
+                    // jump out of try-finally
+                    _builder.EmitBranch(ILOpCode.Br, s_returnLabel);
+                }
+                else
+                {
+                    HandleReturn();
+                }
             }
 
             if (hasLocals)

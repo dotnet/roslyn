@@ -119,6 +119,11 @@
         <target state="translated">Le paramètre '{0}' doit être un symbole de cette compilation ou un assembly référencé.</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">Le module a des attributs non valides.</target>

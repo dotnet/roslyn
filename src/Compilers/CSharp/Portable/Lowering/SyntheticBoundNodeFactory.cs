@@ -428,14 +428,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundExpressionStatement(Syntax, expr) { WasCompilerGenerated = true };
         }
 
-        public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, bool isRef = false)
+        /// <summary>
+        /// Creates a general assignment that might be instrumented.
+        /// </summary>
+        public BoundExpression AssignmentExpression(BoundExpression left, BoundExpression right, bool isRef = false)
         {
             Debug.Assert(left.Type is { } && right.Type is { } &&
                 (left.Type.Equals(right.Type, TypeCompareKind.AllIgnoreOptions) ||
                  StackOptimizerPass1.IsFixedBufferAssignmentToRefLocal(left, right, isRef) ||
                  right.Type.IsErrorType() || left.Type.IsErrorType()));
 
-            return new BoundAssignmentOperator(Syntax, left, right, left.Type, isRef: isRef) { WasCompilerGenerated = true };
+            return AssignmentExpression(Syntax, left, right, left.Type, isRef: isRef, wasCompilerGenerated: true);
+        }
+
+        /// <summary>
+        /// Creates a general assignment that might be instrumented.
+        /// </summary>
+        public BoundExpression AssignmentExpression(SyntaxNode syntax, BoundExpression left, BoundExpression right, TypeSymbol type, bool isRef = false, bool hasErrors = false, bool wasCompilerGenerated = false)
+        {
+            var assignment = new BoundAssignmentOperator(syntax, left, right, isRef, type, hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
+
+            return (InstrumentationState?.IsSuppressed == false && left is BoundLocal { LocalSymbol.SynthesizedKind: SynthesizedLocalKind.UserDefined } or BoundParameter) ?
+                InstrumentationState.Instrumenter.InstrumentUserDefinedLocalAssignment(assignment) :
+                assignment;
         }
 
         public BoundBlock Block()
@@ -470,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
         {
-            return new BoundBlock(Syntax, locals, localFunctions, hasUnsafeModifier: false, statements) { WasCompilerGenerated = true };
+            return new BoundBlock(Syntax, locals, localFunctions, hasUnsafeModifier: false, instrumentation: null, statements) { WasCompilerGenerated = true };
         }
 
         public BoundExtractedFinallyBlock ExtractedFinallyBlock(BoundBlock finallyBlock)
@@ -1217,6 +1232,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
+        public BoundExpression LocalId(LocalSymbol symbol)
+        {
+            return new BoundLocalId(
+                Syntax,
+                symbol,
+                hoistedField: null,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression ParameterId(ParameterSymbol symbol)
+        {
+            return new BoundParameterId(
+                Syntax,
+                symbol,
+                hoistedField: null,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression StateMachineInstanceId()
+        {
+            return new BoundStateMachineInstanceId(
+                Syntax,
+                field: null,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_UInt64))
+            { WasCompilerGenerated = true };
+        }
+
         /// <summary>
         /// Synthesizes an expression that evaluates to the current module's MVID.
         /// </summary>
@@ -1476,6 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(argument.Type is { });
             MethodSymbol? containingMethod = this.CurrentFunction;
             Debug.Assert(containingMethod is { });
+            Debug.Assert(kind != SynthesizedLocalKind.UserDefined);
 
             switch (refKind)
             {
@@ -1522,14 +1567,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isKnownToReferToTempIfReferenceType: isKnownToReferToTempIfReferenceType,
                     refKind: refKind),
                 null,
-                type);
+            type);
 
             store = new BoundAssignmentOperator(
                 syntax,
                 local,
                 argument,
-                refKind != RefKind.None,
-                type);
+                type,
+                isRef: refKind != RefKind.None);
 
             return local;
         }

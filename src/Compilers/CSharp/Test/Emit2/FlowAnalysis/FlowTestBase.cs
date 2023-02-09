@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
 
                 var compilationState = new TypeCompilationState(sourceSymbol.ContainingType, compilation, null);
-                var boundBody = MethodCompiler.BindMethodBody(sourceSymbol, compilationState, new BindingDiagnosticBag(new DiagnosticBag()));
+                var boundBody = MethodCompiler.BindSynthesizedMethodBody(sourceSymbol, compilationState, new BindingDiagnosticBag(new DiagnosticBag()));
                 if (boundBody != null)
                 {
                     FlowAnalysisPass.Rewrite(sourceSymbol, boundBody, compilationState, flowDiagnostics, hasTrailingExpression: false, originalBodyNested: false);

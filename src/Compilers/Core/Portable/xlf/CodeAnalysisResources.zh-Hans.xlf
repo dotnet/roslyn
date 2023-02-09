@@ -119,6 +119,11 @@
         <target state="translated">参数“{0}”必须是此编译或某些引用程序集的符号。</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">模块具有无效属性。</target>

@@ -119,6 +119,11 @@
         <target state="translated">Parametr „{0}” musi być symbolem z tej kompilacji lub przywoływanym zestawem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">Moduł ma nieprawidłowe atrybuty.</target>

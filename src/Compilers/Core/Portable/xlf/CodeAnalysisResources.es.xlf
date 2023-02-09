@@ -119,6 +119,11 @@
         <target state="translated">El parámetro "{0}" debe ser un símbolo de esta compilación o algún ensamble al que se hace referencia.</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">El módulo tiene atributos no válidos.</target>

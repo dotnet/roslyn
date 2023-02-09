@@ -119,6 +119,11 @@
         <target state="translated">參數 '{0}' 必須是此編譯或某些參考組件中的符號。</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">模組有無效的屬性。</target>

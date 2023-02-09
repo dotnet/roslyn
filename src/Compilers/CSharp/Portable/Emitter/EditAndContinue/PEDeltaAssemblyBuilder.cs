@@ -304,6 +304,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics);
         }
 
+        internal override MethodInstrumentation GetMethodBodyInstrumentations(MethodSymbol method)
+        {
+            // EmitDifference does not allow settings these:
+            Debug.Assert(EmitOptions.InstrumentationKinds.IsEmpty);
+
+            return _previousDefinitions.GetMethodBodyInstrumentations(method);
+        }
+
         internal override ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
         {
             return ImmutableArray.CreateRange(_previousGeneration.AnonymousTypeMap.Keys);

@@ -2933,7 +2933,7 @@ namespace Microsoft.Cci
                     SerializeMethodDebugInfo(body, methodRid, aggregateMethodRid, localSignatureHandleOpt, ref lastLocalVariableHandle, ref lastLocalConstantHandle);
                 }
 
-                _dynamicAnalysisDataWriterOpt?.SerializeMethodDynamicAnalysisData(body);
+                _dynamicAnalysisDataWriterOpt?.SerializeMethodCodeCoverageData(body);
 
                 bodyOffsets[methodRid - 1] = bodyOffset;
 
@@ -3142,10 +3142,40 @@ namespace Microsoft.Cci
             return default(ReservedBlob<UserStringHandle>);
         }
 
-        internal const uint LiteralMethodDefinitionToken = 0x80000000;
-        internal const uint LiteralGreatestMethodDefinitionToken = 0x40000000;
-        internal const uint SourceDocumentIndex = 0x20000000;
+        public enum RawTokenEncoding : byte
+        {
+            None = 0,
+
+            /// <summary>
+            /// Emit ldc.i4 of row id of an entity represented by the pseudo-token.
+            /// </summary>
+            RowId,
+
+            /// <summary>
+            /// Emit ldc.i4 of the greatest row id assigned to a method definition in the module being built.
+            /// </summary>
+            GreatestMethodDefinitionRowId,
+
+            /// <summary>
+            /// Emit ldc.i4 of row id of a source document represented by the pseudo-token.
+            /// </summary>
+            DocumentRowId,
+
+            /// <summary>
+            /// Emit ldc.i4 of row id of the hoisted local variable or parameter field that the pseudo-token represents, 
+            /// increased by <see cref="LiftedVariableBaseIndex"/>.
+            /// </summary>
+            LiftedVariableId,
+        }
+
+        public static uint GetRawToken(RawTokenEncoding encoding, uint pseudoToken)
+        {
+            Debug.Assert(pseudoToken <= 0xffffff);
+            return unchecked((uint)encoding << 24 | pseudoToken);
+        }
+
         internal const uint ModuleVersionIdStringToken = 0x80000000;
+        internal const int LiftedVariableBaseIndex = 0x10000;
 
         private void WriteInstructions(Blob finalIL, ImmutableArray<byte> generatedIL, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
         {
@@ -3174,27 +3204,40 @@ namespace Microsoft.Cci
                             // This is a trick to enable loading raw metadata token indices as integers.
                             if (operandType == OperandType.InlineTok)
                             {
-                                int tokenMask = pseudoToken & unchecked((int)0xff000000);
-                                if (tokenMask != 0 && (uint)pseudoToken != 0xffffffff)
+                                var rawTokenEncoding = (RawTokenEncoding)(pseudoToken >> 24);
+                                if (rawTokenEncoding != RawTokenEncoding.None && (uint)pseudoToken != 0xffffffff)
                                 {
                                     Debug.Assert(ReadByte(generatedIL, offset - 1) == (byte)ILOpCode.Ldtoken);
                                     writer.Offset = offset - 1;
                                     writer.WriteByte((byte)ILOpCode.Ldc_i4);
-                                    switch ((uint)tokenMask)
+                                    switch (rawTokenEncoding)
                                     {
-                                        case LiteralMethodDefinitionToken:
-                                            // Crash the compiler if pseudo token fails to resolve to a MethodDefinitionHandle.
-                                            var handle = (MethodDefinitionHandle)ResolveEntityHandleFromPseudoToken(pseudoToken & 0x00ffffff);
-                                            token = MetadataTokens.GetToken(handle) & 0x00ffffff;
+                                        case RawTokenEncoding.RowId:
+                                            {
+                                                var handle = ResolveEntityHandleFromPseudoToken(pseudoToken & 0x00ffffff);
+                                                Debug.Assert(handle.Kind is HandleKind.MethodDefinition);
+                                                token = MetadataTokens.GetRowNumber(handle);
+                                            }
                                             break;
-                                        case LiteralGreatestMethodDefinitionToken:
+
+                                        case RawTokenEncoding.LiftedVariableId:
+                                            {
+                                                var handle = ResolveEntityHandleFromPseudoToken(pseudoToken & 0x00ffffff);
+                                                Debug.Assert(handle.Kind is HandleKind.FieldDefinition);
+                                                token = MetadataTokens.GetRowNumber(handle) + LiftedVariableBaseIndex;
+                                            }
+                                            break;
+
+                                        case RawTokenEncoding.GreatestMethodDefinitionRowId:
                                             token = GreatestMethodDefIndex;
                                             break;
-                                        case SourceDocumentIndex:
-                                            token = _dynamicAnalysisDataWriterOpt.GetOrAddDocument(((CommonPEModuleBuilder)module).GetSourceDocumentFromIndex((uint)(pseudoToken & 0x00ffffff)));
+
+                                        case RawTokenEncoding.DocumentRowId:
+                                            token = _dynamicAnalysisDataWriterOpt.GetOrAddDocument(module.GetSourceDocumentFromIndex((uint)(pseudoToken & 0x00ffffff)));
                                             break;
+
                                         default:
-                                            throw ExceptionUtilities.UnexpectedValue(tokenMask);
+                                            throw ExceptionUtilities.UnexpectedValue(rawTokenEncoding);
                                     }
                                 }
                             }

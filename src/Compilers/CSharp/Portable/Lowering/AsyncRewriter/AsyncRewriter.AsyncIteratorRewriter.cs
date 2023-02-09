@@ -175,9 +175,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBuilder.Add(F.Assignment(F.InstanceField(initialThreadIdField), managedThreadId));
                 }
 
+                if (instanceIdField is not null &&
+                    F.WellKnownMethod(WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId) is { } getId)
+                {
+                    bodyBuilder.Add(F.Assignment(F.InstanceField(instanceIdField), F.Call(receiver: null, getId)));
+                }
+
                 bodyBuilder.Add(F.Return());
                 F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
-                bodyBuilder = null;
             }
 
             private BoundExpressionStatement GenerateCreateAndAssignBuilder()
@@ -694,6 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F: F,
                     state: stateField,
                     builder: _builderField,
+                    instanceIdField: instanceIdField,
                     hoistedVariables: hoistedVariables,
                     nonReusableLocalProxies: nonReusableLocalProxies,
                     synthesizedLocalOrdinals: synthesizedLocalOrdinals,

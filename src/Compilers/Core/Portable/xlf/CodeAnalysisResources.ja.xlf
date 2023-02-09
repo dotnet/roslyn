@@ -119,6 +119,11 @@
         <target state="translated">パラメーター '{0}' は、このコンパイルまたはいくつかの参照アセンブリのシンボルにする必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">モジュールに無効な属性があります。</target>

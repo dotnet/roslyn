@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -171,7 +172,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void GenerateControlFields()
         {
-            this.stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName());
+            Debug.Assert(F.ModuleBuilderOpt is not null);
+
+            stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName());
+
+            var instrumentations = F.ModuleBuilderOpt.GetMethodBodyInstrumentations(method);
+            if (instrumentations.Kinds.Contains(InstrumentationKind.LocalStateTracing))
+            {
+                instanceIdField = F.StateMachineField(F.SpecialType(SpecialType.System_UInt64), GeneratedNames.MakeStateMachineStateIdFieldName());
+            }
 
             // Add a field: T current
             _currentField = F.StateMachineField(_elementType, GeneratedNames.MakeIteratorCurrentFieldName());
@@ -278,6 +287,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(F.Assignment(F.Field(F.This(), initialThreadIdField), managedThreadId));
             }
 
+            if (instanceIdField is not null &&
+                F.WellKnownMethod(WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId) is { } getId)
+            {
+                bodyBuilder.Add(F.Assignment(F.InstanceField(instanceIdField), F.Call(receiver: null, getId)));
+            }
+
             bodyBuilder.Add(F.Return());
             F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
             bodyBuilder = null;
@@ -317,6 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method,
                 stateField,
                 _currentField,
+                instanceIdField,
                 hoistedVariables,
                 nonReusableLocalProxies,
                 synthesizedLocalOrdinals,
