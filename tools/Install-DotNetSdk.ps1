@@ -98,7 +98,12 @@ Function Get-InstallerExe(
     [string]$sku
 ) {
     # Get the latest/actual version for the specified one
-    $TypedVersion = [Version]$Version
+    $TypedVersion = $null
+    if (![Version]::TryParse($Version, [ref] $TypedVersion)) {
+        Write-Error "Unable to parse $Version into an a.b.c.d version. This version cannot be installed machine-wide."
+        exit 1
+    }
+
     if ($TypedVersion.Build -eq -1) {
         $versionInfo = -Split (Invoke-WebRequest -Uri "https://dotnetcli.blob.core.windows.net/dotnet/$sku/$Version/latest.version" -UseBasicParsing)
         $Version = $versionInfo[-1]
