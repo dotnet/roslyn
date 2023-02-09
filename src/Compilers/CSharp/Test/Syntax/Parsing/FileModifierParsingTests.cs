@@ -1549,6 +1549,7 @@ public class FileModifierParsingTests : ParsingTests
                 public file _file;
                 public file[] _array;
                 public file* _ptr;
+                public file? _nullable;
                 public delegate*<file, file> _funcPtr;
                 public (file, file) _tuple;
             }
@@ -1666,6 +1667,26 @@ public class FileModifierParsingTests : ParsingTests
                     N(SyntaxKind.PublicKeyword);
                     N(SyntaxKind.VariableDeclaration);
                     {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "file");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_nullable");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
                         N(SyntaxKind.FunctionPointerType);
                         {
                             N(SyntaxKind.DelegateKeyword);
@@ -1748,6 +1769,7 @@ public class FileModifierParsingTests : ParsingTests
                 public file _file;
                 public file[] _array;
                 public file* _ptr;
+                public file? _nullable;
                 public delegate*<file, file> _funcPtr;
                 public (file, file) _tuple;
             }
@@ -1765,7 +1787,10 @@ public class FileModifierParsingTests : ParsingTests
                 Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 16),
                 // (7,16): error CS1031: Type expected
                 //     public file* _ptr;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(7, 16)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(7, 16),
+                // (8,16): error CS1031: Type expected
+                //     public file? _nullable;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "?").WithLocation(8, 16)
             },
             expectedBindingDiagnostics: new[]
             {
@@ -1795,7 +1820,13 @@ public class FileModifierParsingTests : ParsingTests
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_ptr").WithArguments("file").WithLocation(7, 18),
                 // (7,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('?')
                 //     public file* _ptr;
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "_ptr").WithArguments("?").WithLocation(7, 18)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "_ptr").WithArguments("?").WithLocation(7, 18),
+                // (8,16): error CS1031: Type expected
+                //     public file? _nullable;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "?").WithLocation(8, 16),
+                // (8,18): error CS0106: The modifier 'file' is not valid for this item
+                //     public file? _nullable;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "_nullable").WithArguments("file").WithLocation(8, 18)
             });
 
         N(SyntaxKind.CompilationUnit);
@@ -1886,6 +1917,27 @@ public class FileModifierParsingTests : ParsingTests
                         N(SyntaxKind.VariableDeclarator);
                         {
                             N(SyntaxKind.IdentifierToken, "_ptr");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.FileKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_nullable");
                         }
                     }
                     N(SyntaxKind.SemicolonToken);

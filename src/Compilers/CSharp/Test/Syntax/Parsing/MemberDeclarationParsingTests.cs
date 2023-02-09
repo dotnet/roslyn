@@ -1880,6 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     required _required;
                     required[] _array;
                     required* _ptr;
+                    required? _nullable;
                     delegate*<required, required> _funcPtr;
                     (required, required) _tuple;
                 }
@@ -1958,6 +1959,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         N(SyntaxKind.VariableDeclaration);
                         {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "required");
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "_nullable");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
                             N(SyntaxKind.FunctionPointerType);
                             {
                                 N(SyntaxKind.DelegateKeyword);
@@ -2026,8 +2046,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-
         }
 
         [Fact]
@@ -2039,11 +2057,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     required _required;
                     required[] _array;
                     required* _ptr;
+                    required? _nullable;
                     delegate*<required, required> _funcPtr;
                     (required, required) _tuple;
                 }
                 """,
                 options: TestOptions.Regular11,
+
                 // (3,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     required _required;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23),
@@ -2055,7 +2075,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(4, 13),
                 // (5,13): error CS1031: Type expected
                 //     required* _ptr;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(5, 13)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(5, 13),
+                // (6,13): error CS1031: Type expected
+                //     required? _nullable;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "?").WithLocation(6, 13)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -2117,6 +2140,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.VariableDeclarator);
                             {
                                 N(SyntaxKind.IdentifierToken, "_ptr");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.RequiredKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "_nullable");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
