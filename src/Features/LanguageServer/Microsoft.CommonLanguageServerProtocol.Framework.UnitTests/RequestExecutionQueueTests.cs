@@ -46,6 +46,7 @@ public class RequestExecutionQueueTests
             var handler = GetTestMethodHandler();
             handlerProvider.Setup(h => h.GetMethodHandler(MethodName, TestMethodHandler.RequestType, TestMethodHandler.ResponseType)).Returns(handler);
         }
+
         foreach (var methodHandler in methodHandlers)
         {
             var methodType = methodHandler.GetType();
@@ -54,6 +55,7 @@ public class RequestExecutionQueueTests
 
             handlerProvider.Setup(h => h.GetMethodHandler(method, typeof(int), typeof(string))).Returns(methodHandler);
         }
+
         var executionQueue = new TestRequestExecutionQueue(new MockServer(), NoOpLspLogger.Instance, handlerProvider.Object, cancelInProgressWorkUponMutatingRequest);
         executionQueue.Start();
 
