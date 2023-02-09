@@ -2375,35 +2375,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundStateMachineInstanceId : BoundExpression
     {
-        public BoundStateMachineInstanceId(SyntaxNode syntax, FieldSymbol? field, TypeSymbol type, bool hasErrors)
+        public BoundStateMachineInstanceId(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
             : base(BoundKind.StateMachineInstanceId, syntax, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
-            this.Field = field;
         }
 
-        public BoundStateMachineInstanceId(SyntaxNode syntax, FieldSymbol? field, TypeSymbol type)
+        public BoundStateMachineInstanceId(SyntaxNode syntax, TypeSymbol type)
             : base(BoundKind.StateMachineInstanceId, syntax, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
-            this.Field = field;
         }
 
         public new TypeSymbol Type => base.Type!;
-        public FieldSymbol? Field { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitStateMachineInstanceId(this);
 
-        public BoundStateMachineInstanceId Update(FieldSymbol? field, TypeSymbol type)
+        public BoundStateMachineInstanceId Update(TypeSymbol type)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(field, this.Field) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundStateMachineInstanceId(this.Syntax, field, type, this.HasErrors);
+                var result = new BoundStateMachineInstanceId(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10773,7 +10770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Field, type);
+            return node.Update(type);
         }
         public override BoundNode? VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node)
         {
@@ -12608,18 +12605,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
         {
-            FieldSymbol? field = GetUpdatedSymbol(node, node.Field);
-            BoundStateMachineInstanceId updatedNode;
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                return node;
+            }
 
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                updatedNode = node.Update(field, infoAndType.Type!);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(field, node.Type);
-            }
+            BoundStateMachineInstanceId updatedNode = node.Update(infoAndType.Type!);
+            updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
 
@@ -14962,7 +14954,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitStateMachineInstanceId(BoundStateMachineInstanceId node, object? arg) => new TreeDumperNode("stateMachineInstanceId", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("field", node.Field, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
