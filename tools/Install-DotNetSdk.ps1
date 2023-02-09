@@ -234,10 +234,10 @@ if ($IncludeX86) {
 }
 
 if ($IsMacOS -or $IsLinux) {
-    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/781752509a890ca7520f1182e8bae71f9a53d754/src/dotnet-install.sh"
+    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/88bd34f089b8a023e3523f22c92abd0ab88e4409/src/dotnet-install.sh"
     $DotNetInstallScriptPath = "$DotNetInstallScriptRoot/dotnet-install.sh"
 } else {
-    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/781752509a890ca7520f1182e8bae71f9a53d754/src/dotnet-install.ps1"
+    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/88bd34f089b8a023e3523f22c92abd0ab88e4409/src/dotnet-install.ps1"
     $DotNetInstallScriptPath = "$DotNetInstallScriptRoot/dotnet-install.ps1"
 }
 
