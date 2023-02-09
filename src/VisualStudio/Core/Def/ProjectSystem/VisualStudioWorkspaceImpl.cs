@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Logger.Log(FunctionId.Run_Environment,
                 KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
 
-            // Initialize task-list
+            // Initialize task-list in BG.
             var taskListService = this.Services.SolutionServices.ExportProvider.GetExports<VisualStudioTaskListService>().Single().Value;
             taskListService.Start(this);
         }
