@@ -777,8 +777,7 @@ class Z
 }");
         }
 
-        [Fact]
-        [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
+        [Fact, WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
         public async Task TestUnderscoreInName1()
         {
             await TestInRegularAndScriptAsync(
@@ -797,8 +796,7 @@ class Z
 }");
         }
 
-        [Fact]
-        [WorkItem(62162, "https://github.com/dotnet/roslyn/issues/62162")]
+        [Fact, WorkItem(62162, "https://github.com/dotnet/roslyn/issues/62162")]
         public async Task TestUnderscoreInName_KeepIfNameWithoutUnderscoreIsInvalid()
         {
             await TestInRegularAndScriptAsync(
@@ -839,8 +837,7 @@ $@"class Program
 }}");
         }
 
-        [Fact]
-        [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
+        [Fact, WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
         public async Task TestUnderscoreInName_PreferThis()
         {
             await TestInRegularAndScriptAsync(
@@ -860,8 +857,7 @@ $@"class Program
 options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
-        [Fact]
-        [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
+        [Fact, WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
         public async Task TestGetter_Only_Auto_Props()
         {
             await TestInRegularAndScriptAsync(
@@ -884,8 +880,7 @@ options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWith
 options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
-        [Fact]
-        [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
+        [Fact, WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
         public async Task TestAbstract_Getter_Only_Auto_Props()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1044,8 +1039,7 @@ chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true);
         }
 
-        [Fact]
-        [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
+        [Fact, WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
         public async Task TestAddNullChecksWithNullableReferenceType()
         {
             await TestWithPickMembersDialogAsync(
@@ -1083,8 +1077,7 @@ chosenSymbols: new string[] { "a", "b", "c" },
 optionsCallback: options => options[0].Value = true);
         }
 
-        [Fact]
-        [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
+        [Fact, WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
         public async Task TestAddNullChecksWithNullableReferenceTypeForGenerics()
         {
             await TestWithPickMembersDialogAsync(
@@ -1289,8 +1282,7 @@ class Z
 }");
         }
 
-        [Fact]
-        [WorkItem(21067, "https://github.com/dotnet/roslyn/pull/21067")]
+        [Fact, WorkItem(21067, "https://github.com/dotnet/roslyn/pull/21067")]
         public async Task TestFinalCaretPosition()
         {
             await TestInRegularAndScriptAsync(
@@ -1313,8 +1305,7 @@ class Z
 }");
         }
 
-        [Fact]
-        [WorkItem(20595, "https://github.com/dotnet/roslyn/issues/20595")]
+        [Fact, WorkItem(20595, "https://github.com/dotnet/roslyn/issues/20595")]
         public async Task ProtectedConstructorShouldBeGeneratedForAbstractClass()
         {
             await TestInRegularAndScriptAsync(
@@ -1334,8 +1325,7 @@ class Z
 options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
-        [Fact]
-        [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
+        [Fact, WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
         public async Task TestWithDialogNoBackingField()
         {
             await TestWithPickMembersDialogAsync(
@@ -1358,8 +1348,7 @@ class Program
 chosenSymbols: null);
         }
 
-        [Fact]
-        [WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")]
+        [Fact, WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")]
         public async Task TestWithDialogNoIndexer()
         {
             await TestWithPickMembersDialogAsync(
@@ -1410,8 +1399,7 @@ class Program
 chosenSymbols: null);
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelection()
         {
             await TestInRegularAndScriptAsync(
@@ -1430,8 +1418,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelection2()
         {
             await TestInRegularAndScriptAsync(
@@ -1450,8 +1437,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelection3()
         {
             await TestInRegularAndScriptAsync(
@@ -1470,8 +1456,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelectionBeforeIdentifier()
         {
             await TestInRegularAndScript1Async(
@@ -1490,8 +1475,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelectionAfterIdentifier()
         {
             await TestInRegularAndScript1Async(
@@ -1510,8 +1494,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelectionIdentifierNotSelected()
         {
             await TestMissingAsync(
@@ -1521,8 +1504,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestPartialFieldSelectionIdentifierNotSelected2()
         {
             await TestMissingAsync(
@@ -1532,8 +1514,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestMultiplePartialFieldSelection()
         {
             await TestInRegularAndScriptAsync(
@@ -1555,8 +1536,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestMultiplePartialFieldSelection2()
         {
             await TestInRegularAndScriptAsync(
@@ -1577,8 +1557,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestMultiplePartialFieldSelection3_1()
         {
             await TestInRegularAndScriptAsync(
@@ -1597,8 +1576,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestMultiplePartialFieldSelection3_2()
         {
             await TestInRegularAndScriptAsync(
@@ -1618,8 +1596,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         public async Task TestMultiplePartialFieldSelection4()
         {
             await TestMissingAsync(
@@ -1629,8 +1606,7 @@ chosenSymbols: null);
 }");
         }
 
-        [Fact]
-        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
+        [Fact, WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestNoFieldNamingStyle()
         {
             await TestInRegularAndScriptAsync(
@@ -1649,8 +1625,7 @@ chosenSymbols: null);
 }", options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
         }
 
-        [Fact]
-        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
+        [Fact, WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestCommonFieldNamingStyle()
         {
             await TestInRegularAndScriptAsync(
@@ -1669,8 +1644,7 @@ chosenSymbols: null);
 }", options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
         }
 
-        [Fact]
-        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
+        [Fact, WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestSpecifiedNamingStyle()
         {
             await TestInRegularAndScriptAsync(
@@ -1689,8 +1663,7 @@ chosenSymbols: null);
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
-        [Fact]
-        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
+        [Fact, WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestSpecifiedAndCommonFieldNamingStyle()
         {
             await TestInRegularAndScriptAsync(
@@ -1709,8 +1682,7 @@ chosenSymbols: null);
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
-        [Fact]
-        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
+        [Fact, WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestSpecifiedAndCommonFieldNamingStyle2()
         {
             await TestInRegularAndScriptAsync(
@@ -1729,8 +1701,7 @@ chosenSymbols: null);
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
-        [Fact]
-        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
+        [Fact, WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestBaseNameEmpty()
         {
             await TestMissingAsync(
@@ -1740,8 +1711,7 @@ chosenSymbols: null);
 }", new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
-        [Fact]
-        [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
+        [Fact, WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
         public async Task TestSomeBaseNamesEmpty()
         {
             await TestInRegularAndScriptAsync(
@@ -1762,8 +1732,7 @@ chosenSymbols: null);
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
 
-        [Fact]
-        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
         public async Task TestUnsafeField()
         {
             await TestInRegularAndScriptAsync(
@@ -1784,8 +1753,7 @@ class Z
 }", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
         }
 
-        [Fact]
-        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
         public async Task TestUnsafeFieldInUnsafeClass()
         {
             await TestInRegularAndScriptAsync(
@@ -1806,8 +1774,7 @@ unsafe class Z
 }", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
         }
 
-        [Fact]
-        [WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
+        [Fact, WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
         public async Task TestMissingWhenTypeNotInCompilation()
         {
             await TestMissingAsync(
