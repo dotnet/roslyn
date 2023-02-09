@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var typeParameterRefs = document.Descendants(DocumentationCommentXmlNames.TypeParameterReferenceElementName).ToImmutableArray();
                 foreach (var typeParameterRef in typeParameterRefs)
                 {
-                    if (typeParameterRef.Attribute(DocumentationCommentXmlNames.NameAttributeName) is var typeParamName)
+                    if (typeParameterRef.Attribute(DocumentationCommentXmlNames.NameAttributeName) is XAttribute typeParamName)
                     {
                         var index = symbol.OriginalDefinition.GetAllTypeParameters().IndexOf(p => p.Name == typeParamName.Value);
                         if (index >= 0)

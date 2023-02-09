@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -100,6 +101,9 @@ namespace Microsoft.CodeAnalysis.Debugging
                 var symReader = Interlocked.Exchange(ref _symReader, null);
                 if (symReader != null && Marshal.IsComObject(symReader))
                 {
+#if NETCOREAPP
+                    Debug.Assert(OperatingSystem.IsWindows());
+#endif
                     Marshal.ReleaseComObject(symReader);
                 }
             }
