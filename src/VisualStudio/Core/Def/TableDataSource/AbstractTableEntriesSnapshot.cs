@@ -169,9 +169,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             if (navigationService == null)
                 return false;
 
-            return this.ThreadingContext.JoinableTaskFactory.Run(() =>
+            return this.ThreadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                var solution = workspace.CurrentSolution;
+                var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                if (document is null)
+                    return false;
+
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var line = text.Lines[Math.Max(position.Line.Clamp - 1, 0)];
+
                 navigationService.TryNavigateToLineAndOffsetAsync(
-                    this.ThreadingContext, workspace, documentId, position.Line, position.Character, options, cancellationToken));
+                    this.ThreadingContext, workspace, documentId, position.Line, position.Character, options, cancellationToken);
+            });
         }
 
         protected bool TryNavigateToItem(int index, NavigationOptions options, CancellationToken cancellationToken)
