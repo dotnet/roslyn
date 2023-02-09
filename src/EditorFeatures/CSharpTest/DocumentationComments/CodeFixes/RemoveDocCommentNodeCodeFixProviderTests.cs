@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.CodeFixes
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
     public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public RemoveDocCommentNodeCodeFixProviderTests(ITestOutputHelper logger)
@@ -381,7 +382,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllTypeparamInDocument_DoesNotFixDuplicateParamTags()
         {
@@ -503,7 +503,6 @@ class Program3
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
@@ -613,7 +612,6 @@ class Program3
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
@@ -707,7 +705,6 @@ class Program3
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
