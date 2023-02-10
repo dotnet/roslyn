@@ -68,8 +68,8 @@
     <MicrosoftTestPlatformVersion>17.4.0-preview-20220707-01</MicrosoftTestPlatformVersion>
     
     <!-- <Metalama> -->
-    <MetalamaBackstageVersion Condition="'$(MetalamaBackstageVersion)'==''">branch:master</MetalamaBackstageVersion>
-    <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">1.0.111-preview</PostSharpEngineeringVersion>
+    <MetalamaBackstageVersion></MetalamaBackstageVersion>
+    <PostSharpEngineeringVersion>1.0.122-preview</PostSharpEngineeringVersion>
     
     <!-- this needs to be undefined, not sure why -->
     <MajorVersion>
