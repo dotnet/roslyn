@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             out SyntaxToken iterationVariable,
             [NotNullWhen(true)] out TExpressionSyntax? initializer,
             [NotNullWhen(true)] out TMemberAccessExpressionSyntax? memberAccess,
-            [NotNullWhen(true)] out TExpressionSyntax? stepValueExpressionOpt,
+            out TExpressionSyntax? stepValueExpressionOpt,
             CancellationToken cancellationToken);
 
         protected abstract SyntaxNode ConvertForNode(

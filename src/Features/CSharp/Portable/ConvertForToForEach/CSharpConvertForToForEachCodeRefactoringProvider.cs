@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             out SyntaxToken iterationVariable,
             [NotNullWhen(true)] out ExpressionSyntax? initializer,
             [NotNullWhen(true)] out MemberAccessExpressionSyntax? memberAccess,
-            [NotNullWhen(true)] out ExpressionSyntax? stepValueExpressionOpt,
+            out ExpressionSyntax? stepValueExpressionOpt,
             CancellationToken cancellationToken)
         {
             // Look for very specific forms.  Basically, only minor variations around:
@@ -60,9 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
                     binaryExpression.Right is MemberAccessExpressionSyntax right)
                 {
                     memberAccess = right;
-
-                    var incrementor = forStatement.Incrementors[0];
-                    return TryGetStepValue(iterationVariable, incrementor, out stepValueExpressionOpt);
+                    return TryGetStepValue(iterationVariable, forStatement.Incrementors[0], out stepValueExpressionOpt);
                 }
             }
 
