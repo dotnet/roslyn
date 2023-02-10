@@ -2280,7 +2280,6 @@ class Test1 : I2, I1<string?>
                                                         parseOptions: TestOptions.Regular,
                                                         targetFramework: TargetFramework.NetCoreApp);
 
-
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
                 Assert.Equal(new[] { "I2", "I1<System.String>", "I1<System.String?>" },
@@ -2349,7 +2348,6 @@ class Test1 : I1<string?>, I2
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
                                                         targetFramework: TargetFramework.NetCoreApp);
-
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -9087,7 +9085,6 @@ class Test1 : I1
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Internal, isStatic: isStatic);
 
-
             var source3 =
 @"
 class Test2 : I1
@@ -11701,7 +11698,6 @@ class Test1 : I1
                                              targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, Accessibility.Protected)).VerifyDiagnostics();
 
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.Protected);
@@ -11713,7 +11709,6 @@ class Test1 : I1
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Protected);
-
 
             var source3 =
 @"
@@ -11829,7 +11824,6 @@ class Test1 : I1
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.ProtectedOrInternal);
-
 
             var source3 =
 @"
@@ -11953,7 +11947,6 @@ class Test1 : I1
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.ProtectedAndInternal);
-
 
             var source3 =
 @"
@@ -27241,7 +27234,6 @@ class Test1 : I1
                 },
                 haveAdd: true, haveRemove: false);
 
-
             ValidateEventImplementation_101(@"
 public interface I1
 {
@@ -31568,7 +31560,7 @@ class Test1 : I1.T1
             ValidateNestedTypes_01(source1);
         }
 
-        private void ValidateNestedTypes_01(string source1, Accessibility expected = Accessibility.Public, TargetFramework targetFramework = TargetFramework.Standard, bool execute = true, Verification verify = Verification.Passes)
+        private void ValidateNestedTypes_01(string source1, Accessibility expected = Accessibility.Public, TargetFramework targetFramework = TargetFramework.Standard, bool execute = true, Verification verify = default)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -31969,7 +31961,6 @@ class Test1
                 //     protected internal delegate void T5();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T5").WithLocation(20, 38)
                 );
-
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
@@ -44076,7 +44067,6 @@ class Test1
                 Diagnostic(ErrorCode.ERR_BadAccess, "F3").WithArguments("I1.F3").WithLocation(15, 12)
                 );
 
-
             var source4 =
 @"
 class Test2 : I1
@@ -45828,7 +45818,6 @@ public class Test1 : I0
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation0.VerifyDiagnostics();
-
 
             var source2 =
 @"
@@ -54031,7 +54020,6 @@ class Test1 : I2
                 compilation2.VerifyDiagnostics(expected);
             }
 
-
             void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
@@ -59083,7 +59071,6 @@ class Test1 : I2
                 validate(compilation2.SourceModule);
                 compilation2.VerifyDiagnostics(expected);
             }
-
 
             void validate(ModuleSymbol m)
             {
@@ -68364,7 +68351,6 @@ class Test1 : I1<Test1>
                     Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1<Test1>")
                     );
 
-
                 var source4 = @"
 public interface I3<T3> : I1<T3> where T3 : I1<T3>
 {
@@ -68926,6 +68912,85 @@ public interface I1
                 //     static implicit operator int (I1 x) => 0;
                 Diagnostic(ErrorCode.ERR_ComImportWithImpl, "int").WithArguments("I1.implicit operator int(I1)", "I1").WithLocation(28, 30)
                 );
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter_DefaultImplementation()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S value = new();
+        ref readonly S valueRef = ref value;
+        Console.Write(valueRef);
+        M(in valueRef);
+        Console.Write(valueRef);
+    }
+    public static void M(in S value)
+    {
+        foreach (var x in value) { }
+    }
+}
+
+public interface MyEnumerable : IEnumerable<int>
+{
+    IEnumerator<int> GetEnumeratorCore();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumeratorCore();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumeratorCore();
+}
+
+public struct S : MyEnumerable
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    public IEnumerator<int> GetEnumeratorCore() => Enumerable.Range(0, ++a).GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                expectedOutput: Execute(isStatic: false) ? "00" : null,
+                verify: Verify(isStatic: false));
+
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ret
+}
+""");
         }
     }
 }

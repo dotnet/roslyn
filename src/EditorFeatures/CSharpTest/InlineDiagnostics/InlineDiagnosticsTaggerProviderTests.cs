@@ -21,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
 {
     [UseExportProvider]
-    [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+    [Trait(Traits.Feature, Traits.Features.ErrorSquiggles), Trait(Traits.Feature, Traits.Features.Tagging)]
     public class InlineDiagnosticsTaggerProviderTests
     {
         [WpfFact]
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
 
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(TestWorkspace workspace)
         {
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp), true);
+            workspace.GlobalOptions.SetGlobalOption(InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp, true);
             return (await TestDiagnosticTagProducer<InlineDiagnosticsTaggerProvider, InlineDiagnosticsTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }
     }

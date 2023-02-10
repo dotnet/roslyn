@@ -222,6 +222,11 @@
         <target state="translated">Das Datensatzelement "{0}" muss eine lesbare Instanzeigenschaft oder ein Feld vom Typ "{1}" sein, um dem Positionsparameter "{2}" zu entsprechen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefUsing">
+        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Fehler in der Befehlszeilensyntax: "{0}" ist kein gültiger Wert für die Option "{1}". Der Wert muss im Format "{2}" vorliegen.</target>
@@ -364,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
         <source>A deconstruction variable cannot be declared as a ref local</source>
-        <target state="new">A deconstruction variable cannot be declared as a ref local</target>
+        <target state="translated">Eine Dekonstruktionsvariable kann nicht als lokale Referenz deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
@@ -663,8 +668,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
-        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="translated">Die Verwendung eines Funktionszeigertyps in "typeof" in einem Attribut wird nicht unterstützt.</target>
+        <source>Using a function pointer type in this context is not supported.</source>
+        <target state="needs-review-translation">Die Verwendung eines Funktionszeigertyps in "typeof" in einem Attribut wird nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -750,6 +755,11 @@
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">Durch den Aufruf des impliziten Bereichsindexers kann das Argument nicht benannt werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="translated">Der implizit eingegebene Parameter „{0}“ der Lambdafunktion darf keinen Standardwert aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1299,7 +1309,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
-        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <target state="translated">„{1}“ kann nicht auf „{0}“ verweisen, da „{1}“ einen breiteren Werte-Escapebereich als „{0}“ hat, wodurch die Zuweisung über „{0}“ von Werten mit engeren Escapebereichen als „{1}“ ermöglicht wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -1424,7 +1434,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">
         <source>The 'scoped' modifier cannot be used with discard.</source>
-        <target state="new">The 'scoped' modifier cannot be used with discard.</target>
+        <target state="translated">Der Modifizierer „scoped“ kann nicht mit „discard“ verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
@@ -1632,9 +1642,24 @@
         <target state="translated">"{0}" ist mit dem Attribut "UnmanagedCallersOnly" versehen und kann nicht in einen Delegattyp konvertiert werden. Rufen Sie einen Funktionszeiger auf diese Methode ab.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
+        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
+        <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
+        <target state="translated">"UnscopedRefAttribute" kann nicht auf eine Schnittstellenimplementierung angewendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
+        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="translated">"UnscopedRefAttribute" kann nur auf Strukturinstanzmethoden und -eigenschaften und nicht auf Konstruktoren oder init-only-Member angewendet werden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="translated">"UnscopedRefAttribute" kann nicht auf dieses Element angewendet werden, weil es standardmäßig keinen Gültigkeitsbereich aufweist.</target>
+        <source>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</source>
+        <target state="translated">"UnscopedRefAttribute" kann nicht auf diesen Parameter angewendet werden, da er standardmäßig nicht bereichsgesteuert ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -1772,6 +1797,16 @@
         <target state="translated">Lambdaattribute</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaOptionalParameters">
+        <source>lambda optional parameters</source>
+        <target state="translated">Optionale Parameter der Lambdafunktion</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaParamsArray">
+        <source>lambda params array</source>
+        <target state="translated">Parameterarray der Lambdafunktion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
         <source>lambda return type</source>
         <target state="translated">Lambda-Rückgabetyp</target>
@@ -1860,6 +1895,11 @@
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
         <target state="translated">Musterabgleich ReadOnly/Span&lt;char&gt; bei konstanter Zeichenfolge</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Missing">
+        <source>&lt;missing&gt;</source>
+        <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2097,6 +2137,16 @@
         <target state="translated">Member, die mit "ObsoleteAttribute" attributiert sind, sollten nur erforderlich sein, wenn der enthaltende Typ veraltet ist oder alle Konstruktoren veraltet sind.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</source>
+        <target state="translated">Der Parameter {0} hat den Standardwert „{1:10}“ in der Lambdafunktion, aber „{2:10}“ im Delegattyp des Ziels.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch_Title">
+        <source>The default parameter value does not match in the target delegate type.</source>
+        <target state="translated">Der Standardparameterwert stimmt nicht mit dem Delegattyp im Ziel überein.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">Der Parameter "{0}" muss beim Beenden einen Wert ungleich NULL aufweisen, weil Parameter "{1}" nicht NULL ist.</target>
@@ -2115,6 +2165,16 @@
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
         <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
         <target state="translated">Die Konvertierung eines Parameters eines Handlers einer interpolierten Zeichenfolgen erfolgt nach dem Handlerparameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly">
+        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">Der Parameter {0} weist den Modifizierer „params“ in der Lambdafunktion auf, aber nicht im Delegattyp des Ziels.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
+        <source>Parameter has params modifier in lambda but not in target delegate type.</source>
+        <target state="translated">Der Parameter verfügt über den Modifizierer „params“ in der Lambdafunktion, aber nicht im Delegattyp des Ziels.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2174,12 +2234,12 @@
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
-        <target state="new">This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <target state="translated">Dieser weist „{1}“ für „{0}“ zu, aber „{1}“ hat einen breiteren Werte-Escapebereich als „{0}“, wodurch die Zuweisung über „{0}“ von Werten mit engeren Escapebereichen als „{1}“ ermöglicht wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider_Title">
         <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
-        <target state="new">This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</target>
+        <target state="translated">Dies weist einen Wert zu, der über einen breiteren Werte-Escapebereich als das Ziel verfügt, wodurch die Zuweisung durch das Ziel von Werten mit engeren Escapebereichen ermöglicht wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -5263,7 +5323,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
         <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
-        <target state="needs-review-translation">Eine Eigenschaft oder ein Indexer kann nicht als out- oder ref-Parameter übergeben werden.</target>
+        <target state="translated">Eine Eigenschaft oder ein Indexer ohne Verweisrückgabe darf nicht als Out- oder Ref-Wert verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ManagedAddr">
@@ -8471,7 +8531,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturnExpression">
         <source>Since this is an async method, the return expression must be of type '{0}' rather than '{1}'</source>
-        <target state="translated">Da es sich um eine asynchrone Methode handelt, muss der Rückgabeausdruck vom Typ "{0}" anstelle von "{1}" sein.</target>
+        <target state="translated">Da es sich um eine asynchrone Methode handelt, muss der Rückgabeausdruck vom Typ „{0}“ anstelle von „{1}“ sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
@@ -9634,7 +9694,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
         <source>Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</source>
-        <target state="new">Since '{0}' is an async method that returns '{1}', a return keyword must not be followed by an object expression</target>
+        <target state="translated">Da „{0}“ eine asynchrone Methode ist, die „{1}“ zurückgibt, darf auf ein Rückgabeschlüsselwort kein Objektausdruck folgen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
@@ -11064,7 +11124,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequiredLambda">
         <source>Async lambda expression converted to a '{0}' returning delegate cannot return a value</source>
-        <target state="new">Async lambda expression converted to a '{0}' returning delegate cannot return a value</target>
+        <target state="translated">Eine asynchroner Lambdafunktion, die in einen zurückkehrenden „{0}“-Delegat konvertiert wurde, kann keinen Wert zurückgeben.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerCannotBeCreated">

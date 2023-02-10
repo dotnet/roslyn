@@ -730,7 +730,6 @@ class A {}
             var symbolInfo = model.GetSpeculativeSymbolInfo(xdecl.SpanStart, speculate, SpeculativeBindingOption.BindAsTypeOrNamespace);
             var lookup = symbolInfo.Symbol as ITypeSymbol;
 
-
             Assert.NotNull(lookup);
             var a = comp.GlobalNamespace.GetTypeMembers("A", 0).Single();
             Assert.Equal(a, lookup);

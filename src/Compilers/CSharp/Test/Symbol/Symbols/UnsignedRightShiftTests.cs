@@ -1168,7 +1168,6 @@ Passed 4
 Passed 5
 ").VerifyDiagnostics();
 
-
             string actualIL = verifier.VisualizeIL("C.Test2");
             verifier.VerifyIL("C.Test1", actualIL.Replace("shr.un", "shr").Replace("shr", "shr.un"));
 
@@ -1997,7 +1996,6 @@ class C
             CompileAndVerify(compilation2, expectedOutput: @">>>").VerifyDiagnostics();
             Assert.Equal(MethodKind.UserDefinedOperator, compilation2.GetMember<MethodSymbol>("C1.op_UnsignedRightShift").MethodKind);
 
-
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugExe, references: new[] { compilation0.EmitToImageReference() },
                                                  parseOptions: TestOptions.RegularPreview);
 
@@ -2249,7 +2247,6 @@ class C
 
             CompileAndVerify(compilation2, expectedOutput: @">>>").VerifyDiagnostics();
             Assert.Equal(MethodKind.UserDefinedOperator, compilation2.GetMember<MethodSymbol>("C1.op_UnsignedRightShift").MethodKind);
-
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugExe, references: new[] { compilation0.EmitToImageReference() },
                                                  parseOptions: TestOptions.RegularPreview);

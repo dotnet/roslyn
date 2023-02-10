@@ -5,6 +5,8 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -53,20 +55,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return a node that is associated with open brace of the block. Ok to return null.
+        /// Instruments <paramref name="original"/> block.
         /// </summary>
-        public virtual BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
+        /// <param name="original">Original block.</param>
+        /// <param name="rewriter">Local rewriter.</param>
+        /// <param name="additionalLocals">Local symbols to be added to <see cref="BoundBlock.Locals"/> of the resulting block.</param>
+        /// <param name="prologue">Node to be added to the beginning of the statement list of the instrumented block.</param>
+        /// <param name="epilogue">Node to be added at the end of the statement list of the instrumented block.</param>
+        public virtual void InstrumentBlock(BoundBlock original, LocalRewriter rewriter, ref TemporaryArray<LocalSymbol> additionalLocals, out BoundStatement? prologue, out BoundStatement? epilogue)
         {
-            synthesizedLocal = null;
-            return null;
-        }
-
-        /// <summary>
-        /// Return a node that is associated with close brace of the block. Ok to return null.
-        /// </summary>
-        public virtual BoundStatement? CreateBlockEpilogue(BoundBlock original)
-        {
-            return null;
+            prologue = null;
+            epilogue = null;
         }
 
         public virtual BoundStatement InstrumentThrowStatement(BoundThrowStatement original, BoundStatement rewritten)
@@ -130,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ifConditionGotoStart;
         }
 
-        [return: NotNullIfNotNull("collectionVarDecl")]
+        [return: NotNullIfNotNull(nameof(collectionVarDecl))]
         public virtual BoundStatement? InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement? collectionVarDecl)
         {
             Debug.Assert(!original.WasCompilerGenerated);

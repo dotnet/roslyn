@@ -44,7 +44,6 @@ $@"namespace Test {ob}
                 };
             };
 
-
             VerifyType verify = (winmd, expected) =>
             {
                 var validator = getValidator(expected);

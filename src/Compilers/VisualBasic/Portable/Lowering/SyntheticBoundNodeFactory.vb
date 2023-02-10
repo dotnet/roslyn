@@ -173,7 +173,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
-
         Public Function Base() As BoundMyBaseReference
             Debug.Assert(Me.CurrentMethod IsNot Nothing AndAlso Not Me.CurrentMethod.IsShared)
             Dim boundNode = New BoundMyBaseReference(_syntax, Me.CurrentMethod.MeParameter.Type.BaseTypeNoUseSiteDiagnostics)

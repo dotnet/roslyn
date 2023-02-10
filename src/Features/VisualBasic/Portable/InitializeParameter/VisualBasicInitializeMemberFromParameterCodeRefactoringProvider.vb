@@ -29,12 +29,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Public Sub New()
         End Sub
 
-        Protected Overrides Function SupportsRecords(options As ParseOptions) As Boolean
-            Return False
-        End Function
-
-        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
-
         Protected Overrides Function IsFunctionDeclaration(node As SyntaxNode) As Boolean
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
         End Function
@@ -86,6 +80,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Private Overloads Shared Function RemoveThrowNotImplemented(accessorBlock As AccessorBlockSyntax) As AccessorBlockSyntax
             Return accessorBlock.WithStatements(Nothing)
+        End Function
+
+        Protected Overrides Function TryUpdateTupleAssignment(blockStatement As IBlockOperation, parameter As IParameterSymbol, fieldOrProperty As ISymbol, editor As SyntaxEditor) As Boolean
+            ' Not supported in VB
+            Return False
         End Function
     End Class
 End Namespace

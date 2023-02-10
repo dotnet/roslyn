@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        private OptionsCollection UseExpressionBody =>
-            Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
+        private OptionsCollection UseExpressionBody
+            => Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
         [Fact]
         public async Task TestExpressionWithNoMethodCallsCase()
@@ -1989,6 +1989,24 @@ public class C
 ";
 
             await TestInRegularAndScriptAsync(code, expected, 0);
+        }
+
+        [Fact]
+        public async Task TestIntroduceParameterOnAttributeArgument()
+        {
+            var code =
+@"
+public class C
+{
+    [Theory]
+    [InlineData([|""A""|])]
+    public void Test(string s)
+    {
+    }
+}
+";
+
+            await TestMissingInRegularAndScriptAsync(code);
         }
     }
 }

@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.Cci
 {
@@ -44,7 +45,7 @@ namespace Microsoft.Cci
         /// member ref names, type def (full) names, type ref (full) names, exported type
         /// (full) names, parameter names, manifest resource names, and unmanaged method names
         /// (ImplMap table).
-        /// 
+        ///
         /// See CLI Part II, section 22.
         /// </remarks>
         internal const int NameLengthLimit = 1024 - 1; //MAX_CLASS_NAME = 1024 in dev11
@@ -55,13 +56,13 @@ namespace Microsoft.Cci
         /// </summary>
         /// <remarks>
         /// Used for file names, module names, and module ref names.
-        /// 
+        ///
         /// See CLI Part II, section 22.
         /// </remarks>
         internal const int PathLengthLimit = 260 - 1; //MAX_PATH = 1024 in dev11
 
         /// <summary>
-        /// This is the maximum length of a string in the PDB, assuming it is in UTF-8 format 
+        /// This is the maximum length of a string in the PDB, assuming it is in UTF-8 format
         /// and not (yet) null-terminated.
         /// </summary>
         /// <remarks>
@@ -216,7 +217,7 @@ namespace Microsoft.Cci
         protected abstract MethodDefinitionHandle GetMethodDefinitionHandle(IMethodDefinition def);
 
         /// <summary>
-        /// The method definition corresponding to full metadata method handle. 
+        /// The method definition corresponding to full metadata method handle.
         /// Deltas are only required to support indexing into current generation.
         /// </summary>
         protected abstract IMethodDefinition GetMethodDef(MethodDefinitionHandle handle);
@@ -287,9 +288,9 @@ namespace Microsoft.Cci
         // and module names specified by P/Invokes (plain strings). Names in the table must be unique and are case sensitive.
         //
         // Spec 22.31 (ModuleRef : 0x1A)
-        // "Name should match an entry in the Name column of the File table. Moreover, that entry shall enable the 
+        // "Name should match an entry in the Name column of the File table. Moreover, that entry shall enable the
         // CLI to locate the target module (typically it might name the file used to hold the module)"
-        // 
+        //
         // This is not how the Dev10 compilers and ILASM work. An entry is added to File table only for resources and netmodules.
         // Entries aren't added for P/Invoked modules.
 
@@ -1324,7 +1325,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// The Microsoft CLR requires that {namespace} + "." + {name} fit in MAX_CLASS_NAME 
+        /// The Microsoft CLR requires that {namespace} + "." + {name} fit in MAX_CLASS_NAME
         /// (even though the name and namespace are stored separately in the Microsoft
         /// implementation).  Note that the namespace name of a nested type is always blank
         /// (since comes from the container).
@@ -1599,9 +1600,9 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            // NOTE: Even though CLR documentation does not explicitly specify any requirements 
-            // NOTE: to the order of records in TypeRef table, some tools and/or APIs (e.g. 
-            // NOTE: IMetaDataEmit::MergeEnd) assume that the containing type referenced as 
+            // NOTE: Even though CLR documentation does not explicitly specify any requirements
+            // NOTE: to the order of records in TypeRef table, some tools and/or APIs (e.g.
+            // NOTE: IMetaDataEmit::MergeEnd) assume that the containing type referenced as
             // NOTE: ResolutionScope for its nested types should appear in TypeRef table
             // NOTE: *before* any of its nested types.
             // SEE ALSO: bug#570975 and test Bug570975()
@@ -1695,7 +1696,7 @@ namespace Microsoft.Cci
             var mappedFieldDataBuilder = new BlobBuilder(0);
             var managedResourceDataBuilder = new BlobBuilder(0);
 
-            // Add 4B of padding to the start of the separated IL stream, 
+            // Add 4B of padding to the start of the separated IL stream,
             // so that method RVAs, which are offsets to this stream, are never 0.
             ilBuilder.WriteUInt32(0);
 
@@ -2316,7 +2317,15 @@ namespace Microsoft.Cci
                     continue;
                 }
 
+                // The compiler always aligns each RVA data field to an 8-byte boundary; this accomodates the alignment
+                // needs for all primitive types, regardless of which type is actually being used, at the expense of
+                // potentially wasting up to 7 bytes per field if the alignment needs are less. In the future, this
+                // potentially could be tightened to align each field only as much as is actually required by that
+                // field, saving a few bytes per field.
                 int offset = mappedFieldDataWriter.Count;
+                Debug.Assert(offset % ManagedPEBuilder.MappedFieldDataAlignment == 0, "Expected last write to end at alignment boundary");
+                Debug.Assert(ManagedPEBuilder.MappedFieldDataAlignment == 8, "Expected alignment to be 8");
+
                 mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
                 mappedFieldDataWriter.Align(ManagedPEBuilder.MappedFieldDataAlignment);
 
@@ -3012,12 +3021,6 @@ namespace Microsoft.Cci
                 SerializeCustomModifiers(encoder.CustomModifiers(), local.CustomModifiers);
             }
 
-            if (module.IsPlatformType(local.Type, PlatformType.SystemTypedReference))
-            {
-                encoder.TypedReference();
-                return;
-            }
-
             SerializeTypeReference(encoder.Type(local.IsReference, local.IsPinned), local.Type);
         }
 
@@ -3311,23 +3314,13 @@ namespace Microsoft.Cci
         {
             var type = parameterTypeInformation.GetType(Context);
 
-            if (module.IsPlatformType(type, PlatformType.SystemTypedReference))
-            {
-                Debug.Assert(!parameterTypeInformation.IsByReference);
-                SerializeCustomModifiers(encoder.CustomModifiers(), parameterTypeInformation.CustomModifiers);
+            Debug.Assert(parameterTypeInformation.RefCustomModifiers.Length == 0 || parameterTypeInformation.IsByReference);
+            SerializeCustomModifiers(encoder.CustomModifiers(), parameterTypeInformation.RefCustomModifiers);
 
-                encoder.TypedReference();
-            }
-            else
-            {
-                Debug.Assert(parameterTypeInformation.RefCustomModifiers.Length == 0 || parameterTypeInformation.IsByReference);
-                SerializeCustomModifiers(encoder.CustomModifiers(), parameterTypeInformation.RefCustomModifiers);
+            var typeEncoder = encoder.Type(parameterTypeInformation.IsByReference);
 
-                var typeEncoder = encoder.Type(parameterTypeInformation.IsByReference);
-
-                SerializeCustomModifiers(typeEncoder.CustomModifiers(), parameterTypeInformation.CustomModifiers);
-                SerializeTypeReference(typeEncoder, type);
-            }
+            SerializeCustomModifiers(typeEncoder.CustomModifiers(), parameterTypeInformation.CustomModifiers);
+            SerializeTypeReference(typeEncoder, type);
         }
 
         private void SerializeFieldSignature(IFieldReference fieldReference, BlobBuilder builder)
@@ -3355,6 +3348,21 @@ namespace Microsoft.Cci
             }
         }
 
+        private EmitContext GetEmitContextForAttribute(ICustomAttribute customAttribute)
+        {
+            if (customAttribute is AttributeData { ApplicationSyntaxReference: { } syntaxReference })
+            {
+                return new EmitContext(
+                    Context.Module,
+                    Context.Diagnostics,
+                    metadataOnly: Context.MetadataOnly,
+                    includePrivateMembers: Context.IncludePrivateMembers,
+                    rebuildData: Context.RebuildData,
+                    syntaxReference: syntaxReference);
+            }
+            return Context;
+        }
+
         private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, BlobBuilder builder)
         {
             var parameters = customAttribute.Constructor(Context, reportDiagnostics: false).GetParameters(Context);
@@ -3365,15 +3373,17 @@ namespace Microsoft.Cci
             CustomAttributeNamedArgumentsEncoder namedArgsEncoder;
             new BlobEncoder(builder).CustomAttributeSignature(out fixedArgsEncoder, out namedArgsEncoder);
 
+            var attributeContext = GetEmitContextForAttribute(customAttribute);
+
             for (int i = 0; i < parameters.Length; i++)
             {
-                SerializeMetadataExpression(fixedArgsEncoder.AddArgument(), arguments[i], parameters[i].GetType(Context));
+                SerializeMetadataExpression(in attributeContext, fixedArgsEncoder.AddArgument(), arguments[i], parameters[i].GetType(Context));
             }
 
-            SerializeCustomAttributeNamedArguments(namedArgsEncoder.Count(customAttribute.NamedArgumentCount), customAttribute);
+            SerializeCustomAttributeNamedArguments(in attributeContext, namedArgsEncoder.Count(customAttribute.NamedArgumentCount), customAttribute);
         }
 
-        private void SerializeCustomAttributeNamedArguments(NamedArgumentsEncoder encoder, ICustomAttribute customAttribute)
+        private void SerializeCustomAttributeNamedArguments(in EmitContext context, NamedArgumentsEncoder encoder, ICustomAttribute customAttribute)
         {
             foreach (IMetadataNamedArgument namedArgument in customAttribute.GetNamedArguments(Context))
             {
@@ -3382,17 +3392,17 @@ namespace Microsoft.Cci
                 LiteralEncoder literalEncoder;
                 encoder.AddArgument(namedArgument.IsField, out typeEncoder, out nameEncoder, out literalEncoder);
 
-                SerializeNamedArgumentType(typeEncoder, namedArgument.Type);
+                SerializeNamedArgumentType(in context, typeEncoder, namedArgument.Type);
                 nameEncoder.Name(namedArgument.ArgumentName);
-                SerializeMetadataExpression(literalEncoder, namedArgument.ArgumentValue, namedArgument.Type);
+                SerializeMetadataExpression(in context, literalEncoder, namedArgument.ArgumentValue, namedArgument.Type);
             }
         }
 
-        private void SerializeNamedArgumentType(NamedArgumentTypeEncoder encoder, ITypeReference type)
+        private void SerializeNamedArgumentType(in EmitContext context, NamedArgumentTypeEncoder encoder, ITypeReference type)
         {
             if (type is IArrayTypeReference arrayType)
             {
-                SerializeCustomAttributeArrayType(encoder.SZArray(), arrayType);
+                SerializeCustomAttributeArrayType(in context, encoder.SZArray(), arrayType);
             }
             else if (module.IsPlatformType(type, PlatformType.SystemObject))
             {
@@ -3400,11 +3410,11 @@ namespace Microsoft.Cci
             }
             else
             {
-                SerializeCustomAttributeElementType(encoder.ScalarType(), type);
+                SerializeCustomAttributeElementType(in context, encoder.ScalarType(), type);
             }
         }
 
-        private void SerializeMetadataExpression(LiteralEncoder encoder, IMetadataExpression expression, ITypeReference targetType)
+        private void SerializeMetadataExpression(in EmitContext context, LiteralEncoder encoder, IMetadataExpression expression, ITypeReference targetType)
         {
             if (expression is MetadataCreateArray a)
             {
@@ -3417,7 +3427,7 @@ namespace Microsoft.Cci
 
                     CustomAttributeArrayTypeEncoder arrayTypeEncoder;
                     encoder.TaggedVector(out arrayTypeEncoder, out vectorEncoder);
-                    SerializeCustomAttributeArrayType(arrayTypeEncoder, a.ArrayType);
+                    SerializeCustomAttributeArrayType(in context, arrayTypeEncoder, a.ArrayType);
 
                     targetElementType = a.ElementType;
                 }
@@ -3426,7 +3436,7 @@ namespace Microsoft.Cci
                     vectorEncoder = encoder.Vector();
 
                     // In FixedArg the element type of the parameter array has to match the element type of the argument array,
-                    // but in NamedArg T[] can be assigned to object[]. In that case we need to encode the arguments using 
+                    // but in NamedArg T[] can be assigned to object[]. In that case we need to encode the arguments using
                     // the parameter element type not the argument element type.
                     targetElementType = targetArrayType.GetElementType(this.Context);
                 }
@@ -3435,7 +3445,7 @@ namespace Microsoft.Cci
 
                 foreach (IMetadataExpression elemValue in a.Elements)
                 {
-                    SerializeMetadataExpression(literalsEncoder.AddLiteral(), elemValue, targetElementType);
+                    SerializeMetadataExpression(in context, literalsEncoder.AddLiteral(), elemValue, targetElementType);
                 }
             }
             else
@@ -3457,7 +3467,7 @@ namespace Microsoft.Cci
                     }
                     else
                     {
-                        SerializeCustomAttributeElementType(typeEncoder, expression.Type);
+                        SerializeCustomAttributeElementType(in context, typeEncoder, expression.Type);
                     }
                 }
                 else
@@ -3478,7 +3488,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    scalarEncoder.SystemType(((MetadataTypeOf)expression).TypeToGet.GetSerializedTypeName(Context));
+                    scalarEncoder.SystemType(((MetadataTypeOf)expression).TypeToGet.GetSerializedTypeName(context));
                 }
             }
         }
@@ -3652,7 +3662,7 @@ namespace Microsoft.Cci
 
                 var customAttributeArgsBuilder = PooledBlobBuilder.GetInstance();
                 var namedArgsEncoder = new BlobEncoder(customAttributeArgsBuilder).PermissionSetArguments(customAttribute.NamedArgumentCount);
-                SerializeCustomAttributeNamedArguments(namedArgsEncoder, customAttribute);
+                SerializeCustomAttributeNamedArguments(GetEmitContextForAttribute(customAttribute), namedArgsEncoder, customAttribute);
                 writer.WriteCompressedInteger(customAttributeArgsBuilder.Count);
 
                 customAttributeArgsBuilder.WriteContentTo(writer);
@@ -3671,14 +3681,7 @@ namespace Microsoft.Cci
 
             encoder.Parameters(declaredParameters.Length + varargParameters.Length, out returnTypeEncoder, out parametersEncoder);
 
-            if (module.IsPlatformType(returnType, PlatformType.SystemTypedReference))
-            {
-                Debug.Assert(!signature.ReturnValueIsByRef);
-                SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
-
-                returnTypeEncoder.TypedReference();
-            }
-            else if (module.IsPlatformType(returnType, PlatformType.SystemVoid))
+            if (module.IsPlatformType(returnType, PlatformType.SystemVoid))
             {
                 Debug.Assert(!signature.ReturnValueIsByRef);
                 Debug.Assert(signature.RefCustomModifiers.IsEmpty);
@@ -3716,8 +3719,13 @@ namespace Microsoft.Cci
         {
             while (true)
             {
-                // TYPEDREF is only allowed in RetType, Param, LocalVarSig signatures
-                Debug.Assert(!module.IsPlatformType(typeReference, PlatformType.SystemTypedReference));
+                if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
+                {
+                    // We should use `SignatureTypeEncoder.TypedReference()` once such a method is available
+                    // Tracked by https://github.com/dotnet/runtime/issues/80812
+                    encoder.Builder.WriteByte((byte)SignatureTypeCode.TypedReference);
+                    return;
+                }
 
                 if (typeReference is IModifiedTypeReference modifiedTypeReference)
                 {
@@ -3901,11 +3909,11 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeCustomAttributeArrayType(CustomAttributeArrayTypeEncoder encoder, IArrayTypeReference arrayTypeReference)
+        private void SerializeCustomAttributeArrayType(in EmitContext context, CustomAttributeArrayTypeEncoder encoder, IArrayTypeReference arrayTypeReference)
         {
-            // A single-dimensional, zero-based array is specified as a single byte 0x1D followed by the FieldOrPropType of the element type. 
+            // A single-dimensional, zero-based array is specified as a single byte 0x1D followed by the FieldOrPropType of the element type.
 
-            // only non-jagged SZ arrays are allowed in attributes 
+            // only non-jagged SZ arrays are allowed in attributes
             // (need to encode the type of the SZ array if the parameter type is Object):
             Debug.Assert(arrayTypeReference.IsSZArray);
 
@@ -3918,15 +3926,15 @@ namespace Microsoft.Cci
             }
             else
             {
-                SerializeCustomAttributeElementType(encoder.ElementType(), elementType);
+                SerializeCustomAttributeElementType(in context, encoder.ElementType(), elementType);
             }
         }
 
-        private void SerializeCustomAttributeElementType(CustomAttributeElementTypeEncoder encoder, ITypeReference typeReference)
+        private void SerializeCustomAttributeElementType(in EmitContext context, CustomAttributeElementTypeEncoder encoder, ITypeReference typeReference)
         {
             // Spec:
             // The FieldOrPropType shall be exactly one of:
-            // ELEMENT_TYPE_BOOLEAN, ELEMENT_TYPE_CHAR, ELEMENT_TYPE_I1, ELEMENT_TYPE_U1, ELEMENT_TYPE_I2, ELEMENT_TYPE_U2, ELEMENT_TYPE_I4, 
+            // ELEMENT_TYPE_BOOLEAN, ELEMENT_TYPE_CHAR, ELEMENT_TYPE_I1, ELEMENT_TYPE_U1, ELEMENT_TYPE_I2, ELEMENT_TYPE_U2, ELEMENT_TYPE_I4,
             // ELEMENT_TYPE_U4, ELEMENT_TYPE_I8, ELEMENT_TYPE_U8, ELEMENT_TYPE_R4, ELEMENT_TYPE_R8, ELEMENT_TYPE_STRING.
             // An enum is specified as a single byte 0x55 followed by a SerString.
 
@@ -3942,7 +3950,7 @@ namespace Microsoft.Cci
             else
             {
                 Debug.Assert(typeReference.IsEnum);
-                encoder.Enum(typeReference.GetSerializedTypeName(this.Context));
+                encoder.Enum(typeReference.GetSerializedTypeName(context));
             }
         }
 

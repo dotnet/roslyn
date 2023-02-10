@@ -5034,9 +5034,11 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
+
+            file.GetDiagnostics().Verify(
+                // (1,45): error CS1513: } expected
+                // class c { void m() { var x = new C { a = b, ; } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 45));
         }
 
         [Fact]
@@ -5180,10 +5182,14 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(3, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code);
+
+            file.GetDiagnostics().Verify(
+                // (1,45): error CS1513: } expected
+                // class c { void m() { var x = new C { a = b, while (x) {} } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "while").WithLocation(1, 45),
+                // (1,45): error CS1002: ; expected
+                // class c { void m() { var x = new C { a = b, while (x) {} } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "while").WithLocation(1, 45));
         }
 
         [Fact]
@@ -5345,9 +5351,11 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[1].Code);
+
+            file.GetDiagnostics().Verify(
+                // (1,45): error CS1056: Unexpected character '$'
+                // class c { void m() { var x = new C { a = b, $ }; } }
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 45));
         }
 
         [Fact]
@@ -5434,10 +5442,26 @@ class C
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
             Assert.Equal(new[] {
-                                (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected
                             }, file.Errors().Select(e => e.Code));
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class c { void m() { var x = (y, ; } }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
+                // (1,30): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                // class c { void m() { var x = (y, ; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(y, ").WithArguments("tuples", "7.0").WithLocation(1, 30),
+                // (1,31): error CS0103: The name 'y' does not exist in the current context
+                // class c { void m() { var x = (y, ; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(1, 31),
+                // (1,34): error CS1525: Invalid expression term ';'
+                // class c { void m() { var x = (y, ; } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 34),
+                // (1,34): error CS1026: ) expected
+                // class c { void m() { var x = (y, ; } }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 34));
         }
 
         [Fact]
@@ -5532,11 +5556,33 @@ class C
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
             Assert.Equal(new[] {
-                                (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected,
                                 (int)ErrorCode.ERR_SemicolonExpected
                             }, file.Errors().Select(e => e.Code));
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class c { void m() { var x = (y, while (c) { } } }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
+                // (1,30): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                // class c { void m() { var x = (y, while (c) { } } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(y, ").WithArguments("tuples", "7.0").WithLocation(1, 30),
+                // (1,31): error CS0103: The name 'y' does not exist in the current context
+                // class c { void m() { var x = (y, while (c) { } } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(1, 31),
+                // (1,34): error CS1525: Invalid expression term 'while'
+                // class c { void m() { var x = (y, while (c) { } } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "while").WithArguments("while").WithLocation(1, 34),
+                // (1,34): error CS1026: ) expected
+                // class c { void m() { var x = (y, while (c) { } } }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "while").WithLocation(1, 34),
+                // (1,34): error CS1002: ; expected
+                // class c { void m() { var x = (y, while (c) { } } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "while").WithLocation(1, 34),
+                // (1,41): error CS0119: 'c' is a type, which is not valid in the given context
+                // class c { void m() { var x = (y, while (c) { } } }
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "c").WithArguments("c", "type").WithLocation(1, 41));
         }
 
         [Fact]
@@ -6807,8 +6853,20 @@ _ _::this
             var source = "a b:: /**/\r\n";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var diags = tree.GetDiagnostics();
-            diags.ToArray();
-            Assert.Equal(1, diags.Count(d => d.Code == (int)ErrorCode.ERR_AliasQualAsExpression));
+            diags.Verify(
+                // (1,4): error CS1002: ; expected
+                // a b:: /**/
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "::").WithLocation(1, 4),
+                // (1,4): error CS1001: Identifier expected
+                // a b:: /**/
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "::").WithLocation(1, 4),
+                // (1,6): error CS1001: Identifier expected
+                // a b:: /**/
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 6),
+                // (1,6): error CS1002: ; expected
+                // a b:: /**/
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 6)
+                );
         }
 
         [WorkItem(674564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674564")]
@@ -7073,7 +7131,6 @@ static
             Assert.Equal(numTokens, eofToken.LeadingTrivia.Count); // Confirm that we built a list.
         }
 
-
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
         [Fact]
         public void MissingOpenBraceForClass()
@@ -7095,7 +7152,6 @@ static
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
         }
-
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
         [Fact]

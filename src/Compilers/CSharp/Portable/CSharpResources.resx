@@ -159,6 +159,9 @@
   <data name="IDS_XMLMISSINGINCLUDEPATH" xml:space="preserve">
     <value>Missing path attribute</value>
   </data>
+  <data name="IDS_Missing" xml:space="preserve">
+    <value>&lt;missing&gt;</value>
+  </data>
   <data name="IDS_GlobalNamespace" xml:space="preserve">
     <value>&lt;global namespace&gt;</value>
   </data>
@@ -3809,6 +3812,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
   </data>
+  <data name="ERR_BadSpecialByRefUsing" xml:space="preserve">
+    <value>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</value>
+  </data>
   <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
     <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</value>
   </data>
@@ -6842,7 +6848,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Do not compare function pointer values</value>
   </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
-    <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
+    <value>Using a function pointer type in this context is not supported.</value>
   </data>
   <data name="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute may only be applied to parameters with default values</value>
@@ -7337,6 +7343,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadBinaryReadOnlySpanConcatenation" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</value>
   </data>
+  <data name="ERR_ImplicitlyTypedDefaultParameter" xml:space="preserve">
+    <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
+  </data>
+  <data name="WRN_OptionalParamValueMismatch" xml:space="preserve">
+    <value>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</value>
+  </data>
+  <data name="WRN_OptionalParamValueMismatch_Title" xml:space="preserve">
+    <value>The default parameter value does not match in the target delegate type.</value>
+  </data>
   <data name="IDS_FeatureFileTypes" xml:space="preserve">
     <value>file types</value>
   </data>
@@ -7353,7 +7368,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Types and aliases cannot be named 'scoped'.</value>
   </data>
   <data name="ERR_UnscopedRefAttributeUnsupportedTarget" xml:space="preserve">
-    <value>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</value>
+    <value>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeUnsupportedMemberTarget" xml:space="preserve">
+    <value>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</value>
+  </data>
+  <data name="ERR_UnscopedRefAttributeInterfaceImplementation" xml:space="preserve">
+    <value>UnscopedRefAttribute cannot be applied to an interface implementation.</value>
+  </data>
+  <data name="ERR_UnrecognizedRefSafetyRulesAttributeVersion" xml:space="preserve">
+    <value>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</value>
   </data>
   <data name="ERR_RuntimeDoesNotSupportRefFields" xml:space="preserve">
     <value>Target runtime doesn't support ref fields.</value>
@@ -7381,5 +7405,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DeconstructVariableCannotBeByRef" xml:space="preserve">
     <value>A deconstruction variable cannot be declared as a ref local</value>
+  </data>
+  <data name="IDS_FeatureLambdaOptionalParameters" xml:space="preserve">
+    <value>lambda optional parameters</value>
+  </data>
+  <data name="IDS_FeatureLambdaParamsArray" xml:space="preserve">
+    <value>lambda params array</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly" xml:space="preserve">
+    <value>Parameter {0} has params modifier in lambda but not in target delegate type.</value>
+  </data>
+  <data name="WRN_ParamsArrayInLambdaOnly_Title" xml:space="preserve">
+    <value>Parameter has params modifier in lambda but not in target delegate type.</value>
   </data>
 </root>

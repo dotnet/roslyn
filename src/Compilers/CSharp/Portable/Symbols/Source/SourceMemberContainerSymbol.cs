@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -832,6 +833,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
+        internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
+
         internal SyntaxTree AssociatedSyntaxTree => declaration.Declarations[0].Location.SourceTree;
 
         internal sealed override FileIdentifier? AssociatedFileIdentifier
@@ -1569,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The purpose of this function is to assert that the <paramref name="member"/> symbol
         /// is actually among the symbols cached by this type symbol in a way that ensures
-        /// that any consumer of standard APIs to get to type's members is going to get the same 
+        /// that any consumer of standard APIs to get to type's members is going to get the same
         /// symbol (same instance) for the member rather than an equivalent, but different instance.
         /// </summary>
         [Conditional("DEBUG")]
@@ -1954,7 +1957,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var conversion = symbol as SourceUserDefinedConversionSymbol;
                     var method = symbol as SourceMemberMethodSymbol;
-                    if (!(conversion is null))
+
+                    // We don't want to consider explicit interface implementations
+                    if (conversion is { MethodKind: MethodKind.Conversion })
                     {
                         // Does this conversion collide *as a conversion* with any previously-seen
                         // conversion?
@@ -4475,7 +4480,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var fieldSyntax = (FieldDeclarationSyntax)m;
 
-                            _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRef(out RefKind refKind);
+                            // Lang version check for ref-fields is done inside SourceMemberFieldSymbol;
+                            _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRefInField(out var refKind);
 
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {

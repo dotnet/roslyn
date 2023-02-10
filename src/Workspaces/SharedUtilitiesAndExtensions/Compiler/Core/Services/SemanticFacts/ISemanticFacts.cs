@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         ImmutableHashSet<string> GetAliasNameSet(SemanticModel model, CancellationToken cancellationToken);
 
         ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement);
+        SymbolInfo GetCollectionInitializerSymbolInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
 
         IMethodSymbol? GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node);
 

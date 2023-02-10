@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { ".vbx", s_vbLanguageInformation },
         };
 
-        public LspMiscellaneousFilesWorkspace() : base(MefHostServices.DefaultHost, WorkspaceKind.MiscellaneousFiles)
+        public LspMiscellaneousFilesWorkspace(HostServices hostServices) : base(hostServices, WorkspaceKind.MiscellaneousFiles)
         {
         }
 

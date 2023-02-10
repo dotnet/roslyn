@@ -229,8 +229,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 // Ignore parameters of record primary constructors since they map to public properties
                 // TODO: Remove this when implicit operations are synthesised: https://github.com/dotnet/roslyn/issues/47829 
+                var methodSyntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
                 if (method.IsConstructor() &&
-                    _compilationAnalyzer.IsRecordDeclaration(method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()))
+                    _compilationAnalyzer.IsRecordDeclaration(methodSyntax))
                 {
                     return false;
                 }
@@ -266,6 +267,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // We ignore parameter names that start with an underscore and are optionally followed by an integer,
                 // such as '_', '_1', '_2', etc.
                 if (parameter.IsSymbolWithSpecialDiscardName())
+                {
+                    return false;
+                }
+
+                if (_compilationAnalyzer.ReturnsThrow(methodSyntax))
                 {
                     return false;
                 }

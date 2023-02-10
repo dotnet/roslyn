@@ -44,8 +44,6 @@ start:
             Return hashCode
         End Function
 
-
-
         ''' <summary>
         ''' Construct a body for String Switch Hash Function
         ''' </summary>

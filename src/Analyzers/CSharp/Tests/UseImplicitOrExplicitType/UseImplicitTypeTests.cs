@@ -38,48 +38,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
         private static readonly CodeStyleOption2<bool> onWithError = new CodeStyleOption2<bool>(true, NotificationOption2.Error);
 
         // specify all options explicitly to override defaults.
-        internal OptionsCollection ImplicitTypeEverywhere() =>
-            new OptionsCollection(GetLanguage())
+        internal OptionsCollection ImplicitTypeEverywhere()
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
             };
 
-        private OptionsCollection ImplicitTypeWhereApparent() =>
-            new OptionsCollection(GetLanguage())
+        private OptionsCollection ImplicitTypeWhereApparent()
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
             };
 
-        private OptionsCollection ImplicitTypeWhereApparentAndForIntrinsics() =>
-            new OptionsCollection(GetLanguage())
+        private OptionsCollection ImplicitTypeWhereApparentAndForIntrinsics()
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
             };
 
-        internal OptionsCollection ImplicitTypeButKeepIntrinsics() =>
-            new OptionsCollection(GetLanguage())
+        internal OptionsCollection ImplicitTypeButKeepIntrinsics()
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
             };
 
-        private OptionsCollection ImplicitTypeEnforcements() =>
-            new OptionsCollection(GetLanguage())
+        private OptionsCollection ImplicitTypeEnforcements()
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, onWithWarning },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
             };
 
-        private OptionsCollection ImplicitTypeSilentEnforcement() =>
-            new OptionsCollection(GetLanguage())
+        private OptionsCollection ImplicitTypeSilentEnforcement()
+            => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
@@ -3007,5 +3007,27 @@ class C
     }
 }",
 options: ImplicitTypeEverywhere());
+
+        [WpfFact, WorkItem(41780, "https://github.com/dotnet/roslyn/issues/41780")]
+        public async Task SuggestOnRefType1()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void Method(ref int x)
+    {
+      ref [|int|] y = ref x;
+    }
+}",
+@"
+class C
+{
+    void Method(ref int x)
+    {
+      ref var y = ref x;
+    }
+}", CSharpParseOptions.Default, options: ImplicitTypeEverywhere());
+        }
     }
 }

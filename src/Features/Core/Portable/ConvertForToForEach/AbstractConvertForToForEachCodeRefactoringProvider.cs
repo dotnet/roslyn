@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             return methods.Where(m => m.Name == memberName);
         }
 
-        private static TSymbol TryFindMemberInThisOrBaseTypes<TSymbol>(
+        private static TSymbol? TryFindMemberInThisOrBaseTypes<TSymbol>(
             INamedTypeSymbol containingType, ITypeSymbol type, string memberName) where TSymbol : class, ISymbol
         {
             return TryFindMembersInThisOrBaseTypes<TSymbol>(containingType, type, memberName).FirstOrDefault();
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             if (foreachIdentifier.RawKind == 0)
             {
                 foreachIdentifier = semanticFacts.GenerateUniqueName(
-                    semanticModel, forStatement, containerOpt: null, baseName: "v", usedNames: Enumerable.Empty<string>(), cancellationToken);
+                    semanticModel, forStatement, container: null, baseName: "v", usedNames: Enumerable.Empty<string>(), cancellationToken);
                 foreachIdentifier = foreachIdentifier.WithAdditionalAnnotations(RenameAnnotation.Create());
             }
 

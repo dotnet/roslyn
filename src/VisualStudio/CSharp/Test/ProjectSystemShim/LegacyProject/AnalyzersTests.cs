@@ -148,7 +148,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
             ((IAnalyzerHost)project).SetRuleSetFile(pathWithExtraBackslashes);
 
-            var projectRuleSetFile = project.VisualStudioProjectOptionsProcessor.ExplicitRuleSetFilePath;
+            var projectRuleSetFile = project.ProjectSystemProjectOptionsProcessor.ExplicitRuleSetFilePath;
 
             Assert.Equal(expected: ruleSetFile.Path, actual: projectRuleSetFile);
         }

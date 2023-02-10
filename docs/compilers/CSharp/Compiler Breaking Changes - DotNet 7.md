@@ -1,5 +1,134 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## System.TypedReference considered managed
+
+***Introduced in Visual Studio 2022 version 17.6***
+
+Moving forward the `System.TypedReference` type is considered managed.
+
+```csharp
+unsafe
+{
+    TypedReference* r = null; // warning: This takes the address of, gets the size of, or declares a pointer to a managed type
+    var a = stackalloc TypedReference[1]; // error: Cannot take the address of, get the size of, or declare a pointer to a managed type
+}
+```
+
+## Ref safety errors do not affect conversion from lambda expression to delegate
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+Ref safety errors reported in a lambda body no longer affect whether the lambda expression is convertible to a delegate type. This change can affect overload resolution.
+
+In the example below, the call to `M(x => ...)` is ambiguous with Visual Studio 17.5 because both `M(D1)` and `M(D2)` are now considered applicable, even though the call to `F(ref x, ref y)` within the lambda body will result in a ref safety with `M(D1)` (see the examples in `d1` and `d2` for comparison). Previously, the call bound unambiguously to `M(D2)` because the `M(D1)` overload was considered not applicable.
+```csharp
+using System;
+
+ref struct R { }
+
+delegate R D1(R r);
+delegate object D2(object o);
+
+class Program
+{
+    static void M(D1 d1) { }
+    static void M(D2 d2) { }
+
+    static void F(ref R x, ref Span<int> y) { }
+    static void F(ref object x, ref Span<int> y) { }
+
+    static void Main()
+    {
+        // error CS0121: ambiguous between: 'M(D1)' and 'M(D2)'
+        M(x =>
+            {
+                Span<int> y = stackalloc int[1];
+                F(ref x, ref y);
+                return x;
+            });
+
+        D1 d1 = x1 =>
+            {
+                Span<int> y1 = stackalloc int[1];
+                F(ref x1, ref y1); // error CS8352: 'y2' may expose referenced variables
+                return x1;
+            };
+
+        D2 d2 = x2 =>
+            {
+                Span<int> y2 = stackalloc int[1];
+                F(ref x2, ref y2); // ok: F(ref object x, ref Span<int> y)
+                return x2;
+            };
+    }
+}
+```
+
+To workaround the overload resolution changes, use explicit types for the lambda parameters or delegate.
+
+```csharp
+        // ok: M(D2)
+        M((object x) =>
+            {
+                Span<int> y = stackalloc int[1];
+                F(ref x, ref y); // ok: F(ref object x, ref Span<int> y)
+                return x;
+            });
+```
+
+## Raw string interpolations at start of line.
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+In .NET SDK 7.0.100 or earlier the following was erroneously allowed:
+
+```csharp
+var x = $"""
+    Hello
+{1 + 1}
+    World
+    """;
+```
+
+This violated the rule that the lines content (including where an interpolation starts) must start with same whitespace as the final `    """;` line.  It is now required that the above be written as:
+
+
+```csharp
+var x = $"""
+    Hello
+    {1 + 1}
+    World
+    """;
+```
+
+
+## Inferred delegate type for methods includes default parameter values and `params` modifier
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+In .NET SDK 7.0.100 or earlier, delegate types inferred from methods ignored default parameter values and `params` modifiers
+as demonstrated in the following code:
+
+```csharp
+void Method(int i = 0, params int[] xs) { }
+var action = Method; // System.Action<int, int[]>
+DoAction(action, 1); // ok
+void DoAction(System.Action<int, int[]> a, int p) => a(p, new[] { p });
+```
+
+In .NET SDK 7.0.200 or later, such methods are inferred as anonymous synthesized delegate types
+with the same default parameter values and `params` modifiers.
+This change can break the code above as demonstrated below:
+
+```csharp
+void Method(int i = 0, params int[] xs) { }
+var action = Method; // delegate void <anonymous delegate>(int arg1 = 0, params int[] arg2)
+DoAction(action, 1); // error CS1503: Argument 1: cannot convert from '<anonymous delegate>' to 'System.Action<int, int[]>'
+void DoAction(System.Action<int, int[]> a, int p) => a(p, new[] { p });
+```
+
+You can learn more about this change in the associated [proposal](https://github.com/dotnet/csharplang/blob/main/proposals/lambda-method-group-defaults.md#breaking-change).
+
 ## For the purpose of definite assignment analysis, invocations of async local functions are no longer treated as being awaited
 
 ***Introduced in Visual Studio 2022 version 17.5***

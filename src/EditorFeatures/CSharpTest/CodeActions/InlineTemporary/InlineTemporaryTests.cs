@@ -3917,25 +3917,10 @@ class C
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact]
-        public async Task Tuples_Disabled()
-        {
-            var code = @"
-using System;
-class C
-{
-    public void M()
-    {
-        (int, string) [||]x = (1, ""hello"");
-        x.ToString();
-    }
-}";
-
-            await TestMissingAsync(code, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)));
-        }
-
-        [Fact]
-        public async Task Tuples()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp6)]
+        [InlineData(LanguageVersion.Preview)]
+        public async Task Tuples(LanguageVersion version)
         {
             var code = @"
 using System;
@@ -3958,7 +3943,10 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected);
+            await TestInRegularAndScript1Async(
+                code,
+                expected,
+                new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(version)));
         }
 
         [Fact]

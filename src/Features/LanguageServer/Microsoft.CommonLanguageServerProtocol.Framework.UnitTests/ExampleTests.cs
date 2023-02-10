@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Linq;
@@ -18,6 +19,41 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
 public partial class ExampleTests
 {
+    [Fact]
+    public void InitializeServer_WithMethodRegisteredTwice_Fails()
+    {
+        // Arrange
+        var logger = GetLogger();
+
+        // Act
+        var ex = Assert.Throws<InvalidOperationException>(() => TestExampleLanguageServer.CreateBadLanguageServer(logger));
+
+        Assert.Equal("Method textDocument/didOpen was implemented more than once.", ex.Message);
+    }
+
+    [Fact]
+    public async Task InitializeServer_WithMultipleHandlerRegistration_Succeeds()
+    {
+        // Arrange
+        var logger = GetLogger();
+        var server = TestExampleLanguageServer.CreateLanguageServer(logger);
+
+        // Act
+        // Verifying that this does not throw.
+        var _ = await server.InitializeServerAsync();
+
+        // Assert
+        var handlerProvider = server.GetTestAccessor().GetQueueAccessor()!.Value.GetHandlerProvider();
+        var methods = handlerProvider.GetRegisteredMethods();
+
+        Assert.Equal(5, methods.Length);
+        Assert.Contains(methods, m => m.MethodName == Methods.TextDocumentDidCloseName);
+        Assert.Contains(methods, m => m.MethodName == Methods.InitializeName);
+        Assert.Contains(methods, m => m.MethodName == Methods.TextDocumentDidOpenName);
+        Assert.Contains(methods, m => m.MethodName == Methods.InitializedName);
+        Assert.Contains(methods, m => m.MethodName == Methods.TextDocumentDidChangeName);
+    }
+
     [Fact]
     public async Task InitializeServer_SerializesCorrectly()
     {

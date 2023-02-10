@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SyntaxNode potentiallyUpdatedNode,
             SyntaxNode originalNode,
             SignatureChange signaturePermutation,
+            LineFormattingOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -395,6 +396,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         potentiallyUpdatedNode,
                         originalNode,
                         UpdateSignatureChangeToIncludeExtraParametersFromTheDeclarationSymbol(definitionToUse[originalNode], options.UpdatedSignature),
+                        context.FallbackOptions,
                         cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
                 });
 
@@ -812,11 +814,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         // TODO: Need to be able to specify which kind of attribute argument it is to the SyntaxGenerator.
                         // https://github.com/dotnet/roslyn/issues/43354
-                        var argument = generateAttributeArguments ?
-                            Generator.AttributeArgument(
+                        var argument = generateAttributeArguments
+                            ? Generator.AttributeArgument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
-                                expression: expression) :
-                            Generator.Argument(
+                                expression: expression)
+                            : Generator.Argument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
                                 refKind: RefKind.None,
                                 expression: expression);
@@ -915,10 +917,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
 
-            var options = RecommendationServiceOptions.From(document.Project);
+            var recommendationOptions = new RecommendationServiceOptions()
+            {
+                HideAdvancedMembers = false,
+                FilterOutOfScopeLocals = true,
+            };
 
             var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            var recommendations = recommender.GetRecommendedSymbolsInContext(context, options, cancellationToken).NamedSymbols;
+            var recommendations = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken).NamedSymbols;
 
             var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
 
@@ -952,12 +958,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return null;
         }
 
-        protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes)
+        protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes, LanguageServices services, LineFormattingOptions options)
         {
             var updatedLeadingTrivia = ImmutableArray.CreateBuilder<SyntaxTrivia>();
             var index = 0;
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = services.GetRequiredService<ISyntaxFactsService>();
 
             foreach (var trivia in node.GetLeadingTrivia())
             {
@@ -1015,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var extraDocComments = Generator.DocumentationCommentTrivia(
                     extraNodeList,
                     node.GetTrailingTrivia(),
-                    document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, document.Project.Language));
+                    options.NewLine);
                 var newTrivia = Generator.Trivia(extraDocComments);
 
                 updatedLeadingTrivia.Add(newTrivia);

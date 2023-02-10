@@ -243,24 +243,30 @@ record class Point(int x, int y);
 ";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "record ").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
+                // (2,8): error CS1001: Identifier expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 8),
+                // (2,8): error CS1002: ; expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
                 // (2,19): error CS1514: { expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
                 // (2,19): error CS1513: } expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 19),
-                // (2,19): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 19),
                 // (2,19): error CS8803: Top-level statements must precede namespace and type declarations.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 19),
-                // (2,19): error CS8805: Program using top-level statements must be an executable.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 19),
                 // (2,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 19),
@@ -10778,6 +10784,7 @@ record C(object P)
                 Diagnostic(ErrorCode.ERR_MemberReserved, "P").WithArguments("get_P", "C").WithLocation(9, 17));
 
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
 
             var expectedClone = comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses
                 ? "B B." + WellKnownMemberNames.CloneMethodName + "()"
@@ -13980,7 +13987,6 @@ public class Program
     }
 }";
 
-
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition },
                 ilSource: ilSource,
                 parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
@@ -15859,6 +15865,8 @@ record B(int X, int Y) : A
                 );
 
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             string expectedClone = comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses
                 ? "B B." + WellKnownMemberNames.CloneMethodName + "()"
                 : "A B." + WellKnownMemberNames.CloneMethodName + "()";
@@ -23636,6 +23644,7 @@ record C : B;
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C").WithArguments("C.EqualityContract", "B.EqualityContract").WithLocation(6, 8));
 
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
 
             string expectedClone = comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses
                 ? "B B." + WellKnownMemberNames.CloneMethodName + "()"
@@ -25685,6 +25694,8 @@ record B
 }
 ", targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, c.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, c.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             if (c.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 c.VerifyDiagnostics(
@@ -25994,6 +26005,8 @@ public partial record C1
 ";
             var comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             if (comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 comp.VerifyDiagnostics(
@@ -30169,6 +30182,8 @@ public record C(int I) : B(I);";
             var compA = CreateEmptyCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, references: TargetFrameworkUtil.GetReferences(TargetFramework.NetStandard20));
             compA.VerifyEmitDiagnostics();
             Assert.False(compA.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.False(compA.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             var actualMembers = compA.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -30197,6 +30212,7 @@ public record C(int I) : B(I);";
             var compB = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
             compB.VerifyEmitDiagnostics();
             Assert.True(compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.True(compB.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
 
             actualMembers = compB.GetMember<NamedTypeSymbol>("D").GetMembers().ToTestDisplayStrings();
             expectedMembers = new[]

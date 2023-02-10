@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
@@ -796,6 +794,7 @@ $@"class C
     }
 }");
         }
+
         [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection11()
         {
@@ -902,6 +901,87 @@ $@"class C
     private static byte GetPtr(byte bytePt)
     {
         return bytePt;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestTopLevelStatements()
+        {
+            await TestMissingAsync(@"
+Console.WriteLine(""Hello"");
+{
+    public static int [|Add|](int x, int y)
+    {
+        return x + y;
+    }
+}");
+        }
+
+        [Fact, WorkItem(32975, "https://github.com/dotnet/roslyn/issues/32975")]
+        public async Task TestRefReturn()
+        {
+            await TestInRegularAndScript1Async(@"
+class ClassA
+{
+    class RefClass { }
+    RefClass refClass = new RefClass();
+    public void RefLocalFunction()
+    {
+        ref RefClass [|GetRef|]()
+        {
+            return ref refClass;
+        }
+        ref var aReference = ref GetRef();
+    }
+}", @"
+class ClassA
+{
+    class RefClass { }
+    RefClass refClass = new RefClass();
+    public void RefLocalFunction()
+    {
+        ref var aReference = ref GetRef();
+    }
+
+    private ref RefClass GetRef()
+    {
+        return ref refClass;
+    }
+}");
+        }
+
+        [Fact, WorkItem(32975, "https://github.com/dotnet/roslyn/issues/32975")]
+        public async Task TestAttributes()
+        {
+            await TestInRegularAndScript1Async(@"
+class ClassA
+{
+    class RefClass { }
+    RefClass refClass = new RefClass();
+    public void RefLocalFunction()
+    {
+        [System.STAThread]
+        ref RefClass [|GetRef|]()
+        {
+            return ref refClass;
+        }
+        ref var aReference = ref GetRef();
+    }
+}", @"
+class ClassA
+{
+    class RefClass { }
+    RefClass refClass = new RefClass();
+    public void RefLocalFunction()
+    {
+        ref var aReference = ref GetRef();
+    }
+
+    [System.STAThread]
+    private ref RefClass GetRef()
+    {
+        return ref refClass;
     }
 }");
         }

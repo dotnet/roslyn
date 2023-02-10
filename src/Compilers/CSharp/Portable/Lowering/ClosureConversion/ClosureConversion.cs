@@ -242,10 +242,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loweredBody,
                 method,
                 methodOrdinal,
-                substitutedSourceMethod,
                 slotAllocatorOpt,
                 compilationState,
-                closureDebugInfoBuilder,
                 diagnostics.DiagnosticBag);
 
             CheckLocalsDefined(loweredBody);
@@ -1148,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // TODO: we may not need to update if there was nothing to rewrite.
-            return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, newStatements.ToImmutableAndFree());
+            return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, node.HasUnsafeModifier, newStatements.ToImmutableAndFree());
         }
 
         public override BoundNode VisitScope(BoundScope node)

@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 #if DEBUG
 using System.Linq;
@@ -218,6 +219,34 @@ namespace Microsoft.CodeAnalysis
                 if (predicate(item))
                 {
                     builder.Add(selector(item));
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps and flattens a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <param name="array">The array to transform</param>
+        /// <param name="predicate">The condition to use for filtering the array content.</param>
+        /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, IEnumerable<TResult>> selector)
+        {
+            if (array.Length == 0)
+            {
+                return ImmutableArray<TResult>.Empty;
+            }
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+            {
+                if (predicate(item))
+                {
+                    builder.AddRange(selector(item));
                 }
             }
 
@@ -689,9 +718,44 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
+        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
+        {
+            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length);
+            builder.AddRange(first);
+            builder.AddRange(second);
+            builder.AddRange(third);
+            builder.AddRange(fourth);
+            builder.AddRange(fifth);
+            builder.AddRange(sixth);
+            return builder.ToImmutableAndFree();
+        }
+
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
         {
             return first.Add(second);
+        }
+
+        internal static ImmutableArray<T> AddRange<T>(this ImmutableArray<T> self, in TemporaryArray<T> items)
+        {
+            if (items.Count == 0)
+            {
+                return self;
+            }
+
+            if (items.Count == 1)
+            {
+                return self.Add(items[0]);
+            }
+
+            var builder = ArrayBuilder<T>.GetInstance(self.Length + items.Count);
+            builder.AddRange(self);
+
+            foreach (var item in items)
+            {
+                builder.Add(item);
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)

@@ -5,6 +5,8 @@
 // Copied from:
 // https://github.com/dotnet/runtime/blob/fdd104ec5e1d0d2aa24a6723995a98d0124f724b/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/CompilerFeatureRequiredAttribute.cs
 
+#if !NET7_0_OR_GREATER
+
 namespace System.Runtime.CompilerServices
 {
     /// <summary>
@@ -39,3 +41,5 @@ namespace System.Runtime.CompilerServices
         public const string RequiredMembers = nameof(RequiredMembers);
     }
 }
+
+#endif

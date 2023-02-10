@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new abstract CSharpSyntaxNode Root { get; }
 
-
         // Is this node one that could be successfully interrogated by GetSymbolInfo/GetTypeInfo/GetMemberGroup/GetConstantValue?
         // WARN: If isSpeculative is true, then don't look at .Parent - there might not be one.
         internal static bool CanGetSemanticInfo(CSharpSyntaxNode node, bool allowNamedArgumentName = false, bool isSpeculative = false)
@@ -625,7 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     initializer = (InitializerExpressionSyntax)initializer.Parent.Parent;
                 }
-
 
                 if (initializer.Parent is BaseObjectCreationExpressionSyntax objectCreation &&
                     objectCreation.Initializer == initializer &&
@@ -1653,7 +1651,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             info.Free();
-
 
             if ((options & LookupOptions.IncludeExtensionMethods) != 0)
             {
@@ -3256,9 +3253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a foreach statement, get the symbol for the iteration variable
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="forEachStatement"></param>
-        public ILocalSymbol GetDeclaredSymbol(ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
+        public ILocalSymbol GetDeclaredSymbol(ForEachStatementSyntax forEachStatement)
         {
             Binder enclosingBinder = this.GetEnclosingBinder(GetAdjustedNodePosition(forEachStatement));
 
@@ -3293,9 +3289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="catchDeclaration"></param>
-        public ILocalSymbol GetDeclaredSymbol(CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
+        public ILocalSymbol GetDeclaredSymbol(CatchDeclarationSyntax catchDeclaration)
         {
             CSharpSyntaxNode catchClause = catchDeclaration.Parent; //Syntax->Binder map is keyed on clause, not decl
             Debug.Assert(catchClause.Kind() == SyntaxKind.CatchClause);
@@ -4884,9 +4879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given a position in the SyntaxTree for this SemanticModel returns the innermost
         /// NamedType that the position is considered inside of.
         /// </summary>
-        public new ISymbol GetEnclosingSymbol(
-            int position,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public ISymbol GetEnclosingSymbol(int position)
         {
             position = CheckAndAdjustPosition(position);
             var binder = GetEnclosingBinder(position);
@@ -5111,9 +5104,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return this.GetDeclaredSymbol(usingDirective, cancellationToken);
                 case SyntaxKind.ForEachStatement:
-                    return this.GetDeclaredSymbol((ForEachStatementSyntax)node, cancellationToken);
+                    return this.GetDeclaredSymbol((ForEachStatementSyntax)node);
                 case SyntaxKind.CatchDeclaration:
-                    return this.GetDeclaredSymbol((CatchDeclarationSyntax)node, cancellationToken);
+                    return this.GetDeclaredSymbol((CatchDeclarationSyntax)node);
                 case SyntaxKind.JoinIntoClause:
                     return this.GetDeclaredSymbol((JoinIntoClauseSyntax)node, cancellationToken);
                 case SyntaxKind.QueryContinuation:
@@ -5315,7 +5308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected sealed override ISymbol GetEnclosingSymbolCore(int position, CancellationToken cancellationToken)
         {
-            return this.GetEnclosingSymbol(position, cancellationToken);
+            return this.GetEnclosingSymbol(position);
         }
 
         private protected sealed override ImmutableArray<IImportScope> GetImportScopesCore(int position, CancellationToken cancellationToken)

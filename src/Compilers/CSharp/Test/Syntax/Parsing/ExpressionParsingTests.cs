@@ -732,11 +732,29 @@ class C
 
             Assert.NotNull(expr);
             Assert.Equal(text, expr.ToString());
-            Assert.Equal(1, expr.Errors().Length);
+            Assert.Equal(0, expr.Errors().Length);
 
             var e = (ConditionalAccessExpressionSyntax)expr;
             Assert.Equal("a.b", e.Expression.ToString());
             Assert.Equal(".c.d?[1]?.e()?.f", e.WhenNotNull.ToString());
+
+            var testWithStatement = @$"class C {{ void M() {{ var v = {text}; }} }}";
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular5).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 30),
+                // (1,33): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 33),
+                // (1,38): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 38),
+                // (1,42): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 42),
+                // (1,47): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
+                // class C { void M() { var v = a.b?.c.d?[1]?.e()?.f; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "?").WithArguments("null propagating operator", "6").WithLocation(1, 47));
         }
 
         [Fact]
@@ -4754,10 +4772,21 @@ select t";
         [Fact]
         public void NullCoalescingAssignmentCSharp7_3()
         {
-            UsingExpression("a ??= b", TestOptions.Regular7_3,
-                // (1,3): error CS8652: The feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // a ??= b
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 3));
+            var test = "a ??= b";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'a' does not exist in the current context
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 30),
+                // (1,32): error CS8370: Feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 32),
+                // (1,36): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { var v = a ??= b; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 36));
+
+            UsingExpression(test, TestOptions.Regular7_3);
 
             N(SyntaxKind.CoalesceAssignmentExpression);
             {
@@ -5928,9 +5957,9 @@ select t";
         public void ArrayCreation_BadInElementAccess()
         {
             UsingExpression("new[] { in[] }",
-                // (1,9): error CS1003: Syntax error, ',' expected
+                // (1,9): error CS1041: Identifier expected; 'in' is a keyword
                 // new[] { in[] }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "in").WithArguments("", "in").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5951,9 +5980,9 @@ select t";
         public void ArrayCreation_BadOutElementAccess()
         {
             UsingExpression("new[] { out[] }",
-                    // (1,9): error CS1003: Syntax error, ',' expected
-                    // new[] { out[] }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(1, 9));
+                // (1,9): error CS1041: Identifier expected; 'out' is a keyword
+                // new[] { out[] }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {

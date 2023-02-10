@@ -24,13 +24,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ExtendedPropertySubpattern_01()
         {
-            UsingExpression(@"e is { a.b.c: p }", TestOptions.Regular10);
+            var test = @"e is { a.b.c: p }";
+            var testWithStatement = @$"class C {{ void M() {{ var v = {test}; }} }}";
+
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { var v = e is { a.b.c: p }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 30),
+                // (1,44): error CS0103: The name 'p' does not exist in the current context
+                // class C { void M() { var v = e is { a.b.c: p }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p").WithArguments("p").WithLocation(1, 44));
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,30): error CS0103: The name 'e' does not exist in the current context
+                // class C { void M() { var v = e is { a.b.c: p }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 30),
+                // (1,42): error CS8773: Feature 'extended property patterns' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // class C { void M() { var v = e is { a.b.c: p }; } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, ":").WithArguments("extended property patterns", "10.0").WithLocation(1, 42),
+                // (1,44): error CS0103: The name 'p' does not exist in the current context
+                // class C { void M() { var v = e is { a.b.c: p }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p").WithArguments("p").WithLocation(1, 44));
+
+            UsingExpression(test, TestOptions.Regular10);
             verify();
 
-            UsingExpression(@"e is { a.b.c: p }", TestOptions.Regular9,
-                // (1,8): error CS8773: Feature 'extended property patterns' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // e is { a.b.c: p }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a.b.c").WithArguments("extended property patterns", "10.0").WithLocation(1, 8));
+            UsingExpression(test, TestOptions.Regular9);
             verify();
 
             void verify()

@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
@@ -152,6 +153,8 @@ csharp_using_directive_placement = outside_namespace
 
 # New line preferences
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = true
 csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
 csharp_style_allow_embedded_statements_on_same_line_experimental = true
 
@@ -245,7 +248,8 @@ dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 Dim editorConfigOptions = CSharp.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
-                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, workspace.Options, LanguageNames.CSharp)
+                Dim options = New OptionStore(workspace.GlobalOptions)
+                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub
@@ -253,8 +257,9 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub TestEditorConfigGeneratorToggleOptions()
             Using workspace = TestWorkspace.CreateCSharp("")
-                Dim changedOptions = workspace.Options.WithChangedOption(New OptionKey2(CodeStyleOptions2.PreferExplicitTupleNames, LanguageNames.CSharp),
-                                                                         New CodeStyleOption2(Of Boolean)(False, NotificationOption2.[Error]))
+                Dim options = New OptionStore(workspace.GlobalOptions)
+                options.SetOption(CodeStyleOptions2.PreferExplicitTupleNames, LanguageNames.CSharp, New CodeStyleOption2(Of Boolean)(False, NotificationOption2.[Error]))
+
                 Dim expectedText = "# Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
@@ -390,6 +395,8 @@ csharp_using_directive_placement = outside_namespace
 
 # New line preferences
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = true
 csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
 csharp_style_allow_embedded_statements_on_same_line_experimental = true
 
@@ -483,7 +490,7 @@ dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 Dim editorConfigOptions = CSharp.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
-                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, changedOptions, LanguageNames.CSharp)
+                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub

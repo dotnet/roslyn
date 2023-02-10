@@ -197,6 +197,11 @@
         <target state="translated">Включить типы ссылок, допускающие значение NULL, в проекте</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">Включить типы ссылок, допускающие значение NULL, в решение</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Глобальные директивы using</target>
@@ -234,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Selection_cannot_be_in_constructor_initializer">
         <source>Selection cannot be in constructor initializer</source>
-        <target state="new">Selection cannot be in constructor initializer</target>
+        <target state="translated">Выделенный фрагмент не может быть в инициализаторе конструктора</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
@@ -275,6 +280,11 @@
       <trans-unit id="extern_alias">
         <source>extern alias</source>
         <target state="translated">внешний псевдоним</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="init_only_property">
+        <source>init-only property</source>
+        <target state="new">init-only property</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">

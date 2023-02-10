@@ -2153,9 +2153,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        // Note: you will need to do the following after adding any code:
-        //  1) Update ErrorFacts.IsBuildOnlyDiagnostic to handle the new error code.
-        // Additionally, after adding a new warning you will need to do the following:
+        #region diagnostics introduced for C# 12.0
+
+        ERR_ImplicitlyTypedDefaultParameter = 9098,
+        WRN_OptionalParamValueMismatch = 9099,
+        WRN_ParamsArrayInLambdaOnly = 9100,
+        ERR_UnscopedRefAttributeUnsupportedMemberTarget = 9101,
+        ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
+        ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
+        ERR_BadSpecialByRefUsing = 9104,
+        #endregion
+
+        // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
     }
 }

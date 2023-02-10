@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
@@ -35,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _sawAwaitInExceptionHandler;
         private bool _needsSpilling;
         private readonly BindingDiagnosticBag _diagnostics;
-        private Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
 
         private Dictionary<BoundValuePlaceholderBase, BoundExpression>? _placeholderReplacementMapDoNotUseDirectly;
@@ -49,26 +49,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
-            BindingDiagnosticBag diagnostics,
-            Instrumenter instrumenter)
+            BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(factory.InstrumentationState != null);
+
             _compilation = compilation;
             _factory = factory;
             _factory.CurrentFunction = containingMethod;
+
             Debug.Assert(TypeSymbol.Equals(factory.CurrentType, (containingType ?? containingMethod.ContainingType), TypeCompareKind.ConsiderEverything2));
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
             _topLevelMethodOrdinal = containingMethodOrdinal;
             _diagnostics = diagnostics;
-
-            Debug.Assert(instrumenter != null);
-#if DEBUG
-            // Ensure that only expected kinds of instrumenters are in use
-            _ = RemoveDynamicAnalysisInjectors(instrumenter);
-#endif
-
-            _instrumenter = instrumenter;
             _rootStatement = rootStatement;
         }
 
@@ -97,13 +91,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics);
-                DynamicAnalysisInjector? dynamicInstrumenter = instrumentForDynamicAnalysis ? DynamicAnalysisInjector.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, Instrumenter.NoOp) : null;
+                var instrumentationState = new InstrumentationState();
+                var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics, instrumentationState);
 
-                // We don’t want IL to differ based upon whether we write the PDB to a file/stream or not.
+                // create chain of instrumenters:
+
+                var instrumenter = Instrumenter.NoOp;
+
+                CodeCoverageInstrumenter? codeCoverageInstrumenter = null;
+                if (instrumentForDynamicAnalysis &&
+                    CodeCoverageInstrumenter.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, instrumenter, out codeCoverageInstrumenter))
+                {
+                    instrumenter = codeCoverageInstrumenter;
+                }
+
+                instrumentationState.Instrumenter = DebugInfoInjector.Create(instrumenter);
+
+                // We don't want IL to differ based upon whether we write the PDB to a file/stream or not.
                 // Presence of sequence points in the tree affects final IL, therefore, we always generate them.
-                var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
-                                                      dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
+                var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics);
                 statement.CheckLocalsDefined();
                 var loweredStatement = localRewriter.VisitStatement(statement);
                 Debug.Assert(loweredStatement is { });
@@ -120,9 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredStatement = spilledStatement;
                 }
 
-                if (dynamicInstrumenter != null)
+                if (codeCoverageInstrumenter != null)
                 {
-                    dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
+                    dynamicAnalysisSpans = codeCoverageInstrumenter.DynamicAnalysisSpans;
                 }
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
@@ -138,13 +144,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal SyntheticBoundNodeFactory Factory
+            => _factory;
+
+        internal BoundStatement CurrentMethodBody
+            => _rootStatement;
+
+        private InstrumentationState InstrumentationState
+            => _factory.InstrumentationState!;
+
         private bool Instrument
-        {
-            get
-            {
-                return !_inExpressionLambda;
-            }
-        }
+            => !InstrumentationState.IsSuppressed;
+
+        private Instrumenter Instrumenter
+            => InstrumentationState.Instrumenter;
 
         private PEModuleBuilder? EmitModule
         {
@@ -171,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Accept(this);
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         private BoundExpression? VisitExpression(BoundExpression? node)
         {
             if (node == null)
@@ -197,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression? VisitExpressionImpl(BoundExpression node)
         {
-            ConstantValue? constantValue = node.ConstantValue;
+            ConstantValue? constantValue = node.ConstantValueOpt;
             if (constantValue != null)
             {
                 TypeSymbol? type = node.Type;
@@ -254,13 +267,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckRefReadOnlySymbols(lambda);
 
             var oldContainingSymbol = _factory.CurrentFunction;
-            var oldInstrumenter = _instrumenter;
+            var oldInstrumenter = InstrumentationState.Instrumenter;
             try
             {
                 _factory.CurrentFunction = lambda;
                 if (lambda.IsDirectlyExcludedFromCodeCoverage)
                 {
-                    _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
+                    InstrumentationState.RemoveCodeCoverageInstrumenter();
                 }
 
                 return base.VisitLambda(node)!;
@@ -268,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
-                _instrumenter = oldInstrumenter;
+                InstrumentationState.Instrumenter = oldInstrumenter;
             }
         }
 
@@ -312,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var oldContainingSymbol = _factory.CurrentFunction;
-            var oldInstrumenter = _instrumenter;
+            var oldInstrumenter = InstrumentationState.Instrumenter;
             var oldDynamicFactory = _dynamicFactory;
             try
             {
@@ -320,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (localFunction.IsDirectlyExcludedFromCodeCoverage)
                 {
-                    _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
+                    InstrumentationState.RemoveCodeCoverageInstrumenter();
                 }
 
                 if (localFunction.IsGenericMethod)
@@ -336,39 +349,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
-                _instrumenter = oldInstrumenter;
+                InstrumentationState.Instrumenter = oldInstrumenter;
                 _dynamicFactory = oldDynamicFactory;
-            }
-        }
-
-        private static Instrumenter RemoveDynamicAnalysisInjectors(Instrumenter instrumenter)
-        {
-            switch (instrumenter)
-            {
-                case DynamicAnalysisInjector { Previous: var previous }:
-                    return RemoveDynamicAnalysisInjectors(previous);
-                case DebugInfoInjector { Previous: var previous } injector:
-                    var newPrevious = RemoveDynamicAnalysisInjectors(previous);
-                    if ((object)newPrevious == previous)
-                    {
-                        return injector;
-                    }
-                    else if ((object)newPrevious == Instrumenter.NoOp)
-                    {
-                        return DebugInfoInjector.Singleton;
-                    }
-                    else
-                    {
-                        return new DebugInfoInjector(previous);
-                    }
-                case CompoundInstrumenter compound:
-                    // If we hit this it means a new kind of compound instrumenter is in use.
-                    // Either add a new case or add an abstraction that lets us
-                    // filter out the unwanted injectors in a more generalized way.
-                    throw ExceptionUtilities.UnexpectedValue(compound);
-                default:
-                    Debug.Assert((object)instrumenter == Instrumenter.NoOp);
-                    return instrumenter;
             }
         }
 
@@ -604,9 +586,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (initializer.Kind == BoundKind.Block)
                     {
                         var block = (BoundBlock)initializer;
+
                         var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
                         Debug.Assert(statement is { });
-                        statements.Add(block.Update(block.Locals, block.LocalFunctions, ImmutableArray.Create(statement)));
+                        statements.Add(block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(statement)));
                     }
                     else
                     {
@@ -659,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundStatement original = originalStatements[i];
                             if (Instrument && !original.WasCompilerGenerated)
                             {
-                                rewritten = _instrumenter.InstrumentFieldOrPropertyInitializer(original, rewritten);
+                                rewritten = Instrumenter.InstrumentFieldOrPropertyInitializer(original, rewritten);
                             }
                         }
 
@@ -871,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         internal static bool CanBePassedByReference(BoundExpression expr)
         {
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 return false;
             }
