@@ -14,6 +14,6 @@ internal static class SimplifierOptionsStorage
     public static ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         => document.GetSimplifierOptionsAsync(globalOptions.GetSimplifierOptions(document.Project.Services), cancellationToken);
 
-    public static SimplifierOptions GetSimplifierOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
-        => languageServices.GetRequiredService<ISimplificationService>().GetSimplifierOptions(globalOptions, fallbackOptions: null);
+    public static SimplifierOptions GetSimplifierOptions(this IGlobalOptionService options, LanguageServices languageServices)
+        => options.GetSimplifierOptions(languageServices, fallbackOptions: null);
 }

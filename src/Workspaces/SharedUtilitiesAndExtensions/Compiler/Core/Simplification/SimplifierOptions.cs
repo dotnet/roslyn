@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.Simplification
     internal static partial class SimplifierOptionsProviders
     {
 #if !CODE_STYLE
-        public static SimplifierOptions GetSimplifierOptions(this IOptionsReader options, SimplifierOptions? fallbackOptions, LanguageServices languageServices)
+        public static SimplifierOptions GetSimplifierOptions(this IOptionsReader options, LanguageServices languageServices, SimplifierOptions? fallbackOptions)
             => languageServices.GetRequiredService<ISimplificationService>().GetSimplifierOptions(options, fallbackOptions);
 
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
         {
             var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return configOptions.GetSimplifierOptions(fallbackOptions, document.Project.Services);
+            return configOptions.GetSimplifierOptions(document.Project.Services, fallbackOptions);
         }
 
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
