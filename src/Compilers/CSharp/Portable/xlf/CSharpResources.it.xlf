@@ -2458,8 +2458,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
-        <target state="translated">Un costruttore dichiarato in un record con elenco di parametri deve includere l'inizializzatore di costruttore 'this'.</target>
+        <source>A constructor declared in a type with parameter list must have 'this' constructor initializer.</source>
+        <target state="needs-review-translation">Un costruttore dichiarato in un record con elenco di parametri deve includere l'inizializzatore di costruttore 'this'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">

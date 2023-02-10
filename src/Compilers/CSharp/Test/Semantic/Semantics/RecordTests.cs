@@ -933,7 +933,7 @@ record C(int X, int Y)
                 // (5,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(5, 12),
-                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12),
                 // (11,21): error CS0121: The call is ambiguous between the following methods or properties: 'C.C(int, int)' and 'C.C(int, int)'
@@ -1653,7 +1653,7 @@ record C()
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (4,5): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,5): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     C(int x)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C", isSuppressed: false).WithLocation(4, 5)
                 );
@@ -13443,7 +13443,7 @@ public record C(int j) : B(1)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (3,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public B(ref B b) => throw null; // 1, not recognized as copy constructor
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "B").WithLocation(3, 12)
                 );

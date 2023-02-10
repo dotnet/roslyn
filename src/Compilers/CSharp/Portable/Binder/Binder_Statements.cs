@@ -3626,7 +3626,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
                 {
                     // Note: we check the constructor initializer of copy constructors elsewhere
-                    // PROTOTYPE(PrimaryConstructors): Adjust message?
                     Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
                 }
             }

@@ -573,12 +573,12 @@ static " + keyword + @" C(int x, string y);
     {
     }
 }");
-            // PROTOTYPE(PrimaryConstructors): Adjust wording for ERR_UnexpectedOrMissingConstructorInitializerInRecord?
+
             comp.VerifyDiagnostics(
                 // (5,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(5, 12),
-                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12)
                 );
@@ -607,9 +607,9 @@ static " + keyword + @" C(int x, string y);
     {
     }
 }");
-            // PROTOTYPE(PrimaryConstructors): Adjust wording for ERR_UnexpectedOrMissingConstructorInitializerInRecord?
+
             comp.VerifyDiagnostics(
-                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b) // overload
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12)
                 );
@@ -665,7 +665,7 @@ static " + keyword + @" C(int x, string y);
 }");
 
             comp.VerifyDiagnostics(
-                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C() // overload
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12)
                 );

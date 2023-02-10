@@ -2458,8 +2458,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
-        <target state="translated">パラメーター リストを含むレコード内で宣言されたコンストラクターには、'this' コンストラクター初期化子が必要です。</target>
+        <source>A constructor declared in a type with parameter list must have 'this' constructor initializer.</source>
+        <target state="needs-review-translation">パラメーター リストを含むレコード内で宣言されたコンストラクターには、'this' コンストラクター初期化子が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVarianceStaticMember">

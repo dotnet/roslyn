@@ -6590,7 +6590,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Unexpected argument list.</value>
   </data>
   <data name="ERR_UnexpectedOrMissingConstructorInitializerInRecord" xml:space="preserve">
-    <value>A constructor declared in a record with parameter list must have 'this' constructor initializer.</value>
+    <value>A constructor declared in a type with parameter list must have 'this' constructor initializer.</value>
   </data>
   <data name="ERR_MultipleRecordParameterLists" xml:space="preserve">
     <value>Only a single record partial declaration may have a parameter list</value>

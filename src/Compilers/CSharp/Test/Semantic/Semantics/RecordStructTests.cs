@@ -1030,10 +1030,10 @@ record struct S6(object o)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,5): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (13,5): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     S3(object o) { } // 1
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S3").WithLocation(13, 5),
-                // (21,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (21,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S5() { } // 2
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S5").WithLocation(21, 12)
                 );
@@ -1864,7 +1864,7 @@ record struct C(int X, int Y)
                 // (5,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(5, 12),
-                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12),
                 // (11,21): error CS0121: The call is ambiguous between the following methods or properties: 'C.C(int, int)' and 'C.C(int, int)'
@@ -10810,13 +10810,13 @@ record class Boxed(string Text)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (4,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     private Value(int X) { } // 1
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Value").WithLocation(4, 13),
-                // (5,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     private Value(Value original) { } // 2
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Value").WithLocation(5, 13),
-                // (10,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (10,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     private Boxed(int X) { } // 3
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Boxed").WithLocation(10, 13),
                 // (11,13): error CS8878: A copy constructor 'Boxed.Boxed(Boxed)' must be public or protected because the record is not sealed.
@@ -10910,13 +10910,13 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (7,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S2(object o) { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S2").WithLocation(7, 12),
-                // (11,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (11,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S3(object o) { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S3").WithLocation(11, 12),
-                // (15,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (15,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S4(object o) { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S4").WithLocation(15, 12));
         }
@@ -11144,7 +11144,7 @@ S4 { A = a, B = b }
                 // (4,12): error CS2111: Type 'S2' already defines a member called 'S2' with the same parameter types
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "S2").WithArguments("S2", "S2").WithLocation(4, 12),
-                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S2").WithLocation(4, 12));
         }
@@ -11173,13 +11173,13 @@ record struct S3(char A)
                 // (7,12): error CS0522: 'S2': structs cannot call base class constructors
                 //     public S2(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S2").WithArguments("S2").WithLocation(7, 12),
-                // (7,27): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (7,27): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S2(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(7, 27),
                 // (11,12): error CS0522: 'S3': structs cannot call base class constructors
                 //     public S3(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S3").WithArguments("S3").WithLocation(11, 12),
-                // (11,27): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (11,27): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S3(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(11, 27));
         }
