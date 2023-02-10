@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -558,6 +556,71 @@ string x = null;
 
 x = s ?? throw new ArgumentNullException();
 ", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, WorkItem(38102, "https://github.com/dotnet/roslyn/issues/38102")]
+        public async Task PreserveTrailingTrivia1()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    object _arg;
+
+    public Program(object arg)
+    {
+        if (arg == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(arg)); // Oh no!
+        }
+        _arg = arg;
+    }
+}",
+@"using System;
+
+class Program
+{
+    object _arg;
+
+    public Program(object arg)
+    {
+        _arg = arg ?? throw new ArgumentNullException(nameof(arg)); // Oh no!
+    }
+}", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, WorkItem(38102, "https://github.com/dotnet/roslyn/issues/38102")]
+        public async Task PreserveTrailingTrivia2()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    object _arg;
+
+    public Program(object arg)
+    {
+        if (arg == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(arg)); // Oh no!
+        }
+        _arg = arg; // oh yes!
+    }
+}",
+@"using System;
+
+class Program
+{
+    object _arg;
+
+    public Program(object arg)
+    {
+        // Oh no!
+        _arg = arg ?? throw new ArgumentNullException(nameof(arg)); // oh yes!
+    }
+}", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
     }
 }

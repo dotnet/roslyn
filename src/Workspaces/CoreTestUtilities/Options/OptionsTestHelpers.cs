@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
@@ -165,5 +166,35 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public static Type GetNonNullableType(Type type)
             => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) ? type.GetGenericArguments()[0] : type;
+
+        public static NamingStylePreferences GetNonDefaultNamingStylePreference()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                Guid.NewGuid(),
+                "Name",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
+                accessibilityList: default,
+                modifiers: default);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
+
+            return new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+        }
     }
 }

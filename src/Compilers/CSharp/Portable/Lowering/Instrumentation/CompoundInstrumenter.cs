@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -77,14 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentBreakStatement(original, rewritten);
         }
 
-        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
+        public override void InstrumentBlock(BoundBlock original, LocalRewriter rewriter, ref TemporaryArray<LocalSymbol> additionalLocals, out BoundStatement? prologue, out BoundStatement? epilogue)
         {
-            return Previous.CreateBlockPrologue(original, out synthesizedLocal);
-        }
-
-        public override BoundStatement? CreateBlockEpilogue(BoundBlock original)
-        {
-            return Previous.CreateBlockEpilogue(original);
+            Previous.InstrumentBlock(original, rewriter, ref additionalLocals, out prologue, out epilogue);
         }
 
         public override BoundExpression InstrumentDoStatementCondition(BoundDoStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)

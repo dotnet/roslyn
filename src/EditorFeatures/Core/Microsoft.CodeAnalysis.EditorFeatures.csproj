@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);EDITOR_FEATURES</DefineConstants>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
@@ -72,7 +72,6 @@
     <InternalsVisibleTo Include="MonoDevelop.Refactoring.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="MonoDevelop.VBNetBinding.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
-    <!-- this is currently built externally, as part of the MonoDevelop build -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Cocoa" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Cocoa.UnitTests" LoadsWithinVisualStudio="false" />
     <!-- END MONODEVELOP -->

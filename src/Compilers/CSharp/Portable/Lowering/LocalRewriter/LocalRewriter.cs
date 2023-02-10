@@ -144,6 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal SyntheticBoundNodeFactory Factory
+            => _factory;
+
+        internal BoundStatement CurrentMethodBody
+            => _rootStatement;
+
         private InstrumentationState InstrumentationState
             => _factory.InstrumentationState!;
 
@@ -580,6 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (initializer.Kind == BoundKind.Block)
                     {
                         var block = (BoundBlock)initializer;
+
                         var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
                         Debug.Assert(statement is { });
                         statements.Add(block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(statement)));

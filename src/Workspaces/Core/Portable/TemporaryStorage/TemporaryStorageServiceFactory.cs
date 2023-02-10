@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Temporarily stores text and streams in memory mapped files.
     /// </summary>
+#if NETCOREAPP
+    [SupportedOSPlatform("windows")]
+#endif
     internal partial class TemporaryStorageService : ITemporaryStorageService2
     {
         /// <summary>

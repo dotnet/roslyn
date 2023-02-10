@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -37,12 +38,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<SyntaxTree, CancellationToken, bool> _isGeneratedCode;
 
         /// <summary>
-        /// Set of diagnostic suppressions that are suppressed via analyzer suppression actions. 
+        /// Set of diagnostic suppressions that are suppressed via analyzer suppression actions.
         /// </summary>
         private readonly ConcurrentSet<Suppression>? _programmaticSuppressions;
 
         /// <summary>
-        /// Set of diagnostics that have already been processed for application of programmatic suppressions. 
+        /// Set of diagnostics that have already been processed for application of programmatic suppressions.
         /// </summary>
         private readonly ConcurrentSet<Diagnostic>? _diagnosticsProcessedForProgrammaticSuppressions;
 
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableHashSet<DiagnosticAnalyzer>? _lazyUnsuppressedAnalyzers;
 
         /// <summary>
-        /// Unsuppressed analyzers that need to be executed. 
+        /// Unsuppressed analyzers that need to be executed.
         /// </summary>
         protected ImmutableHashSet<DiagnosticAnalyzer> UnsuppressedAnalyzers
         {
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const GeneratedCodeAnalysisFlags DefaultGeneratedCodeAnalysisFlags = GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics;
 
         /// <summary>
-        /// Map from non-concurrent analyzers to the gate guarding callback into the analyzer. 
+        /// Map from non-concurrent analyzers to the gate guarding callback into the analyzer.
         /// </summary>
         private ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim> _lazyAnalyzerGateMap;
         private ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim> AnalyzerGateMap
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _lazyGeneratedCodeAnalysisFlagsMap;
 
         /// <summary>
-        /// Map from analyzers to their <see cref="GeneratedCodeAnalysisFlags"/> setting. 
+        /// Map from analyzers to their <see cref="GeneratedCodeAnalysisFlags"/> setting.
         /// </summary>
         private ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> GeneratedCodeAnalysisFlagsMap
         {
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableHashSet<DiagnosticAnalyzer>? _lazyNonConfigurableAnalyzers;
 
         /// <summary>
-        /// Set of unsuppressed analyzers that report non-configurable diagnostics that cannot be suppressed with end user configuration. 
+        /// Set of unsuppressed analyzers that report non-configurable diagnostics that cannot be suppressed with end user configuration.
         /// </summary>
         private ImmutableHashSet<DiagnosticAnalyzer> NonConfigurableAnalyzers
         {
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableHashSet<DiagnosticAnalyzer>? _lazySymbolStartAnalyzers;
 
         /// <summary>
-        /// Set of analyzers that have registered symbol start analyzer actions. 
+        /// Set of analyzers that have registered symbol start analyzer actions.
         /// </summary>
         private ImmutableHashSet<DiagnosticAnalyzer> SymbolStartAnalyzers
         {
@@ -428,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 }, cancellationToken);
 
-                // create the primary driver task. 
+                // create the primary driver task.
                 cancellationToken.ThrowIfCancellationRequested();
 
                 _initializeSucceeded = true;
@@ -813,7 +814,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Create an <see cref="AnalyzerDriver"/> and attach it to the given compilation. 
+        /// Create an <see cref="AnalyzerDriver"/> and attach it to the given compilation.
         /// </summary>
         /// <param name="compilation">The compilation to which the new driver should be attached.</param>
         /// <param name="analyzers">The set of analyzers to include in the analysis.</param>
@@ -1613,7 +1614,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 case CompilationUnitCompletedEvent compilationUnitCompletedEvent when !compilationUnitCompletedEvent.FilterSpan.HasValue:
                     // Clear the semantic model cache only if we have completed analysis for the entire compilation unit,
                     // i.e. the event has a null filter span. Compilation unit completed event with a non-null filter span
-                    // indicates a synthesized event for partial analysis of the tree and we avoid clearing the semantic model cache for that case. 
+                    // indicates a synthesized event for partial analysis of the tree and we avoid clearing the semantic model cache for that case.
                     SemanticModelProvider.ClearCache(compilationUnitCompletedEvent.CompilationUnit, compilationUnitCompletedEvent.Compilation);
                     break;
 
