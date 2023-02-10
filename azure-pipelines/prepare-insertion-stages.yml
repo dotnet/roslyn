@@ -9,17 +9,17 @@ stages:
     - checkout: none
     - download: current
       artifact: Variables-Windows
-      displayName: Download Variables-Windows artifact
+      displayName: 🔻 Download Variables-Windows artifact
     - task: PowerShell@2
-      displayName: Set pipeline variables based on artifacts
+      displayName: ⚙️ Set pipeline variables based on artifacts
       inputs:
         targetType: filePath
         filePath: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
     - download: current
       artifact: symbols-legacy
-      displayName: Download symbols-legacy artifact
+      displayName: 🔻 Download symbols-legacy artifact
     - task: MicroBuildArchiveSymbols@1
-      displayName: Archive symbols to Symweb
+      displayName: 🔣 Archive symbols to Symweb
       inputs:
         SymbolsFeatureName: $(SymbolsFeatureName)
         SymbolsSymwebProject: VS
@@ -27,7 +27,7 @@ stages:
         SymbolsEmailContacts: vsidemicrobuild
         SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
     - task: MicroBuildCleanup@1
-      displayName: Send Telemetry
+      displayName: ☎️ Send Telemetry
 
 # - stage: azure_public_vsimpl_feed
 #   displayName: azure-public/vs-impl feed
@@ -41,16 +41,16 @@ stages:
 #     - checkout: none
 #     - download: current
 #       artifact: deployables-Windows
-#       displayName: Download deployables-Windows artifact
+#       displayName: 🔻 Download deployables-Windows artifact
 #     - task: UseDotNet@2
-#       displayName: Install .NET SDK
+#       displayName: ⚙️ Install .NET SDK
 #       inputs:
 #         packageType: sdk
 #         version: 6.x
 #     - task: NuGetAuthenticate@1
-#       displayName: Authenticate NuGet feeds
+#       displayName: 🔏 Authenticate NuGet feeds
 #       inputs:
 #         nuGetServiceConnections: azure-public/vs-impl
 #         forceReinstallCredentialProvider: true
 #     - script: dotnet nuget push $(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg -s https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json --api-key azdo --skip-duplicate
-#       displayName: Push nuget packages
+#       displayName: 📦 Push nuget packages
