@@ -3475,7 +3475,7 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="RoleDeclarationSyntax" Base="TypeDeclarationSyntax">
+  <Node Name="RoleDeclarationSyntax" Base="TypeDeclarationSyntax" SkipConvenienceFactories="true">
     <Kind Name="RoleDeclaration" />
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
@@ -3499,7 +3499,7 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="ExtensionDeclarationSyntax" Base="TypeDeclarationSyntax">
+  <Node Name="ExtensionDeclarationSyntax" Base="TypeDeclarationSyntax" SkipConvenienceFactories="true">
     <Kind Name="ExtensionDeclaration" />
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>

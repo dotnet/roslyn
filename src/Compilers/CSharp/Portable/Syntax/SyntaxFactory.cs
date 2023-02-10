@@ -2833,5 +2833,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: type,
                 parameters: parameters);
         }
+
+        /// <summary>Creates a new RoleDeclarationSyntax instance.</summary>
+        public static RoleDeclarationSyntax RoleDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.RoleDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList,
+                baseList, constraintClauses,
+                SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), semicolonToken: default);
+
+        /// <summary>Creates a new RoleDeclarationSyntax instance.</summary>
+        public static RoleDeclarationSyntax RoleDeclaration(SyntaxToken keyword, SyntaxToken identifier)
+            => SyntaxFactory.RoleDeclaration(attributeLists: default, modifiers: default, keyword, identifier,
+                typeParameterList: null, baseList: null, constraintClauses: default,
+                openBraceToken: SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members: default, closeBraceToken: SyntaxFactory.Token(SyntaxKind.CloseBraceToken),
+                semicolonToken: default);
+
+        /// <summary>Creates a new RoleDeclarationSyntax instance.</summary>
+        public static RoleDeclarationSyntax RoleDeclaration(SyntaxToken keyword, string identifier)
+            => SyntaxFactory.RoleDeclaration(attributeLists: default, modifiers: default, keyword, SyntaxFactory.Identifier(identifier),
+                typeParameterList: null, baseList: null, constraintClauses: default,
+                openBraceToken: SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members: default, closeBraceToken: SyntaxFactory.Token(SyntaxKind.CloseBraceToken),
+                semicolonToken: default);
+
+        /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
+        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, keyword, identifier,
+                typeParameterList, baseList, constraintClauses,
+                SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members, SyntaxFactory.Token(SyntaxKind.CloseBraceToken),
+                semicolonToken: default);
+
+        /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
+        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxToken keyword, SyntaxToken identifier)
+            => SyntaxFactory.ExtensionDeclaration(attributeLists: default, modifiers: default, keyword, identifier,
+                typeParameterList: null, baseList: null, constraintClauses: default,
+                openBraceToken: SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members: default, closeBraceToken: SyntaxFactory.Token(SyntaxKind.CloseBraceToken),
+                semicolonToken: default);
+
+        /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
+        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxToken keyword, string identifier)
+            => SyntaxFactory.ExtensionDeclaration(attributeLists: default, modifiers: default, keyword, SyntaxFactory.Identifier(identifier),
+                typeParameterList: null, baseList: null, constraintClauses: default,
+                openBraceToken: SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members: default, closeBraceToken: SyntaxFactory.Token(SyntaxKind.CloseBraceToken),
+                semicolonToken: default);
     }
 }

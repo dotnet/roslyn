@@ -5023,18 +5023,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (RoleDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.RoleDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
-        /// <summary>Creates a new RoleDeclarationSyntax instance.</summary>
-        public static RoleDeclarationSyntax RoleDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
-            => SyntaxFactory.RoleDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, default, members, default, default);
-
-        /// <summary>Creates a new RoleDeclarationSyntax instance.</summary>
-        public static RoleDeclarationSyntax RoleDeclaration(SyntaxToken keyword, SyntaxToken identifier)
-            => SyntaxFactory.RoleDeclaration(default, default(SyntaxTokenList), keyword, identifier, default, default, default, default, default, default, default);
-
-        /// <summary>Creates a new RoleDeclarationSyntax instance.</summary>
-        public static RoleDeclarationSyntax RoleDeclaration(SyntaxToken keyword, string identifier)
-            => SyntaxFactory.RoleDeclaration(default, default(SyntaxTokenList), keyword, SyntaxFactory.Identifier(identifier), default, default, default, default, default, default, default);
-
         /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
         public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -5059,18 +5047,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return (ExtensionDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ExtensionDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
-
-        /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
-            => SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, default, members, default, default);
-
-        /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxToken keyword, SyntaxToken identifier)
-            => SyntaxFactory.ExtensionDeclaration(default, default(SyntaxTokenList), keyword, identifier, default, default, default, default, default, default, default);
-
-        /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxToken keyword, string identifier)
-            => SyntaxFactory.ExtensionDeclaration(default, default(SyntaxTokenList), keyword, SyntaxFactory.Identifier(identifier), default, default, default, default, default, default, default);
 
         /// <summary>Creates a new EnumDeclarationSyntax instance.</summary>
         public static EnumDeclarationSyntax EnumDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
