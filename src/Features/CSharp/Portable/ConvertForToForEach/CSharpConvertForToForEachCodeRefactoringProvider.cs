@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -11,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertForToForEach;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
 {
@@ -49,32 +46,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             // Look for very specific forms.  Basically, only minor variations around:
             // for (var i = 0; i < expr.Lenth; i++)
 
-            if (forStatement.Declaration != null &&
-                forStatement.Condition.IsKind(SyntaxKind.LessThanExpression) &&
-                forStatement.Incrementors.Count == 1)
+            if (forStatement is { Declaration.Variables: [{ Initializer: not null } declarator], Condition.RawKind: (int)SyntaxKind.LessThanExpression, Incrementors.Count: 1 })
             {
-                var declaration = forStatement.Declaration;
-                if (declaration.Variables.Count == 1)
+                iterationVariable = declarator.Identifier;
+                initializer = declarator.Initializer.Value;
+
+                var binaryExpression = (BinaryExpressionSyntax)forStatement.Condition;
+
+                // Look for:  i < expr.Length
+                if (binaryExpression.Left is IdentifierNameSyntax identifierName &&
+                    identifierName.Identifier.ValueText == iterationVariable.ValueText &&
+                    binaryExpression.Right is MemberAccessExpressionSyntax right)
                 {
-                    var declarator = declaration.Variables[0];
-                    if (declarator.Initializer != null)
-                    {
-                        iterationVariable = declarator.Identifier;
-                        initializer = declarator.Initializer.Value;
+                    memberAccess = right;
 
-                        var binaryExpression = (BinaryExpressionSyntax)forStatement.Condition;
-
-                        // Look for:  i < expr.Length
-                        if (binaryExpression.Left is IdentifierNameSyntax identifierName &&
-                            identifierName.Identifier.ValueText == iterationVariable.ValueText &&
-                            binaryExpression.Right is MemberAccessExpressionSyntax)
-                        {
-                            memberAccess = (MemberAccessExpressionSyntax)binaryExpression.Right;
-
-                            var incrementor = forStatement.Incrementors[0];
-                            return TryGetStepValue(iterationVariable, incrementor, out stepValueExpressionOpt);
-                        }
-                    }
+                    var incrementor = forStatement.Incrementors[0];
+                    return TryGetStepValue(iterationVariable, incrementor, out stepValueExpressionOpt);
                 }
             }
 
