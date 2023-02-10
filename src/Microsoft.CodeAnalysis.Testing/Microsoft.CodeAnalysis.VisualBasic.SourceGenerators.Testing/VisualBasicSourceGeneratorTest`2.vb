@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Testing
 
 Public Class VisualBasicSourceGeneratorTest(Of TSourceGenerator As {ISourceGenerator, New}, TVerifier As {IVerifier, New})
@@ -20,14 +19,6 @@ Public Class VisualBasicSourceGeneratorTest(Of TSourceGenerator As {ISourceGener
             Return "vb"
         End Get
     End Property
-
-    Protected Overrides Function CreateGeneratorDriver(project As Project, sourceGenerators As ImmutableArray(Of ISourceGenerator)) As GeneratorDriver
-        Return VisualBasicGeneratorDriver.Create(
-            sourceGenerators,
-            project.AnalyzerOptions.AdditionalFiles,
-            CType(project.ParseOptions, VisualBasicParseOptions),
-            project.AnalyzerOptions.AnalyzerConfigOptionsProvider)
-    End Function
 
     Protected Overrides Function CreateCompilationOptions() As CompilationOptions
         Return New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)

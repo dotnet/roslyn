@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Testing;
 
 namespace Microsoft.CodeAnalysis.CSharp.Testing
@@ -22,15 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Testing
         protected override string DefaultFileExt => "cs";
 
         public override string Language => LanguageNames.CSharp;
-
-        protected override GeneratorDriver CreateGeneratorDriver(Project project, ImmutableArray<ISourceGenerator> sourceGenerators)
-        {
-            return CSharpGeneratorDriver.Create(
-                sourceGenerators,
-                project.AnalyzerOptions.AdditionalFiles,
-                (CSharpParseOptions)project.ParseOptions!,
-                project.AnalyzerOptions.AnalyzerConfigOptionsProvider);
-        }
 
         protected override CompilationOptions CreateCompilationOptions()
             => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true);
