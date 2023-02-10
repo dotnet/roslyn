@@ -14915,5 +14915,26 @@ class C(int X)
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "X.M").WithArguments("C.X.M()").WithLocation(7, 9)
                 );
         }
+
+        [Fact]
+        public void ConstructorCallsDefaultConstructor()
+        {
+            var source =
+@"
+#pragma warning disable CS8907 // Parameter 'A' is unread. Did you forget to use it to initialize the property with that name?
+
+struct S3(char A)
+{
+    public S3(object o) : this()
+    { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                //     public S3(object o) : this()
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(6, 27)
+                );
+        }
     }
 }

@@ -11003,10 +11003,10 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (3,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S3(object o) : this() { }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(3, 27),
-                // (7,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (7,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S4(object o) : this() { }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(7, 27));
         }
@@ -11028,10 +11028,10 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (4,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S3(object o) : this() { F = o; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 27),
-                // (9,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (9,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S4(object o) : this() { F = o; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(9, 27));
         }
@@ -11202,7 +11202,7 @@ record struct S3(char A)
                 // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S(object F)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "F").WithArguments("F").WithLocation(1, 24),
-                // (4,23): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (4,23): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S(int i) : this() { F = i; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 23));
 
@@ -11211,7 +11211,7 @@ record struct S3(char A)
                 // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S(object F)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "F").WithArguments("F").WithLocation(1, 24),
-                // (4,23): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (4,23): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S(int i) : this() { F = i; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 23));
         }

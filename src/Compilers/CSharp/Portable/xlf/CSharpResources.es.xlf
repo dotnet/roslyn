@@ -1318,8 +1318,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
-        <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="translated">Un constructor declarado en un 'record struct' con lista de parámetros debe tener un inicializador 'this' que llame al constructor principal o a un constructor declarado explícitamente.</target>
+        <source>A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
+        <target state="needs-review-translation">Un constructor declarado en un 'record struct' con lista de parámetros debe tener un inicializador 'this' que llame al constructor principal o a un constructor declarado explícitamente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">

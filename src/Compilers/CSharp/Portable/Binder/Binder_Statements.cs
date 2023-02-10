@@ -3637,7 +3637,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isInstanceConstructor(out _) &&
                 hasPrimaryConstructor())
             {
-                // PROTOTYPE(PrimaryConstructors): Adjust message?
                 Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
             }
 

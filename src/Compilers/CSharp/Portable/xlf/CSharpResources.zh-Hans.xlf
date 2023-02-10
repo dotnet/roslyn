@@ -1318,8 +1318,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
-        <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="translated">在带有参数列表的 "record struct" 中声明的构造函数必须具有调用主构造函数或显式声明的构造函数的 "this" 初始值设定项。</target>
+        <source>A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
+        <target state="needs-review-translation">在带有参数列表的 "record struct" 中声明的构造函数必须具有调用主构造函数或显式声明的构造函数的 "this" 初始值设定项。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
