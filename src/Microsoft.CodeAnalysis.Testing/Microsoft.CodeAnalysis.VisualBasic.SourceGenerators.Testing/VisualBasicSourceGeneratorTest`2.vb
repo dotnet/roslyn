@@ -37,7 +37,7 @@ Public Class VisualBasicSourceGeneratorTest(Of TSourceGenerator As {ISourceGener
         Return New VisualBasicParseOptions(DefaultLanguageVersion, DocumentationMode.Diagnose)
     End Function
 
-    Protected Overrides Function GetSourceGenerators() As IEnumerable(Of ISourceGenerator)
-        Return New ISourceGenerator() {New TSourceGenerator()}
+    Protected Overrides Function GetSourceGenerators() As IEnumerable(Of Type)
+        Return New Type() {GetType(TSourceGenerator)}
     End Function
 End Class

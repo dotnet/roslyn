@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// Returns the source generators being tested - to be implemented in non-abstract class.
         /// </summary>
         /// <returns>The <see cref="ISourceGenerator"/> to be used.</returns>
-        protected abstract IEnumerable<ISourceGenerator> GetSourceGenerators();
+        protected override abstract IEnumerable<Type> GetSourceGenerators();
 
         protected abstract GeneratorDriver CreateGeneratorDriver(Project project, ImmutableArray<ISourceGenerator> sourceGenerators);
 
@@ -47,12 +47,6 @@ namespace Microsoft.CodeAnalysis.Testing
             await VerifyDiagnosticsAsync(new EvaluatedProjectState(testState, ReferenceAssemblies).WithAdditionalDiagnostics(diagnostics), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), testState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of test state"), cancellationToken).ConfigureAwait(false);
         }
 
-        protected override async Task<Compilation> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
-        {
-            var (finalProject, diagnostics) = await ApplySourceGeneratorAsync(GetSourceGenerators().ToImmutableArray(), project, verifier, cancellationToken).ConfigureAwait(false);
-            return (await finalProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
-        }
-
         /// <summary>
         /// Called to test a C# source generator when applied on the input source as a string.
         /// </summary>
@@ -62,7 +56,30 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         protected async Task<ImmutableArray<Diagnostic>> VerifySourceGeneratorAsync(SolutionState testState, IVerifier verifier, CancellationToken cancellationToken)
         {
-            return await VerifySourceGeneratorAsync(Language, GetSourceGenerators().ToImmutableArray(), testState, ApplySourceGeneratorAsync, verifier.PushContext("Source generator application"), cancellationToken);
+            return await VerifySourceGeneratorAsync(Language, InstantiateSourceGenerators(GetSourceGenerators().ToImmutableArray()), testState, ApplySourceGeneratorAsync, verifier.PushContext("Source generator application"), cancellationToken);
+        }
+
+        private ImmutableArray<ISourceGenerator> InstantiateSourceGenerators(ImmutableArray<Type> sourceGenerators)
+        {
+            return ImmutableArray.CreateRange(
+                sourceGenerators,
+                sourceGeneratorType =>
+                {
+                    var instance = Activator.CreateInstance(sourceGeneratorType);
+                    if (instance is ISourceGenerator generator)
+                    {
+                        return generator;
+                    }
+
+                    var iincrementalGeneratorType = typeof(ISourceGenerator).Assembly.GetType("Microsoft.CodeAnalysis.IIncrementalGenerator");
+
+                    var asGeneratorMethod = (from method in typeof(ISourceGenerator).Assembly.GetType("Microsoft.CodeAnalysis.GeneratorExtensions")!.GetMethods()
+                                             where method is { Name: "AsSourceGenerator", IsStatic: true, IsPublic: true }
+                                             let parameterTypes = method.GetParameters().Select(parameter => parameter.ParameterType).ToArray()
+                                             where parameterTypes.SequenceEqual(new[] { iincrementalGeneratorType })
+                                             select method).SingleOrDefault();
+                    return (ISourceGenerator)asGeneratorMethod.Invoke(null, new[] { instance })!;
+                });
         }
 
         private async Task<ImmutableArray<Diagnostic>> VerifySourceGeneratorAsync(

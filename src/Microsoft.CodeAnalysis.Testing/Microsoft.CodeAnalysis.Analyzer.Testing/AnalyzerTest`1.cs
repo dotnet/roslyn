@@ -933,9 +933,109 @@ namespace Microsoft.CodeAnalysis.Testing
             return results;
         }
 
-        protected virtual Task<Compilation> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
+        protected virtual async Task<Compilation> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
         {
-            return project.GetCompilationAsync(cancellationToken);
+            var (finalProject, _) = await ApplySourceGeneratorAsync(GetSourceGenerators().ToImmutableArray(), project, verifier, cancellationToken).ConfigureAwait(false);
+            return (await finalProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+        }
+
+        private async Task<(Project project, ImmutableArray<Diagnostic> diagnostics)> ApplySourceGeneratorAsync(ImmutableArray<Type> sourceGeneratorTypes, Project project, IVerifier verifier, CancellationToken cancellationToken)
+        {
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            verifier.True(compilation is { });
+
+            if (sourceGeneratorTypes.IsEmpty)
+            {
+                return (project, ImmutableArray<Diagnostic>.Empty);
+            }
+
+            var sourceGenerators = ImmutableArray.CreateRange(sourceGeneratorTypes, static type => Activator.CreateInstance(type)!);
+            var driver = CreateGeneratorDriver(project, sourceGenerators, verifier).RunGenerators(compilation, cancellationToken);
+            var result = driver.GetRunResult();
+
+            var updatedProject = project;
+            foreach (var tree in result.GeneratedTrees)
+            {
+                var (fileName, folders) = GetNameAndFoldersFromSourceGeneratedFilePath(tree.FilePath);
+                updatedProject = updatedProject.AddDocument(fileName, await tree.GetTextAsync(cancellationToken).ConfigureAwait(false), folders: folders, filePath: tree.FilePath).Project;
+            }
+
+            return (updatedProject, result.Diagnostics);
+        }
+
+        private static (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromSourceGeneratedFilePath(string filePath)
+        {
+            // Source-generated files are always implicitly subpaths under the project root path.
+            var folders = Path.GetDirectoryName(filePath)!.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var fileName = Path.GetFileName(filePath);
+            return (fileName, folders);
+        }
+
+        private LightupGeneratorDriver CreateGeneratorDriver(Project project, ImmutableArray<object> sourceGenerators, IVerifier verifier)
+        {
+            var generatorDriverTypeName = project.Language switch
+            {
+                LanguageNames.CSharp => "Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver",
+                LanguageNames.VisualBasic => "Microsoft.CodeAnalysis.VisualBasic.VisualBasicGeneratorDriver",
+                _ => throw new NotSupportedException(),
+            };
+
+            var assembly = project.CompilationOptions.GetType().GetTypeInfo().Assembly;
+            var generatorDriverType = assembly.GetType(generatorDriverTypeName);
+            verifier.True(generatorDriverType is not null, "Failed to locate language-specific source generator driver");
+
+            var isourceGeneratorType = typeof(CompilationOptions).GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.ISourceGenerator");
+            verifier.True(isourceGeneratorType is not null, "Failed to locate ISourceGenerator interface");
+            var ienumerableOfISourceGeneratorType = typeof(IEnumerable<>).MakeGenericType(isourceGeneratorType);
+            var immutableArrayOfISourceGeneratorType = typeof(ImmutableArray<>).MakeGenericType(isourceGeneratorType);
+
+            var analyzerConfigOptionsProviderType = typeof(CompilationOptions).GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider");
+            verifier.True(analyzerConfigOptionsProviderType is not null, "Failed to locate AnalyzerConfigOptionsProvider class");
+
+            var createMethod = (from method in generatorDriverType.GetTypeInfo().GetMethods()
+                                where method is { Name: "Create", IsPublic: true, IsStatic: true }
+                                let parameterTypes = method.GetParameters().Select(static parameter => parameter.ParameterType)
+                                where parameterTypes.SequenceEqual(new[] { ienumerableOfISourceGeneratorType, typeof(IEnumerable<AdditionalText>), project.ParseOptions.GetType(), analyzerConfigOptionsProviderType })
+                                    || parameterTypes.SequenceEqual(new[] { immutableArrayOfISourceGeneratorType, typeof(ImmutableArray<AdditionalText>), project.ParseOptions.GetType(), analyzerConfigOptionsProviderType })
+                                select method).SingleOrDefault();
+            verifier.True(createMethod is not null, "Failed to locate factory method for diagnostic driver");
+
+            var convertedSourceGeneratorsArray = Array.CreateInstance(isourceGeneratorType, sourceGenerators.Length);
+            for (var i = 0; i < sourceGenerators.Length; i++)
+            {
+                if (isourceGeneratorType.IsAssignableFrom(sourceGenerators[i].GetType()))
+                {
+                    convertedSourceGeneratorsArray.SetValue(sourceGenerators[i], i);
+                }
+                else
+                {
+                    var iincrementalGeneratorType = isourceGeneratorType.GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.IIncrementalGenerator");
+                    var asGeneratorMethod = (from method in isourceGeneratorType.GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.GeneratorExtensions")!.GetMethods()
+                                             where method is { Name: "AsSourceGenerator", IsStatic: true, IsPublic: true }
+                                             let parameterTypes = method.GetParameters().Select(parameter => parameter.ParameterType).ToArray()
+                                             where parameterTypes.SequenceEqual(new[] { iincrementalGeneratorType })
+                                             select method).SingleOrDefault();
+                    convertedSourceGeneratorsArray.SetValue(asGeneratorMethod.Invoke(null, new[] { sourceGenerators[i] }), i);
+                }
+            }
+
+            var createRangeMethod = (from method in typeof(ImmutableArray).GetTypeInfo().GetMethods()
+                                     where method is { Name: nameof(ImmutableArray.CreateRange), IsStatic: true, IsPublic: true }
+                                     let parameterTypes = method.GetParameters().Select(static parameter => parameter.ParameterType).ToArray()
+                                     where parameterTypes.Length == 1 && parameterTypes[0].GetGenericTypeDefinition() == typeof(IEnumerable<>)
+                                     select method).SingleOrDefault();
+            var convertedSourceGenerators = createRangeMethod.MakeGenericMethod(isourceGeneratorType).Invoke(null, new object[] { convertedSourceGeneratorsArray });
+
+            var analyzerOptions = project.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == "AnalyzerOptions").GetValue(project);
+            verifier.True(analyzerOptions is not null, "Failed to locate analyzer options for project");
+
+            var additionalFiles = analyzerOptions.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == "AdditionalFiles").GetValue(analyzerOptions);
+            var analyzerConfigOptionsProvider = analyzerOptions.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == "AnalyzerConfigOptionsProvider").GetValue(analyzerOptions);
+
+            var driver = createMethod.Invoke(null, new[] { convertedSourceGenerators, additionalFiles, project.ParseOptions, analyzerConfigOptionsProvider });
+            verifier.True(driver is not null, "Failed to invoke factory method for diagnostic driver");
+
+            return new LightupGeneratorDriver(driver);
         }
 
         private static bool IsCompilerDiagnostic(Diagnostic diagnostic)
@@ -1341,6 +1441,16 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </returns>
         protected abstract IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers();
 
+        /// <summary>
+        /// Gets the source generators to apply to the projects under test.
+        /// </summary>
+        /// <returns>
+        /// The types of all source generators to apply to projects in the test. These types will be instantiated by the
+        /// test framework to obtain the source generator instances.
+        /// </returns>
+        protected virtual IEnumerable<Type> GetSourceGenerators()
+            => Enumerable.Empty<Type>();
+
         private sealed class LexicographicComparer : IComparer<IEnumerable<object?>?>
         {
             public static LexicographicComparer Instance { get; } = new LexicographicComparer();
@@ -1404,6 +1514,65 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 return 0;
+            }
+        }
+
+        private sealed class LightupGeneratorDriver
+        {
+            private readonly object _instance;
+
+            public LightupGeneratorDriver(object instance)
+            {
+                _instance = instance;
+            }
+
+            internal LightupGeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken)
+            {
+                var runGeneratorsMethod = (from method in _instance.GetType().GetTypeInfo().GetMethods()
+                                           where method is { Name: nameof(RunGenerators), IsStatic: false, IsPublic: true }
+                                           let parameterTypes = method.GetParameters().Select(static parameter => parameter.ParameterType).ToArray()
+                                           where parameterTypes.SequenceEqual(new[] { typeof(Compilation), typeof(CancellationToken) })
+                                           select method).Single();
+
+                var transformedDriver = runGeneratorsMethod.Invoke(_instance, new object[] { compilation, cancellationToken })!;
+                return new LightupGeneratorDriver(transformedDriver);
+            }
+
+            internal LightupGeneratorDriverRunResult GetRunResult()
+            {
+                var getRunResultMethod = (from method in _instance.GetType().GetTypeInfo().GetMethods()
+                                          where method is { Name: nameof(GetRunResult), IsStatic: false, IsPublic: true }
+                                          where method.GetParameters().Length == 0
+                                          select method).Single();
+
+                var runResult = getRunResultMethod.Invoke(_instance, new object[0])!;
+                return new LightupGeneratorDriverRunResult(runResult);
+            }
+        }
+
+        private sealed class LightupGeneratorDriverRunResult
+        {
+            private readonly object _instance;
+
+            public LightupGeneratorDriverRunResult(object instance)
+            {
+                _instance = instance;
+            }
+
+            public ImmutableArray<SyntaxTree> GeneratedTrees
+            {
+                get
+                {
+                    return (ImmutableArray<SyntaxTree>)_instance.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == nameof(GeneratedTrees)).GetValue(_instance)!;
+                }
+            }
+
+            public ImmutableArray<Diagnostic> Diagnostics
+            {
+                get
+                {
+                    return (ImmutableArray<Diagnostic>)_instance.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == nameof(Diagnostics)).GetValue(_instance)!;
+                }
             }
         }
     }
