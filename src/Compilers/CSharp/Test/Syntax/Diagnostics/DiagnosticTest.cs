@@ -126,6 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var other = diagnostic.GetInstanceWithSeverity(DiagnosticSeverity.Info);
                 Assert.NotSame(diagnostic, other);
                 Assert.Equal(DiagnosticSeverity.Info, other.Severity);
+
+                Assert.Same(diagnostic, diagnostic.GetInstanceWithSeverity(diagnostic.Severity));
             }
         }
 
