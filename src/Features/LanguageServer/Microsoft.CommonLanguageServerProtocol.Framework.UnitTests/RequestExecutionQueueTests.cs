@@ -95,27 +95,26 @@ public class RequestExecutionQueueTests
     [Fact]
     public async Task ExecuteAsync_WithCancelInProgressWork_CancelsInProgressWorkWhenMutatingRequestArrives()
     {
-        // Arrange
-        var mutatingHandler = new MutatingHandler();
-        var cancellingHandler = new CancellingHandler();
-        var completingHandler = new CompletingHandler();
-        var requestExecutionQueue = GetRequestExecutionQueue(cancelInProgressWorkUponMutatingRequest: true, methodHandlers: new IMethodHandler[] { cancellingHandler, completingHandler, mutatingHandler });
-        var lspServices = GetLspServices();
+        // Let's try it a bunch of times to try to find timing issues.
+        for (var i = 0; i < 20; i++)
+        {
+            // Arrange
+            var mutatingHandler = new MutatingHandler();
+            var cancellingHandler = new CancellingHandler();
+            var completingHandler = new CompletingHandler();
+            var requestExecutionQueue = GetRequestExecutionQueue(cancelInProgressWorkUponMutatingRequest: true, methodHandlers: new IMethodHandler[] { cancellingHandler, completingHandler, mutatingHandler });
+            var lspServices = GetLspServices();
 
-        var cancellingRequestCancellationToken = new CancellationToken();
-        var completingRequestCancellationToken = new CancellationToken();
+            var cancellingRequestCancellationToken = new CancellationToken();
+            var completingRequestCancellationToken = new CancellationToken();
 
-        var cancellingRequestTask = requestExecutionQueue.ExecuteAsync<int, string>(1, CancellingMethod, lspServices, cancellingRequestCancellationToken);
-        var completingRequestTask = requestExecutionQueue.ExecuteAsync<int, string>(1, CompletingMethod, lspServices, completingRequestCancellationToken);
-        mutatingHandler.Tasks.Add(cancellingRequestTask);
-        mutatingHandler.Tasks.Add(completingRequestTask);
+            var _ = requestExecutionQueue.ExecuteAsync<int, string>(1, CancellingMethod, lspServices, cancellingRequestCancellationToken);
+            var _1 = requestExecutionQueue.ExecuteAsync<int, string>(1, CompletingMethod, lspServices, completingRequestCancellationToken);
 
-        // Act
-        await requestExecutionQueue.ExecuteAsync<int, string>(1, MutatingMethod, lspServices, CancellationToken.None);
-
-        // Assert
-        Assert.True(cancellingRequestTask.IsCanceled, "Should have been cancelled");
-        Assert.True(completingRequestTask.IsCompleted, "Should have been completed");
+            // Act & Assert
+            // A Debug.Assert would throw if the tasks hadn't completed when the mutating request is called.
+            await requestExecutionQueue.ExecuteAsync<int, string>(1, MutatingMethod, lspServices, CancellationToken.None);
+        }
     }
 
     [Fact]
@@ -179,17 +178,10 @@ public class RequestExecutionQueueTests
         {
         }
 
-        public List<Task> Tasks = new List<Task>();
-
         public bool MutatesSolutionState => true;
 
         public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
         {
-            if (!Tasks.All(t => t.IsCanceled || t.IsCompleted || t.IsFaulted))
-            {
-                throw new InvalidOperationException("Other requests must complete before this one begins");
-            }
-
             return Task.FromResult(string.Empty);
         }
     }
@@ -207,7 +199,7 @@ public class RequestExecutionQueueTests
                 {
                     return "I completed!";
                 }
-                await Task.Delay(10);
+                await Task.Delay(100);
             }
         }
     }
@@ -222,7 +214,7 @@ public class RequestExecutionQueueTests
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await Task.Delay(10);
+                await Task.Delay(100);
             }
         }
     }

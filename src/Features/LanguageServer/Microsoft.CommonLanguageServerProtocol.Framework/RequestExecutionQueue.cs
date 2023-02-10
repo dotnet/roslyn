@@ -223,13 +223,14 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                             await Task.WhenAll(concurrentlyExecutingTasksArray.Select(kvp => kvp.Key)).NoThrowAwaitableInternal(captureContext: false);
                         }
 
+                        Debug.Assert(!concurrentlyExecutingTasks.Any(), "The tasks should have all been drained before continuing");
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
                         await WrapStartRequestTaskAsync(work.StartRequestAsync(context, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
                     }
                     else
                     {
-                        // Non mutating are fire-and-forget because they are by definition readonly. Any errors
+                        // Non mutating are fire-and-forget because they are by definition read-only. Any errors
                         // will be sent back to the client but they can also be captured via HandleNonMutatingRequestError,
                         // though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
