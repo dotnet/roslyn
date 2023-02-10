@@ -8,7 +8,6 @@ Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.VerifySourceGenera
 Microsoft.CodeAnalysis.Testing.SourceGeneratorVerifier<TSourceGenerator, TTest, TVerifier>
 Microsoft.CodeAnalysis.Testing.SourceGeneratorVerifier<TSourceGenerator, TTest, TVerifier>.SourceGeneratorVerifier() -> void
 abstract Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.CreateGeneratorDriver(Microsoft.CodeAnalysis.Project project, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator> sourceGenerators) -> Microsoft.CodeAnalysis.GeneratorDriver
-abstract Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.GetSourceGenerators() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISourceGenerator>
 override Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
-override Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.GetProjectCompilationAsync(Microsoft.CodeAnalysis.Project project, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Compilation>
 override Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.RunImplAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+override abstract Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.GetSourceGenerators() -> System.Collections.Generic.IEnumerable<System.Type>

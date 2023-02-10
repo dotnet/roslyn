@@ -290,9 +290,9 @@ DiagnosticResult.CompilerError(""BC30481"").WithSpan(""Microsoft.CodeAnalysis.So
                 return new CSharpParseOptions(CSharp.LanguageVersion.Default, DocumentationMode.Diagnose);
             }
 
-            protected override IEnumerable<ISourceGenerator> GetSourceGenerators()
+            protected override IEnumerable<Type> GetSourceGenerators()
             {
-                yield return new TSourceGenerator();
+                yield return typeof(TSourceGenerator);
             }
         }
 
@@ -322,9 +322,9 @@ DiagnosticResult.CompilerError(""BC30481"").WithSpan(""Microsoft.CodeAnalysis.So
                 return new VisualBasicParseOptions(VisualBasic.LanguageVersion.Default, DocumentationMode.Diagnose);
             }
 
-            protected override IEnumerable<ISourceGenerator> GetSourceGenerators()
+            protected override IEnumerable<Type> GetSourceGenerators()
             {
-                yield return new TSourceGenerator();
+                yield return typeof(TSourceGenerator);
             }
         }
     }
