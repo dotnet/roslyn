@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    errorCode = ErrorCode.ERR_AssgReadonly;
+                    errorCode = ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter;
                 }
 
                 Error(diagnostics, errorCode, node);

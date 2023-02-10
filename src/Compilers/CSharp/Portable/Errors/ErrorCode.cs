@@ -2172,6 +2172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember = 9506,
         ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured = 9507,
         WRN_UnreadPrimaryConstructorParameter = 9508,
+        ERR_AssgReadonlyPrimaryConstructorParameter = 9509,
 
         #endregion
 

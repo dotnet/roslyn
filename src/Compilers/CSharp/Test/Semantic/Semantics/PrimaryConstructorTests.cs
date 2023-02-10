@@ -13574,11 +13574,10 @@ readonly struct S1(int x)
 ";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                // (6,9): error CS9509: A primary constructor parameter of a readonly type cannot be assigned to (except in a constructor or init-only setter of the type or a variable initializer)
                 //         x = 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "x").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter, "x").WithLocation(6, 9)
                 );
 
             Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));

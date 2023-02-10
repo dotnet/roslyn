@@ -2290,6 +2290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
