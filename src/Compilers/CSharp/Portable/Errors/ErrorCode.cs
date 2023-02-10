@@ -2166,6 +2166,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidPrimaryConstructorParameterReference = 9500, // PROTOTYPE(PrimaryConstructors): pack numbers
         ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver = 9501,
         WRN_CapturedPrimaryConstructorParameterPassedToBase = 9502,
+        ERR_AnonDelegateCantUseRefLike = 9503,
+        ERR_UnsupportedPrimaryConstructorParameterCapturingRef = 9504,
+        ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike = 9505,
+        ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember = 9506,
+        ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured = 9507,
 
         #endregion
 

@@ -7266,9 +7266,9 @@ class Attr1 : System.Attribute
                 if ((flags & (TestFlags.InNestedMethod)) != 0 && (flags & TestFlags.BadReference) == 0 && keyword == "struct")
                 {
                     builder.Add(
-                        // (2000,1): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                        // (2000,1): error CS9506: Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter
                         // p1
-                        Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(2000, 1)
+                        Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember, "p1").WithLocation(2000, 1)
                         );
                 }
             }
@@ -12344,13 +12344,13 @@ struct S
             if (keyword == "struct")
             {
                 expected = expected.Concat(
-                    // (6,30): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    // (6,30): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                     //                   int* p1 = &x;
-                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(6, 30)
+                    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(6, 30)
                     ).Concat(
-                    // (7,30): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    // (7,30): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                     //                   int* p2 = &s.f;
-                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "s").WithLocation(7, 30)
+                    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "s").WithLocation(7, 30)
                     ).ToArray();
             }
 
@@ -12437,13 +12437,13 @@ struct S
             if (keyword == "struct")
             {
                 expected = expected.Concat(
-                    // (9,23): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    // (9,23): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                     //                   _ = x + s.f;
-                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(9, 23)
+                    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(9, 23)
                     ).Concat(
-                    // (9,27): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    // (9,27): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                     //                   _ = x + s.f;
-                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "s").WithLocation(9, 27)
+                    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "s").WithLocation(9, 27)
                     ).ToArray();
             }
 
@@ -12629,42 +12629,42 @@ struct S
                 // (2,7): error CS0177: The out parameter 'y' must be assigned to before control leaves the current method
                 // class C1(out int x, out S s, out string y)
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "C1").WithArguments("y").WithLocation(2, 7),
-                // (6,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (6,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 13),
-                // (6,17): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,17): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(6, 17),
-                // (6,23): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(6, 17),
+                // (6,23): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(6, 23),
-                // (11,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(6, 23),
+                // (11,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(11, 13),
-                // (11,19): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(11, 13),
+                // (11,19): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 19),
-                // (11,30): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(11, 19),
+                // (11,30): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(11, 30),
-                // (16,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(11, 30),
+                // (16,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(16, 13),
-                // (16,24): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(16, 13),
+                // (16,24): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(16, 24),
-                // (16,28): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(16, 24),
+                // (16,28): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(16, 28),
-                // (21,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(16, 28),
+                // (21,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(21, 13),
-                // (26,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(21, 13),
+                // (26,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(26, 13),
-                // (31,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(26, 13),
+                // (31,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(31, 13)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(31, 13)
                 );
         }
 
@@ -13156,42 +13156,42 @@ struct S
 }
 ";
             CreateCompilation(text).VerifyEmitDiagnostics(
-                // (6,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (6,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 13),
-                // (6,17): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,17): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(6, 17),
-                // (6,23): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(6, 17),
+                // (6,23): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(6, 23),
-                // (11,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(6, 23),
+                // (11,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(11, 13),
-                // (11,19): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(11, 13),
+                // (11,19): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 19),
-                // (11,30): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(11, 19),
+                // (11,30): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(11, 30),
-                // (16,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(11, 30),
+                // (16,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(16, 13),
-                // (16,24): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(16, 13),
+                // (16,24): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(16, 24),
-                // (16,28): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(16, 24),
+                // (16,28): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(16, 28),
-                // (21,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(16, 28),
+                // (21,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(21, 13),
-                // (26,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(21, 13),
+                // (26,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(26, 13),
-                // (31,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(26, 13),
+                // (31,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(31, 13)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(31, 13)
                 );
         }
 
@@ -13239,42 +13239,42 @@ struct S
 }
 ";
             CreateCompilation(text).VerifyEmitDiagnostics(
-                // (6,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (6,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 13),
-                // (6,17): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,17): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(6, 17),
-                // (6,23): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(6, 17),
+                // (6,23): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(6, 23),
-                // (11,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(6, 23),
+                // (11,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(11, 13),
-                // (11,19): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(11, 13),
+                // (11,19): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 19),
-                // (11,30): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(11, 19),
+                // (11,30): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(11, 30),
-                // (16,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(11, 30),
+                // (16,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(16, 13),
-                // (16,24): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(16, 13),
+                // (16,24): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(16, 24),
-                // (16,28): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(16, 24),
+                // (16,28): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(16, 28),
-                // (21,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(16, 28),
+                // (21,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(21, 13),
-                // (26,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(21, 13),
+                // (26,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(26, 13),
-                // (31,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(26, 13),
+                // (31,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(31, 13)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(31, 13)
                 );
         }
 
@@ -13758,18 +13758,18 @@ readonly struct S1(in int x, ref int y, out int z)
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (7,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         x = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(7, 9),
                 // (7,9): error CS8331: Cannot assign to variable 'x' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         x = 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "x").WithArguments("variable", "x").WithLocation(7, 9),
-                // (11,9): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                // (11,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         y = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 9),
-                // (15,9): error CS1628: Cannot use ref, out, or in parameter 'z' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(11, 9),
+                // (15,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'z' inside an instance member
                 //         z = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "z").WithArguments("z").WithLocation(15, 9)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "z").WithArguments("z").WithLocation(15, 9)
                 );
 
             Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
@@ -13855,9 +13855,9 @@ readonly struct S1(int x)
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (4,43): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                // (4,43): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                 //     readonly object y = ref int () => ref x;
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(4, 43),
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(4, 43),
                 // (4,43): error CS8160: A readonly field cannot be returned by writable reference
                 //     readonly object y = ref int () => ref x;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonly, "x").WithLocation(4, 43)
@@ -14152,18 +14152,18 @@ struct S2
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (7,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         x.F = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(7, 9),
                 // (7,9): error CS8332: Cannot assign to a member of variable 'x' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         x.F = 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "x.F").WithArguments("variable", "x").WithLocation(7, 9),
-                // (11,9): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                // (11,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         y.F = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 9),
-                // (15,9): error CS1628: Cannot use ref, out, or in parameter 'z' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(11, 9),
+                // (15,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'z' inside an instance member
                 //         z.F = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "z").WithArguments("z").WithLocation(15, 9)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "z").WithArguments("z").WithLocation(15, 9)
                 );
 
             Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
@@ -14269,9 +14269,9 @@ struct S2
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (4,43): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                // (4,43): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                 //     readonly object y = ref int () => ref x.F;
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(4, 43),
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(4, 43),
                 // (4,43): error CS8162: Members of readonly field 'S2 x' cannot be returned by writable reference
                 //     readonly object y = ref int () => ref x.F;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonly2, "x.F").WithArguments("S2 x").WithLocation(4, 43)
@@ -14452,9 +14452,9 @@ ref struct S2
 
             // PROTOTYPE(PrimaryConstructors): Adjust wording of ERR_AssgReadonly2 to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (6,9): error CS9505: Cannot use primary constructor parameter 'x' that has ref-like type inside an instance member
                 //         x.F = ref y; 
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "x").WithArguments("x").WithLocation(6, 9),
                 // (6,9): error CS1648: Members of readonly field 'S2 x' cannot be modified (except in a constructor or a variable initializer)
                 //         x.F = ref y; 
                 Diagnostic(ErrorCode.ERR_AssgReadonly2, "x.F").WithArguments("S2 x").WithLocation(6, 9)
@@ -14484,9 +14484,9 @@ ref struct S2
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (6,9): error CS9505: Cannot use primary constructor parameter 'x' that has ref-like type inside an instance member
                 //         x.F = ref y; 
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "x").WithArguments("x").WithLocation(6, 9),
                 // (6,9): error CS1604: Cannot assign to 'x.F' because it is read-only
                 //         x.F = ref y; 
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "x.F").WithArguments("x.F").WithLocation(6, 9)
@@ -14506,9 +14506,9 @@ struct S1(ref int x)
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (4,37): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (4,37): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //     readonly void M1(ref int y) =>  x = ref y;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(4, 37)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(4, 37)
                 );
         }
 
@@ -14623,14 +14623,13 @@ struct C1(int p1, int p2, int p3, int p4)
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(PrimaryConstructors): The message is somewhat confusing because `p1` isn't a member and it cannot be accessed from the struct copy.
             comp.VerifyEmitDiagnostics(
-                // (4,54): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                // (4,54): error CS9506: Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter
                 //     public void M1() { local(); int local() { return p1; } }
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(4, 54),
-                // (5,47): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember, "p1").WithLocation(4, 54),
+                // (5,47): error CS9506: Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter
                 //     public void M2() { var d = () => { return p2; }; d(); }
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p2").WithLocation(5, 47)
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember, "p2").WithLocation(5, 47)
                 );
         }
 
@@ -14647,101 +14646,104 @@ struct C1(int p1)
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(PrimaryConstructors): The message is somewhat confusing because `p1` isn't a member and it cannot be accessed from the struct copy.
             comp.VerifyEmitDiagnostics(
-                // (4,32): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                // (4,32): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                 //     System.Func<int> x = () => p1;
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(4, 32)
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "p1").WithLocation(4, 32)
                 );
         }
 
         public static IEnumerable<object[]> IllegalCapturingDueToRefness_01_MemberData()
         {
-            var data1 = new (string tag, TestFlags flags, string code)[]
+            var data1 = new (string tag, TestFlags flags, string code, object err)[]
                 {
-                    ("0001", BadReference, "(ref int p1) { void M1() { p1 = 1; } }"),
-                    ("0002", BadReference, "(ref int p1) { void M1() { local(); void local() { p1 = 1; } } }"),
-                    ("0003", BadReference, "(ref int p1) { void M1() { local1(); void local1() { local2(); void local2() { p1 = 1; } } } }"),
-                    ("0004", BadReference, "(in int p1) { void M1() { p1.ToString(); } }"),
-                    ("0005", BadReference, "(in int p1) { void M1() { local(); void local() { p1.ToString(); } } }"),
-                    ("0006", BadReference, "(in int p1) { void M1() { local1(); void local1() { local2(); void local2() { p1.ToString(); } } } }"),
-                    ("0007", BadReference, "(out int p1) { int x = p1 = 0; void M1() { p1 = 1; } }"),
-                    ("0008", BadReference, "(out int p1) { int x = p1 = 0; void M1() { local(); void local() { p1 = 1; } } }"),
-                    ("0009", BadReference, "(out int p1) { int x = p1 = 0; void M1() { local1(); void local1() { local2(); void local2() { p1 = 1; } } } }"),
-                    ("0010", BadReference, "(S1 p1) { void M1() { p1.M(); } } ref struct S1 { public void M(){} }"),
-                    ("0011", BadReference, "(S1 p1) { void M1() { local(); void local() { p1.M(); } } } ref struct S1{ public void M(){} }"),
-                    ("0012", BadReference, "(S1 p1) { void M1() { local1(); void local1() { local2(); void local2() { p1.M(); } } } } ref struct S1{ public void M(){} }"),
+                    ("0001", BadReference, "(ref int p1) { void M1() { p1 = 1; } }", ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef),
+                    ("0002", BadReference, "(ref int p1) { void M1() { local(); void local() { p1 = 1; } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0003", BadReference, "(ref int p1) { void M1() { local1(); void local1() { local2(); void local2() { p1 = 1; } } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0004", BadReference, "(in int p1) { void M1() { p1.ToString(); } }", ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef),
+                    ("0005", BadReference, "(in int p1) { void M1() { local(); void local() { p1.ToString(); } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0006", BadReference, "(in int p1) { void M1() { local1(); void local1() { local2(); void local2() { p1.ToString(); } } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0007", BadReference, "(out int p1) { int x = p1 = 0; void M1() { p1 = 1; } }", ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef),
+                    ("0008", BadReference, "(out int p1) { int x = p1 = 0; void M1() { local(); void local() { p1 = 1; } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0009", BadReference, "(out int p1) { int x = p1 = 0; void M1() { local1(); void local1() { local2(); void local2() { p1 = 1; } } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0010", BadReference, "(S1 p1) { void M1() { p1.M(); } } ref struct S1 { public void M(){} }", ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike),
+                    ("0011", BadReference, "(S1 p1) { void M1() { local(); void local() { p1.M(); } } } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
+                    ("0012", BadReference, "(S1 p1) { void M1() { local1(); void local1() { local2(); void local2() { p1.M(); } } } } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
+                    ("0013", BadReference, "(ref int p1) { void M1() { _ = (System.Action)(() => { p1 = 1; }); } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0014", BadReference, "(in int p1) { void M1() { _ = (System.Action)(() => { p1.ToString(); }); } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0015", BadReference, "(out int p1) { int x = p1 = 0; void M1() { _ = (System.Action)(() => { p1 = 1; }); } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0016", BadReference, "(S1 p1) { void M1() { _ = (System.Action)(() => { p1.M(); }); } } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
 
-                    ("0101", Success, "(ref int p1) { void M1() { nameof(p1).ToString(); } }"),
-                    ("0102", Success, "(ref int p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } }"),
-                    ("0103", Success, "(ref int p1) { void M1() { local1(); void local1() { local2(); void local2() {nameof(p1).ToString(); } } } }"),
-                    ("0104", Success, "(in int p1) { void M1() { nameof(p1).ToString(); } }"),
-                    ("0105", Success, "(in int p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } }"),
-                    ("0106", Success, "(in int p1) { void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } }"),
-                    ("0107", Success, "(out int p1) { int x = p1 = 0; void M1() { nameof(p1).ToString(); } }"),
-                    ("0108", Success, "(out int p1) { int x = p1 = 0; void M1() { local(); void local() { nameof(p1).ToString(); } } }"),
-                    ("0109", Success, "(out int p1) { int x = p1 = 0; void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } }"),
-                    ("0110", Success, "(S1 p1) { void M1() { nameof(p1).ToString(); } } ref struct S1 { public void M(){} }"),
-                    ("0111", Success, "(S1 p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } } ref struct S1{ public void M(){} }"),
-                    ("0112", Success, "(S1 p1) { void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } } ref struct S1{ public void M(){} }"),
+                    ("0101", Success, "(ref int p1) { void M1() { nameof(p1).ToString(); } }", null),
+                    ("0102", Success, "(ref int p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } }", null),
+                    ("0103", Success, "(ref int p1) { void M1() { local1(); void local1() { local2(); void local2() {nameof(p1).ToString(); } } } }", null),
+                    ("0104", Success, "(in int p1) { void M1() { nameof(p1).ToString(); } }", null),
+                    ("0105", Success, "(in int p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } }", null),
+                    ("0106", Success, "(in int p1) { void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } }", null),
+                    ("0107", Success, "(out int p1) { int x = p1 = 0; void M1() { nameof(p1).ToString(); } }", null),
+                    ("0108", Success, "(out int p1) { int x = p1 = 0; void M1() { local(); void local() { nameof(p1).ToString(); } } }", null),
+                    ("0109", Success, "(out int p1) { int x = p1 = 0; void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } }", null),
+                    ("0110", Success, "(S1 p1) { void M1() { nameof(p1).ToString(); } } ref struct S1 { public void M(){} }", null),
+                    ("0111", Success, "(S1 p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } } ref struct S1{ public void M(){} }", null),
+                    ("0112", Success, "(S1 p1) { void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } } ref struct S1{ public void M(){} }", null),
 
-                    ("0201", BadReference, "(ref int p1) { System.Action F = () => p1 = 0; }"),
-                    ("0202", BadReference, "(ref int p1) { System.Action P { get; } = () => p1 = 0; }"),
-                    ("0203", BadReference, "(ref int p1) { public event System.Action E = () => p1 = 0; }"),
-                    ("0204", BadReference, "(in int p1) { System.Action F = () => p1.ToString(); }"),
-                    ("0205", BadReference, "(in int p1) { System.Action P { get; } = () => p1.ToString(); }"),
-                    ("0206", BadReference, "(in int p1) { public event System.Action E = () => p1.ToString(); }"),
-                    ("0207", BadReference, "(out int p1) { System.Action F = (p1 = 0) == 0 ? () => p1 = 0 : null; }"),
-                    ("0208", BadReference, "(out int p1) { System.Action P { get; } = (p1 = 0) == 0 ? () => p1 = 0 : null; }"),
-                    ("0209", BadReference, "(out int p1) { public event System.Action E = (p1 = 0) == 0 ? () => p1 = 0 : null; }"),
-                    ("0210", BadReference, "(S1 p1) { System.Action F = () => p1.ToString(); } ref struct S1{ public void M(){} }"),
-                    ("0211", BadReference, "(S1 p1) { System.Action P { get; } = () => p1.ToString(); } ref struct S1{ public void M(){} }"),
-                    ("0212", BadReference, "(S1 p1) { public event System.Action E = () => p1.ToString(); } ref struct S1{ public void M(){} }"),
+                    ("0201", BadReference, "(ref int p1) { System.Action F = () => p1 = 0; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0202", BadReference, "(ref int p1) { System.Action P { get; } = () => p1 = 0; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0203", BadReference, "(ref int p1) { public event System.Action E = () => p1 = 0; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0204", BadReference, "(in int p1) { System.Action F = () => p1.ToString(); }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0205", BadReference, "(in int p1) { System.Action P { get; } = () => p1.ToString(); }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0206", BadReference, "(in int p1) { public event System.Action E = () => p1.ToString(); }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0207", BadReference, "(out int p1) { System.Action F = (p1 = 0) == 0 ? () => p1 = 0 : null; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0208", BadReference, "(out int p1) { System.Action P { get; } = (p1 = 0) == 0 ? () => p1 = 0 : null; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0209", BadReference, "(out int p1) { public event System.Action E = (p1 = 0) == 0 ? () => p1 = 0 : null; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0210", BadReference, "(S1 p1) { System.Action F = () => p1.ToString(); } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
+                    ("0211", BadReference, "(S1 p1) { System.Action P { get; } = () => p1.ToString(); } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
+                    ("0212", BadReference, "(S1 p1) { public event System.Action E = () => p1.ToString(); } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
 
-                    ("0301", Success, "(ref int p1) { System.Action F = () => nameof(p1).ToString(); }"),
-                    ("0302", Success, "(ref int p1) { System.Action P { get; } = () => nameof(p1).ToString(); }"),
-                    ("0303", Success, "(ref int p1) { public event System.Action E = () => nameof(p1).ToString(); }"),
-                    ("0304", Success, "(in int p1) { System.Action F = () => nameof(p1).ToString(); }"),
-                    ("0305", Success, "(in int p1) { System.Action P { get; } = () => nameof(p1).ToString(); }"),
-                    ("0306", Success, "(in int p1) { public event System.Action E = () => nameof(p1).ToString(); }"),
-                    ("0307", Success, "(out int p1) { System.Action F = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }"),
-                    ("0308", Success, "(out int p1) { System.Action P { get; } = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }"),
-                    ("0309", Success, "(out int p1) { public event System.Action E = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }"),
-                    ("0310", Success, "(S1 p1) { System.Action F = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }"),
-                    ("0311", Success, "(S1 p1) { System.Action P { get; } = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }"),
-                    ("0312", Success, "(S1 p1) { public event System.Action E = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }"),
+                    ("0301", Success, "(ref int p1) { System.Action F = () => nameof(p1).ToString(); }", null),
+                    ("0302", Success, "(ref int p1) { System.Action P { get; } = () => nameof(p1).ToString(); }", null),
+                    ("0303", Success, "(ref int p1) { public event System.Action E = () => nameof(p1).ToString(); }", null),
+                    ("0304", Success, "(in int p1) { System.Action F = () => nameof(p1).ToString(); }", null),
+                    ("0305", Success, "(in int p1) { System.Action P { get; } = () => nameof(p1).ToString(); }", null),
+                    ("0306", Success, "(in int p1) { public event System.Action E = () => nameof(p1).ToString(); }", null),
+                    ("0307", Success, "(out int p1) { System.Action F = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }", null),
+                    ("0308", Success, "(out int p1) { System.Action P { get; } = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }", null),
+                    ("0309", Success, "(out int p1) { public event System.Action E = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }", null),
+                    ("0310", Success, "(S1 p1) { System.Action F = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }", null),
+                    ("0311", Success, "(S1 p1) { System.Action P { get; } = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }", null),
+                    ("0312", Success, "(S1 p1) { public event System.Action E = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }", null),
                 };
 
-            var data2 = new (string tag, TestFlags flags, string code)[]
+            var data2 = new (string tag, TestFlags flags, string code, object err)[]
                 {
-                    ("1001", BadReference, "(ref int p1) : Base(() => p1 = 0); class Base { public Base(System.Action x) {} }"),
-                    ("1002", BadReference, "(in int p1) : Base(() => p1.ToString()); class Base { public Base(System.Action x) {} }"),
-                    ("1003", BadReference, "(out int p1) : Base(p1 = 0, () => p1 = 0); class Base { public Base(int y, System.Action x) {} }"),
-                    ("1004", BadReference, "(S1 p1) : Base(() => p1.ToString()); ref struct S1{ public void M(){} } class Base { public Base(System.Action x) {} }"),
+                    ("1001", BadReference, "(ref int p1) : Base(() => p1 = 0); class Base { public Base(System.Action x) {} }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("1002", BadReference, "(in int p1) : Base(() => p1.ToString()); class Base { public Base(System.Action x) {} }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("1003", BadReference, "(out int p1) : Base(p1 = 0, () => p1 = 0); class Base { public Base(int y, System.Action x) {} }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("1004", BadReference, "(S1 p1) : Base(() => p1.ToString()); ref struct S1{ public void M(){} } class Base { public Base(System.Action x) {} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
 
-                    ("1011", Success, "(ref int p1) : Base(() => nameof(p1).ToString()); class Base { public Base(System.Action x) {} }"),
-                    ("1012", Success, "(in int p1) : Base(() => nameof(p1).ToString()); class Base { public Base(System.Action x) {} }"),
-                    ("1013", Success, "(out int p1) : Base(p1 = 0, () => nameof(p1).ToString()); class Base { public Base(int y, System.Action x) {} }"),
-                    ("1014", Success, "(S1 p1) : Base(() => nameof(p1).ToString()); ref struct S1{ public void M(){} } class Base { public Base(System.Action x) {} }"),
+                    ("1011", Success, "(ref int p1) : Base(() => nameof(p1).ToString()); class Base { public Base(System.Action x) {} }", null),
+                    ("1012", Success, "(in int p1) : Base(() => nameof(p1).ToString()); class Base { public Base(System.Action x) {} }", null),
+                    ("1013", Success, "(out int p1) : Base(p1 = 0, () => nameof(p1).ToString()); class Base { public Base(int y, System.Action x) {} }", null),
+                    ("1014", Success, "(S1 p1) : Base(() => nameof(p1).ToString()); ref struct S1{ public void M(){} } class Base { public Base(System.Action x) {} }", null),
                 };
 
             foreach (var keyword in new[] { "class", "struct", "ref struct" })
             {
                 foreach (var d in data1)
                 {
-                    yield return new object[] { keyword, d.tag, d.flags, d.code };
+                    yield return new object[] { keyword, d.tag, d.flags, d.code, d.err };
                 }
             }
 
             foreach (var d in data2)
             {
-                yield return new object[] { "class", d.tag, d.flags, d.code };
+                yield return new object[] { "class", d.tag, d.flags, d.code, d.err };
             }
         }
 
         [Theory]
         [MemberData(nameof(IllegalCapturingDueToRefness_01_MemberData))]
-        public void IllegalCapturingDueToRefness_01(string keyword, string tag, TestFlags flags, string code)
+        public void IllegalCapturingDueToRefness_01(string keyword, string tag, TestFlags flags, string code, object err)
         {
             _ = tag;
 
@@ -14758,18 +14760,77 @@ p1
 
             if (flags == TestFlags.BadReference)
             {
-                // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor scenario explicitly?
-                //                                 Note, this wording is fine for scenarios in field initializes and in base type (cases 02** and 100*).
-                comp.VerifyEmitDiagnostics(
-                    // (2000,1): error CS1628: Cannot use ref, out, or in parameter 'p1' inside an anonymous method, lambda expression, query expression, or local function
-                    // p1
-                    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "p1").WithArguments("p1").WithLocation(2000, 1)
-                    );
+                switch ((ErrorCode)err)
+                {
+                    case ErrorCode.ERR_AnonDelegateCantUse:
+                        comp.VerifyEmitDiagnostics(
+                            // (2000,1): error CS1628: Cannot use ref, out, or in parameter 'p1' inside an anonymous method, lambda expression, query expression, or local function
+                            // p1
+                            Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "p1").WithArguments("p1").WithLocation(2000, 1)
+                            );
+                        break;
+
+                    case ErrorCode.ERR_AnonDelegateCantUseRefLike:
+                        comp.VerifyEmitDiagnostics(
+                            // (2000,1): error CS9503: Cannot use parameter 'p1' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function
+                            // p1
+                            Diagnostic(ErrorCode.ERR_AnonDelegateCantUseRefLike, "p1").WithArguments("p1").WithLocation(2000, 1)
+                            );
+                        break;
+
+                    case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef:
+                        comp.VerifyEmitDiagnostics(
+                            // (2000,1): error CS9504: Cannot use ref, out, or in primary constructor parameter 'p1' inside an instance member
+                            // p1
+                            Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "p1").WithArguments("p1").WithLocation(2000, 1)
+                            );
+                        break;
+
+                    case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike:
+                        comp.VerifyEmitDiagnostics(
+                            // (2000,1): error CS9505: Cannot use primary constructor parameter 'p1' that has ref-like type inside an instance member
+                            // p1
+                            Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "p1").WithArguments("p1").WithLocation(2000, 1)
+                            );
+                        break;
+
+                    default:
+                        Assert.True(false);
+                        break;
+                }
             }
             else
             {
+                Assert.Null(err);
                 comp.VerifyEmitDiagnostics();
             }
+        }
+
+        [Fact]
+        public void IllegalCapturingDueToRefness_02()
+        {
+            var source = @"#pragma warning disable CS0649 // Field 'R1.F1' is never assigned to, and will always have its default value 0
+ref struct R1
+{
+    public int F1;
+    public ref int F2;
+}
+ref struct R2(R1 r)
+{
+    int M1() => r.F1;
+    ref int M2() => ref r.F2;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS9505: Cannot use primary constructor parameter 'r' that has ref-like type inside an instance member
+                //     int M1() => r.F1;
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "r").WithArguments("r").WithLocation(9, 17),
+                // (10,25): error CS9505: Cannot use primary constructor parameter 'r' that has ref-like type inside an instance member
+                //     ref int M2() => ref r.F2;
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "r").WithArguments("r").WithLocation(10, 25)
+                );
         }
 
         [Fact]

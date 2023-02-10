@@ -7433,4 +7433,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title" xml:space="preserve">
     <value>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</value>
   </data>
+  <data name="ERR_AnonDelegateCantUseRefLike" xml:space="preserve">
+    <value>Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</value>
+  </data>
+  <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRef" xml:space="preserve">
+    <value>Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</value>
+  </data>
+  <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike" xml:space="preserve">
+    <value>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember" xml:space="preserve">
+    <value>Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured" xml:space="preserve">
+    <value>Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</value>
+  </data>
 </root>

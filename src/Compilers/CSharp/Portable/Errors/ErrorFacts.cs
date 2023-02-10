@@ -1220,6 +1220,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadYieldInTryOfCatch:
                 case ErrorCode.ERR_EmptyYield:
                 case ErrorCode.ERR_AnonDelegateCantUse:
+                case ErrorCode.ERR_AnonDelegateCantUseRefLike:
+                case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef:
+                case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike:
+                case ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember:
+                case ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured:
                 case ErrorCode.ERR_IllegalInnerUnsafe:
                 case ErrorCode.ERR_BadYieldInCatch:
                 case ErrorCode.ERR_BadDelegateLeave:
