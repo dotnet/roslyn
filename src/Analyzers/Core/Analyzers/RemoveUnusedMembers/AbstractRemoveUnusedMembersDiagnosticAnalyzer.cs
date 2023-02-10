@@ -24,6 +24,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         where TDocumentationCommentTriviaSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
+        /// <summary>
+        /// Produces names like TypeName.MemberName
+        /// </summary>
+        private static readonly SymbolDisplayFormat ContainingTypeAndNameOnlyFormat = new(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
         private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
@@ -509,8 +516,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     }
                 }
 
-                var memberName = $"{member.ContainingType.Name}.{member.Name}";
-                return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, memberName);
+                return new DiagnosticHelper.LocalizableStringWithArguments(
+                    messageFormat, member.ToDisplayString(ContainingTypeAndNameOnlyFormat));
             }
 
             private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
