@@ -9319,5 +9319,95 @@ class Program
     private void OnChanged() { }
 }");
         }
+
+        [Fact, WorkItem(29761, "https://github.com/dotnet/roslyn/issues/29761")]
+        public async Task GenerateAlternativeNamesForFuncActionDelegates1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction([|Analyze|]);
+    }
+
+    private void RegisterOperationAction(Action<Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction(Analyze);
+    }
+
+    private void Analyze(Context context)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void RegisterOperationAction(Action<Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}");
+        }
+
+        [Fact, WorkItem(29761, "https://github.com/dotnet/roslyn/issues/29761")]
+        public async Task GenerateAlternativeNamesForFuncActionDelegates2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction([|Analyze|]);
+    }
+
+    private void RegisterOperationAction(Action<Context, Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction(Analyze);
+    }
+
+    private void Analyze(Context context1, Context context2)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void RegisterOperationAction(Action<Context, Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}");
+        }
     }
 }
