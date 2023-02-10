@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     },
                     GeneratedSources =
                     {
-                        ("Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFile\\EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                        ("Microsoft.CodeAnalysis.Testing.Utilities\\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFile\\EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
                     },
                 },
             }.RunAsync();
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var expectedMessage = @"Context: Source generator application
 Context: Verifying source generated files
-encoding of 'Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFile\EmptyGeneratedFile.cs' was expected to be 'utf-16' but was 'utf-8'";
+encoding of 'Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFile\EmptyGeneratedFile.cs' was expected to be 'utf-16' but was 'utf-8'";
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
         }
 
@@ -172,14 +171,13 @@ encoding of 'Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\Microsoft
                 }.RunAsync();
             });
 
-            var expectedMessage = @"Context: Diagnostics of test state
-Mismatch between number of diagnostics returned, expected ""0"" actual ""2""
+            var expectedMessage = @"Mismatch between number of diagnostics returned, expected ""0"" actual ""2""
 
 Diagnostics:
 // /0/Test0.cs(1,10): error CS1513: } expected
 DiagnosticResult.CompilerError(""CS1513"").WithSpan(1, 10, 1, 10),
-// Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.cs(1,10): error CS1513: } expected
-DiagnosticResult.CompilerError(""CS1513"").WithSpan(""Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.cs"", 1, 10, 1, 10),
+// Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.cs(1,10): error CS1513: } expected
+DiagnosticResult.CompilerError(""CS1513"").WithSpan(""Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.cs"", 1, 10, 1, 10),
 
 ";
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
@@ -206,14 +204,13 @@ DiagnosticResult.CompilerError(""CS1513"").WithSpan(""Microsoft.CodeAnalysis.Sou
                 }.RunAsync();
             });
 
-            var expectedMessage = @"Context: Diagnostics of test state
-Mismatch between number of diagnostics returned, expected ""0"" actual ""2""
+            var expectedMessage = @"Mismatch between number of diagnostics returned, expected ""0"" actual ""2""
 
 Diagnostics:
 // /0/Test0.vb(1) : error BC30481: 'Class' statement must end with a matching 'End Class'.
 DiagnosticResult.CompilerError(""BC30481"").WithSpan(1, 1, 1, 8),
-// Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.vb(1) : error BC30481: 'Class' statement must end with a matching 'End Class'.
-DiagnosticResult.CompilerError(""BC30481"").WithSpan(""Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.vb"", 1, 1, 1, 8),
+// Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.vb(1) : error BC30481: 'Class' statement must end with a matching 'End Class'.
+DiagnosticResult.CompilerError(""BC30481"").WithSpan(""Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.vb"", 1, 1, 1, 8),
 
 ";
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
@@ -232,7 +229,7 @@ DiagnosticResult.CompilerError(""BC30481"").WithSpan(""Microsoft.CodeAnalysis.So
                     },
                     GeneratedSources =
                     {
-                        ("Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFileWithDiagnostic\\EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                        ("Microsoft.CodeAnalysis.Testing.Utilities\\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFileWithDiagnostic\\EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
                     },
                     ExpectedDiagnostics =
                     {
@@ -271,15 +268,6 @@ DiagnosticResult.CompilerError(""BC30481"").WithSpan(""Microsoft.CodeAnalysis.So
 
             protected override string DefaultFileExt => "cs";
 
-            protected override GeneratorDriver CreateGeneratorDriver(Project project, ImmutableArray<ISourceGenerator> sourceGenerators)
-            {
-                return CSharpGeneratorDriver.Create(
-                    sourceGenerators,
-                    project.AnalyzerOptions.AdditionalFiles,
-                    (CSharpParseOptions)project.ParseOptions!,
-                    project.AnalyzerOptions.AnalyzerConfigOptionsProvider);
-            }
-
             protected override CompilationOptions CreateCompilationOptions()
             {
                 return new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
@@ -302,15 +290,6 @@ DiagnosticResult.CompilerError(""BC30481"").WithSpan(""Microsoft.CodeAnalysis.So
             public override string Language => LanguageNames.VisualBasic;
 
             protected override string DefaultFileExt => "vb";
-
-            protected override GeneratorDriver CreateGeneratorDriver(Project project, ImmutableArray<ISourceGenerator> sourceGenerators)
-            {
-                return VisualBasicGeneratorDriver.Create(
-                    sourceGenerators,
-                    project.AnalyzerOptions.AdditionalFiles,
-                    (VisualBasicParseOptions)project.ParseOptions!,
-                    project.AnalyzerOptions.AnalyzerConfigOptionsProvider);
-            }
 
             protected override CompilationOptions CreateCompilationOptions()
             {

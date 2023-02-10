@@ -12,6 +12,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DiffPlex;
+using DiffPlex.Chunkers;
+using DiffPlex.DiffBuilder;
+using DiffPlex.DiffBuilder.Model;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -196,7 +200,11 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         protected virtual async Task RunImplAsync(CancellationToken cancellationToken)
         {
-            Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
+            if (!TestState.GeneratedSources.Any())
+            {
+                // Verify the test state has at least one source, which may or may not be generated
+                Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
+            }
 
             var analyzers = GetDiagnosticAnalyzers().ToArray();
             var defaultDiagnostic = GetDefaultDiagnostic(analyzers);
@@ -204,6 +212,7 @@ namespace Microsoft.CodeAnalysis.Testing
             var fixableDiagnostics = ImmutableArray<string>.Empty;
             var testState = TestState.WithInheritedValuesApplied(null, fixableDiagnostics).WithProcessedMarkup(MarkupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, DefaultFilePath);
 
+            var diagnostics = await VerifySourceGeneratorAsync(testState, Verify, cancellationToken).ConfigureAwait(false);
             await VerifyDiagnosticsAsync(new EvaluatedProjectState(testState, ReferenceAssemblies), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), testState.ExpectedDiagnostics.ToArray(), Verify, cancellationToken).ConfigureAwait(false);
         }
 
@@ -252,6 +261,187 @@ namespace Microsoft.CodeAnalysis.Testing
                 $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
                 $"Actual diagnostic:{Environment.NewLine}" +
                 $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+        }
+
+        /// <summary>
+        /// Called to test a C# source generator when applied on the input source as a string.
+        /// </summary>
+        /// <param name="testState">The effective input test state.</param>
+        /// <param name="verifier">The verifier to use for test assertions.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        protected async Task<ImmutableArray<Diagnostic>> VerifySourceGeneratorAsync(SolutionState testState, IVerifier verifier, CancellationToken cancellationToken)
+        {
+            var sourceGenerators = GetSourceGenerators().ToImmutableArray();
+            if (sourceGenerators.IsEmpty)
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
+            return await VerifySourceGeneratorAsync(Language, GetSourceGenerators().ToImmutableArray(), testState, ApplySourceGeneratorAsync, verifier.PushContext("Source generator application"), cancellationToken);
+        }
+
+        private protected async Task<ImmutableArray<Diagnostic>> VerifySourceGeneratorAsync(
+            string language,
+            ImmutableArray<Type> sourceGenerators,
+            SolutionState testState,
+            Func<ImmutableArray<Type>, Project, IVerifier, CancellationToken, Task<(Project project, ImmutableArray<Diagnostic> diagnostics)>> getFixedProject,
+            IVerifier verifier,
+            CancellationToken cancellationToken)
+        {
+            var project = await CreateProjectAsync(new EvaluatedProjectState(testState, ReferenceAssemblies), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), cancellationToken);
+
+            ImmutableArray<Diagnostic> diagnostics;
+            (project, diagnostics) = await getFixedProject(sourceGenerators, project, verifier, cancellationToken).ConfigureAwait(false);
+
+            // After applying the source generator, compare the resulting string to the inputted one
+            if (!TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedSourcesCheck))
+            {
+                var numOriginalSources = testState.Sources.Count;
+                var updatedOriginalDocuments = project.Documents.Take(numOriginalSources).ToArray();
+                var generatedDocuments = project.Documents.Skip(numOriginalSources).ToArray();
+
+                // Verify no changes occurred to the original documents
+                var updatedOriginalDocumentsWithTextBuilder = ImmutableArray.CreateBuilder<(Document document, SourceText content)>();
+                foreach (var updatedOriginalDocument in updatedOriginalDocuments)
+                {
+                    updatedOriginalDocumentsWithTextBuilder.Add((updatedOriginalDocument, await updatedOriginalDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)));
+                }
+
+                VerifyDocuments(
+                    verifier.PushContext("Original files after running source generators"),
+                    updatedOriginalDocumentsWithTextBuilder.ToImmutable(),
+                    testState.Sources.ToImmutableArray(),
+                    allowReordering: false,
+                    DefaultFilePathPrefix,
+                    GetNameAndFoldersFromPath,
+                    MatchDiagnosticsTimeout);
+
+                // Verify the source generated documents match expectations
+                var generatedDocumentsWithTextBuilder = ImmutableArray.CreateBuilder<(Document document, SourceText content)>();
+                foreach (var generatedDocument in generatedDocuments)
+                {
+                    generatedDocumentsWithTextBuilder.Add((generatedDocument, await generatedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)));
+                }
+
+                VerifyDocuments(
+                    verifier.PushContext("Verifying source generated files"),
+                    generatedDocumentsWithTextBuilder.ToImmutable(),
+                    testState.GeneratedSources.ToImmutableArray(),
+                    allowReordering: true,
+                    DefaultFilePathPrefix,
+                    static (_, path) => GetNameAndFoldersFromSourceGeneratedFilePath(path),
+                    MatchDiagnosticsTimeout);
+            }
+
+            return diagnostics;
+
+            static void VerifyDocuments(
+                IVerifier verifier,
+                ImmutableArray<(Document document, SourceText content)> actualDocuments,
+                ImmutableArray<(string filename, SourceText content)> expectedDocuments,
+                bool allowReordering,
+                string defaultFilePathPrefix,
+                Func<string, string, (string fileName, IEnumerable<string> folders)> getNameAndFolders,
+                TimeSpan matchTimeout)
+            {
+                ImmutableArray<WeightedMatch.Result<(string filename, SourceText content), (Document document, SourceText content)>> matches;
+                if (allowReordering)
+                {
+                    matches = WeightedMatch.Match(
+                        expectedDocuments,
+                        actualDocuments,
+                        ImmutableArray.Create<Func<(string filename, SourceText content), (Document document, SourceText content), bool, double>>(
+                            static (expected, actual, exactOnly) =>
+                            {
+                                if (actual.content.ToString() == expected.content.ToString())
+                                {
+                                    return 0.0;
+                                }
+
+                                if (exactOnly)
+                                {
+                                    // Avoid expensive diff calculation when exact match was requested.
+                                    return 1.0;
+                                }
+
+                                var diffBuilder = new InlineDiffBuilder(new Differ());
+                                var diff = diffBuilder.BuildDiffModel(expected.content.ToString(), actual.content.ToString(), ignoreWhitespace: true, ignoreCase: false, new LineChunker());
+                                var changeCount = diff.Lines.Count(static line => line.Type is ChangeType.Inserted or ChangeType.Deleted);
+                                if (changeCount == 0)
+                                {
+                                    // We have a failure caused only by line ending or whitespace differences. Make sure
+                                    // to use a non-zero value so it can be distinguished from exact matches.
+                                    changeCount = 1;
+                                }
+
+                                // Apply a multiplier to the content distance to account for its increased importance
+                                // over encoding and checksum algorithm changes.
+                                var priority = 3;
+
+                                return priority * changeCount / (double)diff.Lines.Count;
+                            },
+                            static (expected, actual, exactOnly) =>
+                            {
+                                return actual.content.Encoding == expected.content.Encoding ? 0.0 : 1.0;
+                            },
+                            static (expected, actual, exactOnly) =>
+                            {
+                                return actual.content.ChecksumAlgorithm == expected.content.ChecksumAlgorithm ? 0.0 : 1.0;
+                            },
+                            (expected, actual, exactOnly) =>
+                            {
+                                var distance = 0.0;
+                                var (fileName, folders) = getNameAndFolders(defaultFilePathPrefix, expected.filename);
+                                if (fileName != actual.document.Name)
+                                {
+                                    distance += 1.0;
+                                }
+
+                                if (!folders.SequenceEqual(actual.document.Folders))
+                                {
+                                    distance += 1.0;
+                                }
+
+                                return distance;
+                            }),
+                        matchTimeout);
+                }
+                else
+                {
+                    // Matching with an empty set of matching functions always takes the 1:1 alignment without reordering
+                    matches = WeightedMatch.Match(
+                        expectedDocuments,
+                        actualDocuments,
+                        ImmutableArray<Func<(string filename, SourceText content), (Document document, SourceText content), bool, double>>.Empty,
+                        matchTimeout);
+                }
+
+                // Use EqualOrDiff to verify the actual and expected filenames (and total collection length) in a convenient manner
+                verifier.EqualOrDiff(
+                    string.Join(Environment.NewLine, matches.Select(match => match.TryGetExpected(out var expected) ? expected.filename : string.Empty)),
+                    string.Join(Environment.NewLine, matches.Select(match => match.TryGetActual(out var actual) ? actual.document.FilePath : string.Empty)),
+                    $"Expected source file list to match");
+
+                // Follow by verifying each property of interest
+                foreach (var result in matches)
+                {
+                    if (!result.TryGetExpected(out var expected)
+                        || !result.TryGetActual(out var actual))
+                    {
+                        throw new InvalidOperationException("Unexpected state: should have failed during the previous assertion.");
+                    }
+
+                    verifier.EqualOrDiff(expected.content.ToString(), actual.content.ToString(), $"content of '{expected.filename}' did not match. Diff shown with expected as baseline:");
+                    verifier.Equal(expected.content.Encoding, actual.content.Encoding, $"encoding of '{expected.filename}' was expected to be '{expected.content.Encoding?.WebName}' but was '{actual.content.Encoding?.WebName}'");
+                    verifier.Equal(expected.content.ChecksumAlgorithm, actual.content.ChecksumAlgorithm, $"checksum algorithm of '{expected.filename}' was expected to be '{expected.content.ChecksumAlgorithm}' but was '{actual.content.ChecksumAlgorithm}'");
+
+                    // Source-generated sources are implicitly in a subtree, so they have a different folders calculation.
+                    var (fileName, folders) = getNameAndFolders(defaultFilePathPrefix, expected.filename);
+                    verifier.Equal(fileName, actual.document.Name, $"file name was expected to be '{fileName}' but was '{actual.document.Name}'");
+                    verifier.SequenceEqual(folders, actual.document.Folders, message: $"folders was expected to be '{string.Join("/", folders)}' but was '{string.Join("/", actual.document.Folders)}'");
+                }
+            }
         }
 
         /// <summary>
@@ -921,10 +1111,11 @@ namespace Microsoft.CodeAnalysis.Testing
             var diagnostics = ImmutableArray.CreateBuilder<(Project project, Diagnostic diagnostic)>();
             foreach (var project in solution.Projects)
             {
-                var compilation = await GetProjectCompilationAsync(project, verifier, cancellationToken).ConfigureAwait(false);
+                var (compilation, generatorDiagnostics) = await GetProjectCompilationAsync(project, verifier, cancellationToken).ConfigureAwait(false);
                 var compilationWithAnalyzers = CreateCompilationWithAnalyzers(compilation, analyzers, GetAnalyzerOptions(project), cancellationToken);
                 var allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
 
+                diagnostics.AddRange(generatorDiagnostics.Select(diagnostic => (project, diagnostic)));
                 diagnostics.AddRange(allDiagnostics.Where(diagnostic => !IsCompilerDiagnostic(diagnostic) || IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics)).Select(diagnostic => (project, diagnostic)));
             }
 
@@ -933,13 +1124,13 @@ namespace Microsoft.CodeAnalysis.Testing
             return results;
         }
 
-        protected virtual async Task<Compilation> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
+        protected virtual async Task<(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics)> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
         {
-            var (finalProject, _) = await ApplySourceGeneratorAsync(GetSourceGenerators().ToImmutableArray(), project, verifier, cancellationToken).ConfigureAwait(false);
-            return (await finalProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+            var (finalProject, generatorDiagnostics) = await ApplySourceGeneratorAsync(GetSourceGenerators().ToImmutableArray(), project, verifier, cancellationToken).ConfigureAwait(false);
+            return ((await finalProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!, generatorDiagnostics);
         }
 
-        private async Task<(Project project, ImmutableArray<Diagnostic> diagnostics)> ApplySourceGeneratorAsync(ImmutableArray<Type> sourceGeneratorTypes, Project project, IVerifier verifier, CancellationToken cancellationToken)
+        private protected async Task<(Project project, ImmutableArray<Diagnostic> diagnostics)> ApplySourceGeneratorAsync(ImmutableArray<Type> sourceGeneratorTypes, Project project, IVerifier verifier, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             verifier.True(compilation is { });
@@ -963,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.Testing
             return (updatedProject, result.Diagnostics);
         }
 
-        private static (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromSourceGeneratedFilePath(string filePath)
+        private protected static (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromSourceGeneratedFilePath(string filePath)
         {
             // Source-generated files are always implicitly subpaths under the project root path.
             var folders = Path.GetDirectoryName(filePath)!.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
