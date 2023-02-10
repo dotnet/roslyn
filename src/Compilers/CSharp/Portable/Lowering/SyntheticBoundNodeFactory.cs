@@ -1256,7 +1256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundStateMachineInstanceId(
                 Syntax,
-                field: null,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_UInt64))
             { WasCompilerGenerated = true };
         }
