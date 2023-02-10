@@ -1412,10 +1412,24 @@ class C
             EOF();
         }
 
-        [Fact]
-        public void TestNewPartialArray()
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("partial")]
+        [InlineData("async")]
+        [InlineData("scoped")]
+        public void TestNewContextualKeywordArray_Incomplete(string keyword)
         {
-            UsingTree("new partial[1];");
+            UsingTree($"""
+                new {keyword}
+                [
+                """,
+                // (2,2): error CS1003: Syntax error, ']' expected
+                // [
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(2, 2),
+                // (2,2): error CS1002: ; expected
+                // [
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1430,7 +1444,51 @@ class C
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "partial");
+                                    N(SyntaxKind.IdentifierToken, keyword);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    M(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("partial")]
+        [InlineData("async")]
+        [InlineData("scoped")]
+        public void TestNewContextualKeywordArray(string keyword)
+        {
+            UsingTree($"new {keyword}[1];");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, keyword);
                                 }
                                 N(SyntaxKind.ArrayRankSpecifier);
                                 {
@@ -1441,6 +1499,89 @@ class C
                                     }
                                     N(SyntaxKind.CloseBracketToken);
                                 }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("partial")]
+        [InlineData("async")]
+        [InlineData("scoped")]
+        public void TestContextualKeywordObjectCreation_Incomplete(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}
+                (
+                """,
+                // (2,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1002: ; expected
+                // (
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, keyword);
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("partial")]
+        [InlineData("async")]
+        [InlineData("scoped")]
+        public void TestContextualKeywordObjectCreation(string keyword)
+        {
+            UsingTree($"new {keyword}();");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, keyword);
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
                             }
                         }
                         N(SyntaxKind.SemicolonToken);

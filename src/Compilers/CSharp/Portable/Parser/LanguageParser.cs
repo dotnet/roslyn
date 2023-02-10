@@ -328,27 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>Are we possibly at the start of an attribute list, or at a modifier which is valid on a type, or on a keyword of a type declaration?</summary>
         private static bool IsPossibleStartOfTypeDeclaration(SyntaxKind kind)
         {
-            switch (kind)
-            {
-                case SyntaxKind.EnumKeyword:
-                case SyntaxKind.DelegateKeyword:
-                case SyntaxKind.ClassKeyword:
-                case SyntaxKind.InterfaceKeyword:
-                case SyntaxKind.StructKeyword:
-                case SyntaxKind.AbstractKeyword:
-                case SyntaxKind.InternalKeyword:
-                case SyntaxKind.NewKeyword:
-                case SyntaxKind.PrivateKeyword:
-                case SyntaxKind.ProtectedKeyword:
-                case SyntaxKind.PublicKeyword:
-                case SyntaxKind.SealedKeyword:
-                case SyntaxKind.StaticKeyword:
-                case SyntaxKind.UnsafeKeyword:
-                case SyntaxKind.OpenBracketToken:
-                    return true;
-                default:
-                    return false;
-            }
+            return IsPossibleTypeModifierOrTypeKeyword(kind) || kind == SyntaxKind.OpenBraceToken;
         }
 
         /// <summary>Are we at a modifier which is valid on a type declaration or at a type keyword?</summary>
@@ -8078,8 +8058,7 @@ done:;
                 return false;
             }
 
-            DeclarationModifiers modifier = GetModifierExcludingScoped(nextToken);
-            if (modifier == DeclarationModifiers.Partial)
+            if (GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None && SyntaxFacts.IsContextualKeyword(nextToken.Kind))
             {
                 if (SyntaxFacts.IsPredefinedType(PeekToken(2).Kind))
                 {
@@ -8092,10 +8071,6 @@ done:;
                 {
                     return false;
                 }
-            }
-            else if (modifier != DeclarationModifiers.None)
-            {
-                return false;
             }
 
             bool? typedIdentifier = IsPossibleTypedIdentifierStart(nextToken, PeekToken(2), allowThisKeyword: true);
