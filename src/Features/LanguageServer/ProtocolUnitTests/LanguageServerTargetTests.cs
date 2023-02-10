@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         [Fact]
         public async Task LanguageServerRejectsRequestsBeforeInitialized()
         {
-            await using var server = await CreateTestLspServerAsync("");
+            await using var server = await CreateTestLspServerAsync("", callInitialized: false);
 
             var didOpenParams = new DidOpenTextDocumentParams
             {
