@@ -185,13 +185,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
 
             // just check System.Collections, and it's immediate namespace children.  This covers all the common cases
             // like "Concurrent/Generic/Immutable/Specialized", and prevents having to worry about huge trees to walk.
-            if (Check(systemCollections, name))
-                return true;
-
-            foreach (var childNamespace in systemCollections.GetNamespaceMembers())
+            if (systemCollections is not null)
             {
-                if (Check(childNamespace, name))
+                if (Check(systemCollections, name))
                     return true;
+
+                foreach (var childNamespace in systemCollections.GetNamespaceMembers())
+                {
+                    if (Check(childNamespace, name))
+                        return true;
+                }
             }
 
             return false;
