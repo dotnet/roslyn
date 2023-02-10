@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         where TDocumentationCommentTriviaSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
+        private static readonly SymbolDisplayFormat NameOnlyFormat = new();
+
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
         private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
@@ -509,7 +511,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     }
                 }
 
-                var memberName = $"{member.ContainingType.Name}.{member.Name}";
+                var memberName = $"{member.ContainingType.Name}.{member.ToDisplayString(NameOnlyFormat)}";
                 return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, memberName);
             }
 
