@@ -40,8 +40,10 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
         protected abstract bool TryGetForStatementComponents(
             TForStatementSyntax forStatement,
-            out SyntaxToken iterationVariable, out TExpressionSyntax initializer,
-            out TMemberAccessExpressionSyntax memberAccess, out TExpressionSyntax stepValueExpressionOpt,
+            out SyntaxToken iterationVariable,
+            [NotNullWhen(true)] out TExpressionSyntax? initializer,
+            [NotNullWhen(true)] out TMemberAccessExpressionSyntax? memberAccess,
+            [NotNullWhen(true)] out TExpressionSyntax? stepValueExpressionOpt,
             CancellationToken cancellationToken);
 
         protected abstract SyntaxNode ConvertForNode(

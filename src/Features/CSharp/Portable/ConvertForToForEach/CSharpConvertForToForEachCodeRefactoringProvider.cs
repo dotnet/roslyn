@@ -38,9 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
 
         protected override bool TryGetForStatementComponents(
             ForStatementSyntax forStatement,
-            out SyntaxToken iterationVariable, out ExpressionSyntax initializer,
-            out MemberAccessExpressionSyntax memberAccess,
-            out ExpressionSyntax stepValueExpressionOpt,
+            out SyntaxToken iterationVariable,
+            [NotNullWhen(true)] out ExpressionSyntax? initializer,
+            [NotNullWhen(true)] out MemberAccessExpressionSyntax? memberAccess,
+            [NotNullWhen(true)] out ExpressionSyntax? stepValueExpressionOpt,
             CancellationToken cancellationToken)
         {
             // Look for very specific forms.  Basically, only minor variations around:
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         }
 
         private static bool TryGetStepValue(
-            SyntaxToken iterationVariable, ExpressionSyntax incrementor, out ExpressionSyntax stepValue)
+            SyntaxToken iterationVariable, ExpressionSyntax incrementor, out ExpressionSyntax? stepValue)
         {
             // support
             //  x++
@@ -109,8 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         }
 
         protected override SyntaxNode ConvertForNode(
-            ForStatementSyntax forStatement, TypeSyntax typeNode,
-            SyntaxToken foreachIdentifier, ExpressionSyntax collectionExpression,
+            ForStatementSyntax forStatement,
+            TypeSyntax? typeNode,
+            SyntaxToken foreachIdentifier,
+            ExpressionSyntax collectionExpression,
             ITypeSymbol iterationVariableType)
         {
             typeNode ??= iterationVariableType.GenerateTypeSyntax();
