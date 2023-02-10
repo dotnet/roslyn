@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
@@ -512,6 +513,70 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         Private Shared Function GetFilePathAndProjectLabel(hostDocument As TestHostDocument) As String
             Return $"{hostDocument.Project.Name}: {hostDocument.FilePath}"
+        End Function
+
+        <Fact>
+        Public Async Function LinkedFilesWhereContentHasChangedInOneLink() As Task
+            Using workspace = TestWorkspace.Create("
+<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj1' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+partial class C
+{
+    int i;
+
+    public int P { get { return i; } }
+
+    public C()
+    {
+        this.i = 0;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj2' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>")
+
+                ' ensure we normally have two linked symbols when the files are the same.
+                Dim solution = workspace.CurrentSolution
+                Dim document1 = solution.Projects.Single(Function(p) p.Name = "CSProj.1").Documents.Single()
+
+                Dim linkedDocuments = document1.GetLinkedDocumentIds()
+                Assert.Equal(1, linkedDocuments.Length)
+
+                Dim document2 = solution.GetDocument(linkedDocuments.Single())
+                Assert.NotSame(document1, document2)
+
+                Dim semanticModel1 = Await document1.GetSemanticModelAsync()
+                Dim root1 = Await semanticModel1.SyntaxTree.GetRootAsync()
+                Dim declarator1 = root1.DescendantNodes().OfType(Of VariableDeclaratorSyntax).First()
+                Dim symbol1 = semanticModel1.GetDeclaredSymbol(declarator1)
+                Assert.NotNull(symbol1)
+
+                Dim linkedSymbols = Await SymbolFinder.FindLinkedSymbolsAsync(symbol1, solution, cancellationToken:=Nothing)
+                Assert.Equal(2, linkedSymbols.Length)
+
+                ' now change the linked file and run again.
+                solution = solution.WithDocumentText(document2.Id, SourceText.From(""))
+                document1 = solution.Projects.Single(Function(p) p.Name = "CSProj.1").Documents.Single()
+
+                linkedDocuments = document1.GetLinkedDocumentIds()
+                Assert.Equal(1, linkedDocuments.Length)
+
+                document2 = solution.GetDocument(linkedDocuments.Single())
+                Assert.NotSame(document1, document2)
+
+                semanticModel1 = Await document1.GetSemanticModelAsync()
+                root1 = Await semanticModel1.SyntaxTree.GetRootAsync()
+                declarator1 = root1.DescendantNodes().OfType(Of VariableDeclaratorSyntax).First()
+                symbol1 = semanticModel1.GetDeclaredSymbol(declarator1)
+                Assert.NotNull(symbol1)
+
+                linkedSymbols = Await SymbolFinder.FindLinkedSymbolsAsync(symbol1, solution, cancellationToken:=Nothing)
+                Assert.Equal(1, linkedSymbols.Length)
+            End Using
         End Function
     End Class
 End Namespace
