@@ -551,6 +551,8 @@ namespace Roslyn.Test.Utilities
                     Capabilities = initializationOptions.ClientCapabilities,
                 }, CancellationToken.None);
 
+                await server.ExecuteRequestAsync<LSP.InitializedParams, object?>(LSP.Methods.InitializedName, new LSP.InitializedParams { }, CancellationToken.None);
+
                 return server;
             }
 
@@ -563,6 +565,8 @@ namespace Roslyn.Test.Utilities
                 {
                     Capabilities = clientCapabilities,
                 }, CancellationToken.None);
+
+                await server.ExecuteRequestAsync<LSP.InitializedParams, object?>(LSP.Methods.InitializedName, new LSP.InitializedParams { }, CancellationToken.None);
 
                 return server;
             }
