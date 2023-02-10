@@ -1043,8 +1043,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
-        <source>Only a single record partial declaration may have a parameter list</source>
-        <target state="translated">只有一个记录分部声明可以具有参数列表</target>
+        <source>Only a single partial type declaration may have a parameter list</source>
+        <target state="needs-review-translation">只有一个记录分部声明可以具有参数列表</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">

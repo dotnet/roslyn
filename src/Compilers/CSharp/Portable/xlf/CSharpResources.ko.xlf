@@ -1043,8 +1043,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
-        <source>Only a single record partial declaration may have a parameter list</source>
-        <target state="translated">단일 레코드 partial 선언에만 매개 변수 목록을 사용할 수 있습니다.</target>
+        <source>Only a single partial type declaration may have a parameter list</source>
+        <target state="needs-review-translation">단일 레코드 partial 선언에만 매개 변수 목록을 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">

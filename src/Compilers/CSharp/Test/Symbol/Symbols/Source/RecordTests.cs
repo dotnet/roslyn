@@ -1118,7 +1118,7 @@ partial record C(int X, int Y)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // (13,17): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X, int Y)").WithLocation(13, 17)
                 );
@@ -1147,7 +1147,7 @@ partial record C(int X)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // (13,17): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record C(int X)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X)").WithLocation(13, 17)
                 );

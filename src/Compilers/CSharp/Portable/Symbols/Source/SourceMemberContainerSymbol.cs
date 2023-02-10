@@ -3430,7 +3430,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    // PROTOTYPE(PrimaryConstructors): Adjust error message
                     diagnostics.Add(ErrorCode.ERR_MultipleRecordParameterLists, parameterList.Location);
                 }
             }

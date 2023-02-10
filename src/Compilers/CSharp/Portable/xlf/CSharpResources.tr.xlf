@@ -1043,8 +1043,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
-        <source>Only a single record partial declaration may have a parameter list</source>
-        <target state="translated">Yalnızca tek kaydın kısmi bildiriminde parametre listesi olabilir</target>
+        <source>Only a single partial type declaration may have a parameter list</source>
+        <target state="needs-review-translation">Yalnızca tek kaydın kısmi bildiriminde parametre listesi olabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">

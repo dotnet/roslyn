@@ -28743,7 +28743,7 @@ namespace System.Runtime.CompilerServices
                 // (5,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
                 // /// <param name="I1">Description for I1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(5, 18),
-                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial record C(int I1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(6, 24)
                 );
@@ -28789,7 +28789,7 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
             comp.VerifyDiagnostics(
-                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial record D(int I1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(6, 24)
                 );
@@ -28845,7 +28845,7 @@ namespace System.Runtime.CompilerServices
                 // (7,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
                 // /// <param name="I1">Description2 for I1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(7, 18),
-                // (8,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (8,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial record E(int I1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(8, 24)
                 );
@@ -28905,7 +28905,7 @@ namespace System.Runtime.CompilerServices
                 // (5,18): warning CS1572: XML comment has a param tag for 'S1', but there is no parameter by that name
                 // /// <param name="S1">Description2 for S1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "S1").WithArguments("S1").WithLocation(5, 18),
-                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial record E(string S1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(string S1)").WithLocation(6, 24)
                 );
@@ -28952,7 +28952,7 @@ namespace System.Runtime.CompilerServices
                 // (7,18): warning CS1572: XML comment has a param tag for 'S1', but there is no parameter by that name
                 // /// <param name="S1">Description2 for S1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "S1").WithArguments("S1").WithLocation(7, 18),
-                // (8,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (8,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial record E(string S1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(string S1)").WithLocation(8, 24)
                 );

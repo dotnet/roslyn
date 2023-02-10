@@ -1278,13 +1278,13 @@ partial record struct S3();
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (3,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (3,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record struct S(int i);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int i)").WithLocation(3, 24),
-                // (6,25): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,25): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record struct S2();
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(6, 25),
-                // (9,25): error CS8863: Only a single record partial declaration may have a parameter list
+                // (9,25): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record struct S3();
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(9, 25)
                 );

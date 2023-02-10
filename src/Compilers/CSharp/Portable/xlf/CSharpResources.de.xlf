@@ -1043,8 +1043,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
-        <source>Only a single record partial declaration may have a parameter list</source>
-        <target state="translated">Nur eine partielle Deklaration eines einzelnen Datensatzes darf eine Parameterliste aufweisen.</target>
+        <source>Only a single partial type declaration may have a parameter list</source>
+        <target state="needs-review-translation">Nur eine partielle Deklaration eines einzelnen Datensatzes darf eine Parameterliste aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
