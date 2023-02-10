@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ArrayBuilder<StateMachineStateDebugInfo> _stateDebugInfoBuilder;
 
         // Instrumentation related bound nodes:
-        protected BoundBlockInstrumentation? _instrumentation;
+        protected BoundBlockInstrumentation? instrumentation;
 
         // new:
         public MethodToStateMachineRewriter(
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Instrumentation != null)
             {
                 // Stash away the instrumentation node, it will be used when generating MoveNext method.
-                _instrumentation = (BoundBlockInstrumentation)Visit(node.Instrumentation);
+                instrumentation = (BoundBlockInstrumentation)Visit(node.Instrumentation);
             }
 
             return PossibleIteratorScope(node.Locals, () => VisitBlock(node, removeInstrumentation: true));

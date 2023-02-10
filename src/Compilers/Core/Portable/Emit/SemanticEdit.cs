@@ -107,7 +107,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 throw new ArgumentOutOfRangeException(nameof(kind));
             }
 
-            if (!instrumentation.IsDefaultOrEmpty)
+            if (instrumentation.IsDefault)
+            {
+                instrumentation = MethodInstrumentation.Empty;
+            }
+
+            if (!instrumentation.IsEmpty)
             {
                 if (kind != SemanticEditKind.Update)
                 {
@@ -143,7 +148,8 @@ namespace Microsoft.CodeAnalysis.Emit
             => obj is SemanticEdit other && Equals(other);
 
         /// <summary>
-        /// <see cref="SemanticEdit"/>s are considered equal if they are of the same <see cref="Kind"/> and symbols (<see cref="OldSymbol"/> and <see cref="NewSymbol"/>).
+        /// <see cref="SemanticEdit"/>s are considered equal if they are of the same <see cref="Kind"/> and
+        /// the corresponding <see cref="OldSymbol"/> and <see cref="NewSymbol"/> symbols are the same.
         /// The effects of edits that compare equal on the emitted metadata/IL are not necessarily the same.
         /// </summary>
         public bool Equals(SemanticEdit other)

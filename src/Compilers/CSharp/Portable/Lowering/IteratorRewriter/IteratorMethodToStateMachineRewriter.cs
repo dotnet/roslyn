@@ -148,12 +148,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             newBody = F.SequencePoint(body.Syntax, HandleReturn(newBody));
 
-            if (_instrumentation != null)
+            if (instrumentation != null)
             {
                 newBody = F.Block(
-                    ImmutableArray.Create(_instrumentation.Local),
-                    _instrumentation.Prologue,
-                    F.Try(F.Block(newBody), ImmutableArray<BoundCatchBlock>.Empty, F.Block(_instrumentation.Epilogue)));
+                    ImmutableArray.Create(instrumentation.Local),
+                    instrumentation.Prologue,
+                    F.Try(F.Block(newBody), ImmutableArray<BoundCatchBlock>.Empty, F.Block(instrumentation.Epilogue)));
             }
 
             F.CloseMethod(newBody);

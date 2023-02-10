@@ -14,11 +14,75 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// Implements instrumentation for <see cref="CodeAnalysis.Emit.InstrumentationKind.LocalStateTracing"/>.
+    /// </summary>
+    /// <remarks>
+    /// Adds calls to well-known instrumentation helpers defined by <see cref="WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker"/> to the bodies of instrumented methods.
+    /// These allow tracing method entries, returns and writes to user-defined local variables and parameters.
+    /// 
+    /// The instrumenter also adds the ability to stitch calls to MoveNext methods of a state machine that are executed as continuations of the same instance of the state machine
+    /// but potentially from multiple different threads.
+    ///
+    /// The instrumentation introduces several new bound nodes:
+    ///
+    /// 1) <see cref="BoundBlockInstrumentation"/>
+    ///    This node is attached to a <see cref="BoundBlock"/> that represents the lowered body of an instrumented method, lambda or local function.
+    ///    It defines a local variable used to store instrumentation context and prologue and epilogue.
+    ///    
+    ///    <see cref="BoundBlock"/> with block instrumentation is eventually lowered to:
+    ///    <code>
+    ///    [[prologue]]
+    ///    try
+    ///    {
+    ///       [[method body]]
+    ///    }
+    ///    finally
+    ///    {
+    ///       [[epilogue]]
+    ///    }
+    ///    </code>
+    ///
+    ///    The prologue is:
+    ///    <code>
+    ///    var $context = LocalStateTracker.LogXyzEntry($ids);
+    ///    </code>
+    ///
+    ///    Where Xyz is a combination of <c>StateMachine</c> and either <c>Method</c> or <c>Lambda</c>, and $ids is the corresponding set of arguments identifying the context.
+    ///    -Entry methods are static factory methods for <see cref="WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker"/>. 
+    ///    
+    ///    The tracker type is a <c>ref struct</c>. It can only be allocated on the stack and accessed only directly from the declaring method (no lifting).
+    ///    For member methods $ids is a single argument that is the method token.
+    ///    For lambdas and local functions the token of the lambda method is passed in addition to the containing method token. This allows the logger to determine which lambda belongs to which method,
+    ///    as that it not apparent from metadata.
+    ///    For state machines, the state machine instance id is passed. The instance id is stored on a new synthesized field of the state machine type added by the instrumentation that
+    ///    is initialized to a unique number when the state machine type is instantiated. The number is provided by
+    ///    <see cref="WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId"/>.
+    ///    
+    ///    The epilogue is simply:
+    ///    <code>
+    ///    $context.LogReturn();
+    ///    </code>
+    ///
+    /// 2) <see cref="BoundStateMachineInstanceId"/>
+    ///    This node represents a reference to a synthesized state machine instance id field of the state machine. Lowered to a field read during state machine lowering.
+    ///
+    /// 3) <see cref="BoundParameterId"/>/<see cref="BoundLocalId"/>
+    ///    Represents id of a user-defined parameter/local. Emitted as ldc.i4 of either the parameter/local ordinal if the variable was not lifted, 
+    ///    or the token of its hoisted field.
+    ///
+    /// Each local variable write is followed by a call to one of the <c>LogLocalStoreXyz</c> or <c>LogParameterStoreXyz</c> instance methods on <c>$context</c>.
+    /// Writes to locals passed to a function call site by-ref are logged after the call returns.
+    /// <c>LogParameterStoreXyz</c> are emitted on explicit parameter assignment and also at the beginning of a method with parameters to log their initial values.
+    /// 
+    /// The loggers are specialized to handle all kinds of variable types efficiently (without boxing).
+    /// Specialized loggers are also used to track local variable aliases via ref assignments.
+    /// </remarks>
     internal sealed class LocalStateTracingInstrumenter : CompoundInstrumenter
     {
         /// <summary>
         /// Represents instrumentation scope - i.e. method, lambda or local function body.
-        /// We define a new <see cref="Scope.ContextVariable"/> (of LocalStoreTracker well-known type) in each scope,
+        /// We define a new <see cref="ContextVariable"/> (of LocalStoreTracker well-known type) in each scope,
         /// so that this variable is always directly accessible within any instrumented code and always stack-allocated.
         /// </summary>
         private sealed class Scope
@@ -59,14 +123,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TypeSymbol _instrumentationType;
 
         private LocalStateTracingInstrumenter(
-            Scope state,
+            Scope scope,
             TypeSymbol instrumentationType,
             SyntheticBoundNodeFactory factory,
             BindingDiagnosticBag diagnostics,
             Instrumenter previous)
             : base(previous)
         {
-            _scope = state;
+            _scope = scope;
             _instrumentationType = instrumentationType;
             _factory = factory;
             _diagnostics = diagnostics;
@@ -119,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var enumDelta = (targetSymbol.Kind == SymbolKind.Parameter) ?
                 WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreBoolean - WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreBoolean : 0;
 
-            var overload = refAssignmentSourceIsLocal switch
+            WellKnownMember? overloadOpt = refAssignmentSourceIsLocal switch
             {
                 true => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreLocalAlias,
                 false => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreParameterAlias,
@@ -141,19 +205,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStorePointer,
                     _ when !variableType.IsManagedTypeNoUseSiteDiagnostics
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUnmanaged,
+                    _ when variableType.IsRefLikeType && !hasOverriddenToString(variableType)
+                        => null, // not possible to invoke ToString on ref struct that doesn't override it
                     _ when variableType.TypeKind is TypeKind.Struct
-                        // well emit ToString constrained virtcall to avoid boxing the struct
+                        // we'll emit ToString constrained virtcall to avoid boxing the struct
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreString,
                     _
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreObject,
                 }
             };
 
+            static bool hasOverriddenToString(TypeSymbol variableType)
+                => variableType.GetMembers("ToString").Any(m => m.GetOverriddenMember() is not null);
+
+            if (!overloadOpt.HasValue)
+            {
+                return null;
+            }
+
             // LogLocalStoreLocalAlias does not have a corresponding parameter version,
             // since it is not possible to assign address of a local to a by-ref parameter.
-            Debug.Assert(enumDelta == 0 || overload != WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreLocalAlias);
+            Debug.Assert(enumDelta == 0 || overloadOpt.Value != WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreLocalAlias);
 
-            overload += enumDelta;
+            var overload = overloadOpt.Value + enumDelta;
 
             var symbol = GetWellKnownMethodSymbol(overload, syntax);
             if (symbol is not null)
@@ -299,11 +373,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refAssignmentSourceIndex = null;
             }
 
-            var isLocalOrParameter = TryGetLocalOrParameterInfo(original.Left, out var targetSymbol, out var targetType, out var targetIndex);
-            Debug.Assert(isLocalOrParameter);
-            Debug.Assert(targetType is not null); // TODO: why are these needed?
-            Debug.Assert(targetSymbol is not null);
-            Debug.Assert(targetIndex is not null);
+            if (!TryGetLocalOrParameterInfo(original.Left, out var targetSymbol, out var targetType, out var targetIndex))
+            {
+                Debug.Fail("Must be local or parameter");
+            }
 
             var logger = GetLocalOrParameterStoreLogger(targetType, targetSymbol, refAssignmentSourceIsLocal, original.Syntax);
             if (logger is null)
@@ -362,6 +435,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _factory.Literal("");
                     }
 
+                    // value won't be null:
+                    Debug.Assert(targetType.IsStructType());
                     return _factory.Call(value, toString);
                 }
 

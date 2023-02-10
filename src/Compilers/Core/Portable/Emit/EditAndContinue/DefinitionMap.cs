@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Emit
             mappedMethods = GetMappedMethods(edits);
 
             _methodInstrumentations = edits
-                .Where(edit => !edit.Instrumentation.IsDefaultOrEmpty)
+                .Where(edit => !edit.Instrumentation.IsEmpty)
                 .ToImmutableDictionary(edit => (IMethodSymbolInternal)GetISymbolInternalOrNull(edit.NewSymbol!)!, edit => edit.Instrumentation);
         }
 

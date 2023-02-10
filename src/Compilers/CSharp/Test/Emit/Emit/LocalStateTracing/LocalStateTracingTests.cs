@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LocalStateTracingTests : CSharpTestBase
     {
-        // TODO:
+        // TODO: https://github.com/dotnet/roslyn/issues/66809
         // arrays (stloc, stelem),
         // collections, anonymous types, tuples
 
@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.Runtime
         }
 
         private void WL(object value, int index)
-            => WriteLine($"{M.Name}: {L(index)} = {value}");
+            => WriteLine($"{M.Name}: {L(index)} = {value ?? "null"}");
 
         private void WP(object value, int index)
-            => WriteLine($"{M.Name}: {P(index)} = {value}");
+            => WriteLine($"{M.Name}: {P(index)} = {value ?? "null"}");
 
         private string L(int index)
             => (index >= 0x10000) ? $"L'{UnmangleFieldName(M.Module.ResolveField(index - 0x10000 + 0x04000000).Name)}'" : $"L{index}";
@@ -1063,32 +1063,45 @@ class C
         }
 
         [Theory]
-        [InlineData("", "decimal")]
-        [InlineData("", "nint")]
-        [InlineData("", "nuint")]
-        [InlineData("", "System.DateTime")]
-        [InlineData("", "System.Guid")]
-        [InlineData("", "System.ValueTuple<int, bool>")]
-        [InlineData("struct S { }", "S")]
-        [InlineData("struct S<T> where T : struct { T t; }", "S<int>")]
-        [InlineData("struct S { System.DateTime X; System.Guid Y; decimal Z; unsafe void* P; }", "S")]
-        [InlineData("", "System.ValueTuple<int?, bool?>")]
-        [InlineData("", "int?")]
-        public void UnmanagedStruct(string definition, string typeName)
+        [InlineData("", "decimal", "0")]
+        [InlineData("", "nint", "0")]
+        [InlineData("", "nuint", "0")]
+        [InlineData("", "System.Int128", "0")]
+        [InlineData("", "System.Guid", "00000000-0000-0000-0000-000000000000")]
+        [InlineData("", "System.ValueTuple<int, bool>", "(0, False)")]
+        [InlineData("struct S { }", "S", "S")]
+        [InlineData("struct S<T> where T : struct { T t; }", "S<int>", "S")]
+        [InlineData("struct S { System.DateTime X; System.Guid Y; decimal Z; unsafe void* P; }", "S", "S")]
+        [InlineData("", "System.ValueTuple<int?, bool?>", "(, )")]
+        [InlineData("", "int?", "null")]
+        public void UnmanagedStruct(string definition, string typeName, string value)
         {
-            var source = WithHelpers(definition + $$"""
+            var source = WithHelpers($$"""
+C.F(default);
+
+{{definition}}
+
 class C
 {
     static readonly {{typeName}} s;
 
-    static void F({{typeName}} p)
+    public static void F({{typeName}} p)
     {
         var x = p = s;
     }
 }
 """);
 
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileAndVerify(source, expectedOutput: $@"
+<Main>$: Entered
+<Main>$: P'args'[0] = System.String[]
+F: Entered
+F: P'p'[0] = {value}
+F: P'p'[0] = {value}
+F: L1 = {value}
+F: Returned
+<Main>$: Returned
+");
 
             verifier.VerifyMethodBody("C.F", $@"
 {{
@@ -1141,25 +1154,38 @@ class C
         }
 
         [Theory]
-        [InlineData("", "System.ValueTuple<int, string>")]
-        [InlineData("struct S { string A; }", "S")]
-        [InlineData("struct S { string A; }", "S?")]
-        public void ManagedStruct(string definition, string typeName)
+        [InlineData("", "System.ValueTuple<int, string>", "(0, )")]
+        [InlineData("struct S { string A; }", "S", "S")]
+        [InlineData("struct S { string A; }", "S?", "")]
+        public void ManagedStruct(string definition, string typeName, string value)
         {
-            var source = WithHelpers(definition + $$"""
+            var source = WithHelpers($$"""
+C.F(default);
+
+{{definition}}
+
 class C
 {
     private static readonly {{typeName}} s;
 
-    public void F({{typeName}} p)
+    public static void F({{typeName}} p)
     {
         var x = p = s;
     }
 }
 """);
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileAndVerify(source, expectedOutput: $@"
+<Main>$: Entered
+<Main>$: P'args'[0] = System.String[]
+F: Entered
+F: P'p'[0] = {value}
+F: P'p'[0] = {value}
+F: L1 = {value}
+F: Returned
+<Main>$: Returned
+");
 
-            // TODO: why is the stloc+ldloc.a of V_2 emitted?
+            // TODO: why is the stloc+ldloc.a of V_2 emitted? https://github.com/dotnet/roslyn/issues/66810
             // IL_0045: stloc.2
             // IL_0046: ldloca.s V_2
 
@@ -1178,7 +1204,7 @@ class C
   {{
     // sequence point: {{
     IL_000b:  ldloca.s   V_0
-    IL_000d:  ldarga.s   V_1
+    IL_000d:  ldarga.s   V_0
     IL_000f:  constrained. ""{typeName}""
     IL_0015:  callvirt   ""string object.ToString()""
     IL_001a:  ldc.i4.0
@@ -1189,7 +1215,7 @@ class C
     IL_0023:  ldloca.s   V_0
     IL_0025:  ldsfld     ""{typeName} C.s""
     IL_002a:  dup
-    IL_002b:  starg.s    V_1
+    IL_002b:  starg.s    V_0
     IL_002d:  stloc.2
     IL_002e:  ldloca.s   V_2
     IL_0030:  constrained. ""{typeName}""
@@ -1197,7 +1223,7 @@ class C
     IL_003b:  ldc.i4.0
     IL_003c:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(string, int)""
     IL_0041:  nop
-    IL_0042:  ldarg.1
+    IL_0042:  ldarg.0
     IL_0043:  dup
     IL_0044:  stloc.1
     IL_0045:  stloc.2
@@ -1225,22 +1251,113 @@ class C
         }
 
         [Fact]
-        public void RefStructWithRefField()
+        public void RefStructWithRefFieldAndNoToStringOverride()
         {
-            var source = WithHelpers($$"""
-ref struct S { ref int X; }
+            var source = WithHelpers("""
+S.F(new S());
 
-class C
+ref struct S
 {
-    public void F(S p)
+    ref int X;
+
+    public static void F(S p)
     {
+        int a = 1;
         var x = p = new S();
     }
 }
 """);
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+<Main>$: Entered
+<Main>$: P'args'[0] = System.String[]
+F: Entered
+F: L1 = 1
+F: Returned
+<Main>$: Returned
+");
 
-            verifier.VerifyMethodBody("C.F", @"
+            // writes to x and p are not logged since we can't invoke ToString()
+            verifier.VerifyMethodBody("S.F", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
+                int V_1, //a
+                S V_2) //x
+  // sequence point: <hidden>
+  IL_0000:  ldtoken    ""void S.F(S)""
+  IL_0005:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
+  IL_000a:  stloc.0
+  .try
+  {
+    // sequence point: {
+    IL_000b:  nop
+    // sequence point: int a = 1;
+    IL_000c:  ldloca.s   V_0
+    IL_000e:  ldc.i4.1
+    IL_000f:  dup
+    IL_0010:  stloc.1
+    IL_0011:  ldc.i4.1
+    IL_0012:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_0017:  nop
+    // sequence point: var x = p = new S();
+    IL_0018:  ldarga.s   V_0
+    IL_001a:  initobj    ""S""
+    IL_0020:  ldarg.0
+    IL_0021:  stloc.2
+    // sequence point: }
+    IL_0022:  leave.s    IL_002d
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0024:  ldloca.s   V_0
+    IL_0026:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_002b:  nop
+    IL_002c:  endfinally
+  }
+  // sequence point: }
+  IL_002d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefStructWithRefFieldAndToStringOverride()
+        {
+            var source = WithHelpers("""
+S.F(new S());
+
+ref struct S
+{
+    ref int X;
+
+    public static void F(S p)
+    {
+        var x = p = new S();
+    }
+
+    public override string ToString() => "str";
+}
+""");
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+<Main>$: Entered
+<Main>$: P'args'[0] = System.String[]
+F: Entered
+ToString: Entered
+ToString: Returned
+F: P'p'[0] = str
+ToString: Entered
+ToString: Returned
+F: P'p'[0] = str
+ToString: Entered
+ToString: Returned
+F: L1 = str
+F: Returned
+<Main>$: Returned
+");
+
+            verifier.VerifyMethodBody("S.F", @"
  {
   // Code size      103 (0x67)
   .maxstack  4
@@ -1248,14 +1365,14 @@ class C
                 S V_1, //x
                 S V_2)
   // sequence point: <hidden>
-  IL_0000:  ldtoken    ""void C.F(S)""
+  IL_0000:  ldtoken    ""void S.F(S)""
   IL_0005:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
   IL_000a:  stloc.0
   .try
   {
     // sequence point: {
     IL_000b:  ldloca.s   V_0
-    IL_000d:  ldarga.s   V_1
+    IL_000d:  ldarga.s   V_0
     IL_000f:  constrained. ""S""
     IL_0015:  callvirt   ""string object.ToString()""
     IL_001a:  ldc.i4.0
@@ -1264,9 +1381,9 @@ class C
     // sequence point: var x = p = new S();
     IL_0021:  ldloca.s   V_0
     IL_0023:  ldloca.s   V_0
-    IL_0025:  ldarga.s   V_1
+    IL_0025:  ldarga.s   V_0
     IL_0027:  initobj    ""S""
-    IL_002d:  ldarg.1
+    IL_002d:  ldarg.0
     IL_002e:  stloc.2
     IL_002f:  ldloca.s   V_2
     IL_0031:  constrained. ""S""
@@ -1274,7 +1391,7 @@ class C
     IL_003c:  ldc.i4.0
     IL_003d:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(string, int)""
     IL_0042:  nop
-    IL_0043:  ldarg.1
+    IL_0043:  ldarg.0
     IL_0044:  dup
     IL_0045:  stloc.1
     IL_0046:  stloc.2
@@ -1304,17 +1421,20 @@ class C
         public void UnmanagedRefStruct()
         {
             var source = WithHelpers($$"""
+C.F(default);
+
 ref struct S { int X; }
 
 class C
 {
-    public void F(S p)
+    public static void F(S p)
     {
         var x = p = new S();
     }
 }
 """);
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+");
 
             verifier.VerifyMethodBody("C.F", $@"
 {{
@@ -1580,7 +1700,7 @@ Main: L1 = 1
 Main: Returned
 ");
 
-            // TODO: eliminate
+            // TODO: eliminate https://github.com/dotnet/roslyn/issues/66810
             // IL_007b:  ldloc.2
             // IL_007c:  ldind.i4
             // IL_007d:  pop
@@ -1800,11 +1920,13 @@ ref struct S
 {
     public ref int X;
     public ref int Y;
+
+    public override string ToString() => ""str"";
 }
 
 class C
 {
-    public void F()
+    static void Main()
     {
         int a = 1;
         scoped var s = new S();
@@ -1820,9 +1942,17 @@ class C
     }
 }
 ");
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+Main: Entered
+Main: L1 = 1
+ToString: Entered
+ToString: Returned
+Main: L2 = str
+Main: L3 = 3
+Main: Returned
+");
 
-            verifier.VerifyMethodBody("C.F", @"
+            verifier.VerifyMethodBody("C.Main", @"
 {
   // Code size      136 (0x88)
   .maxstack  4
@@ -1833,7 +1963,7 @@ class C
                 S V_4,
                 int V_5)
   // sequence point: <hidden>
-  IL_0000:  ldtoken    ""void C.F()""
+  IL_0000:  ldtoken    ""void C.Main()""
   IL_0005:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
   IL_000a:  stloc.0
   .try
@@ -1914,6 +2044,7 @@ class C
 ");
         }
 
+        // TODO
         [Fact]
         public void RefArguments_Call()
         {
@@ -2594,8 +2725,6 @@ class C
 }
 ");
 
-            // cctor invocation timing is different between .NET Core and .NET FX
-#if NET
             var expectedOutput = @"
 Main: Entered
 .cctor: Entered
@@ -2605,17 +2734,6 @@ Main: Entered
 <.cctor>b__3_0: Returned
 Main: Returned
 ";
-#else
-            var expectedOutput = @"
-.cctor: Entered
-.cctor: Returned
-Main: Entered
-.cctor: Entered lambda '<.cctor>b__3_0'
-<.cctor>b__3_0: L1 = 1
-<.cctor>b__3_0: Returned
-Main: Returned
-";
-#endif
 
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
 
@@ -2650,7 +2768,7 @@ Main: Returned
 }
 ");
 
-            // TODO: is this sequence point correct?
+            // TODO: is this sequence point correct? https://github.com/dotnet/roslyn/issues/66811
             // sequence point: }
             // IL_001d:  leave.s    IL_0028
 
@@ -3583,7 +3701,7 @@ Main: Returned
   IL_0007:  ret
 }
 ");
-            // TODO: remove unnecessary IL:
+            // TODO: remove unnecessary IL:  https://github.com/dotnet/roslyn/issues/66810
             // IL_0038: ldarg.0
             // IL_0039: ldfld      ""int C.<Main>d__0.<a>5__1""
             // IL_003e: pop
@@ -3997,7 +4115,7 @@ Main: Returned
 }
 ");
 
-            // TODO: remove unnecessary IL:
+            // TODO: remove unnecessary IL:  https://github.com/dotnet/roslyn/issues/66810
             // IL_0038: ldarg.0
             // IL_0039: ldfld      ""int C.<M>d__0.<a>5__1""
             // IL_003e: pop
@@ -5557,6 +5675,124 @@ Main: Returned
   }
   // sequence point: }
   IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ExceptionHandler_CatchTypeWithVariableAndLocalsInCatchBlock()
+        {
+            var source = WithHelpers(@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s;
+        try
+        {
+            s = args[0];
+        }
+        catch (System.Exception e)
+        {
+            int a = 1;
+            int b = 2;
+        }
+    }
+}
+");
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+Main: Entered
+Main: P'args'[0] = System.String[]
+Main: L2 = System.IndexOutOfRangeException: Index was outside the bounds of the array.
+   at C.Main(String[] args)
+Main: L3 = 1
+Main: L4 = 2
+Main: Returned
+");
+
+            verifier.VerifyMethodBody("C.Main", @"
+{
+  // Code size       91 (0x5b)
+  .maxstack  3
+  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
+                string V_1, //s
+                System.Exception V_2, //e
+                int V_3, //a
+                int V_4) //b
+  // sequence point: <hidden>
+  IL_0000:  ldtoken    ""void C.Main(string[])""
+  IL_0005:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
+  IL_000a:  stloc.0
+  .try
+  {
+    // sequence point: {
+    IL_000b:  ldloca.s   V_0
+    IL_000d:  ldarg.0
+    IL_000e:  ldc.i4.0
+    IL_000f:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(object, int)""
+    IL_0014:  nop
+    .try
+    {
+      // sequence point: {
+      IL_0015:  nop
+      // sequence point: s = args[0];
+      IL_0016:  ldloca.s   V_0
+      IL_0018:  ldarg.0
+      IL_0019:  ldc.i4.0
+      IL_001a:  ldelem.ref
+      IL_001b:  dup
+      IL_001c:  stloc.1
+      IL_001d:  ldc.i4.1
+      IL_001e:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(string, int)""
+      IL_0023:  nop
+      // sequence point: }
+      IL_0024:  nop
+      IL_0025:  leave.s    IL_004f
+    }
+    catch System.Exception
+    {
+      // sequence point: catch (System.Exception e)
+      IL_0027:  stloc.2
+      IL_0028:  ldloca.s   V_0
+      IL_002a:  ldloc.2
+      IL_002b:  ldc.i4.2
+      IL_002c:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(object, int)""
+      IL_0031:  nop
+      // sequence point: {
+      IL_0032:  nop
+      // sequence point: int a = 1;
+      IL_0033:  ldloca.s   V_0
+      IL_0035:  ldc.i4.1
+      IL_0036:  dup
+      IL_0037:  stloc.3
+      IL_0038:  ldc.i4.3
+      IL_0039:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+      IL_003e:  nop
+      // sequence point: int b = 2;
+      IL_003f:  ldloca.s   V_0
+      IL_0041:  ldc.i4.2
+      IL_0042:  dup
+      IL_0043:  stloc.s    V_4
+      IL_0045:  ldc.i4.4
+      IL_0046:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+      IL_004b:  nop
+      // sequence point: }
+      IL_004c:  nop
+      IL_004d:  leave.s    IL_004f
+    }
+    // sequence point: }
+    IL_004f:  leave.s    IL_005a
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0051:  ldloca.s   V_0
+    IL_0053:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_0058:  nop
+    IL_0059:  endfinally
+  }
+  // sequence point: }
+  IL_005a:  ret
 }
 ");
         }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
             byte[] initializationBytes = new byte[]
             {
                 // System_Object__ToString
-                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                                                   // Flags
+                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
                 (byte)SpecialType.System_Object,                                                                            // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature

@@ -3175,6 +3175,10 @@ namespace Microsoft.Cci
         }
 
         internal const uint ModuleVersionIdStringToken = 0x80000000;
+
+        /// <summary>
+        /// Greater than any valid ordinal of a local variable or a parameter (0xffff).
+        /// </summary>
         internal const int LiftedVariableBaseIndex = 0x10000;
 
         private void WriteInstructions(Blob finalIL, ImmutableArray<byte> generatedIL, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
