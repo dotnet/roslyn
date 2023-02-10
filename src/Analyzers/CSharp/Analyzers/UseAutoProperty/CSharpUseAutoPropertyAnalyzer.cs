@@ -112,13 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             if (!memberAccess.IsOnlyWrittenTo())
                 return;
 
+            // this only matters for a field access off of a struct.  They can be declared unassigned and have their
+            // fields directly written into.
             var symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
-            if (symbolInfo.GetAnySymbol() is not IFieldSymbol)
-                return;
-
-            // this only matters for a struct.  They can be declared unassigned and have their fields directly written into.
-            var exprType = semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type;
-            if (exprType?.TypeKind != TypeKind.Struct)
+            if (symbolInfo.GetAnySymbol() is not IFieldSymbol { ContainingType.TypeKind: TypeKind.Struct })
                 return;
 
             var exprSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).GetAnySymbol();
@@ -126,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 return;
 
             var dataFlow = semanticModel.AnalyzeDataFlow(memberAccess.Expression);
-            if (!dataFlow.DefinitelyAssignedOnEntry.Contains(exprSymbol))
+            if (dataFlow != null && !dataFlow.DefinitelyAssignedOnEntry.Contains(exprSymbol))
                 AddIneligibleFields(ineligibleFields, symbolInfo);
         }
 
