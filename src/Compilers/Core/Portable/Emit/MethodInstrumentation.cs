@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Emit;
 /// </summary>
 public readonly struct MethodInstrumentation
 {
-    internal static readonly MethodInstrumentation Empty = new()
+    internal static readonly MethodInstrumentation Empty = new MethodInstrumentation()
     {
         Kinds = ImmutableArray<InstrumentationKind>.Empty,
     };

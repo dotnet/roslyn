@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// Instrumentation update to be applied to a method.
-        /// <see cref="OldSymbol"/> and <see cref="NewSymbol"/> must be non-null <see cref="IMethodSymbol"/>s.
+        /// If not empty, <see cref="OldSymbol"/> and <see cref="NewSymbol"/> must be non-null <see cref="IMethodSymbol"/>s, and
         /// <see cref="Kind"/> must be <see cref="SemanticEditKind.Update"/>.
         /// </summary>
         public MethodInstrumentation Instrumentation { get; }

@@ -707,8 +707,8 @@
     <Field Name="Epilogue" Type="BoundStatement" Null="disallow"/>
   </Node>
   
-   <!-- Represents the raw metadata RowId value for a method definition.
-        Used by dynamic instrumentation to index into tables or arrays of per-method information. -->
+  <!-- Represents the raw metadata RowId value for a method definition.
+       Used by dynamic instrumentation to index into tables or arrays of per-method information. -->
   <Node Name="BoundMethodDefIndex" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
