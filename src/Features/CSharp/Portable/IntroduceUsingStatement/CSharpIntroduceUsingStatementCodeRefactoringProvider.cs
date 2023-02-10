@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -61,5 +59,23 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
                 expression: null, // Declaration already has equals token and expression
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTrailingTrivia(declarationStatement.GetTrailingTrivia()),
                 statement: SyntaxFactory.Block(statementsToSurround));
+
+        protected override bool TryCreateUsingLocalDeclaration(
+            ParseOptions options,
+            LocalDeclarationStatementSyntax declarationStatement,
+            [NotNullWhen(true)] out LocalDeclarationStatementSyntax? usingDeclarationStatement)
+        {
+            usingDeclarationStatement = null;
+            if (declarationStatement.Parent is not BlockSyntax ||
+                options.LanguageVersion() < LanguageVersion.CSharp8)
+            {
+                return false;
+            }
+
+            usingDeclarationStatement = declarationStatement
+                .WithoutLeadingTrivia()
+                .WithUsingKeyword(SyntaxFactory.Token(declarationStatement.GetLeadingTrivia(), SyntaxKind.UsingKeyword, SyntaxFactory.TriviaList(SyntaxFactory.Space)));
+            return true;
+        }
     }
 }

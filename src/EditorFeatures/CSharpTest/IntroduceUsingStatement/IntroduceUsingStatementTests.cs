@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -19,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpIntroduceUsingStatementCodeRefactoringProvider();
+
+        private Task TestAsync(string initialMarkup, string expectedMarkup, LanguageVersion languageVersion = LanguageVersion.CSharp7)
+            => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
 
         [Theory]
         [InlineData("v[||]ar name = disposable;")]
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [InlineData("var name = disposable[||]")]
         public async Task RefactoringIsAvailableForSelection(string declaration)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task RefactoringIsAvailableForVerticalSelection()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task RefactoringIsAvailableForSelectionAtStartOfStatementWithPrecedingDeclaration()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task RefactoringIsAvailableForSelectionAtStartOfLineWithPrecedingDeclaration()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -127,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task RefactoringIsAvailableForSelectionAtEndOfStatementWithFollowingDeclaration()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task RefactoringIsAvailableForSelectionAtEndOfLineWithFollowingDeclaration()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -238,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task RefactoringIsAvailableForConstrainedGenericTypeParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C<T> where T : System.IDisposable
 {
     void M(T disposable)
@@ -273,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task LeadingCommentTriviaIsPlacedOnUsingStatement()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -297,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task CommentOnTheSameLineStaysOnTheSameLine()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -319,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task TrailingCommentTriviaOnNextLineGoesAfterBlock()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -343,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task ValidPreprocessorStaysValid()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -369,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task InvalidPreprocessorStaysInvalid()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -395,9 +397,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         }
 
         [Fact]
+        public async Task InvalidPreprocessorStaysInvalid_CSharp8()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+#if true
+        var x = disposable;[||]
+#endif
+        _ = x;
+    }
+}",
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+#if true
+        using var x = disposable;
+#endif
+        _ = x;
+    }
+}", LanguageVersion.CSharp8);
+        }
+
+        [Fact]
         public async Task StatementsAreSurroundedByMinimalScope()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -428,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task CommentsAreSurroundedExceptLinesFollowingLastUsage()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -456,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task WorksInSwitchSections()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -491,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact]
         public async Task WorksOnStatementWithInvalidEmbeddingInIf()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(System.IDisposable disposable)
@@ -528,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedVariableDeclarations()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.IO;
 
 class C
@@ -561,7 +589,7 @@ class C
         [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedOutVariableDeclarations()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.IO;
 
 class C
@@ -604,7 +632,7 @@ class C
         [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedPatternVariableDeclarations()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.IO;
 
 class C
@@ -647,7 +675,7 @@ class C
         [Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
         public async Task ExpandsToIncludeSurroundedMultiVariableDeclarations()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.IO;
 
 class C
@@ -682,7 +710,7 @@ class C
         [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.IO;
 
 class C
@@ -723,7 +751,7 @@ class C
         [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 using System.IO;
 
@@ -779,7 +807,7 @@ class C
         [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 using System.IO;
 
@@ -827,7 +855,7 @@ class C
         [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 using System.IO;
 
@@ -877,7 +905,7 @@ class C
         [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 using System.IO;
 
@@ -927,7 +955,7 @@ class C
         [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement6()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 using System.IO;
 
@@ -977,7 +1005,7 @@ class C
         [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 using System.IO;
 
@@ -1027,7 +1055,7 @@ class C
         [Fact, WorkItem(43001, "https://github.com/dotnet/roslyn/issues/43001")]
         public async Task ConsumeFollowingTryStatement8()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 using System.IO;
 
@@ -1072,6 +1100,91 @@ class C
         }
     }
 }");
+        }
+
+        [Fact, WorkItem(33699, "https://github.com/dotnet/roslyn/issues/33699")]
+        public async Task StatementsAreSurroundedByMinimalScope1_CSharp8()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        M(null);
+        var x = disposable;[||]
+        M(null);
+        M(x);
+        M(null);
+    }
+}",
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        M(null);
+        using (var x = disposable)
+        {
+            M(null);
+            M(x);
+        }
+
+        M(null);
+    }
+}", LanguageVersion.CSharp8);
+        }
+
+        [Fact, WorkItem(33699, "https://github.com/dotnet/roslyn/issues/33699")]
+        public async Task StatementsAreSurroundedByMinimalScope2_CSharp8()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        M(null);
+        var x = disposable;[||]
+        M(null);
+        M(x);
+    }
+}",
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        M(null);
+        using var x = disposable;
+        M(null);
+        M(x);
+    }
+}", LanguageVersion.CSharp8);
+        }
+
+        [Fact, WorkItem(33699, "https://github.com/dotnet/roslyn/issues/33699")]
+        public async Task StatementsAreSurroundedByMinimalScope3_CSharp8()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        M(null);
+        // leading comment
+        var x = disposable;[||]
+        M(null);
+        M(x);
+    }
+}",
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        M(null);
+        // leading comment
+        using var x = disposable;
+        M(null);
+        M(x);
+    }
+}", LanguageVersion.CSharp8);
         }
     }
 }
