@@ -3,7 +3,7 @@
 <#
 .SYNOPSIS
     Installs the .NET SDK specified in the global.json file at the root of this repository,
-    along with supporting .NET Core runtimes used for testing.
+    along with supporting .NET runtimes used for testing.
 .DESCRIPTION
     This MAY not require elevation, as the SDK and runtimes are installed locally to this repo location,
     unless `-InstallLocality machine` is specified.
@@ -43,7 +43,7 @@ if (!$arch) { # Windows Powershell leaves this blank
     if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { $arch = 'ARM64' }
 }
 
-# Search for all .NET Core runtime versions referenced from MSBuild projects and arrange to install them.
+# Search for all .NET runtime versions referenced from MSBuild projects and arrange to install them.
 $runtimeVersions = @()
 $windowsDesktopRuntimeVersions = @()
 Get-ChildItem "$PSScriptRoot\..\src\*.*proj","$PSScriptRoot\..\test\*.*proj","$PSScriptRoot\..\Directory.Build.props" -Recurse |% {
@@ -145,9 +145,9 @@ Function Get-InstallerExe(
 }
 
 Function Install-DotNet($Version, $Architecture, [ValidateSet('Sdk','Runtime','WindowsDesktop')][string]$sku = 'Sdk') {
-    Write-Host "Downloading .NET Core $sku $Version..."
+    Write-Host "Downloading .NET $sku $Version..."
     $Installer = Get-InstallerExe -Version $Version -Architecture $Architecture -sku $sku
-    Write-Host "Installing .NET Core $sku $Version..."
+    Write-Host "Installing .NET $sku $Version..."
     cmd /c start /wait $Installer /install /passive /norestart
     if ($LASTEXITCODE -eq 3010) {
         Write-Verbose "Restart required"
@@ -290,7 +290,7 @@ if ($IncludeX86) {
 $dotnetRuntimeSwitches = $switches + '-Runtime','dotnet'
 
 $runtimeVersions | Sort-Object -Unique |% {
-    if ($PSCmdlet.ShouldProcess(".NET Core $Arch runtime $_", "Install")) {
+    if ($PSCmdlet.ShouldProcess(".NET $Arch runtime $_", "Install")) {
         $anythingInstalled = $true
         Invoke-Expression -Command "$DotNetInstallScriptPathExpression -Channel $_ -Architecture $arch -InstallDir $DotNetInstallDir $dotnetRuntimeSwitches"
 
@@ -303,7 +303,7 @@ $runtimeVersions | Sort-Object -Unique |% {
     }
 
     if ($IncludeX86) {
-        if ($PSCmdlet.ShouldProcess(".NET Core x86 runtime $_", "Install")) {
+        if ($PSCmdlet.ShouldProcess(".NET x86 runtime $_", "Install")) {
             $anythingInstalled = $true
             Invoke-Expression -Command "$DotNetInstallScriptPathExpression -Channel $_ -Architecture x86 -InstallDir $DotNetX86InstallDir $dotnetRuntimeSwitches"
 
@@ -320,7 +320,7 @@ $runtimeVersions | Sort-Object -Unique |% {
 $windowsDesktopRuntimeSwitches = $switches + '-Runtime','windowsdesktop'
 
 $windowsDesktopRuntimeVersions | Sort-Object -Unique |% {
-    if ($PSCmdlet.ShouldProcess(".NET Core WindowsDesktop $arch runtime $_", "Install")) {
+    if ($PSCmdlet.ShouldProcess(".NET WindowsDesktop $arch runtime $_", "Install")) {
         $anythingInstalled = $true
         Invoke-Expression -Command "$DotNetInstallScriptPathExpression -Channel $_ -Architecture $arch -InstallDir $DotNetInstallDir $windowsDesktopRuntimeSwitches"
 
@@ -333,7 +333,7 @@ $windowsDesktopRuntimeVersions | Sort-Object -Unique |% {
     }
 
     if ($IncludeX86) {
-        if ($PSCmdlet.ShouldProcess(".NET Core WindowsDesktop x86 runtime $_", "Install")) {
+        if ($PSCmdlet.ShouldProcess(".NET WindowsDesktop x86 runtime $_", "Install")) {
             $anythingInstalled = $true
             Invoke-Expression -Command "$DotNetInstallScriptPathExpression -Channel $_ -Architecture x86 -InstallDir $DotNetX86InstallDir $windowsDesktopRuntimeSwitches"
 
@@ -352,5 +352,5 @@ if ($PSCmdlet.ShouldProcess("Set DOTNET environment variables to discover these 
 }
 
 if ($anythingInstalled -and ($InstallLocality -ne 'machine') -and !$env:TF_BUILD -and !$env:GITHUB_ACTIONS) {
-    Write-Warning ".NET Core runtimes or SDKs were installed to a non-machine location. Perform your builds or open Visual Studio from this same environment in order for tools to discover the location of these dependencies."
+    Write-Warning ".NET runtimes or SDKs were installed to a non-machine location. Perform your builds or open Visual Studio from this same environment in order for tools to discover the location of these dependencies."
 }
