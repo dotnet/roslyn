@@ -199,6 +199,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt32,
                     SpecialType.System_Int64 or SpecialType.System_UInt64 or SpecialType.System_Double
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt64,
+                    SpecialType.System_Decimal
+                        => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDecimal,
                     SpecialType.System_String
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreString,
                     _ when variableType.IsPointerOrFunctionPointer()
@@ -232,7 +234,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var symbol = GetWellKnownMethodSymbol(overload, syntax);
             if (symbol is not null)
             {
-                return symbol.IsGenericMethod ? symbol.Construct(variableType) : symbol;
+                Debug.Assert(!symbol.IsGenericMethod);
+                return symbol;
             }
 
             var objectOverload = enumDelta + WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreObject;
@@ -282,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameter in _factory.CurrentFunction.Parameters)
             {
-                if (parameter.RefKind == RefKind.Out)
+                if (parameter.RefKind == RefKind.Out || parameter.IsDiscard)
                 {
                     continue;
                 }
@@ -290,11 +293,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameterLogger = GetLocalOrParameterStoreLogger(parameter.Type, parameter, refAssignmentSourceIsLocal: null, _factory.Syntax);
                 if (parameterLogger != null)
                 {
-                    prologueBuilder.Add(_factory.ExpressionStatement(_factory.Call(receiver: _factory.Local(_scope.ContextVariable), parameterLogger, new[]
-                    {
-                        MakeSourceArgument(parameterLogger.Parameters[0], parameter, parameter.Type, _factory.Parameter(parameter), refAssignmentSourceIndex: null),
-                        _factory.Literal((ushort)parameter.Ordinal)
-                    })));
+                    prologueBuilder.Add(_factory.ExpressionStatement(_factory.Call(receiver: _factory.Local(_scope.ContextVariable), parameterLogger,
+                        MakeStoreLoggerArguments(parameterLogger.Parameters[0], parameter, parameter.Type, _factory.Parameter(parameter), refAssignmentSourceIndex: null, _factory.Literal((ushort)parameter.Ordinal)))));
                 }
             }
 
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Call(
                     receiver: _factory.Local(_scope.ContextVariable),
                     logger,
-                    new[] { MakeSourceArgument(logger.Parameters[0], targetSymbol, targetType, assignment, refAssignmentSourceIndex), targetIndex })
+                    MakeStoreLoggerArguments(logger.Parameters[0], targetSymbol, targetType, assignment, refAssignmentSourceIndex, targetIndex))
             }, VariableRead(targetSymbol));
         }
 
@@ -405,6 +405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node is BoundParameter { ParameterSymbol: var parameterSymbol })
             {
+                Debug.Assert(!parameterSymbol.IsDiscard);
+
                 symbol = parameterSymbol;
                 type = parameterSymbol.Type;
                 indexExpression = _factory.ParameterId(parameterSymbol);
@@ -417,40 +419,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private BoundExpression MakeSourceArgument(ParameterSymbol parameter, Symbol targetSymbol, TypeSymbol targetType, BoundExpression value, BoundExpression? refAssignmentSourceIndex)
+        private ImmutableArray<BoundExpression> MakeStoreLoggerArguments(
+            ParameterSymbol parameter,
+            Symbol targetSymbol,
+            TypeSymbol targetType,
+            BoundExpression value,
+            BoundExpression? refAssignmentSourceIndex,
+            BoundExpression index)
         {
             if (refAssignmentSourceIndex != null)
             {
-                return _factory.Sequence(new[] { value }, refAssignmentSourceIndex);
+                return ImmutableArray.Create(_factory.Sequence(new[] { value }, refAssignmentSourceIndex), index);
             }
 
-            if (parameter.RefKind == RefKind.None)
-            {
-                if (parameter.Type.SpecialType == SpecialType.System_String && targetType.SpecialType != SpecialType.System_String)
-                {
-                    var toString = GetWellKnownMethodSymbol(WellKnownMember.System_Object__ToString, value.Syntax);
-                    if (toString is null)
-                    {
-                        // arbitrary string, won't happen in practice
-                        return _factory.Literal("");
-                    }
+            Debug.Assert(parameter.RefKind == RefKind.None);
 
+            if (parameter.Type.IsVoidPointer() && !targetType.IsPointerOrFunctionPointer())
+            {
+                // address of assigned value to be passed to LogStore*Unmanaged:
+                Debug.Assert(!parameter.Type.IsManagedTypeNoUseSiteDiagnostics);
+
+                var addressOf = value is BoundLocal or BoundParameter ?
+                    (BoundExpression)new BoundAddressOfOperator(_factory.Syntax, value, isManaged: false, parameter.Type) :
+                    _factory.Sequence(new[] { value }, new BoundAddressOfOperator(_factory.Syntax, VariableRead(targetSymbol), isManaged: false, parameter.Type));
+
+                return ImmutableArray.Create(addressOf, _factory.Sizeof(targetType), index);
+            }
+
+            if (parameter.Type.SpecialType == SpecialType.System_String && targetType.SpecialType != SpecialType.System_String)
+            {
+                var toStringMethod = GetWellKnownMethodSymbol(WellKnownMember.System_Object__ToString, value.Syntax);
+
+                BoundExpression toString;
+                if (toStringMethod is null)
+                {
+                    // arbitrary string, won't happen in practice
+                    toString = _factory.Literal("");
+                }
+                else
+                {
                     // value won't be null:
                     Debug.Assert(targetType.IsStructType());
-                    return _factory.Call(value, toString);
+                    toString = _factory.Call(value, toStringMethod);
                 }
 
-                return _factory.Convert(parameter.Type, value);
+                return ImmutableArray.Create(toString, index);
             }
 
-            // address of assigned value:
-            Debug.Assert(parameter.RefKind == RefKind.Ref);
-            if (value is BoundLocal or BoundParameter)
-            {
-                return value;
-            }
-
-            return _factory.Sequence(new[] { value }, VariableRead(targetSymbol));
+            return ImmutableArray.Create(_factory.Convert(parameter.Type, value), index);
         }
 
         private BoundExpression VariableRead(Symbol localOrParameterSymbol)
@@ -503,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Call(
                     receiver: _factory.Local(_scope.ContextVariable),
                     logger,
-                    new[] { MakeSourceArgument(logger.Parameters[0], targetSymbol, targetType, VariableRead(targetSymbol), refAssignmentSourceIndex: null), targetIndex }));
+                    MakeStoreLoggerArguments(logger.Parameters[0], targetSymbol, targetType, VariableRead(targetSymbol), refAssignmentSourceIndex: null, targetIndex)));
 
             rewrittenFilterPrologue = _factory.StatementList(
                 (rewrittenFilterPrologue != null) ?
@@ -566,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(_factory.Call(
                     receiver: _factory.Local(_scope.ContextVariable),
                     logger,
-                    new[] { MakeSourceArgument(logger.Parameters[0], targetSymbol, targetType, VariableRead(targetSymbol), refAssignmentSourceIndex: null), targetIndex }));
+                    MakeStoreLoggerArguments(logger.Parameters[0], targetSymbol, targetType, VariableRead(targetSymbol), refAssignmentSourceIndex: null, targetIndex)));
             }
 
             if (temp != null)
