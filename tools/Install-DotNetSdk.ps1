@@ -15,6 +15,8 @@
     When using 'repo', environment variables are set to cause the locally installed dotnet SDK to be used.
     Per-repo can lead to file locking issues when dotnet.exe is left running as a build server and can be mitigated by running `dotnet build-server shutdown`.
     Per-machine requires elevation and will download and install all SDKs and runtimes to machine-wide locations so all applications can find it.
+.PARAMETER SdkOnly
+    Skips installing the runtime.
 .PARAMETER IncludeX86
     Installs a x86 SDK and runtimes in addition to the x64 ones. Only supported on Windows. Ignored on others.
 #>
@@ -22,6 +24,7 @@
 Param (
     [ValidateSet('repo','user','machine')]
     [string]$InstallLocality='user',
+    [switch]$SdkOnly,
     [switch]$IncludeX86
 )
 
@@ -46,34 +49,36 @@ if (!$arch) { # Windows Powershell leaves this blank
 # Search for all .NET runtime versions referenced from MSBuild projects and arrange to install them.
 $runtimeVersions = @()
 $windowsDesktopRuntimeVersions = @()
-Get-ChildItem "$PSScriptRoot\..\src\*.*proj","$PSScriptRoot\..\test\*.*proj","$PSScriptRoot\..\Directory.Build.props" -Recurse |% {
-    $projXml = [xml](Get-Content -Path $_)
-    $pg = $projXml.Project.PropertyGroup
-    if ($pg) {
-        $targetFrameworks = @()
-        $tf = $pg.TargetFramework
-        $targetFrameworks += $tf
-        $tfs = $pg.TargetFrameworks
-        if ($tfs) {
-            $targetFrameworks = $tfs -Split ';'
+if (!$SdkOnly) {
+    Get-ChildItem "$PSScriptRoot\..\src\*.*proj","$PSScriptRoot\..\test\*.*proj","$PSScriptRoot\..\Directory.Build.props" -Recurse |% {
+        $projXml = [xml](Get-Content -Path $_)
+        $pg = $projXml.Project.PropertyGroup
+        if ($pg) {
+            $targetFrameworks = @()
+            $tf = $pg.TargetFramework
+            $targetFrameworks += $tf
+            $tfs = $pg.TargetFrameworks
+            if ($tfs) {
+                $targetFrameworks = $tfs -Split ';'
+            }
         }
-    }
-    $targetFrameworks |? { $_ -match 'net(?:coreapp)?(\d+\.\d+)' } |% {
-        $v = $Matches[1]
-        $runtimeVersions += $v
-        if ($v -ge '3.0' -and -not ($IsMacOS -or $IsLinux)) {
-            $windowsDesktopRuntimeVersions += $v
+        $targetFrameworks |? { $_ -match 'net(?:coreapp)?(\d+\.\d+)' } |% {
+            $v = $Matches[1]
+            $runtimeVersions += $v
+            if ($v -ge '3.0' -and -not ($IsMacOS -or $IsLinux)) {
+                $windowsDesktopRuntimeVersions += $v
+            }
         }
-    }
 
-	# Add target frameworks of the form: netXX
-	$targetFrameworks |? { $_ -match 'net(\d+\.\d+)' } |% {
-        $v = $Matches[1]
-        $runtimeVersions += $v
-        if (-not ($IsMacOS -or $IsLinux)) {
-            $windowsDesktopRuntimeVersions += $v
+        # Add target frameworks of the form: netXX
+        $targetFrameworks |? { $_ -match 'net(\d+\.\d+)' } |% {
+            $v = $Matches[1]
+            $runtimeVersions += $v
+            if (-not ($IsMacOS -or $IsLinux)) {
+                $windowsDesktopRuntimeVersions += $v
+            }
         }
-	}
+    }
 }
 
 Function Get-FileFromWeb([Uri]$Uri, $OutDir) {
