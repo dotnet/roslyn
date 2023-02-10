@@ -2172,6 +2172,7 @@ class Program
                 //         return ref r.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r").WithArguments("r").WithLocation(10, 20));
             Assert.False(comp.Assembly.RuntimeSupportsByRefFields);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
 
             comp = CreateEmptyCompilation(source, references: new[] { refAB }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
@@ -2179,6 +2180,7 @@ class Program
                 //     public ref T F;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12));
             Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
+            Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
 
             comp = CreateEmptyCompilation(source, references: new[] { refA });
             comp.VerifyDiagnostics(
@@ -2186,10 +2188,12 @@ class Program
                 //     public ref T F;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "F").WithLocation(3, 18));
             Assert.False(comp.Assembly.RuntimeSupportsByRefFields);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
 
             comp = CreateEmptyCompilation(source, references: new[] { refAB });
             comp.VerifyDiagnostics();
             Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
+            Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
         }
 
         [ConditionalTheory(typeof(CoreClrOnly))]

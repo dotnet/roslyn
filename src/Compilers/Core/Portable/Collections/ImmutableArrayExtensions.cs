@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 #if DEBUG
 using System.Linq;
@@ -732,6 +733,29 @@ namespace Microsoft.CodeAnalysis
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
         {
             return first.Add(second);
+        }
+
+        internal static ImmutableArray<T> AddRange<T>(this ImmutableArray<T> self, in TemporaryArray<T> items)
+        {
+            if (items.Count == 0)
+            {
+                return self;
+            }
+
+            if (items.Count == 1)
+            {
+                return self.Add(items[0]);
+            }
+
+            var builder = ArrayBuilder<T>.GetInstance(self.Length + items.Count);
+            builder.AddRange(self);
+
+            foreach (var item in items)
+            {
+                builder.Add(item);
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
