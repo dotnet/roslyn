@@ -1367,6 +1367,11 @@
         <target state="translated">無法透過 ref 參數藉傳址方式傳回參數成員 '{0}'; 只能在 return 陳述式中傳回</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter">
+        <source>A primary constructor parameter of a readonly type cannot be returned by writable reference</source>
+        <target state="new">A primary constructor parameter of a readonly type cannot be returned by writable reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefReturnScopedParameter">
         <source>Cannot return a parameter by reference '{0}' because it is scoped to the current method</source>
         <target state="translated">無法藉傳址方式 '{0}' 傳回參數，因為它的範圍是目前的方法</target>

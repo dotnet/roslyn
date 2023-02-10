@@ -1367,6 +1367,11 @@
         <target state="translated">Člen parametru {0} není možné vrátit podle odkazu prostřednictvím parametru odkazu; je ho možné vrátit pouze v příkazu return.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter">
+        <source>A primary constructor parameter of a readonly type cannot be returned by writable reference</source>
+        <target state="new">A primary constructor parameter of a readonly type cannot be returned by writable reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefReturnScopedParameter">
         <source>Cannot return a parameter by reference '{0}' because it is scoped to the current method</source>
         <target state="translated">Parametr není možné vrátit podle odkazu {0}, protože je přiřazen k aktuální metodě.</target>

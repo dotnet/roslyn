@@ -2291,6 +2291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                 case ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter:
+                case ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

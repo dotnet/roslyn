@@ -13833,11 +13833,10 @@ readonly struct S1(int x)
 ";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (4,25): error CS8160: A readonly field cannot be returned by writable reference
+                // (4,25): error CS9510: A primary constructor parameter of a readonly type cannot be returned by writable reference
                 //     ref int M1() => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "x").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter, "x").WithLocation(4, 25)
                 );
         }
 
@@ -13858,9 +13857,9 @@ readonly struct S1(int x)
                 // (4,43): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                 //     readonly object y = ref int () => ref x;
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(4, 43),
-                // (4,43): error CS8160: A readonly field cannot be returned by writable reference
+                // (4,43): error CS9510: A primary constructor parameter of a readonly type cannot be returned by writable reference
                 //     readonly object y = ref int () => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "x").WithLocation(4, 43)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter, "x").WithLocation(4, 43)
                 );
         }
 
@@ -14528,6 +14527,60 @@ struct S1(int x)
                 // (4,45): error CS1510: A ref or out value must be an assignable variable
                 //     readonly void M1(ref int y) =>  y = ref x;
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x").WithLocation(4, 45)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_145_ReturnByRef()
+        {
+            var source =
+@"
+class C1(int x, int z)
+{
+    ref int M1() => ref x;
+    ref readonly int M2() => ref x;
+
+    int y = 0;
+    ref int M3() => ref y;
+    ref readonly int M4() => ref y;
+
+    object u1 = ref int() => ref x;
+    object u2 = ref readonly int() => ref x;
+
+    object v1 = ref int() => ref y;
+    object v2 = ref readonly int() => ref y;
+
+    object w1 = ref int() => ref z;
+    object w2 = ref readonly int() => ref z;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (4,25): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     ref int M1() => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(4, 25),
+                // (5,34): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     ref readonly int M2() => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(5, 34),
+                // (11,34): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     object u1 = ref int() => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(11, 34),
+                // (12,43): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     object u2 = ref readonly int() => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(12, 43),
+                // (14,34): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C1.y'
+                //     object v1 = ref int() => ref y;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y").WithArguments("C1.y").WithLocation(14, 34),
+                // (15,43): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C1.y'
+                //     object v2 = ref readonly int() => ref y;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y").WithArguments("C1.y").WithLocation(15, 43),
+                // (17,34): error CS8166: Cannot return a parameter by reference 'z' because it is not a ref parameter
+                //     object w1 = ref int() => ref z;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "z").WithArguments("z").WithLocation(17, 34),
+                // (18,43): error CS8166: Cannot return a parameter by reference 'z' because it is not a ref parameter
+                //     object w2 = ref readonly int() => ref z;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "z").WithArguments("z").WithLocation(18, 43)
                 );
         }
 

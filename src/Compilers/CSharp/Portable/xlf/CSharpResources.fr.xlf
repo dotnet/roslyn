@@ -1367,6 +1367,11 @@
         <target state="translated">Impossible de retourner par référence un membre du paramètre '{0}' par le biais d’un paramètre ref ; il ne peut être retourné que dans une instruction return</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter">
+        <source>A primary constructor parameter of a readonly type cannot be returned by writable reference</source>
+        <target state="new">A primary constructor parameter of a readonly type cannot be returned by writable reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefReturnScopedParameter">
         <source>Cannot return a parameter by reference '{0}' because it is scoped to the current method</source>
         <target state="translated">Impossible de retourner un paramètre par référence '{0}', car il est étendu à la méthode actuelle</target>
