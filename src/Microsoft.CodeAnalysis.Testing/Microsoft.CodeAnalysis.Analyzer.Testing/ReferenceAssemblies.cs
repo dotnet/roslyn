@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             get
             {
-#if NETSTANDARD1_5
-                return NetStandard.NetStandard15;
+#if NETSTANDARD1_6
+                return NetStandard.NetStandard16;
 #elif NETSTANDARD2_0
                 return NetStandard.NetStandard20;
 #elif NET452
@@ -280,20 +280,12 @@ namespace Microsoft.CodeAnalysis.Testing
                     PackageSaveMode = PackageSaveMode.Defaultv3,
                     XmlDocFileSaveMode = XmlDocFileSaveMode.None,
                 };
-#elif NET46 || NET472 || NETSTANDARD2_0 || NETCOREAPP3_1
+#elif NET46 || NET472 || NETSTANDARD1_6 || NETSTANDARD2_0 || NETCOREAPP3_1
                 var packageExtractionContext = new PackageExtractionContext(
                     PackageSaveMode.Defaultv3,
                     XmlDocFileSaveMode.None,
                     ClientPolicyContext.GetClientPolicy(settings, logger),
                     logger);
-#elif NETSTANDARD1_5
-                var packageExtractionContext = new PackageExtractionContext(
-                    PackageSaveMode.Defaultv3,
-                    XmlDocFileSaveMode.None,
-                    logger,
-                    new PackageSignatureVerifier(
-                        SignatureVerificationProviderFactory.GetSignatureVerificationProviders(),
-                        SignedPackageVerifierSettings.Default));
 #else
 #error The current target framework is not supported.
 #endif
@@ -358,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         if (downloadResult.Status == DownloadResourceResultStatus.AvailableWithoutStream)
                         {
                             await PackageExtractor.ExtractPackageAsync(
-#if !NET452 && !NETSTANDARD1_5
+#if !NET452
 #pragma warning disable SA1114 // Parameter list should follow declaration
                                 downloadResult.PackageSource,
 #pragma warning restore SA1114 // Parameter list should follow declaration
@@ -372,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         {
                             Debug.Assert(downloadResult.PackageStream != null, "PackageStream should not be null if download result status != DownloadResourceResultStatus.AvailableWithoutStream");
                             await PackageExtractor.ExtractPackageAsync(
-#if !NET452 && !NETSTANDARD1_5
+#if !NET452
 #pragma warning disable SA1114 // Parameter list should follow declaration
                                 downloadResult.PackageSource,
 #pragma warning restore SA1114 // Parameter list should follow declaration

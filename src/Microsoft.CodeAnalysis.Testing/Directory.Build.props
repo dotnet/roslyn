@@ -12,11 +12,11 @@
   <PropertyGroup>
     <!--
       netcoreapp3.1: Ensures full support for nullable reference types
-      netstandard1.5/net452: Roslyn 1.x
-      netstandard1.5/net46: Roslyn 2.x
+      netstandard1.6/net452: Roslyn 1.x
+      netstandard1.6/net46: Roslyn 2.x
       netstandard2.0/net472: Roslyn 3.x
     -->
-    <TestingLibraryTargetFrameworks>netcoreapp3.1;netstandard1.5;netstandard2.0;net452;net46;net472</TestingLibraryTargetFrameworks>
+    <TestingLibraryTargetFrameworks>netcoreapp3.1;netstandard1.6;netstandard2.0;net452;net46;net472</TestingLibraryTargetFrameworks>
 
     <!--
       netcoreapp3.1: Ensures full support for nullable reference types
@@ -39,7 +39,7 @@
     </When>
   </Choose>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.5' OR '$(TargetFramework)' == 'netstandard2.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.6' OR '$(TargetFramework)' == 'netstandard2.0'">
     <!--
       The original Microsoft.CodeAnalysis packages targeted the PCL instead of .NET Standard. Rather than
       drop support for the packages, we use AssetTargetFallback to configure the NuGet restore behavior to
