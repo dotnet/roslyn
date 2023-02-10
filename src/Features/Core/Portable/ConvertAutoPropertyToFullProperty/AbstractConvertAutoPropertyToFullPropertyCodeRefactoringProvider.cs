@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
         where TTypeDeclarationNode : SyntaxNode
         where TCodeGenerationContextInfo : CodeGenerationContextInfo
     {
-        internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken);
-        internal abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
+        protected abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken);
+        protected abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
             TCodeGenerationContextInfo info, SyntaxNode property, string fieldName, SyntaxGenerator generator);
-        internal abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
-        internal abstract SyntaxNode GetInitializerValue(SyntaxNode property);
-        internal abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(TCodeGenerationContextInfo info, SyntaxNode fullProperty);
-        internal abstract SyntaxNode GetTypeBlock(SyntaxNode syntaxNode);
+        protected abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
+        protected abstract SyntaxNode GetInitializerValue(SyntaxNode property);
+        protected abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(TCodeGenerationContextInfo info, SyntaxNode fullProperty);
+        protected abstract SyntaxNode GetTypeBlock(SyntaxNode syntaxNode);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -37,21 +37,14 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
             var property = await GetPropertyAsync(context).ConfigureAwait(false);
             if (property == null)
-            {
                 return;
-            }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             if (semanticModel.GetDeclaredSymbol(property) is not IPropertySymbol propertySymbol)
-            {
                 return;
-            }
 
-            if (!(IsValidAutoProperty(propertySymbol)))
-            {
+            if (!IsValidAutoProperty(propertySymbol))
                 return;
-            }
 
             context.RegisterRefactoring(
                 CodeAction.Create(
@@ -72,9 +65,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
         {
             var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
             if (containingProperty?.Parent is not TTypeDeclarationNode)
-            {
                 return null;
-            }
 
             return containingProperty;
         }

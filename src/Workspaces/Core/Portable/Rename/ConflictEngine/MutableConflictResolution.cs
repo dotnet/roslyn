@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 if (File.Exists(document.FilePath))
                 {
-                    var directory = Directory.GetParent(document.FilePath).FullName;
+                    var directory = Directory.GetParent(document.FilePath)?.FullName;
+                    Contract.ThrowIfNull(directory);
                     var newDocumentFilePath = Path.Combine(directory, newName);
 
                     var versionNumber = 1;
