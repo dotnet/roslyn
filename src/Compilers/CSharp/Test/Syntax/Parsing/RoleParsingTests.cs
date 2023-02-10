@@ -16,7 +16,6 @@ public sealed class RoleParsingTests : ParsingTests
     private new SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
         => UsingTree(text, TestOptions.RegularNext, expectedErrors);
 
-
     public RoleParsingTests(ITestOutputHelper output) : base(output) { }
 
     [Theory, CombinatorialData]
