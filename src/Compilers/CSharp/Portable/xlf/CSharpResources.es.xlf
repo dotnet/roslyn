@@ -1357,6 +1357,11 @@
         <target state="translated">La parte izquierda de una asignación de referencias debe ser una variable local.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
+        <source>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)</source>
+        <target state="new">A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter">
         <source>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</source>
         <target state="translated">No se puede devolver por referencia un parámetro "{0}" a través de un parámetro ref; solo se puede devolver en una instrucción "return"</target>

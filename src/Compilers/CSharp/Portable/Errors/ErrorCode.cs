@@ -2174,6 +2174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnreadPrimaryConstructorParameter = 9508,
         ERR_AssgReadonlyPrimaryConstructorParameter = 9509,
         ERR_RefReturnReadonlyPrimaryConstructorParameter = 9510,
+        ERR_RefReadonlyPrimaryConstructorParameter = 9511,
 
         #endregion
 

@@ -1357,6 +1357,11 @@
         <target state="translated">ref 할당의 왼쪽은 ref 변수여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
+        <source>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)</source>
+        <target state="new">A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter">
         <source>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</source>
         <target state="translated">ref 매개 변수를 통해 '{0}' 참조로 매개 변수를 반환할 수 없습니다. return 문에서만 반환될 수 있습니다.</target>

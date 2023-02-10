@@ -1357,6 +1357,11 @@
         <target state="translated">Le côté gauche d’une affectation ref doit être une variable ref.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
+        <source>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)</source>
+        <target state="new">A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter">
         <source>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</source>
         <target state="translated">Ne peut pas retourner un paramètre par référence '{0}' par le biais d’un paramètre ref ; il ne peut être retourné que dans une instruction return</target>

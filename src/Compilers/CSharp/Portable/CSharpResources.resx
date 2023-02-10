@@ -7460,4 +7460,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnReadonlyPrimaryConstructorParameter" xml:space="preserve">
     <value>A primary constructor parameter of a readonly type cannot be returned by writable reference</value>
   </data>
+  <data name="ERR_RefReadonlyPrimaryConstructorParameter" xml:space="preserve">
+    <value>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)</value>
+  </data>
 </root>

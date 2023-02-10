@@ -13871,17 +13871,26 @@ readonly struct S1(int x)
 readonly struct S1(int x)
 {
     void M1() => M2(out x);
+    static int M2(out int x) => throw null;
 
-    static void M2(out int x) => throw null;
+    void M3() => M4(ref x);
+    static int M4(ref int x) => throw null;
+
+    void M5() => M6(in x);
+    static int M6(in int x) => throw null;
+
+    readonly int y = M2(out x) + M4(ref x) + M6(in x);
 }
 ";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (4,25): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                // (4,25): error CS9511: A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)
                 //     void M1() => M2(out x);
-                Diagnostic(ErrorCode.ERR_RefReadonly, "x").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter, "x").WithLocation(4, 25),
+                // (7,25): error CS9511: A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)
+                //     void M3() => M4(ref x);
+                Diagnostic(ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter, "x").WithLocation(7, 25)
                 );
         }
 
@@ -14581,6 +14590,29 @@ class C1(int x, int z)
                 // (18,43): error CS8166: Cannot return a parameter by reference 'z' because it is not a ref parameter
                 //     object w2 = ref readonly int() => ref z;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "z").WithArguments("z").WithLocation(18, 43)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_146_RefSafety()
+        {
+            var source =
+@"
+class C1(int x)
+{
+    ref int M1() => ref M2(ref x);
+    static ref int M2(ref int x) => ref x;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (4,25): error CS8347: Cannot use a result of 'C1.M2(ref int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //     ref int M1() => ref M2(ref x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M2(ref x)").WithArguments("C1.M2(ref int)", "x").WithLocation(4, 25),
+                // (4,32): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     ref int M1() => ref M2(ref x);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(4, 32)
                 );
         }
 
