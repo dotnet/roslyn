@@ -4346,6 +4346,16 @@
         <target state="translated">在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
+        <source>Parameter '{0}' is unread.</source>
+        <target state="new">Parameter '{0}' is unread.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadPrimaryConstructorParameter_Title">
+        <source>Parameter is unread.</source>
+        <target state="new">Parameter is unread.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">
         <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">参数“{0}”未读。是否忘记通过它来使用该名称初始化属性?</target>

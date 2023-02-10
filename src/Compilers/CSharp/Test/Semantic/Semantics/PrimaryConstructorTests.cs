@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             NotInScope = 1 << 10,
         }
 
+        private static string UnreadParameterWarning()
+        {
+            return ((int)ErrorCode.WRN_UnreadPrimaryConstructorParameter).ToString();
+        }
+
         [Theory]
         [CombinatorialData]
         public void LanguageVersion_01([CombinatorialValues("class ", "struct")] string keyword)
@@ -385,14 +390,13 @@ interface Base{}
             Assert.Equal("string y", parameters[1].ToString());
             Assert.Same(y, model.GetDeclaredSymbol(parameters[1]).GetSymbol());
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording for WRN_UnreadRecordParameter?
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
-                // (1,14): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
-                // struct C(int x, string y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(1, 14),
-                // (1,24): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
-                // struct C(int x, string y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(1, 24)
+                // (1,14): warning CS9508: Parameter 'x' is unread.
+                // class  C(int x, string y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(1, 14),
+                // (1,24): warning CS9508: Parameter 'y' is unread.
+                // class  C(int x, string y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(1, 24)
                 );
 
             if (c.TypeKind == TypeKind.Struct)
@@ -427,7 +431,7 @@ interface Base{}
         public void ConstructorSymbol_01_InAbstractClass()
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 abstract class C(int x, string y);
 ");
             var c = comp.GlobalNamespace.GetTypeMember("C");
@@ -451,8 +455,8 @@ abstract class C(int x, string y);
         [Fact]
         public void StructDefaultCtor()
         {
-            const string src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+            string src = @"
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 public struct S(int X);
 ";
@@ -475,7 +479,7 @@ class C
         public void ConstructorSymbol_02([CombinatorialValues("class ", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 " + keyword + @" C(C x);");
 
             comp.VerifyEmitDiagnostics();
@@ -524,7 +528,7 @@ C()
         public void ConstructorSymbol_04([CombinatorialValues("class", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 static " + keyword + @" C(int x, string y);
 ");
@@ -566,7 +570,7 @@ static " + keyword + @" C(int x, string y);
         public void ConstructorConflict([CombinatorialValues("class ", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 " + keyword + @" C(int x, string y)
 {
     public C(int a, string b)
@@ -600,7 +604,7 @@ static " + keyword + @" C(int x, string y);
         public void ConstructorOverloading_01([CombinatorialValues("class ", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 " + keyword + @" C(int x, string y)
 {
     public C(int a, int b) // overload
@@ -656,7 +660,7 @@ static " + keyword + @" C(int x, string y);
         public void ConstructorOverloading_02([CombinatorialValues("class ", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 " + keyword + @" C(int x, string y)
 {
     public C() // overload
@@ -699,7 +703,7 @@ static " + keyword + @" C(int x, string y);
         public void Members_01([CombinatorialValues("class", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 " + keyword + @"
 C(int x, int y);
 ");
@@ -729,7 +733,7 @@ C(int x, int y);
         public void PartialTypes_01([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 partial " + keyword + @" C(int X, int Y)
 {
@@ -765,7 +769,7 @@ partial " + keyword + @" C(int U, int V)
         public void PartialTypes_02([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 partial " + keyword + @" C(int X, int Y)
 {
@@ -801,7 +805,7 @@ partial " + keyword + @" C(int U)
         public void PartialTypes_03([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 partial " + keyword + @" C;
 
@@ -833,7 +837,7 @@ partial " + keyword + @" C;
         public void GetDeclaredSymbolOnAnOutLocalInPropertyInitializer([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 " + keyword + @" R(int I)
 {
@@ -1275,7 +1279,7 @@ class Base
     }
     public Base() {}
 }
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 partial class C(int X, int Y)
 {
@@ -1567,7 +1571,7 @@ class Base
     }
     public Base() {}
 }
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 class C(int X) : Base(Y)
 {
@@ -1594,7 +1598,7 @@ class Base
     }
     public Base() {}
 }
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 class C(int X) : Base(this.X)
 {
@@ -1721,7 +1725,7 @@ interface Base
 {
 }
 
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 struct C(int X) : Base(X)
 {
@@ -1761,7 +1765,7 @@ interface Base
 {
 }
 
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 class C(int X) : Base(X)
 {
@@ -1903,7 +1907,7 @@ class Base
     }
     public Base() {}
 }
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 class C(int X, int y)
     : Base(Test(X, out var y),
@@ -1939,7 +1943,7 @@ class Base
     }
     public Base() {}
 }
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 class C(int X, int y)
     : Base(Test(X + 1, out var z),
@@ -2290,7 +2294,7 @@ class Base
 {
 }
 
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 struct C(int X) : Base(X)
 {
@@ -2325,7 +2329,7 @@ struct C(int X) : Base(X)
         [Fact]
         public void BaseArguments_Struct_Speculation()
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 struct R1(int X) : Error1(0, 1)
 {
 }
@@ -2547,7 +2551,7 @@ using System;
         public void Initializers_02([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 " + keyword + @" C(int X)
 {
@@ -2581,7 +2585,7 @@ using System;
         public void Initializers_03([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 " + keyword + @" C(int X)
 {
@@ -2816,7 +2820,7 @@ public class C
         public void ParameterModifiers_This([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 " + keyword + @" R(this int i);
 ";
 
@@ -2859,7 +2863,7 @@ public class C
         public void ParameterDefaultValue([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 " + keyword + @" R(int x, int P = 42)
 {
@@ -2892,7 +2896,7 @@ public class D : System.Attribute
 {
 }
 
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 public " + keyword + @" Test(
     [param: C]
@@ -2928,7 +2932,7 @@ public class A : System.Attribute
 {
 }
 
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 public " + keyword + @" Test1(
     [field: A]
@@ -3021,7 +3025,7 @@ public " + keyword + @" Test2(
         public void AttributesOnPrimaryConstructorParameters_09_CallerMemberName([CombinatorialValues("class ", "struct")] string keyword)
         {
             string source = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 using System.Runtime.CompilerServices;
 " + keyword + @" R(int x, [CallerMemberName] string S = """")
@@ -5434,7 +5438,7 @@ interface I1 {}
         public void XmlDoc([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
@@ -5466,7 +5470,7 @@ public " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_Cref([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for <see cref=""I1""/></param>
 public " + keyword + @" C(int I1)
@@ -5517,7 +5521,7 @@ public " + keyword + @" C(int I1)
         [CombinatorialData]
         public void XmlDoc_Error([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""Error""></param>
 /// <param name=""I1""></param>
@@ -5539,7 +5543,7 @@ public " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_Duplicate([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1""></param>
 /// <param name=""I1""></param>
@@ -5561,7 +5565,7 @@ public " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_ParamRef([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary <paramref name=""I1""/></summary>
 /// <param name=""I1"">Description for I1</param>
 public " + keyword + @" C(int I1);
@@ -5584,7 +5588,7 @@ public " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_ParamRef_Error([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary <paramref name=""Error""/></summary>
 /// <param name=""I1"">Description for I1</param>
 public " + keyword + @" C(int I1);
@@ -5605,7 +5609,7 @@ public " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_ParamRef_InsideType([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary></summary>
 public " + keyword + @" C(int I1)
 {
@@ -5632,7 +5636,7 @@ public " + keyword + @" C(int I1)
         [CombinatorialData]
         public void XmlDoc_WithExplicitProperty([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
 public " + keyword + @" C(int I1)
@@ -5675,7 +5679,7 @@ public " + keyword + @" C(int I1)
         [CombinatorialData]
         public void XmlDoc_EmptyParameterList([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 public " + keyword + @" C();
 ";
@@ -5702,7 +5706,7 @@ public " + keyword + @" C();
         [CombinatorialData]
         public void XmlDoc_Partial_ParamListSecond([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 public partial " + keyword + @" C;
 
 /// <summary>Summary</summary>
@@ -5736,7 +5740,7 @@ public partial " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_Partial_ParamListFirst([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
 public partial " + keyword + @" D(int I1);
@@ -5770,7 +5774,7 @@ public partial " + keyword + @" D;
         [CombinatorialData]
         public void XmlDoc_Partial_ParamListFirst_XmlDocSecond([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 public partial " + keyword + @" E(int I1);
 
 /// <summary>Summary</summary>
@@ -5805,7 +5809,7 @@ public partial " + keyword + @" E;
         [CombinatorialData]
         public void XmlDoc_Partial_ParamListSecond_XmlDocFirst([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
 public partial " + keyword + @" E;
@@ -5840,7 +5844,7 @@ public partial " + keyword + @" E(int I1);
         [CombinatorialData]
         public void XmlDoc_Partial_DuplicateParameterList_XmlDocSecond([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 public partial " + keyword + @" C(int I1);
 
 /// <summary>Summary</summary>
@@ -5880,7 +5884,7 @@ public partial " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_Partial_DuplicateParameterList_XmlDocFirst([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
 public partial " + keyword + @" D(int I1);
@@ -5918,7 +5922,7 @@ public partial " + keyword + @" D(int I1);
         [CombinatorialData]
         public void XmlDoc_Partial_DuplicateParameterList_XmlDocOnBoth([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary1</summary>
 /// <param name=""I1"">Description1 for I1</param>
 public partial " + keyword + @" E(int I1);
@@ -5963,7 +5967,7 @@ public partial " + keyword + @" E(int I1);
         [CombinatorialData]
         public void XmlDoc_Partial_DifferentParameterLists_XmlDocSecond([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 public partial " + keyword + @" E(int I1);
 
 /// <summary>Summary2</summary>
@@ -6002,7 +6006,7 @@ public partial " + keyword + @" E(string S1);
         [CombinatorialData]
         public void XmlDoc_Partial_DifferentParameterLists_XmlDocOnBoth([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary1</summary>
 /// <param name=""I1"">Description1 for I1</param>
 public partial " + keyword + @" E(int I1);
@@ -6047,7 +6051,7 @@ public partial " + keyword + @" E(string S1);
         [CombinatorialData]
         public void XmlDoc_Nested([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 public class Outer
 {
@@ -6083,7 +6087,7 @@ public class Outer
         [CombinatorialData]
         public void XmlDoc_Nested_ReferencingOuterParam([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""O1"">Description for O1</param>
 public " + keyword + @" Outer(object O1)
@@ -6139,7 +6143,7 @@ public " + keyword + @" Outer(object O1)
         {
             var source1 =
 @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 [System.Runtime.InteropServices.ComImport]
 [System.Runtime.InteropServices.Guid(""00112233-4455-6677-8899-aabbccddeeff"")]
@@ -6159,7 +6163,7 @@ class R1(int x);
         {
             var source1 =
 @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 [System.Runtime.InteropServices.ComImport]
 [System.Runtime.InteropServices.Guid(""00112233-4455-6677-8899-aabbccddeeff"")]
@@ -6177,15 +6181,15 @@ struct R1(int x);
         [Fact]
         public void AttributedDerived_SemanticInfoOnBaseParameter()
         {
-            var source = """
-                #pragma warning disable CS8907 // Parameter is unread.
+            var source = @"
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
-                public class Base(int X);
-                [Attr]
-                public class Derived(int X) : Base(X);
+public class Base(int X);
+[Attr]
+public class Derived(int X) : Base(X);
 
-                class Attr : System.Attribute {}
-                """;
+class Attr : System.Attribute {}
+";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
@@ -6200,18 +6204,18 @@ struct R1(int x);
         [Fact]
         public void AttributedDerived_BaseParameterNotVisibleInBody()
         {
-            var source = """
-                #pragma warning disable CS8907 // Parameter is unread.
+            var source = @"
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
                 
-                public class Base(int X);
-                [Attr()]
-                public class Derived() : Base(M(out var y))
-                {
-                    static int M(out int y) => y = 1;
-                }
+public class Base(int X);
+[Attr()]
+public class Derived() : Base(M(out var y))
+{
+    static int M(out int y) => y = 1;
+}
 
-                class Attr : System.Attribute {}
-                """;
+class Attr : System.Attribute {}
+";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
@@ -6232,7 +6236,7 @@ struct R1(int x);
         public void OutVarInParameterDefaultValue([CombinatorialValues("class ", "struct")] string keyword)
         {
             var source =
-@"#pragma warning disable CS8907 // Parameter is unread.
+@"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 " + keyword + @" A(int X = A.M(out int a) + a)
 {
     public static int M(out int a)
@@ -6363,7 +6367,7 @@ public struct D
         public void FieldInitializers_10()
         {
             var source = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 using System;
 
@@ -6413,7 +6417,7 @@ S3 { X = , Y = 3 }
         public void FieldInitializers_11()
         {
             var source = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 using System;
 
@@ -7218,9 +7222,9 @@ class Attr1 : System.Attribute
                 if (!isRecord && (flags & TestFlags.NotUsedWarning) != 0)
                 {
                     builder.Add(
-                        // (1000,1): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                        // (1000,1): warning CS9508: Parameter 'p1' is unread.
                         // p1
-                        Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(1000, 1)
+                        Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(1000, 1)
                         );
                 }
 
@@ -7321,9 +7325,9 @@ class Attr1 : System.Attribute
                 if (!isRecord && ((flags & TestFlags.NotUsedWarning) != 0 || (flags & TestFlags.Captured) != 0))
                 {
                     builder.Add(
-                        // (1000,1): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                        // (1000,1): warning CS9508: Parameter 'p1' is unread.
                         // p1
-                        Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(1000, 1)
+                        Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(1000, 1)
                         );
                 }
 
@@ -7662,9 +7666,9 @@ class C1 (int p1)
 }
 ";
             var verifier = CompileAndVerify(src, expectedOutput: @"TrueFalse").VerifyDiagnostics(
-                // (4,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (4,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(4, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(4, 15)
                 );
 
             Assert.Empty(((CSharpCompilation)verifier.Compilation).GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -8325,9 +8329,9 @@ abstract class C1 (int p1)
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (5,24): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (5,24): warning CS9508: Parameter 'p1' is unread.
                 // abstract class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(5, 24)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(5, 24)
                 );
         }
 
@@ -8381,18 +8385,18 @@ enum E
 
             // Warnings indicate that we do not consider any primary constructor parameters referenced and not capturing them
             comp.VerifyEmitDiagnostics(
-                // (5,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (5,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(5, 15),
-                // (5,33): warning CS8907: Parameter 'p2' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(5, 15),
+                // (5,33): warning CS9508: Parameter 'p2' is unread.
                 // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p2").WithArguments("p2").WithLocation(5, 33),
-                // (5,48): warning CS8907: Parameter 'global' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(5, 33),
+                // (5,48): warning CS9508: Parameter 'global' is unread.
                 // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "global").WithArguments("global").WithLocation(5, 48),
-                // (5,64): warning CS8907: Parameter 'C2' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "global").WithArguments("global").WithLocation(5, 48),
+                // (5,64): warning CS9508: Parameter 'C2' is unread.
                 // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "C2").WithArguments("C2").WithLocation(5, 64)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "C2").WithArguments("C2").WithLocation(5, 64)
                 );
         }
 
@@ -8839,9 +8843,9 @@ class C1 (int p1)
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.GetEmitDiagnostics().Where(d => d.Code is not (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
-                // (1000,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (1000,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(1000, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(1000, 15)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -8899,9 +8903,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"-120").VerifyDiagnostics(
-                // (2,15): warning CS8907: Parameter '_' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter '_' is unread.
                 // class C1 (int _)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "_").WithArguments("_").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "_").WithArguments("_").WithLocation(2, 15)
                 );
 
             Assert.Equal(1, comp.GetTypeByMetadataName("C2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
@@ -8952,9 +8956,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"p1x3040").VerifyDiagnostics(
-                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 15)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -9146,9 +9150,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -9181,9 +9185,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -9224,9 +9228,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -9831,9 +9835,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -9875,9 +9879,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10005,9 +10009,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10047,9 +10051,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"M1").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10092,9 +10096,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"M1").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10127,9 +10131,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10154,9 +10158,9 @@ class Color
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17),
                 // (4,20): error CS9500: Cannot use primary constructor parameter 'Color Color' in this context.
                 //     static int F = Color.M1(new S1());
                 Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "Color").WithArguments("Color Color").WithLocation(4, 20)
@@ -10192,9 +10196,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10219,9 +10223,9 @@ class Color
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17),
                 // (4,33): error CS9500: Cannot use primary constructor parameter 'Color Color' in this context.
                 //     public static int Test() => Color.M1(new S1());
                 Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "Color").WithArguments("Color Color").WithLocation(4, 33)
@@ -10257,9 +10261,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10398,9 +10402,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,16): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,16): warning CS9508: Parameter 'Color' is unread.
                 // class S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 16)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 16)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10473,9 +10477,9 @@ class Color
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28),
                 // (10,22): error CS0150: A constant value is expected
                 //             if (x is Color.Red)
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "Color.Red").WithLocation(10, 22)
@@ -10516,9 +10520,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10559,9 +10563,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10744,9 +10748,9 @@ class Program
             if (isStatic)
             {
                 diagnostics.Verify(
-                    // (6,24): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                    // (6,24): warning CS9508: Parameter 'Color' is unread.
                     // public class C1 (Color Color)
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 24)
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 24)
                     );
             }
             else
@@ -10790,9 +10794,9 @@ struct S3(int p1)
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (7,18): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (7,18): warning CS9508: Parameter 'p1' is unread.
                 // struct S2(string p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(7, 18),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 18),
                 // (15,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Program.Test<T>(T)'
                 //         Test(new S1());
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("Program.Test<T>(T)", "T", "S1").WithLocation(15, 9)
@@ -10991,12 +10995,12 @@ class Program
             var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp1, expectedOutput: @"_10_2_30_3").VerifyDiagnostics(
-                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
-                // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15),
-                // (7,26): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter 'p1' is unread.
+                // class C1 (int p1, string P1)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 15),
+                // (7,26): warning CS9508: Parameter 'P2' is unread.
                 // class C2 (int p2, string P2)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(7, 26)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P2").WithArguments("P2").WithLocation(7, 26)
                 );
 
             Assert.Equal("System.String P1", comp1.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Single().Key.ToTestDisplayString());
@@ -11017,15 +11021,15 @@ class C2 (string P2)
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyEmitDiagnostics(
-                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 15),
                 // (4,27): error CS0103: The name 'P1' does not exist in the current context
                 //     public string M1() => P1;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "P1").WithArguments("P1").WithLocation(4, 27),
-                // (7,18): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // (7,18): warning CS9508: Parameter 'P2' is unread.
                 // class C2 (string P2)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(7, 18),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P2").WithArguments("P2").WithLocation(7, 18),
                 // (9,24): error CS0103: The name 'p2' does not exist in the current context
                 //     public int M2() => p2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(9, 24)
@@ -11111,9 +11115,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -12015,12 +12019,12 @@ struct S
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
                 // PROTOTYPE(PrimaryConstructors): Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
-                // (2,22): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,22): warning CS9508: Parameter 'x' is unread.
                 // unsafe class  C1(int x, S s)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 22),
-                // (2,27): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 22),
+                // (2,27): warning CS9508: Parameter 's' is unread.
                 // unsafe class  C1(int x, S s)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(2, 27)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "s").WithArguments("s").WithLocation(2, 27)
                 );
         }
 
@@ -12042,12 +12046,12 @@ struct S
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
                 // PROTOTYPE(PrimaryConstructors): Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
-                // (7,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // (7,21): warning CS9508: Parameter 'x' is unread.
                 // unsafe class C1(int x, S s) : Base(&x, &s.f);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(7, 21),
-                // (7,26): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(7, 21),
+                // (7,26): warning CS9508: Parameter 's' is unread.
                 // unsafe class C1(int x, S s) : Base(&x, &s.f);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(7, 26)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "s").WithArguments("s").WithLocation(7, 26)
                 );
         }
 
@@ -12147,12 +12151,12 @@ struct S
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.f").WithArguments("s").WithLocation(7, 29),
 
                 // PROTOTYPE(PrimaryConstructors): The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
-                // (2,22): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,22): warning CS9508: Parameter 'x' is unread.
                 // unsafe class  C1(int x, S s)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 22),
-                // (2,27): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 22),
+                // (2,27): warning CS9508: Parameter 's' is unread.
                 // unsafe class  C1(int x, S s)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(2, 27)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "s").WithArguments("s").WithLocation(2, 27)
                 );
         }
 
@@ -12185,12 +12189,12 @@ struct S
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.f").WithArguments("s").WithLocation(10, 50),
 
                 // PROTOTYPE(PrimaryConstructors): The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
-                // (7,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // (7,21): warning CS9508: Parameter 'x' is unread.
                 // unsafe class C1(int x, S s) : Base(() => 
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(7, 21),
-                // (7,26): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(7, 21),
+                // (7,26): warning CS9508: Parameter 's' is unread.
                 // unsafe class C1(int x, S s) : Base(() => 
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(7, 26)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "s").WithArguments("s").WithLocation(7, 26)
                 );
         }
 
@@ -14545,9 +14549,9 @@ class C1 (int p1)
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 15)
                 );
 
             Assert.Equal("p1", comp.GetTypeByMetadataName("C1").Indexers.Single().MetadataName);
@@ -14575,9 +14579,9 @@ class C1 (int p1)
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 15)
                 );
 
             Assert.Equal("p1", comp.GetTypeByMetadataName("C1").Indexers.Single().MetadataName);
@@ -14746,7 +14750,7 @@ struct C1(int p1)
 
             int i = code.LastIndexOf("p1");
             var source = @"
-#pragma warning disable CS8907 // Parameter 'p1' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'p1' is unread.
 
 " + keyword + " C1" + code.Substring(0, i) + @"
 #line 2000
@@ -14868,12 +14872,12 @@ class Base
                 // (6,39): error CS8820: A static anonymous function cannot contain a reference to 'p3'.
                 //     System.Func<int> F = static () => p3;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "p3").WithArguments("p3").WithLocation(6, 39),
-                // (9,14): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (9,14): warning CS9508: Parameter 'p1' is unread.
                 // class C2(int p1, int p2, int p3, int p4) : Base(static () => nameof(p4).Length) 
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(9, 14),
-                // (9,22): warning CS8907: Parameter 'p2' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(9, 14),
+                // (9,22): warning CS9508: Parameter 'p2' is unread.
                 // class C2(int p1, int p2, int p3, int p4) : Base(static () => nameof(p4).Length) 
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p2").WithArguments("p2").WithLocation(9, 22)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(9, 22)
                 );
         }
 
@@ -14901,9 +14905,9 @@ class C(int X)
             Assert.Empty(comp.GetTypeByMetadataName("C").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
 
             comp.VerifyEmitDiagnostics(
-                // (2,13): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,13): warning CS9508: Parameter 'X' is unread.
                 // class C(int X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 13),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(2, 13),
                 // (6,9): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
                 //         X.ToString();
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "X.ToString").WithArguments("object.ToString()").WithLocation(6, 9),
@@ -14918,7 +14922,7 @@ class C(int X)
         {
             var source =
 @"
-#pragma warning disable CS8907 // Parameter 'A' is unread. Did you forget to use it to initialize the property with that name?
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'A' is unread. Did you forget to use it to initialize the property with that name?
 
 struct S3(char A)
 {

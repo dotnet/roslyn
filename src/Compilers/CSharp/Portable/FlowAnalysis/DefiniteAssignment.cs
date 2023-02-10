@@ -682,8 +682,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (_readParameters?.Contains(parameter) != true &&
                             !primaryCtor.GetCapturedParameters().ContainsKey(parameter))
                         {
-                            // PROTOTYPE(PrimaryConstructors): Adjust message?
-                            diagnostics.Add(ErrorCode.WRN_UnreadRecordParameter, parameter.Locations.FirstOrNone(), parameter.Name);
+                            diagnostics.Add((primaryCtor.ContainingType is { IsRecord: true } or { IsRecordStruct: true }) ?
+                                                 ErrorCode.WRN_UnreadRecordParameter :
+                                                 ErrorCode.WRN_UnreadPrimaryConstructorParameter,
+                                             parameter.Locations.FirstOrNone(), parameter.Name);
                         }
                     }
                 }

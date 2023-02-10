@@ -53,12 +53,12 @@ record Point(int x, int y);
                     // (2,12): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     // class Point(int x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 12),
-                    // (2,17): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    // (2,17): warning CS9508: Parameter 'x' is unread.
                     // class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 17),
-                    // (2,24): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 17),
+                    // (2,24): warning CS9508: Parameter 'y' is unread.
                     // class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 24)
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 24)
                 );
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
@@ -93,12 +93,12 @@ record Point(int x, int y);
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                    // (2,17): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    // (2,17): warning CS9508: Parameter 'x' is unread.
                     // class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 17),
-                    // (2,24): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 17),
+                    // (2,24): warning CS9508: Parameter 'y' is unread.
                     // class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 24)
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 24)
                 );
 
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular9);
@@ -146,12 +146,12 @@ class E
                     // (4,16): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     class Point(int x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(4, 16),
-                    // (4,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    // (4,21): warning CS9508: Parameter 'x' is unread.
                     //     class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(4, 21),
-                    // (4,28): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 21),
+                    // (4,28): warning CS9508: Parameter 'y' is unread.
                     //     class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(4, 28)
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 28)
                 );
 
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
@@ -176,12 +176,12 @@ class E
 
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
-                    // (4,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    // (4,21): warning CS9508: Parameter 'x' is unread.
                     //     class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(4, 21),
-                    // (4,28): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 21),
+                    // (4,28): warning CS9508: Parameter 'y' is unread.
                     //     class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(4, 28)
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 28)
                 );
 
             comp = CreateCompilation(src2);
@@ -217,12 +217,12 @@ record class Point(int x, int y);
                 // (2,19): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 19),
-                // (2,24): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,24): warning CS9508: Parameter 'x' is unread.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 24),
-                // (2,31): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 24),
+                // (2,31): warning CS9508: Parameter 'y' is unread.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 31)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 31)
                 );
 
             comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);

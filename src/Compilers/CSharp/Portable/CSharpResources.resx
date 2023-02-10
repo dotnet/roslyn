@@ -7448,4 +7448,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured" xml:space="preserve">
     <value>Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</value>
   </data>
+  <data name="WRN_UnreadPrimaryConstructorParameter" xml:space="preserve">
+    <value>Parameter '{0}' is unread.</value>
+  </data>
+  <data name="WRN_UnreadPrimaryConstructorParameter_Title" xml:space="preserve">
+    <value>Parameter is unread.</value>
+  </data>
 </root>

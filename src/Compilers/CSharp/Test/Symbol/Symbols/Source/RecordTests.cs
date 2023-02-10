@@ -1228,18 +1228,18 @@ data struct S2(int X, int Y);";
                 // (3,6): error CS1002: ; expected
                 // data class C2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(3, 6),
-                // (3,19): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // (3,19): warning CS9508: Parameter 'X' is unread.
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(3, 19),
-                // (3,26): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(3, 19),
+                // (3,26): warning CS9508: Parameter 'Y' is unread.
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(3, 26),
-                // (5,20): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Y").WithArguments("Y").WithLocation(3, 26),
+                // (5,20): warning CS9508: Parameter 'X' is unread.
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(5, 20),
-                // (5,27): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(5, 20),
+                // (5,27): warning CS9508: Parameter 'Y' is unread.
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(5, 27),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Y").WithArguments("Y").WithLocation(5, 27),
                 // (4,6): error CS1001: Identifier expected
                 // data struct S1 { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(4, 6),

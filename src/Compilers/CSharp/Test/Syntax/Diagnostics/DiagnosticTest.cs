@@ -274,6 +274,7 @@ class X
                         case ErrorCode.WRN_OptionalParamValueMismatch:
                         case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                         case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
+                        case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
