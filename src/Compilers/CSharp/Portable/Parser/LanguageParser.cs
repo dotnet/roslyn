@@ -1348,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
                 // does not support a feature, but in this case we are effectively making a language breaking
                 // change to consider "role" or "extension" a type declaration in all ambiguous cases.
-                // To avoid breaking older code that is not using C# 11 we conditionally parse based on langversion
+                // To avoid breaking older code that is not using C# 12 we conditionally parse based on langversion
                 return IsFeatureEnabled(MessageID.IDS_FeatureRoles);
             }
 
@@ -2098,7 +2098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
                         // does not support a feature, but in this case we are effectively making a language breaking
                         // change to consider "role" or "extension" a type declaration in all ambiguous cases.
-                        // To avoid breaking older code that is not using C# 11 we conditionally parse based on langversion
+                        // To avoid breaking older code that is not using C# 12 we conditionally parse based on langversion
                         return IsFeatureEnabled(MessageID.IDS_FeatureRoles);
                     }
                     return false;

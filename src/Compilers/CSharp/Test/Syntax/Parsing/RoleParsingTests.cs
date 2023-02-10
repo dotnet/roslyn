@@ -16,18 +16,6 @@ public sealed class RoleParsingTests : ParsingTests
     private new SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
         => UsingTree(text, TestOptions.RegularNext, expectedErrors);
 
-    private void UsingNode(string text, CSharpParseOptions? options = null, DiagnosticDescription[]? expectedParsingDiagnostics = null, DiagnosticDescription[]? expectedBindingDiagnostics = null)
-    {
-        options ??= TestOptions.RegularPreview;
-        expectedParsingDiagnostics ??= Array.Empty<DiagnosticDescription>();
-        expectedBindingDiagnostics ??= expectedParsingDiagnostics;
-
-        var tree = UsingTree(text, options, expectedParsingDiagnostics);
-        Validate(text, (CSharpSyntaxNode)tree.GetRoot(), expectedParsingDiagnostics);
-
-        var comp = CreateCompilation(tree);
-        comp.VerifyDiagnostics(expectedBindingDiagnostics);
-    }
 
     public RoleParsingTests(ITestOutputHelper output) : base(output) { }
 
@@ -36,7 +24,7 @@ public sealed class RoleParsingTests : ParsingTests
     {
         Assert.True(SyntaxFacts.IsTypeDeclaration(isExtension ? SyntaxKind.ExtensionDeclaration : SyntaxKind.RoleDeclaration));
 
-        var keyword = isExtension ? "extension" : "role";
+        var keyword = isExtension ? "extension" : "role     ";
         var text = $$"""{{keyword}} C : UnderlyingType, BaseRole1, BaseRole2 { }""";
         UsingTree(text);
 
@@ -80,8 +68,7 @@ public sealed class RoleParsingTests : ParsingTests
         }
         EOF();
 
-        var expectedDiagnostics = isExtension ? new[]
-        {
+        UsingTree(text, options: TestOptions.Regular10,
             // (1,13): error CS1002: ; expected
             // extension C : UnderlyingType, BaseRole1, BaseRole2 { }
             Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 13),
@@ -100,28 +87,7 @@ public sealed class RoleParsingTests : ParsingTests
             // (1,54): error CS1022: Type or namespace definition, or end-of-file expected
             // extension C : UnderlyingType, BaseRole1, BaseRole2 { }
             Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 54)
-        } : new[]
-        {
-            // (1,8): error CS1002: ; expected
-            // role C : UnderlyingType, BaseRole1, BaseRole2 { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 8),
-            // (1,8): error CS1022: Type or namespace definition, or end-of-file expected
-            // role C : UnderlyingType, BaseRole1, BaseRole2 { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 8),
-            // (1,24): error CS1001: Identifier expected
-            // role C : UnderlyingType, BaseRole1, BaseRole2 { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 24),
-            // (1,47): error CS1003: Syntax error, ',' expected
-            // role C : UnderlyingType, BaseRole1, BaseRole2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 47),
-            // (1,49): error CS1002: ; expected
-            // role C : UnderlyingType, BaseRole1, BaseRole2 { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 49),
-            // (1,49): error CS1022: Type or namespace definition, or end-of-file expected
-            // role C : UnderlyingType, BaseRole1, BaseRole2 { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 49)
-        };
-        UsingTree(text, options: TestOptions.Regular10, expectedDiagnostics);
+            );
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -181,7 +147,7 @@ public sealed class RoleParsingTests : ParsingTests
     {
         Assert.True(SyntaxFacts.IsTypeDeclaration(isExtension ? SyntaxKind.ExtensionDeclaration : SyntaxKind.RoleDeclaration));
 
-        var keyword = isExtension ? "extension" : "role";
+        var keyword = isExtension ? "extension" : "role     ";
         var text = $$"""partial {{keyword}} C : UnderlyingType { }""";
         UsingTree(text);
 
@@ -210,8 +176,7 @@ public sealed class RoleParsingTests : ParsingTests
         }
         EOF();
 
-        var expectedDiagnostics = isExtension ? new[]
-        {
+        UsingTree(text, options: TestOptions.Regular10,
             // (1,1): error CS1031: Type expected
             // partial extension C : UnderlyingType { }
             Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
@@ -239,37 +204,7 @@ public sealed class RoleParsingTests : ParsingTests
             // (1,40): error CS1022: Type or namespace definition, or end-of-file expected
             // partial extension C : UnderlyingType { }
             Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 40)
-        } : new[]
-        {
-            // (1,1): error CS1031: Type expected
-            // partial role C : UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
-            // (1,1): error CS1525: Invalid expression term 'partial'
-            // partial role C : UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
-            // (1,1): error CS1003: Syntax error, ',' expected
-            // partial role C : UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 1),
-            // (1,16): error CS1002: ; expected
-            // partial role C : UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 16),
-            // (1,16): error CS1022: Type or namespace definition, or end-of-file expected
-            // partial role C : UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 16),
-            // (1,33): error CS1001: Identifier expected
-            // partial role C : UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 33),
-            // (1,33): error CS1003: Syntax error, ',' expected
-            // partial role C : UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 33),
-            // (1,35): error CS1002: ; expected
-            // partial role C : UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 35),
-            // (1,35): error CS1022: Type or namespace definition, or end-of-file expected
-            // partial role C : UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 35)
-        };
-        UsingTree(text, options: TestOptions.Regular10, expectedDiagnostics);
+            );
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -426,7 +361,7 @@ public sealed class RoleParsingTests : ParsingTests
     [Theory, CombinatorialData]
     public void RoleParsing_WithModifiers(bool isExtension)
     {
-        var keyword = isExtension ? "extension" : "role";
+        var keyword = isExtension ? "extension" : "role     ";
         var text = $$"""public static {{keyword}} C : UnderlyingType { }""";
         UsingTree(text);
 
@@ -658,11 +593,10 @@ public sealed class RoleParsingTests : ParsingTests
     [Theory, CombinatorialData]
     public void RoleParsing_WithParameterList(bool isExtension)
     {
-        var keyword = isExtension ? "extension" : "role";
+        var keyword = isExtension ? "extension" : "role     ";
         var text = $$"""{{keyword}} C() { }""";
 
-        var expectedDiagnostics = isExtension ? new[]
-        {
+        UsingTree(text,
             // (1,12): error CS1514: { expected
             // extension C() { }
             Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 12),
@@ -678,26 +612,7 @@ public sealed class RoleParsingTests : ParsingTests
             // (1,15): error CS1002: ; expected
             // extension C() { }
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 15)
-        } : new[]
-        {
-            // (1,7): error CS1514: { expected
-            // role C() { }
-            Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 7),
-            // (1,7): error CS1513: } expected
-            // role C() { }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 7),
-            // (1,7): error CS8803: Top-level statements must precede namespace and type declarations.
-            // role C() { }
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "() ").WithLocation(1, 7),
-            // (1,8): error CS1525: Invalid expression term ')'
-            // role C() { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 8),
-            // (1,10): error CS1002: ; expected
-            // role C() { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 10)
-        };
-
-        UsingTree(text, expectedDiagnostics);
+            );
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -720,6 +635,149 @@ public sealed class RoleParsingTests : ParsingTests
                             M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CloseParenToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void RoleParsing_WithParameterList_WithoutBody(bool isExtension)
+    {
+        var keyword = isExtension ? "extension" : "role     ";
+        var text = $$"""{{keyword}} C();""";
+
+        UsingTree(text,
+            // (1,12): error CS1514: { expected
+            // extension C();
+            Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 12),
+            // (1,12): error CS1513: } expected
+            // extension C();
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
+            // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
+            // extension C();
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "();").WithLocation(1, 12),
+            // (1,13): error CS1525: Invalid expression term ')'
+            // extension C();
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 13)
+            );
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(isExtension ? SyntaxKind.ExtensionDeclaration : SyntaxKind.RoleDeclaration);
+            {
+                N(isExtension ? SyntaxKind.ExtensionKeyword : SyntaxKind.RoleKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                M(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void RoleParsing_WithParameterList_WithOneParameter(bool isExtension)
+    {
+        var keyword = isExtension ? "extension" : "role     ";
+        var text = $$"""{{keyword}} C(int i) { }""";
+
+        UsingTree(text,
+            // (1,12): error CS1514: { expected
+            // extension C(int i) { }
+            Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 12),
+            // (1,12): error CS1513: } expected
+            // extension C(int i) { }
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
+            // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
+            // extension C(int i) { }
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int ").WithLocation(1, 12),
+            // (1,13): error CS1525: Invalid expression term 'int'
+            // extension C(int i) { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 13),
+            // (1,17): error CS1026: ) expected
+            // extension C(int i) { }
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "i").WithLocation(1, 17),
+            // (1,17): error CS1002: ; expected
+            // extension C(int i) { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "i").WithLocation(1, 17),
+            // (1,18): error CS1001: Identifier expected
+            // extension C(int i) { }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 18),
+            // (1,18): error CS1002: ; expected
+            // extension C(int i) { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 18),
+            // (1,18): error CS1022: Type or namespace definition, or end-of-file expected
+            // extension C(int i) { }
+            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 18)
+            );
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(isExtension ? SyntaxKind.ExtensionDeclaration : SyntaxKind.RoleDeclaration);
+            {
+                N(isExtension ? SyntaxKind.ExtensionKeyword : SyntaxKind.RoleKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                M(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "i");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
@@ -786,10 +844,9 @@ public sealed class RoleParsingTests : ParsingTests
     [Theory, CombinatorialData]
     public void RoleParsing_WithoutBody(bool isExtension)
     {
-        var keyword = isExtension ? "extension" : "role";
+        var keyword = isExtension ? "extension" : "role     ";
         var text = $$"""{{keyword}} C : UnderlyingType;""";
-        var expectedDiagnostics = isExtension ? new[]
-        {
+        UsingTree(text,
             // (1,29): error CS1003: Syntax error, ',' expected
             // extension C : UnderlyingType;
             Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 29),
@@ -799,19 +856,7 @@ public sealed class RoleParsingTests : ParsingTests
             // (1,30): error CS1513: } expected
             // extension C : UnderlyingType;
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 30)
-        } : new[]
-        {
-            // (1,24): error CS1003: Syntax error, ',' expected
-            // role C : UnderlyingType;
-            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 24),
-            // (1,25): error CS1514: { expected
-            // role C : UnderlyingType;
-            Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 25),
-            // (1,25): error CS1513: } expected
-            // role C : UnderlyingType;
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 25)
-        };
-        UsingTree(text, expectedDiagnostics);
+            );
         // PROTOTYPE should parse
 
         N(SyntaxKind.CompilationUnit);
@@ -875,7 +920,7 @@ public sealed class RoleParsingTests : ParsingTests
     [InlineData(SyntaxKind.ExtensionKeyword)]
     public void FileModifier_11(SyntaxKind typeKeyword)
     {
-        UsingNode($$"""public file {{SyntaxFacts.GetText(typeKeyword)}} C { }""");
+        UsingTree($$"""public file {{SyntaxFacts.GetText(typeKeyword)}} C { }""");
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
@@ -1191,6 +1236,75 @@ Write();
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void RoleParsing_WithoutBody_WithoutBaseList(bool isExtension)
+    {
+        var keyword = isExtension ? "extension" : "role     ";
+        var text = $$"""{{keyword}} C;""";
+        UsingTree(text,
+            // (1,12): error CS1514: { expected
+            // extension C;
+            Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 12),
+            // (1,12): error CS1513: } expected
+            // extension C;
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 12)
+            );
+        // PROTOTYPE should parse
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(isExtension ? SyntaxKind.ExtensionDeclaration : SyntaxKind.RoleDeclaration);
+            {
+                N(isExtension ? SyntaxKind.ExtensionKeyword : SyntaxKind.RoleKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                M(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void RoleParsing_WithoutBody_WithoutBaseList_WithTypeParameter(bool isExtension)
+    {
+        var keyword = isExtension ? "extension" : "role     ";
+        var text = $$"""{{keyword}} C<T>;""";
+        UsingTree(text,
+            // (1,15): error CS1514: { expected
+            // extension C<T>;
+            Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 15),
+            // (1,15): error CS1513: } expected
+            // extension C<T>;
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 15)
+            );
+        // PROTOTYPE should parse
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(isExtension ? SyntaxKind.ExtensionDeclaration : SyntaxKind.RoleDeclaration);
+            {
+                N(isExtension ? SyntaxKind.ExtensionKeyword : SyntaxKind.RoleKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.TypeParameterList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.TypeParameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+                M(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
