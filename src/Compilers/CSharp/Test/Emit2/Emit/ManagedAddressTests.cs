@@ -63,14 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 //     public C(int[]* x)
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "x").WithArguments("int[]").WithLocation(15, 21)
                 );
-            var verifier = CompileAndVerify(comp, expectedOutput: "012", verify: new Verification
+            var verifier = CompileAndVerify(comp, expectedOutput: "012", verify: Verification.Fails with
             {
-                Status = VerificationStatus.FailsILVerify,
                 ILVerifyMessage = """
                 [<Main>$]: Expected numeric type on the stack. { Offset = 0x12, Found = address of 'int32[]' }
                 [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x9 }
                 [Print]: Expected ByRef on the stack. { Offset = 0x7, Found = Native Int }
-                """
+                """,
+                PEVerifyMessage = """
+                [ : Program::<Main>$][offset 0x00000012][found address of ref ] Expected numeric type on the stack.
+                [ : C::.ctor][offset 0x00000009] Unmanaged pointers are not a verifiable type.
+                [ : C::Print][offset 0x00000007][found unmanaged pointer] Expected ByRef on the stack.
+                """,
             });
 
             verifier.VerifyMethodBody("<top-level-statements-entry-point>", """
