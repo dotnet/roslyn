@@ -14271,11 +14271,10 @@ struct S2
 ";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (4,25): error CS8162: Members of readonly field 'S2 x' cannot be returned by writable reference
+                // (4,25): error CS9513: Members of primary constructor parameter 'S2 x' of a readonly type cannot be returned by writable reference
                 //     ref int M1() => ref x.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly2, "x.F").WithArguments("S2 x").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(4, 25)
                 );
         }
 
@@ -14301,9 +14300,9 @@ struct S2
                 // (4,43): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                 //     readonly object y = ref int () => ref x.F;
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(4, 43),
-                // (4,43): error CS8162: Members of readonly field 'S2 x' cannot be returned by writable reference
+                // (4,43): error CS9513: Members of primary constructor parameter 'S2 x' of a readonly type cannot be returned by writable reference
                 //     readonly object y = ref int () => ref x.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly2, "x.F").WithArguments("S2 x").WithLocation(4, 43)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(4, 43)
                 );
         }
 

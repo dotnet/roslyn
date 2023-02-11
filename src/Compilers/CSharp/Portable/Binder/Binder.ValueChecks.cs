@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (valueKind == BindValueKind.RefReturn)
                 {
-                    errorCode = ErrorCode.ERR_RefReturnReadonly2;
+                    errorCode = ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter2;
                 }
                 else if (RequiresRefOrOut(valueKind))
                 {
