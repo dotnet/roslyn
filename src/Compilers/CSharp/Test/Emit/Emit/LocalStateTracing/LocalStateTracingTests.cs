@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // TODO: https://github.com/dotnet/roslyn/issues/66809
         // arrays (stloc, stelem),
         // collections, anonymous types, tuples
+        // LogLocalStoreUnmanaged with local/parameter typed to a generic parameter
 
         private static readonly EmitOptions s_emitOptions = EmitOptions.Default
             .WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.LocalStateTracing));
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Runtime
     using static System.Console;
 
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public unsafe readonly ref struct LocalStoreTracker
+    public unsafe readonly ref partial struct LocalStoreTracker
     {
         private static int s_stateMachineId;
 
@@ -460,7 +461,23 @@ class C
         [Fact]
         public void HelpersNotInstrumented()
         {
-            var source = WithHelpers("");
+            var source = WithHelpers(@"
+namespace Microsoft.CodeAnalysis.Runtime
+{
+    partial struct LocalStoreTracker
+    {
+        public class NestedHelpers
+        {
+            void F(int a) => a = 1;
+
+            public class SuperNestedHelpers
+            {
+                void F(int a) => a = 1;
+            }
+        }
+    }
+}
+");
             var verifier = CompileAndVerify(source);
             foreach (var entry in verifier.TestData.Methods)
             {

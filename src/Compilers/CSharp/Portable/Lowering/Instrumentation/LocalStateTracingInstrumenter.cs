@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var instrumentationType = factory.Compilation.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker);
-            if (method.ContainingType.Equals(instrumentationType))
+            if (IsInstrumentationOrNestedType(method.ContainingType, instrumentationType))
             {
                 return false;
             }
@@ -176,6 +176,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             var scope = new Scope(factory.SynthesizedLocal(instrumentationType, methodBody.Syntax, kind: SynthesizedLocalKind.LocalStoreTracker));
             instrumenter = new LocalStateTracingInstrumenter(scope, instrumentationType, factory, diagnostics, previous);
             return true;
+        }
+
+        private static bool IsInstrumentationOrNestedType(NamedTypeSymbol type, NamedTypeSymbol instrumentationType)
+        {
+            while (true)
+            {
+                if (type.Equals(instrumentationType))
+                {
+                    return true;
+                }
+
+                if (type.ContainingType is null)
+                {
+                    return false;
+                }
+
+                type = type.ContainingType;
+            }
         }
 
         private MethodSymbol? GetLocalOrParameterStoreLogger(TypeSymbol variableType, Symbol targetSymbol, bool? refAssignmentSourceIsLocal, SyntaxNode syntax)
