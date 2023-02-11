@@ -779,5 +779,53 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(noTreesPassed.HasValue);
             Assert.False(noTreesPassed!.Value);
         }
+
+        [Fact]
+        public async Task LinkedDocumentOfFrozenShouldNotRunSourceGenerator()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var generatorRan = false;
+            var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+
+            var originalDocument1 = AddEmptyProject(workspace.CurrentSolution, name: "Project1")
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs");
+
+            // this is a linked document of document1 above
+            var originalDocument2 = AddEmptyProject(originalDocument1.Project.Solution, name: "Project2")
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument(originalDocument1.Name, await originalDocument1.GetTextAsync().ConfigureAwait(false), filePath: originalDocument1.FilePath);
+
+            var project2 = originalDocument2.Project;
+            Assert.True(workspace.SetCurrentSolution(_ => project2.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            // check both documents are in the snapshot
+            Assert.Equal(project2.GetRequiredDocument(originalDocument2.Id).GetLinkedDocumentIds().Single(), originalDocument1.Id);
+            Assert.False(generatorRan);
+
+            // froze document2 
+            var frozenDocument2 = project2.GetRequiredDocument(originalDocument2.Id).WithFrozenPartialSemantics(CancellationToken.None);
+
+            // ensure linked doc of document2 is in frozen snapshot
+            Assert.Equal(frozenDocument2.GetLinkedDocumentIds().Single(), originalDocument1.Id);
+
+            // changing text of frozen document2, SG shouldn't run
+            frozenDocument2 = frozenDocument2.WithText(SourceText.From("// Something else"));
+            project2 = frozenDocument2.Project;
+
+            var compilation2 = await project2.GetRequiredCompilationAsync(CancellationToken.None);
+            Assert.Equal(1, compilation2.SyntaxTrees.Count());
+            Assert.False(generatorRan);
+
+            // now change the text of document1 from the frozen snapshot
+            var document1InFrozenSnapshot = project2.Solution.GetRequiredDocument(frozenDocument2.GetLinkedDocumentIds().Single());
+            document1InFrozenSnapshot = document1InFrozenSnapshot.WithText(SourceText.From("// Something else 2"));
+            var compilation1 = await document1InFrozenSnapshot.Project.GetRequiredCompilationAsync(CancellationToken.None);
+
+            // SG shouldn't run
+            Assert.Equal(1, compilation1.SyntaxTrees.Count());
+            Assert.False(generatorRan);
+
+        }
     }
 }
