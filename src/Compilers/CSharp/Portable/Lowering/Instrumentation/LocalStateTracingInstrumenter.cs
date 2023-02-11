@@ -195,10 +195,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreByte,
                     SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Char
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt16,
-                    SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Single
+                    SpecialType.System_Int32 or SpecialType.System_UInt32
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt32,
-                    SpecialType.System_Int64 or SpecialType.System_UInt64 or SpecialType.System_Double
+                    SpecialType.System_Int64 or SpecialType.System_UInt64
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt64,
+                    SpecialType.System_Single
+                        => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreSingle,
+                    SpecialType.System_Double
+                        => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDouble,
                     SpecialType.System_Decimal
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDecimal,
                     SpecialType.System_String

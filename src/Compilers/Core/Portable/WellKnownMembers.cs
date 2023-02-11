@@ -3049,6 +3049,24 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_UInt64, // Value
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,  // Local index
 
+                // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreSingle
+                (byte)MemberFlags.Method,                                                                                                             // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                                                    // Arity
+                    2,                                                                                                                                // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,   // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Single, // Value
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,  // Local index
+
+                // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDouble
+                (byte)MemberFlags.Method,                                                                                                             // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                                                    // Arity
+                    2,                                                                                                                                // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,   // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double, // Value
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,  // Local index
+
                 // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDecimal
                 (byte)MemberFlags.Method,                                                                                                             // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker - WellKnownType.ExtSentinel),  // DeclaringTypeId
@@ -3147,6 +3165,24 @@ namespace Microsoft.CodeAnalysis
                     2,                                                                                                                                // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,   // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_UInt64, // Value
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,  // Parameter index
+
+                // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreSingle
+                (byte)MemberFlags.Method,                                                                                                             // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                                                    // Arity
+                    2,                                                                                                                                // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,   // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Single, // Value
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,  // Parameter index
+
+                // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDouble
+                (byte)MemberFlags.Method,                                                                                                             // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                                                    // Arity
+                    2,                                                                                                                                // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,   // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double, // Value
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,  // Parameter index
 
                 // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDecimal
@@ -4324,6 +4360,8 @@ namespace Microsoft.CodeAnalysis
                 "LogLocalStore",                            // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt16
                 "LogLocalStore",                            // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt32
                 "LogLocalStore",                            // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt64
+                "LogLocalStore",                            // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreSingle
+                "LogLocalStore",                            // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDouble
                 "LogLocalStore",                            // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDecimal
                 "LogLocalStore",                            // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreString
                 "LogLocalStore",                            // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreObject
@@ -4335,6 +4373,8 @@ namespace Microsoft.CodeAnalysis
                 "LogParameterStore",                        // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt16
                 "LogParameterStore",                        // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt32
                 "LogParameterStore",                        // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt64
+                "LogParameterStore",                        // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreSingle
+                "LogParameterStore",                        // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDouble
                 "LogParameterStore",                        // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDecimal
                 "LogParameterStore",                        // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreString
                 "LogParameterStore",                        // Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreObject

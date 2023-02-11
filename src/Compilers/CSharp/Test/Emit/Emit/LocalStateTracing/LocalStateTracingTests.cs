@@ -114,10 +114,12 @@ namespace Microsoft.CodeAnalysis.Runtime
         public void LogLocalStore(ushort value, int index) => WL(value, index);
         public void LogLocalStore(uint value, int index) => WL(value, index);
         public void LogLocalStore(ulong value, int index) => WL(value, index);
+        public void LogLocalStore(float value, int index) => WL(value, index);
+        public void LogLocalStore(double value, int index) => WL(value, index);
         public void LogLocalStore(decimal value, int index) => WL(value, index);
         public void LogLocalStore(string value, int index) => WL(value, index);
         public void LogLocalStore(object value, int index) => WL(value, index);
-        public void LogLocalStore(void* value, int index) => WL("*ptr*", index);
+        public void LogLocalStore(void* value, int index) => WL((nuint)value, index);
         public void LogLocalStoreUnmanaged(void* address, int size, int index) => WL(MemoryToString(address, size), index);
         public void LogLocalStoreParameterAlias(int sourceParameterIndex, int targetLocalIndex) { WriteLine($"{M.Name}: {L(targetLocalIndex)} -> {P(sourceParameterIndex)}"); }
 
@@ -126,10 +128,12 @@ namespace Microsoft.CodeAnalysis.Runtime
         public void LogParameterStore(ushort value, int index) => WP(value, index);
         public void LogParameterStore(uint value, int index) => WP(value, index);
         public void LogParameterStore(ulong value, int index) => WP(value, index);
+        public void LogParameterStore(float value, int index) => WP(value, index);
+        public void LogParameterStore(double value, int index) => WP(value, index);
         public void LogParameterStore(decimal value, int index) => WP(value, index);
         public void LogParameterStore(string value, int index) => WP(value, index);
         public void LogParameterStore(object value, int index) => WP(value, index);
-        public void LogParameterStore(void* value, int index) => WP("*ptr*", index);
+        public void LogParameterStore(void* value, int index) => WP((nuint)value, index);
         public void LogParameterStoreUnmanaged(void* address, int size, int index) => WP(MemoryToString(address, size), index);
         public void LogParameterStoreParameterAlias(int sourceParameterIndex, int targetParameterIndex) { WriteLine($"{M.Name}: {P(targetParameterIndex)} -> {P(sourceParameterIndex)}"); }
 
@@ -151,7 +155,9 @@ namespace Microsoft.CodeAnalysis.Runtime
             [LogStateMachineLambdaEntry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }
             [Entry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xbc }
             [MemoryToString]: Unmanaged pointers are not a verifiable type. { Offset = 0x5 }
+            [LogLocalStore]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
             [LogLocalStoreUnmanaged]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
+            [LogParameterStore]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
             [LogParameterStoreUnmanaged]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
             """
         };
@@ -417,7 +423,7 @@ class C
   IL_0016:  call       0x06000017
   IL_001b:  nop
   IL_001c:  nop
-  IL_001d:  call       0x0600002B
+  IL_001d:  call       0x0600002F
   IL_0022:  nop
   IL_0023:  leave.s    IL_002e
   IL_0025:  ldloca.s   V_0
@@ -430,7 +436,7 @@ class C
   // Code size       45 (0x2d)
   .maxstack  3
   IL_0000:  ldc.i4     0x3
-  IL_0005:  ldc.i4     0x2b
+  IL_0005:  ldc.i4     0x2f
   IL_000a:  call       0x06000008
   IL_000f:  stloc.0
   IL_0010:  nop
@@ -783,41 +789,61 @@ class C
         }
 
         [Theory]
-        [InlineData("I", "object")]
-        [InlineData("C", "object")]
-        [InlineData("object", "object")]
-        [InlineData("string", "string")]
-        [InlineData("bool", "bool")]
-        [InlineData("byte", "byte")]
-        [InlineData("ushort", "ushort")]
-        [InlineData("char", "ushort")]
-        [InlineData("int", "uint")]
-        [InlineData("uint", "uint")]
-        [InlineData("long", "ulong")]
-        [InlineData("ulong", "ulong")]
-        [InlineData("decimal", "decimal")]
-        [InlineData("void*", "void*", false)]
-        [InlineData("byte*", "void*", false)]
-        [InlineData("delegate*<int>", "void*")]
-        public void SpecialTypes_NoConv(string typeName, string targetType, bool verificationPasses = true)
+        [InlineData("I", "object", "c", "C")]
+        [InlineData("C", "object", "c", "C")]
+        [InlineData("object", "object", "c", "C")]
+        [InlineData("string", "string", "\"str\"", "str")]
+        [InlineData("bool", "bool", "true", "True")]
+        [InlineData("byte", "byte", "123", "123")]
+        [InlineData("ushort", "ushort", "15", "15")]
+        [InlineData("char", "ushort", "'c'", "99")]
+        [InlineData("int", "uint", "-58", "4294967238")]
+        [InlineData("uint", "uint", "74", "74")]
+        [InlineData("long", "ulong", "942254", "942254")]
+        [InlineData("ulong", "ulong", "1321321321321", "1321321321321")]
+        [InlineData("float", "float", "1.2345F", "1.2345")]
+        [InlineData("double", "double", "1.245656", "1.245656")]
+        [InlineData("decimal", "decimal", "20.34M", "20.34")]
+        [InlineData("void*", "void*", "(void*)100000", "100000", false)]
+        [InlineData("byte*", "void*", "(byte*)100000", "100000", false)]
+        [InlineData("delegate*<int>", "void*", "(delegate*<int>)100000", "100000")]
+        public void SpecialTypes_NoConv(string typeName, string targetType, string valueSource, string value, bool verificationPasses = true)
         {
             var source = WithHelpers($$"""
 interface I {}
 
-unsafe class C
+unsafe class C : I
 {
-    private static readonly {{typeName}} s;
+    static readonly C c = new();
+    static readonly {{typeName}} s = {{valueSource}};
 
-    public void F({{typeName}} p)
+    static void F({{typeName}} p)
     {
         var x = p = s;
     }
+
+    static void Main() => F(s);
 }
 """);
-            var verifier = CompileAndVerify(source, ilVerifyMessage: verificationPasses ? "" : """
-                [F]: Unmanaged pointers are not a verifiable type. { Offset = 0xd }
-                [F]: Unmanaged pointers are not a verifiable type. { Offset = 0x28 }
-                """);
+            var verifier = CompileAndVerify(
+                source,
+                ilVerifyMessage: verificationPasses ? "" : @"
+[F]: Unmanaged pointers are not a verifiable type. { Offset = 0xd }
+[F]: Unmanaged pointers are not a verifiable type. { Offset = 0x28 }
+",
+                expectedOutput: $@"
+Main: Entered
+.cctor: Entered
+.ctor: Entered
+.ctor: Returned
+.cctor: Returned
+F: Entered
+F: P'p'[0] = {value}
+F: P'p'[0] = {value}
+F: L1 = {value}
+F: Returned
+Main: Returned
+");
 
             verifier.VerifyMethodBody("C.F", $@"
 {{
@@ -833,7 +859,7 @@ unsafe class C
   {{
     // sequence point: {{
     IL_000b:  ldloca.s   V_0
-    IL_000d:  ldarg.1
+    IL_000d:  ldarg.0
     IL_000e:  ldc.i4.0
     IL_000f:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore({targetType}, int)""
     IL_0014:  nop
@@ -842,11 +868,11 @@ unsafe class C
     IL_0017:  ldloca.s   V_0
     IL_0019:  ldsfld     ""{typeName} C.s""
     IL_001e:  dup
-    IL_001f:  starg.s    V_1
+    IL_001f:  starg.s    V_0
     IL_0021:  ldc.i4.0
     IL_0022:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore({targetType}, int)""
     IL_0027:  nop
-    IL_0028:  ldarg.1
+    IL_0028:  ldarg.0
     IL_0029:  dup
     IL_002a:  stloc.1
     IL_002b:  ldc.i4.1
@@ -870,24 +896,34 @@ unsafe class C
         }
 
         [Theory]
-        [InlineData("sbyte", "byte", "conv.u1")]
-        [InlineData("short", "ushort", "conv.u2")]
-        [InlineData("float", "uint", "conv.u4")]
-        [InlineData("double", "ulong", "conv.u8")]
-        public void SpecialTypes_ConvU(string typeName, string targetType, string conversion)
+        [InlineData("sbyte", "byte", "conv.u1", "-1", "255")]
+        [InlineData("short", "ushort", "conv.u2", "-1", "65535")]
+        public void SpecialTypes_ConvU(string typeName, string targetType, string conversion, string valueSource, string value)
         {
             var source = WithHelpers($$"""
 class C
 {
-    private static readonly {{typeName}} s;
+    static readonly {{typeName}} s = {{valueSource}};
 
-    public void F({{typeName}} p)
+    static void F({{typeName}} p)
     {
         var x = p = s;
     }
+
+    static void Main() => F(s);
 }
 """);
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileAndVerify(source, expectedOutput: $@"
+Main: Entered
+.cctor: Entered
+.cctor: Returned
+F: Entered
+F: P'p'[0] = {value}
+F: P'p'[0] = {value}
+F: L1 = {value}
+F: Returned
+Main: Returned
+");
 
             verifier.VerifyMethodBody("C.F", $@"
 {{
@@ -903,7 +939,7 @@ class C
   {{
     // sequence point: {{
     IL_000b:  ldloca.s   V_0
-    IL_000d:  ldarg.1
+    IL_000d:  ldarg.0
     IL_000e:  {conversion}
     IL_000f:  ldc.i4.0
     IL_0010:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore({targetType}, int)""
@@ -913,12 +949,12 @@ class C
     IL_0018:  ldloca.s   V_0
     IL_001a:  ldsfld     ""{typeName} C.s""
     IL_001f:  dup
-    IL_0020:  starg.s    V_1
+    IL_0020:  starg.s    V_0
     IL_0022:  {conversion}
     IL_0023:  ldc.i4.0
     IL_0024:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore({targetType}, int)""
     IL_0029:  nop
-    IL_002a:  ldarg.1
+    IL_002a:  ldarg.0
     IL_002b:  dup
     IL_002c:  stloc.1
     IL_002d:  {conversion}
@@ -2247,7 +2283,18 @@ Main: Returned
 ");
 
             verifier.VerifyMethodBody("C.Main", @"
-{
+{ 
+  // Code size       79 (0x4f)
+  .maxstack  3
+  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
+              int V_1, //a
+              long V_2) //b
+  // sequence point: <hidden>
+  IL_0000:  ldtoken    ""void C.Main()""
+  IL_0005:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
+  IL_000a:  stloc.0
+  .try
+  {
     // sequence point: {
     IL_000b:  nop
     // sequence point: int a = 1;
