@@ -328,11 +328,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>Are we possibly at the start of an attribute list, or at a modifier which is valid on a type, or on a keyword of a type declaration?</summary>
         private static bool IsPossibleStartOfTypeDeclaration(SyntaxKind kind)
         {
-            return IsPossibleTypeModifierOrTypeKeyword(kind) || kind == SyntaxKind.OpenBraceToken;
+            return IsTypeModifierOrTypeKeyword(kind) || kind == SyntaxKind.OpenBracketToken;
         }
 
         /// <summary>Are we at a modifier which is valid on a type declaration or at a type keyword?</summary>
-        private static bool IsPossibleTypeModifierOrTypeKeyword(SyntaxKind kind)
+        private static bool IsTypeModifierOrTypeKeyword(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -1302,7 +1302,7 @@ tryAgain:
             if (!parsingStatementNotDeclaration)
             {
                 var currentTokenKind = this.CurrentToken.Kind;
-                if (IsPossibleTypeModifierOrTypeKeyword(currentTokenKind) ||
+                if (IsTypeModifierOrTypeKeyword(currentTokenKind) ||
                     currentTokenKind == SyntaxKind.EventKeyword ||
                     (currentTokenKind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword && PeekToken(1).Kind == SyntaxKind.OperatorKeyword))
                 {
@@ -8058,7 +8058,8 @@ done:;
                 return false;
             }
 
-            if (GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None && SyntaxFacts.IsContextualKeyword(nextToken.Kind))
+            DeclarationModifiers modifier = GetModifierExcludingScoped(nextToken);
+            if (modifier == DeclarationModifiers.Partial)
             {
                 if (SyntaxFacts.IsPredefinedType(PeekToken(2).Kind))
                 {
@@ -8067,10 +8068,14 @@ done:;
 
                 // class, struct, enum, interface keywords, but also other modifiers that are not allowed after 
                 // partial keyword but start class declaration, so we can assume the user just swapped them.
-                if (IsPossibleTypeModifierOrTypeKeyword(PeekToken(2).Kind))
+                if (IsTypeModifierOrTypeKeyword(PeekToken(2).Kind))
                 {
                     return false;
                 }
+            }
+            else if (modifier != DeclarationModifiers.None)
+            {
+                return false;
             }
 
             bool? typedIdentifier = IsPossibleTypedIdentifierStart(nextToken, PeekToken(2), allowThisKeyword: true);
