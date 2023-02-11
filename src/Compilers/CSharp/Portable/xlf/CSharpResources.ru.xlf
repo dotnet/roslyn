@@ -93,8 +93,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter">
-        <source>A primary constructor parameter of a readonly type cannot be assigned to (except in a constructor or init-only setter of the type or a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be assigned to (except in a constructor or init-only setter of the type or a variable initializer)</target>
+        <source>A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</source>
+        <target state="new">A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter2">
@@ -1363,8 +1363,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
-        <source>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)</source>
-        <target state="new">A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)</target>
+        <source>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</source>
+        <target state="new">A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter">

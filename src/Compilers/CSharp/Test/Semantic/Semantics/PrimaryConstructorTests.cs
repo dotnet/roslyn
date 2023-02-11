@@ -13575,7 +13575,7 @@ readonly struct S1(int x)
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS9509: A primary constructor parameter of a readonly type cannot be assigned to (except in a constructor or init-only setter of the type or a variable initializer)
+                // (6,9): error CS9509: A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)
                 //         x = 1;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter, "x").WithLocation(6, 9)
                 );
@@ -13880,15 +13880,26 @@ readonly struct S1(int x)
     static int M6(in int x) => throw null;
 
     readonly int y = M2(out x) + M4(ref x) + M6(in x);
+
+    int Z
+    {
+        get => x;
+        init
+        {
+            M2(out x);
+            M4(ref x);
+            M6(in x);
+        }
+    }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
 
             comp.VerifyEmitDiagnostics(
-                // (4,25): error CS9511: A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)
+                // (4,25): error CS9511: A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)
                 //     void M1() => M2(out x);
                 Diagnostic(ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter, "x").WithLocation(4, 25),
-                // (7,25): error CS9511: A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in a variable initializer)
+                // (7,25): error CS9511: A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)
                 //     void M3() => M4(ref x);
                 Diagnostic(ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter, "x").WithLocation(7, 25)
                 );
