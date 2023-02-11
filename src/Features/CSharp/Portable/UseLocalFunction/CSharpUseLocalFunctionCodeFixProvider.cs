@@ -318,6 +318,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static EqualsValueClauseSyntax GetDefaultValue(IParameterSymbol parameter)
-            => SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
+            => SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(CSharpSyntaxGenerator.Instance, parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
     }
 }

@@ -21,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class VisualBasicCodeGenerationService
         Inherits AbstractCodeGenerationService(Of VisualBasicCodeGenerationContextInfo)
 
-        Public Sub New(provider As HostLanguageServices)
-            MyBase.New(provider.GetService(Of ISymbolDeclarationService)())
+        Public Sub New(languageServices As LanguageServices)
+            MyBase.New(languageServices)
         End Sub
 
         Public Overrides ReadOnly Property DefaultOptions As CodeGenerationOptions
