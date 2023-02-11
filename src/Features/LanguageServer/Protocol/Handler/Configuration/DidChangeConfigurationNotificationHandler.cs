@@ -3,22 +3,34 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
-    internal class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>, IOnInitialized
+    internal partial class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>, IOnInitialized
     {
+        private static readonly ImmutableArray<IOption2> s_supportedGlobalOptions = ImmutableArray.Create<IOption2>(
+            LspOptions.MaxCompletionListSize,
+            LspOptions.LspSemanticTokensFeatureFlag,
+            LspOptions.LspEditorFeatureFlag);
+
+        private readonly ILspLogger _lspLogger;
+        private readonly IGlobalOptionService _globalOptionService;
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
         private readonly Guid _registrationId;
 
-        public DidChangeConfigurationNotificationHandler(IClientLanguageServerManager clientLanguageServerManager)
+        public DidChangeConfigurationNotificationHandler(ILspLogger logger, IGlobalOptionService globalOptionService, IClientLanguageServerManager clientLanguageServerManager)
         {
+            _lspLogger = logger;
+            _globalOptionService = globalOptionService;
             _clientLanguageServerManager = clientLanguageServerManager;
             _registrationId = Guid.NewGuid();
         }
@@ -28,37 +40,49 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         public bool RequiresLSPSolution => true;
 
         [LanguageServerEndpoint(LSP.Methods.WorkspaceDidChangeConfigurationName)]
-        public async Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
-        {
-            var configParams = new ConfigurationParams()
-            {
-                Items = new[]
-                {
-                    new ConfigurationItem()
-                    {
-                        Section = "dotnet.server.trace"
-                    },
-                }
-            };
+        public Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
+            => RefreshOptionsAsync(cancellationToken);
 
-            var option = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JArray>(
-                LSP.Methods.WorkspaceConfigurationName, configParams, cancellationToken).ConfigureAwait(false);
+        private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
+        {
+            var globalConfigurations = s_supportedGlobalOptions.SelectAsArray(option => new ConfigurationItem() { ScopeUri = null, Section = option.Definition.ConfigName });
+            var configurations = await GetConfigurationsAsync(globalConfigurations, cancellationToken).ConfigureAwait(false);
+            // TODO: For .editorconfig options, there should be a document-based (uri) to options value service.
         }
 
-        public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<string>> GetConfigurationsAsync(ImmutableArray<ConfigurationItem> configurationItems, CancellationToken cancellationToken)
         {
-            if (clientCapabilities?.Workspace?.DidChangeConfiguration?.DynamicRegistration is true)
+            try
             {
-                await _clientLanguageServerManager.SendRequestAsync<RegistrationParams, JObject>(
-                    methodName: Methods.ClientRegisterCapabilityName,
-                    @params: new RegistrationParams()
-                    {
-                        Registrations = new[]
-                        {
-                            new Registration { Id = _registrationId.ToString(), Method = Methods.WorkspaceDidChangeConfigurationName, RegisterOptions = null }
-                        }
-                    },
-                    cancellationToken).ConfigureAwait(false);
+                var configurationParams = new ConfigurationParams() { Items = configurationItems.AsArray() };
+
+                var options = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JArray>(
+                    Methods.WorkspaceConfigurationName, configurationParams, cancellationToken).ConfigureAwait(false);
+
+                if (options.Count != configurationItems.Length)
+                {
+                    _lspLogger.LogError($"Unexpected configuration number from the response of {Methods.WorkspaceConfigurationName}, expected: {configurationItems.Length}, actual: {options.Count}.");
+                    return ImmutableArray<string>.Empty;
+                }
+
+                return options.SelectAsArray(token => token.Value<string>());
+            }
+            catch (Exception e)
+            {
+                _lspLogger.LogException(e, $"Exception occurs when make {Methods.WorkspaceConfigurationName}.");
+            }
+
+            return ImmutableArray<string>.Empty;
+        }
+
+        private void UpdateOption<T>(string value, IOption2<T> option)
+        {
+            if (option.Definition.Serializer.TryParse(value, out var result) || result is not T)
+            {
+            }
+            else
+            {
+                _lspLogger.LogError($"Can't parse {result} from client to type: {}");
             }
         }
     }
