@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (RequiresRefOrOut(valueKind))
                 {
-                    errorCode = ErrorCode.ERR_RefReadonly2;
+                    errorCode = ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter2;
                 }
                 else
                 {

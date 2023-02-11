@@ -14314,8 +14314,26 @@ struct S2
 readonly struct S1(S2 x)
 {
     void M1() => M2(out x.F);
+    static int M2(out int x) => throw null;
 
-    static void M2(out int x) => throw null;
+    void M3() => M4(ref x.F);
+    static int M4(ref int x) => throw null;
+
+    void M5() => M6(in x.F);
+    static int M6(in int x) => throw null;
+
+    readonly int y = M2(out x.F) + M4(ref x.F) + M6(in x.F);
+
+    int Z
+    {
+        get => x.F;
+        init
+        {
+            M2(out x.F);
+            M4(ref x.F);
+            M6(in x.F);
+        }
+    }
 }
 
 struct S2
@@ -14323,13 +14341,15 @@ struct S2
     public int F;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (4,25): error CS1649: Members of readonly field 'S2 x' cannot be used as a ref or out value (except in a constructor)
+                // (4,25): error CS9514: Members of primary constructor parameter 'S2 x' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)
                 //     void M1() => M2(out x.F);
-                Diagnostic(ErrorCode.ERR_RefReadonly2, "x.F").WithArguments("S2 x").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(4, 25),
+                // (7,25): error CS9514: Members of primary constructor parameter 'S2 x' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)
+                //     void M3() => M4(ref x.F);
+                Diagnostic(ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(7, 25)
                 );
         }
 
