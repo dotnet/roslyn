@@ -247,6 +247,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                         {
                             var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
 
+                            // If we are generating member names ensure we don't provide suggestions that already exist in that type
+                            if (kind.SymbolKind is SymbolKind.Field or SymbolKind.Property ||
+                                kind.MethodKind is not null)
+                            {
+                                var containingType = context.ContainingTypeDeclaration is null ? null : context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeDeclaration, cancellationToken);
+
+                                if (containingType is not null)
+                                {
+                                    name = CodeAnalysis.Shared.Utilities.NameGenerator.GenerateUniqueName(name,
+                                        n => context.SemanticModel.LookupSymbols(context.Position, container: containingType, name: n).IsEmpty);
+                                }
+                            }
+
                             // Don't add multiple items for the same name and only add valid identifiers
                             if (name.Length > 1 &&
                                 name != CodeAnalysis.Shared.Extensions.ITypeSymbolExtensions.DefaultParameterName &&
@@ -258,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                                     context.TargetToken.GetRequiredParent(),
                                     container: null,
                                     baseName: name,
-                                    filter: s => IsRelevantSymbolKind(s),
+                                    filter: IsRelevantSymbolKind,
                                     usedNames: Enumerable.Empty<string>(),
                                     cancellationToken: cancellationToken);
 

@@ -2899,6 +2899,69 @@ class V
             await VerifyItemExistsAsync(markup, "customers");
         }
 
+        [Fact, WorkItem(39811, "https://github.com/dotnet/roslyn/issues/39811")]
+        public async Task UniqueNameIfAlreadyExistsInContainingType1()
+        {
+            var markup = """
+                class A
+                {
+                    public enum FileType { C, D }
+                    public FileType $$
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "FileType");
+            await VerifyItemExistsAsync(markup, "FileType1");
+
+            await VerifyItemIsAbsentAsync(markup, "GetType");
+            await VerifyItemExistsAsync(markup, "GetType1");
+        }
+
+        [Fact, WorkItem(39811, "https://github.com/dotnet/roslyn/issues/39811")]
+        public async Task UniqueNameIfAlreadyExistsInContainingType2()
+        {
+            var markup = """
+                class A
+                {
+                    public Action action;
+                    public Action $$
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "action");
+            await VerifyItemExistsAsync(markup, "action1");
+        }
+
+        [Fact, WorkItem(39811, "https://github.com/dotnet/roslyn/issues/39811")]
+        public async Task UniqueNameIfAlreadyExistsInContainingType3()
+        {
+            var markup = """
+                class A
+                {
+                    public Action Action { get; set; }
+                    public Action $$
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "Action");
+            await VerifyItemExistsAsync(markup, "Action1");
+        }
+
+        [Fact, WorkItem(39811, "https://github.com/dotnet/roslyn/issues/39811")]
+        public async Task UniqueNameIfAlreadyExistsInContainingType4()
+        {
+            var markup = """
+                class A
+                {
+                    public Action GetAction() => null;
+                    public Action $$
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "GetAction");
+            await VerifyItemExistsAsync(markup, "GetAction1");
+        }
+
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
         {
             var styles = new[]
