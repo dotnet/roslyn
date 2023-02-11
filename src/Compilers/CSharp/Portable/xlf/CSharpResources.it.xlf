@@ -1382,6 +1382,11 @@
         <target state="translated">Non è possibile restituire per riferimento un membro del parametro '{0}' tramite un parametro ref; può essere restituito solo in un'istruzione return</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefReturnPrimaryConstructorParameter">
+        <source>Cannot return primary constructor parameter '{0}' by reference.</source>
+        <target state="new">Cannot return primary constructor parameter '{0}' by reference.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyPrimaryConstructorParameter">
         <source>A primary constructor parameter of a readonly type cannot be returned by writable reference</source>
         <target state="new">A primary constructor parameter of a readonly type cannot be returned by writable reference</target>

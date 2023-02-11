@@ -14470,11 +14470,10 @@ struct S1(int x)
 ";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (4,34): error CS8354: Cannot return 'this' by reference.
+                // (4,34): error CS9515: Cannot return primary constructor parameter 'x' by reference.
                 //     readonly ref int M1() => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnThis, "x").WithLocation(4, 34)
+                Diagnostic(ErrorCode.ERR_RefReturnPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 34)
                 );
         }
 

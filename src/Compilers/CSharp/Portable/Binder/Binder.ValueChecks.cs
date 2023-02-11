@@ -790,6 +790,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void ReportThisLvalueError(SyntaxNode node, BindValueKind valueKind, bool isValueType, BindingDiagnosticBag diagnostics)
         {
             var errorCode = GetThisLvalueError(valueKind, isValueType);
+            ReportThisLvalueError(node, errorCode, diagnostics);
+        }
+
+        private static void ReportThisLvalueError(SyntaxNode node, ErrorCode errorCode, BindingDiagnosticBag diagnostics)
+        {
             if (errorCode is ErrorCode.ERR_InvalidAddrOp or ErrorCode.ERR_IncrementLvalueExpected or ErrorCode.ERR_RefReturnThis or ErrorCode.ERR_RefLocalOrParamExpected or ErrorCode.ERR_RefLvalueExpected)
             {
                 Error(diagnostics, errorCode, node);
@@ -947,7 +952,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (RequiresAssignableVariable(valueKind) && !backingField.ContainingType.IsReferenceType && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true)
                 {
-                    ReportThisLvalueError(node, valueKind, isValueType: true, diagnostics);
+                    var errorCode = GetThisLvalueError(valueKind, isValueType: true);
+                    ReportThisLvalueError(node, errorCode == ErrorCode.ERR_RefReturnThis ? ErrorCode.ERR_RefReturnPrimaryConstructorParameter : errorCode, diagnostics);
                     return false;
                 }
             }
