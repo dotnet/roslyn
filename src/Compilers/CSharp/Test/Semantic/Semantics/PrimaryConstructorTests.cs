@@ -13936,6 +13936,17 @@ readonly struct S1(S2 x)
     {
         x.F = 1;
     }
+
+    readonly int y = x.F = 2;
+
+    int Z
+    {
+        get => x.F;
+        init
+        {
+            x.F = value;
+        }
+    }
 }
 
 struct S2
@@ -13943,13 +13954,12 @@ struct S2
     public int F;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS1648: Members of readonly field 'S2 x' cannot be modified (except in a constructor or a variable initializer)
+                // (6,9): error CS9512: Members of primary constructor parameter 'S2 x' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)
                 //         x.F = 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonly2, "x.F").WithArguments("S2 x").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(6, 9)
                 );
 
             Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
@@ -14458,14 +14468,13 @@ ref struct S2
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording of ERR_AssgReadonly2 to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
                 // (6,9): error CS9505: Cannot use primary constructor parameter 'x' that has ref-like type inside an instance member
                 //         x.F = ref y; 
                 Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "x").WithArguments("x").WithLocation(6, 9),
-                // (6,9): error CS1648: Members of readonly field 'S2 x' cannot be modified (except in a constructor or a variable initializer)
+                // (6,9): error CS9512: Members of primary constructor parameter 'S2 x' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)
                 //         x.F = ref y; 
-                Diagnostic(ErrorCode.ERR_AssgReadonly2, "x.F").WithArguments("S2 x").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(6, 9)
                 );
 
             Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));

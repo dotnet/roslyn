@@ -97,6 +97,11 @@
         <target state="new">A primary constructor parameter of a readonly type cannot be assigned to (except in a constructor or init-only setter of the type or a variable initializer)</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AssgReadonlyPrimaryConstructorParameter2">
+        <source>Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</source>
+        <target state="new">Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AssignmentInitOnly">
         <source>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</source>
         <target state="translated">L'indicizzatore o la proprietà di sola inizializzazione '{0}' può essere assegnata solo in un inizializzatore di oggetto oppure in 'this' o 'base' in un costruttore di istanza o una funzione di accesso 'init'.</target>

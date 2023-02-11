@@ -2175,6 +2175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AssgReadonlyPrimaryConstructorParameter = 9509,
         ERR_RefReturnReadonlyPrimaryConstructorParameter = 9510,
         ERR_RefReadonlyPrimaryConstructorParameter = 9511,
+        ERR_AssgReadonlyPrimaryConstructorParameter2 = 9512,
 
         #endregion
 
