@@ -149,15 +149,18 @@ internal partial class CSharpRecommendationService
             // actually bind to.
 
             var currentExpression = rangeExpression.LeftOperand;
-            while (currentExpression.ChildNodesAndTokens().Last().AsNode() is ExpressionSyntax child &&
-                   child.GetOperatorPrecedence() < OperatorPrecedence.Primary)
+            if (currentExpression is not null)
             {
-                currentExpression = child;
-            }
+                while (currentExpression.ChildNodesAndTokens().Last().AsNode() is ExpressionSyntax child &&
+                       child.GetOperatorPrecedence() < OperatorPrecedence.Primary)
+                {
+                    currentExpression = child;
+                }
 
-            var precedence = currentExpression.GetOperatorPrecedence();
-            if (precedence != OperatorPrecedence.None && precedence < OperatorPrecedence.Primary)
-                return default;
+                var precedence = currentExpression.GetOperatorPrecedence();
+                if (precedence != OperatorPrecedence.None && precedence < OperatorPrecedence.Primary)
+                    return default;
+            }
 
             return GetSymbolsOffOfExpression(currentExpression);
         }
