@@ -261,70 +261,71 @@ function Get-PackageDir([string]$name, [string]$version = "") {
   return $p
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true, [string]$configuration = $script:configuration, [switch]$runAnalyzers = $false) {
-  # Because we override the C#/VB toolset to build against our LKG package, it is important
-  # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
-  # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
-  # MSBuildAdditionalCommandLineArgs=
-  $args = "/p:TreatWarningsAsErrors=true /nologo /nodeReuse:false /p:Configuration=$configuration ";
-
-  if ($warnAsError) {
-    $args += " /warnaserror"
-  }
-
-  if ($summary) {
-    $args += " /consoleloggerparameters:Verbosity=minimal;summary"
-  } else {        
-    $args += " /consoleloggerparameters:Verbosity=minimal"
-  }
-
-  if ($parallel) {
-    $args += " /m"
-  }
-
-  if ($runAnalyzers) {
-    $args += " /p:RunAnalyzersDuringBuild=true"
-  }
-
-  if ($binaryLog) {
-    if ($logFileName -eq "") {
-      $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
-    }
-    $logFileName = [IO.Path]::ChangeExtension($logFileName, ".binlog")
-    $logFilePath = Join-Path $LogDir $logFileName
-    $args += " /bl:$logFilePath"
-  }
-
-  if ($officialBuildId) {
-    $args += " /p:OfficialBuildId=" + $officialBuildId
-  }
-
-  if ($ci) {
-    $args += " /p:ContinuousIntegrationBuild=true"
-    # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
-    # in our CI builds
-    # https://github.com/NuGet/Home/issues/12373
-    $args += " /p:RestoreUseStaticGraphEvaluation=false"
-  }
-
-  if ($bootstrapDir -ne "") {
-    $args += " /p:BootstrapBuildPath=$bootstrapDir"
-  }
-
-  $args += " $buildArgs"
-  $args += " $projectFilePath"
-  $args += " $properties"
-
-  $buildTool = InitializeBuildTool
-  Exec-Console $buildTool.Path "$($buildTool.Command) $args"
-}
-
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build
 # is located.
 #
 # Important to not set $script:bootstrapDir here yet as we're actually in the process of
 # building the bootstrap.
 function Make-BootstrapBuild([switch]$force32 = $false) {
+
+  function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [string]$configuration = $script:configuration, [switch]$runAnalyzers = $false) {
+    # Because we override the C#/VB toolset to build against our LKG package, it is important
+    # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
+    # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
+    # MSBuildAdditionalCommandLineArgs=
+    $args = "/p:TreatWarningsAsErrors=true /nologo /nodeReuse:false /p:Configuration=$configuration ";
+
+    if ($warnAsError) {
+      $args += " /warnaserror"
+    }
+
+    if ($summary) {
+      $args += " /consoleloggerparameters:Verbosity=minimal;summary"
+    } else {        
+      $args += " /consoleloggerparameters:Verbosity=minimal"
+    }
+
+    if ($parallel) {
+      $args += " /m"
+    }
+
+    if ($runAnalyzers) {
+      $args += " /p:RunAnalyzersDuringBuild=true"
+    }
+
+    if ($binaryLog) {
+      if ($logFileName -eq "") {
+        $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
+      }
+      $logFileName = [IO.Path]::ChangeExtension($logFileName, ".binlog")
+      $logFilePath = Join-Path $LogDir $logFileName
+      $args += " /bl:$logFilePath"
+    }
+
+    if ($officialBuildId) {
+      $args += " /p:OfficialBuildId=" + $officialBuildId
+    }
+
+    if ($ci) {
+      $args += " /p:ContinuousIntegrationBuild=true"
+      # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
+      # in our CI builds
+      # https://github.com/NuGet/Home/issues/12373
+      $args += " /p:RestoreUseStaticGraphEvaluation=false"
+    }
+
+    if ($bootstrapDir -ne "") {
+      $args += " /p:BootstrapBuildPath=$bootstrapDir"
+    }
+
+    $args += " $buildArgs"
+    $args += " $projectFilePath"
+    $args += " $properties"
+
+    $buildTool = InitializeBuildTool
+    Exec-Console $buildTool.Path "$($buildTool.Command) $args"
+  }
+
   Write-Host "Building bootstrap compiler"
 
   $dir = Join-Path $ArtifactsDir "Bootstrap"

@@ -26,6 +26,10 @@ jobs:
     ${{ if ne(parameters.vmImageName, '') }}:
       vmImage: ${{ parameters.vmImageName }}
   timeoutInMinutes: 40
+  variables:
+    ROSLYNCOMMANDLINELOGFILE: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/Build.Server.log'
+    MSBUILDDEBUGCOMM: 1
+    MSBUILDDEBUGPATH: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/MSBuild.comm.log'
 
   steps:
     - template: checkout-unix-task.yml
