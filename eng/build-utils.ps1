@@ -279,16 +279,6 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
       $args += " /warnaserror"
     }
 
-    if ($summary) {
-      $args += " /consoleloggerparameters:Verbosity=minimal;summary"
-    } else {        
-      $args += " /consoleloggerparameters:Verbosity=minimal"
-    }
-
-    if ($parallel) {
-      $args += " /m"
-    }
-
     if ($runAnalyzers) {
       $args += " /p:RunAnalyzersDuringBuild=true"
     }
