@@ -5908,8 +5908,12 @@ $"  ///  </summary>{Environment.NewLine}" +
         private static void VerifySingleLineInitializer(string text, string expected)
         {
             TestNormalizeExpression(
-                "$\"{" + text + "}\"",
-                "$\"{" + expected + "}\"");
+                $$"""
+                $"{{{text}}}"
+                """,
+                $$"""
+                $"{{{expected}}}"
+                """);
             TestNormalizeDeclaration(
                 $"[SomeAttribute({text})]",
                 $"[SomeAttribute({expected})]");
@@ -5920,7 +5924,8 @@ $"  ///  </summary>{Environment.NewLine}" +
                 $"Call({text})",
                 $"Call({expected})");
             TestNormalizeDeclaration(
-                $"class C{{C():base({text}){{}}}}", $$"""
+                $"class C{{C():base({text}){{}}}}",
+                $$"""
                 class C
                 {
                   C() : base({{expected}})
