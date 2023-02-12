@@ -209,6 +209,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 {
                     return 1;
                 }
+
+                if (nextToken.Parent is SwitchExpressionSyntax)
+                {
+                    return 1;
+                }
             }
 
             switch (currentToken.Kind())
