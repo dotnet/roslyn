@@ -50,11 +50,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">DebuggerDisplay-Attribut hinzufügen</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_member_name">
-        <source>Add member name</source>
-        <target state="translated">Membername hinzufügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">NULL-Überprüfungen für alle Parameter hinzufügen</target>
@@ -63,11 +58,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
         <target state="translated">Optionalen Parameter zum Konstruktor hinzufügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
-        <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="translated">Parameter zu "{0}" (und Außerkraftsetzungen/Implementierungen) hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
@@ -548,11 +538,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">In LINQ konvertieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_to_0">
-        <source>Add to '{0}'</source>
-        <target state="translated">Zu "{0}" hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
@@ -2498,11 +2483,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
         <source>zero-width positive lookbehind assertion</source>
         <target state="translated">Positive Lookbehindassertion mit Nullbreite</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
-        <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="translated">In Metadaten gefundene ähnliche Methodensignaturen werden nicht aktualisiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removal_of_document_not_supported">
@@ -4788,11 +4768,6 @@ Diese Version wird verwendet in: {2}</target>
       <trans-unit id="Remove_separators">
         <source>Remove separators</source>
         <target state="translated">Trennzeichen entfernen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parameter_to_0">
-        <source>Add parameter to '{0}'</source>
-        <target state="translated">Parameter zu "{0}" hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor">

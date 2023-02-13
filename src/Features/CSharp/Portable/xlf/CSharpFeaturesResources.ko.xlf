@@ -127,16 +127,6 @@
         <target state="translated">'var' 적용 기본 설정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assign_out_parameters">
-        <source>Assign 'out' parameters</source>
-        <target state="translated">'out' 매개 변수 할당</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_out_parameters_at_start">
-        <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">'out' 매개 변수 할당(시작 시)</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">잠재적인 패턴 변수 선언으로 인해 자동 선택을 사용하지 않도록 설정했습니다.</target>

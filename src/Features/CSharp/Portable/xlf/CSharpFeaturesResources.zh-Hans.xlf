@@ -127,16 +127,6 @@
         <target state="translated">应用 \"var\" 首选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assign_out_parameters">
-        <source>Assign 'out' parameters</source>
-        <target state="translated">为 "out" 参数赋值</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_out_parameters_at_start">
-        <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">为 "out" 赋值 (在开始处)</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">由于可能出现模式变量声明，已禁用自动选择。</target>

@@ -17,6 +17,16 @@
         <target state="translated">Přidejte položku this.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Assign_out_parameters">
+        <source>Assign 'out' parameters</source>
+        <target state="new">Assign 'out' parameters</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters_at_start">
+        <source>Assign 'out' parameters (at start)</source>
+        <target state="new">Assign 'out' parameters (at start)</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
         <target state="translated">Přiřadit k {0}</target>

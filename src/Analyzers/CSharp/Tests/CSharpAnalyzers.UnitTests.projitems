@@ -9,11 +9,15 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AddAnonymousTypeMemberName\AddAnonymousTypeMemberNameTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddInheritdoc\AddInheritdocTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\AddObsoleteAttributeTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\AddParameterTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AliasAmbiguousTypeTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAboveReturnTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAtStartTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToBlockScopedNamespaceAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToFileScopedNamespaceAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisambiguateSameVariable\DisambiguateSameVariableTests.cs" />

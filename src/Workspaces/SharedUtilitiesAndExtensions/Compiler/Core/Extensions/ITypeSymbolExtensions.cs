@@ -634,11 +634,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool? IsMutableValueType(this ITypeSymbol type)
         {
-            if (type.IsNullable())
+            if (type.IsNullable(out var underlyingType))
             {
                 // Nullable<T> can only be mutable if T is mutable. This case ensures types like 'int?' are treated as
                 // immutable.
-                type = type.GetTypeArguments()[0];
+                type = underlyingType;
             }
 
             switch (type.SpecialType)

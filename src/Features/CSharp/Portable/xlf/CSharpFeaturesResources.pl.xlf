@@ -127,16 +127,6 @@
         <target state="translated">Zastosuj preferencje „var”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assign_out_parameters">
-        <source>Assign 'out' parameters</source>
-        <target state="translated">Przypisz parametry „out”</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_out_parameters_at_start">
-        <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">Przypisz parametry „out” (na początku)</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">Automatyczne wybieranie zostało wyłączone z powodu możliwej deklaracji zmiennej wzorca.</target>
