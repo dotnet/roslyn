@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 foreach (var data in codeFixData)
                 {
                     // We create the mandatory data.CreateChangedSolutionNonCascading fix first.
-                    var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
+                    var title = GetCodeFixTitle(CodeFixesResources.Add_parameter_to_0, data.Method, includeParameters: true);
                     var codeAction = CodeAction.Create(
                         title,
                         data.CreateChangedSolutionNonCascading,
@@ -257,10 +257,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     {
                         // We have two fixes to offer. We nest the two fixes in an inlinable CodeAction 
                         // so the IDE is free to either show both at once or to create a sub-menu.
-                        var titleForNesting = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
-                        var titleCascading = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, data.Method,
+                        var titleForNesting = GetCodeFixTitle(CodeFixesResources.Add_parameter_to_0, data.Method, includeParameters: true);
+                        var titleCascading = GetCodeFixTitle(CodeFixesResources.Add_parameter_to_0_and_overrides_implementations, data.Method,
                                                              includeParameters: true);
-                        codeAction = CodeAction.CodeActionWithNestedActions.Create(
+                        codeAction = CodeAction.Create(
                             title: titleForNesting,
                             ImmutableArray.Create(
                                 codeAction,
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                 var nonCascadingActions = codeFixData.SelectAsArray(data =>
                 {
-                    var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
+                    var title = GetCodeFixTitle(CodeFixesResources.Add_to_0, data.Method, includeParameters: true);
                     return CodeAction.Create(title, data.CreateChangedSolutionNonCascading, equivalenceKey: title);
                 });
 
@@ -292,23 +292,23 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     data => data.CreateChangedSolutionCascading != null,
                     data =>
                     {
-                        var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
+                        var title = GetCodeFixTitle(CodeFixesResources.Add_to_0, data.Method, includeParameters: true);
                         return CodeAction.Create(title, data.CreateChangedSolutionCascading!, equivalenceKey: title);
                     });
 
                 var aMethod = codeFixData.First().Method; // We need to term the MethodGroup and need an arbitrary IMethodSymbol to do so.
-                var nestedNonCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, aMethod, includeParameters: false);
+                var nestedNonCascadingTitle = GetCodeFixTitle(CodeFixesResources.Add_parameter_to_0, aMethod, includeParameters: false);
 
                 // Create a sub-menu entry with all the non-cascading CodeActions.
                 // We make sure the IDE does not inline. Otherwise the context menu gets flooded with our fixes.
-                builder.Add(CodeAction.CodeActionWithNestedActions.Create(nestedNonCascadingTitle, nonCascadingActions, isInlinable: false));
+                builder.Add(CodeAction.Create(nestedNonCascadingTitle, nonCascadingActions, isInlinable: false));
 
                 if (cascadingActions.Length > 0)
                 {
                     // if there are cascading CodeActions create a second sub-menu.
-                    var nestedCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations,
+                    var nestedCascadingTitle = GetCodeFixTitle(CodeFixesResources.Add_parameter_to_0_and_overrides_implementations,
                                                                aMethod, includeParameters: false);
-                    builder.Add(CodeAction.CodeActionWithNestedActions.Create(nestedCascadingTitle, cascadingActions, isInlinable: false));
+                    builder.Add(CodeAction.Create(nestedCascadingTitle, cascadingActions, isInlinable: false));
                 }
 
                 return builder.ToImmutable();

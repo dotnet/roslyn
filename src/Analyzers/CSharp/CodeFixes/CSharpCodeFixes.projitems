@@ -15,12 +15,14 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAnonymousTypeMemberName\CSharpAddAnonymousTypeMemberNameCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\CSharpAddExplicitCastCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\ArgumentFixer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AttributeArgumentFixer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddInheritdoc\AddInheritdocCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\CSharpAddObsoleteAttributeCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\CSharpAddParameterCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\CSharpAliasAmbiguousTypeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceTransform.cs" />
@@ -30,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)DisambiguateSameVariable\CSharpDisambiguateSameVariableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FixReturnType\CSharpFixReturnTypeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\GenerateConstructorDiagnosticIds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.AddNewKeywordAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpAddYieldCodeFixProvider.cs" />
@@ -50,6 +53,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeActionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInterpolatedVerbatimString\CSharpUseInterpolatedVerbatimStringCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\CSharpUseLocalFunctionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNameofInAttribute\CSharpUseNameofInAttributeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternCombinators\CSharpUsePatternCombinatorsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderCodeFixProvider.cs" />

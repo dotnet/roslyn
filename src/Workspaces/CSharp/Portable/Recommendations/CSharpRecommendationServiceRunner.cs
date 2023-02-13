@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Precedence;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -117,12 +119,50 @@ internal partial class CSharpRecommendationService
                     => GetSymbolsOffOfDereferencedExpression(memberAccess.Expression),
 
                 // This code should be executing only if the cursor is between two dots in a dotdot token.
-                RangeExpressionSyntax rangeExpression => GetSymbolsOffOfExpression(rangeExpression.LeftOperand),
+                RangeExpressionSyntax rangeExpression => GetSymbolsOffOfRangeExpression(rangeExpression),
                 QualifiedNameSyntax qualifiedName => GetSymbolsOffOfName(qualifiedName.Left),
                 AliasQualifiedNameSyntax aliasName => GetSymbolsOffOffAlias(aliasName.Alias),
                 MemberBindingExpressionSyntax _ => GetSymbolsOffOfConditionalReceiver(node.GetParentConditionalAccessExpression()!.Expression),
                 _ => default,
             };
+        }
+
+        private RecommendedSymbols GetSymbolsOffOfRangeExpression(RangeExpressionSyntax rangeExpression)
+        {
+            // This commonly occurs when someone has existing dots and types another dot to bring up completion. For example:
+            //
+            //      collection$$.Any()
+            //
+            // producing
+            //
+            //      collection..Any();
+            //
+            // We can get good completion by just getting symbols off of 'collection' there, but with a small catch.
+            // Specifically, we only want to allow this if the precedence would allow for a member-access-expression
+            // here.  This is because the range-expression is much lower precedence so it allows for all sorts of
+            // expressions on the LHS that would not parse into member access expression.
+            //
+            // Note: This can get complex because of cases like   `(int)o..Whatever();`
+            //
+            // Here, we want completion off of `o`, despite the LHS being the entire `(int)o` expr.  So we attempt to
+            // walk down the RHS of the expression before the .., looking to get the final term that the `.` should
+            // actually bind to.
+
+            var currentExpression = rangeExpression.LeftOperand;
+            if (currentExpression is not null)
+            {
+                while (currentExpression.ChildNodesAndTokens().Last().AsNode() is ExpressionSyntax child &&
+                       child.GetOperatorPrecedence() < OperatorPrecedence.Primary)
+                {
+                    currentExpression = child;
+                }
+
+                var precedence = currentExpression.GetOperatorPrecedence();
+                if (precedence != OperatorPrecedence.None && precedence < OperatorPrecedence.Primary)
+                    return default;
+            }
+
+            return GetSymbolsOffOfExpression(currentExpression);
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForGlobalStatementContext()

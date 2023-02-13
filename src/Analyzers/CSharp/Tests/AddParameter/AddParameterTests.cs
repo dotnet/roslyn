@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddParameterCodeFixProvider());
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
@@ -1988,6 +1986,10 @@ namespace N
             await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
+#if !CODE_STYLE
+
+        // CodeStyle layer does not support cross language application of fixes.
+
         [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Cascading_CrossLanguage()
         {
@@ -2057,6 +2059,8 @@ namespace N
 </Workspace>";
             await TestInRegularAndScriptAsync(code, fix, index: 1);
         }
+
+#endif
 
         [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_Positional_MoreThanOneArgumentToMuch()

@@ -87,24 +87,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var currentRoot = root.TrackNodes(nodesToTrack);
 
             var languageVersion = semanticModel.SyntaxTree.Options.LanguageVersion();
-            bool makeStaticIfPossible;
+            var makeStaticIfPossible = false;
 
             if (languageVersion >= LanguageVersion.CSharp8)
             {
-                var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+#if CODE_STYLE
+                var info = new CSharpCodeGenerationContextInfo(
+                    CodeGenerationContext.Default, CSharpCodeGenerationOptions.Default, new CSharpCodeGenerationService(document.Project.Services), root.SyntaxTree.Options.LanguageVersion());
+#else
+                var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+#endif
+
+                var options = (CSharpCodeGenerationOptions)info.Options;
                 makeStaticIfPossible = options.PreferStaticLocalFunction.Value;
-            }
-            else
-            {
-                makeStaticIfPossible = false;
             }
 
             // Process declarations in reverse order so that we see the effects of nested
-            // declarations befor processing the outer decls.
+            // declarations before processing the outer decls.
             foreach (var (localDeclaration, anonymousFunction, references) in nodesFromDiagnostics.OrderByDescending(nodes => nodes.function.SpanStart))
             {
                 var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType;
-                var parameterList = GenerateParameterList(anonymousFunction, delegateType.DelegateInvokeMethod);
+                var parameterList = GenerateParameterList(editor.Generator, anonymousFunction, delegateType.DelegateInvokeMethod);
                 var makeStatic = MakeStatic(semanticModel, makeStaticIfPossible, localDeclaration, cancellationToken);
 
                 var currentLocalDeclaration = currentRoot.GetCurrentNode(localDeclaration);
@@ -242,17 +245,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static ParameterListSyntax GenerateParameterList(
-            AnonymousFunctionExpressionSyntax anonymousFunction, IMethodSymbol delegateMethod)
+            SyntaxGenerator generator, AnonymousFunctionExpressionSyntax anonymousFunction, IMethodSymbol delegateMethod)
         {
             var parameterList = TryGetOrCreateParameterList(anonymousFunction);
             var i = 0;
 
             return parameterList != null
-                ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))
+                ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(generator, parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))
                 : SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(delegateMethod.Parameters.Select(parameter =>
-                    PromoteParameter(SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken()), parameter))));
+                    PromoteParameter(generator, SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken()), parameter))));
 
-            static ParameterSyntax PromoteParameter(ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
+            static ParameterSyntax PromoteParameter(SyntaxGenerator generator, ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
             {
                 // delegateParameter may be null, consider this case: Action x = (a, b) => { };
                 // we will still fall back to object
@@ -264,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
                 if (delegateParameter?.HasExplicitDefaultValue == true)
                 {
-                    parameterNode = parameterNode.WithDefault(GetDefaultValue(delegateParameter));
+                    parameterNode = parameterNode.WithDefault(GetDefaultValue(generator, delegateParameter));
                 }
 
                 return parameterNode;
@@ -317,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             return method.Parameters.IndexOf(p => p.Name == name);
         }
 
-        private static EqualsValueClauseSyntax GetDefaultValue(IParameterSymbol parameter)
-            => SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(CSharpSyntaxGenerator.Instance, parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
+        private static EqualsValueClauseSyntax GetDefaultValue(SyntaxGenerator generator, IParameterSymbol parameter)
+            => SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(generator, parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
     }
 }
