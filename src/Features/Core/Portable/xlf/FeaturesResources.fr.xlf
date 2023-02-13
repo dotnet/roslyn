@@ -2490,11 +2490,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Suppression du document non prise en charge</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">Supprimer le modificateur 'async'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
         <source>Remove unnecessary Imports or usings</source>
         <target state="translated">Supprimer les Imports inutiles ou les usings</target>

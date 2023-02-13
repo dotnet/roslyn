@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
+Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
     Friend Class RemoveAsyncModifierHelpers
         Friend Shared Function RemoveAsyncKeyword(subOrFunctionStatement As MethodStatementSyntax) As MethodStatementSyntax
             Dim modifiers = subOrFunctionStatement.Modifiers

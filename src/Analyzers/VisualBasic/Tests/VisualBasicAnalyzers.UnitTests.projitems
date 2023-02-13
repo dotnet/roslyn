@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypePartial\MakeTypePartialTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\ConsecutiveStatementPlacementTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\MultipleBlankLinesTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveAsyncModifier\RemoveAsyncModifierTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryByVal\RemoveUnnecessaryByValTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\UnsealClassTests.vb" />

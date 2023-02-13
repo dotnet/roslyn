@@ -2490,11 +2490,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">La rimozione del documento non è supportata</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">Rimuovi il modificatore 'async'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
         <source>Remove unnecessary Imports or usings</source>
         <target state="translated">Rimuovi importazioni o utilizzi non necessari</target>

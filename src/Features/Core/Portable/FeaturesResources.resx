@@ -2687,9 +2687,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Inline_0" xml:space="preserve">
     <value>Inline '{0}'</value>
   </data>
-  <data name="Remove_async_modifier" xml:space="preserve">
-    <value>Remove 'async' modifier</value>
-  </data>
   <data name="Extract_base_class" xml:space="preserve">
     <value>Extract base class...</value>
   </data>

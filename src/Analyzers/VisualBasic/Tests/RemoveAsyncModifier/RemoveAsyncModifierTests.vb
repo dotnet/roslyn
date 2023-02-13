@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Testing
-Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(
-    Of Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier.VisualBasicRemoveAsyncModifierCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.RemoteAsyncModifier

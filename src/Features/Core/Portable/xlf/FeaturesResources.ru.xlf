@@ -2490,11 +2490,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Удаление документа не поддерживается</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">Удалить модификатор "async"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
         <source>Remove unnecessary Imports or usings</source>
         <target state="translated">Удалить ненужные операторы Imports или директивы using</target>
