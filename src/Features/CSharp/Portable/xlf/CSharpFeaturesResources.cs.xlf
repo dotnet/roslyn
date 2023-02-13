@@ -672,16 +672,6 @@
         <target state="translated">Automatický výběr je zakázaný kvůli možné deklaraci dekonstrukce.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Upgradovat tento projekt na jazykovou verzi C# {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Upgradovat všechny projekty jazyka C# na jazykovou verzi {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;název třídy&gt;</target>

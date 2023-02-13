@@ -132,6 +132,16 @@
         <target state="translated">Versiegelung der Klasse "{0}" aufheben</target>
         <note />
       </trans-unit>
+      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
+        <source>Upgrade all C# projects to language version '{0}'</source>
+        <target state="new">Upgrade all C# projects to language version '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
+        <source>Upgrade this project to C# language version '{0}'</source>
+        <target state="new">Upgrade this project to C# language version '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Interpolierte ausführliche Zeichenfolge verwenden</target>

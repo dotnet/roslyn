@@ -672,16 +672,6 @@
         <target state="translated">Seleção automática desabilitada devido a uma possível declaração de deconstrução.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Atualizar este projeto para versão de linguagem C# '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Atualizar todos os projetos C# para a versão de linguagem '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;nome da classe&gt;</target>

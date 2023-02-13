@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS9058", // error CS9058: Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.
             });
 
-        public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
-        public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;
+        public override string UpgradeThisProjectResource => CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0;
+        public override string UpgradeAllProjectsResource => CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0;
 
         public override string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics)
             => RequiredVersion(diagnostics).ToDisplayString();

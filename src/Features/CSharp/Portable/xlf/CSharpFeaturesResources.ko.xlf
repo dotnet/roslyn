@@ -672,16 +672,6 @@
         <target state="translated">가능한 분해 선언으로 인하여 자동 선택 사용이 중지되었습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">이 프로젝트를 C# 언어 버전 '{0}'(으)로 업그레이드</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">모든 C# 프로젝트를 언어 버전 '{0}'(으)로 업그레이드</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;클래스 이름&gt;</target>
