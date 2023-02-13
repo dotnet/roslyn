@@ -34,12 +34,13 @@ jobs:
   timeoutInMinutes: 40
   variables:
     artifactName: ${{ parameters.testArtifactName }}
-    ROSLYNCOMMANDLINELOGFILE: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/Build.Server.log'
-    MSBUILDDEBUGCOMM: 1
-    MSBUILDDEBUGPATH: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/MSBuild.comm.log'
 
   steps:
     - template: checkout-windows-task.yml
+
+    - template: insert-build-variables.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
 
     - task: PowerShell@2
       displayName: Restore

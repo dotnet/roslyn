@@ -220,6 +220,10 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
+      - template: insert-build-variables.yml
+        parameters:
+          configuration: Release
+
       - task: PowerShell@2
         displayName: Restore
         inputs:
@@ -264,6 +268,10 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
+      - template: insert-build-variables.yml
+        parameters:
+          configuration: Debug
+
       - script: eng/test-determinism.cmd -configuration Debug
         displayName: Build - Validate determinism
 
@@ -281,6 +289,10 @@ stages:
     timeoutInMinutes: 90
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
+
+      - template: insert-build-variables.yml
+        parameters:
+          configuration: Release
 
       - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
         displayName: Build - Validate correctness
@@ -324,6 +336,10 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
+      - template: insert-build-variables.yml
+        parameters:
+          configuration: Release
+
       - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
         displayName: Run BuildValidator
 
@@ -348,6 +364,10 @@ stages:
     timeoutInMinutes: 35
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
+
+      - template: insert-build-variables.yml
+        parameters:
+          configuration: Debug
 
       - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
         displayName: Build with analyzers
