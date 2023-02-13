@@ -64,7 +64,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override NamedTypeSymbol ContainingType
             => ParameterSymbol.ContainingSymbol.ContainingType;
-
-        // PROTOTYPE(PrimaryConstructors): Test synthesized attributes.
     }
 }

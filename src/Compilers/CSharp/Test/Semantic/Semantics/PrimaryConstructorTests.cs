@@ -14666,6 +14666,91 @@ class C1(int x)
         }
 
         [Fact]
+        public void ParameterCapturing_147_SynthesizedAttributes()
+        {
+            var source = @"
+class C1 (int p1)
+{
+    int M1() => p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp,
+                symbolValidator: (m) =>
+                {
+                    var attr = m.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<FieldSymbol>().Single().GetAttributes();
+                    Assert.Equal(2, attr.Length);
+                    Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attr[0].ToString());
+                    Assert.Equal("System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)", attr[1].ToString());
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_148_SynthesizedAttributes()
+        {
+            var source = @"
+class C1 (nint p1)
+{
+    nint M1() => p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp,
+                symbolValidator: (m) =>
+                {
+                    var attr = m.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<FieldSymbol>().Single().GetAttributes();
+                    Assert.Equal(3, attr.Length);
+                    Assert.Equal("System.Runtime.CompilerServices.NativeIntegerAttribute", attr[0].ToString());
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_149_SynthesizedAttributes()
+        {
+            var source = @"
+class C1 ((int i1, int i2) p1)
+{
+    object M1() => p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp,
+                symbolValidator: (m) =>
+                {
+                    var attr = m.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<FieldSymbol>().Single().GetAttributes();
+                    Assert.Equal(3, attr.Length);
+                    Assert.Equal("System.Runtime.CompilerServices.TupleElementNamesAttribute({\"i1\", \"i2\"})", attr[0].ToString());
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_150_SynthesizedAttributes()
+        {
+            var source = @"
+class C1 (dynamic p1)
+{
+    object M1() => p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp,
+                symbolValidator: (m) =>
+                {
+                    var attr = m.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<FieldSymbol>().Single().GetAttributes();
+                    Assert.Equal(3, attr.Length);
+                    Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute", attr[0].ToString());
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute_01()
         {
             var source = @"
