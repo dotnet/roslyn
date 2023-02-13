@@ -368,6 +368,26 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockStructure.FSha
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockStructure.Spans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockSpan>
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockTypes
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.IFSharpBlockStructureService
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor.FSharpTaskListDescriptor() -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor.FSharpTaskListDescriptor(Microsoft.CodeAnalysis.TaskList.TaskListItemDescriptor descriptor) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor.Text.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Document.get -> Microsoft.CodeAnalysis.Document!
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Document.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.FSharpTaskListItem() -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.FSharpTaskListItem(Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor TaskDescriptor, string! Message, Microsoft.CodeAnalysis.Document! Document, Microsoft.CodeAnalysis.Text.TextSpan Span) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Message.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Message.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Span.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.TaskDescriptor.get -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.TaskDescriptor.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListService
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListService.FSharpTaskListService(Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.IFSharpTaskListService! impl) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListService.GetTaskListItemsAsync(Microsoft.CodeAnalysis.Document! document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaskList.TaskListItemDescriptor> descriptors, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaskList.TaskListItem>>!
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.IFSharpTaskListService
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.IFSharpTaskListService.GetTaskListItemsAsync(Microsoft.CodeAnalysis.Document! document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor> descriptors, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem>>!
 override Microsoft.CodeAnalysis.ExternalAccess.FSharp.FSharpDocumentSpan.GetHashCode() -> int
 override sealed Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCompletionProviderBase.ShouldTriggerCompletion(Microsoft.CodeAnalysis.Host.LanguageServices! languageServices, Microsoft.CodeAnalysis.Text.SourceText! text, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, Microsoft.CodeAnalysis.Completion.CompletionOptions! options, Microsoft.CodeAnalysis.Options.OptionSet! passthroughOptions) -> bool
 override sealed Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCompletionProviderBase.ShouldTriggerCompletion(Microsoft.CodeAnalysis.Text.SourceText! text, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, Microsoft.CodeAnalysis.Options.OptionSet! options) -> bool
@@ -378,6 +398,7 @@ readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debu
 readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.FSharpDebugLocationInfo.UnderlyingObject -> Microsoft.CodeAnalysis.Debugging.DebugLocationInfo
 readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.FSharpInlineHint.DisplayParts -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>
 readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.FSharpInlineHint.Span -> Microsoft.CodeAnalysis.Text.TextSpan
+readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor.Descriptor -> Microsoft.CodeAnalysis.TaskList.TaskListItemDescriptor
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.FSharpBreakpointResolutionResult.CreateLineResult(Microsoft.CodeAnalysis.Document! document, string? locationNameOpt = null) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.FSharpBreakpointResolutionResult!
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.FSharpBreakpointResolutionResult.CreateSpanResult(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, string? locationNameOpt = null) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.FSharpBreakpointResolutionResult!
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.FSharpDocumentSpan.operator !=(Microsoft.CodeAnalysis.ExternalAccess.FSharp.FSharpDocumentSpan d1, Microsoft.CodeAnalysis.ExternalAccess.FSharp.FSharpDocumentSpan d2) -> bool
