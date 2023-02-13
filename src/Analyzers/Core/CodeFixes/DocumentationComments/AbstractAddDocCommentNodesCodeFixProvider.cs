@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         protected abstract string GetValueFromNameAttribute(TXmlNameAttributeSyntax attribute);
         protected abstract SyntaxNode? TryGetDocCommentNode(SyntaxTriviaList parameter);
         protected abstract string GetXmlElementLocalName(TXmlElementSyntax element);
-        protected abstract List<string> GetParameterNames(TMemberDeclarationSyntax method);
+        protected abstract ImmutableArray<string> GetParameterNames(TMemberDeclarationSyntax method);
         protected abstract TXmlElementSyntax GetNewNode(string parameterName, bool isFirstNodeInComment);
 
         protected async Task<Document> AddParamTagAsync(
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var newDocComment = docCommentNode;
             var parameterNames = GetParameterNames(parentMethod);
 
-            for (var index = 0; index < parameterNames.Count; index++)
+            for (var index = 0; index < parameterNames.Length; index++)
             {
                 var parameterName = parameterNames[index];
                 var paramNodes = GetElementNodes(newDocComment, NodeName);
