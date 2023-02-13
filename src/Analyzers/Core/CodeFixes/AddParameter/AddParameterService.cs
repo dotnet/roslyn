@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     if (anySymbolReferencesNotInSource && methodDeclaration == method)
                     {
                         parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(
-                            ConflictAnnotation.Create(FeaturesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
+                            ConflictAnnotation.Create(CodeFixesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                     }
 
                     if (method.MethodKind == MethodKind.ReducedExtension && insertionIndex < existingParameters.Count)
@@ -142,12 +142,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferencesAsync(
             Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
         {
-            var progress = new StreamingProgressCollector();
+            var referencedSymbols = await SymbolFinder.FindReferencesAsync(
+                method, invocationDocument.Project.Solution, cancellationToken).ConfigureAwait(false);
 
-            await SymbolFinder.FindReferencesAsync(
-                method, invocationDocument.Project.Solution, progress: progress,
-                documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
-            var referencedSymbols = progress.GetReferencedSymbols();
             return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
                                     .OfType<IMethodSymbol>()
                                     .Distinct()
