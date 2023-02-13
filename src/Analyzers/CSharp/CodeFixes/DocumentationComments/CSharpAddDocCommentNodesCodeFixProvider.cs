@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 {
@@ -59,14 +60,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
         protected override string GetXmlElementLocalName(XmlElementSyntax element)
             => element.StartTag.Name.LocalName.ValueText;
 
-        protected override List<string> GetParameterNames(MemberDeclarationSyntax member)
+        protected override ImmutableArray<string> GetParameterNames(MemberDeclarationSyntax member)
         {
-            var parameterList = (ParameterListSyntax)member.DescendantNodes(descendIntoChildren: _ => true, descendIntoTrivia: false)
-                                                           .FirstOrDefault(f => f is ParameterListSyntax);
+            var parameterList = (ParameterListSyntax?)member
+                .DescendantNodes(descendIntoChildren: _ => true, descendIntoTrivia: false)
+                .FirstOrDefault(f => f is ParameterListSyntax);
 
-            return parameterList != null
-                   ? parameterList.Parameters.Select(s => s.Identifier.ValueText).ToList()
-                   : new List<string>();
+            return parameterList == null
+                ? ImmutableArray<string>.Empty
+                : parameterList.Parameters.SelectAsArray(s => s.Identifier.ValueText);
         }
 
         protected override XmlElementSyntax GetNewNode(string parameterName, bool isFirstNodeInComment)
