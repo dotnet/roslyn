@@ -122,6 +122,11 @@
         <target state="translated">删除无法访问的代码</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unused_function">
+        <source>Remove unused function</source>
+        <target state="new">Remove unused function</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_return_with_yield_return">
         <source>Replace return with yield return</source>
         <target state="translated">用 yield return 替代 return</target>

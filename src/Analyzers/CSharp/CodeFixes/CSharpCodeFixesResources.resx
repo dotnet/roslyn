@@ -204,6 +204,9 @@
   <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
     <value>Allow unsafe code in this project</value>
   </data>
+  <data name="Remove_unused_function" xml:space="preserve">
+    <value>Remove unused function</value>
+  </data>
   <data name="Upgrade_all_csharp_projects_to_language_version_0" xml:space="preserve">
     <value>Upgrade all C# projects to language version '{0}'</value>
   </data>

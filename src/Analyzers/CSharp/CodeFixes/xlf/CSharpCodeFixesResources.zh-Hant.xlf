@@ -122,6 +122,11 @@
         <target state="translated">移除執行不到的程式碼</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unused_function">
+        <source>Remove unused function</source>
+        <target state="new">Remove unused function</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_return_with_yield_return">
         <source>Replace return with yield return</source>
         <target state="translated">使用 yield return 取代 return</target>

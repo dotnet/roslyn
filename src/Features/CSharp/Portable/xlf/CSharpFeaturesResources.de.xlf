@@ -717,11 +717,6 @@
         <target state="translated">(Empfohlener Name)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">Nicht verwendete Funktion entfernen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">In "foreach" konvertieren</target>

@@ -717,11 +717,6 @@
         <target state="translated">(Önerilen ad)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">Kullanılmayan işlevi kaldır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">'foreach' deyimine dönüştür</target>

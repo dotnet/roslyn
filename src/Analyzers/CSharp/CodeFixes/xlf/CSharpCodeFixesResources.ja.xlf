@@ -122,6 +122,11 @@
         <target state="translated">到達できないコードを削除します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unused_function">
+        <source>Remove unused function</source>
+        <target state="new">Remove unused function</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_return_with_yield_return">
         <source>Replace return with yield return</source>
         <target state="translated">戻り値を 'yield' の戻り値に置き換える</target>
