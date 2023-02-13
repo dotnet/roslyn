@@ -4473,11 +4473,6 @@ Se o especificador de formato "K" for usado sem outros especificadores de format
         <target state="translated">Não é possível carregar o assembly do Analisador {0} : {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Tornar o método síncrono</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">de {0}</target>

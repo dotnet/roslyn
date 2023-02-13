@@ -4473,11 +4473,6 @@ UTC 時刻の場合 (DateTime.Kind プロパティ値が DateTimeKind.Utc)、書
         <target state="translated">アナライザーのアセンブリ {0}: {1} を読み込むことができません</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">同期メソッドに変更します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">{0} から</target>

@@ -828,9 +828,6 @@ Do you want to continue?</value>
   <data name="Unable_to_load_Analyzer_assembly_0_colon_1" xml:space="preserve">
     <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
-  <data name="Make_method_synchronous" xml:space="preserve">
-    <value>Make method synchronous</value>
-  </data>
   <data name="from_0" xml:space="preserve">
     <value>from {0}</value>
   </data>

@@ -4473,11 +4473,6 @@ Si el especificador de formato "K" se usa sin otros especificadores de formato p
         <target state="translated">No se puede cargar el ensamblado del analizador {0}: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Convertir el método en sincrónico</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">desde {0}</target>
