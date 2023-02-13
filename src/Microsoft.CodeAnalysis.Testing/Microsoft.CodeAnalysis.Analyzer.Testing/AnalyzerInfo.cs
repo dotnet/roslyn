@@ -46,10 +46,7 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 lock (s_codeGenerationLock)
                 {
-                    if (s_generatedAnalysisContextType is null)
-                    {
-                        s_generatedAnalysisContextType = GenerateAnalysisContextType();
-                    }
+                    s_generatedAnalysisContextType ??= GenerateAnalysisContextType();
                 }
             }
 
