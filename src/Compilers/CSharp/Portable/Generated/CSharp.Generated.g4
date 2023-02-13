@@ -310,13 +310,19 @@ enum_member_declaration
 
 type_declaration
   : class_declaration
+  | extension_declaration
   | interface_declaration
   | record_declaration
+  | role_declaration
   | struct_declaration
   ;
 
 class_declaration
   : attribute_list* modifier* 'class' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{' member_declaration* '}' ';'?
+  ;
+
+extension_declaration
+  : attribute_list* modifier* syntax_token identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 interface_declaration
@@ -325,6 +331,10 @@ interface_declaration
 
 record_declaration
   : attribute_list* modifier* syntax_token ('class' | 'struct')? identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  ;
+
+role_declaration
+  : attribute_list* modifier* syntax_token identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 struct_declaration

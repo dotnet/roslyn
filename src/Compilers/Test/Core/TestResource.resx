@@ -607,6 +607,8 @@ namespace My
 #endif
 
     }
+    public role R : Underlying, R1, I { }
+    public extension X : Underlying, R1, I { }
     public delegate void Delegate(object P);
     namespace Test
     {
