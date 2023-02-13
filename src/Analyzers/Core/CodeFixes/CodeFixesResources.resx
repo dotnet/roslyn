@@ -171,4 +171,7 @@
   <data name="Make_type_partial" xml:space="preserve">
     <value>Make type partial</value>
   </data>
+  <data name="Add_member_name" xml:space="preserve">
+    <value>Add member name</value>
+  </data>
 </root>

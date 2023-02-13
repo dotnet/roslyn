@@ -1142,9 +1142,6 @@ This version used in: {2}</value>
   <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document</value>
   </data>
-  <data name="Add_member_name" xml:space="preserve">
-    <value>Add member name</value>
-  </data>
   <data name="Convert_to_linq_call_form" xml:space="preserve">
     <value>Convert to LINQ (call form)</value>
   </data>

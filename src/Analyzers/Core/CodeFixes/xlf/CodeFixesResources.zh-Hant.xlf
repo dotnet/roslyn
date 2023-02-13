@@ -27,6 +27,11 @@
         <target state="translated">新增檔案標頭</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="new">Add member name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
         <target state="translated">別名不明確類型 '{0}'</target>

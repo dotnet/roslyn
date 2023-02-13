@@ -374,5 +374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, [NotNullWhen(true)] INamedTypeSymbol? expressionType, CancellationToken cancellationToken)
             => node.IsInExpressionTree(semanticModel, expressionType, cancellationToken);
+
+        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
+            => semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize, cancellationToken);
     }
 }

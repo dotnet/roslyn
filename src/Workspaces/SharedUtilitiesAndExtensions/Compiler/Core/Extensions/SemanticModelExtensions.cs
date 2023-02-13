@@ -4,14 +4,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
+
+#if !CODE_STYLE
+using Humanizer;
+#endif
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SemanticModelExtensions
     {
+        private const string DefaultBuiltInParameterName = "v";
+
         /// <summary>
         /// Gets semantic information, such as type, symbols, and diagnostics, about the parent of a token.
         /// </summary>
@@ -140,6 +149,82 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             static bool ShouldDescendInto(SyntaxNode node, Func<SyntaxNode, bool>? filter)
                 => filter != null ? filter(node) : true;
+        }
+        public static string GenerateNameFromType(this SemanticModel semanticModel, ITypeSymbol type, ISyntaxFacts syntaxFacts, bool capitalize)
+        {
+            var pluralize = semanticModel.ShouldPluralize(type);
+            var typeArguments = type.GetAllTypeArguments();
+
+            // We may be able to use the type's arguments to generate a name if we're working with an enumerable type.
+            if (pluralize && TryGeneratePluralizedNameFromTypeArgument(syntaxFacts, typeArguments, capitalize, out var typeArgumentParameterName))
+            {
+                return typeArgumentParameterName;
+            }
+
+            // If there's no type argument and we have an array type, we should pluralize, e.g. using 'frogs' for 'new Frog[]' instead of 'frog'
+            if (type.TypeKind == TypeKind.Array && typeArguments.IsEmpty)
+            {
+                return Pluralize(type.CreateParameterName(capitalize));
+            }
+
+            // Otherwise assume no pluralization, e.g. using 'immutableArray', 'list', etc. instead of their
+            // plural forms
+            if (type.IsSpecialType() ||
+                type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
+                type.TypeKind == TypeKind.Pointer)
+            {
+                return capitalize ? DefaultBuiltInParameterName.ToUpper() : DefaultBuiltInParameterName;
+            }
+            else
+            {
+                return type.CreateParameterName(capitalize);
+            }
+        }
+
+        private static bool ShouldPluralize(this SemanticModel semanticModel, ITypeSymbol type)
+        {
+            if (type == null)
+                return false;
+
+            // string implements IEnumerable<char>, so we need to specifically exclude it.
+            if (type.SpecialType == SpecialType.System_String)
+                return false;
+
+            var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
+            return type.AllInterfaces.Any(static (i, enumerableType) => i.OriginalDefinition.Equals(enumerableType), enumerableType);
+        }
+
+        private static bool TryGeneratePluralizedNameFromTypeArgument(
+            ISyntaxFacts syntaxFacts,
+            ImmutableArray<ITypeSymbol> typeArguments,
+            bool capitalize,
+            [NotNullWhen(true)] out string? parameterName)
+        {
+            // We only consider generating a name if there's one type argument.
+            // This logic can potentially be expanded upon in the future.
+            if (typeArguments.Length == 1)
+            {
+                // We only want the last part of the type, i.e. we don't want namespaces.
+                var typeArgument = typeArguments.Single().ToDisplayParts().Last().ToString();
+                if (syntaxFacts.IsValidIdentifier(typeArgument))
+                {
+                    typeArgument = Pluralize(typeArgument);
+                    parameterName = capitalize ? typeArgument.ToPascalCase() : typeArgument.ToCamelCase();
+                    return true;
+                }
+            }
+
+            parameterName = null;
+            return false;
+        }
+
+        public static string Pluralize(string word)
+        {
+#if CODE_STYLE
+            return word;
+#else
+            return word.Pluralize();
+#endif
         }
     }
 }
