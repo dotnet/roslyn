@@ -82,6 +82,11 @@
         <target state="translated">Скрыть базовый член</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_0_return_Task_instead_of_void">
+        <source>Make {0} return Task instead of void.</source>
+        <target state="new">Make {0} return Task instead of void.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
         <target state="translated">Передача зафиксированных переменных в качестве аргументов</target>

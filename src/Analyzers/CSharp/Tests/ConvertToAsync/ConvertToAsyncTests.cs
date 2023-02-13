@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ConvertToAsync
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToAsync
 {
     using VerifyCS = CSharpCodeFixVerifier<
         EmptyDiagnosticAnalyzer,
         CSharpConvertToAsyncMethodCodeFixProvider>;
 
-    public class ConvertToAsyncTests
+    public sealed class ConvertToAsyncTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)]
         public async Task CantAwaitAsyncVoid()
