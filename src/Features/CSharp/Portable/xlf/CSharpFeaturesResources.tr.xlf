@@ -202,11 +202,6 @@
         <target state="translated">Özel alanları mümkün olduğunda salt okunur yap</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">'in' anahtar sözcüğünü kaldır</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
         <target state="translated">'New' değiştiricisini kaldır</target>
