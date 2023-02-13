@@ -26,12 +26,13 @@ jobs:
     ${{ if ne(parameters.vmImageName, '') }}:
       vmImage: ${{ parameters.vmImageName }}
   timeoutInMinutes: 40
-  steps:
-    - template: checkout-unix-task.yml
-
-    - template: insert-build-variables.yml
+  variables:
+    - template: variables-build.yml
       parameters:
         configuration: ${{ parameters.configuration }}
+
+  steps:
+    - template: checkout-unix-task.yml
 
     - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
       displayName: Restore

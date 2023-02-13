@@ -34,6 +34,9 @@ jobs:
   timeoutInMinutes: 40
   variables:
     artifactName: ${{ parameters.testArtifactName }}
+    - template: variables-build.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
 
   steps:
     - template: checkout-windows-task.yml

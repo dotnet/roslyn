@@ -217,12 +217,11 @@ stages:
     timeoutInMinutes: 90
     variables:
       compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
-    steps:
-      - template: eng/pipelines/checkout-windows-task.yml
-
-      - template: insert-build-variables.yml
+      - template: variables-build.yml
         parameters:
           configuration: Release
+    steps:
+      - template: eng/pipelines/checkout-windows-task.yml
 
       - task: PowerShell@2
         displayName: Restore
@@ -265,12 +264,12 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
-    steps:
-      - template: eng/pipelines/checkout-windows-task.yml
-
-      - template: insert-build-variables.yml
+    variables:
+      - template: variables-build.yml
         parameters:
           configuration: Debug
+    steps:
+      - template: eng/pipelines/checkout-windows-task.yml
 
       - script: eng/test-determinism.cmd -configuration Debug
         displayName: Build - Validate determinism
@@ -287,12 +286,12 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
-    steps:
-      - template: eng/pipelines/checkout-windows-task.yml
-
-      - template: insert-build-variables.yml
+    variables:
+      - template: variables-build.yml
         parameters:
           configuration: Release
+    steps:
+      - template: eng/pipelines/checkout-windows-task.yml
 
       - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
         displayName: Build - Validate correctness
@@ -333,12 +332,12 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
-    steps:
-      - template: eng/pipelines/checkout-windows-task.yml
-
-      - template: insert-build-variables.yml
+    variables:
+      - template: variables-build.yml
         parameters:
           configuration: Release
+    steps:
+      - template: eng/pipelines/checkout-windows-task.yml
 
       - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
         displayName: Run BuildValidator
@@ -362,12 +361,13 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
     timeoutInMinutes: 35
+    variables:
+      - template: variables-build.yml
+        parameters:
+          configuration: ${{ parameters.configuration }}
+
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
-
-      - template: insert-build-variables.yml
-        parameters:
-          configuration: Debug
 
       - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
         displayName: Build with analyzers
