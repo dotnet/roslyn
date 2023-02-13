@@ -13411,11 +13411,10 @@ struct S1(S1 x)
 }";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Do not refer to the backing field in the error message.
             comp.VerifyEmitDiagnostics(
-                // (2,14): error CS0523: Struct member 'S1.<x>PC__BackingField' of type 'S1' causes a cycle in the struct layout
+                // (2,14): error CS9516: Struct primary constructor parameter 'S1 x' of type 'S1' causes a cycle in the struct layout
                 // struct S1(S1 x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S1.<x>PC__BackingField", "S1").WithLocation(2, 14)
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S1 x", "S1").WithLocation(2, 14)
                 );
         }
 
@@ -13437,12 +13436,12 @@ struct S2(S1 x)
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (2,14): error CS0523: Struct member 'S1.<x>PC__BackingField' of type 'S2' causes a cycle in the struct layout
+                // (2,14): error CS9516: Struct primary constructor parameter 'S2 x' of type 'S2' causes a cycle in the struct layout
                 // struct S1(S2 x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S1.<x>PC__BackingField", "S2").WithLocation(2, 14),
-                // (7,14): error CS0523: Struct member 'S2.<x>PC__BackingField' of type 'S1' causes a cycle in the struct layout
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S2 x", "S2").WithLocation(2, 14),
+                // (7,14): error CS9516: Struct primary constructor parameter 'S1 x' of type 'S1' causes a cycle in the struct layout
                 // struct S2(S1 x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S2.<x>PC__BackingField", "S1").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S1 x", "S1").WithLocation(7, 14)
                 );
         }
 
@@ -13458,9 +13457,9 @@ struct S1<T>(S1<S1<int>> x)
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (2,26): error CS0523: Struct member 'S1<T>.<x>PC__BackingField' of type 'S1<S1<int>>' causes a cycle in the struct layout
+                // (2,26): error CS9516: Struct primary constructor parameter 'S1<S1<int>> x' of type 'S1<S1<int>>' causes a cycle in the struct layout
                 // struct S1<T>(S1<S1<int>> x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S1<T>.<x>PC__BackingField", "S1<S1<int>>").WithLocation(2, 26)
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S1<S1<int>> x", "S1<S1<int>>").WithLocation(2, 26)
                 );
         }
 
@@ -13484,17 +13483,17 @@ struct S2(S1<S2> x)
             var comp = CreateCompilation(source1 + source2);
 
             comp.VerifyEmitDiagnostics(
-                // (7,18): error CS0523: Struct member 'S2.<x>PC__BackingField' of type 'S1<S2>' causes a cycle in the struct layout
+                // (7,18): error CS9516: Struct primary constructor parameter 'S1<S2> x' of type 'S1<S2>' causes a cycle in the struct layout
                 // struct S2(S1<S2> x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S2.<x>PC__BackingField", "S1<S2>").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S1<S2> x", "S1<S2>").WithLocation(7, 18)
                 );
 
             comp = CreateCompilation(source2 + source1);
 
             comp.VerifyEmitDiagnostics(
-                // (2,18): error CS0523: Struct member 'S2.<x>PC__BackingField' of type 'S1<S2>' causes a cycle in the struct layout
+                // (2,18): error CS9516: Struct primary constructor parameter 'S1<S2> x' of type 'S1<S2>' causes a cycle in the struct layout
                 // struct S2(S1<S2> x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S2.<x>PC__BackingField", "S1<S2>").WithLocation(2, 18)
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S1<S2> x", "S1<S2>").WithLocation(2, 18)
                 );
         }
 

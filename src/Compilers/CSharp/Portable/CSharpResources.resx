@@ -7475,4 +7475,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnPrimaryConstructorParameter" xml:space="preserve">
     <value>Cannot return primary constructor parameter '{0}' by reference.</value>
   </data>
+  <data name="ERR_StructLayoutCyclePrimaryConstructorParameter" xml:space="preserve">
+    <value>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</value>
+  </data>
 </root>
