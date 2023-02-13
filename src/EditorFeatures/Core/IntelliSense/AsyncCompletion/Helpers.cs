@@ -32,10 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public static RoslynCompletionItem DemoteItem(RoslynCompletionItem item)
         {
             if (!TryGetOriginalIndexOfPromotedItem(item, out _))
-            {
-                Debug.Assert(!item.DisplayText.StartsWith(Completion.Utilities.UnicodeStarAndSpace));
                 return item;
-            }
 
             Debug.Assert(item.DisplayText.StartsWith(Completion.Utilities.UnicodeStarAndSpace));
             return item
