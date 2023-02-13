@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.Options
         /// Note that this property is not (and should not be) used for computing option values or storing options.
         /// </remarks>
         public string? LanguageName { get; }
+
+#if !CODE_STYLE
+        public void WriteToGlobalOptionService(IGlobalOptionService globalOptionService, string value);
+#endif
     }
 
     /// <inheritdoc cref="ISingleValuedOption"/>
@@ -72,6 +76,19 @@ namespace Microsoft.CodeAnalysis.Options
             Debug.Assert(LanguageName is LanguageNames.CSharp == Definition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
             Debug.Assert(LanguageName is LanguageNames.VisualBasic == Definition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
         }
+#if !CODE_STYLE
+        public void WriteToGlobalOptionService(IGlobalOptionService globalOptionService, string value)
+        {
+            if (Definition.Serializer.TryParseValue(value, out var result))
+            {
+                globalOptionService.SetGlobalOption(this, result);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(value);
+            }
+        }
+#endif
 
         public T DefaultValue => Definition.DefaultValue;
         OptionDefinition IOption2.Definition => Definition;

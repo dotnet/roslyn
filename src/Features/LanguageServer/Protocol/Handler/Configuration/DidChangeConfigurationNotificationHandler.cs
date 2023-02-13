@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -17,10 +19,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
     internal partial class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>, IOnInitialized
     {
-        private static readonly ImmutableArray<IOption2> s_supportedGlobalOptions = ImmutableArray.Create<IOption2>(
+        private static readonly ImmutableArray<string> s_supportLanguages = ImmutableArray.Create(LanguageNames.CSharp);
+
+        private static readonly ImmutableArray<ISingleValuedOption> s_supportedGlobalOptions = ImmutableArray.Create<ISingleValuedOption>(
             LspOptions.MaxCompletionListSize,
             LspOptions.LspSemanticTokensFeatureFlag,
             LspOptions.LspEditorFeatureFlag);
+
+        private static readonly ImmutableArray<IPerLanguageValuedOption> s_supportedPerLanguageOptions = ImmutableArray<IPerLanguageValuedOption>.Empty;
 
         private readonly ILspLogger _lspLogger;
         private readonly IGlobalOptionService _globalOptionService;
@@ -46,7 +52,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
         {
             var globalConfigurations = s_supportedGlobalOptions.SelectAsArray(option => new ConfigurationItem() { ScopeUri = null, Section = option.Definition.ConfigName });
-            var configurations = await GetConfigurationsAsync(globalConfigurations, cancellationToken).ConfigureAwait(false);
+            var globalPerLanguageConfigurations = s_supportedPerLanguageOptions.SelectManyAsArray(
+                option => GetPerLanguageOptionNames(option).Select(name => new ConfigurationItem() { ScopeUri = null, Section = name }));
+            var configurationItems = globalConfigurations.Concat(globalPerLanguageConfigurations);
+
+            var configurationsFromClient = await GetConfigurationsAsync(configurationItems, cancellationToken).ConfigureAwait(false);
+
+            for (var i = 0; i < globalConfigurations.Length; i++)
+            {
+                var globalOptions = s_supportedGlobalOptions[i];
+                var configurationValue = configurationsFromClient[i];
+                globalOptions.WriteToGlobalOptionService(_globalOptionService, configurationValue);
+            }
+
+            for (var i = globalConfigurations.Length; i < configurationsFromClient.Length; i++)
+            {
+                var languageName = s_supportLanguages[(i - globalConfigurations.Length) % s_supportLanguages.Length];
+                var perLanguageOptionIndex = (i - globalConfigurations.Length) / s_supportLanguages.Length;
+                var perLanguageGlobalOptions = s_supportedPerLanguageOptions[perLanguageOptionIndex];
+                var configurationValue = configurationsFromClient[i];
+                perLanguageGlobalOptions.WriteToGlobalOptionService(_globalOptionService, languageName, configurationValue);
+            }
+
             // TODO: For .editorconfig options, there should be a document-based (uri) to options value service.
         }
 
@@ -55,7 +82,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             try
             {
                 var configurationParams = new ConfigurationParams() { Items = configurationItems.AsArray() };
-
                 var options = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JArray>(
                     Methods.WorkspaceConfigurationName, configurationParams, cancellationToken).ConfigureAwait(false);
 
@@ -75,15 +101,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             return ImmutableArray<string>.Empty;
         }
 
-        private void UpdateOption<T>(string value, IOption2<T> option)
-        {
-            if (option.Definition.Serializer.TryParse(value, out var result) || result is not T)
+
+        private static IEnumerable<string> GetPerLanguageOptionNames(IPerLanguageValuedOption option)
+            => s_supportLanguages.Select(language =>
             {
-            }
-            else
-            {
-                _lspLogger.LogError($"Can't parse {result} from client to type: {}");
-            }
-        }
+                if (language == LanguageNames.CSharp)
+                    return string.Concat(OptionDefinition.CSharpConfigNamePrefix, ".", option.Definition.ConfigName);
+                if (language == LanguageNames.VisualBasic)
+                    return string.Concat(OptionDefinition.VisualBasicConfigNamePrefix, ".", option.Definition.ConfigName);
+
+                throw ExceptionUtilities.UnexpectedValue(language);
+            });
     }
 }
