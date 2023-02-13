@@ -742,11 +742,6 @@
         <target state="translated">Supprimer la fonction inutilisée</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
-        <source>Add parentheses</source>
-        <target state="translated">Ajouter des parenthèses</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">Convertir en 'foreach'</target>

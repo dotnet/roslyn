@@ -742,11 +742,6 @@
         <target state="translated">使用されていない関数を削除します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
-        <source>Add parentheses</source>
-        <target state="translated">括弧を追加します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">'foreach' に変換する</target>

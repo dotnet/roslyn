@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringInterpolation
+namespace Microsoft.CodeAnalysis.CSharp.ConditionalExpressionInStringInterpolation
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddParenthesesAroundConditionalExpressionInInterpolatedString), Shared]
     internal class CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProvider : CodeFixProvider
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             if (conditionalExpression != null)
             {
                 var documentChangeAction = CodeAction.Create(
-                    CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string,
+                    CSharpCodeFixesResources.Add_parentheses_around_conditional_expression_in_interpolated_string,
                     c => GetChangedDocumentAsync(context.Document, conditionalExpression.SpanStart, c),
-                    nameof(CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string));
+                    nameof(CSharpCodeFixesResources.Add_parentheses_around_conditional_expression_in_interpolated_string));
                 context.RegisterCodeFix(documentChangeAction, diagnostic);
             }
         }

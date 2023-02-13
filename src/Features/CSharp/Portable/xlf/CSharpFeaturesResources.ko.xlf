@@ -742,11 +742,6 @@
         <target state="translated">사용하지 않는 함수 제거</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
-        <source>Add parentheses</source>
-        <target state="translated">괄호 추가</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">'foreach'로 변환</target>
