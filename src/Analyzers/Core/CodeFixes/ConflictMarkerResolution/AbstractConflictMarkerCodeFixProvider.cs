@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
 
+#if !CODE_STYLE
+
         /// <summary>
         /// 'Fix merge conflict markers' gets special privileges.  A core user scenario around them is that a user does
         /// a source control merge, gets conflicts, and then wants to open and edit them in the IDE very quickly.
@@ -59,6 +61,8 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         /// </summary>
         private protected override CodeActionRequestPriority ComputeRequestPriority()
             => CodeActionRequestPriority.High;
+
+#endif
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -263,13 +267,13 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
             var topText = startLine.ToString()[s_mergeConflictLength..].Trim();
             var takeTopText = string.IsNullOrWhiteSpace(topText)
-                ? FeaturesResources.Take_top
-                : string.Format(FeaturesResources.Take_0, topText);
+                ? CodeFixesResources.Take_top
+                : string.Format(CodeFixesResources.Take_0, topText);
 
             var bottomText = endLine.ToString()[s_mergeConflictLength..].Trim();
             var takeBottomText = string.IsNullOrWhiteSpace(bottomText)
-                ? FeaturesResources.Take_bottom
-                : string.Format(FeaturesResources.Take_0, bottomText);
+                ? CodeFixesResources.Take_bottom
+                : string.Format(CodeFixesResources.Take_0, bottomText);
 
             var startPos = startLine.Start;
             var firstMiddlePos = firstMiddleLine.Start;
@@ -287,7 +291,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                     TakeBottomEquivalenceKey),
                 context.Diagnostics);
             context.RegisterCodeFix(
-                CodeAction.Create(FeaturesResources.Take_both,
+                CodeAction.Create(CodeFixesResources.Take_both,
                     c => TakeBothAsync(document, startPos, firstMiddlePos, secondMiddlePos, endPos, c),
                     TakeBothEquivalenceKey),
                 context.Diagnostics);

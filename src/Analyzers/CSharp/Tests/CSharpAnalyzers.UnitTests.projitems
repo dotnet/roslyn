@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAboveReturnTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAtStartTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConditionalExpressionInStringInterpolation\CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProviderTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConflictMarkerResolution\ConflictMarkerResolutionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToBlockScopedNamespaceAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToFileScopedNamespaceAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\ConvertToAsyncTests.cs" />

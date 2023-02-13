@@ -107,6 +107,26 @@
         <target state="translated">Suprimir o configurar incidencias</target>
         <note />
       </trans-unit>
+      <trans-unit id="Take_0">
+        <source>Take '{0}'</source>
+        <target state="new">Take '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_both">
+        <source>Take both</source>
+        <target state="new">Take both</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_bottom">
+        <source>Take bottom</source>
+        <target state="new">Take bottom</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_top">
+        <source>Take top</source>
+        <target state="new">Take top</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Update_suppression_format">
         <source>Update suppression format</source>
         <target state="translated">Actualizar el formato de eliminación</target>

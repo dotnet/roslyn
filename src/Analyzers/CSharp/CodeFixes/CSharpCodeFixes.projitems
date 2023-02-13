@@ -28,6 +28,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAboveReturnCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAtStartCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConditionalExpressionInStringInterpolation\CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConflictMarkerResolution\CSharpResolveConflictMarkerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceTransform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
