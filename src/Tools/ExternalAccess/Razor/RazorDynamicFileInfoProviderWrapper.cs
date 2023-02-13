@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             return _innerDynamicFileInfoProvider.Value.RemoveDynamicFileInfoAsync(projectId, projectFilePath, filePath, cancellationToken);
         }
 
-        private void InnerDynamiFileInfoProvider_Updated(object sender, string e)
+        private void InnerDynamicFileInfoProvider_Updated(object? sender, string e)
         {
             Updated?.Invoke(this, e);
         }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 }
 
                 _attached = true;
-                _innerDynamicFileInfoProvider.Value.Updated += InnerDynamiFileInfoProvider_Updated;
+                _innerDynamicFileInfoProvider.Value.Updated += InnerDynamicFileInfoProvider_Updated;
 
                 return true;
             }
