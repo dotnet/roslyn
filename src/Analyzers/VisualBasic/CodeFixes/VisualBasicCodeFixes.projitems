@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\VisualBasicAddObsoleteAttributeCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddParameter\VisualBasicAddParameterCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\VisualBasicAliasAmbiguousTypeCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\VisualBasicConvertToAsyncFunctionCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\VisualBasicConvertGetTypeToNameOfCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\VisualBasicFormattingCodeFixProvider.vb" />

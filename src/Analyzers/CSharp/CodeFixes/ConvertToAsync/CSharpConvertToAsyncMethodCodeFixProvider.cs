@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.Async;
+using Microsoft.CodeAnalysis.ConvertToAsync;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConvertToAsync
 
             // We only call GetDescription when we already know that we succeeded (so it's safe to
             // assume we have a methodNode here).
-            return string.Format(CSharpFeaturesResources.Make_0_return_Task_instead_of_void, methodNode!.WithBody(null));
+            return string.Format(CSharpCodeFixesResources.Make_0_return_Task_instead_of_void, methodNode!.WithBody(null));
         }
 
         protected override async Task<Tuple<SyntaxTree, SyntaxNode>?> GetRootInOtherSyntaxTreeAsync(

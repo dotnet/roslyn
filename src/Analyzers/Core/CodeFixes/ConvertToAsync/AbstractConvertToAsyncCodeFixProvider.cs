@@ -9,10 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.Async
+namespace Microsoft.CodeAnalysis.ConvertToAsync
 {
     internal abstract partial class AbstractConvertToAsyncCodeFixProvider : CodeFixProvider
     {

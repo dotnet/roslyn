@@ -198,4 +198,7 @@
   <data name="Add_parentheses_around_conditional_expression_in_interpolated_string" xml:space="preserve">
     <value>Add parentheses</value>
   </data>
+  <data name="Make_0_return_Task_instead_of_void" xml:space="preserve">
+    <value>Make {0} return Task instead of void.</value>
+  </data>
 </root>

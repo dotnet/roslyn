@@ -8,7 +8,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeFixes.Async
+Imports Microsoft.CodeAnalysis.ConvertToAsync
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ConvertToAsync
 
         Protected Overrides Async Function GetDescriptionAsync(diagnostic As Diagnostic, node As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of String)
             Dim methodNode = Await GetMethodFromExpressionAsync(node, semanticModel, cancellationToken).ConfigureAwait(False)
-            Return String.Format(VBFeaturesResources.Make_0_an_Async_Function, methodNode.Item2.BlockStatement)
+            Return String.Format(VisualBasicCodeFixesResources.Make_0_an_Async_Function, methodNode.Item2.BlockStatement)
         End Function
 
         Protected Overrides Async Function GetRootInOtherSyntaxTreeAsync(node As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxTree, SyntaxNode))

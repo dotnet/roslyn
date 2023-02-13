@@ -1452,11 +1452,6 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
         <target state="translated">Włącza raportowanie określonych ostrzeżeń we fragmencie pliku źródłowego poniżej bieżącego wiersza.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">Ustaw funkcję {0} jako funkcję asynchroniczną.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">Użyj poprawnej zmiennej sterującej</target>
