@@ -3,17 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 using EditorAsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
-using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
@@ -29,6 +27,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             return item.WithDisplayText(Completion.Utilities.UnicodeStarAndSpace + item.DisplayText)
             .AddProperty(PromotedItemOriginalIndexPropertyName, index.ToString());
+        }
+
+        public static RoslynCompletionItem DemoteItem(RoslynCompletionItem item)
+        {
+            if (!TryGetOriginalIndexOfPromotedItem(item, out _))
+            {
+                Debug.Assert(!item.DisplayText.StartsWith(Completion.Utilities.UnicodeStarAndSpace));
+                return item;
+            }
+
+            Debug.Assert(item.DisplayText.StartsWith(Completion.Utilities.UnicodeStarAndSpace));
+            return item
+                .WithDisplayText(item.DisplayText[Completion.Utilities.UnicodeStarAndSpace.Length..])
+                .WithProperties(item.Properties.Remove(PromotedItemOriginalIndexPropertyName));
         }
 
         public static bool TryGetOriginalIndexOfPromotedItem(RoslynCompletionItem item, out int originalIndex)

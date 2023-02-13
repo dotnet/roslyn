@@ -197,6 +197,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
+            // This might be an item promoted by us, make sure we restore it to the original state first.
+            roslynItem = Helpers.DemoteItem(roslynItem);
             CompletionChange change;
 
             // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not canceled.
