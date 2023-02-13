@@ -5883,6 +5883,27 @@ $"  ///  </summary>{Environment.NewLine}" +
         }
 
         [Fact]
+        public void TestNormalizeSwitchExpressionCloseBrace()
+        {
+            TestNormalizeStatement(
+                """data switch{_=>Goo()}""",
+                """
+                data switch
+                {
+                  _ => Goo()
+                }
+                """);
+            TestNormalizeStatement(
+                """data switch{_=>Goo(),}""",
+                """
+                data switch
+                {
+                  _ => Goo(),
+                }
+                """);
+        }
+
+        [Fact]
         public void TestNormalizeSwitchExpressionAsArgument()
         {
             TestNormalizeStatement(
