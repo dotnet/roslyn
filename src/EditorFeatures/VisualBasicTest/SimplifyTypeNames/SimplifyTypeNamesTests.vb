@@ -2485,5 +2485,16 @@ Module Module1
 End Module",
                 options:=PreferIntrinsicTypeInMemberAccess())
         End Function
+
+        <Fact, WorkItem(34494, "https://github.com/dotnet/roslyn/issues/34494")>
+        Public Async Function DoNotIntroduceIntrinsicInNameOf() As Task
+            Await TestMissingAsync(
+"Imports System
+Module Module1
+    Sub Main()
+        Dim NameOfString as String = NameOf([|[String]|])
+    End Sub
+End Module", New TestParameters(options:=PreferIntrinsicPredefinedTypeEverywhere()))
+        End Function
     End Class
 End Namespace
