@@ -112,6 +112,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
 
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
+#endif
         protected abstract void ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,

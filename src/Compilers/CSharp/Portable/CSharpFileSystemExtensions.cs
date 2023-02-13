@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <exception cref="ArgumentNullException">Compilation or path is null.</exception>
         /// <exception cref="ArgumentException">Path is empty or invalid.</exception>
         /// <exception cref="IOException">An error occurred while reading or writing a file.</exception>
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         public static EmitResult Emit(
             this CSharpCompilation compilation,
             string outputPath,
