@@ -263,7 +263,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}Expected '1' iterations but found '2' iterations.", exception.Message);
+            new DefaultVerifier().EqualOrDiff(
+                """
+                Context: Iterative code fix application
+                Expected '1' iterations but found '2' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [Theory]
@@ -309,7 +314,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}{message}", exception.Message);
+            new DefaultVerifier().EqualOrDiff(
+                $"""
+                Context: Iterative code fix application
+                {message}
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [Fact]
@@ -342,7 +352,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Fix all in document{Environment.NewLine}Expected '1' iterations but found '2' iterations.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Fix all in document
+                Expected '1' iterations but found '2' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [Theory]
@@ -388,7 +403,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            new DefaultVerifier().EqualOrDiff($"Context: Fix all in document{Environment.NewLine}{message}", exception.Message);
+            new DefaultVerifier().EqualOrDiff(
+                $"""
+                Context: Fix all in document
+                {message}
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [Theory]
@@ -491,7 +511,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: {context}{Environment.NewLine}Expected '2' iterations but found '1' iterations.", exception.Message);
+            Assert.Equal(
+                $"""
+                Context: {context}
+                Expected '2' iterations but found '1' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [Fact]
@@ -564,7 +589,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}The code action equivalence key and index must be consistent when both are specified.", exception.Message);
+            new DefaultVerifier().EqualOrDiff(
+                """
+                Context: Iterative code fix application
+                The code action equivalence key and index must be consistent when both are specified.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         private class CSharpTest : CSharpCodeFixTest<LiteralUnderFiveAnalyzer, IncrementFix>

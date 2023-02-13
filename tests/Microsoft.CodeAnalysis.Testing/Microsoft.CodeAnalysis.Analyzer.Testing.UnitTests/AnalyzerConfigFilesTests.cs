@@ -65,12 +65,15 @@ namespace Microsoft.CodeAnalysis.Testing
             });
 
             var expected =
-                "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
-                Environment.NewLine +
-                "Diagnostics:" + Environment.NewLine +
-                "// /0/Test0.cs(1,23): warning Brace: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24)," + Environment.NewLine +
-                Environment.NewLine;
+                """
+                Mismatch between number of diagnostics returned, expected "0" actual "1"
+
+                Diagnostics:
+                // /0/Test0.cs(1,23): warning Brace: message
+                VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24),
+
+
+                """.ReplaceLineEndings();
             Assert.Equal(expected, exception.Message);
         }
 

@@ -75,7 +75,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '0' iterations but found '1' iterations.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                Expected '0' iterations but found '1' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
 
             // Test through the verifier
             exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -83,7 +88,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 await Verify<CodeFixOfferedProvider>.VerifyCodeFixAsync(testCode, testCode);
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '0' iterations but found '1' iterations.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                Expected '0' iterations but found '1' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         /// <summary>
@@ -144,7 +154,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '1' iterations but found '0' iterations.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                Expected '1' iterations but found '0' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [ExportCodeFixProvider(LanguageNames.CSharp)]

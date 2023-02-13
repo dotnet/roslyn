@@ -296,7 +296,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}The code action equivalence key and index must be consistent when both are specified.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                The code action equivalence key and index must be consistent when both are specified.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [Fact]
@@ -365,7 +370,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'Expected title' actual:'ThisToBase'", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                items not equal.  expected:'Expected title' actual:'ThisToBase'
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]

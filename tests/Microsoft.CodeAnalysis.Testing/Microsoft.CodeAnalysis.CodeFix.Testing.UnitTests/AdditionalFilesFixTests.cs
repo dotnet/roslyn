@@ -80,7 +80,15 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}content of 'File1.txt' did not match. Diff shown with expected as baseline:{Environment.NewLine}-Wrong file text{Environment.NewLine}+File text{Environment.NewLine}", exception.Message);
+            new DefaultVerifier().EqualOrDiff(
+                """
+                Context: Iterative code fix application
+                content of 'File1.txt' did not match. Diff shown with expected as baseline:
+                -Wrong file text
+                +File text
+
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [Fact]
@@ -104,7 +112,15 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}content of 'File1.txt' did not match. Diff shown with expected as baseline:{Environment.NewLine}-  File text{Environment.NewLine}+File text{Environment.NewLine}", exception.Message);
+            new DefaultVerifier().EqualOrDiff(
+                """
+                Context: Iterative code fix application
+                content of 'File1.txt' did not match. Diff shown with expected as baseline:
+                -  File text
+                +File text
+
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [Fact]
@@ -159,13 +175,16 @@ namespace Microsoft.CodeAnalysis.Testing
             });
 
             var expected =
-                "Context: Diagnostics of fixed state" + Environment.NewLine +
-                "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
-                Environment.NewLine +
-                "Diagnostics:" + Environment.NewLine +
-                "// /0/Test0.cs(1,24): error CS1513: } expected" + Environment.NewLine +
-                "DiagnosticResult.CompilerError(\"CS1513\").WithSpan(1, 24, 1, 24)," + Environment.NewLine +
-                Environment.NewLine;
+                """
+                Context: Diagnostics of fixed state
+                Mismatch between number of diagnostics returned, expected "0" actual "1"
+
+                Diagnostics:
+                // /0/Test0.cs(1,24): error CS1513: } expected
+                DiagnosticResult.CompilerError("CS1513").WithSpan(1, 24, 1, 24),
+
+
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
