@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Testing
     public class MetadataReferenceCollection : List<MetadataReference>
     {
         private static readonly ConcurrentDictionary<string, MetadataReference> s_referencesFromFiles =
-            new ConcurrentDictionary<string, MetadataReference>();
+            new();
 
         public void Add(Assembly assembly)
         {

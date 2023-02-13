@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>New <see cref="CodeFixContext"/>.</returns>
         protected virtual CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
-            => new CodeFixContext(document, span, diagnostics, registerCodeFix, cancellationToken);
+            => new(document, span, diagnostics, registerCodeFix, cancellationToken);
 
         /// <summary>
         /// Creates a new <see cref="FixAllContext"/>.

@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="identifier">The compiler error ID.</param>
         /// <returns>A <see cref="DiagnosticResult"/> for a compiler error with the specified ID.</returns>
         public static DiagnosticResult CompilerError(string identifier)
-            => new DiagnosticResult(identifier, DiagnosticSeverity.Error);
+            => new(identifier, DiagnosticSeverity.Error);
 
         /// <summary>
         /// Creates a <see cref="DiagnosticResult"/> for a compiler warning with the specified ID.
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="identifier">The compiler warning ID.</param>
         /// <returns>A <see cref="DiagnosticResult"/> for a compiler warning with the specified ID.</returns>
         public static DiagnosticResult CompilerWarning(string identifier)
-            => new DiagnosticResult(identifier, DiagnosticSeverity.Warning);
+            => new(identifier, DiagnosticSeverity.Warning);
 
         /// <summary>
         /// Transforms the current <see cref="DiagnosticResult"/> to have the specified <see cref="Severity"/>.

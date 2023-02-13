@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Testing
     {
         private const string ReferenceAssembliesPackageVersion = "1.0.2";
 
-        private static readonly FileSystemSemaphore Semaphore = new FileSystemSemaphore(Path.Combine(Path.GetTempPath(), "test-packages", ".lock"));
+        private static readonly FileSystemSemaphore Semaphore = new(Path.Combine(Path.GetTempPath(), "test-packages", ".lock"));
 
         private static ImmutableDictionary<NuGet.Packaging.Core.PackageIdentity, string> s_packageToInstalledLocation
             = ImmutableDictionary.Create<NuGet.Packaging.Core.PackageIdentity, string>(PackageIdentityComparer.Default);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Testing
             = ImmutableHashSet.Create<NuGet.Packaging.Core.PackageIdentity>(PackageIdentityComparer.Default);
 
         private readonly Dictionary<string, ImmutableArray<MetadataReference>> _references
-            = new Dictionary<string, ImmutableArray<MetadataReference>>();
+            = new();
 
         public ReferenceAssemblies(string targetFramework)
         {
@@ -124,13 +124,13 @@ namespace Microsoft.CodeAnalysis.Testing
         public string? NuGetConfigFilePath { get; }
 
         public ReferenceAssemblies WithAssemblyIdentityComparer(AssemblyIdentityComparer assemblyIdentityComparer)
-            => new ReferenceAssemblies(TargetFramework, assemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
+            => new(TargetFramework, assemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
 
         public ReferenceAssemblies WithAssemblies(ImmutableArray<string> assemblies)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
+            => new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
 
         public ReferenceAssemblies WithFacadeAssemblies(ImmutableArray<string> facadeAssemblies)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, facadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
+            => new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, facadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
 
         public ReferenceAssemblies AddAssemblies(ImmutableArray<string> assemblies)
             => WithAssemblies(Assemblies.AddRange(assemblies));
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Testing
             => WithFacadeAssemblies(FacadeAssemblies.AddRange(facadeAssemblies));
 
         public ReferenceAssemblies WithLanguageSpecificAssemblies(ImmutableDictionary<string, ImmutableArray<string>> languageSpecificAssemblies)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, languageSpecificAssemblies, Packages, NuGetConfigFilePath);
+            => new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, languageSpecificAssemblies, Packages, NuGetConfigFilePath);
 
         public ReferenceAssemblies WithLanguageSpecificAssemblies(string language, ImmutableArray<string> assemblies)
             => WithLanguageSpecificAssemblies(LanguageSpecificAssemblies.SetItem(language, assemblies));
@@ -155,13 +155,13 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         public ReferenceAssemblies WithPackages(ImmutableArray<PackageIdentity> packages)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, packages, NuGetConfigFilePath);
+            => new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, packages, NuGetConfigFilePath);
 
         public ReferenceAssemblies AddPackages(ImmutableArray<PackageIdentity> packages)
             => WithPackages(Packages.AddRange(packages));
 
         public ReferenceAssemblies WithNuGetConfigFilePath(string nugetConfigFilePath)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, nugetConfigFilePath);
+            => new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, nugetConfigFilePath);
 
         public async Task<ImmutableArray<MetadataReference>> ResolveAsync(string? language, CancellationToken cancellationToken)
         {
@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public static class Net
         {
             private static readonly Lazy<ReferenceAssemblies> _lazyNet50 =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                 {
                     if (!NuGetFramework.Parse("net5.0").IsPackageBased)
                     {
@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 });
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60 =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                 {
                     if (!NuGetFramework.Parse("net6.0").IsPackageBased)
                     {
@@ -931,43 +931,43 @@ namespace Microsoft.CodeAnalysis.Testing
                 });
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60Windows =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                     Net60.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "6.0.0"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60Android =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                     Net60.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.Android.Ref", "31.0.100-rc.1.12"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60iOS =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                     Net60.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.iOS.Ref", "16.0.527"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacOS =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                     Net60.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.macOS.Ref", "12.3.471"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacCatalyst =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                     Net60.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.MacCatalyst.Ref", "15.4.471"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60TvOS =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                     Net60.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.tvOS.Ref", "16.0.527"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet70 =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                 {
                     if (!NuGetFramework.Parse("net7.0").IsPackageBased)
                     {
@@ -984,31 +984,31 @@ namespace Microsoft.CodeAnalysis.Testing
                 });
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet70Windows =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                     Net70.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "7.0.0"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet70MacOS =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                     Net70.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.macOS.Ref", "12.3.2372"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet70iOS =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                     Net70.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.iOS.Ref", "16.0.1478"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet70MacCatalyst =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                     Net70.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.MacCatalyst.Ref", "15.4.2372"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet70TvOS =
-                new Lazy<ReferenceAssemblies>(() =>
+                new(() =>
                     Net70.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.tvOS.Ref", "16.0.1478"))));
