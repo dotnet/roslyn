@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 return null;
             }
 
-            var positionalTitle = CSharpFeaturesResources.Convert_to_positional_record;
+            var positionalTitle = CSharpCodeFixesResources.Convert_to_positional_record;
 
             var positional = CodeAction.Create(
                 positionalTitle,
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     positionalParameterInfos,
                     typeDeclaration,
                     cancellationToken),
-                nameof(CSharpFeaturesResources.Convert_to_positional_record));
+                nameof(CSharpCodeFixesResources.Convert_to_positional_record));
             // note: when adding nested actions, use string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name) as title string
             return positional;
         }
@@ -264,8 +264,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 }
             }
 
-            var lineFormattingOptions = await document
-                .GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+#if CODE_STYLE
+            var lineFormattingOptions = LineFormattingOptions.Default;
+#else
+            var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+#endif
+
             var modifiedClassTrivia = GetModifiedClassTrivia(
                 positionalParameterInfos, typeDeclaration, lineFormattingOptions);
 

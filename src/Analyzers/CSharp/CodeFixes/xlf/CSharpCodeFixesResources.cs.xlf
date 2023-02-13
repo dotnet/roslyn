@@ -52,6 +52,11 @@
         <target state="translated">Porovnat s {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="new">Convert to positional record</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_typeof_to_nameof">
         <source>Convert 'typeof' to 'nameof'</source>
         <target state="translated">Převést typeof na nameof</target>

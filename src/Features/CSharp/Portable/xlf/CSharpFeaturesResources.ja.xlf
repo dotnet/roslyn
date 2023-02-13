@@ -147,11 +147,6 @@
         <target state="translated">メソッドに変換</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_positional_record">
-        <source>Convert to positional record</source>
-        <target state="translated">位置指定 record に変換</target>
-        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">生文字列に変換する</target>
