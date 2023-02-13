@@ -187,4 +187,12 @@
   <data name="Place_token_on_following_line" xml:space="preserve">
     <value>Place token on following line</value>
   </data>
+  <data name="Assign_out_parameters" xml:space="preserve">
+    <value>Assign 'out' parameters</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Assign_out_parameters_at_start" xml:space="preserve">
+    <value>Assign 'out' parameters (at start)</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -52,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    CSharpFeaturesResources.Assign_out_parameters_at_start,
+                    CSharpCodeFixesResources.Assign_out_parameters_at_start,
                     GetDocumentUpdater(context),
-                    nameof(CSharpFeaturesResources.Assign_out_parameters_at_start)),
+                    nameof(CSharpCodeFixesResources.Assign_out_parameters_at_start)),
                 context.Diagnostics);
         }
 

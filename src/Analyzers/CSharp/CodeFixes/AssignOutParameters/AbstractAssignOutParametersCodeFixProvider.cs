@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -16,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -32,12 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         {
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var (container, location) = GetContainer(root, context.Span);
             if (container != null)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var dataFlow = semanticModel.AnalyzeDataFlow(location);
                 if (dataFlow.Succeeded)
                 {
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             return false;
         }
 
-        private static SyntaxNode GetContainer(SyntaxNode node)
+        private static SyntaxNode? GetContainer(SyntaxNode node)
         {
             for (var current = node; current != null; current = current.Parent)
             {
@@ -97,8 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         private static async Task<MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol>)>> GetUnassignedParametersAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var containersAndLocations =
                 diagnostics.SelectAsArray(d => GetContainer(root, d.Location.SourceSpan))
@@ -110,9 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                 var container = group.Key;
 
                 var parameterList = container.GetParameterList();
+                Contract.ThrowIfNull(parameterList);
+
                 var outParameters =
-                    parameterList.Parameters.Select(p => semanticModel.GetDeclaredSymbol(p, cancellationToken))
-                                            .Where(p => p?.RefKind == RefKind.Out)
+                    parameterList.Parameters.Select(p => (IParameterSymbol)semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken))
+                                            .Where(p => p.RefKind == RefKind.Out)
                                             .ToImmutableArray();
 
                 var distinctExprsOrStatements = group.Select(t => t.exprOrStatement).Distinct();
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             {
                 result.Add(generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(parameter.Name),
-                    ExpressionGenerator.GenerateExpression(CSharpSyntaxGenerator.Instance, parameter.Type, value: null, canUseFieldReference: false))));
+                    ExpressionGenerator.GenerateExpression(generator, parameter.Type, value: null, canUseFieldReference: false))));
             }
 
             return result.ToImmutableAndFree();
