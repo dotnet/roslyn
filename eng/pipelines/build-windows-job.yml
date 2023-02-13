@@ -42,10 +42,6 @@ jobs:
   steps:
     - template: checkout-windows-task.yml
 
-    - template: insert-build-variables.yml
-      parameters:
-        configuration: ${{ parameters.configuration }}
-
     - task: PowerShell@2
       displayName: Restore
       inputs:
