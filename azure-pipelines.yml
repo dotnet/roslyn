@@ -219,8 +219,8 @@ stages:
       - template: eng/pipelines/variables-build.yml
         parameters:
           configuration: Release
-    variables:
-      compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      - name: compilerChange
+      - value: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
