@@ -365,7 +365,7 @@ stages:
     variables:
       - template: eng/pipelines/variables-build.yml
         parameters:
-          configuration: ${{ parameters.configuration }}
+          configuration: Debug
 
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
