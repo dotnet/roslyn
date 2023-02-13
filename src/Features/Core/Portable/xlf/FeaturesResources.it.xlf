@@ -4640,16 +4640,6 @@ Questa versione è usata {2}</target>
         <target state="translated">Rinomina il tipo in {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">Rimuovi tag</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">Aggiungi nodi di parametro mancanti</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Sconosciuto)</target>

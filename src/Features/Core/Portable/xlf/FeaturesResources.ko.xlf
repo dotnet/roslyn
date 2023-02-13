@@ -4640,16 +4640,6 @@ This version used in: {2}</source>
         <target state="translated">{0}(으)로 형식 이름 바꾸기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">태그 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">누락된 매개 변수 노드 추가</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(알 수 없음)</target>

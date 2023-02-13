@@ -4640,16 +4640,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Tür {0} olarak yeniden adlandır</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">Etiketi Kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">Eksik parametre düğümlerini ekle</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Bilinmiyor)</target>

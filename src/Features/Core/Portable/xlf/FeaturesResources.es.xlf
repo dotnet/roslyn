@@ -4640,16 +4640,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Cambiar nombre de tipo por {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">Quitar etiqueta</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">Agregar nodos de parámetros que faltan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Desconocido)</target>
