@@ -742,11 +742,6 @@
         <target state="translated">删除未使用的函数</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
-        <source>Add parentheses</source>
-        <target state="translated">添加括号</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">转换为“foreach”</target>

@@ -195,4 +195,7 @@
     <value>Assign 'out' parameters (at start)</value>
     <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Add_parentheses_around_conditional_expression_in_interpolated_string" xml:space="preserve">
+    <value>Add parentheses</value>
+  </data>
 </root>
