@@ -97,7 +97,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             foreach (var documentLookup in locationsByDocument)
             {
                 var document = documentLookup.Key;
-                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+                // May not have syntax facts for a different language in CodeStyle layer.
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                if (syntaxFacts is null)
+                    continue;
+
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var editor = new SyntaxEditor(syntaxRoot, solution.Services);
                 var generator = editor.Generator;

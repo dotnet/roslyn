@@ -1986,6 +1986,10 @@ namespace N
             await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
+#if !CODE_STYLE
+
+        // CodeStyle layer does not support cross language application of fixes.
+
         [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_Cascading_CrossLanguage()
         {
@@ -2055,6 +2059,8 @@ namespace N
 </Workspace>";
             await TestInRegularAndScriptAsync(code, fix, index: 1);
         }
+
+#endif
 
         [Fact, WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         public async Task TestInvocation_InvocationStyles_Positional_MoreThanOneArgumentToMuch()
