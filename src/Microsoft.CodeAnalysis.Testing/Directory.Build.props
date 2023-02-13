@@ -34,7 +34,7 @@
 
     <When Condition="'$(Language)' == 'C#'">
       <PropertyGroup>
-        <LangVersion>9</LangVersion>
+        <LangVersion>11</LangVersion>
       </PropertyGroup>
     </When>
   </Choose>
