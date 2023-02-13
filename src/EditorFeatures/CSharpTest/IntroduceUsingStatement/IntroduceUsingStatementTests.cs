@@ -1186,5 +1186,87 @@ class C
     }
 }", LanguageVersion.CSharp8);
         }
+
+        [Fact, WorkItem(33699, "https://github.com/dotnet/roslyn/issues/33699")]
+        public async Task StatementsAreSurroundedByMinimalScope4_CSharp8()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        switch (0)
+        {
+            case 0:
+                M(null);
+                var x = disposable;[||]
+                M(null);
+                M(x);
+
+            case 1:
+        }
+    }
+}",
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        switch (0)
+        {
+            case 0:
+                M(null);
+                using (var x = disposable)
+                {
+                    M(null);
+                    M(x);
+                }
+
+            case 1:
+        }
+    }
+}", LanguageVersion.CSharp8);
+        }
+
+        [Fact, WorkItem(33699, "https://github.com/dotnet/roslyn/issues/33699")]
+        public async Task StatementsAreSurroundedByMinimalScope5_CSharp8()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        switch (0)
+        {
+            case 0:
+            {
+                M(null);
+                var x = disposable;[||]
+                M(null);
+                M(x);
+            }
+
+            case 1:
+        }
+    }
+}",
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        switch (0)
+        {
+            case 0:
+            {
+                M(null);
+                using var x = disposable;
+                M(null);
+                M(x);
+            }
+
+            case 1:
+        }
+    }
+}", LanguageVersion.CSharp8);
+        }
     }
 }
