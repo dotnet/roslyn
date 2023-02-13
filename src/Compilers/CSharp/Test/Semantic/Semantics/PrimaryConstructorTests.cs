@@ -13330,7 +13330,6 @@ struct C(string? x)
 }";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Should we warn when default value is assigned to 'this' with captured primary constructor parameters?
             comp.VerifyDiagnostics(
                 // (2000,9): warning CS8602: Dereference of a possibly null reference.
                 //         x.ToString();
