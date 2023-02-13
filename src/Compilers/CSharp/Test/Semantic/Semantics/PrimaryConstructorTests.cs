@@ -11923,7 +11923,7 @@ unsafe " + keyword + @" C(S s)
         fixed (int* b = s_f.Buf) {}
     }
 }", options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
-                // PROTOTYPE(PrimaryConstructors): The warning is unexpected - https://github.com/dotnet/roslyn/issues/66487
+                // The warning is unexpected - https://github.com/dotnet/roslyn/issues/66487
                 // (9,7): warning CS0169: The field 'C.s_f' is never used
                 //     S s_f;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "s_f").WithArguments("C.s_f").WithLocation(9, 7)
@@ -12018,7 +12018,7 @@ struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
-                // PROTOTYPE(PrimaryConstructors): Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
                 // (2,22): warning CS9508: Parameter 'x' is unread.
                 // unsafe class  C1(int x, S s)
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 22),
@@ -12045,7 +12045,7 @@ struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
-                // PROTOTYPE(PrimaryConstructors): Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
                 // (7,21): warning CS9508: Parameter 'x' is unread.
                 // unsafe class C1(int x, S s) : Base(&x, &s.f);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(7, 21),
@@ -12150,7 +12150,7 @@ struct S
                 //                   int* p2 = &s.f;
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.f").WithArguments("s").WithLocation(7, 29),
 
-                // PROTOTYPE(PrimaryConstructors): The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
                 // (2,22): warning CS9508: Parameter 'x' is unread.
                 // unsafe class  C1(int x, S s)
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 22),
@@ -12188,7 +12188,7 @@ struct S
                 //                                        int* p2 = &s.f;
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.f").WithArguments("s").WithLocation(10, 50),
 
-                // PROTOTYPE(PrimaryConstructors): The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
                 // (7,21): warning CS9508: Parameter 'x' is unread.
                 // unsafe class C1(int x, S s) : Base(() => 
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(7, 21),
