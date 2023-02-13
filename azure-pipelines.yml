@@ -217,7 +217,7 @@ stages:
     timeoutInMinutes: 90
     variables:
       compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
-      - template: variables-build.yml
+      - template: eng/pipelines/variables-build.yml
         parameters:
           configuration: Release
     steps:
@@ -265,7 +265,7 @@ stages:
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     variables:
-      - template: variables-build.yml
+      - template: eng/pipelines/variables-build.yml
         parameters:
           configuration: Debug
     steps:
@@ -287,7 +287,7 @@ stages:
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     variables:
-      - template: variables-build.yml
+      - template: eng/pipelines/variables-build.yml
         parameters:
           configuration: Release
     steps:
@@ -333,7 +333,7 @@ stages:
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     variables:
-      - template: variables-build.yml
+      - template: eng/pipelines/variables-build.yml
         parameters:
           configuration: Release
     steps:
@@ -362,7 +362,7 @@ stages:
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
     timeoutInMinutes: 35
     variables:
-      - template: variables-build.yml
+      - template: eng/pipelines/variables-build.yml
         parameters:
           configuration: ${{ parameters.configuration }}
 
