@@ -22,11 +22,6 @@
         <target state="translated">Tek satır denetim deyimleri için gerekli küme ayraçlarını ekle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Bu projede güvenli olmayan koda izin ver</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Oluşturucu başlatıcı tercihlerinde iki nokta üst üste işaretinden sonra boş satır uygula (deneysel)</target>

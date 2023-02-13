@@ -22,11 +22,6 @@
         <target state="translated">Přidat povinné složené závorky pro řídicí příkazy na jeden řádek</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Povolit v tomto projektu nezabezpečený kód</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Použít prázdný řádek za dvojtečkou v předvolbách inicializátoru konstruktoru (experimentální)</target>

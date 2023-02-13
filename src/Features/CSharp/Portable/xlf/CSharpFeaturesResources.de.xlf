@@ -22,11 +22,6 @@
         <target state="translated">Geschweifte Klammern für einzeilige Steuerungsanweisungen hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Unsicheren Code in diesem Projekt zulassen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Leerzeile nach Doppelpunkt in Konstruktorinitialisierereinstellungen anwenden (experimentell)</target>

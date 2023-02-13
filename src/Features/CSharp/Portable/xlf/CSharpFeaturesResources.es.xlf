@@ -22,11 +22,6 @@
         <target state="translated">Agregar las llaves necesarias para las instrucciones de control de una sola línea</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Permitir código no seguro en este proyecto</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Aplicar una línea en blanco después de los dos puntos en las preferencias del inicializador de constructor (experimental)</target>

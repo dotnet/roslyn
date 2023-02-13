@@ -22,11 +22,6 @@
         <target state="translated">Ajout des accolades nécessaires pour les instructions de contrôle sur une seule ligne</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Autoriser du code unsafe dans ce projet</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Appliquer une ligne vide après le signe deux-points dans les préférences de l’initialiseur de constructeur (expérimental)</target>

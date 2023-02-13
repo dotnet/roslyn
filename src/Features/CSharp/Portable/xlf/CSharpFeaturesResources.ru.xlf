@@ -22,11 +22,6 @@
         <target state="translated">Добавлять фигурные скобки для однострочных операторов управления</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Разрешить небезопасный код в этом проекте</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Применить настройки для пустой строки после двоеточия в инициализаторе конструктора (экспериментальная функция)</target>

@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.UpgradeProject;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UpdateProjectToAllowUnsafe
 {
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpdateProjectToAllowUnsafe
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS0227);
 
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // We're OK with users having to explicitly opt in each project. Unsafe code is itself an edge case and we don't
             // need to make it easier to convert to it on a larger scale. It's also unlikely that anyone will need this.
@@ -36,14 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UpdateProjectToAllowUnsafe
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(ProjectOptionsChangeAction.Create(CSharpFeaturesResources.Allow_unsafe_code_in_this_project,
+            context.RegisterCodeFix(ProjectOptionsChangeAction.Create(CSharpCodeFixesResources.Allow_unsafe_code_in_this_project,
                 _ => Task.FromResult(AllowUnsafeOnProject(context.Document.Project))), context.Diagnostics);
             return Task.CompletedTask;
         }
 
         private static Solution AllowUnsafeOnProject(Project project)
         {
-            var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions;
+            var compilationOptions = (CSharpCompilationOptions?)project.CompilationOptions;
+            Contract.ThrowIfNull(compilationOptions);
             return project.Solution.WithProjectCompilationOptions(project.Id, compilationOptions.WithAllowUnsafe(true));
         }
     }

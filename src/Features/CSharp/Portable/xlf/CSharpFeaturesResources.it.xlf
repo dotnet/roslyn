@@ -22,11 +22,6 @@
         <target state="translated">Aggiungi/Rimuovi parentesi graffe necessarie per le istruzioni di controllo a riga singola</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Consenti codice unsafe in questo progetto</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Applica preferenze una riga vuota dopo i due punti nell'inizializzatore del costruttore (sperimentale)</target>

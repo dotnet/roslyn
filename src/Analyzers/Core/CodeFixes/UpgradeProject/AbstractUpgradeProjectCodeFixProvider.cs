@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         public abstract string UpgradeThisProjectResource { get; }
         public abstract string UpgradeAllProjectsResource { get; }
 
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // This code fix uses a dedicated action for fixing all instances in a solution
             return null;
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             foreach (var projectId in solution.Projects.Select(p => p.Id))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var currentProject = currentSolution.GetProject(projectId);
+                var currentProject = currentSolution.GetRequiredProject(projectId);
 
                 if (CanUpgrade(currentProject, language, version))
                 {
@@ -95,6 +94,32 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             => project.Language == language && IsUpgrade(project, version);
     }
 
+#if CODE_STYLE
+
+    internal class ProjectOptionsChangeAction : CodeAction
+    {
+        public override string Title { get; }
+
+        private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
+
+        private ProjectOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+        {
+            this.Title = title;
+            _createChangedSolution = createChangedSolution;
+        }
+
+        public static ProjectOptionsChangeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+            => new(title, createChangedSolution);
+
+        protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+            => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+
+        protected override async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            => await _createChangedSolution(cancellationToken).ConfigureAwait(false);
+    }
+
+#else
+
     internal class ProjectOptionsChangeAction : SolutionChangeAction
     {
         private ProjectOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
@@ -108,4 +133,6 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
     }
+
+#endif
 }

@@ -22,11 +22,6 @@
         <target state="translated">Dodaj nawiasy klamrowe w przypadku jednowierszowych instrukcji sterowania</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Zezwalaj na niebezpieczny kod w tym projekcie</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Zastosuj pusty wiersz po dwukropku w preferencjach inicjatora konstruktora (eksperymentalne)</target>

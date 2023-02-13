@@ -22,11 +22,6 @@
         <target state="translated">한 줄 컨트롤 문에 필요한 중괄호 추가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">이 프로젝트에서 안전하지 않은 코드 허용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">생성자 이니셜라이저에서 콜론 위에 빈 줄 적용 기본 설정(실험적)</target>

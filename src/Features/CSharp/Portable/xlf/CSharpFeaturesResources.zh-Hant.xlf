@@ -22,11 +22,6 @@
         <target state="translated">新增單行控制項陳述式所需的大括弧</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">在此專案中允許不安全的程式碼</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">套用在建構函式初始設定式中的冒號後面加上空白行喜好設定 (實驗性)</target>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpdateProje
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpUpdateProjectToAllowUnsafeCodeFixProvider());
 
         private async Task TestAllowUnsafeEnabledIfDisabledAsync(string initialMarkup)
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpdateProje
                 var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
 
                 var (oldSolution, newSolution) = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
-                Assert.True(((CSharpCompilationOptions)newSolution.Projects.Single().CompilationOptions).AllowUnsafe);
+                Assert.True(((CSharpCompilationOptions)newSolution.Projects.Single().CompilationOptions!).AllowUnsafe);
             }
 
             // no action offered if unsafe was already enabled
