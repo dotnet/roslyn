@@ -467,9 +467,6 @@
   <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
     <value>Make private fields readonly when possible</value>
   </data>
-  <data name="Use_0" xml:space="preserve">
-    <value>Use '{0}'</value>
-  </data>
   <data name="Add_missing_usings" xml:space="preserve">
     <value>Add missing usings</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>

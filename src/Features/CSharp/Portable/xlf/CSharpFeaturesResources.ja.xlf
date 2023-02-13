@@ -737,11 +737,6 @@
         <target state="translated">if を反転する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">'{0}' を使用します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">'using' ステートメントを導入します</target>

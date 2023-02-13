@@ -737,11 +737,6 @@
         <target state="translated">反转 if</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">使用 "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">引入 'using' 语句</target>

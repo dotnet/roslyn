@@ -210,4 +210,7 @@
   <data name="Upgrade_this_project_to_csharp_language_version_0" xml:space="preserve">
     <value>Upgrade this project to C# language version '{0}'</value>
   </data>
+  <data name="Use_0" xml:space="preserve">
+    <value>Use '{0}'</value>
+  </data>
 </root>

@@ -67,6 +67,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryLambdaExpression\RemoveUnnecessaryLambdaExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveRedundantNullableDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveUnnecessaryNullableDirectiveTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ReplaceDefaultLiteral\ReplaceDefaultLiteralTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransposeRecordKeyword\TransposeRecordKeywordTests.cs" />

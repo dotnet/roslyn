@@ -737,11 +737,6 @@
         <target state="translated">"If" umkehren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">"{0}" verwenden</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">"using"-Anweisung einführen</target>

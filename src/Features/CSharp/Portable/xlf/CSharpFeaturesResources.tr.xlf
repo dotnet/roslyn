@@ -737,11 +737,6 @@
         <target state="translated">if ifadesini tersine çevir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">'{0}' kullan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">'using' deyimi ekle</target>

@@ -737,11 +737,6 @@
         <target state="translated">Odwróć instrukcję if</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">Użyj elementu „{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">Wprowadź instrukcję „using”</target>

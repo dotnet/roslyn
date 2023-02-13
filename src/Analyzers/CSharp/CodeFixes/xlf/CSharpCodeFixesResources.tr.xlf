@@ -142,6 +142,11 @@
         <target state="new">Upgrade this project to C# language version '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="new">Use '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Enterpolasyonlu kelimesi kelimesine dizeyi kullanın</target>
