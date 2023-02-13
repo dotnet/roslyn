@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             {
                 result.Add(generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(parameter.Name),
-                    ExpressionGenerator.GenerateExpression(parameter.Type, value: null, canUseFieldReference: false))));
+                    ExpressionGenerator.GenerateExpression(CSharpSyntaxGenerator.Instance, parameter.Type, value: null, canUseFieldReference: false))));
             }
 
             return result.ToImmutableAndFree();
