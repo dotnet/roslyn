@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
         protected override void TryRegisterFix(CodeFixContext context, Document document, SyntaxNode container, SyntaxNode location)
         {
-            RegisterCodeFix(context, CSharpFeaturesResources.Assign_out_parameters, nameof(CSharpFeaturesResources.Assign_out_parameters));
+            RegisterCodeFix(context, CSharpCodeFixesResources.Assign_out_parameters, nameof(CSharpCodeFixesResources.Assign_out_parameters));
         }
 
         protected override void AssignOutParameters(
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                 exprOrStatement = localFunctionExpressionBody.Expression;
             }
 
-            var parent = exprOrStatement.Parent;
+            var parent = exprOrStatement.GetRequiredParent();
             if (parent.IsEmbeddedStatementOwner())
             {
-                var newBody = editor.Generator.ScopeBlock(statements.Add(exprOrStatement));
+                var newBody = SyntaxFactory.Block(statements.Add(exprOrStatement).Cast<StatementSyntax>());
                 editor.ReplaceNode(exprOrStatement, newBody);
                 editor.ReplaceNode(
-                    exprOrStatement.Parent,
+                    exprOrStatement.GetRequiredParent(),
                     (c, _) => c.WithAdditionalAnnotations(Formatter.Annotation));
             }
             else if (parent is BlockSyntax or SwitchSectionSyntax)
@@ -74,16 +74,16 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             {
                 statements = statements.Add(generator.ReturnStatement(exprOrStatement));
                 editor.ReplaceNode(
-                    parent.Parent,
-                    generator.WithStatements(parent.Parent, statements));
+                    parent.GetRequiredParent(),
+                    generator.WithStatements(parent.GetRequiredParent(), statements));
             }
             else
             {
                 var lambda = (LambdaExpressionSyntax)parent;
-                var newBody = editor.Generator.ScopeBlock(statements.Add(generator.ReturnStatement(exprOrStatement)));
+                var newBody = SyntaxFactory.Block(statements.Add(generator.ReturnStatement(exprOrStatement)).Cast<StatementSyntax>());
                 editor.ReplaceNode(
                     lambda,
-                    lambda.WithBody((CSharpSyntaxNode)newBody)
+                    lambda.WithBody(newBody)
                           .WithAdditionalAnnotations(Formatter.Annotation));
             }
         }

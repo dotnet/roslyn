@@ -16,6 +16,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\AddObsoleteAttributeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddParameter\AddParameterTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AliasAmbiguousTypeTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAboveReturnTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAtStartTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToBlockScopedNamespaceAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToFileScopedNamespaceAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisambiguateSameVariable\DisambiguateSameVariableTests.cs" />

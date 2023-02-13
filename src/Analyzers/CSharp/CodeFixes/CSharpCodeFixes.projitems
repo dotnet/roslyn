@@ -24,6 +24,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\CSharpAddObsoleteAttributeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddParameter\CSharpAddParameterCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\CSharpAliasAmbiguousTypeCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AbstractAssignOutParametersCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAboveReturnCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAtStartCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceTransform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\CSharpConvertTypeOfToNameOfCodeFixProvider.cs" />
