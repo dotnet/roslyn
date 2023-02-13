@@ -29,4 +29,4 @@ steps:
       targetPath: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
       artifactName: '${{ parameters.jobName }} Attempt $(System.JobAttempt) Logs'
     continueOnError: true
-    condition: true
+    condition: not(succeeded())
