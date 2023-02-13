@@ -678,6 +678,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// csc.exe and vbc.exe entry point.
         /// </summary>
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default)
         {
             var saveUICulture = CultureInfo.CurrentUICulture;
@@ -791,6 +794,9 @@ namespace Microsoft.CodeAnalysis
 
         private protected abstract GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
 
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {
             Debug.Assert(!Arguments.IsScriptRunner);
@@ -967,6 +973,9 @@ namespace Microsoft.CodeAnalysis
         /// (parsing, binding, compile, emit), resulting in diagnostics
         /// and analyzer output.
         /// </summary>
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         private void CompileAndEmit(
             TouchedFileLogger? touchedFilesLogger,
             ref Compilation compilation,

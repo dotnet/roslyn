@@ -15,6 +15,9 @@ namespace Roslyn.Utilities
     {
         private static readonly Type Missing = typeof(void);
 
+#if NET6_0_OR_GREATER
+        [RequiresUnreferencedCode("Loading arbitrary type by name")]
+#endif
         public static Type? TryGetType(string assemblyQualifiedName)
         {
             try
@@ -28,6 +31,9 @@ namespace Roslyn.Utilities
             }
         }
 
+#if NET6_0_OR_GREATER
+        [RequiresUnreferencedCode("Loading arbitrary type by name")]
+#endif
         public static Type? TryGetType([NotNull] ref Type? lazyType, string assemblyQualifiedName)
         {
             if (lazyType == null)
@@ -42,6 +48,9 @@ namespace Roslyn.Utilities
         /// Find a <see cref="Type"/> instance by first probing the contract name and then the name as it
         /// would exist in mscorlib.  This helps satisfy both the CoreCLR and Desktop scenarios. 
         /// </summary>
+#if NET6_0_OR_GREATER
+        [RequiresUnreferencedCode("Loading arbitrary type by name")]
+#endif
         public static Type? GetTypeFromEither(string contractName, string desktopName)
         {
             var type = TryGetType(contractName);
@@ -54,6 +63,9 @@ namespace Roslyn.Utilities
             return type;
         }
 
+#if NET6_0_OR_GREATER
+        [RequiresUnreferencedCode("Loading arbitrary type by name")]
+#endif
         public static Type? GetTypeFromEither([NotNull] ref Type? lazyType, string contractName, string desktopName)
         {
             if (lazyType == null)
@@ -94,12 +106,20 @@ namespace Roslyn.Utilities
             return null;
         }
 
-        internal static MethodInfo? GetDeclaredMethod(this TypeInfo typeInfo, string name, params Type[] paramTypes)
+        internal static MethodInfo? GetDeclaredMethod(
+#if NET6_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.NonPublicMethods)]
+#endif
+            this TypeInfo typeInfo, string name, params Type[] paramTypes)
         {
             return FindItem(typeInfo.GetDeclaredMethods(name), paramTypes);
         }
 
-        internal static ConstructorInfo? GetDeclaredConstructor(this TypeInfo typeInfo, params Type[] paramTypes)
+        internal static ConstructorInfo? GetDeclaredConstructor(
+#if NET6_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+#endif
+            this TypeInfo typeInfo, params Type[] paramTypes)
         {
             return FindItem(typeInfo.DeclaredConstructors, paramTypes);
         }

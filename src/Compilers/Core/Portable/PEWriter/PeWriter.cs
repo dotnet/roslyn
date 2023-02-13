@@ -35,6 +35,9 @@ namespace Microsoft.Cci
 
     internal static class PeWriter
     {
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         internal static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,

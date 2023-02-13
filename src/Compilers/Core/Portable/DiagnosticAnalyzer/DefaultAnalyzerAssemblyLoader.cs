@@ -13,6 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+#if NET6_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
+#endif
     internal sealed class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
 #if NETCOREAPP

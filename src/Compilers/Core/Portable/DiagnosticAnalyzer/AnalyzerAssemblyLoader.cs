@@ -13,6 +13,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    internal static class TrimWarningMessages
+    {
+        internal const string AnalyzerReflectionLoadMessage = "Loading analyzers via reflection is not supported when trimming.";
+        internal const string NativePdbsNotSupported = "Native PDBs use built-in COM, which is not supported when trimming";
+    }
+
     /// <summary>
     /// The base implementation for <see cref="IAnalyzerAssemblyLoader"/>. This type provides caching and tracking of inputs given
     /// to <see cref="AddDependencyLocation(string)"/>.

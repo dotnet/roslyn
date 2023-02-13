@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.DiaSymReader
 {
@@ -29,6 +30,9 @@ namespace Microsoft.DiaSymReader
         /// <exception cref="ArgumentNullException"><paramref name="metadataProvider"/>is null.</exception>
         /// <exception cref="DllNotFoundException">The SymWriter implementation is not available or failed to load.</exception>
         /// <exception cref="SymUnmanagedWriterException">Error creating the PDB writer. See inner exception for root cause.</exception>
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         public static SymUnmanagedWriter CreateWriter(
             ISymWriterMetadataProvider metadataProvider,
             SymUnmanagedWriterCreationOptions options = SymUnmanagedWriterCreationOptions.Default)

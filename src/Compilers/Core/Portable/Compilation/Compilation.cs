@@ -2623,6 +2623,9 @@ namespace Microsoft.CodeAnalysis
 
         // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         public EmitResult Emit(
             Stream peStream,
             Stream? pdbStream,
@@ -2647,6 +2650,9 @@ namespace Microsoft.CodeAnalysis
 
         // 1.3 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         public EmitResult Emit(
             Stream peStream,
             Stream pdbStream,
@@ -2671,6 +2677,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         // 2.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         public EmitResult Emit(
             Stream peStream,
             Stream? pdbStream,
@@ -2732,6 +2741,9 @@ namespace Microsoft.CodeAnalysis
         /// Only supported when emitting Portable PDBs.
         /// </param>
         /// <param name="cancellationToken">To cancel the emit process.</param>
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         public EmitResult Emit(
             Stream peStream,
             Stream? pdbStream = null,
@@ -2760,6 +2772,9 @@ namespace Microsoft.CodeAnalysis
                 cancellationToken);
         }
 
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         internal EmitResult Emit(
             Stream peStream,
             Stream? pdbStream,
@@ -2877,6 +2892,9 @@ namespace Microsoft.CodeAnalysis
         /// This overload is only intended to be directly called by tests that want to pass <paramref name="testData"/>.
         /// The map is used for storing a list of methods and their associated IL.
         /// </summary>
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         internal EmitResult Emit(
             Stream peStream,
             Stream? metadataPEStream,
@@ -3156,6 +3174,9 @@ namespace Microsoft.CodeAnalysis
 
         internal bool IsEmitDeterministic => this.Options.Deterministic;
 
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitStreamProvider peStreamProvider,
@@ -3308,6 +3329,9 @@ namespace Microsoft.CodeAnalysis
             return auxStream;
         }
 
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         internal static bool SerializePeToStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             DiagnosticBag metadataDiagnostics,
@@ -3371,6 +3395,9 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.NativePdbsNotSupported)]
+#endif
         internal EmitBaseline? SerializeToDeltaStreams(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitBaseline baseline,

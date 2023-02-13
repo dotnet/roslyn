@@ -15,6 +15,9 @@ using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis
 {
+#if NET6_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
+#endif
     internal partial class AnalyzerAssemblyLoader
     {
         private readonly AssemblyLoadContext _compilerLoadContext;
@@ -70,6 +73,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(TrimWarningMessages.AnalyzerReflectionLoadMessage)]
+#endif
         internal sealed class DirectoryLoadContext : AssemblyLoadContext
         {
             internal string Directory { get; }
