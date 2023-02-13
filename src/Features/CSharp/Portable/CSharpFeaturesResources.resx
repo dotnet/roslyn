@@ -416,12 +416,6 @@
   <data name="struct_name" xml:space="preserve">
     <value>&lt;struct name&gt;</value>
   </data>
-  <data name="Make_method_async" xml:space="preserve">
-    <value>Make method async</value>
-  </data>
-  <data name="Make_method_async_remain_void" xml:space="preserve">
-    <value>Make method async (stay void)</value>
-  </data>
   <data name="Convert_to_switch_statement" xml:space="preserve">
     <value>Convert to 'switch' statement</value>
   </data>

@@ -53,6 +53,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\MakeLocalFunctionStaticCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\PassInCapturedVariablesAsArgumentsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\CSharpMakeMemberStaticCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodAsynchronous\CSharpMakeMethodAsynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\CSharpMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeRefStruct\MakeRefStructCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixProvider.cs" />

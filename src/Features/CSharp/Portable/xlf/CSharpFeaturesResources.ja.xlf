@@ -672,16 +672,6 @@
         <target state="translated">&lt;構造体名&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">メソッドを非同期にします</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">メソッドを非同期にする (void を維持)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;名前&gt;</target>

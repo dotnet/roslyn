@@ -31,6 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicConvertToIteratorCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\VisualBasicMakeFieldReadonlyCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodAsynchronous\VisualBasicMakeMethodAsynchronousCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\VisualBasicMakeMethodSynchronousCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\VisualBasicMakeTypeAbstractCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypePartial\VisualBasicMakeTypePartialCodeFixProvider.vb" />
