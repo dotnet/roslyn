@@ -615,13 +615,13 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 var fixableDiagnostics = analyzerDiagnostics
                     .Where(diagnostic => codeFixProviders.Any(provider => provider.FixableDiagnosticIds.Contains(diagnostic.diagnostic.Id)))
-                    .Where(diagnostic => project.Solution.GetDocument(diagnostic.diagnostic.Location.SourceTree) is object)
+                    .Where(diagnostic => project.Solution.GetDocument(diagnostic.diagnostic.Location.SourceTree) is not null)
                     .ToImmutableArray();
 
                 if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
                 {
                     var diagnosticToFix = TrySelectDiagnosticToFix(fixableDiagnostics.Select(x => x.diagnostic).ToImmutableArray());
-                    fixableDiagnostics = diagnosticToFix is object ? ImmutableArray.Create(fixableDiagnostics.Single(x => x.diagnostic == diagnosticToFix)) : ImmutableArray<(Project project, Diagnostic diagnostic)>.Empty;
+                    fixableDiagnostics = diagnosticToFix is not null ? ImmutableArray.Create(fixableDiagnostics.Single(x => x.diagnostic == diagnosticToFix)) : ImmutableArray<(Project project, Diagnostic diagnostic)>.Empty;
                 }
 
                 done = true;
@@ -756,13 +756,13 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 var fixableDiagnostics = analyzerDiagnostics
                     .Where(diagnostic => codeFixProviders.Any(provider => provider.FixableDiagnosticIds.Contains(diagnostic.diagnostic.Id)))
-                    .Where(diagnostic => project.Solution.GetDocument(diagnostic.diagnostic.Location.SourceTree) is object)
+                    .Where(diagnostic => project.Solution.GetDocument(diagnostic.diagnostic.Location.SourceTree) is not null)
                     .ToImmutableArray();
 
                 if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
                 {
                     var diagnosticToFix = TrySelectDiagnosticToFix(fixableDiagnostics.Select(x => x.diagnostic).ToImmutableArray());
-                    fixableDiagnostics = diagnosticToFix is object ? ImmutableArray.Create(fixableDiagnostics.Single(x => x.diagnostic == diagnosticToFix)) : ImmutableArray<(Project project, Diagnostic diagnostic)>.Empty;
+                    fixableDiagnostics = diagnosticToFix is not null ? ImmutableArray.Create(fixableDiagnostics.Single(x => x.diagnostic == diagnosticToFix)) : ImmutableArray<(Project project, Diagnostic diagnostic)>.Empty;
                 }
 
                 Diagnostic? firstDiagnostic = null;
