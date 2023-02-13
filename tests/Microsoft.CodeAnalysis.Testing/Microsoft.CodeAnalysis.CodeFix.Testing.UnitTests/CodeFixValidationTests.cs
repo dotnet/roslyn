@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Testing
         private class ReplaceThisWithBaseAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("ThisToBase", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new("ThisToBase", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 

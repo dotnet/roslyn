@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Testing
         private class HighlightBracesAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             private readonly SuppressDiagnosticIf _suppressDiagnosticIf;
 

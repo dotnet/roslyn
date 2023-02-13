@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Testing
         private class ReplaceThisWithBaseAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("ThisToBase", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new("ThisToBase", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             private readonly GeneratedCodeAnalysisFlags? _generatedCodeAnalysisFlags;
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Testing
         private class NotConfigurableReplaceThisWithBaseAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("ThisToBase", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: new[] { WellKnownDiagnosticTags.NotConfigurable });
+                new("ThisToBase", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: new[] { WellKnownDiagnosticTags.NotConfigurable });
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Testing
         private class FirstLineDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("FirstLine", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new("FirstLine", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 

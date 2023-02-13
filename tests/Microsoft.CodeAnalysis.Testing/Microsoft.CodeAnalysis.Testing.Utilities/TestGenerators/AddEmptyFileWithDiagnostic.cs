@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Testing.TestGenerators
 {
     public class AddEmptyFileWithDiagnostic : AddEmptyFile
     {
-        public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor Descriptor = new(
             "SG0001",
             "Title",
             "Message",

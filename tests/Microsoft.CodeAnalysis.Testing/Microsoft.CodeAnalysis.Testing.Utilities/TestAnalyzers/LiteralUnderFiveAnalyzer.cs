@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Testing.TestAnalyzers
         internal const string CurrentValueProperty = nameof(CurrentValueProperty);
 
         internal static readonly DiagnosticDescriptor Descriptor =
-            new DiagnosticDescriptor("LiteralUnderFive", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            new("LiteralUnderFive", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 

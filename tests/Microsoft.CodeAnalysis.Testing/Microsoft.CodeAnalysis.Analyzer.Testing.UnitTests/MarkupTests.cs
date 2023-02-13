@@ -225,16 +225,16 @@ namespace Microsoft.CodeAnalysis.Testing
         private class HighlightBracesAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor DescriptorOuter =
-                new DiagnosticDescriptor("BraceOuter", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new("BraceOuter", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             internal static readonly DiagnosticDescriptor DescriptorOuterHidden =
-                new DiagnosticDescriptor("BraceOuter", "title", "message", "category", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
+                new("BraceOuter", "title", "message", "category", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
 
             internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             internal static readonly DiagnosticDescriptor DescriptorHidden =
-                new DiagnosticDescriptor("Brace", "title", "message", "category", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
+                new("Brace", "title", "message", "category", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
 
             private readonly bool _nestedDiagnostics;
             private readonly bool _hiddenDescriptors;

@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Testing
         internal class HighlightBracesSuppressor : DiagnosticSuppressor
         {
             internal static readonly SuppressionDescriptor Descriptor =
-                new SuppressionDescriptor("XBrace", DiagnosticDescriptor.Id, "justification");
+                new("XBrace", DiagnosticDescriptor.Id, "justification");
 
             public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions => ImmutableArray.Create(Descriptor);
 

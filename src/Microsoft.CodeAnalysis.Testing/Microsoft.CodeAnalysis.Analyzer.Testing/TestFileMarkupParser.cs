@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.Testing
         private const string NamedSpanEndString = "|}";
         private const string NamedSpanNumberedEndString = "|#";
 
-        private static readonly Regex s_namedSpanStartRegex = new Regex(
+        private static readonly Regex s_namedSpanStartRegex = new(
             @"\{\| ([^:|[\]{}]+) \:",
             RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
 
-        private static readonly Regex s_namedSpanEndRegex = new Regex(
+        private static readonly Regex s_namedSpanEndRegex = new(
             @"\| (\#\d+) \}",
             RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
 

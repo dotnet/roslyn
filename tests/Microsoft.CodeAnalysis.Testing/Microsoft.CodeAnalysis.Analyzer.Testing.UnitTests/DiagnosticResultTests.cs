@@ -127,8 +127,8 @@ namespace Microsoft.CodeAnalysis.Testing
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private class TwoDescriptorAnalyzer : DiagnosticAnalyzer
         {
-            internal static readonly DiagnosticDescriptor Descriptor1 = new DiagnosticDescriptor("ID", "title", "first message format", "category", DiagnosticSeverity.Info, isEnabledByDefault: true);
-            internal static readonly DiagnosticDescriptor Descriptor2 = new DiagnosticDescriptor("ID", "title", "second message format", "category", DiagnosticSeverity.Info, isEnabledByDefault: true);
+            internal static readonly DiagnosticDescriptor Descriptor1 = new("ID", "title", "first message format", "category", DiagnosticSeverity.Info, isEnabledByDefault: true);
+            internal static readonly DiagnosticDescriptor Descriptor2 = new("ID", "title", "second message format", "category", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
                 = ImmutableArray.Create(Descriptor1, Descriptor2);

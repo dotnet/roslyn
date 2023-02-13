@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         protected TimeSpan MatchDiagnosticsTimeout { get; set; } = TimeSpan.FromSeconds(2);
 
-        private readonly ConcurrentBag<Workspace> _workspaces = new ConcurrentBag<Workspace>();
+        private readonly ConcurrentBag<Workspace> _workspaces = new();
 
         /// <summary>
         /// Runs the test.
