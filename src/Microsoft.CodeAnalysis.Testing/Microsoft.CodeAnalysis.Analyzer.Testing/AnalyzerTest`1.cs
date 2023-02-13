@@ -536,11 +536,11 @@ namespace Microsoft.CodeAnalysis.Testing
         private void VerifyDiagnosticResults(IEnumerable<(Project project, Diagnostic diagnostic)> actualResults, ImmutableArray<DiagnosticAnalyzer> analyzers, DiagnosticResult[] expectedResults, IVerifier verifier)
         {
             var matchedDiagnostics = MatchDiagnostics(actualResults.ToArray(), expectedResults);
-            verifier.Equal(actualResults.Count(), matchedDiagnostics.Count(x => x.actual is object), $"{nameof(MatchDiagnostics)} failed to include all actual diagnostics in the result");
-            verifier.Equal(expectedResults.Length, matchedDiagnostics.Count(x => x.expected is object), $"{nameof(MatchDiagnostics)} failed to include all expected diagnostics in the result");
+            verifier.Equal(actualResults.Count(), matchedDiagnostics.Count(x => x.actual is not null), $"{nameof(MatchDiagnostics)} failed to include all actual diagnostics in the result");
+            verifier.Equal(expectedResults.Length, matchedDiagnostics.Count(x => x.expected is not null), $"{nameof(MatchDiagnostics)} failed to include all expected diagnostics in the result");
 
             actualResults = matchedDiagnostics.Select(x => x.actual).Where(x => x is { }).Select(x => x!.Value);
-            expectedResults = matchedDiagnostics.Where(x => x.expected is object).Select(x => x.expected.GetValueOrDefault()).ToArray();
+            expectedResults = matchedDiagnostics.Where(x => x.expected is not null).Select(x => x.expected.GetValueOrDefault()).ToArray();
 
             var expectedCount = expectedResults.Length;
             var actualCount = actualResults.Count();

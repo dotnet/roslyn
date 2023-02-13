@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 return null;
             }
 
-            if (result is object)
+            if (result is not null)
             {
                 codeActionVerifier?.Invoke(result, verifier);
             }
