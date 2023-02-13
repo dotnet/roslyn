@@ -6,10 +6,11 @@ parameters:
   type: string
   default: 'Debug'
 
-variables:
-- name: ROSLYNCOMMANDLINELOGFILE
-  value: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/Build.Server.log'
-- name: MSBUILDDEBUGCOMM
-  value: 1
-- name: MSBUILDDEBUGPATH
-  value: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/MSBuild.comm.log'
+steps:
+    variables:
+    - name: ROSLYNCOMMANDLINELOGFILE
+    value: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/Build.Server.log'
+    - name: MSBUILDDEBUGCOMM
+    value: 1
+    - name: MSBUILDDEBUGPATH
+    value: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/MSBuild.comm.log'
