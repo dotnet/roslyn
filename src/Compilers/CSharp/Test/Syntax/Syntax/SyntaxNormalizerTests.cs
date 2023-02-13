@@ -3005,6 +3005,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("struct   S  (  )  ;    ", "struct S();");
         }
 
+        [Fact]
+        public void TestSemicolonBody()
+        {
+            TestNormalizeDeclaration("class      C       ;    ", "class C;");
+            TestNormalizeDeclaration("struct      C       ;    ", "struct C;");
+            TestNormalizeDeclaration("interface      C       ;    ", "interface C;");
+            TestNormalizeDeclaration("enum      C       ;    ", "enum C;");
+        }
+
         [Fact, WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnInvocationLikeKeywords()
         {

@@ -344,6 +344,21 @@ public {record} R(MyClass $$
             await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
         }
 
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public async Task DontTreatPrimaryConstructorParameterAsProperty(string record)
+        {
+            var markup = $@"
+public class MyClass
+{{
+}}
+
+public {record} R(MyClass $$
+";
+            await VerifyItemIsAbsentAsync(markup, "MyClass");
+        }
+
         [Fact]
         public async Task NameWithOnlyType1()
         {

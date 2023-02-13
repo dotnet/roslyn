@@ -91,6 +91,24 @@ record R(string S, int I);";
             VerifyTypingCharacter(code, expected);
         }
 
+        [WpfFact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public void TypingCharacter_ClassParameters()
+        {
+            var code =
+@"//$$
+class R(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+class R(string S, int I);";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
         [WpfFact]
         public void TypingCharacter_RecordStructWithPositionalParameters()
         {
@@ -105,6 +123,24 @@ record struct R(string S, int I);";
 /// <param name=""S""></param>
 /// <param name=""I""></param>
 record struct R(string S, int I);";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public void TypingCharacter_StructParameters()
+        {
+            var code =
+@"//$$
+struct R(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+struct R(string S, int I);";
 
             VerifyTypingCharacter(code, expected);
         }
@@ -1761,6 +1797,22 @@ record R(string S, int I);";
             VerifyInsertCommentCommand(code, expected);
         }
 
+        [WpfFact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public void Command_ClassParameters()
+        {
+            var code = "class R$$(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+class R(string S, int I);";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
         [WpfFact]
         public void Command_RecordStructWithPositionalParameters()
         {
@@ -1773,6 +1825,22 @@ record R(string S, int I);";
 /// <param name=""S""></param>
 /// <param name=""I""></param>
 record struct R(string S, int I);";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public void Command_StructParameters()
+        {
+            var code = "struct R$$(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+struct R(string S, int I);";
 
             VerifyInsertCommentCommand(code, expected);
         }

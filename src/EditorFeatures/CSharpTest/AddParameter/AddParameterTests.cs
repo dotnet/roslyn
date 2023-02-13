@@ -2805,6 +2805,24 @@ namespace System.Runtime.CompilerServices
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
+        // System.ArgumentOutOfRangeException
+        // >	Microsoft.CodeAnalysis.Features.dll!Microsoft.CodeAnalysis.AddParameter.AddParameterService.AddParameterAsync(Microsoft.CodeAnalysis.Document invocationDocument, Microsoft.CodeAnalysis.IMethodSymbol method, Microsoft.CodeAnalysis.ITypeSymbol newParameterType, Microsoft.CodeAnalysis.RefKind refKind, string parameterName, int? newParameterIndex, bool fixAllReferences, System.Threading.CancellationToken cancellationToken) Line 112	C#
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public async Task Test_PrimaryConstructor_Class()
+        {
+            await TestInRegularAndScriptAsync(@"
+var b = ""B"";
+var r = [|new R(1, b)|];
+
+class R(int A);
+", @"
+var b = ""B"";
+var r = new R(1, b);
+
+class R(int A, string b);
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
         [Fact, WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
         public async Task TestPositionalRecordStruct()
         {
@@ -2831,6 +2849,24 @@ namespace System.Runtime.CompilerServices
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
+        // System.ArgumentOutOfRangeException
+        // >	Microsoft.CodeAnalysis.Features.dll!Microsoft.CodeAnalysis.AddParameter.AddParameterService.AddParameterAsync(Microsoft.CodeAnalysis.Document invocationDocument, Microsoft.CodeAnalysis.IMethodSymbol method, Microsoft.CodeAnalysis.ITypeSymbol newParameterType, Microsoft.CodeAnalysis.RefKind refKind, string parameterName, int? newParameterIndex, bool fixAllReferences, System.Threading.CancellationToken cancellationToken) Line 112	C#
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public async Task Test_PrimaryConstructor_Struct()
+        {
+            await TestInRegularAndScriptAsync(@"
+var b = ""B"";
+var r = [|new R(1, b)|];
+
+struct R(int A);
+", @"
+var b = ""B"";
+var r = new R(1, b);
+
+struct R(int A, string b);
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
         [Fact, WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
         public async Task TestRecordsNamingConventions()
         {
@@ -2843,6 +2879,18 @@ record Test(string V);
 ");
         }
 
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public async Task TestNamingConventions_PrimaryConstructor_Class()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+class Test();
+", @"new Test(""repro"");
+
+class Test(string V);
+");
+        }
+
         [Fact, WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
         public async Task TestRecordsNamingConventions_RecordStruct()
         {
@@ -2852,6 +2900,18 @@ record struct Test();
 ", @"new Test(""repro"");
 
 record struct Test(string V);
+");
+        }
+
+        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        public async Task TestNamingConventions_PrimaryConstructor_Struct()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+struct Test();
+", @"new Test(""repro"");
+
+struct Test(string V);
 ");
         }
 
