@@ -229,12 +229,6 @@ function BuildSolution() {
 
   }
 
-  if ($ci) {
-    ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
-    ${env:MSBUILDDEBUGCOMM} = 1
-    ${env:MSBUILDDEBUGPATH} = Join-Path $LogDir "MSbuild.Comm.log"
-  }
-
   $projects = Join-Path $RepoRoot $solution
   $toolsetBuildProj = InitializeToolset
 
@@ -261,40 +255,33 @@ function BuildSolution() {
   # https://github.com/NuGet/Home/issues/12373
   $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
 
-  try {
-    MSBuild $toolsetBuildProj `
-      $bl `
-      /p:Configuration=$configuration `
-      /p:Projects=$projects `
-      /p:RepoRoot=$RepoRoot `
-      /p:Restore=$restore `
-      /p:Build=$build `
-      /p:Rebuild=$rebuild `
-      /p:Pack=$pack `
-      /p:Sign=$sign `
-      /p:Publish=$publish `
-      /p:ContinuousIntegrationBuild=$ci `
-      /p:OfficialBuildId=$officialBuildId `
-      /p:RunAnalyzersDuringBuild=$runAnalyzers `
-      /p:BootstrapBuildPath=$bootstrapDir `
-      /p:TreatWarningsAsErrors=$warnAsError `
-      /p:EnableNgenOptimization=$applyOptimizationData `
-      /p:IbcOptimizationDataDir=$ibcDir `
-      /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
-      /p:VisualStudioIbcDrop=$ibcDropName `
-      /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-      $suppressExtensionDeployment `
-      $msbuildWarnAsError `
-      $buildFromSource `
-      $generateDocumentationFile `
-      $roslynUseHardLinks `
-      @properties
-  }
-  finally {
-    ${env:ROSLYNCOMMANDLINELOGFILE} = $null
-    ${env:MSBUILDDEBUGCOMM} = 0
-    ${env:MSBUILDDEBUGPATH} = $null
-  }
+  MSBuild $toolsetBuildProj `
+    $bl `
+    /p:Configuration=$configuration `
+    /p:Projects=$projects `
+    /p:RepoRoot=$RepoRoot `
+    /p:Restore=$restore `
+    /p:Build=$build `
+    /p:Rebuild=$rebuild `
+    /p:Pack=$pack `
+    /p:Sign=$sign `
+    /p:Publish=$publish `
+    /p:ContinuousIntegrationBuild=$ci `
+    /p:OfficialBuildId=$officialBuildId `
+    /p:RunAnalyzersDuringBuild=$runAnalyzers `
+    /p:BootstrapBuildPath=$bootstrapDir `
+    /p:TreatWarningsAsErrors=$warnAsError `
+    /p:EnableNgenOptimization=$applyOptimizationData `
+    /p:IbcOptimizationDataDir=$ibcDir `
+    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
+    /p:VisualStudioIbcDrop=$ibcDropName `
+    /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
+    $suppressExtensionDeployment `
+    $msbuildWarnAsError `
+    $buildFromSource `
+    $generateDocumentationFile `
+    $roslynUseHardLinks `
+    @properties
 }
 
 # Get the branch that produced the IBC data this build is going to consume.
