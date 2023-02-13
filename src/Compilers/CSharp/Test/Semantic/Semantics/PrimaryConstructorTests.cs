@@ -2717,9 +2717,14 @@ public class C
 ";
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "(43, 44)").VerifyDiagnostics();
-
-            // PROTOTYPE(PrimaryConstructors): Report a warning about unused ref parameter for R2?
+            CompileAndVerify(comp, expectedOutput: "(43, 44)").VerifyDiagnostics(
+                // (17,19): warning CS9508: Parameter 'P2' is unread.
+                // class  R2(ref int P2);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P2").WithArguments("P2").WithLocation(17, 19),
+                // (19,19): warning CS9508: Parameter 'P3' is unread.
+                // class  R3(ref int P3)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P3").WithArguments("P3").WithLocation(19, 19)
+                );
         }
 
         [Theory]
@@ -13623,7 +13628,11 @@ class Program
 3
 6
 -1
-", verify: Verification.Skipped).VerifyDiagnostics();
+", verify: Verification.Skipped).VerifyDiagnostics(
+                // (2,35): warning CS9508: Parameter 'y' is unread.
+                // readonly struct S1(int x, ref int y, out int z)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 35)
+                );
         }
 
         [Fact]
@@ -14021,7 +14030,11 @@ class Program
 3
 6
 -1
-", verify: Verification.Skipped).VerifyDiagnostics();
+", verify: Verification.Skipped).VerifyDiagnostics(
+                // (2,33): warning CS9508: Parameter 'y' is unread.
+                // readonly struct S1(S2 x, ref S2 y, out S2 z)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 33)
+                );
         }
 
         [Fact]

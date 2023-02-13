@@ -674,21 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 diagnostics.AddRange(this.Diagnostics);
-
-                if (CurrentSymbol is SynthesizedPrimaryConstructor primaryCtor)
-                {
-                    foreach (ParameterSymbol parameter in MethodParameters)
-                    {
-                        if (_readParameters?.Contains(parameter) != true &&
-                            !primaryCtor.GetCapturedParameters().ContainsKey(parameter))
-                        {
-                            diagnostics.Add((primaryCtor.ContainingType is { IsRecord: true } or { IsRecordStruct: true }) ?
-                                                 ErrorCode.WRN_UnreadRecordParameter :
-                                                 ErrorCode.WRN_UnreadPrimaryConstructorParameter,
-                                             parameter.Locations.FirstOrNone(), parameter.Name);
-                        }
-                    }
-                }
             }
         }
 
@@ -1831,6 +1816,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void LeaveParameter(ParameterSymbol parameter, SyntaxNode syntax, Location location)
         {
+            if (!parameter.IsThis && parameter.RefKind != RefKind.Out && parameter.ContainingSymbol is SynthesizedPrimaryConstructor primaryCtor)
+            {
+                if (_readParameters?.Contains(parameter) != true &&
+                    !primaryCtor.GetCapturedParameters().ContainsKey(parameter))
+                {
+                    Diagnostics.Add((primaryCtor.ContainingType is { IsRecord: true } or { IsRecordStruct: true }) ?
+                                            ErrorCode.WRN_UnreadRecordParameter :
+                                            ErrorCode.WRN_UnreadPrimaryConstructorParameter,
+                                        parameter.Locations.FirstOrNone(), parameter.Name);
+                }
+            }
+
             if (parameter.RefKind != RefKind.None)
             {
                 var slot = VariableSlot(parameter);
