@@ -55,6 +55,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Nullable\CSharpDeclareAsNullableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\CSharpUnsealClassCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTypeForConst\UseExplicitTypeForConstCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeActionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInterpolatedVerbatimString\CSharpUseInterpolatedVerbatimStringCodeFixProvider.cs" />
