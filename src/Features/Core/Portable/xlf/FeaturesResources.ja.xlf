@@ -60,11 +60,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">省略可能なパラメーターをコンストラクターに追加する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
-        <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="translated">パラメーターを '{0}' に追加します (オーバーライド/実装も行います)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
         <source>Add parameter to constructor</source>
         <target state="translated">パラメーターをコンストラクターに追加する</target>
@@ -543,11 +538,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">LINQ に変換</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_to_0">
-        <source>Add to '{0}'</source>
-        <target state="translated">'{0}' に追加します</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
@@ -2493,11 +2483,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
         <source>zero-width positive lookbehind assertion</source>
         <target state="translated">ゼロ幅の肯定後読みアサーション</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
-        <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="translated">メタデータ内に検出される関連するメソッド シグネチャは更新されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Removal_of_document_not_supported">
@@ -4783,11 +4768,6 @@ This version used in: {2}</source>
       <trans-unit id="Remove_separators">
         <source>Remove separators</source>
         <target state="translated">区切り記号を削除する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parameter_to_0">
-        <source>Add parameter to '{0}'</source>
-        <target state="translated">パラメーターを '{0}' に追加する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor">

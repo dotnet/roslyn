@@ -21,6 +21,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\Fixer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\InheritanceDistanceComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\AbstractAddObsoleteAttributeCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\AbstractAddParameterCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\AddParameterService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\ArgumentInsertPositionData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\CodeFixData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\RegisterFixData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AbstractAliasAmbiguousTypeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AnalyzerOptionsProviders.cs" />

@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests_FixAllTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\AddObsoleteAttributeTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\AddParameterTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AliasAmbiguousTypeTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertGetTypeToNameOf\ConvertGetTypeToNameOfTests.vb" />
