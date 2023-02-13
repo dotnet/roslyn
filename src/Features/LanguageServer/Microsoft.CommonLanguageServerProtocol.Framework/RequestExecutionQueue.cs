@@ -196,7 +196,17 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
                     if (CancelInProgressWorkUponMutatingRequest)
                     {
-                        currentWorkCts = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
+                        try
+                        {
+                            currentWorkCts = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            // Explicitly ignore this exception as this can occur during the CreateLinkTokenSource call, and means one of the
+                            // linked cancellationTokens has been cancelled. If this occurs, skip to the next loop iteration as this 
+                            // queueItem requires no processing
+                            continue;
+                        }
 
                         // Use the linked cancellation token so it's task can be cancelled if necessary during a mutating request
                         // on a queue that specifies CancelInProgressWorkUponMutatingRequest
@@ -267,11 +277,6 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                     // This means either the queue is shutting down or the request itself was cancelled.
                     //   1.  If the queue is shutting down, then while loop will exit before the next iteration since it checks for cancellation.
                     //   2.  Request cancellations are normal so no need to report anything there.
-                }
-                catch (ObjectDisposedException)
-                {
-                    // Explicitly ignore this exception as this can occur during the CreateLinkTokenSource call, and means one of the
-                    // linked cancellationTokens has been cancelled.
                 }
             }
         }
