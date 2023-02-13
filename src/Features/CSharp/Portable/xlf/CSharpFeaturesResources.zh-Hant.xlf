@@ -202,11 +202,6 @@
         <target state="translated">若可能的話，請將私用欄位設定為唯讀</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_ref_struct">
-        <source>Make 'ref struct'</source>
-        <target state="translated">設為 'ref struct'</target>
-        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Remove_in_keyword">
         <source>Remove 'in' keyword</source>
         <target state="translated">移除 'in' 關鍵字</target>

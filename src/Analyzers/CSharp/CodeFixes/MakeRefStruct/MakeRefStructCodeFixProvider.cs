@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -34,39 +32,38 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS8345);
 
+        public override FixAllProvider? GetFixAllProvider()
+        {
+            // The chance of needing fix-all in these cases is super low
+            return null;
+        }
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
             var span = context.Span;
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var structDeclaration = FindContainingStruct(root, span);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (structDeclaration == null)
-            {
+            // Could be declared in a class or even in a nested class inside a struct,
+            // so find only the first parent declaration
+            if (root.FindNode(span).GetAncestor<TypeDeclarationSyntax>() is not StructDeclarationSyntax structDeclaration)
                 return;
-            }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var structDeclarationSymbol = semanticModel.GetDeclaredSymbol(structDeclaration, cancellationToken);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var structDeclarationSymbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(structDeclaration, cancellationToken);
 
             // CS8345 could be triggered when struct is already marked with `ref` but a property is static
             if (!structDeclarationSymbol.IsRefLikeType)
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        CSharpFeaturesResources.Make_ref_struct,
+                        CSharpCodeFixesResources.Make_ref_struct,
                         c => FixCodeAsync(document, structDeclaration, c),
-                        nameof(CSharpFeaturesResources.Make_ref_struct)),
+                        nameof(CSharpCodeFixesResources.Make_ref_struct)),
                     context.Diagnostics);
             }
-        }
-
-        public override FixAllProvider GetFixAllProvider()
-        {
-            // The chance of needing fix-all in these cases is super low
-            return null;
         }
 
         private static async Task<Document> FixCodeAsync(
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             StructDeclarationSyntax structDeclaration,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var generator = SyntaxGenerator.GetGenerator(document);
 
             var newStruct = generator.WithModifiers(
@@ -83,14 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             var newRoot = root.ReplaceNode(structDeclaration, newStruct);
 
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private static StructDeclarationSyntax FindContainingStruct(SyntaxNode root, TextSpan span)
-        {
-            var member = root.FindNode(span);
-            // Could be declared in a class or even in a nested class inside a struct,
-            // so find only the first parent declaration
-            return member.GetAncestor<TypeDeclarationSyntax>() as StructDeclarationSyntax;
         }
     }
 }
