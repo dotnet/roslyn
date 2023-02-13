@@ -220,7 +220,7 @@ stages:
         parameters:
           configuration: Release
       - name: compilerChange
-      - value: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+        value: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
