@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingAnalyzerTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\IteratorTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\MakeTypeAbstractTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypePartial\MakeTypePartialTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\ConsecutiveStatementPlacementTests.vb" />

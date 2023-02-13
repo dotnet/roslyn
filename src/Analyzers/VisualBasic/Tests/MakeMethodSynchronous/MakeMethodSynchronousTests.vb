@@ -7,10 +7,9 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Of Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous.VisualBasicMakeMethodSynchronousCodeFixProvider)
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMethodSynchronous
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeMethodSynchronous
     <Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
     Public Class MakeMethodSynchronousTests
-
         <Fact>
         Public Async Function TestTaskReturnType() As Task
             Await VerifyVB.VerifyCodeFixAsync(
