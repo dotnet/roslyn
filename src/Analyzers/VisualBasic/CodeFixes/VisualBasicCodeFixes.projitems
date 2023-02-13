@@ -19,10 +19,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\ArgumentFixer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\VisualBasicAddExplicitCastCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\VisualBasicAddObsoleteAttributeCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\VisualBasicAddParameterCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\VisualBasicAliasAmbiguousTypeCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\VisualBasicConvertGetTypeToNameOfCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\VisualBasicFormattingCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\GenerateConstructorDiagnosticIds.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicConvertToIteratorCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\VisualBasicMakeFieldReadonlyCodeFixProvider.vb" />

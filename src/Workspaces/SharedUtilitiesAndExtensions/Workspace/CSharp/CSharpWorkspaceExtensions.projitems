@@ -45,6 +45,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DocumentationCommentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\InternalExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeParameterSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.ExpressionSyntaxGeneratorVisitor.cs" />

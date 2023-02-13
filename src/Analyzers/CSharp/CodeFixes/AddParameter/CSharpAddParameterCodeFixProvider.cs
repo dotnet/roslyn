@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
         InvocationExpressionSyntax,
         BaseObjectCreationExpressionSyntax>
     {
-
         private const string CS1501 = nameof(CS1501); // error CS1501: No overload for method 'M' takes 1 arguments
         private const string CS1503 = nameof(CS1503); // error CS1503: Argument 1: cannot convert from 'double' to 'int'
         private const string CS1660 = nameof(CS1660); // error CS1660: Cannot convert lambda expression to type 'string[]' because it is not a delegate type

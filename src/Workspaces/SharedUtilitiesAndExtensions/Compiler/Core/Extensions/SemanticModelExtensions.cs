@@ -226,5 +226,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return word.Pluralize();
 #endif
         }
+
+        /// <summary>
+        /// Fetches the ITypeSymbol that should be used if we were generating a parameter or local that would accept <paramref name="expression"/>. If
+        /// expression is a type, that's returned; otherwise this will see if it's something like a method group and then choose an appropriate delegate.
+        /// </summary>
+        public static ITypeSymbol GetType(
+            this SemanticModel semanticModel,
+            SyntaxNode expression,
+            CancellationToken cancellationToken)
+        {
+            var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
+
+            if (typeInfo.Type != null)
+            {
+                return typeInfo.Type;
+            }
+
+            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+            return symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
+        }
     }
 }
