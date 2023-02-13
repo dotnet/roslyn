@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    FeaturesResources.Add_member_name,
+                    CodeFixesResources.Add_member_name,
                     GetDocumentUpdater(context),
-                    nameof(FeaturesResources.Add_member_name)),
+                    nameof(CodeFixesResources.Add_member_name)),
                 context.Diagnostics);
         }
 
@@ -114,10 +114,11 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
                 return;
             }
 
+            var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             editor.ReplaceNode(
                 declarator,
-                (current, generator) =>
+                (current, _) =>
                 {
                     var currentDeclarator = (TAnonymousObjectMemberDeclaratorSyntax)current;
                     var initializer = (TAnonymousObjectInitializer)currentDeclarator.GetRequiredParent();
@@ -127,9 +128,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
                     var nameToken = generator.Identifier(uniqueName);
                     if (annotation != null)
-                    {
                         nameToken = nameToken.WithAdditionalAnnotations(annotation);
-                    }
 
                     return WithName(currentDeclarator, nameToken);
                 });

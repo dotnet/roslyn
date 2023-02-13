@@ -15,6 +15,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAnonymousTypeMemberName\VisualBasicAddAnonymousTypeMemberNameCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\ArgumentFixer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\VisualBasicAddExplicitCastCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\VisualBasicAddObsoleteAttributeCodeFixProvider.vb" />

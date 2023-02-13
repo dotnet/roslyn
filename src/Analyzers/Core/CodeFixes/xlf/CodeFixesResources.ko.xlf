@@ -27,6 +27,11 @@
         <target state="translated">파일 헤더 추가</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="new">Add member name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
         <target state="translated">별칭 모호한 형식 '{0}'</target>
