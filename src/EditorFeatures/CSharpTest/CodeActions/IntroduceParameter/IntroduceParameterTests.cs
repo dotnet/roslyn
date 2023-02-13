@@ -1990,7 +1990,7 @@ public class C
 
             await TestInRegularAndScriptAsync(code, expected, 0);
         }
-
+        
         [Fact]
         public async Task TestIntroduceParameterOnOverload()
         {
@@ -2007,6 +2007,7 @@ int M(int _, int v) => M({|Rename:v|}, 1234);
             await TestInRegularAndScriptAsync(code, expected, 0);
         }
         
+        [Fact]
         public async Task TestIntroduceParameterOnAttributeArgument()
         {
             var code =
