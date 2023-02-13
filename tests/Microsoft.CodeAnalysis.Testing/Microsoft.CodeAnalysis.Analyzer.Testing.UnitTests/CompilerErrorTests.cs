@@ -18,11 +18,14 @@ namespace Microsoft.CodeAnalysis.Testing
         [Fact]
         public async Task TestCSharpUndeclaredCompilerError()
         {
-            var testCode = @"
-class TestClass {
-  void TestMethod() { throw null }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  void TestMethod() { throw null }
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -42,11 +45,14 @@ class TestClass {
         [Fact]
         public async Task TestCSharpExplicitCompilerError()
         {
-            var testCode = @"
-class TestClass {
-  void TestMethod() { throw null }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  void TestMethod() { throw null }
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -58,12 +64,15 @@ class TestClass {
         [Fact]
         public async Task TestCSharpExplicitCompilerErrorWithExplicitInterfaceSymbol()
         {
-            var testCode = @"using System;
+            var testCode =
+                """
+                using System;
 
-class TestClass {
-  void IDisposable.Dispose() { }
-}
-";
+                class TestClass {
+                  void IDisposable.Dispose() { }
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -79,10 +88,13 @@ class TestClass {
         [Fact]
         public async Task TestMultipleErrorsMatchQuality()
         {
-            var testCode = @"class TestClass {
-  void IDisposable.Dispose() { }
-}
-";
+            var testCode =
+                """
+                class TestClass {
+                  void IDisposable.Dispose() { }
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -117,11 +129,14 @@ class TestClass {
         [Fact]
         public async Task TestCSharpReorderedExplicitCompilerErrorWithExplicitInterfaceSymbol()
         {
-            var testCode = @"using System.Collections.Generic;
+            var testCode =
+                """
+                using System.Collections.Generic;
 
-class TestClass : IEnumerable<int> {
-}
-";
+                class TestClass : IEnumerable<int> {
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -140,11 +155,14 @@ class TestClass : IEnumerable<int> {
         [Fact]
         public async Task TestCSharpMarkupCompilerError()
         {
-            var testCode = @"
-class TestClass {
-  void TestMethod() { throw null {|CS1002:}|}
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  void TestMethod() { throw null {|CS1002:}|}
+                }
+
+                """;
 
             await new CSharpTest { TestCode = testCode }.RunAsync();
         }
@@ -152,11 +170,14 @@ class TestClass {
         [Fact]
         public async Task TestCSharpCompilerWarning()
         {
-            var testCode = @"
-class TestClass {
-  int value = 3;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int value = 3;
+                }
+
+                """;
 
             // By default the warning is ignored
             Assert.Equal(CompilerDiagnostics.Errors, new CSharpTest { TestCode = testCode }.CompilerDiagnostics);
@@ -174,11 +195,14 @@ class TestClass {
         [Fact]
         public async Task TestCSharpCompilerWarningDeclaredWithWrongArgument()
         {
-            var testCode = @"
-class TestClass {
-  int value = 3;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int value = 3;
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -207,11 +231,14 @@ class TestClass {
         [Fact]
         public async Task TestCSharpCompilerWarningNotDeclared()
         {
-            var testCode = @"
-class TestClass {
-  int value = 3;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int value = 3;
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -231,12 +258,15 @@ class TestClass {
         [Fact]
         public async Task TestCSharpCompilerHidden()
         {
-            var testCode = @"
-using System;
+            var testCode =
+                """
 
-class TestClass {
-}
-";
+                using System;
+
+                class TestClass {
+                }
+
+                """;
 
             // By default the warning is ignored
             Assert.Equal(CompilerDiagnostics.Errors, new CSharpTest { TestCode = testCode }.CompilerDiagnostics);
@@ -260,12 +290,15 @@ class TestClass {
         [Fact]
         public async Task TestCSharpCompilerHiddenNotDeclared()
         {
-            var testCode = @"
-using System;
+            var testCode =
+                """
 
-class TestClass {
-}
-";
+                using System;
+
+                class TestClass {
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -285,12 +318,15 @@ class TestClass {
         [Fact]
         public async Task TestVisualBasicUndeclaredCompilerError()
         {
-            var testCode = @"
-Class TestClass
-  Sub Method)
-  End Sub
-End Class
-";
+            var testCode =
+                """
+
+                Class TestClass
+                  Sub Method)
+                  End Sub
+                End Class
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -310,12 +346,15 @@ End Class
         [Fact]
         public async Task TestVisualBasicExplicitCompilerError()
         {
-            var testCode = @"
-Class TestClass
-  Sub Method)
-  End Sub
-End Class
-";
+            var testCode =
+                """
+
+                Class TestClass
+                  Sub Method)
+                  End Sub
+                End Class
+
+                """;
 
             await new VisualBasicTest
             {
@@ -327,12 +366,15 @@ End Class
         [Fact]
         public async Task TestVisualBasicMarkupCompilerError()
         {
-            var testCode = @"
-Class TestClass
-  Sub Method{|BC30205:)|}
-  End Sub
-End Class
-";
+            var testCode =
+                """
+
+                Class TestClass
+                  Sub Method{|BC30205:)|}
+                  End Sub
+                End Class
+
+                """;
 
             await new VisualBasicTest { TestCode = testCode }.RunAsync();
         }
@@ -340,11 +382,14 @@ End Class
         [Fact]
         public async Task TestCSharpValueTupleUsageNet46()
         {
-            var testCode = @"
-class TestClass {
-  (int x, int y) TestMethod() { return (0, 1); }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  (int x, int y) TestMethod() { return (0, 1); }
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -360,11 +405,14 @@ class TestClass {
         [Fact]
         public async Task TestCSharpValueTupleUsageNet472()
         {
-            var testCode = @"
-class TestClass {
-  (int x, int y) TestMethod() { return (0, 1); }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  (int x, int y) TestMethod() { return (0, 1); }
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -381,12 +429,15 @@ class TestClass {
         [InlineData("net472")]
         public async Task TestRoslynCompilerUsage_1(string targetFramework)
         {
-            var testCode = @"
-using Microsoft.CodeAnalysis.CSharp;
-class TestClass {
-  SyntaxKind TestMethod() => SyntaxKind.CloseBraceToken;
-}
-";
+            var testCode =
+                """
+
+                using Microsoft.CodeAnalysis.CSharp;
+                class TestClass {
+                  SyntaxKind TestMethod() => SyntaxKind.CloseBraceToken;
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -412,12 +463,15 @@ class TestClass {
 #endif
         public async Task TestRoslynCompilerUsage_2(string targetFramework)
         {
-            var testCode = @"
-using Microsoft.CodeAnalysis.CSharp;
-class TestClass {
-  SyntaxKind TestMethod() => SyntaxKind.TupleType;
-}
-";
+            var testCode =
+                """
+
+                using Microsoft.CodeAnalysis.CSharp;
+                class TestClass {
+                  SyntaxKind TestMethod() => SyntaxKind.TupleType;
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -440,12 +494,15 @@ class TestClass {
 #endif
         public async Task TestRoslynCompilerUsage_3(string targetFramework)
         {
-            var testCode = @"
-using Microsoft.CodeAnalysis.CSharp;
-class TestClass {
-  SyntaxKind TestMethod() => SyntaxKind.DotDotToken;
-}
-";
+            var testCode =
+                """
+
+                using Microsoft.CodeAnalysis.CSharp;
+                class TestClass {
+                  SyntaxKind TestMethod() => SyntaxKind.DotDotToken;
+                }
+
+                """;
 
             await new CSharpTest
             {

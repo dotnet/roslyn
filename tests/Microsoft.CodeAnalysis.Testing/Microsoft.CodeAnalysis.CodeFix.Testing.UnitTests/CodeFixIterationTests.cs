@@ -16,16 +16,22 @@ namespace Microsoft.CodeAnalysis.Testing
         [Fact]
         public async Task TestOneIterationRequired()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|4|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int field =  5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|4|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field =  5;
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -37,18 +43,24 @@ class TestClass {
         [Fact]
         public async Task TestOneIterationEachForTwoDiagnostics()
         {
-            var testCode = @"
-class TestClass {
-  int x = [|4|];
-  int y = [|4|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int x =  5;
-  int y =  5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int x = [|4|];
+                  int y = [|4|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int x =  5;
+                  int y =  5;
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -60,24 +72,33 @@ class TestClass {
         [Fact]
         public async Task TestOneIterationEachForTwoDiagnosticsFixOnlyFirst()
         {
-            var testCode = @"
-class TestClass {
-  int x = [|4|];
-  int y = [|4|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int x =  5;
-  int y = [|4|];
-}
-";
-            var batchFixedCode = @"
-class TestClass {
-  int x =  5;
-  int y =  5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int x = [|4|];
+                  int y = [|4|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int x =  5;
+                  int y = [|4|];
+                }
+
+                """;
+            var batchFixedCode =
+                """
+
+                class TestClass {
+                  int x =  5;
+                  int y =  5;
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -96,24 +117,33 @@ class TestClass {
         [Fact]
         public async Task TestOneIterationEachForTwoDiagnosticsFixOnlySecond()
         {
-            var testCode = @"
-class TestClass {
-  int x = [|4|];
-  int y = [|4|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int x = [|4|];
-  int y =  5;
-}
-";
-            var batchFixedCode = @"
-class TestClass {
-  int x =  5;
-  int y =  5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int x = [|4|];
+                  int y = [|4|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int x = [|4|];
+                  int y =  5;
+                }
+
+                """;
+            var batchFixedCode =
+                """
+
+                class TestClass {
+                  int x =  5;
+                  int y =  5;
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -132,18 +162,24 @@ class TestClass {
         [Fact]
         public async Task TestThreeIterationsForTwoDiagnostics()
         {
-            var testCode = @"
-class TestClass {
-  int x = [|3|];
-  int y = [|4|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int x =   5;
-  int y =  5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int x = [|3|];
+                  int y = [|4|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int x =   5;
+                  int y =  5;
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -162,16 +198,22 @@ class TestClass {
         [InlineData(2, -3)]
         public async Task TestTwoIterationsRequired(int declaredIncrementalIterations, int declaredFixAllIterations)
         {
-            var testCode = @"
-class TestClass {
-  int field = [|3|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int field =   5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|3|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field =   5;
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -185,21 +227,30 @@ class TestClass {
         [Fact]
         public async Task TestTwoIterationsRequiredButIncrementalNotDeclared()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|3|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int field =   5;
-}
-";
-            var batchFixedCode = @"
-class TestClass {
-  int field =   5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|3|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field =   5;
+                }
+
+                """;
+            var batchFixedCode =
+                """
+
+                class TestClass {
+                  int field =   5;
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -221,21 +272,30 @@ class TestClass {
         [InlineData(1, "Expected '1' iterations but found '2' iterations.", "  5")]
         public async Task TestTwoIterationsRequiredButIncrementalDeclaredIncorrectly(int declaredIncrementalIterations, string message, string replacement)
         {
-            var testCode = @"
-class TestClass {
-  int field = [|3|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field = {replacement};
-}}
-";
-            var batchFixedCode = @"
-class TestClass {
-  int field =   5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|3|];
+                }
+
+                """;
+            var fixedCode =
+                $$"""
+
+                class TestClass {
+                  int field = {{replacement}};
+                }
+
+                """;
+            var batchFixedCode =
+                """
+
+                class TestClass {
+                  int field =   5;
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -255,16 +315,22 @@ class TestClass {
         [Fact]
         public async Task TestTwoIterationsRequiredButFixAllNotDeclared()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|3|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int field =   5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|3|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field =   5;
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -285,21 +351,30 @@ class TestClass {
         [InlineData(1, "Expected '1' iterations but found '2' iterations.", "  5")]
         public async Task TestTwoIterationsRequiredButFixAllDeclaredIncorrectly(int declaredFixAllIterations, string message, string replacement)
         {
-            var testCode = @"
-class TestClass {
-  int field = [|3|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field =   5;
-}}
-";
-            var fixAllCode = $@"
-class TestClass {{
-  int field = {replacement};
-}}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|3|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field =   5;
+                }
+
+                """;
+            var fixAllCode =
+                $$"""
+
+                class TestClass {
+                  int field = {{replacement}};
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -325,26 +400,38 @@ class TestClass {{
         [InlineData(CodeFixTestBehaviors.SkipFixAllCheck)]
         public async Task TestOneIterationRequiredForEachOfTwoDocuments(CodeFixTestBehaviors codeFixTestBehaviors)
         {
-            var testCode1 = @"
-class TestClass1 {
-  int field = [|4|];
-}
-";
-            var testCode2 = @"
-class TestClass2 {
-  int field = [|4|];
-}
-";
-            var fixedCode1 = @"
-class TestClass1 {
-  int field =  5;
-}
-";
-            var fixedCode2 = @"
-class TestClass2 {
-  int field =  5;
-}
-";
+            var testCode1 =
+                """
+
+                class TestClass1 {
+                  int field = [|4|];
+                }
+
+                """;
+            var testCode2 =
+                """
+
+                class TestClass2 {
+                  int field = [|4|];
+                }
+
+                """;
+            var fixedCode1 =
+                """
+
+                class TestClass1 {
+                  int field =  5;
+                }
+
+                """;
+            var fixedCode2 =
+                """
+
+                class TestClass2 {
+                  int field =  5;
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -360,26 +447,38 @@ class TestClass2 {
         [InlineData(CodeFixTestBehaviors.SkipFixAllInProjectCheck, "Fix all in solution")]
         public async Task TestOneIterationRequiredForEachOfTwoDocumentsButDeclaredForAll(CodeFixTestBehaviors codeFixTestBehaviors, string context)
         {
-            var testCode1 = @"
-class TestClass1 {
-  int field = [|4|];
-}
-";
-            var testCode2 = @"
-class TestClass2 {
-  int field = [|4|];
-}
-";
-            var fixedCode1 = @"
-class TestClass1 {
-  int field =  5;
-}
-";
-            var fixedCode2 = @"
-class TestClass2 {
-  int field =  5;
-}
-";
+            var testCode1 =
+                """
+
+                class TestClass1 {
+                  int field = [|4|];
+                }
+
+                """;
+            var testCode2 =
+                """
+
+                class TestClass2 {
+                  int field = [|4|];
+                }
+
+                """;
+            var fixedCode1 =
+                """
+
+                class TestClass1 {
+                  int field =  5;
+                }
+
+                """;
+            var fixedCode2 =
+                """
+
+                class TestClass2 {
+                  int field =  5;
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -399,16 +498,22 @@ class TestClass2 {
         [WorkItem(874, "https://github.com/dotnet/roslyn-sdk/issues/874")]
         public async Task TestTwoIterationsRequiredButOneApplied()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|3|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int field =  [|4|];
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|3|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field =  [|4|];
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -427,16 +532,22 @@ class TestClass {
         [WorkItem(874, "https://github.com/dotnet/roslyn-sdk/issues/874")]
         public async Task TestTwoIterationsRequiredButNoneApplied()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|3|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int field =  [|4|];
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|3|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field =  [|4|];
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {

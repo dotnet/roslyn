@@ -15,29 +15,41 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class AutoExclusionTests
     {
-        private const string ReplaceThisWithBaseTestCode = @"
-class TestClass {
-  void TestMethod() { [|this|].Equals(null); }
-}
-";
+        private const string ReplaceThisWithBaseTestCode =
+            """
 
-        private const string CSharpFirstLineDiagnosticTestCode = @"[||]
-class TestClass {
-}
-";
+            class TestClass {
+              void TestMethod() { [|this|].Equals(null); }
+            }
 
-        private const string ReplaceMyClassWithMyBaseTestCode = @"
-Class TestClass
-  Sub TestMethod()
-    [|MyClass|].Equals(Nothing)
-  End Sub
-End Class
-";
+            """;
 
-        private const string VisualBasicFirstLineDiagnosticTestCode = @"[||]
-Class TestClass
-End Class
-";
+        private const string CSharpFirstLineDiagnosticTestCode =
+            """
+            [||]
+            class TestClass {
+            }
+
+            """;
+
+        private const string ReplaceMyClassWithMyBaseTestCode =
+            """
+
+            Class TestClass
+              Sub TestMethod()
+                [|MyClass|].Equals(Nothing)
+              End Sub
+            End Class
+
+            """;
+
+        private const string VisualBasicFirstLineDiagnosticTestCode =
+            """
+            [||]
+            Class TestClass
+            End Class
+
+            """;
 
         [Fact]
         public async Task TestCSharpAnalyzerWithUnspecifiedExclusionFails()

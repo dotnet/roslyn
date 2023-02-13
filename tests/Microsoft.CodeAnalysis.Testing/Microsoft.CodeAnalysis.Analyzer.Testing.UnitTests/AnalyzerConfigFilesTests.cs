@@ -19,12 +19,15 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class AnalyzerConfigFilesTests
     {
-        private const string RootEditorConfig = @"
-root = true
+        private const string RootEditorConfig =
+            """
 
-[*]
-key = value
-";
+            root = true
+
+            [*]
+            key = value
+
+            """;
 
         [Fact]
         public async Task TestDiagnosticInNormalFile()
@@ -97,12 +100,15 @@ key = value
         [Fact]
         public async Task TestDiagnosticInAnalyzerConfigFileBraceNotTreatedAsMarkup()
         {
-            var editorConfig = @"
-root = true
+            var editorConfig =
+                """
 
-[*]
-key = {|Literal:value|}
-";
+                root = true
+
+                [*]
+                key = {|Literal:value|}
+
+                """;
 
             await new CSharpTest
             {

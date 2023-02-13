@@ -72,29 +72,35 @@ namespace Microsoft.CodeAnalysis.Testing
         [WorkItem(419, "https://github.com/dotnet/roslyn-sdk/issues/419")]
         public async Task VerifySimpleSyntaxWorks()
         {
-            var before = @"
-using System;
+            var before =
+                """
 
-namespace ConsoleApp1
-{
-    public class TestClass
-    {
-        private int someField;
+                using System;
 
-        public void SomeMethod(){}
-    }
-}";
+                namespace ConsoleApp1
+                {
+                    public class TestClass
+                    {
+                        private int someField;
 
-            var after = @"
-using System;
+                        public void SomeMethod(){}
+                    }
+                }
+                """;
 
-namespace ConsoleApp1
-{
-    public class TestClass
-    {
-        public void SomeMethod(){}
-    }
-}";
+            var after =
+                """
+
+                using System;
+
+                namespace ConsoleApp1
+                {
+                    public class TestClass
+                    {
+                        public void SomeMethod(){}
+                    }
+                }
+                """;
 
             var diagnostic = DiagnosticResult.CompilerWarning("CS0169").WithSpan(8, 21, 8, 30).WithArguments("ConsoleApp1.TestClass.someField");
             await Verify<SomeCodeFix>.VerifyCodeFixAsync(before, diagnostic, after);
@@ -109,29 +115,35 @@ namespace ConsoleApp1
         [WorkItem(419, "https://github.com/dotnet/roslyn-sdk/issues/419")]
         public async Task VerifySimpleMarkupSyntaxWorks()
         {
-            var before = @"
-using System;
+            var before =
+                """
 
-namespace ConsoleApp1
-{
-    public class TestClass
-    {
-        private int {|CS0169:someField|};
+                using System;
 
-        public void SomeMethod(){}
-    }
-}";
+                namespace ConsoleApp1
+                {
+                    public class TestClass
+                    {
+                        private int {|CS0169:someField|};
 
-            var after = @"
-using System;
+                        public void SomeMethod(){}
+                    }
+                }
+                """;
 
-namespace ConsoleApp1
-{
-    public class TestClass
-    {
-        public void SomeMethod(){}
-    }
-}";
+            var after =
+                """
+
+                using System;
+
+                namespace ConsoleApp1
+                {
+                    public class TestClass
+                    {
+                        public void SomeMethod(){}
+                    }
+                }
+                """;
 
             await Verify<SomeCodeFix>.VerifyCodeFixAsync(before, after);
         }

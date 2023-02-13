@@ -24,12 +24,15 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class AnalyzerConfigFilesFixTests
     {
-        private const string RootEditorConfig = @"
-root = true
+        private const string RootEditorConfig =
+            """
 
-[*]
-key = value
-";
+            root = true
+
+            [*]
+            key = value
+
+            """;
 
         [Fact]
         public async Task TestDiagnosticFixedByAddingAnalyzerConfigFile()
