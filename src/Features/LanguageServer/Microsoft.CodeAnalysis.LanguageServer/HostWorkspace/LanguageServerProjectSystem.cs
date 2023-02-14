@@ -84,7 +84,7 @@ internal sealed class LanguageServerProjectSystem
             }
         }
 
-        await _projectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w => w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged)).ConfigureAwait(false);
+        await _projectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w => w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
     }
 
     public void OpenSolution(string solutionFilePath)
@@ -122,7 +122,7 @@ internal sealed class LanguageServerProjectSystem
                 tasks.Add(Task.Run(() => LoadOrReloadProjectAsync(projectPathToLoadOrReload, projectBuildManager, disposalToken), disposalToken));
             }
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await Task.WhenAll(tasks);
         }
         finally
         {
@@ -138,8 +138,8 @@ internal sealed class LanguageServerProjectSystem
         {
             if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var loader))
             {
-                var loadedFile = await loader.LoadProjectFileAsync(projectPath, projectBuildManager, disposalToken).ConfigureAwait(false);
-                var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(disposalToken).ConfigureAwait(false);
+                var loadedFile = await loader.LoadProjectFileAsync(projectPath, projectBuildManager, disposalToken);
+                var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(disposalToken);
 
                 var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
 
@@ -150,7 +150,7 @@ internal sealed class LanguageServerProjectSystem
 
                     if (existingProject != null)
                     {
-                        await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo).ConfigureAwait(false);
+                        await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
                     }
                     else
                     {
@@ -161,13 +161,13 @@ internal sealed class LanguageServerProjectSystem
                             projectSystemName,
                             loadedProjectInfo.Language,
                             projectCreationInfo,
-                            _projectHostInfo).ConfigureAwait(false);
+                            _projectHostInfo);
 
                         var loadedProject = new LoadedProject(projectSystemProject, Workspace.Services.SolutionServices, _fileChangeWatcher);
                         loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectPath);
                         existingProjects.Add(loadedProject);
 
-                        await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo).ConfigureAwait(false);
+                        await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo);
                     }
                 }
             }

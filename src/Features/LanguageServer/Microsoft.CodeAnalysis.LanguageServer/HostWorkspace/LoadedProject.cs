@@ -72,7 +72,7 @@ internal sealed class LoadedProject : IDisposable
             Contract.ThrowIfFalse(newProjectInfo.TargetFramework == _mostRecentFileInfo.TargetFramework);
         }
 
-        await using var batch = _projectSystemProject.CreateBatchScope().ConfigureAwait(false);
+        await using var batch = _projectSystemProject.CreateBatchScope();
 
         var projectDisplayName = Path.GetFileNameWithoutExtension(newProjectInfo.FilePath);
 

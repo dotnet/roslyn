@@ -25,8 +25,8 @@ internal sealed class ExportProviderBuilder
 
         // TODO - we should likely cache the catalog so we don't have to rebuild it every time.
         var catalog = ComposableCatalog.Create(Resolver.DefaultInstance)
-            .AddParts(await discovery.CreatePartsAsync(Assembly.GetExecutingAssembly()).ConfigureAwait(false))
-            .AddParts(await discovery.CreatePartsAsync(assembliesToDiscover).ConfigureAwait(false))
+            .AddParts(await discovery.CreatePartsAsync(Assembly.GetExecutingAssembly()))
+            .AddParts(await discovery.CreatePartsAsync(assembliesToDiscover))
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
         // Assemble the parts into a valid graph.

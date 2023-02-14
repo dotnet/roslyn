@@ -57,8 +57,8 @@ internal sealed class LanguageServerHost
 
     public async Task WaitForExitAsync()
     {
-        await _jsonRpc.Completion.ConfigureAwait(false);
-        await _roslynLanguageServer.WaitForExitAsync().ConfigureAwait(false);
+        await _jsonRpc.Completion;
+        await _roslynLanguageServer.WaitForExitAsync();
     }
 
     public Task NotifyAsync(string targetName, object? argument)

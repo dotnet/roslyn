@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis.Elfie.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
@@ -40,7 +39,7 @@ var solutionPath = GetSolutionPath(args);
 var msbuildInstances = MSBuildLocator.QueryVisualStudioInstances(new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Path.GetDirectoryName(solutionPath) });
 MSBuildLocator.RegisterInstance(msbuildInstances.First());
 
-var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync().ConfigureAwait(false);
+var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
 
 // Immediately set the logger factory, so that way it'll be available for the rest of the composition
 exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
@@ -53,14 +52,14 @@ var analyzerPaths = new DirectoryInfo(AppContext.BaseDirectory).GetFiles("*.dll"
     .Select(f => f.FullName)
     .ToImmutableArray();
 
-await projectSystem.InitializeSolutionLevelAnalyzersAsync(analyzerPaths).ConfigureAwait(false);
+await projectSystem.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
 
 var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
 server.Start();
 
 projectSystem.OpenSolution(solutionPath);
 
-await server.WaitForExitAsync().ConfigureAwait(false);
+await server.WaitForExitAsync();
 
 // Dispose of our container, so parts can cleanly shut themselves down
 exportProvider.Dispose();

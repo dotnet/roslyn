@@ -65,18 +65,18 @@ public abstract class AbstractLanguageServerHostTests
 
         public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class
         {
-            var result = await _clientRpc.InvokeWithParameterObjectAsync<TResponseType>(methodName, request, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var result = await _clientRpc.InvokeWithParameterObjectAsync<TResponseType>(methodName, request, cancellationToken: cancellationToken);
             return result;
         }
 
         public async ValueTask DisposeAsync()
         {
-            await _clientRpc.InvokeAsync(Methods.ShutdownName).ConfigureAwait(false);
-            await _clientRpc.NotifyAsync(Methods.ExitName).ConfigureAwait(false);
+            await _clientRpc.InvokeAsync(Methods.ShutdownName);
+            await _clientRpc.NotifyAsync(Methods.ExitName);
 
             // The language server host task should complete once shutdown and exit are called.
 #pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
-            await _languageServerHostCompletionTask.ConfigureAwait(false);
+            await _languageServerHostCompletionTask;
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
 
             _clientRpc.Dispose();
