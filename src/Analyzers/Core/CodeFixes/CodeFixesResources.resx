@@ -189,4 +189,16 @@
   <data name="Remove_async_modifier" xml:space="preserve">
     <value>Remove 'async' modifier</value>
   </data>
+  <data name="Take_0" xml:space="preserve">
+    <value>Take '{0}'</value>
+  </data>
+  <data name="Take_both" xml:space="preserve">
+    <value>Take both</value>
+  </data>
+  <data name="Take_bottom" xml:space="preserve">
+    <value>Take bottom</value>
+  </data>
+  <data name="Take_top" xml:space="preserve">
+    <value>Take top</value>
+  </data>
 </root>
