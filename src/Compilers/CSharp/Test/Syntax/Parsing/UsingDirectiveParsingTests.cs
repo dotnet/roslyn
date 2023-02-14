@@ -1600,7 +1600,7 @@ namespace N
     }
 
     [Fact]
-    public void AliasUsingNullableReferenceType()
+    public void AliasUsingNullableReferenceType1()
     {
         var text = @"using x = string?;";
         UsingTree(text);
@@ -1640,6 +1640,202 @@ namespace N
                     N(SyntaxKind.QuestionToken);
                 }
                 N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AliasUsingNullableReferenceType2()
+    {
+        var text = """
+            #nullable enable
+            using X = string?;
+            """;
+        UsingTree(text);
+        CreateCompilation(text).VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using X = string?;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = string?;").WithLocation(2, 1),
+            // (2,17): error CS9107: Using alias cannot be a nullable reference type.
+            // using X = string?;
+            Diagnostic(ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias, "?").WithLocation(2, 17));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.NullableType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.QuestionToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AliasUsingNullableReferenceType3()
+    {
+        var text = """
+            using X = string;
+            namespace N
+            {
+                using Y = X?;
+            }
+            """;
+        UsingTree(text);
+        CreateCompilation(text).VerifyDiagnostics(
+            // (4,5): hidden CS8019: Unnecessary using directive.
+            //     using Y = X?;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X?;").WithLocation(4, 5),
+            // (4,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+            //     using Y = X?;
+            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 16),
+            // (4,16): error CS9107: Using alias cannot be a nullable reference type.
+            //     using Y = X?;
+            Diagnostic(ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias, "?").WithLocation(4, 16));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.StringKeyword);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.NamespaceDeclaration);
+            {
+                N(SyntaxKind.NamespaceKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "N");
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AliasUsingNullableReferenceType4()
+    {
+        var text = """
+            #nullable enable
+            using X = string;
+            namespace N
+            {
+                using Y = X?;
+            }
+            """;
+        UsingTree(text);
+        CreateCompilation(text).VerifyDiagnostics(
+            // (5,5): hidden CS8019: Unnecessary using directive.
+            //     using Y = X?;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X?;").WithLocation(5, 5),
+            // (5,16): error CS9107: Using alias cannot be a nullable reference type.
+            //     using Y = X?;
+            Diagnostic(ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias, "?").WithLocation(5, 16));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.StringKeyword);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.NamespaceDeclaration);
+            {
+                N(SyntaxKind.NamespaceKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "N");
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
