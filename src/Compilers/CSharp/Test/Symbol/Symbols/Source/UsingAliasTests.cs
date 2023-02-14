@@ -254,17 +254,28 @@ partial class A : Object {}
         [InlineData("nint", "nint")]
         public void GetAliasTypeInfo(string aliasType, string expected)
         {
-            var text = $"using O = {aliasType};";
-            var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot();
-            var comp = CreateCompilation(tree);
+            // Shoudl get the same results in the semantic model regardless of whether the using has the 'unsafe'
+            // keyword or not.
+            getAliasTypeInfoHelper("");
+            getAliasTypeInfoHelper("unsafe");
 
-            var usingAlias = root.Usings[0];
+            void getAliasTypeInfoHelper(string unsafeString)
+            {
+                var text = $"using {unsafeString} O = {aliasType};";
+                var tree = Parse(text);
+                var root = tree.GetCompilationUnitRoot();
+                var comp = CreateCompilation(tree);
 
-            var model = comp.GetSemanticModel(tree);
+                var usingAlias = root.Usings[0];
 
-            var usingAliasType = model.GetTypeInfo(usingAlias.Type).Type;
-            AssertEx.Equal(expected, usingAliasType.ToDisplayString(SymbolDisplayFormat.TestFormat));
+                var model = comp.GetSemanticModel(tree);
+
+                var usingAliasType = model.GetTypeInfo(usingAlias.Type).Type;
+                AssertEx.Equal(expected, usingAliasType.ToDisplayString(SymbolDisplayFormat.TestFormat));
+
+                var alias = model.GetDeclaredSymbol(usingAlias);
+                Assert.Equal(alias.Target, usingAliasType);
+            }
         }
 
         [Fact]
