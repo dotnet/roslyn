@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     internal sealed class FeatureOnOffOptions
     {
 
-        public static readonly PerLanguageOption2<bool> ReferenceHighlighting = new("FeatureOnOffOptions_ReferenceHighlighting", defaultValue: true);
-
         public static readonly PerLanguageOption2<bool> AutoInsertBlockCommentStartString = new("FeatureOnOffOptions_AutoInsertBlockCommentStartString", defaultValue: true);
 
         public static readonly PerLanguageOption2<bool> PrettyListing = new("FeatureOnOffOptions_PrettyListing", defaultValue: true);

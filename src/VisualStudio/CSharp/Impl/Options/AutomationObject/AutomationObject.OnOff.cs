@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -69,8 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int HighlightReferences
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.ReferenceHighlighting); }
-            set { SetBooleanOption(FeatureOnOffOptions.ReferenceHighlighting, value); }
+            get { return GetBooleanOption(ReferenceHighlightingOptions.ReferenceHighlighting); }
+            set { SetBooleanOption(ReferenceHighlightingOptions.ReferenceHighlighting, value); }
         }
 
         public int Refactoring_Verification_Enabled

@@ -33,6 +33,7 @@ using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
@@ -103,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             });
 
             // Highlighting
-            BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.CSharp);
+            BindToOption(EnableHighlightReferences, ReferenceHighlightingOptions.ReferenceHighlighting, LanguageNames.CSharp);
             BindToOption(EnableHighlightKeywords, KeywordHighlightingOptions.KeywordHighlighting, LanguageNames.CSharp);
 
             // Outlining

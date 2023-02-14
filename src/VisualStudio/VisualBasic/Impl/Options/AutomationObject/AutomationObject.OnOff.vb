@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.KeywordHighlighting
 Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.MetadataAsSource
+Imports Microsoft.CodeAnalysis.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Structure
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -51,10 +52,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property EnableHighlightReferences As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.ReferenceHighlighting)
+                Return GetBooleanOption(ReferenceHighlightingOptions.ReferenceHighlighting)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.ReferenceHighlighting, value)
+                SetBooleanOption(ReferenceHighlightingOptions.ReferenceHighlighting, value)
             End Set
         End Property
 
