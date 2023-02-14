@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis.BlockCommentEditing;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
         private bool TryHandleReturnKey(ITextBuffer subjectBuffer, ITextView textView, CancellationToken cancellationToken)
         {
-            if (!_editorOptionsService.GlobalOptions.GetOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp))
+            if (!_editorOptionsService.GlobalOptions.GetOption(BlockCommentEditingOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp))
                 return false;
 
             var caretPosition = textView.GetCaretPoint(subjectBuffer);
