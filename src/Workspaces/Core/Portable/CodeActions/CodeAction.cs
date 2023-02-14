@@ -418,18 +418,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="isInlinable"><see langword="true"/> to allow inlining the members of the group into the parent;
         /// otherwise, <see langword="false"/> to require that this group appear as a group with nested actions.</param>
         public static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+            => Create(title, nestedActions, isInlinable, priority: CodeActionPriority.Default);
+
+        internal static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable, CodeActionPriority priority)
         {
             if (title is null)
-            {
                 throw new ArgumentNullException(nameof(title));
-            }
 
             if (nestedActions == null)
-            {
                 throw new ArgumentNullException(nameof(nestedActions));
-            }
 
-            return CodeActionWithNestedActions.Create(title, nestedActions, isInlinable);
+            return CodeActionWithNestedActions.Create(title, nestedActions, isInlinable, priority);
         }
 
         internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)

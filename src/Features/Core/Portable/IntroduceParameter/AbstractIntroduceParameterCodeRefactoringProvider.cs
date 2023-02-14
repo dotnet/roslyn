@@ -18,11 +18,10 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
-namespace Microsoft.CodeAnalysis.IntroduceVariable
+namespace Microsoft.CodeAnalysis.IntroduceParameter
 {
-    internal abstract partial class AbstractIntroduceParameterService<
+    internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvider<
         TExpressionSyntax,
         TInvocationExpressionSyntax,
         TObjectCreationExpressionSyntax,
@@ -111,15 +110,16 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             if (actions.Value.actions.Length > 0)
             {
-                context.RegisterRefactoring(CodeActionWithNestedActions.Create(
-                    string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString), actions.Value.actions, isInlinable: false, priority: CodeActionPriority.Low), expression.FullSpan);
+                context.RegisterRefactoring(CodeAction.Create(
+                    string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString),
+                    actions.Value.actions, isInlinable: false, priority: CodeActionPriority.Low), expression.FullSpan);
             }
 
             if (actions.Value.actionsAllOccurrences.Length > 0)
             {
-                context.RegisterRefactoring(CodeActionWithNestedActions.Create(
-                    string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString), actions.Value.actionsAllOccurrences, isInlinable: false,
-                    priority: CodeActionPriority.Low), expression.FullSpan);
+                context.RegisterRefactoring(CodeAction.Create(
+                    string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString),
+                    actions.Value.actionsAllOccurrences, isInlinable: false, priority: CodeActionPriority.Low), expression.FullSpan);
             }
         }
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 return CodeAction.Create(
                     actionName,
-                    c => IntroduceParameterAsync(document, expression, methodSymbol, containingMethod, allOccurrences, selectedCodeAction, fallbackOptions, c),
+                    cancellationToken => IntroduceParameterAsync(document, expression, methodSymbol, containingMethod, allOccurrences, selectedCodeAction, fallbackOptions, cancellationToken),
                     actionName);
             }
         }

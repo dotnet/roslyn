@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable.VisualBasicIntroduceParameterCodeRefactoringProvider)
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.IntroduceParameter
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.IntroduceParameter
     <Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
     Public Class IntroduceParameterTests
         <Fact>
