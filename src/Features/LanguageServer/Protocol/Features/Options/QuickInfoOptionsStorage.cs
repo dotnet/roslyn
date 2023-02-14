@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
           };
 
         public static readonly PerLanguageOption2<bool> ShowRemarksInQuickInfo = new(
-            "QuickInfoOptions_ShowRemarksInQuickInfo", QuickInfoOptions.Default.ShowRemarksInQuickInfo);
+            "dotnet_quick_info_options_show_remarks_in_quick_info", QuickInfoOptions.Default.ShowRemarksInQuickInfo);
 
         public static readonly Option2<bool> IncludeNavigationHintsInQuickInfo = new(
-            "QuickInfoOptions_IncludeNavigationHintsInQuickInfo", QuickInfoOptions.Default.IncludeNavigationHintsInQuickInfo);
+            "dotnet_quick_info_options_include_navigation_hints_in_quick_info", QuickInfoOptions.Default.IncludeNavigationHintsInQuickInfo);
     }
 }
