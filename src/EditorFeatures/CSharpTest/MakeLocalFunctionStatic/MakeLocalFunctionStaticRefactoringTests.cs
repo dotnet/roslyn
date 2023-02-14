@@ -97,9 +97,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
         }
 
         [Fact]
-        public async Task ShouldNotTriggerIfCapturesThisParameter()
+        public async Task ShouldTriggerIfCapturesThisParameter1()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int x;
+
+    int N()
+    {
+        return AddLocal();
+
+        int [||]AddLocal()
+        {
+            return this.x + 1;
+        }
+    }  
+}",
+@"class C
+{
+    int x;
+
+    int N()
+    {
+        return AddLocal(this);
+
+        static int AddLocal(C @this)
+        {
+            return @this.x + 1;
+        }
+    }  
+}", parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact]
+        public async Task ShouldTriggerIfCapturesThisParameter2()
+        {
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int x;
@@ -113,7 +147,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
             return x + 1;
         }
     }  
-}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+}",
+@"class C
+{
+    int x;
+
+    int N()
+    {
+        return AddLocal(this);
+
+        static int [||]AddLocal(C @this)
+        {
+            return @this.x + 1;
+        }
+    }  
+}", parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact]
+        public async Task ShouldTriggerIfCapturesThisParameter3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int x;
+
+    int N()
+    {
+        return AddLocal(0);
+
+        int [||]AddLocal(int y)
+        {
+            return x + y;
+        }
+    }  
+}",
+@"class C
+{
+    int x;
+
+    int N()
+    {
+        return AddLocal(this, 0);
+
+        static int [||]AddLocal(C @this, int y)
+        {
+            return @this.x + y;
+        }
+    }  
+}", parseOptions: CSharp8ParseOptions);
         }
 
         [Fact]

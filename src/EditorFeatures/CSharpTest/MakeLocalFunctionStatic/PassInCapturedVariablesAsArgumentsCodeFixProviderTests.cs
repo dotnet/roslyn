@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -66,9 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestMissingIfCapturesThisParameter()
+        public async Task TestAvailableIfCapturesThisParameter1()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int y = 0;
@@ -80,9 +81,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
         static int AddLocal()
         {
             return [||]x + y;
-        }        
+        }
     }
-}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+}",
+@"class C
+{
+    int y = 0;
+
+    int N(int x)
+    {
+        return AddLocal(this, x);
+
+        static int AddLocal(C @this, int x)
+        {
+            return x + @this.y;
+        }
+    }
+}", parseOptions: CSharp8ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]

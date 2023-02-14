@@ -185,11 +185,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                         info,
                         cancellationToken);
 
+                    // Add @this parameter as the first parameter to the local function.
                     if (thisParameter != null)
                     {
                         var parameterList = localFunctionWithNewParameters.ParameterList;
                         var parameters = parameterList.Parameters;
-                        localFunctionWithNewParameters.ReplaceNode(
+                        localFunctionWithNewParameters = localFunctionWithNewParameters.ReplaceNode(
                             parameterList, parameterList.WithParameters(parameters.Insert(0, Parameter(Identifier("@this")).WithType(thisParameter.Type.GenerateTypeSyntax()))));
                     }
 
