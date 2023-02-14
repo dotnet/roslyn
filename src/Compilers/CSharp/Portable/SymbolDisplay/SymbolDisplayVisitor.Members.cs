@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (operatorKind == SyntaxKind.None)
                             {
-                                builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
+                                builder.Add(CreatePart(SymbolDisplayPartKind.Operator, symbol, symbol.Name));
                             }
                             else
                             {
@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSpace();
                     }
 
-                    builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
+                    builder.Add(CreatePart(SymbolDisplayPartKind.Operator, symbol,
                         SyntaxFacts.GetText(operatorKind)));
                 }
             }
