@@ -39,7 +39,7 @@ internal static class IdeAnalyzerOptionsStorage
         "InternalDiagnosticsOptions_CrashOnAnalyzerException", IdeAnalyzerOptions.CommonDefault.CrashOnAnalyzerException);
 
     public static PerLanguageOption2<bool> ReportInvalidPlaceholdersInStringDotFormatCalls = new(
-        "ValidateFormatStringOption_ReportInvalidPlaceholdersInStringDotFormatCalls", IdeAnalyzerOptions.CommonDefault.ReportInvalidPlaceholdersInStringDotFormatCalls);
+        "dotnet_validate_format_string_option_report_invalid_placeholders_in_string_dot_format_calls", IdeAnalyzerOptions.CommonDefault.ReportInvalidPlaceholdersInStringDotFormatCalls);
 
     public static PerLanguageOption2<bool> ReportInvalidRegexPatterns = new(
         "dotnet_regular_expressions_options_report_invalid_regex_patterns", IdeAnalyzerOptions.CommonDefault.ReportInvalidRegexPatterns);
