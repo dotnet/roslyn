@@ -717,11 +717,6 @@
         <target state="translated">(推奨される名前)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">使用されていない関数を削除します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">'foreach' に変換する</target>
@@ -735,11 +730,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">if を反転する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">'{0}' を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">

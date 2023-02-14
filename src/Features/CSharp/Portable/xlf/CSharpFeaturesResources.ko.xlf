@@ -717,11 +717,6 @@
         <target state="translated">(제안된 이름)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">사용하지 않는 함수 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">'foreach'로 변환</target>
@@ -735,11 +730,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">if 반전</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">'{0}' 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">

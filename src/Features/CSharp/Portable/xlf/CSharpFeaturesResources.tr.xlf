@@ -717,11 +717,6 @@
         <target state="translated">(Önerilen ad)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">Kullanılmayan işlevi kaldır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">'foreach' deyimine dönüştür</target>
@@ -735,11 +730,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">if ifadesini tersine çevir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">'{0}' kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">

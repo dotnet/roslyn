@@ -717,11 +717,6 @@
         <target state="translated">(Sugerowana nazwa)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">Usuń nieużywaną funkcję</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">Konwertuj na wyrażenie „foreach”</target>
@@ -735,11 +730,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">Odwróć instrukcję if</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">Użyj elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">

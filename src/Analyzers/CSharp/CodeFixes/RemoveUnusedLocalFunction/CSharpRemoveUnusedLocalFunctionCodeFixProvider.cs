@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -13,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    CSharpFeaturesResources.Remove_unused_function,
+                    CSharpCodeFixesResources.Remove_unused_function,
                     GetDocumentUpdater(context),
-                    nameof(CSharpFeaturesResources.Remove_unused_function)),
+                    nameof(CSharpCodeFixesResources.Remove_unused_function)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -55,13 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
             // all inner local functions before processing outer local functions.  If we don't
             // do this, then SyntaxEditor will fail if it tries to remove an inner local function
             // after already removing the outer one.
-            var localFunctions = diagnostics.OrderBy((d1, d2) => d2.Location.SourceSpan.Start - d1.Location.SourceSpan.Start)
+            var localFunctions = diagnostics.OrderBy(static (d1, d2) => d2.Location.SourceSpan.Start - d1.Location.SourceSpan.Start)
                                             .Select(d => root.FindToken(d.Location.SourceSpan.Start))
                                             .Select(t => t.GetAncestor<LocalFunctionStatementSyntax>());
 
             foreach (var localFunction in localFunctions)
             {
-                editor.RemoveNode(localFunction.IsParentKind(SyntaxKind.GlobalStatement) ? localFunction.Parent : localFunction);
+                if (localFunction != null)
+                    editor.RemoveNode(localFunction.Parent is GlobalStatementSyntax globalStatement ? globalStatement : localFunction);
             }
 
             return Task.CompletedTask;

@@ -122,6 +122,11 @@
         <target state="translated">Usuń nieosiągalny kod</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unused_function">
+        <source>Remove unused function</source>
+        <target state="new">Remove unused function</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_return_with_yield_return">
         <source>Replace return with yield return</source>
         <target state="translated">Zamień instrukcję return na instrukcję yield return</target>
@@ -140,6 +145,11 @@
       <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
         <source>Upgrade this project to C# language version '{0}'</source>
         <target state="new">Upgrade this project to C# language version '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="new">Use '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">

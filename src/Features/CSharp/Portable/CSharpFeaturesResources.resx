@@ -443,9 +443,6 @@
   <data name="Suggested_name" xml:space="preserve">
     <value>(Suggested name)</value>
   </data>
-  <data name="Remove_unused_function" xml:space="preserve">
-    <value>Remove unused function</value>
-  </data>
   <data name="Convert_to_foreach" xml:space="preserve">
     <value>Convert to 'foreach'</value>
   </data>
@@ -466,9 +463,6 @@
   </data>
   <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
     <value>Make private fields readonly when possible</value>
-  </data>
-  <data name="Use_0" xml:space="preserve">
-    <value>Use '{0}'</value>
   </data>
   <data name="Add_missing_usings" xml:space="preserve">
     <value>Add missing usings</value>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS8313, CS8505);
 
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // This code fix addresses very specific compiler errors. It's unlikely there will be more than 1 of them at a time.
             return null;
@@ -44,14 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var syntaxRoot = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var token = syntaxRoot.FindToken(context.Span.Start);
 
             if (token.Span == context.Span &&
                 token.IsKind(SyntaxKind.DefaultKeyword) &&
                 token.Parent is LiteralExpressionSyntax(SyntaxKind.DefaultLiteralExpression) defaultLiteral)
             {
-                var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+                var semanticModel = await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
                 var (newExpression, displayText) = GetReplacementExpressionAndText(
                     context.Document, semanticModel, defaultLiteral, context.CancellationToken);
@@ -60,9 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 {
                     context.RegisterCodeFix(
                         CodeAction.Create(
-                            string.Format(CSharpFeaturesResources.Use_0, displayText),
+                            string.Format(CSharpCodeFixesResources.Use_0, displayText),
                             c => ReplaceAsync(context.Document, context.Span, newExpression, c),
-                            nameof(CSharpFeaturesResources.Use_0)),
+                            nameof(CSharpCodeFixesResources.Use_0)),
                         context.Diagnostics);
                 }
             }
@@ -71,10 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
         private static async Task<Document> ReplaceAsync(
             Document document, TextSpan span, SyntaxNode newExpression, CancellationToken cancellationToken)
         {
-            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var defaultToken = syntaxRoot.FindToken(span.Start);
-            var defaultLiteral = (LiteralExpressionSyntax)defaultToken.Parent;
+            var defaultLiteral = (LiteralExpressionSyntax)defaultToken.GetRequiredParent();
 
             var newRoot = syntaxRoot.ReplaceNode(defaultLiteral, newExpression.WithTriviaFrom(defaultLiteral));
             return document.WithSyntaxRoot(newRoot);
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 {
                     return GenerateMemberAccess("None");
                 }
-                else if (type.Equals(semanticModel.Compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName)))
+                else if (type.Equals(semanticModel.Compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!)))
                 {
                     return GenerateMemberAccess(nameof(CancellationToken.None));
                 }
@@ -127,12 +125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
         private static bool IsFlagsEnum(ITypeSymbol type, Compilation compilation)
         {
-            var flagsAttribute = compilation.GetTypeByMetadataName(typeof(FlagsAttribute).FullName);
+            var flagsAttribute = compilation.GetTypeByMetadataName(typeof(FlagsAttribute).FullName!);
             return type.TypeKind == TypeKind.Enum &&
-                   type.GetAttributes().Any(static (attribute, flagsAttribute) => attribute.AttributeClass.Equals(flagsAttribute), flagsAttribute);
+                   flagsAttribute != null &&
+                   type.GetAttributes().Any(static (attribute, flagsAttribute) => flagsAttribute.Equals(attribute.AttributeClass), flagsAttribute);
         }
 
-        private static bool IsZero(object o)
+        private static bool IsZero(object? o)
         {
             switch (o)
             {
