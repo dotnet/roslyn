@@ -9501,5 +9501,46 @@ class Context
                 }
                 """);
         }
+
+        [Fact, WorkItem(37825, "https://github.com/dotnet/roslyn/issues/37825")]
+        public async Task InferTypeFromNextSwitchArm3()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => Goo(),
+                            "a" => [|Bar()|],
+                        };
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => Goo(),
+                            "a" => Bar(),
+                        };
+                    }
+
+                    private object Bar()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
     }
 }
