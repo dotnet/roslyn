@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' Do not descend into CollectionInitializerSyntax since that will populate SeparatedWithManyChildren._children.
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of CollectionInitializerSyntax)().First()
 
-            For Each child In node.ChildNodesAndTokens()
+            For Each child In node.ChildNodesAndTokens().Reverse()
                 child.ToString()
             Next
         End Sub
