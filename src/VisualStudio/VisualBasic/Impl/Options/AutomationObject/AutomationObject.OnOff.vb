@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.AutomaticInsertionOfAbstractOrInterfaceMembers
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.KeywordHighlighting
+Imports Microsoft.CodeAnalysis.LineCommit
 Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.ReferenceHighlighting
@@ -115,10 +116,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property PrettyListing As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.PrettyListing)
+                Return GetBooleanOption(LineCommitOptions.PrettyListing)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.PrettyListing, value)
+                SetBooleanOption(LineCommitOptions.PrettyListing, value)
             End Set
         End Property
 

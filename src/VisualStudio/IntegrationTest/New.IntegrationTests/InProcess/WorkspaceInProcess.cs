@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LineCommit;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -56,7 +57,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task<bool> IsPrettyListingOnAsync(string languageName, CancellationToken cancellationToken)
         {
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            return globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
+            return globalOptions.GetOption(LineCommitOptions.PrettyListing, languageName);
         }
 
         public async Task SetPrettyListingAsync(string languageName, bool value, CancellationToken cancellationToken)
@@ -64,7 +65,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, languageName, value);
+            globalOptions.SetGlobalOption(LineCommitOptions.PrettyListing, languageName, value);
         }
 
         public async Task SetFileScopedNamespaceAsync(bool value, CancellationToken cancellationToken)

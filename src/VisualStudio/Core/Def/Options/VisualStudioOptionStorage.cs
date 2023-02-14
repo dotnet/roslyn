@@ -303,7 +303,7 @@ internal abstract class VisualStudioOptionStorage
         {"FeatureOnOffOptions_OfferRemoveUnusedReferences", new RoamingProfileStorage("TextEditor.OfferRemoveUnusedReferences")},
         {"FeatureOnOffOptions_OfferRemoveUnusedReferencesFeatureFlag", new FeatureFlagStorage(@"Roslyn.RemoveUnusedReferences")},
         {"dotnet_outlining_options_outlining", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Outlining")},
-        {"FeatureOnOffOptions_PrettyListing", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PrettyListing")},
+        {"visual_basic_line_commit_options_pretty_listing", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PrettyListing")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_reference_highlighting_options_reference_highlighting", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Reference Highlighting", "TextEditor.VisualBasic.Specific.EnableHighlightReferences")},
         {"FeatureOnOffOptions_RenameTrackingPreview", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview", "TextEditor.VisualBasic.Specific.RenameTrackingPreview")},

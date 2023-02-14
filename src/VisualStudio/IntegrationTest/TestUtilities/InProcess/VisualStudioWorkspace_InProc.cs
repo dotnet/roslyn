@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LineCommit;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -44,10 +45,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => new VisualStudioWorkspace_InProc();
 
         public bool IsPrettyListingOn(string languageName)
-            => _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
+            => _globalOptions.GetOption(LineCommitOptions.PrettyListing, languageName);
 
         public void SetPrettyListing(string languageName, bool value)
-            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, languageName, value));
+            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(LineCommitOptions.PrettyListing, languageName, value));
 
         public void SetFileScopedNamespaces(bool value)
             => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(Microsoft.CodeAnalysis.CSharp.CodeStyle.CSharpCodeStyleOptions.NamespaceDeclarations,

@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     internal sealed class FeatureOnOffOptions
     {
 
-        public static readonly PerLanguageOption2<bool> PrettyListing = new("FeatureOnOffOptions_PrettyListing", defaultValue: true);
 
         public static readonly PerLanguageOption2<bool> StringIdentation = new("FeatureOnOffOptions_StringIdentation", defaultValue: true);
 
