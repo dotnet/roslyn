@@ -1658,6 +1658,52 @@ class A {";
             Assert.Equal(@"C:/C2.cs", results[2].TextDocument.Uri.AbsolutePath);
         }
 
+        [Fact]
+        public async Task TestPublicWorkspaceDiagnosticsWaitsForLspTextChanges()
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: false);
+
+            var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: false, useProgress: true);
+
+            // Assert that the connection isn't closed and task doesn't complete even after some delay.
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            Assert.False(resultTask.IsCompleted);
+
+            var uri = testLspServer.GetCurrentSolution().Projects.First().Documents.First().GetURI();
+            await testLspServer.OpenDocumentAsync(uri);
+
+            // Assert the task completes after a change occurs
+            var results = await resultTask;
+            Assert.NotEmpty(results);
+        }
+
+        [Fact]
+        public async Task TestPublicWorkspaceDiagnosticsWaitsForLspSolutionChanges()
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: false);
+
+            var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: false, useProgress: true);
+
+            // Assert that the connection isn't closed and task doesn't complete even after some delay.
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            Assert.False(resultTask.IsCompleted);
+
+            var projectInfo = testLspServer.TestWorkspace.Projects.Single().ToProjectInfo();
+            testLspServer.TestWorkspace.OnProjectReloaded(projectInfo);
+
+            // Assert the task completes after a change occurs
+            var results = await resultTask;
+            Assert.NotEmpty(results);
+        }
+
         #endregion
     }
 }
