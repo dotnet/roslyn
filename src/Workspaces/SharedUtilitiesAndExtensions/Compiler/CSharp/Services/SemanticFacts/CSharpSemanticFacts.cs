@@ -343,11 +343,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // information. Check for that, and try to return the type with nullability info if it has it.
             if (node is IdentifierNameSyntax { IsVar: true })
             {
-                var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
+                var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).GetAnySymbol();
                 var type = semanticModel.GetTypeInfo(node, cancellationToken).Type;
                 if (type != null &&
-                    type.Equals(symbolInfo.GetAnySymbol(), SymbolEqualityComparer.Default) &&
-                    !type.Equals(symbolInfo.GetAnySymbol(), SymbolEqualityComparer.IncludeNullability))
+                    type.Equals(symbol, SymbolEqualityComparer.Default) &&
+                    !type.Equals(symbol, SymbolEqualityComparer.IncludeNullability))
                 {
                     return ImmutableArray.Create<ISymbol>(type);
                 }
