@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
 {
@@ -43,8 +44,26 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
         private void AnalyzeDiscardDesignation(SyntaxNodeAnalysisContext context)
         {
             var discard = (DiscardDesignationSyntax)context.Node;
-            if (discard.Parent is DeclarationPatternSyntax)
+
+            if (discard.Parent is DeclarationPatternSyntax declarationPattern)
             {
+                var typeSyntax = declarationPattern.Type;
+
+                if (typeSyntax is IdentifierNameSyntax identifierName &&
+                    identifierName.GetAncestor<TypeDeclarationSyntax>() is { } containingTypeSyntax)
+                {
+                    var semanticModel = context.SemanticModel;
+                    var cancellationToken = context.CancellationToken;
+
+                    var typeSymbol = semanticModel.GetDeclaredSymbol(containingTypeSyntax, cancellationToken);
+
+                    // If we find other symbols with the same name in the type we are currently in, removing discard can lead to a compiler error.
+                    // For instance, we can have a property in the type we are currently in with the same name as an identifier in the discard designation.
+                    // Since a single identifier binds stronger to property name, we cannot remove discard.
+                    if (!semanticModel.LookupSymbols(typeSyntax.SpanStart, container: typeSymbol, name: identifierName.Identifier.Text).IsEmpty)
+                        return;
+                }
+
                 Report(discard);
             }
             else if (discard.Parent is RecursivePatternSyntax recursivePattern)

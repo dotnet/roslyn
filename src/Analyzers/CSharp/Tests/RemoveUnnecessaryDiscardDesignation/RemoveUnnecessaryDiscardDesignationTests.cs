@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscardDesignation
@@ -270,6 +271,30 @@ class C
         };
     }
 }",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        public async Task TestNotWhenRemovingDiscardChangesMeaning()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    class C
+                    {
+                        string String { get; }
+
+                        void M(object o)
+                        {
+                            if (o is String _)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
