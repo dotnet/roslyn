@@ -2127,9 +2127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInSwitchExpression(SwitchExpressionSyntax switchExpression, SyntaxToken token)
             {
                 if (token.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken)
-                {
                     return GetTypes(switchExpression.GoverningExpression);
-                }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
