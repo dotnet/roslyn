@@ -1022,18 +1022,6 @@ This version used in: {2}</value>
   <data name="Remove_separators" xml:space="preserve">
     <value>Remove separators</value>
   </data>
-  <data name="Add_parameter_to_0" xml:space="preserve">
-    <value>Add parameter to '{0}'</value>
-  </data>
-  <data name="Add_parameter_to_0_and_overrides_implementations" xml:space="preserve">
-    <value>Add parameter to '{0}' (and overrides/implementations)</value>
-  </data>
-  <data name="Add_to_0" xml:space="preserve">
-    <value>Add to '{0}'</value>
-  </data>
-  <data name="Related_method_signatures_found_in_metadata_will_not_be_updated" xml:space="preserve">
-    <value>Related method signatures found in metadata will not be updated.</value>
-  </data>
   <data name="Generate_constructor" xml:space="preserve">
     <value>Generate constructor...</value>
   </data>
@@ -1141,9 +1129,6 @@ This version used in: {2}</value>
   </data>
   <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document</value>
-  </data>
-  <data name="Add_member_name" xml:space="preserve">
-    <value>Add member name</value>
   </data>
   <data name="Convert_to_linq_call_form" xml:space="preserve">
     <value>Convert to LINQ (call form)</value>
@@ -3202,5 +3187,23 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="You_must_rename_an_identifier" xml:space="preserve">
     <value>You must rename an identifier.</value>
+  </data>
+  <data name="get_only_property" xml:space="preserve">
+    <value>get-only property</value>
+  </data>
+  <data name="This_0_has_1_references" xml:space="preserve">
+    <value>This {0} has {1} reference(s).</value>
+  </data>
+  <data name="_0_reference_unquoted" xml:space="preserve">
+    <value>{0} reference</value>
+  </data>
+  <data name="CSharp_VisualBasic_References" xml:space="preserve">
+    <value>C# and Visual Basic References</value>
+  </data>
+  <data name="_0_references_unquoted" xml:space="preserve">
+    <value>{0} references</value>
+  </data>
+  <data name="Find_All_References_not_invoked_on_applicable_symbol" xml:space="preserve">
+    <value>'Find All References' not invoked on applicable symbol</value>
   </data>
 </root>

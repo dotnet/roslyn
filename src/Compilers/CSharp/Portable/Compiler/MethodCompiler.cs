@@ -1622,10 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // We will only save the IL builders when running tests.
-                if (moduleBuilder.SaveTestData)
-                {
-                    moduleBuilder.SetMethodTestData(method, builder.GetSnapshot());
-                }
+                moduleBuilder.TestData?.SetMethodILBuilder(method, builder.GetSnapshot());
 
                 var stateMachineHoistedLocalSlots = default(ImmutableArray<EncHoistedLocalInfo>);
                 var stateMachineAwaiterSlots = default(ImmutableArray<Cci.ITypeReference>);

@@ -1128,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
                     if (GenerateInstrumentation && !whenExpression.WasCompilerGenerated)
                     {
-                        conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGoto);
+                        conditionalGoto = _localRewriter.Instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGoto);
                     }
 
                     sectionBuilder.Add(conditionalGoto);

@@ -349,24 +349,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static string GetLocalName(this ITypeSymbol containingType)
+        public static string GetLocalName(this ITypeSymbol containingType, string fallback = "v")
         {
-            var name = containingType.Name;
-            if (name.Length > 0)
+            // Don't want to do things like `String string`.  That's not idiomatic in .net.
+            if (!containingType.IsSpecialType())
             {
-                using var parts = TemporaryArray<TextSpan>.Empty;
-                StringBreaker.AddWordParts(name, ref parts.AsRef());
-                for (var i = parts.Count - 1; i >= 0; i--)
+                var name = containingType.Name;
+                if (name.Length > 0)
                 {
-                    var p = parts[i];
-                    if (p.Length > 0 && char.IsLetter(name[p.Start]))
+                    using var parts = TemporaryArray<TextSpan>.Empty;
+                    StringBreaker.AddWordParts(name, ref parts.AsRef());
+                    for (var i = parts.Count - 1; i >= 0; i--)
                     {
-                        return name.Substring(p.Start, p.Length).ToCamelCase();
+                        var p = parts[i];
+                        if (p.Length > 0 && char.IsLetter(name[p.Start]))
+                            return name.Substring(p.Start, p.Length).ToCamelCase();
                     }
                 }
             }
 
-            return "v";
+            return fallback;
         }
 
         private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol iequatableType)

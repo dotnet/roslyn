@@ -8,14 +8,14 @@
       <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net6.0\publish\Microsoft.Build.Tasks.CodeAnalysis.deps.json" />
       <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net6.0\publish\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" />
 
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.dll" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netcoreapp3.1\**\Microsoft.CodeAnalysis.resources.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\net6.0\Microsoft.CodeAnalysis.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\net6.0\**\Microsoft.CodeAnalysis.resources.dll" />
 
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.dll" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netcoreapp3.1\**\Microsoft.CodeAnalysis.CSharp.resources.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\net6.0\Microsoft.CodeAnalysis.CSharp.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\net6.0\**\Microsoft.CodeAnalysis.CSharp.resources.dll" />
 
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.VisualBasic.dll" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netcoreapp3.1\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\net6.0\Microsoft.CodeAnalysis.VisualBasic.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\net6.0\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" />
 
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\csc.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\csc.deps.json" />

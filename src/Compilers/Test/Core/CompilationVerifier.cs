@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -456,6 +457,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return _compilation.Assembly.Identity.GetDisplayName();
         }
 
+        /// <summary>
+        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int)"/> instead.
+        /// </summary>
         public CompilationVerifier VerifyIL(
             string qualifiedMethodName,
             XCData expectedIL,
@@ -464,9 +468,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath] string callerPath = null,
             [CallerLineNumber] int callerLine = 0)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: false);
+            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: false, callerPath, callerLine, escapeQuotes: false);
         }
 
+        /// <summary>
+        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int)"/> instead.
+        /// </summary>
         public CompilationVerifier VerifyIL(
             string qualifiedMethodName,
             string expectedIL,
@@ -476,7 +483,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber] int callerLine = 0,
             string source = null)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: false, source: source);
+            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: source != null, callerPath, callerLine, escapeQuotes: false);
+        }
+
+        public CompilationVerifier VerifyMethodBody(
+            string qualifiedMethodName,
+            string expectedILWithSequencePoints,
+            bool realIL = false,
+            [CallerFilePath] string callerPath = null,
+            [CallerLineNumber] int callerLine = 0)
+        {
+            return VerifyILImpl(qualifiedMethodName, expectedILWithSequencePoints, realIL, sequencePoints: true, sequencePointsSource: true, callerPath, callerLine, escapeQuotes: false);
         }
 
         public void VerifyILMultiple(params string[] qualifiedMethodNamesAndExpectedIL)
@@ -531,30 +548,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             string expectedIL,
             bool realIL,
-            string sequencePoints,
+            bool sequencePoints,
+            bool sequencePointsSource,
             string callerPath,
             int callerLine,
-            bool escapeQuotes,
-            string source = null)
+            bool escapeQuotes)
         {
-            string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, source);
+            string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, sequencePointsSource);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, message: null, escapeQuotes, callerPath, callerLine);
             return this;
         }
 
-        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, string source = null)
+        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
         {
-            // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
-            // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
+            var methodData = _testData.GetMethodData(qualifiedMethodName);
 
-            return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, source);
-        }
-
-        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null, string source = null)
-        {
             Dictionary<int, string> markers = null;
 
-            if (sequencePoints != null)
+            if (sequencePoints)
             {
                 if (EmittedAssemblyPdb == null)
                 {
@@ -571,17 +582,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
                     options: PdbToXmlOptions.ResolveTokens |
                              PdbToXmlOptions.ThrowOnError |
-                             PdbToXmlOptions.ExcludeDocuments |
                              PdbToXmlOptions.ExcludeCustomDebugInformation |
-                             PdbToXmlOptions.ExcludeScopes,
-                    methodName: sequencePoints);
+                             PdbToXmlOptions.ExcludeScopes |
+                             PdbToXmlOptions.IncludeTokens);
 
                 if (actualPdbXml.StartsWith("<error>"))
                 {
-                    throw new Exception($"Failed to extract PDB information for method '{sequencePoints}'. PdbToXmlConverter returned:{Environment.NewLine}{actualPdbXml}");
+                    throw new Exception($"Failed to extract PDB information. PdbToXmlConverter returned:{Environment.NewLine}{actualPdbXml}");
                 }
 
-                markers = ILValidation.GetSequencePointMarkers(actualPdbXml, source);
+                var methodDef = (Cci.IMethodDefinition)methodData.Method.GetCciAdapter();
+                var methodToken = MetadataTokens.GetToken(_testData.MetadataWriter.GetMethodDefinitionOrReferenceHandle(methodDef));
+                var xmlDocument = XElement.Parse(actualPdbXml);
+                var xmlMethod = ILValidation.GetMethodElement(xmlDocument, methodToken);
+
+                // method may not have any debug info and thus no sequence points
+                if (xmlMethod != null)
+                {
+                    var documentMap = ILValidation.GetDocumentIdToPathMap(xmlDocument);
+
+                    markers = sequencePointsSource ?
+                        ILValidation.GetSequencePointMarkers(xmlMethod, id => _compilation.SyntaxTrees.Single(tree => tree.FilePath == documentMap[id]).GetText()) :
+                        ILValidation.GetSequencePointMarkers(xmlMethod);
+                }
             }
 
             if (!realIL)
