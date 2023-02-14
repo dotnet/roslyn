@@ -612,51 +612,49 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual int GetChildPosition(int index)
         {
-            return GetChildPosition(index, useNextNotPrevious: false);
-        }
-
-        internal int GetChildPosition(int index, bool useNextNotPrevious)
-        {
             int offset = 0;
             var green = this.Green;
+            while (index > 0)
+            {
+                index--;
+                var prevSibling = this.GetCachedSlot(index);
+                if (prevSibling != null)
+                {
+                    return prevSibling.EndPosition + offset;
+                }
+                var greenChild = green.GetSlot(index);
+                if (greenChild != null)
+                {
+                    offset += greenChild.FullWidth;
+                }
+            }
 
-            if (!useNextNotPrevious)
+            return this.Position + offset;
+        }
+
+        // Similar to GetChildPosition() but calculating based on the positions of
+        // following siblings rather than previous siblings.
+        internal int GetChildPositionFromEnd(int index)
+        {
+            var green = this.Green;
+            int offset = green.GetSlot(index).FullWidth;
+            int slotCount = green.SlotCount;
+            while (index < slotCount - 1)
             {
-                while (index > 0)
+                index++;
+                var nextSibling = this.GetCachedSlot(index);
+                if (nextSibling != null)
                 {
-                    index--;
-                    var prevSibling = this.GetCachedSlot(index);
-                    if (prevSibling != null)
-                    {
-                        return prevSibling.EndPosition + offset;
-                    }
-                    var greenChild = green.GetSlot(index);
-                    if (greenChild != null)
-                    {
-                        offset += greenChild.FullWidth;
-                    }
+                    return nextSibling.Position - offset;
                 }
-                return this.Position + offset;
-            }
-            else
-            {
-                int slotCount = green.SlotCount;
-                while (index < slotCount - 1)
+                var greenChild = green.GetSlot(index);
+                if (greenChild != null)
                 {
-                    index++;
-                    var prevSibling = this.GetCachedSlot(index);
-                    if (prevSibling != null)
-                    {
-                        return prevSibling.EndPosition - offset;
-                    }
-                    var greenChild = green.GetSlot(index);
-                    if (greenChild != null)
-                    {
-                        offset += greenChild.FullWidth;
-                    }
+                    offset += greenChild.FullWidth;
                 }
-                return this.EndPosition - offset;
             }
+
+            return this.EndPosition - offset;
         }
 
         public Location GetLocation()

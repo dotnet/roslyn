@@ -6,9 +6,11 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -342,6 +344,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var child in node.ChildNodesAndTokens().Reverse())
             {
                 _ = child.ToString();
+            }
+        }
+
+        [Fact]
+        public void EnumerateWithManyChildren_Compare()
+        {
+            var source = "int[] values = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };";
+
+            var builder = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+            foreach (var node in parseAndGetInitializer(source).ChildNodesAndTokens().Reverse())
+            {
+                builder.Add(node);
+            }
+            builder.ReverseContents();
+            var childNodes1 = builder.ToImmutableAndFree();
+
+            builder = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+            foreach (var node in parseAndGetInitializer(source).ChildNodesAndTokens())
+            {
+                builder.Add(node);
+            }
+            var childNodes2 = builder.ToImmutableAndFree();
+
+            Assert.Equal(childNodes1.Length, childNodes2.Length);
+
+            for (int i = 0; i < childNodes1.Length; i++)
+            {
+                var child1 = childNodes1[i];
+                var child2 = childNodes2[i];
+                Assert.Equal(child1.Position, child2.Position);
+                Assert.Equal(child1.EndPosition, child2.EndPosition);
+                Assert.Equal(child1.Width, child2.Width);
+                Assert.Equal(child1.FullWidth, child2.FullWidth);
+            }
+
+            static InitializerExpressionSyntax parseAndGetInitializer(string source)
+            {
+                var tree = CSharpSyntaxTree.ParseText(source);
+                // Do not descend into InitializerExpressionSyntax since that will populate SeparatedWithManyChildren._children.
+                return tree.GetRoot().DescendantNodes().OfType<InitializerExpressionSyntax>().First();
             }
         }
     }

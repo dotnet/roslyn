@@ -43,11 +43,14 @@ namespace Microsoft.CodeAnalysis.Syntax
                 // If the previous sibling (ignoring separator) is not cached, but the next sibling
                 // (ignoring separator) is cached, use the next sibling to determine position.
                 int valueIndex = (index & 1) != 0 ? index - 1 : index;
-                bool useNextNotPrevious = valueIndex > 1
+                if (valueIndex > 1
                     && _children[(valueIndex - 2) >> 1].Value is null
-                    && (valueIndex >= Green.SlotCount - 2 || _children[(valueIndex + 2) >> 1].Value is { });
+                    && (valueIndex >= Green.SlotCount - 2 || _children[(valueIndex + 2) >> 1].Value is { }))
+                {
+                    return GetChildPositionFromEnd(index);
+                }
 
-                return GetChildPosition(index, useNextNotPrevious);
+                return base.GetChildPosition(index);
             }
         }
     }
