@@ -55,6 +55,6 @@ internal static class CompletionOptionsStorage
     // Embedded languages:
 
     public static PerLanguageOption2<bool> ProvideRegexCompletions = new("RegularExpressionsOptions_ProvideRegexCompletions", CompletionOptions.Default.ProvideRegexCompletions);
-    public static readonly PerLanguageOption2<bool> ProvideDateAndTimeCompletions = new("DateAndTime_ProvideDateAndTimeCompletions", CompletionOptions.Default.ProvideDateAndTimeCompletions);
+    public static readonly PerLanguageOption2<bool> ProvideDateAndTimeCompletions = new("dotnet_date_and_time_provide_date_and_time_completions", CompletionOptions.Default.ProvideDateAndTimeCompletions);
     public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperienceUserOption = new("dotnet_completion_options_show_new_snippet_experience_user_option", CompletionOptions.Default.ShowNewSnippetExperienceUserOption);
 }

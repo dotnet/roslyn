@@ -234,7 +234,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_var_for_built_in_types", new RoamingProfileStorage("TextEditor.CSharp.Specific.UseImplicitTypeForIntrinsicTypes")},
         {"csharp_style_var_when_type_is_apparent", new RoamingProfileStorage("TextEditor.CSharp.Specific.UseImplicitTypeWhereApparent")},
         {"csharp_using_directive_placement", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferredUsingDirectivePlacement")},
-        {"DateAndTime_ProvideDateAndTimeCompletions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions")},
+        {"dotnet_date_and_time_provide_date_and_time_completions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions")},
         {"DiagnosticOptions_LogTelemetryForBackgroundAnalyzerExecution", new FeatureFlagStorage(@"Roslyn.LogTelemetryForBackgroundAnalyzerExecution")},
         {"DiagnosticOptions_LspPullDiagnosticsFeatureFlag", new FeatureFlagStorage(@"Lsp.PullDiagnostics")},
         {"DiagnosticTaggingOptions_PullDiagnosticTagging", new FeatureFlagStorage(@"Roslyn.PullDiagnosticTagging")},
