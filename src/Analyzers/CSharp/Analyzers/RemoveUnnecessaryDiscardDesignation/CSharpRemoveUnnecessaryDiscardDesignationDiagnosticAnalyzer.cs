@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
 
         private void AnalyzeDiscardDesignation(SyntaxNodeAnalysisContext context)
         {
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
+
             var discard = (DiscardDesignationSyntax)context.Node;
 
             if (discard.Parent is DeclarationPatternSyntax declarationPattern)
@@ -52,9 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
                 if (typeSyntax is IdentifierNameSyntax identifierName &&
                     identifierName.GetAncestor<TypeDeclarationSyntax>() is { } containingTypeSyntax)
                 {
-                    var semanticModel = context.SemanticModel;
-                    var cancellationToken = context.CancellationToken;
-
                     var typeSymbol = semanticModel.GetDeclaredSymbol(containingTypeSyntax, cancellationToken);
 
                     // If we find other symbols with the same name in the type we are currently in, removing discard can lead to a compiler error.
