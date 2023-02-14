@@ -32,10 +32,10 @@ internal static class SolutionCrawlerOptionsStorage
         "ServiceFeatureOnOffOptions_RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false);
 
     public static readonly Option2<bool?> EnableDiagnosticsInSourceGeneratedFiles = new(
-        "WorkspaceConfigurationOptions_EnableDiagnosticsInSourceGeneratedFiles", defaultValue: null);
+        "dotnet_workspace_configuration_options_enable_diagnostics_in_source_generated_files", defaultValue: null);
 
     public static readonly Option2<bool> EnableDiagnosticsInSourceGeneratedFilesFeatureFlag = new(
-        "WorkspaceConfigurationOptions_EnableDiagnosticsInSourceGeneratedFilesFeatureFlag", defaultValue: false);
+        "dotnet_workspace_configuration_options_enable_diagnostics_in_source_generated_files_feature_flag", defaultValue: false);
 
     /// <summary>
     /// Enables forced <see cref="BackgroundAnalysisScope.Minimal"/> scope when low VM is detected to improve performance.
