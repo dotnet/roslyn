@@ -2097,12 +2097,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (arm.Parent is SwitchExpressionSyntax switchExpression)
                 {
-                    // see if we can figure out an appropriate type from a prior arm.
+                    // see if we can figure out an appropriate type from a prior/next arm.
                     var armIndex = switchExpression.Arms.IndexOf(arm);
                     if (armIndex > 0)
                     {
                         var previousArm = switchExpression.Arms[armIndex - 1];
                         var priorArmTypes = GetTypes(previousArm.Expression, objectAsDefault: false);
+                        if (priorArmTypes.Any())
+                            return priorArmTypes;
+                    }
+
+                    if (armIndex < switchExpression.Arms.Count - 1)
+                    {
+                        var nextArm = switchExpression.Arms[armIndex + 1];
+                        var priorArmTypes = GetTypes(nextArm.Expression, objectAsDefault: false);
                         if (priorArmTypes.Any())
                             return priorArmTypes;
                     }
