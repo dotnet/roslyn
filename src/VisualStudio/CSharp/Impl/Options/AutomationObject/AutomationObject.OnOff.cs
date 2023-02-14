@@ -129,8 +129,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int OfferRemoveUnusedReferences
         {
-            get { return GetBooleanOption(UnusedReferencesOptions.OfferRemoveUnusedReferences); }
-            set { SetBooleanOption(UnusedReferencesOptions.OfferRemoveUnusedReferences, value); }
+            get { return GetBooleanOption(FeatureOnOffOptions.OfferRemoveUnusedReferences); }
+            set { SetBooleanOption(FeatureOnOffOptions.OfferRemoveUnusedReferences, value); }
         }
 
         public int AutomaticallyCompleteStatementOnSemicolon
