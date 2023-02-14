@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.AddImportOnPaste
 Imports Microsoft.CodeAnalysis.AutomaticInsertionOfAbstractOrInterfaceMembers
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.EndConstructGeneration
+Imports Microsoft.CodeAnalysis.KeywordHighlighting
 Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.Structure
@@ -59,10 +60,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property EnableHighlightRelatedKeywords As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.KeywordHighlighting)
+                Return GetBooleanOption(KeywordHighlightingOptions.KeywordHighlighting)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.KeywordHighlighting, value)
+                SetBooleanOption(KeywordHighlightingOptions.KeywordHighlighting, value)
             End Set
         End Property
 

@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Highlighting
+Imports Microsoft.CodeAnalysis.KeywordHighlighting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 Dim document As Document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
 
-                globalOptions.SetGlobalOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language, optionIsEnabled)
+                globalOptions.SetGlobalOption(KeywordHighlightingOptions.KeywordHighlighting, document.Project.Language, optionIsEnabled)
 
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 

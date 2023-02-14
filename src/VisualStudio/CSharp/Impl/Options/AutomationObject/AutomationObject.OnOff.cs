@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Structure;
@@ -32,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int EnableHighlightRelatedKeywords
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.KeywordHighlighting); }
-            set { SetBooleanOption(FeatureOnOffOptions.KeywordHighlighting, value); }
+            get { return GetBooleanOption(KeywordHighlightingOptions.KeywordHighlighting); }
+            set { SetBooleanOption(KeywordHighlightingOptions.KeywordHighlighting, value); }
         }
 
         public int EnterOutliningModeOnOpen

@@ -28,6 +28,7 @@ Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.InheritanceMargin
 Imports Microsoft.CodeAnalysis.InlineHints
 Imports Microsoft.CodeAnalysis.InlineRename
+Imports Microsoft.CodeAnalysis.KeywordHighlighting
 Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Remote
@@ -97,7 +98,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Highlighting
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.VisualBasic)
-            BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.VisualBasic)
+            BindToOption(EnableHighlightKeywords, KeywordHighlightingOptions.KeywordHighlighting, LanguageNames.VisualBasic)
 
             ' Outlining
             BindToOption(EnableOutlining, OutliningOptions.Outlining, LanguageNames.VisualBasic)

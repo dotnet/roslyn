@@ -29,6 +29,7 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -103,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Highlighting
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.CSharp);
-            BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.CSharp);
+            BindToOption(EnableHighlightKeywords, KeywordHighlightingOptions.KeywordHighlighting, LanguageNames.CSharp);
 
             // Outlining
             BindToOption(EnterOutliningMode, OutliningOptions.Outlining, LanguageNames.CSharp);
