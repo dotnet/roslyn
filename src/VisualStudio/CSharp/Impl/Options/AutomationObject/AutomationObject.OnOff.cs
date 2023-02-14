@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Structure;
 
@@ -25,8 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int DisplayLineSeparators
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.LineSeparator); }
-            set { SetBooleanOption(FeatureOnOffOptions.LineSeparator, value); }
+            get { return GetBooleanOption(LineSeparatorsOptions.LineSeparator); }
+            set { SetBooleanOption(LineSeparatorsOptions.LineSeparator, value); }
         }
 
         public int EnableHighlightRelatedKeywords

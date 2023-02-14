@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.AddImportOnPaste
 Imports Microsoft.CodeAnalysis.AutomaticInsertionOfAbstractOrInterfaceMembers
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.EndConstructGeneration
+Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.Structure
 
@@ -40,10 +41,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property DisplayLineSeparators As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.LineSeparator)
+                Return GetBooleanOption(LineSeparatorsOptions.LineSeparator)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.LineSeparator, value)
+                SetBooleanOption(LineSeparatorsOptions.LineSeparator, value)
             End Set
         End Property
 
