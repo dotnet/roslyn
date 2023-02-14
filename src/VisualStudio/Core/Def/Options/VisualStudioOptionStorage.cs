@@ -235,9 +235,9 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_var_when_type_is_apparent", new RoamingProfileStorage("TextEditor.CSharp.Specific.UseImplicitTypeWhereApparent")},
         {"csharp_using_directive_placement", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferredUsingDirectivePlacement")},
         {"dotnet_date_and_time_provide_date_and_time_completions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions")},
-        {"DiagnosticOptions_LogTelemetryForBackgroundAnalyzerExecution", new FeatureFlagStorage(@"Roslyn.LogTelemetryForBackgroundAnalyzerExecution")},
-        {"DiagnosticOptions_LspPullDiagnosticsFeatureFlag", new FeatureFlagStorage(@"Lsp.PullDiagnostics")},
-        {"DiagnosticTaggingOptions_PullDiagnosticTagging", new FeatureFlagStorage(@"Roslyn.PullDiagnosticTagging")},
+        {"dotnet_diagnostic_options_log_telemetry_for_background_analyzer_execution", new FeatureFlagStorage(@"Roslyn.LogTelemetryForBackgroundAnalyzerExecution")},
+        {"csharp_diagnostic_options_lsp_pull_diagnostics_feature_flag", new FeatureFlagStorage(@"Lsp.PullDiagnostics")},
+        {"dotnet_diagnostic_tagging_options_pull_diagnostic_tagging", new FeatureFlagStorage(@"Roslyn.PullDiagnosticTagging")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"DocumentationCommentOptions_AutoXmlDocCommentGeneration", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
 #pragma warning restore
