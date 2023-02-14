@@ -415,8 +415,8 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning disable CS0612 // Type or member is obsolete
         {"tab_width", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Tab Size", "TextEditor.Basic.Tab Size")},
 #pragma warning restore
-        {"TaskListOptionsStorage_ComputeTaskListItemsForClosedFiles", new RoamingProfileStorage("TextEditor.Specific.ComputeTaskListItemsForClosedFiles")},
-        {"TaskListOptionsStorage_Descriptors", new RoamingProfileStorage("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens")},
+        {"dotnet_task_list_options_storage_compute_task_list_items_for_closed_files", new RoamingProfileStorage("TextEditor.Specific.ComputeTaskListItemsForClosedFiles")},
+        {"dotnet_task_list_options_storage_descriptors", new RoamingProfileStorage("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens")},
         {"UseConditionalExpressionOptions_ConditionalExpressionWrappingLength", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength")},
         {"ValidateFormatStringOption_ReportInvalidPlaceholdersInStringDotFormatCalls", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls")},
         {"visual_basic_preferred_modifier_order", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.PreferredModifierOrder")},
