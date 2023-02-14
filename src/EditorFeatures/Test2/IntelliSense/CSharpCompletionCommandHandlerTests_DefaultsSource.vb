@@ -437,5 +437,37 @@ class Test
             End Function
         End Class
 
+        <WpfFact>
+        Public Async Function CommitPromotedItemShouldNotIncludeStar() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class Test
+{
+    void M()
+    {
+        $$
+    }
+}
+                </Document>,
+                extraExportedTypes:={GetType(MockDefaultSource)}.ToList())
+
+                MockDefaultSource.Defaults = ImmutableArray.Create("if")
+                state.SendInvokeCompletionList()
+
+                Dim expectedItems1 = New List(Of ValueTuple(Of String, Boolean)) From {
+                    CreateExpectedItem("★ if", isPromoted:=True),
+                    CreateExpectedItem("if", isPromoted:=False)
+                }
+
+                AssertCompletionItemsInRelativeOrder(state, expectedItems1)
+                Await state.AssertSelectedCompletionItem("★ if", isHardSelected:=True)
+
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Dim committedLine = state.GetLineTextFromCaretPosition()
+                Assert.DoesNotContain("★", committedLine, StringComparison.Ordinal)
+                Assert.Contains("if", committedLine, StringComparison.Ordinal)
+            End Using
+        End Function
     End Class
 End Namespace
