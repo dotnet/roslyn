@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Structure;
@@ -114,8 +115,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int AddImportsOnPaste
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste); }
-            set { SetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste, value); }
+            get { return GetBooleanOption(AddImportOnPasteOptions.AddImportsOnPaste); }
+            set { SetBooleanOption(AddImportOnPasteOptions.AddImportsOnPaste, value); }
         }
 
         public int OfferRemoveUnusedReferences

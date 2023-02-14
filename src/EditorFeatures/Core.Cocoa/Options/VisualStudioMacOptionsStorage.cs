@@ -64,7 +64,7 @@ internal static class VisualStudioMacOptionStorage
         {"dotnet_sort_system_directives_first", new PropertyName("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst")},
         {"dotnet_separate_import_directive_groups", new PropertyName("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},
         {"QuickInfoOptions_ShowRemarksInQuickInfo", new PropertyName("TextEditor.%LANGUAGE%.Specific.ShowRemarks")},
-        {"FeatureOnOffOptions_AddImportsOnPaste", new PropertyName("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2")},
+        {"dotnet_add_import_on_paste_options_add_imports_on_paste", new PropertyName("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2")},
         {"CompletionOptions_ShowItemsFromUnimportedNamespaces", new PropertyName("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces")},
         {"CompletionOptions_TriggerOnDeletion", new PropertyName("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion")},
         {"CompletionOptions_TriggerOnTypingLetters", new PropertyName("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters")},

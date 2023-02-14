@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -50,7 +51,7 @@ class Program
 }", HangMitigatingCancellationToken);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp, false);
+            globalOptions.SetGlobalOption(AddImportOnPasteOptions.AddImportsOnPaste, LanguageNames.CSharp, false);
 
             await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
@@ -98,7 +99,7 @@ class Program
             await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp, true);
+            globalOptions.SetGlobalOption(AddImportOnPasteOptions.AddImportsOnPaste, LanguageNames.CSharp, true);
 
             await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
@@ -145,7 +146,7 @@ namespace MyNs
 }", HangMitigatingCancellationToken);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp, true);
+            globalOptions.SetGlobalOption(AddImportOnPasteOptions.AddImportsOnPaste, LanguageNames.CSharp, true);
 
             await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 

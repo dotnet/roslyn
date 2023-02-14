@@ -284,7 +284,7 @@ internal abstract class VisualStudioOptionStorage
         {"FadingOptions_FadeOutUnusedImports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnusedImports")},
         {"Storage_CloudCacheFeatureFlag", new FeatureFlagStorage(@"Roslyn.CloudCache3")},
         {"Storage_Database", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Database")},
-        {"FeatureOnOffOptions_AddImportsOnPaste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2")},
+        {"dotnet_add_import_on_paste_options_add_imports_on_paste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2")},
         {"FeatureOnOffOptions_AlwaysUseDefaultSymbolServers", new RoamingProfileStorage("TextEditor.AlwaysUseDefaultSymbolServers")},
         {"FeatureOnOffOptions_AutoInsertBlockCommentStartString", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String")},
         {"FeatureOnOffOptions_AutomaticallyCompleteStatementOnSemicolon", new RoamingProfileStorage("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},

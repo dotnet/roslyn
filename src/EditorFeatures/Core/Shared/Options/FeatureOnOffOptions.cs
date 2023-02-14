@@ -47,13 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 
         public static readonly Option2<bool> NavigateAsynchronously = new("FeatureOnOffOptions_NavigateAsynchronously", defaultValue: true);
 
-        /// <summary>
-        /// This option was previously "bool?" to accomodate different supported defaults
-        /// that were being provided via remote settings. The feature has stabalized and moved
-        /// to on by default, so the storage location was changed to
-        /// TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2 (note the 2 suffix).
-        /// </summary>
-        public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new("FeatureOnOffOptions_AddImportsOnPaste", defaultValue: true);
 
         public static readonly Option2<bool?> OfferRemoveUnusedReferences = new("FeatureOnOffOptions_OfferRemoveUnusedReferences", defaultValue: true);
 
