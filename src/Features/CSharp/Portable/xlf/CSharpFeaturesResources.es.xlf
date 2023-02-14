@@ -202,11 +202,6 @@
         <target state="translated">Cuando sea posible, hacer que los cambios privados sean solo de lectura</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_ref_struct">
-        <source>Make 'ref struct'</source>
-        <target state="translated">Convertir "ref struct"</target>
-        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Remove_in_keyword">
         <source>Remove 'in' keyword</source>
         <target state="translated">Quitar la palabra clave "in"</target>
