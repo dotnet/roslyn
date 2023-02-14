@@ -27,5 +27,5 @@ internal static class AutoFormattingOptionsStorage
         "FormattingOptions_AutoFormattingOnSemicolon", AutoFormattingOptions.Default.FormatOnSemicolon);
 
     public static readonly PerLanguageOption2<bool> FormatOnCloseBrace = new(
-        "BraceCompletionOptions_AutoFormattingOnCloseBrace", AutoFormattingOptions.Default.FormatOnCloseBrace);
+        "dotnet_brace_completion_options_auto_formatting_on_close_brace", AutoFormattingOptions.Default.FormatOnCloseBrace);
 }
