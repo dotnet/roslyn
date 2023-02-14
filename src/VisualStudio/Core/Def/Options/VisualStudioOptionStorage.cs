@@ -319,10 +319,10 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_formatting_Options_smart_Indent", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Indent Style", vbKey: "TextEditor.Basic.Indent Style")},
 #pragma warning restore
-        {"GenerateConstructorFromMembersOptions_AddNullChecks", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks")},
-        {"GenerateEqualsAndGetHashCodeFromMembersOptions_GenerateOperators", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators")},
-        {"GenerateEqualsAndGetHashCodeFromMembersOptions_ImplementIEquatable", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable")},
-        {"GenerateOverridesOptions_SelectAll", new RoamingProfileStorage("TextEditor.Specific.GenerateOverridesOptions.SelectAll")},
+        {"dotnet_generate_constructor_from_members_options_add_null_checks", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks")},
+        {"dotnet_generate_equals_and_get_hash_code_from_members_options_generate_operators", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators")},
+        {"dotnet_generate_equals_and_get_hash_code_from_members_options_implement_iequatable", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable")},
+        {"dotnet_generate_overrides_options_select_all", new RoamingProfileStorage("TextEditor.Specific.GenerateOverridesOptions.SelectAll")},
         {"ImplementTypeOptions_InsertionBehavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior")},
         {"ImplementTypeOptions_PropertyGenerationBehavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.PropertyGenerationBehavior")},
 #pragma warning disable CS0612 // Type or member is obsolete
