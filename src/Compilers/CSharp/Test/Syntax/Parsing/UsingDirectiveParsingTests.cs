@@ -2902,4 +2902,275 @@ class C
         }
         EOF();
     }
+
+    [Fact]
+    public void AliasUsingDuplicate1()
+    {
+        var text = """
+            using X = int?;
+            using X = System;
+            """;
+        UsingTree(text);
+        CreateCompilation(text).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using X = int?;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = int?;").WithLocation(1, 1),
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using X = System;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = System;").WithLocation(2, 1),
+            // (2,7): error CS1537: The using alias 'X' appeared previously in this namespace
+            // using X = System;
+            Diagnostic(ErrorCode.ERR_DuplicateAlias, "X").WithArguments("X").WithLocation(2, 7));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.NullableType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.QuestionToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "System");
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AliasUsingDuplicate2()
+    {
+        var text = """
+            using X = int?;
+            using X = int;
+            """;
+        UsingTree(text);
+        CreateCompilation(text).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using X = int?;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = int?;").WithLocation(1, 1),
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using X = int;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = int;").WithLocation(2, 1),
+            // (2,7): error CS1537: The using alias 'X' appeared previously in this namespace
+            // using X = int;
+            Diagnostic(ErrorCode.ERR_DuplicateAlias, "X").WithArguments("X").WithLocation(2, 7));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.NullableType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.QuestionToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AliasUsingDuplicate3()
+    {
+        var text = """
+            using X = int?;
+            using X = System.Int32;
+            """;
+        UsingTree(text);
+        CreateCompilation(text).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using X = int?;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = int?;").WithLocation(1, 1),
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using X = System.Int32;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = System.Int32;").WithLocation(2, 1),
+            // (2,7): error CS1537: The using alias 'X' appeared previously in this namespace
+            // using X = System.Int32;
+            Diagnostic(ErrorCode.ERR_DuplicateAlias, "X").WithArguments("X").WithLocation(2, 7));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.NullableType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.QuestionToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Int32");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AliasUsingNotDuplicate1()
+    {
+        var text = """
+            using X = int?;
+            namespace N;
+            using X = int;
+            """;
+        UsingTree(text);
+        CreateCompilation(text).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using X = int?;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = int?;").WithLocation(1, 1),
+            // (3,1): hidden CS8019: Unnecessary using directive.
+            // using X = int;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = int;").WithLocation(3, 1));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.NullableType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.QuestionToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.FileScopedNamespaceDeclaration);
+            {
+                N(SyntaxKind.NamespaceKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "N");
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
 }
