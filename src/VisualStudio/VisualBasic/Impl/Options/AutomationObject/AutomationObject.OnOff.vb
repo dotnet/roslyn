@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.LineCommit
 Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.ReferenceHighlighting
+Imports Microsoft.CodeAnalysis.RenameTracking
 Imports Microsoft.CodeAnalysis.Structure
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -35,10 +36,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property RenameTrackingPreview As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview)
+                Return GetBooleanOption(RenameTrackingOptions.RenameTrackingPreview)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview, value)
+                SetBooleanOption(RenameTrackingOptions.RenameTrackingPreview, value)
             End Set
         End Property
 

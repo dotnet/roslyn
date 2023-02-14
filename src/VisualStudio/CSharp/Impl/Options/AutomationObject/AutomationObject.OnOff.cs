@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.RenameTracking;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -89,8 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int RenameTrackingPreview
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview); }
-            set { SetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview, value); }
+            get { return GetBooleanOption(RenameTrackingOptions.RenameTrackingPreview); }
+            set { SetBooleanOption(RenameTrackingOptions.RenameTrackingPreview, value); }
         }
 
         public int NavigateAsynchronously

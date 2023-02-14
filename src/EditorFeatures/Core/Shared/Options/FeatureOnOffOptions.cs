@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     internal sealed class FeatureOnOffOptions
     {
 
-        public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new("FeatureOnOffOptions_RenameTrackingPreview", defaultValue: true);
-
         /// <summary>
         /// This option is not currently used by Roslyn, but we might want to implement it in the
         /// future. Keeping the option while it's unimplemented allows all upgrade paths to

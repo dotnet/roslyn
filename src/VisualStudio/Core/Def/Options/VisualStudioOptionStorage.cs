@@ -306,7 +306,7 @@ internal abstract class VisualStudioOptionStorage
         {"visual_basic_line_commit_options_pretty_listing", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PrettyListing")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_reference_highlighting_options_reference_highlighting", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Reference Highlighting", "TextEditor.VisualBasic.Specific.EnableHighlightReferences")},
-        {"FeatureOnOffOptions_RenameTrackingPreview", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview", "TextEditor.VisualBasic.Specific.RenameTrackingPreview")},
+        {"dotnet_rename_tracking_options_rename_tracking_preview", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview", "TextEditor.VisualBasic.Specific.RenameTrackingPreview")},
 #pragma warning restore
         {"dotnet_inheritance_margin_options_show_inheritance_margin", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin")},
         {"FeatureOnOffOptions_SkipAnalyzersForImplicitlyTriggeredBuilds", new RoamingProfileStorage("TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds")},
