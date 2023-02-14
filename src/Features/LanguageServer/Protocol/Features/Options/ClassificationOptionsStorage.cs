@@ -24,5 +24,5 @@ internal static class ClassificationOptionsStorage
         new("RegularExpressionsOptions_ColorizeRegexPatterns", ClassificationOptions.Default.ColorizeRegexPatterns);
 
     public static PerLanguageOption2<bool> ColorizeJsonPatterns =
-        new("JsonFeatureOptions_ColorizeJsonPatterns", ClassificationOptions.Default.ColorizeJsonPatterns);
+        new("dotnet_json_feature_options_colorize_json_patterns", ClassificationOptions.Default.ColorizeJsonPatterns);
 }
