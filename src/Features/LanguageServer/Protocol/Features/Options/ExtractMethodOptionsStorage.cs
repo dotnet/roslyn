@@ -34,5 +34,5 @@ internal static class ExtractMethodOptionsStorage
         => document.GetExtractMethodGenerationOptionsAsync(globalOptions.GetExtractMethodGenerationOptions(document.Project.Services), cancellationToken);
 
     public static readonly PerLanguageOption2<bool> DontPutOutOrRefOnStruct = new(
-        "ExtractMethodOptions_DontPutOutOrRefOnStruct", ExtractMethodOptions.Default.DontPutOutOrRefOnStruct); // NOTE: the spelling error is what we've shipped and thus should not change
+        "dotnet_extract_method_options_dont_put_out_or_ref_on_struct", ExtractMethodOptions.Default.DontPutOutOrRefOnStruct); // NOTE: the spelling error is what we've shipped and thus should not change
 }
