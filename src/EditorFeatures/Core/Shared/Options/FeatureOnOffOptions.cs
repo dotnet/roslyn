@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
     internal sealed class FeatureOnOffOptions
     {
-        public static readonly PerLanguageOption2<bool> Outlining = new("FeatureOnOffOptions_Outlining", defaultValue: true);
 
         public static readonly PerLanguageOption2<bool> KeywordHighlighting = new("FeatureOnOffOptions_KeywordHighlighting", defaultValue: true);
 

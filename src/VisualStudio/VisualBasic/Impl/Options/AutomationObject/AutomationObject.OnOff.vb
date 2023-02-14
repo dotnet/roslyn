@@ -68,10 +68,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Outlining As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.Outlining)
+                Return GetBooleanOption(OutliningOptions.Outlining)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.Outlining, value)
+                SetBooleanOption(OutliningOptions.Outlining, value)
             End Set
         End Property
 
