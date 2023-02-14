@@ -244,6 +244,29 @@ partial class A : Object {}
             Assert.Null(alias4);
         }
 
+        [Theory]
+        [InlineData("(int a, int b)", "(System.Int32 a, System.Int32 b)")]
+        [InlineData("int[]", "System.Int32[]")]
+        [InlineData("int?", "System.Int32?")]
+        [InlineData("int*", "System.Int32*")]
+        [InlineData("delegate*<int,int>", "delegate*<System.Int32, System.Int32>")]
+        [InlineData("dynamic", "dynamic")]
+        [InlineData("nint", "nint")]
+        public void GetAliasTypeInfo(string aliasType, string expected)
+        {
+            var text = $"using O = {aliasType};";
+            var tree = Parse(text);
+            var root = tree.GetCompilationUnitRoot();
+            var comp = CreateCompilation(tree);
+
+            var usingAlias = root.Usings[0];
+
+            var model = comp.GetSemanticModel(tree);
+
+            var usingAliasType = model.GetTypeInfo(usingAlias.Type).Type;
+            AssertEx.Equal(expected, usingAliasType.ToDisplayString(SymbolDisplayFormat.TestFormat));
+        }
+
         [Fact]
         public void BindType()
         {
