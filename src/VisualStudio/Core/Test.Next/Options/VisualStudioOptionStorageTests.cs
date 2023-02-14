@@ -120,8 +120,8 @@ public class VisualStudioOptionStorageTests
             "dotnet_style_prefer_foreach_explicit_cast_in_source",                          // For a small customer segment, doesn't warrant VS UI.
             "end_of_line",                                                                  // persisted by the editor
             "ExtensionManagerOptions_DisableCrashingExtensions",                            // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
-            "FeatureOnOffOptions_RefactoringVerification",                                  // TODO: remove? https://github.com/dotnet/roslyn/issues/66063 
-            "FeatureOnOffOptions_RenameTracking",                                           // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
+            "dotnet_feature_feature_on_off_options_refactoring_verification",               // TODO: remove? https://github.com/dotnet/roslyn/issues/66063 
+            "dotnet_feature_on_off_options_rename_tracking",                                // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
             "file_header_template",                                                         // repository specific
             "FormattingOptions_WrappingColumn",                                             // TODO: https://github.com/dotnet/roslyn/issues/66062
             "InlineHintsOptions_DisplayAllOverride",                                        // TODO: https://github.com/dotnet/roslyn/issues/57283

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
         /// </summary>
-        public static readonly PerLanguageOption2<bool> RenameTracking = new("FeatureOnOffOptions_RenameTracking", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> RenameTracking = new("dotnet_feature_on_off_options_rename_tracking", defaultValue: true);
 
         /// <summary>
         /// This option is not currently used by Roslyn, but we might want to implement it in the
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
         /// </summary>
-        public static readonly PerLanguageOption2<bool> RefactoringVerification = new("FeatureOnOffOptions_RefactoringVerification", defaultValue: false);
+        public static readonly PerLanguageOption2<bool> RefactoringVerification = new("dotnet_feature_feature_on_off_options_refactoring_verification", defaultValue: false);
 
         public static readonly Option2<bool> NavigateAsynchronously = new("dotnet_feature_on_off_options_navigate_asynchronously", defaultValue: true);
 
