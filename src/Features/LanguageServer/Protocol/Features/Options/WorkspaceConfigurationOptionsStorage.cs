@@ -20,10 +20,10 @@ internal static class WorkspaceConfigurationOptionsStorage
             DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees));
 
     public static readonly Option2<StorageDatabase> Database = new(
-        "Storage_Database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
+        "dotnet_storage_database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
 
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
-        "Storage_CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
+        "dotnet_storage_cloud_cache_feature_flag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
 
     public static readonly Option2<bool> DisableReferenceManagerRecoverableMetadata = new(
         "WorkspaceConfigurationOptions_DisableReferenceManagerRecoverableMetadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata);
