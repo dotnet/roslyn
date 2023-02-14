@@ -100,6 +100,9 @@ partial class A : Object {}
 
             var model = comp.GetSemanticModel(tree);
 
+            var usingAliasType = model.GetTypeInfo(usingAlias.Type).Type;
+            Assert.Equal(SpecialType.System_Object, usingAliasType.SpecialType);
+
             var info1 = model.GetSemanticInfoSummary(base1);
             Assert.NotNull(info1.Symbol);
             var alias1 = model.GetAliasInfo((IdentifierNameSyntax)base1);
@@ -140,7 +143,7 @@ partial class A : System.Object {}
 partial class A : Object {}
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -150,10 +153,10 @@ partial class A : Object {}
             var a3 = root.Members[2] as TypeDeclarationSyntax;
             var a4 = root.Members[3] as TypeDeclarationSyntax;
 
-            var base1 = a1.BaseList.Types[0].Type as TypeSyntax;
-            var base2 = a2.BaseList.Types[0].Type as TypeSyntax;
-            var base3 = a3.BaseList.Types[0].Type as TypeSyntax;
-            var base4 = a4.BaseList.Types[0].Type as TypeSyntax;
+            var base1 = a1.BaseList.Types[0].Type;
+            var base2 = a2.BaseList.Types[0].Type;
+            var base3 = a3.BaseList.Types[0].Type;
+            var base4 = a4.BaseList.Types[0].Type;
 
             var model = comp.GetSemanticModel(tree);
 
@@ -195,7 +198,7 @@ partial class A : System.Object {}
 partial class A : Object {}
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -205,12 +208,15 @@ partial class A : Object {}
             var a3 = root.Members[2] as TypeDeclarationSyntax;
             var a4 = root.Members[3] as TypeDeclarationSyntax;
 
-            var base1 = a1.BaseList.Types[0].Type as TypeSyntax;
-            var base2 = a2.BaseList.Types[0].Type as TypeSyntax;
-            var base3 = a3.BaseList.Types[0].Type as TypeSyntax;
-            var base4 = a4.BaseList.Types[0].Type as TypeSyntax;
+            var base1 = a1.BaseList.Types[0].Type;
+            var base2 = a2.BaseList.Types[0].Type;
+            var base3 = a3.BaseList.Types[0].Type;
+            var base4 = a4.BaseList.Types[0].Type;
 
             var model = comp.GetSemanticModel(tree);
+
+            var usingAliasType = model.GetTypeInfo(usingAlias.Type).Type;
+            Assert.Equal(SpecialType.System_Object, usingAliasType.SpecialType);
 
             var info1 = model.GetSemanticInfoSummary(base1);
             Assert.Equal("System.Object", info1.Type.ToDisplayString(format: SymbolDisplayFormat.TestFormat));
@@ -250,7 +256,7 @@ partial class A : System.Object {}
 partial class A : Object {}
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -296,7 +302,7 @@ partial class A : System.Object {}
 partial class A : Object {}
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -337,7 +343,7 @@ partial class A : Object {}
 @"using O = System.Object;
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -358,7 +364,7 @@ partial class A : Object {}
 @"using O = object;
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -377,7 +383,7 @@ partial class A : Object {}
         {
             var text = "using System;";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -396,7 +402,7 @@ partial class A : Object {}
 class C {}
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -415,7 +421,7 @@ class C {}
 class C {}
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -434,7 +440,7 @@ class C {}
 class C {}
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -455,7 +461,7 @@ class C {}
 class C {}
 ";
             var tree = Parse(text);
-            var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
+            var root = tree.GetCompilationUnitRoot();
             var comp = CreateCompilation(tree);
 
             var usingAlias = root.Usings[0];
@@ -478,7 +484,7 @@ namespace @foreach { }
 ";
             SyntaxTree syntaxTree = Parse(text);
             CSharpCompilation comp = CreateCompilation(syntaxTree);
-            UsingDirectiveSyntax usingAlias = (syntaxTree.GetCompilationUnitRoot() as CompilationUnitSyntax).Usings.First();
+            UsingDirectiveSyntax usingAlias = (syntaxTree.GetCompilationUnitRoot()).Usings.First();
             var alias = comp.GetSemanticModel(syntaxTree).GetDeclaredSymbol(usingAlias);
             Assert.Equal("for", alias.Name);
             Assert.Equal("@for", alias.ToString());
