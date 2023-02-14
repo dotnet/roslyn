@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis
         internal int GetChildPositionFromEnd(int index)
         {
             var green = this.Green;
-            int offset = green.GetSlot(index).FullWidth;
+            int offset = green.GetSlot(index)?.FullWidth ?? 0;
             int slotCount = green.SlotCount;
             while (index < slotCount - 1)
             {
