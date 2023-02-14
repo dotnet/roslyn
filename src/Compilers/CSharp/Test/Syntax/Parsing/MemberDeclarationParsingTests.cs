@@ -1874,6 +1874,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TypeNamedRequired_CSharp10()
         {
             UsingNode($$"""
+                class required { }
+
                 class C
                 {
                     required _required;
@@ -1888,6 +1890,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             N(SyntaxKind.CompilationUnit);
             {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "required");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
@@ -2051,6 +2060,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TypeNamedRequired_CSharp11()
         {
             UsingNode($$"""
+                class required { }
+
                 class C
                 {
                     required _required;
@@ -2063,25 +2074,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """,
                 options: TestOptions.Regular11,
 
-                // (3,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                // (5,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     required _required;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23),
-                // (3,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 23),
+                // (5,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     required _required;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23),
-                // (4,13): error CS1031: Type expected
-                //     required[] _array;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(4, 13),
-                // (5,13): error CS1031: Type expected
-                //     required* _ptr;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(5, 13),
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 23),
                 // (6,13): error CS1031: Type expected
+                //     required[] _array;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 13),
+                // (7,13): error CS1031: Type expected
+                //     required* _ptr;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(7, 13),
+                // (8,13): error CS1031: Type expected
                 //     required? _nullable;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "?").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "?").WithLocation(8, 13)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "required");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
