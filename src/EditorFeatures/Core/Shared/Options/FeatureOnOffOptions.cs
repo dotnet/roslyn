@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
     internal sealed class FeatureOnOffOptions
     {
-
         /// <summary>
         /// This option is not currently used by Roslyn, but we might want to implement it in the
         /// future. Keeping the option while it's unimplemented allows all upgrade paths to
@@ -30,9 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option2<bool?> OfferRemoveUnusedReferences = new("FeatureOnOffOptions_OfferRemoveUnusedReferences", defaultValue: true);
 
         public static readonly Option2<bool> OfferRemoveUnusedReferencesFeatureFlag = new("FeatureOnOffOptions_OfferRemoveUnusedReferencesFeatureFlag", defaultValue: false);
-
-
-        public static readonly PerLanguageOption2<bool> AutomaticallyFixStringContentsOnPaste = new("FeatureOnOffOptions_AutomaticallyFixStringContentsOnPaste", defaultValue: true);
 
         /// <summary>
         /// Not used by Roslyn but exposed in C# and VB option UI. Used by TestWindow and Project System.

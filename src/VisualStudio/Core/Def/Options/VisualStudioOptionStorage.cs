@@ -288,7 +288,7 @@ internal abstract class VisualStudioOptionStorage
         {"FeatureOnOffOptions_AlwaysUseDefaultSymbolServers", new RoamingProfileStorage("TextEditor.AlwaysUseDefaultSymbolServers")},
         {"csharp_block_comment_editing_options_auto_insert_block_comment_start_string", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String")},
         {"csharp_complete_statement_options_automatically_complete_statement_on_semicolon", new RoamingProfileStorage("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},
-        {"FeatureOnOffOptions_AutomaticallyFixStringContentsOnPaste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.AutomaticallyFixStringContentsOnPaste")},
+        {"csharp_string_copy_paste_options_automatically_fix_string_contents_on_paste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.AutomaticallyFixStringContentsOnPaste")},
         {"visual_basic_automatic_insertion_of_abstract_or_interface_members_options_automatic_insertion_of_abstract_or_interface_members", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoRequiredMemberInsert")},
         {"visual_basic_end_construct_generation_options_end_construct", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoEndInsert")},
         {"dotnet_inheritance_margin_options_inheritance_margin_combined_with_indicator_margin", new RoamingProfileStorage("TextEditor.InheritanceMarginCombinedWithIndicatorMargin")},

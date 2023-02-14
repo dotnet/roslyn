@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.RenameTracking;
+using Microsoft.CodeAnalysis.StringCopyPaste;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.UnusedReferences;
 
@@ -26,8 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int AutomaticallyFixStringContentsOnPaste
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste, value); }
+            get { return GetBooleanOption(StringCopyPasteOptions.AutomaticallyFixStringContentsOnPaste); }
+            set { SetBooleanOption(StringCopyPasteOptions.AutomaticallyFixStringContentsOnPaste, value); }
         }
 
         public int DisplayLineSeparators
