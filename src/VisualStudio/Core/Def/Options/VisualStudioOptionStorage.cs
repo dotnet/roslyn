@@ -310,7 +310,7 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning restore
         {"dotnet_inheritance_margin_options_show_inheritance_margin", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin")},
         {"FeatureOnOffOptions_SkipAnalyzersForImplicitlyTriggeredBuilds", new RoamingProfileStorage("TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds")},
-        {"FeatureOnOffOptions_StringIdentation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.StringIdentation")},
+        {"dotnet_string_indentation_options_string_identation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.StringIdentation")},
         {"FindUsagesOptions_DefinitionGroupingPriority", new LocalUserProfileStorage(@"Roslyn\Internal\FindUsages", "DefinitionGroupingPriority")},
         {"FormattingOptions_AutoFormattingOnReturn", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return")},
         {"FormattingOptions_AutoFormattingOnSemicolon", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon")},
