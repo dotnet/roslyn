@@ -20,6 +20,6 @@ internal static class DocumentationCommentOptionsStorage
       };
 
     public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(
-        "DocumentationCommentOptions_AutoXmlDocCommentGeneration", DocumentationCommentOptions.Default.AutoXmlDocCommentGeneration);
+        "dotnet_documentation_comment_options_auto_xml_doc_comment_generation", DocumentationCommentOptions.Default.AutoXmlDocCommentGeneration);
 
 }

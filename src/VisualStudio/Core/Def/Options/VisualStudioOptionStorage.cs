@@ -239,9 +239,9 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_diagnostic_options_lsp_pull_diagnostics_feature_flag", new FeatureFlagStorage(@"Lsp.PullDiagnostics")},
         {"csharp_diagnostic_tagging_options_pull_diagnostic_tagging", new FeatureFlagStorage(@"Roslyn.PullDiagnosticTagging")},
 #pragma warning disable CS0612 // Type or member is obsolete
-        {"DocumentationCommentOptions_AutoXmlDocCommentGeneration", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
+        {"dotnet_documentation_comment_options_auto_xml_doc_comment_generation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
 #pragma warning restore
-        {"DocumentOutlineOptions_EnableDocumentOutline", new FeatureFlagStorage(@"Roslyn.DocumentOutline")},
+        {"dotnet_document_outline_options_enable_document_outline", new FeatureFlagStorage(@"Roslyn.DocumentOutline")},
         {"dotnet_code_quality_unused_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedParametersPreference")},
 
         {"dotnet_separate_import_directive_groups", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},
