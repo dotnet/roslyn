@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         public bool RequiresLSPSolution => true;
 
-        [LanguageServerEndpoint(LSP.Methods.WorkspaceDidChangeConfigurationName)]
+        [LanguageServerEndpoint(Methods.WorkspaceDidChangeConfigurationName)]
         public Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
             => RefreshOptionsAsync(cancellationToken);
 
@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
             return ImmutableArray<string>.Empty;
         }
-
 
         private static IEnumerable<string> GetPerLanguageOptionNames(IPerLanguageValuedOption option)
             => s_supportLanguages.Select(language =>

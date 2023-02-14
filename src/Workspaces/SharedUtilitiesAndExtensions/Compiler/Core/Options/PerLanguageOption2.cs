@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             if (Definition.Serializer.TryParseValue(value, out var result))
             {
-                globalOptionService.SetGlobalOption(this, languageName, value);
+                globalOptionService.SetGlobalOption(this, languageName, result);
             }
             else
             {

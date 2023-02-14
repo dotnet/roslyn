@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
     internal class DidChangeConfigurationNotificationHandlerFactory : ILspServiceFactory
     {
         private readonly IGlobalOptionService _globalOptionService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DidChangeConfigurationNotificationHandlerFactory(IGlobalOptionService globalOptionService)
