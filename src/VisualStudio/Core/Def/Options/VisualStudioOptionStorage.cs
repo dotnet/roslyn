@@ -382,12 +382,12 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_key_binding_reset_options_needs_reset", new LocalUserProfileStorage(@"Roslyn\Internal\KeybindingsStatus", "NeedsReset")},
         {"dotnet_key_binding_reset_options_never_show_again", new LocalUserProfileStorage(@"Roslyn\Internal\KeybindingsStatus", "NeverShowAgain")},
         {"dotnet_key_Binding_reset_options_resharper_status", new LocalUserProfileStorage(@"Roslyn\Internal\KeybindingsStatus", "ReSharperStatus")},
-        {"LoggerOptions_EtwLoggerKey", new LocalUserProfileStorage(@"Roslyn\Internal\Performance\Logger", "EtwLogger")},
-        {"LoggerOptions_OutputWindowLoggerKey", new LocalUserProfileStorage(@"Roslyn\Internal\Performance\Logger", "OutputWindowLogger")},
-        {"LoggerOptions_TraceLoggerKey", new LocalUserProfileStorage(@"Roslyn\Internal\Performance\Logger", "TraceLogger")},
-        {"LspOptions_LspEditorFeatureFlag", new FeatureFlagStorage(@"Roslyn.LSP.Editor")},
-        {"LspOptions_LspSemanticTokensFeatureFlag", new FeatureFlagStorage(@"Roslyn.LSP.SemanticTokens")},
-        {"LspOptions_MaxCompletionListSize", new LocalUserProfileStorage(@"Roslyn\Internal\Lsp", "MaxCompletionListSize")},
+        {"dotnet_logger_options_etw_logger_key", new LocalUserProfileStorage(@"Roslyn\Internal\Performance\Logger", "EtwLogger")},
+        {"dotnet_logger_options_output_window_logger_key", new LocalUserProfileStorage(@"Roslyn\Internal\Performance\Logger", "OutputWindowLogger")},
+        {"dotnet_logger_options_trace_logger_key", new LocalUserProfileStorage(@"Roslyn\Internal\Performance\Logger", "TraceLogger")},
+        {"dotnet_lsp_options_lsp_editor_feature_flag", new FeatureFlagStorage(@"Roslyn.LSP.Editor")},
+        {"dotnet_lsp_options_lsp_semantic_tokens_feature_flag", new FeatureFlagStorage(@"Roslyn.LSP.SemanticTokens")},
+        {"dotnet_lsp_options_max_completion_list_size", new LocalUserProfileStorage(@"Roslyn\Internal\Lsp", "MaxCompletionListSize")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"NavigationBarOptions_ShowNavigationBar", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Dropdown Bar", vbKey: "TextEditor.Basic.Dropdown Bar")},
 #pragma warning restore
