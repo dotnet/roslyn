@@ -57,10 +57,10 @@ internal static class VisualStudioMacOptionStorage
     public static readonly IReadOnlyDictionary<string, PropertyName> PersistedOptionsWithLegacyPropertyNames = new Dictionary<string, PropertyName>()
     {
         {"csharp_brace_completion_options_auto_formatting_on_close_brace", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace")},
-        {"FormattingOptions_AutoFormattingOnReturn", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return")},
-        {"FormattingOptions_AutoFormattingOnSemicolon", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon")},
-        {"FormattingOptions_AutoFormattingOnTyping", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing")},
-        {"FormattingOptions_FormatOnPaste", new PropertyName("TextEditor.%LANGUAGE%.SpeciAddImportsOnPaste2fic.FormatOnPaste")},
+        {"csharp_formatting_options_auto_formatting_on_return", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return")},
+        {"dotnet_formatting_options_auto_formatting_on_semicolon", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon")},
+        {"csharp_formatting_options_auto_formatting_on_typing", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing")},
+        {"dotnet_formatting_options_format_on_paste", new PropertyName("TextEditor.%LANGUAGE%.SpeciAddImportsOnPaste2fic.FormatOnPaste")},
         {"dotnet_sort_system_directives_first", new PropertyName("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst")},
         {"dotnet_separate_import_directive_groups", new PropertyName("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},
         {"QuickInfoOptions_ShowRemarksInQuickInfo", new PropertyName("TextEditor.%LANGUAGE%.Specific.ShowRemarks")},

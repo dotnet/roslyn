@@ -312,12 +312,12 @@ internal abstract class VisualStudioOptionStorage
         {"FeatureOnOffOptions_SkipAnalyzersForImplicitlyTriggeredBuilds", new RoamingProfileStorage("TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds")},
         {"FeatureOnOffOptions_StringIdentation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.StringIdentation")},
         {"dotnet_find_usages_options_definition_grouping_priority", new LocalUserProfileStorage(@"Roslyn\Internal\FindUsages", "DefinitionGroupingPriority")},
-        {"FormattingOptions_AutoFormattingOnReturn", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return")},
-        {"FormattingOptions_AutoFormattingOnSemicolon", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon")},
-        {"FormattingOptions_AutoFormattingOnTyping", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing")},
-        {"FormattingOptions_FormatOnPaste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FormatOnPaste")},
+        {"csharp_formatting_options_auto_formatting_on_return", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return")},
+        {"csharp_formatting_options_auto_formatting_on_semicolon", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon")},
+        {"csharp_formatting_options_auto_formatting_on_typing", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing")},
+        {"dotnet_formatting_options_format_on_paste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FormatOnPaste")},
 #pragma warning disable CS0612 // Type or member is obsolete
-        {"FormattingOptions_SmartIndent", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Indent Style", vbKey: "TextEditor.Basic.Indent Style")},
+        {"dotnet_formatting_Options_smart_Indent", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Indent Style", vbKey: "TextEditor.Basic.Indent Style")},
 #pragma warning restore
         {"GenerateConstructorFromMembersOptions_AddNullChecks", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks")},
         {"GenerateEqualsAndGetHashCodeFromMembersOptions_GenerateOperators", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators")},
