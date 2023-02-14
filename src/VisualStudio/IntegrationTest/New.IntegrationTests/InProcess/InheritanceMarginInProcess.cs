@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
@@ -27,41 +28,41 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
         public async Task EnableOptionsAsync(string languageName, CancellationToken cancellationToken)
         {
             var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            var showInheritanceMargin = optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName);
-            var combinedWithIndicatorMargin = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
-            var showGlobalUsings = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName);
+            var showInheritanceMargin = optionService.GetOption(InheritanceMarginOptions.ShowInheritanceMargin, languageName);
+            var combinedWithIndicatorMargin = optionService.GetOption(InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin);
+            var showGlobalUsings = optionService.GetOption(InheritanceMarginOptions.InheritanceMarginIncludeGlobalImports, languageName);
 
             if (showInheritanceMargin != true)
             {
-                optionService.SetGlobalOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName, true);
+                optionService.SetGlobalOption(InheritanceMarginOptions.ShowInheritanceMargin, languageName, true);
             }
 
             if (!showGlobalUsings)
             {
-                optionService.SetGlobalOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName, true);
+                optionService.SetGlobalOption(InheritanceMarginOptions.InheritanceMarginIncludeGlobalImports, languageName, true);
             }
 
             if (combinedWithIndicatorMargin)
             {
                 // Glyphs in Indicator margin are owned by editor, and we don't know when the glyphs would be added/removed.
-                optionService.SetGlobalOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin, false);
+                optionService.SetGlobalOption(InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin, false);
             }
         }
 
         public async Task DisableOptionsAsync(string languageName, CancellationToken cancellationToken)
         {
             var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            var showInheritanceMargin = optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName);
-            var showGlobalUsings = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName);
+            var showInheritanceMargin = optionService.GetOption(InheritanceMarginOptions.ShowInheritanceMargin, languageName);
+            var showGlobalUsings = optionService.GetOption(InheritanceMarginOptions.InheritanceMarginIncludeGlobalImports, languageName);
 
             if (showInheritanceMargin != false)
             {
-                optionService.SetGlobalOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName, false);
+                optionService.SetGlobalOption(InheritanceMarginOptions.ShowInheritanceMargin, languageName, false);
             }
 
             if (showGlobalUsings)
             {
-                optionService.SetGlobalOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName, false);
+                optionService.SetGlobalOption(InheritanceMarginOptions.InheritanceMarginIncludeGlobalImports, languageName, false);
             }
         }
 

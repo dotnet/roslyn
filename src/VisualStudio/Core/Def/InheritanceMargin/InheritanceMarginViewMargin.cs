@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -122,8 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void OnGlobalOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option.Equals(FeatureOnOffOptions.ShowInheritanceMargin) ||
-                e.Option.Equals(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin))
+            if (e.Option.Equals(InheritanceMarginOptions.ShowInheritanceMargin) ||
+                e.Option.Equals(InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin))
             {
                 UpdateMarginVisibility();
             }
@@ -132,8 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private void UpdateMarginVisibility()
         {
             _mainCanvas.Visibility =
-                (_globalOptions.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName) ?? true) &&
-                !_globalOptions.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin) ? Visibility.Visible : Visibility.Collapsed;
+                (_globalOptions.GetOption(InheritanceMarginOptions.ShowInheritanceMargin, _languageName) ?? true) &&
+                !_globalOptions.GetOption(InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void OnTagsChanged(object sender, BatchedTagsChangedEventArgs e)
@@ -173,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void RefreshGlyphsOver(ITextViewLine textViewLine)
         {
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin))
+            if (!_globalOptions.GetOption(InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin))
             {
                 foreach (var mappingTagSpan in _tagAggregator.GetTags(textViewLine.ExtentAsMappingSpan))
                 {

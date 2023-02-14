@@ -291,8 +291,8 @@ internal abstract class VisualStudioOptionStorage
         {"FeatureOnOffOptions_AutomaticallyFixStringContentsOnPaste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.AutomaticallyFixStringContentsOnPaste")},
         {"FeatureOnOffOptions_AutomaticInsertionOfAbstractOrInterfaceMembers", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoRequiredMemberInsert")},
         {"FeatureOnOffOptions_EndConstruct", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoEndInsert")},
-        {"FeatureOnOffOptions_InheritanceMarginCombinedWithIndicatorMargin", new RoamingProfileStorage("TextEditor.InheritanceMarginCombinedWithIndicatorMargin")},
-        {"FeatureOnOffOptions_InheritanceMarginIncludeGlobalImports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports")},
+        {"dotnet_inheritance_margin_options_inheritance_margin_combined_with_indicator_margin", new RoamingProfileStorage("TextEditor.InheritanceMarginCombinedWithIndicatorMargin")},
+        {"dotnet_inheritance_margin_options_inheritance_margin_include_global_imports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"FeatureOnOffOptions_KeywordHighlighting", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Keyword Highlighting", "TextEditor.VisualBasic.Specific.EnableHighlightRelatedKeywords")},
         {"FeatureOnOffOptions_LineSeparator", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Line Separator", "TextEditor.VisualBasic.Specific.DisplayLineSeparators")},
@@ -308,7 +308,7 @@ internal abstract class VisualStudioOptionStorage
         {"FeatureOnOffOptions_ReferenceHighlighting", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Reference Highlighting", "TextEditor.VisualBasic.Specific.EnableHighlightReferences")},
         {"FeatureOnOffOptions_RenameTrackingPreview", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview", "TextEditor.VisualBasic.Specific.RenameTrackingPreview")},
 #pragma warning restore
-        {"FeatureOnOffOptions_ShowInheritanceMargin", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin")},
+        {"dotnet_inheritance_margin_options_show_inheritance_margin", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin")},
         {"FeatureOnOffOptions_SkipAnalyzersForImplicitlyTriggeredBuilds", new RoamingProfileStorage("TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds")},
         {"FeatureOnOffOptions_StringIdentation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.StringIdentation")},
         {"FindUsagesOptions_DefinitionGroupingPriority", new LocalUserProfileStorage(@"Roslyn\Internal\FindUsages", "DefinitionGroupingPriority")},

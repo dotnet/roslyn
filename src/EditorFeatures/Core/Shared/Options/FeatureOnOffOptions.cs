@@ -59,12 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 
         public static readonly Option2<bool> OfferRemoveUnusedReferencesFeatureFlag = new("FeatureOnOffOptions_OfferRemoveUnusedReferencesFeatureFlag", defaultValue: false);
 
-        public static readonly PerLanguageOption2<bool?> ShowInheritanceMargin = new("FeatureOnOffOptions_ShowInheritanceMargin", defaultValue: true);
-
-        public static readonly Option2<bool> InheritanceMarginCombinedWithIndicatorMargin = new("FeatureOnOffOptions_InheritanceMarginCombinedWithIndicatorMargin", defaultValue: false);
-
-        public static readonly PerLanguageOption2<bool> InheritanceMarginIncludeGlobalImports = new("FeatureOnOffOptions_InheritanceMarginIncludeGlobalImports", defaultValue: true);
-
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new("FeatureOnOffOptions_AutomaticallyCompleteStatementOnSemicolon", defaultValue: true);
 
         public static readonly PerLanguageOption2<bool> AutomaticallyFixStringContentsOnPaste = new("FeatureOnOffOptions_AutomaticallyFixStringContentsOnPaste", defaultValue: true);

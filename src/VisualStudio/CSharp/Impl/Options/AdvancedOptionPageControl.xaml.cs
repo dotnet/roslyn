@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -184,9 +185,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Inheritance Margin
             // Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
-            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp, () => true);
-            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
-            BindToOption(IncludeGlobalImports, FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, LanguageNames.CSharp);
+            BindToOption(ShowInheritanceMargin, InheritanceMarginOptions.ShowInheritanceMargin, LanguageNames.CSharp, () => true);
+            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin);
+            BindToOption(IncludeGlobalImports, InheritanceMarginOptions.InheritanceMarginIncludeGlobalImports, LanguageNames.CSharp);
 
             // Stack Trace Explorer
             BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsMetadata.OpenOnFocus);

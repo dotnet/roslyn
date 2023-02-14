@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
@@ -68,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // we need
             // 1. Generate tags when this option changes.
             // 2. Always return null here to force the editor to remove the glyphs.
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin))
+            if (!_globalOptions.GetOption(InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin))
             {
                 return null;
             }
