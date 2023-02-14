@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 {
                     return GenerateMemberAccess("None");
                 }
-                else if (type.Equals(semanticModel.Compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName)))
+                else if (type.Equals(semanticModel.Compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!)))
                 {
                     return GenerateMemberAccess(nameof(CancellationToken.None));
                 }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
         private static bool IsFlagsEnum(ITypeSymbol type, Compilation compilation)
         {
-            var flagsAttribute = compilation.GetTypeByMetadataName(typeof(FlagsAttribute).FullName);
+            var flagsAttribute = compilation.GetTypeByMetadataName(typeof(FlagsAttribute).FullName!);
             return type.TypeKind == TypeKind.Enum &&
                    flagsAttribute != null &&
                    type.GetAttributes().Any(static (attribute, flagsAttribute) => flagsAttribute.Equals(attribute.AttributeClass), flagsAttribute);
