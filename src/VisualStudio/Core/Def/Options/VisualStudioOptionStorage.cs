@@ -393,10 +393,10 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning restore
         {"dotnet_quick_info_options_include_navigation_hints_in_quick_info", new RoamingProfileStorage("TextEditor.Specific.IncludeNavigationHintsInQuickInfo")},
         {"dotnet_quick_info_options_show_remarks_in_quick_info", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowRemarks")},
-        {"RegularExpressionsOptions_ColorizeRegexPatterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns")},
-        {"RegularExpressionsOptions_HighlightRelatedRegexComponentsUnderCursor", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor")},
-        {"RegularExpressionsOptions_ProvideRegexCompletions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions")},
-        {"RegularExpressionsOptions_ReportInvalidRegexPatterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns")},
+        {"dotnet_regular_expressions_options_colorize_regex_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns")},
+        {"dotnet_regular_expressions_options_highlight_related_regex_components_under_cursor", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor")},
+        {"dotnet_regular_expressions_options_provide_regex_completions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions")},
+        {"dotnet_regular_expressions_options_report_invalid_regex_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns")},
         {"ServiceFeatureOnOffOptions_RemoveDocumentDiagnosticsOnDocumentClose", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"SignatureHelpOptions_ShowSignatureHelp", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Auto List Params", vbKey: "TextEditor.Basic.Auto List Params")},
