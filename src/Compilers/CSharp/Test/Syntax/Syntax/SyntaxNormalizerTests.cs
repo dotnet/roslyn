@@ -5882,6 +5882,51 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
+        [Fact]
+        public void TestNormalizeUsingAlias()
+        {
+            TestNormalizeDeclaration("""
+                using X=int;
+                """, """
+                using X = int;
+                """);
+            TestNormalizeDeclaration("""
+                using X=nint;
+                """, """
+                using X = nint;
+                """);
+            TestNormalizeDeclaration("""
+                using X=dynamic;
+                """, """
+                using X = dynamic;
+                """);
+            TestNormalizeDeclaration("""
+                using X=int [];
+                """, """
+                using X = int[];
+                """);
+            TestNormalizeDeclaration("""
+                using X=(int,int);
+                """, """
+                using X = (int, int);
+                """);
+            TestNormalizeDeclaration("""
+                using unsafe X=int *;
+                """, """
+                using unsafe X = int*;
+                """);
+            TestNormalizeDeclaration("""
+                using X=int ?;
+                """, """
+                using X = int?;
+                """);
+            TestNormalizeDeclaration("""
+                using X=delegate * <int,int>;
+                """, """
+                using X = delegate*<int, int>;
+                """);
+        }
+
         private static void VerifySingleLineInitializer(string text, string expected)
         {
             TestNormalizeExpression(
