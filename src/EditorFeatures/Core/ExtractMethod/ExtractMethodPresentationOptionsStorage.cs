@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal static class ExtractMethodPresentationOptionsStorage
     {
-        public static readonly PerLanguageOption2<bool> AllowBestEffort = new("ExtractMethodOptions_AllowBestEffort", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> AllowBestEffort = new("dotnet_extract_method_options_allow_best_effort", defaultValue: true);
     }
 }
