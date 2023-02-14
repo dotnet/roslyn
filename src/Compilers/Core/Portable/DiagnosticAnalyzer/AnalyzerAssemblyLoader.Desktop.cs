@@ -77,8 +77,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var displayName = AppDomain.CurrentDomain.ApplyPolicy(args.Name);
-                var assemblyName = new AssemblyName(displayName);
+                var assemblyName = new AssemblyName(args.Name);
                 string? bestPath = GetBestPath(assemblyName);
                 if (bestPath is not null)
                 {
