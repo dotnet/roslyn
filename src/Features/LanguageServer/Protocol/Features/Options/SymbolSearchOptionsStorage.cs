@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             };
 
         public static PerLanguageOption2<bool> SearchReferenceAssemblies =
-            new("SymbolSearchOptions_SuggestForTypesInReferenceAssemblies", SymbolSearchOptions.Default.SearchReferenceAssemblies);
+            new("dotnet_symbol_search_options_suggest_for_types_in_reference_assemblies", SymbolSearchOptions.Default.SearchReferenceAssemblies);
 
         public static PerLanguageOption2<bool> SearchNuGetPackages =
-            new("SymbolSearchOptions_SuggestForTypesInNuGetPackages", SymbolSearchOptions.Default.SearchNuGetPackages);
+            new("dotnet_symbol_search_options_suggest_for_types_in_nuget_packages", SymbolSearchOptions.Default.SearchNuGetPackages);
     }
 }

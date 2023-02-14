@@ -409,9 +409,9 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_stack_trace_explorer_options_open_on_focus", new RoamingProfileStorage("StackTraceExplorer.Options.OpenOnFocus")},
         {"dotnet_suggestions_options_asynchronous", new RoamingProfileStorage("TextEditor.Specific.Suggestions.Asynchronous4")},
         {"dotnet_suggestions_options_asynchronous_quick_actions_disable_feature_flag", new FeatureFlagStorage(@"Roslyn.AsynchronousQuickActionsDisable2")},
-        {"SymbolSearchOptions_Enabled", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
-        {"SymbolSearchOptions_SuggestForTypesInNuGetPackages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
-        {"SymbolSearchOptions_SuggestForTypesInReferenceAssemblies", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies")},
+        {"dotnet_symbol_search_options_enabled", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
+        {"dotnet_symbol_search_options_suggest_for_types_in_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
+        {"dotnet_symbol_search_options_suggest_for_types_in_reference_assemblies", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"tab_width", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Tab Size", "TextEditor.Basic.Tab Size")},
 #pragma warning restore
