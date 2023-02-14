@@ -389,10 +389,10 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_lsp_options_lsp_semantic_tokens_feature_flag", new FeatureFlagStorage(@"Roslyn.LSP.SemanticTokens")},
         {"dotnet_lsp_options_max_completion_list_size", new LocalUserProfileStorage(@"Roslyn\Internal\Lsp", "MaxCompletionListSize")},
 #pragma warning disable CS0612 // Type or member is obsolete
-        {"NavigationBarOptions_ShowNavigationBar", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Dropdown Bar", vbKey: "TextEditor.Basic.Dropdown Bar")},
+        {"dotnet_navigation_bar_options_show_navigation_bar", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Dropdown Bar", vbKey: "TextEditor.Basic.Dropdown Bar")},
 #pragma warning restore
-        {"QuickInfoOptions_IncludeNavigationHintsInQuickInfo", new RoamingProfileStorage("TextEditor.Specific.IncludeNavigationHintsInQuickInfo")},
-        {"QuickInfoOptions_ShowRemarksInQuickInfo", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowRemarks")},
+        {"dotnet_quick_info_options_include_navigation_hints_in_quick_info", new RoamingProfileStorage("TextEditor.Specific.IncludeNavigationHintsInQuickInfo")},
+        {"dotnet_quick_info_options_show_remarks_in_quick_info", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowRemarks")},
         {"RegularExpressionsOptions_ColorizeRegexPatterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns")},
         {"RegularExpressionsOptions_HighlightRelatedRegexComponentsUnderCursor", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor")},
         {"RegularExpressionsOptions_ProvideRegexCompletions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions")},
