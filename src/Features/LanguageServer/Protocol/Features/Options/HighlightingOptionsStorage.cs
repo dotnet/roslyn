@@ -20,6 +20,6 @@ internal static class HighlightingOptionsStorage
             defaultValue: true);
 
     public static PerLanguageOption2<bool> HighlightRelatedJsonComponentsUnderCursor =
-        new("JsonFeatureOptions_HighlightRelatedJsonComponentsUnderCursor",
+        new("dotnet_json_feature_options_highlight_related_json_components_under_cursor",
             defaultValue: HighlightingOptions.Default.HighlightRelatedJsonComponentsUnderCursor);
 }
