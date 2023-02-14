@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
     internal sealed class FeatureOnOffOptions
     {
-        public static readonly PerLanguageOption2<bool> EndConstruct = new("FeatureOnOffOptions_EndConstruct", defaultValue: true);
-
         // This value is only used by Visual Basic, and so is using the old serialization name that was used by VB.
         public static readonly PerLanguageOption2<bool> AutomaticInsertionOfAbstractOrInterfaceMembers = new("FeatureOnOffOptions_AutomaticInsertionOfAbstractOrInterfaceMembers", defaultValue: true);
 
@@ -46,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> RefactoringVerification = new("FeatureOnOffOptions_RefactoringVerification", defaultValue: false);
 
         public static readonly Option2<bool> NavigateAsynchronously = new("FeatureOnOffOptions_NavigateAsynchronously", defaultValue: true);
-
 
         public static readonly Option2<bool?> OfferRemoveUnusedReferences = new("FeatureOnOffOptions_OfferRemoveUnusedReferences", defaultValue: true);
 

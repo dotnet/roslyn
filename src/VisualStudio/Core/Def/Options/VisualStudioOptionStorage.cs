@@ -290,7 +290,7 @@ internal abstract class VisualStudioOptionStorage
         {"FeatureOnOffOptions_AutomaticallyCompleteStatementOnSemicolon", new RoamingProfileStorage("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},
         {"FeatureOnOffOptions_AutomaticallyFixStringContentsOnPaste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.AutomaticallyFixStringContentsOnPaste")},
         {"FeatureOnOffOptions_AutomaticInsertionOfAbstractOrInterfaceMembers", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoRequiredMemberInsert")},
-        {"FeatureOnOffOptions_EndConstruct", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoEndInsert")},
+        {"visual_basic_end_construct_generation_options_end_construct", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoEndInsert")},
         {"dotnet_inheritance_margin_options_inheritance_margin_combined_with_indicator_margin", new RoamingProfileStorage("TextEditor.InheritanceMarginCombinedWithIndicatorMargin")},
         {"dotnet_inheritance_margin_options_inheritance_margin_include_global_imports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports")},
 #pragma warning disable CS0612 // Type or member is obsolete

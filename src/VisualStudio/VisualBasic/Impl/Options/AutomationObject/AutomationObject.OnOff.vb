@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.AddImportOnPaste
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
+Imports Microsoft.CodeAnalysis.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.Structure
 
@@ -11,10 +12,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
         Public Property AutoEndInsert As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.EndConstruct)
+                Return GetBooleanOption(EndConstructGenerationOptions.EndConstruct)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.EndConstruct, value)
+                SetBooleanOption(EndConstructGenerationOptions.EndConstruct, value)
             End Set
         End Property
 
