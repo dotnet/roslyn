@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.CodeAnalysis.CompleteStatement;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 {
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
                 return default;
 
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
+            if (!_globalOptions.GetOption(CompleteStatementOptions.AutomaticallyCompleteStatementOnSemicolon))
                 return default;
 
             var subjectBuffer = args.SubjectBuffer;

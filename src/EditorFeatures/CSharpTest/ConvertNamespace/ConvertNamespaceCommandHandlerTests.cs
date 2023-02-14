@@ -4,6 +4,7 @@
 
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -85,7 +86,7 @@ class C
     }
 }");
 
-            testState.Workspace.GlobalOptions.SetGlobalOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, false);
+            testState.Workspace.GlobalOptions.SetGlobalOption(CompleteStatementOptions.AutomaticallyCompleteStatementOnSemicolon, false);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(

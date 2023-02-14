@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
@@ -4240,7 +4241,7 @@ public class ClassC
                 setOptionsOpt: workspace =>
                 {
                     var globalOptions = workspace.GetService<IGlobalOptionService>();
-                    globalOptions.SetGlobalOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, false);
+                    globalOptions.SetGlobalOption(CompleteStatementOptions.AutomaticallyCompleteStatementOnSemicolon, false);
                 });
         }
 

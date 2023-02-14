@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.BlockCommentEditing;
+using Microsoft.CodeAnalysis.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.LineSeparators;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.RenameTracking;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.UnusedReferences;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -126,14 +128,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int OfferRemoveUnusedReferences
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.OfferRemoveUnusedReferences); }
-            set { SetBooleanOption(FeatureOnOffOptions.OfferRemoveUnusedReferences, value); }
+            get { return GetBooleanOption(UnusedReferencesOptions.OfferRemoveUnusedReferences); }
+            set { SetBooleanOption(UnusedReferencesOptions.OfferRemoveUnusedReferences, value); }
         }
 
         public int AutomaticallyCompleteStatementOnSemicolon
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, value); }
+            get { return GetBooleanOption(CompleteStatementOptions.AutomaticallyCompleteStatementOnSemicolon); }
+            set { SetBooleanOption(CompleteStatementOptions.AutomaticallyCompleteStatementOnSemicolon, value); }
         }
 
         public int SkipAnalyzersForImplicitlyTriggeredBuilds
