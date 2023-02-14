@@ -32,22 +32,22 @@ internal static class CompletionOptionsStorage
 
     // feature flags
 
-    public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new("CompletionOptions_UnnamedSymbolCompletionDisabledFeatureFlag", CompletionOptions.Default.UnnamedSymbolCompletionDisabled);
-    public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new("CompletionOptions_ShowNewSnippetExperienceFeatureFlag", CompletionOptions.Default.ShowNewSnippetExperienceFeatureFlag);
-    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new("CompletionOptions_HideAdvancedMembers", CompletionOptions.Default.HideAdvancedMembers);
-    public static readonly PerLanguageOption2<bool> TriggerOnTyping = new("CompletionOptions_TriggerOnTyping", CompletionOptions.Default.TriggerOnTyping);
-    public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new("CompletionOptions_TriggerOnTypingLetters", CompletionOptions.Default.TriggerOnTypingLetters);
-    public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new("CompletionOptions_TriggerOnDeletion", CompletionOptions.Default.TriggerOnDeletion);
-    public static readonly PerLanguageOption2<EnterKeyRule> EnterKeyBehavior = new("CompletionOptions_EnterKeyBehavior", CompletionOptions.Default.EnterKeyBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<EnterKeyRule>());
-    public static readonly PerLanguageOption2<SnippetsRule> SnippetsBehavior = new("CompletionOptions_SnippetsBehavior", CompletionOptions.Default.SnippetsBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<SnippetsRule>());
-    public static readonly PerLanguageOption2<bool> ShowNameSuggestions = new("CompletionOptions_ShowNameSuggestions", CompletionOptions.Default.ShowNameSuggestions);
+    public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new("dotnet_completion_options_unnamed_symbol_completion_disabled_feature_flag", CompletionOptions.Default.UnnamedSymbolCompletionDisabled);
+    public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new("dotnet_completion_options_show_new_snippet_experience_Feature_Flag", CompletionOptions.Default.ShowNewSnippetExperienceFeatureFlag);
+    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new("dotnet_completion_options_hide_advanced_members", CompletionOptions.Default.HideAdvancedMembers);
+    public static readonly PerLanguageOption2<bool> TriggerOnTyping = new("dotnet_completion_options_trigger_on_typing", CompletionOptions.Default.TriggerOnTyping);
+    public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new("dotnet_completion_options_trigger_on_typing_letters", CompletionOptions.Default.TriggerOnTypingLetters);
+    public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new("dotnet_completion_options_trigger_on_deletion", CompletionOptions.Default.TriggerOnDeletion);
+    public static readonly PerLanguageOption2<EnterKeyRule> EnterKeyBehavior = new("dotnet_completion_options_enter_key_behavior", CompletionOptions.Default.EnterKeyBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<EnterKeyRule>());
+    public static readonly PerLanguageOption2<SnippetsRule> SnippetsBehavior = new("dotnet_completion_options_snippets_behavior", CompletionOptions.Default.SnippetsBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<SnippetsRule>());
+    public static readonly PerLanguageOption2<bool> ShowNameSuggestions = new("dotnet_completion_options_show_name_suggestions", CompletionOptions.Default.ShowNameSuggestions);
 
     //Dev16 options
 
     // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-    public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces = new("CompletionOptions_ShowItemsFromUnimportedNamespaces", CompletionOptions.Default.ShowItemsFromUnimportedNamespaces);
+    public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces = new("dotnet_completion_options_show_items_from_unimported_namespaces", CompletionOptions.Default.ShowItemsFromUnimportedNamespaces);
 
-    public static readonly PerLanguageOption2<bool> TriggerInArgumentLists = new("CompletionOptions_TriggerInArgumentLists", CompletionOptions.Default.TriggerInArgumentLists);
+    public static readonly PerLanguageOption2<bool> TriggerInArgumentLists = new("dotnet_completion_options_trigger_In_argument_Lists", CompletionOptions.Default.TriggerInArgumentLists);
 
     // Test-only option
     public static readonly Option2<bool> ForceExpandedCompletionIndexCreation = new("CompletionOptions_ForceExpandedCompletionIndexCreation", defaultValue: false);
@@ -56,5 +56,5 @@ internal static class CompletionOptionsStorage
 
     public static PerLanguageOption2<bool> ProvideRegexCompletions = new("RegularExpressionsOptions_ProvideRegexCompletions", CompletionOptions.Default.ProvideRegexCompletions);
     public static readonly PerLanguageOption2<bool> ProvideDateAndTimeCompletions = new("DateAndTime_ProvideDateAndTimeCompletions", CompletionOptions.Default.ProvideDateAndTimeCompletions);
-    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperienceUserOption = new("CompletionOptions_ShowNewSnippetExperienceUserOption", CompletionOptions.Default.ShowNewSnippetExperienceUserOption);
+    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperienceUserOption = new("dotnet_completion_options_show_new_snippet_experience_user_option", CompletionOptions.Default.ShowNewSnippetExperienceUserOption);
 }
