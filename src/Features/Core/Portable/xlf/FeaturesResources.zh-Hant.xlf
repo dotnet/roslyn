@@ -2490,11 +2490,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">不支援移除文件</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">移除 'async' 修飾元</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
         <source>Remove unnecessary Imports or usings</source>
         <target state="translated">移除不必要的 Import 或 Using</target>

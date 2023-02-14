@@ -87,6 +87,11 @@
         <target state="new">Related method signatures found in metadata will not be updated.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_async_modifier">
+        <source>Remove 'async' modifier</source>
+        <target state="new">Remove 'async' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
         <source>Remove extra blank lines</source>
         <target state="translated">Quitar líneas en blanco adicionales</target>

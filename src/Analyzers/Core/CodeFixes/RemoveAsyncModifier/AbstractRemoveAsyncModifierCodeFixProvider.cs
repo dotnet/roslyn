@@ -11,9 +11,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using KnownTypes = Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider.KnownTypes;
 
 namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 {
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var knownTypes = new KnownTypes(compilation);
 
             var diagnostic = context.Diagnostics.First();
@@ -52,9 +53,9 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        FeaturesResources.Remove_async_modifier,
+                        CodeFixesResources.Remove_async_modifier,
                         GetDocumentUpdater(context),
-                        nameof(FeaturesResources.Remove_async_modifier)),
+                        nameof(CodeFixesResources.Remove_async_modifier)),
                     context.Diagnostics);
             }
         }
@@ -63,8 +64,10 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
+            var solutionServices = document.Project.Solution.Services;
             var generator = editor.Generator;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var compilation = semanticModel.Compilation;
             var knownTypes = new KnownTypes(compilation);
 
@@ -93,7 +96,8 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 var needsReturnStatementAdded = controlFlow == null || controlFlow.EndPointIsReachable;
 
                 editor.ReplaceNode(node,
-                    (updatedNode, generator) => RemoveAsyncModifier(generator, updatedNode, methodSymbol.ReturnType, knownTypes, needsReturnStatementAdded));
+                    (updatedNode, generator) => RemoveAsyncModifier(
+                        solutionServices, syntaxFacts, generator, updatedNode, methodSymbol.ReturnType, knownTypes, needsReturnStatementAdded));
             }
         }
 
@@ -110,7 +114,14 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             => returnType.OriginalDefinition.Equals(knownTypes.TaskType)
                 || returnType.OriginalDefinition.Equals(knownTypes.ValueTaskType);
 
-        private SyntaxNode RemoveAsyncModifier(SyntaxGenerator generator, SyntaxNode node, ITypeSymbol returnType, KnownTypes knownTypes, bool needsReturnStatementAdded)
+        private SyntaxNode RemoveAsyncModifier(
+            SolutionServices solutionServices,
+            ISyntaxFacts syntaxFacts,
+            SyntaxGenerator generator,
+            SyntaxNode node,
+            ITypeSymbol returnType,
+            KnownTypes knownTypes,
+            bool needsReturnStatementAdded)
         {
             node = RemoveAsyncModifier(generator, node);
 
@@ -149,9 +160,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 }
             }
 
-            node = ChangeReturnStatements(generator, node, returnType, knownTypes);
-
-            return node;
+            return ChangeReturnStatements(solutionServices, syntaxFacts, generator, node, returnType, knownTypes);
         }
 
         private static ControlFlowAnalysis? GetControlFlowAnalysis(SyntaxGenerator generator, SemanticModel semanticModel, SyntaxNode node)
@@ -168,9 +177,15 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         private static SyntaxNode AddReturnStatement(SyntaxGenerator generator, SyntaxNode node)
             => generator.WithStatements(node, generator.GetStatements(node).Concat(generator.ReturnStatement()));
 
-        private SyntaxNode ChangeReturnStatements(SyntaxGenerator generator, SyntaxNode node, ITypeSymbol returnType, KnownTypes knownTypes)
+        private SyntaxNode ChangeReturnStatements(
+            SolutionServices solutionServices,
+            ISyntaxFacts syntaxFacts,
+            SyntaxGenerator generator,
+            SyntaxNode node,
+            ITypeSymbol returnType,
+            KnownTypes knownTypes)
         {
-            var editor = new SyntaxEditor(node, generator);
+            var editor = new SyntaxEditor(node, solutionServices);
 
             // Look for all return statements, but if we find a new node that can have the async modifier we stop
             // because that will have its own diagnostic and fix, if applicable
@@ -178,7 +193,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
             foreach (var returnSyntax in returns)
             {
-                var returnExpression = generator.SyntaxFacts.GetExpressionOfReturnStatement(returnSyntax);
+                var returnExpression = syntaxFacts.GetExpressionOfReturnStatement(returnSyntax);
                 if (returnExpression is null)
                 {
                     // Convert return; into return Task.CompletedTask;
@@ -206,7 +221,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             }
             else
             {
-                invocation = generator.ObjectCreationExpression(knownTypes.ValueTaskType);
+                invocation = generator.ObjectCreationExpression(knownTypes.ValueTaskType!);
             }
 
             var statement = generator.ReturnStatement(invocation);
@@ -217,7 +232,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         {
             if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
             {
-                var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes.TaskType);
+                var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes.TaskType!);
                 var unwrappedReturnType = returnType.GetTypeArguments()[0];
                 var memberName = generator.GenericName(nameof(Task.FromResult), unwrappedReturnType);
                 var taskFromResult = generator.MemberAccessExpression(taskTypeExpression, memberName);

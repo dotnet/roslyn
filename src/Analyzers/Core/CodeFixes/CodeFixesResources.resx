@@ -186,4 +186,7 @@
   <data name="Related_method_signatures_found_in_metadata_will_not_be_updated" xml:space="preserve">
     <value>Related method signatures found in metadata will not be updated.</value>
   </data>
+  <data name="Remove_async_modifier" xml:space="preserve">
+    <value>Remove 'async' modifier</value>
+  </data>
 </root>
