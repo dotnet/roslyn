@@ -873,6 +873,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
+            // Require a separator between a lambda return type and its open paren
+            if (next is { RawKind: (int)SyntaxKind.OpenParenToken, Parent.Parent: ParenthesizedLambdaExpressionSyntax lambda } &&
+                lambda.ReturnType?.GetLastToken() == token)
+            {
+                return true;
+            }
+
             if (IsKeyword(token.Kind()))
             {
                 if (!next.IsKind(SyntaxKind.ColonToken) &&

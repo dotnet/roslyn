@@ -98,7 +98,9 @@ end class
                 })
         End Function
 
-        <Fact, WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
+        <Fact>
+        <WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
+        <WorkItem(25408, "https://github.com/dotnet/roslyn/issues/25408")>
         Public Async Function TestLinkedFile() As Task
             Dim input =
                 <Workspace>
@@ -125,7 +127,7 @@ partial class C
             Dim expectedText = "
 partial class C
 {
-    public int P { get; private set; }
+    public int P { get; }
 
     public C()
     {

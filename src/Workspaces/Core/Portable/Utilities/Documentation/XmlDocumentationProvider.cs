@@ -77,11 +77,7 @@ namespace Microsoft.CodeAnalysis
                         foreach (var e in doc.Descendants("member"))
                         {
                             if (e.Attribute("name") != null)
-                            {
-                                using var reader = e.CreateReader();
-                                reader.MoveToContent();
-                                comments[e.Attribute("name").Value] = reader.ReadInnerXml();
-                            }
+                                comments[e.Attribute("name").Value] = e.ToString();
                         }
 
                         _docComments = comments;

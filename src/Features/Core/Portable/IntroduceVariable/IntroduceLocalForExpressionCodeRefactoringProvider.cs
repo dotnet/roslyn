@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
             var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize: false, cancellationToken);
-            var uniqueName = semanticFacts.GenerateUniqueLocalName(semanticModel, expression, containerOpt: null, baseName, cancellationToken)
+            var uniqueName = semanticFacts.GenerateUniqueLocalName(semanticModel, expression, container: null, baseName, cancellationToken)
                                           .WithAdditionalAnnotations(RenameAnnotation.Create());
             return uniqueName;
         }

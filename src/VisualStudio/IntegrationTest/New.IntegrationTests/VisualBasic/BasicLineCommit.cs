@@ -133,7 +133,6 @@ End Module", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("End Sub", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync(" ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "TestZ.vb", open: true, cancellationToken: HangMitigatingCancellationToken); // Cause focus lost
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "TestZ.vb", HangMitigatingCancellationToken); // Work around https://github.com/dotnet/roslyn/issues/18488
             await TestServices.Input.SendAsync("                  ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.CloseCodeFileAsync(ProjectName, "TestZ.vb", saveFile: false, cancellationToken: HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(@"Module M
@@ -156,7 +155,6 @@ End Module", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("End Sub", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync(" ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "TestZ.vb", open: true, cancellationToken: HangMitigatingCancellationToken); // Cause focus lost
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "TestZ.vb", HangMitigatingCancellationToken); // Work around https://github.com/dotnet/roslyn/issues/18488
             await TestServices.Input.SendAsync("                  ", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.CloseCodeFileAsync(ProjectName, "TestZ.vb", saveFile: false, HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(@"Module M
