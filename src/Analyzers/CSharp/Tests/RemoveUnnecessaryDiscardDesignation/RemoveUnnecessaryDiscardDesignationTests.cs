@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
         }
 
         [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
-        public async Task TestNotWhenRemovingDiscardChangesMeaning()
+        public async Task TestPropertyWithTheSameNameAsType()
         {
             await new VerifyCS.Test
             {
@@ -303,9 +303,73 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
 
                         void M(object o)
                         {
-                            if (o is String _)
+                            if (o is String [|_|])
                             {
                             }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    using System;
+                
+                    class C
+                    {
+                        string String { get; }
+                
+                        void M(object o)
+                        {
+                            if (o is String)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        public async Task TestNotWhenRemovingDiscardChangesMeaning1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    class C
+                    {
+                        string String { get; }
+
+                        void M(object o)
+                        {
+                            if (o is not String _)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        public async Task TestNotWhenRemovingDiscardChangesMeaning2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    class C
+                    {
+                        string String { get; }
+
+                        void M(object o)
+                        {
+                            var v = o switch
+                            {
+                                String _ => 0
+                            };
                         }
                     }
                     """,

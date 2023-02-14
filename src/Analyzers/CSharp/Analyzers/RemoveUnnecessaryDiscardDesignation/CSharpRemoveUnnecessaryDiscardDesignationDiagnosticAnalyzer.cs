@@ -50,18 +50,23 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
 
             if (discard.Parent is DeclarationPatternSyntax declarationPattern)
             {
-                var typeSyntax = declarationPattern.Type;
-
-                if (typeSyntax is IdentifierNameSyntax identifierName &&
-                    identifierName.GetAncestor<TypeDeclarationSyntax>() is { } containingTypeSyntax)
+                // Don't perform semantic checks if we are in a 'simple' pattern like `x is A _`.
+                // Since single identifier in cases like `x is A` binds stronger to type name for back compat reasons, we can safely remove discard anyway.
+                if (declarationPattern.Parent is not IsPatternExpressionSyntax)
                 {
-                    var typeSymbol = semanticModel.GetDeclaredSymbol(containingTypeSyntax, cancellationToken);
+                    var typeSyntax = declarationPattern.Type;
 
-                    // If we find other symbols with the same name in the type we are currently in, removing discard can lead to a compiler error.
-                    // For instance, we can have a property in the type we are currently in with the same name as an identifier in the discard designation.
-                    // Since a single identifier binds stronger to property name, we cannot remove discard.
-                    if (!typeSymbol?.GetMembers(identifierName.Identifier.Text).IsEmpty ?? true)
-                        return;
+                    if (typeSyntax is IdentifierNameSyntax identifierName &&
+                        identifierName.GetAncestor<TypeDeclarationSyntax>() is { } containingTypeSyntax)
+                    {
+                        var typeSymbol = semanticModel.GetDeclaredSymbol(containingTypeSyntax, cancellationToken);
+
+                        // If we find other symbols with the same name in the type we are currently in, removing discard can lead to a compiler error.
+                        // For instance, we can have a property in the type we are currently in with the same name as an identifier in the discard designation.
+                        // Since a single identifier binds stronger to property name, we cannot remove discard.
+                        if (!typeSymbol?.GetMembers(identifierName.Identifier.Text).IsEmpty ?? true)
+                            return;
+                    }
                 }
 
                 Report(discard);
