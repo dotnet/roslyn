@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             public NodeStateTable<T>.Builder CreateTableBuilder<T>(
-                NodeStateTable<T>? previousTable, string? stepName, IEqualityComparer<T>? equalityComparer, int? tableCapacity = null, bool canBeCompacted = true)
+                NodeStateTable<T>? previousTable, string? stepName, IEqualityComparer<T>? equalityComparer, int? tableCapacity = null)
             {
                 previousTable ??= NodeStateTable<T>.Empty;
-                return previousTable.ToBuilder(stepName, DriverState.TrackIncrementalSteps, equalityComparer, tableCapacity, canBeCompacted: canBeCompacted);
+                return previousTable.ToBuilder(stepName, DriverState.TrackIncrementalSteps, equalityComparer, tableCapacity);
             }
 
             public DriverStateTable ToImmutable()
