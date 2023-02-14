@@ -42,53 +42,53 @@ namespace Microsoft.CodeAnalysis.InlineHints
         //  Parameter hints
 
         public static readonly PerLanguageOption2<bool> EnabledForParameters =
-            new("InlineHintsOptions_EnabledForParameters",
+            new("dotnet_inline_hints_options_enabled_for_parameters",
                 InlineParameterHintsOptions.Default.EnabledForParameters);
 
         public static readonly PerLanguageOption2<bool> ForLiteralParameters =
-            new("InlineHintsOptions_ForLiteralParameters",
+            new("dotnet_inline_hints_options_for_literal_parameters",
                 InlineParameterHintsOptions.Default.ForLiteralParameters);
 
         public static readonly PerLanguageOption2<bool> ForIndexerParameters =
-            new("InlineHintsOptions_ForIndexerParameters",
+            new("dotnet_inline_hints_options_for_indexer_parameters",
                 InlineParameterHintsOptions.Default.ForIndexerParameters);
 
         public static readonly PerLanguageOption2<bool> ForObjectCreationParameters =
-            new("InlineHintsOptions_ForObjectCreationParameters",
+            new("dotnet_inline_hints_options_for_object_creation_parameters",
                 InlineParameterHintsOptions.Default.ForObjectCreationParameters);
 
         public static readonly PerLanguageOption2<bool> ForOtherParameters =
-            new("InlineHintsOptions_ForOtherParameters",
+            new("dotnet_inline_hints_options_for_other_parameters",
                 InlineParameterHintsOptions.Default.ForOtherParameters);
 
         public static readonly PerLanguageOption2<bool> SuppressForParametersThatDifferOnlyBySuffix =
-            new("InlineHintsOptions_SuppressForParametersThatDifferOnlyBySuffix",
+            new("dotnet_inline_hints_options_suppress_for_parameters_that_differ_only_by_suffix",
                 InlineParameterHintsOptions.Default.SuppressForParametersThatDifferOnlyBySuffix);
 
         public static readonly PerLanguageOption2<bool> SuppressForParametersThatMatchMethodIntent =
-            new("InlineHintsOptions_SuppressForParametersThatMatchMethodIntent",
+            new("dotnet_inline_hints_options_suppress_for_parameters_that_match_method_intent",
                 InlineParameterHintsOptions.Default.SuppressForParametersThatMatchMethodIntent);
 
         public static readonly PerLanguageOption2<bool> SuppressForParametersThatMatchArgumentName =
-            new("InlineHintsOptions_SuppressForParametersThatMatchArgumentName",
+            new("dotnet_inline_hints_options_suppress_for_parameters_that_match_argument_name",
                 InlineParameterHintsOptions.Default.SuppressForParametersThatMatchArgumentName);
 
         // Type Hints
 
         public static readonly PerLanguageOption2<bool> EnabledForTypes =
-            new("InlineHintsOptions_EnabledForTypes",
+            new("csharp_inline_hints_options_enabled_for_types",
                 defaultValue: InlineTypeHintsOptions.Default.EnabledForTypes);
 
         public static readonly PerLanguageOption2<bool> ForImplicitVariableTypes =
-            new("InlineHintsOptions_ForImplicitVariableTypes",
+            new("csharp_inline_hints_options_for_implicit_variable_types",
                 defaultValue: InlineTypeHintsOptions.Default.ForImplicitVariableTypes);
 
         public static readonly PerLanguageOption2<bool> ForLambdaParameterTypes =
-            new("InlineHintsOptions_ForLambdaParameterTypes",
+            new("csharp_inline_hints_options_for_lambda_parameter_types",
                 defaultValue: InlineTypeHintsOptions.Default.ForLambdaParameterTypes);
 
         public static readonly PerLanguageOption2<bool> ForImplicitObjectCreation =
-            new("InlineHintsOptions_ForImplicitObjectCreation",
+            new("csharp_inline_hints_options_for_implicit_object_creation",
                 defaultValue: InlineTypeHintsOptions.Default.ForImplicitObjectCreation);
     }
 }
