@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 {
     internal partial class SyntaxList
     {
-        internal class WithThreeChildren : SyntaxList
+        internal sealed class WithThreeChildren : SyntaxList
         {
             private SyntaxNode? _child0;
             private SyntaxNode? _child1;

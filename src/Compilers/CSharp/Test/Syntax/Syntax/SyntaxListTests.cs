@@ -305,5 +305,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
         }
+
+        [Fact]
+        public void EnumerateWithManyChildren_Forward()
+        {
+            const int n = 100000;
+            var builder = new StringBuilder();
+            builder.Append("int[] values = new[] { ");
+            for (int i = 0; i < n; i++) builder.Append("0, ");
+            builder.AppendLine("};");
+
+            var tree = CSharpSyntaxTree.ParseText(builder.ToString());
+            // Do not descend into InitializerExpressionSyntax since that will populate SeparatedWithManyChildren._children.
+            var node = tree.GetRoot().DescendantNodes().OfType<InitializerExpressionSyntax>().First();
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                _ = child.ToString();
+            }
+        }
+
+        [WorkItem(66475, "https://github.com/dotnet/roslyn/issues/66475")]
+        [Fact]
+        public void EnumerateWithManyChildren_Reverse()
+        {
+            const int n = 100000;
+            var builder = new StringBuilder();
+            builder.Append("int[] values = new[] { ");
+            for (int i = 0; i < n; i++) builder.Append("0, ");
+            builder.AppendLine("};");
+
+            var tree = CSharpSyntaxTree.ParseText(builder.ToString());
+            // Do not descend into InitializerExpressionSyntax since that will populate SeparatedWithManyChildren._children.
+            var node = tree.GetRoot().DescendantNodes().OfType<InitializerExpressionSyntax>().First();
+
+            foreach (var child in node.ChildNodesAndTokens().Reverse())
+            {
+                _ = child.ToString();
+            }
+        }
     }
 }

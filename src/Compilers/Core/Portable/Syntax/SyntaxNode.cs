@@ -612,24 +612,51 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual int GetChildPosition(int index)
         {
+            return GetChildPosition(index, useNextNotPrevious: false);
+        }
+
+        internal int GetChildPosition(int index, bool useNextNotPrevious)
+        {
             int offset = 0;
             var green = this.Green;
-            while (index > 0)
-            {
-                index--;
-                var prevSibling = this.GetCachedSlot(index);
-                if (prevSibling != null)
-                {
-                    return prevSibling.EndPosition + offset;
-                }
-                var greenChild = green.GetSlot(index);
-                if (greenChild != null)
-                {
-                    offset += greenChild.FullWidth;
-                }
-            }
 
-            return this.Position + offset;
+            if (!useNextNotPrevious)
+            {
+                while (index > 0)
+                {
+                    index--;
+                    var prevSibling = this.GetCachedSlot(index);
+                    if (prevSibling != null)
+                    {
+                        return prevSibling.EndPosition + offset;
+                    }
+                    var greenChild = green.GetSlot(index);
+                    if (greenChild != null)
+                    {
+                        offset += greenChild.FullWidth;
+                    }
+                }
+                return this.Position + offset;
+            }
+            else
+            {
+                int slotCount = green.SlotCount;
+                while (index < slotCount - 1)
+                {
+                    index++;
+                    var prevSibling = this.GetCachedSlot(index);
+                    if (prevSibling != null)
+                    {
+                        return prevSibling.EndPosition - offset;
+                    }
+                    var greenChild = green.GetSlot(index);
+                    if (greenChild != null)
+                    {
+                        offset += greenChild.FullWidth;
+                    }
+                }
+                return this.EndPosition - offset;
+            }
         }
 
         public Location GetLocation()
