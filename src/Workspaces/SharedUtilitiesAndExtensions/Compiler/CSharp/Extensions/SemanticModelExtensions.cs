@@ -169,7 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (@using.Alias == null)
                 {
-                    var symbolInfo = semanticModel.GetSymbolInfo(@using.Name);
+                    Contract.ThrowIfNull(@using.Type);
+                    var symbolInfo = semanticModel.GetSymbolInfo(@using.Type);
                     if (symbolInfo.Symbol != null && symbolInfo.Symbol.Kind == SymbolKind.Namespace)
                     {
                         result ??= new HashSet<INamespaceSymbol>();

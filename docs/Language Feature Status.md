@@ -18,6 +18,7 @@ efforts behind them.
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | [In Progress](https://github.com/dotnet/roslyn/issues/25559) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 | [Collection Literals](https://github.com/dotnet/csharplang/issues/5354) | [CollectionLiterals](https://github.com/dotnet/roslyn/tree/features/CollectionLiterals) | [In Progress](https://github.com/dotnet/roslyn/issues/66418) | [cston](https://github.com/cston) | [333fred](https://github.com/333fred), [RikkiGibson](https://github.com/RikkiGibson) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 | [Roles](https://github.com/dotnet/csharplang/issues/5497) | [roles](https://github.com/dotnet/roslyn/tree/features/roles) | [In Progress](https://github.com/dotnet/roslyn/issues/66722) | [jcouv](https://github.com/jcouv) | TBD | [MadsTorgersen](https://github.com/MadsTorgersen) |
+| [Using aliases for any type](https://github.com/dotnet/csharplang/issues/4284) | [UsingAliasTypes](https://github.com/dotnet/roslyn/tree/features/UsingAliasTypes) | [Test Plan](https://github.com/dotnet/roslyn/issues/56323) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [jcouv](https://github.com/jcouv) [cston](https://github.com/cston) |  |
   
 # C# 11.0
 

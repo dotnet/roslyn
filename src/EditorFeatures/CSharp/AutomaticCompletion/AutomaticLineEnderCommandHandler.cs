@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
 
             // check whether using has contents
-            if (owningNode is UsingDirectiveSyntax u && u.Name.IsMissing)
+            if (owningNode is UsingDirectiveSyntax u && u.Type.IsMissing)
             {
                 return false;
             }
