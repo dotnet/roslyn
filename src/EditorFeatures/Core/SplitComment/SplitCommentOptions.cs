@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
     internal sealed class SplitCommentOptions
     {
         public static PerLanguageOption2<bool> Enabled =
-           new PerLanguageOption2<bool>("SplitCommentOptions_Enabled", defaultValue: true);
+           new PerLanguageOption2<bool>("dotnet_split_comment_options_enabled", defaultValue: true);
     }
 }
