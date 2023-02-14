@@ -8,11 +8,11 @@ namespace Microsoft.CodeAnalysis.InlineRename
 {
     internal static class InlineRenameSessionOptionsStorage
     {
-        public static readonly Option2<bool> RenameOverloads = new("InlineRenameSessionOptions_RenameOverloads", defaultValue: false);
-        public static readonly Option2<bool> RenameInStrings = new("InlineRenameSessionOptions_RenameInStrings", defaultValue: false);
-        public static readonly Option2<bool> RenameInComments = new("InlineRenameSessionOptions_RenameInComments", defaultValue: false);
-        public static readonly Option2<bool> RenameFile = new("InlineRenameSessionOptions_RenameFile", defaultValue: true);
-        public static readonly Option2<bool> PreviewChanges = new("InlineRenameSessionOptions_PreviewChanges", defaultValue: false);
-        public static readonly Option2<bool> RenameAsynchronously = new("InlineRenameSessionOptions_RenameAsynchronously", defaultValue: true);
+        public static readonly Option2<bool> RenameOverloads = new("dotnet_inline_rename_session_options_rename_overloads", defaultValue: false);
+        public static readonly Option2<bool> RenameInStrings = new("dotnet_inline_rename_session_options_rename_in_strings", defaultValue: false);
+        public static readonly Option2<bool> RenameInComments = new("dotnet_inline_rename_session_options_rename_in_comments", defaultValue: false);
+        public static readonly Option2<bool> RenameFile = new("dotnet_inline_rename_session_options_rename_file", defaultValue: true);
+        public static readonly Option2<bool> PreviewChanges = new("dotnet_inline_rename_session_options_preview_changes", defaultValue: false);
+        public static readonly Option2<bool> RenameAsynchronously = new("dotnet_inline_rename_session_options_rename_asynchronously", defaultValue: true);
     }
 }
