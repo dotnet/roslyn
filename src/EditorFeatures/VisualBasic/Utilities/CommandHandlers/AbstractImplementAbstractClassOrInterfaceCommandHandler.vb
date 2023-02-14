@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AutomaticInsertionOfAbstractOrInterfaceMembers
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Formatting
@@ -107,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
         End Function
 
         Private Overloads Function TryExecute(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
-            If Not _globalOptions.GetOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic) Then
+            If Not _globalOptions.GetOption(AutomaticInsertionOfAbstractOrInterfaceMembersOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic) Then
                 Return False
             End If
 

@@ -289,7 +289,7 @@ internal abstract class VisualStudioOptionStorage
         {"FeatureOnOffOptions_AutoInsertBlockCommentStartString", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String")},
         {"FeatureOnOffOptions_AutomaticallyCompleteStatementOnSemicolon", new RoamingProfileStorage("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},
         {"FeatureOnOffOptions_AutomaticallyFixStringContentsOnPaste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.AutomaticallyFixStringContentsOnPaste")},
-        {"FeatureOnOffOptions_AutomaticInsertionOfAbstractOrInterfaceMembers", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoRequiredMemberInsert")},
+        {"visual_basic_automatic_insertion_of_abstract_or_interface_members_options_automatic_insertion_of_abstract_or_interface_members", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoRequiredMemberInsert")},
         {"visual_basic_end_construct_generation_options_end_construct", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoEndInsert")},
         {"dotnet_inheritance_margin_options_inheritance_margin_combined_with_indicator_margin", new RoamingProfileStorage("TextEditor.InheritanceMarginCombinedWithIndicatorMargin")},
         {"dotnet_inheritance_margin_options_inheritance_margin_include_global_imports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports")},

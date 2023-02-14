@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.AddImportOnPaste
+Imports Microsoft.CodeAnalysis.AutomaticInsertionOfAbstractOrInterfaceMembers
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.MetadataAsSource
@@ -21,10 +22,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property AutoRequiredMemberInsert As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers)
+                Return GetBooleanOption(AutomaticInsertionOfAbstractOrInterfaceMembersOptions.AutomaticInsertionOfAbstractOrInterfaceMembers)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, value)
+                SetBooleanOption(AutomaticInsertionOfAbstractOrInterfaceMembersOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, value)
             End Set
         End Property
 

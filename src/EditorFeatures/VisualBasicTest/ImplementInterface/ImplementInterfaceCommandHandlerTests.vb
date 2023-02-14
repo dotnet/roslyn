@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.AutomaticInsertionOfAbstractOrInterfaceMembers
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -67,7 +68,7 @@ End Interface")
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
 
                 Dim commandHandler = MoveCaretAndCreateCommandHandler(workspace)
-                globalOptions.SetGlobalOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic, False)
+                globalOptions.SetGlobalOption(AutomaticInsertionOfAbstractOrInterfaceMembersOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic, False)
 
                 Dim nextHandlerCalled = False
                 Dim view = workspace.Documents.Single().GetTextView()
