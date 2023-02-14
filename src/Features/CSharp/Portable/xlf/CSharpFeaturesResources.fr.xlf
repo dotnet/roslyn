@@ -22,11 +22,6 @@
         <target state="translated">Ajout des accolades nécessaires pour les instructions de contrôle sur une seule ligne</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Autoriser du code unsafe dans ce projet</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Appliquer une ligne vide après le signe deux-points dans les préférences de l’initialiseur de constructeur (expérimental)</target>
@@ -675,16 +670,6 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_deconstruction_declaration">
         <source>Autoselect disabled due to possible deconstruction declaration.</source>
         <target state="translated">Sélection automatique désactivée en raison d'une déclaration de déconstruction possible.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Mettre à niveau ce projet vers la version de langage C# '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Mettre à niveau tous les projets C# vers la version de langage '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="class_name">

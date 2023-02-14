@@ -22,11 +22,6 @@
         <target state="translated">単一行のコントロール ステートメントに対する必須の波かっこを追加する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">このプロジェクトでアンセーフ コードを許可する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">コンストラクター初期化子のコロンの空白行に関する基本設定を適用する (試験段階)</target>
@@ -675,16 +670,6 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_deconstruction_declaration">
         <source>Autoselect disabled due to possible deconstruction declaration.</source>
         <target state="translated">分解宣言の可能性により、自動選択が無効になりました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">このプロジェクトを C# 言語バージョン '{0}' にアップグレードする</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">すべての C# プロジェクトを言語バージョン '{0}' にアップグレードする</target>
         <note />
       </trans-unit>
       <trans-unit id="class_name">

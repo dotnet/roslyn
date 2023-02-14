@@ -22,11 +22,6 @@
         <target state="translated">Přidat povinné složené závorky pro řídicí příkazy na jeden řádek</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Povolit v tomto projektu nezabezpečený kód</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Použít prázdný řádek za dvojtečkou v předvolbách inicializátoru konstruktoru (experimentální)</target>
@@ -675,16 +670,6 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_deconstruction_declaration">
         <source>Autoselect disabled due to possible deconstruction declaration.</source>
         <target state="translated">Automatický výběr je zakázaný kvůli možné deklaraci dekonstrukce.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Upgradovat tento projekt na jazykovou verzi C# {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Upgradovat všechny projekty jazyka C# na jazykovou verzi {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="class_name">

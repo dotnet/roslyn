@@ -22,11 +22,6 @@
         <target state="translated">添加所需的单行控制语句的大括号</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">允许在此项目中使用不安全代码</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">在构造函数初始值设定项中的冒号后应用空白行(实验性)</target>
@@ -675,16 +670,6 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_deconstruction_declaration">
         <source>Autoselect disabled due to possible deconstruction declaration.</source>
         <target state="translated">由于可能有析构声明，禁用了自动选择。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">将该项目升级为 C# 语言版本“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">将所有 C# 项目升级为语言版本“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="class_name">

@@ -22,11 +22,6 @@
         <target state="translated">Aggiungi/Rimuovi parentesi graffe necessarie per le istruzioni di controllo a riga singola</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Consenti codice unsafe in questo progetto</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Applica preferenze una riga vuota dopo i due punti nell'inizializzatore del costruttore (sperimentale)</target>
@@ -675,16 +670,6 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_deconstruction_declaration">
         <source>Autoselect disabled due to possible deconstruction declaration.</source>
         <target state="translated">La selezione automatica è disabilitata a causa di una possibile dichiarazione di decostruzione.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Aggiorna questo progetto alla versione '{0}' del linguaggio C#</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Aggiorna tutti i progetti alla versione '{0}' del linguaggio C#</target>
         <note />
       </trans-unit>
       <trans-unit id="class_name">
