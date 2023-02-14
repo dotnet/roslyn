@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,11 +9,13 @@ using Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     public class PassInCapturedVariablesAsArgumentsCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public PassInCapturedVariablesAsArgumentsCodeFixProviderTests(ITestOutputHelper logger)
@@ -24,13 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new PassInCapturedVariablesAsArgumentsCodeFixProvider());
 
         private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
         private static readonly ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestMissingInCSharp7()
         {
             await TestMissingAsync(
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parameters: new TestParameters(parseOptions: CSharp72ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact]
         public async Task TestMissingIfNoDiagnostic()
         {
             await TestMissingAsync(
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        [Fact, WorkItem(38734, "https://github.com/dotnet/roslyn/issues/38734")]
         public async Task TestAvailableIfCapturesThisParameter1()
         {
             await TestInRegularAndScriptAsync(
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task ShouldTriggerForCSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestMultipleVariables()
         {
             await TestInRegularAndScriptAsync(
@@ -163,7 +162,7 @@ parseOptions: CSharp8ParseOptions);
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestMultipleCalls()
         {
             await TestInRegularAndScriptAsync(
@@ -196,7 +195,7 @@ parseOptions: CSharp8ParseOptions);
 , parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestMultipleCallsWithExistingParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -231,7 +230,7 @@ parseOptions: CSharp8ParseOptions);
 , parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestRecursiveCall()
         {
             await TestInRegularAndScriptAsync(
@@ -265,7 +264,7 @@ parseOptions: CSharp8ParseOptions);
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestCallInArgumentList()
         {
             await TestInRegularAndScriptAsync(
@@ -297,7 +296,7 @@ parseOptions: CSharp8ParseOptions);
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestCallsWithNamedArguments()
         {
             await TestInRegularAndScriptAsync(
@@ -332,7 +331,7 @@ parseOptions: CSharp8ParseOptions);
 , parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestCallsWithDafaultValue()
         {
             await TestInRegularAndScriptAsync(
@@ -367,7 +366,7 @@ parseOptions: CSharp8ParseOptions);
 , parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestWarningAnnotation()
         {
             await TestInRegularAndScriptAsync(
@@ -398,7 +397,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestNonCamelCaseCapture()
         {
             await TestInRegularAndScriptAsync(
@@ -431,7 +430,7 @@ parseOptions: CSharp8ParseOptions);
 parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [Fact]
         public async Task TestFixAll()
         {
             await TestInRegularAndScriptAsync(

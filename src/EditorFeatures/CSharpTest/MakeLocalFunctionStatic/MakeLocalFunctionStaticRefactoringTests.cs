@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
-        [Fact]
+        [Fact, WorkItem(38734, "https://github.com/dotnet/roslyn/issues/38734")]
         public async Task ShouldTriggerIfCapturesThisParameter1()
         {
             await TestInRegularAndScriptAsync(
@@ -130,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact]
+        [Fact, WorkItem(38734, "https://github.com/dotnet/roslyn/issues/38734")]
         public async Task ShouldTriggerIfCapturesThisParameter2()
         {
             await TestInRegularAndScriptAsync(
@@ -164,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parseOptions: CSharp8ParseOptions);
         }
 
-        [Fact]
+        [Fact, WorkItem(38734, "https://github.com/dotnet/roslyn/issues/38734")]
         public async Task ShouldTriggerIfCapturesThisParameter3()
         {
             await TestInRegularAndScriptAsync(
