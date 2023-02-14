@@ -23,22 +23,22 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly CodeActionOptionsStorage.Provider _provider;
 
         private static readonly Option2<bool> s_generateOverridesOption = new(
-            "GenerateOverridesOptions_SelectAll", defaultValue: true);
+            "dotnet_generate_overrides_options_select_all", defaultValue: true);
 
         private static readonly PerLanguageOption2<bool> s_generateOperators = new(
-            "GenerateEqualsAndGetHashCodeFromMembersOptions_GenerateOperators",
+            "dotnet_generate_equals_and_get_hash_code_from_members_options_generate_operators",
             defaultValue: false);
 
         private static readonly PerLanguageOption2<bool> s_implementIEquatable = new(
-            "GenerateEqualsAndGetHashCodeFromMembersOptions_ImplementIEquatable",
+            "dotnet_generate_equals_and_get_hash_code_from_members_options_implement_iequatable",
             defaultValue: false);
 
         private static readonly PerLanguageOption2<bool> s_addNullChecks = new(
-            "GenerateConstructorFromMembersOptions_AddNullChecks",
+            "dotnet_generate_constructor_from_members_options_add_null_checks",
             defaultValue: false);
 
         internal static readonly PerLanguageOption2<bool> AddNullChecksToConstructorsGeneratedFromMembers = new(
-            "GenerateConstructorFromMembersOptions_AddNullChecks",
+            "dotnet_generate_constructor_from_members_options_add_null_checks",
             defaultValue: false);
 
         [ImportingConstructor]
