@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 
         public static readonly Option2<bool> NavigateAsynchronously = new("dotnet_feature_on_off_options_navigate_asynchronously", defaultValue: true);
 
-        public static readonly Option2<bool?> OfferRemoveUnusedReferences = new("FeatureOnOffOptions_OfferRemoveUnusedReferences", defaultValue: true);
+        public static readonly Option2<bool?> OfferRemoveUnusedReferences = new("dotnet_feature_on_off_options_offer_remove_unused_references", defaultValue: true);
 
-        public static readonly Option2<bool> OfferRemoveUnusedReferencesFeatureFlag = new("FeatureOnOffOptions_OfferRemoveUnusedReferencesFeatureFlag", defaultValue: false);
+        public static readonly Option2<bool> OfferRemoveUnusedReferencesFeatureFlag = new("dotnet_feature_on_off_options_offer_remove_unused_references_feature_flag", defaultValue: false);
 
         /// <summary>
         /// Not used by Roslyn but exposed in C# and VB option UI. Used by TestWindow and Project System.
