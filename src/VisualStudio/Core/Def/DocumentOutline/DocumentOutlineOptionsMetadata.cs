@@ -8,6 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal sealed class DocumentOutlineOptionsMetadata
     {
-        public static readonly Option2<bool> EnableDocumentOutline = new("DocumentOutlineOptions_EnableDocumentOutline", defaultValue: false);
+        public static readonly Option2<bool> EnableDocumentOutline = new("dotnet_document_outline_options_enable_document_outline", defaultValue: false);
     }
 }
