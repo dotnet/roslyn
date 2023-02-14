@@ -69,8 +69,8 @@ internal static class VisualStudioMacOptionStorage
         {"CompletionOptions_TriggerOnDeletion", new PropertyName("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion")},
         {"dotnet_completion_options_trigger_on_typing_letters", new PropertyName("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters")},
         {"dotnet_completion_options_show_completion_item_filters", new PropertyName("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters")},
-        {"SolutionCrawlerOptionsStorage_BackgroundAnalysisScopeOption", new PropertyName("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
-        {"SolutionCrawlerOptionsStorage_CompilerDiagnosticsScopeOption", new PropertyName("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
+        {"dotnet_solution_crawler_options_storage_background_analysis_scope_option", new PropertyName("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
+        {"dotnet_solution_crawler_options_storage_compiler_diagnostics_scope_option", new PropertyName("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
         {"SymbolSearchOptions_SuggestForTypesInNuGetPackages", new PropertyName("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
         {"FeatureOnOffOptions_AutomaticallyCompleteStatementOnSemicolon", new PropertyName("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},
     };
