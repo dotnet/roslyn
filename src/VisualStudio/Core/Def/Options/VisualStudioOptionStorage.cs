@@ -297,7 +297,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_keyword_highlighting_options_keyword_highlighting", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Keyword Highlighting", "TextEditor.VisualBasic.Specific.EnableHighlightRelatedKeywords")},
         {"dotnet_line_separators_options_line_separator", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Line Separator", "TextEditor.VisualBasic.Specific.DisplayLineSeparators")},
 #pragma warning restore
-        {"FeatureOnOffOptions_NavigateAsynchronously", new RoamingProfileStorage("TextEditor.NavigateAsynchronously")},
+        {"dotnet_feature_on_off_options_navigate_asynchronously", new RoamingProfileStorage("TextEditor.NavigateAsynchronously")},
         {"FeatureOnOffOptions_NavigateToDecompiledSources", new RoamingProfileStorage("TextEditor.NavigateToDecompiledSources")},
         {"FeatureOnOffOptions_NavigateToSourceLinkAndEmbeddedSources", new RoamingProfileStorage("TextEditor.NavigateToSourceLinkAndEmbeddedSources")},
         {"FeatureOnOffOptions_OfferRemoveUnusedReferences", new RoamingProfileStorage("TextEditor.OfferRemoveUnusedReferences")},
