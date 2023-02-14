@@ -14,7 +14,7 @@ internal static class SolutionCrawlerOptionsStorage
     /// Option to turn configure background analysis scope for the current user.
     /// </summary>
     public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
-        "SolutionCrawlerOptionsStorage_BackgroundAnalysisScopeOption", defaultValue: BackgroundAnalysisScope.Default, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<BackgroundAnalysisScope>());
+        "dotnet_solution_crawler_options_storage_background_analysis_scope_option", defaultValue: BackgroundAnalysisScope.Default, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<BackgroundAnalysisScope>());
 
     /// <summary>
     /// Option to turn configure background analysis scope for the current solution.
@@ -26,7 +26,7 @@ internal static class SolutionCrawlerOptionsStorage
     /// Option to configure compiler diagnostics scope for the current user.
     /// </summary>
     public static readonly PerLanguageOption2<CompilerDiagnosticsScope> CompilerDiagnosticsScopeOption = new(
-        "SolutionCrawlerOptionsStorage_CompilerDiagnosticsScopeOption", defaultValue: CompilerDiagnosticsScope.OpenFiles, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<CompilerDiagnosticsScope>());
+        "dotnet_solution_crawler_options_storage_compiler_diagnostics_scope_option", defaultValue: CompilerDiagnosticsScope.OpenFiles, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<CompilerDiagnosticsScope>());
 
     public static readonly PerLanguageOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
         "ServiceFeatureOnOffOptions_RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false);

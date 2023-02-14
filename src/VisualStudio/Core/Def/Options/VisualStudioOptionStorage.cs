@@ -399,11 +399,11 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_regular_expressions_options_report_invalid_regex_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns")},
         {"ServiceFeatureOnOffOptions_RemoveDocumentDiagnosticsOnDocumentClose", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose")},
 #pragma warning disable CS0612 // Type or member is obsolete
-        {"SignatureHelpOptions_ShowSignatureHelp", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Auto List Params", vbKey: "TextEditor.Basic.Auto List Params")},
+        {"dotnet_signature_help_options_show_signature_help", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Auto List Params", vbKey: "TextEditor.Basic.Auto List Params")},
 #pragma warning restore
-        {"SimplificationOptions_NamingPreferences", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NamingPreferences5")},
-        {"SolutionCrawlerOptionsStorage_BackgroundAnalysisScopeOption", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
-        {"SolutionCrawlerOptionsStorage_CompilerDiagnosticsScopeOption", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
+        {"dotnet_simplification_options_naming_preferences", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NamingPreferences5")},
+        {"dotnet_solution_crawler_options_storage_background_analysis_scope_option", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
+        {"dotnet_solution_crawler_options_storage_compiler_diagnostics_scope_option", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
         {"SplitCommentOptions_Enabled", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SplitComments")},
         {"SplitStringLiteralOptions_Enabled", new RoamingProfileStorage("TextEditor.CSharp.Specific.SplitStringLiterals")},
         {"StackTraceExplorerOptions_OpenOnFocus", new RoamingProfileStorage("StackTraceExplorer.Options.OpenOnFocus")},
