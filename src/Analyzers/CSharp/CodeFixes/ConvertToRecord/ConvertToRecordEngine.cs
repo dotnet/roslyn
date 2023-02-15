@@ -28,13 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             SyntaxRemoveOptions.AddElasticMarker;
 
         public static async Task<CodeAction?> GetCodeActionAsync(
-            Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
+            Document document, TypeDeclarationSyntax typeDeclaration, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // any type declared partial requires complex movement, don't offer refactoring
             if (typeDeclaration.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword)))
-            {
                 return null;
-            }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol
@@ -58,11 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 semanticModel,
                 cancellationToken);
             if (positionalParameterInfos.IsEmpty)
-            {
                 return null;
-            }
 
-            var positionalTitle = CSharpFeaturesResources.Convert_to_positional_record;
+            var positionalTitle = CSharpCodeFixesResources.Convert_to_positional_record;
 
             var positional = CodeAction.Create(
                 positionalTitle,
@@ -71,8 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     type,
                     positionalParameterInfos,
                     typeDeclaration,
+                    fallbackOptions,
                     cancellationToken),
-                nameof(CSharpFeaturesResources.Convert_to_positional_record));
+                nameof(CSharpCodeFixesResources.Convert_to_positional_record));
             // note: when adding nested actions, use string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name) as title string
             return positional;
         }
@@ -82,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             INamedTypeSymbol type,
             ImmutableArray<PositionalParameterInfo> positionalParameterInfos,
             TypeDeclarationSyntax typeDeclaration,
+            CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -264,8 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 }
             }
 
-            var lineFormattingOptions = await document
-                .GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var optionsProvider = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var lineFormattingOptions = optionsProvider.GetLineFormattingOptions();
+
             var modifiedClassTrivia = GetModifiedClassTrivia(
                 positionalParameterInfos, typeDeclaration, lineFormattingOptions);
 

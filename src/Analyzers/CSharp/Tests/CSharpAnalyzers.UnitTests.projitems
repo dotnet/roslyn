@@ -23,6 +23,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToBlockScopedNamespaceAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToFileScopedNamespaceAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\ConvertToAsyncTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertToRecord\ConvertToRecordCodeFixTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisambiguateSameVariable\DisambiguateSameVariableTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FixIncorrectConstraint\FixIncorrectConstraintTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FixReturnType\FixReturnTypeTests.cs" />
