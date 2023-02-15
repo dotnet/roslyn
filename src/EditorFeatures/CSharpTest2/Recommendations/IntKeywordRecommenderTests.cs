@@ -73,6 +73,20 @@ $$");
         }
 
         [Fact]
+        public async Task TestInUsingAlias_Tuple()
+        {
+            await VerifyKeywordAsync(
+@"using Goo = ($$");
+        }
+
+        [Fact]
+        public async Task TestInUsingAlias_FuncPointer()
+        {
+            await VerifyKeywordAsync(
+@"using Goo = delegate*<$$");
+        }
+
+        [Fact]
         public async Task TestInGlobalUsingAlias()
         {
             await VerifyKeywordAsync(
