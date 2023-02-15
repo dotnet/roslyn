@@ -5882,49 +5882,18 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
-        [Fact]
-        public void TestNormalizeUsingAlias()
+        [Theory]
+        [InlineData("using X=int ;", "using X = int;")]
+        [InlineData("using X=nint;", "using X = nint;")]
+        [InlineData("using X=dynamic;", "using X = dynamic;")]
+        [InlineData("using X=int [] ;", "using X = int[];")]
+        [InlineData("using X=(int,int) ;", "using X = (int, int);")]
+        [InlineData("using  unsafe  X=int * ;", "using unsafe X = int*;")]
+        [InlineData("using X=int ?;", "using X = int?;")]
+        [InlineData("using X=delegate * <int,int> ;", "using X = delegate*<int, int>;")]
+        public void TestNormalizeUsingAlias(string text, string expected)
         {
-            TestNormalizeDeclaration("""
-                using X=int ;
-                """, """
-                using X = int;
-                """);
-            TestNormalizeDeclaration("""
-                using X=nint;
-                """, """
-                using X = nint;
-                """);
-            TestNormalizeDeclaration("""
-                using X=dynamic;
-                """, """
-                using X = dynamic;
-                """);
-            TestNormalizeDeclaration("""
-                using X=int [] ;
-                """, """
-                using X = int[];
-                """);
-            TestNormalizeDeclaration("""
-                using X=(int,int) ;
-                """, """
-                using X = (int, int);
-                """);
-            TestNormalizeDeclaration("""
-                using  unsafe  X=int * ;
-                """, """
-                using unsafe X = int*;
-                """);
-            TestNormalizeDeclaration("""
-                using X=int ?;
-                """, """
-                using X = int?;
-                """);
-            TestNormalizeDeclaration("""
-                using X=delegate * <int,int> ;
-                """, """
-                using X = delegate*<int, int>;
-                """);
+            TestNormalizeDeclaration(text, expected);
         }
 
         private static void VerifySingleLineInitializer(string text, string expected)
