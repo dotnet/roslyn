@@ -481,16 +481,16 @@ namespace Microsoft.CodeAnalysis
             private readonly ImmutableArray<EntryState> _states;
 
             public TableEntry(OneOrMany<T> items, EntryState state)
-                : this(items, GetSingleArray(state)) { }
+                : this(items, GetSingleArray(state), anyRemoved: state == EntryState.Removed) { }
 
-            private TableEntry(OneOrMany<T> items, ImmutableArray<EntryState> states)
+            private TableEntry(OneOrMany<T> items, ImmutableArray<EntryState> states, bool anyRemoved)
             {
                 Debug.Assert(!states.IsDefault);
                 Debug.Assert(states.Length == 1 || states.Distinct().Length > 1);
 
                 _items = items;
                 _states = states;
-                _anyRemoved = states.Contains(EntryState.Removed);
+                _anyRemoved = anyRemoved;
             }
 
             public bool Matches(TableEntry entry, IEqualityComparer<T> equalityComparer)
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_anyRemoved)
                 {
-                    return new TableEntry(_items, s_allCachedEntries);
+                    return new TableEntry(_items, s_allCachedEntries, anyRemoved: false);
                 }
 
                 var itemBuilder = ArrayBuilder<T>.GetInstance();
@@ -539,10 +539,10 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(itemBuilder.Count < this.Count);
-                return new TableEntry(OneOrMany.Create(itemBuilder.ToImmutableArray()), s_allCachedEntries);
+                return new TableEntry(OneOrMany.Create(itemBuilder.ToImmutableArray()), s_allCachedEntries, anyRemoved: false);
             }
 
-            public TableEntry AsRemovedDueToInputRemoval() => new(_items, s_allRemovedDueToInputRemoval);
+            public TableEntry AsRemovedDueToInputRemoval() => new(_items, s_allRemovedDueToInputRemoval, anyRemoved: true);
 
             private static ImmutableArray<EntryState> GetSingleArray(EntryState state) => state switch
             {
@@ -612,6 +612,7 @@ namespace Microsoft.CodeAnalysis
 
                 private ArrayBuilder<EntryState>? _states;
                 private EntryState? _currentState;
+                private bool _anyRemoved;
 
                 private readonly int _requestedCapacity;
 
@@ -624,6 +625,7 @@ namespace Microsoft.CodeAnalysis
                 public void Add(T item, EntryState state)
                 {
                     _items.Add(item);
+                    _anyRemoved |= state == EntryState.Removed;
                     if (!_currentState.HasValue)
                     {
                         _currentState = state;
@@ -665,7 +667,7 @@ namespace Microsoft.CodeAnalysis
                         items = OneOrMany.Create(_items.ToImmutableAndFree());
                     }
 
-                    return new TableEntry(items, _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
+                    return new TableEntry(items, _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value), anyRemoved: _anyRemoved);
                 }
             }
         }
