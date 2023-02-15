@@ -352,6 +352,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var source = "int[] values = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };";
 
+            CSharpSyntaxTree.ParseText(source).VerifyChildNodePositions();
+
             var builder = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
             foreach (var node in parseAndGetInitializer(source).ChildNodesAndTokens().Reverse())
             {

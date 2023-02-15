@@ -315,6 +315,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         }
                     }
                 }
+
+                tree.VerifyChildNodePositions();
             }
 
             var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
@@ -378,6 +380,41 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         }
                         break;
                 }
+            }
+        }
+
+        internal static void VerifyChildNodePositions(this SyntaxTree tree)
+        {
+            var nodes = tree.GetRoot().DescendantNodesAndSelf();
+            foreach (var node in nodes)
+            {
+                var childNodesAndTokens = node.ChildNodesAndTokens();
+                if (childNodesAndTokens.Node is { } container)
+                {
+                    for (int i = 0; i < childNodesAndTokens.Count; i++)
+                    {
+                        if (container.GetNodeSlot(i) is Microsoft.CodeAnalysis.Syntax.SyntaxList.SeparatedWithManyChildren separatedList)
+                        {
+                            verifyPositions(separatedList);
+                        }
+                    }
+                }
+            }
+
+            static void verifyPositions(Microsoft.CodeAnalysis.Syntax.SyntaxList.SeparatedWithManyChildren separatedList)
+            {
+                int n = separatedList.SlotCount;
+                var positions1 = new int[n];
+                for (int i = 0; i < n; i++)
+                {
+                    positions1[i] = separatedList.GetChildPosition(i);
+                }
+                var positions2 = new int[n];
+                for (int i = n - 1; i >= 0; i--)
+                {
+                    positions2[i] = separatedList.GetChildPositionFromEnd(i);
+                }
+                AssertEx.Equal(positions1, positions2);
             }
         }
 
