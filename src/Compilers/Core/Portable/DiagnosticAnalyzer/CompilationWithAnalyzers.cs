@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(CancellationToken cancellationToken)
         {
-            return await GetAnalyzerDiagnosticsWithoutStateTrackingAsync(Analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalyzerDiagnosticsCoreAsync(Analyzers, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return await GetAnalyzerDiagnosticsWithoutStateTrackingAsync(analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalyzerDiagnosticsCoreAsync(analyzers, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<AnalysisResult> GetAnalysisResultAsync(CancellationToken cancellationToken)
         {
-            return await GetAnalysisResultWithoutStateTrackingAsync(Analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalysisResultCoreAsync(Analyzers, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return await GetAnalysisResultWithoutStateTrackingAsync(analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalysisResultCoreAsync(analyzers, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -296,6 +296,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagnostics = await getAllDiagnosticsWithoutStateTrackingAsync(Analyzers, cancellationToken: cancellationToken).ConfigureAwait(false);
             return diagnostics.AddRange(_exceptionDiagnostics);
 
+            // NOTE: We have a specialized implementation for computing diagnostics in this method
+            //       as we need to compute and return both compiler and analyzer diagnostics.
+            //       Rest of the public APIs in this type only compute analyzer diagnostics,
+            //       and all of them have a shared implementation in
+            //       'ComputeAnalyzerDiagnosticsAsync(AnalysisScope, CancellationToken)'.
             async Task<ImmutableArray<Diagnostic>> getAllDiagnosticsWithoutStateTrackingAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
             {
                 AsyncQueue<CompilationEvent> eventQueue = _eventQueuePool.Allocate();
@@ -359,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: false, getNonLocalDiagnostics: true);
         }
 
-        private async Task<AnalysisResult> GetAnalysisResultWithoutStateTrackingAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        private async Task<AnalysisResult> GetAnalysisResultCoreAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
             var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
             var analysisScope = new AnalysisScope(_compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
@@ -367,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analysisResultBuilder.ToAnalysisResult(analyzers, analysisScope, cancellationToken);
         }
 
-        private async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsWithoutStateTrackingAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsCoreAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
             var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
             var analysisScope = new AnalysisScope(_compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
@@ -584,6 +589,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </remarks>
         private async Task ComputeAnalyzerDiagnosticsAsync(AnalysisScope? analysisScope, CancellationToken cancellationToken)
         {
+            // Implementation Note: We compute the analyzer diagnostics for the given scope by following the below steps:
+            //  1. First, we invoke GetPendingAnalysisScope to filter out the analyzers that have already
+            //     executed on the given analysis scope.
+            //  2. We fetch the compilation and initialized analyzer driver to use for analyzer execution.
+            //     We may re-use the root '_compilation' stored as a field on this CompilationWithAnalyzers instance
+            //     OR use a new cloned compilation with a new event queue.
+            //  3. We compute the registered analyzer action counts for the analyzers to be executed. We also
+            //     compute whether there are any registered analyzer actions that need us to generate compilation
+            //     events to drive analyzer execution.
+            //  4. We perform analyzer execution with different execution models based on whether the analysis scope
+            //     is full compilation or scoped to a specific file/span:
+            //     a. For full compilation scope, we use the execution model similar to batch compilation.
+            //        We first attach the driver to compilation event queue, then force generation of all
+            //        compilation events by invoking 'Compilation.GetDiagnostics(optionalSpan),
+            //        while concurrently executing analyzers by processing the generated events.
+            //     b. For file/span partial analysis scope, we first generate the compilation events for this scope
+            //        by invoking 'SemanticModel.GetDiagnostics(optionalSpan)'. Then we populate an event queue with
+            //        these events and attach this event queue to the driver and request it to process these pre-generated
+            //        events to drive analysis.
+            //  5. Finally, we save the computed analyzer diagnostics onto the '_analysisResultBuilder' field. This
+            //     analysis result builder also tracks the set of analyzers that have fully executed for the compilation
+            //     and/or specific trees and additional files. This enables us to skip executing these analyzers for future
+            //     diagnostic queries on the same analysis scope.
+
             Debug.Assert(analysisScope != null);
 
             var originalAnalyzers = analysisScope.Analyzers;
@@ -800,7 +829,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             static void processSymbolStartAnalyzers(
                 SyntaxTree tree,
                 ImmutableArray<CompilationEvent> compilationEventsForTree,
-                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                ImmutableArray<DiagnosticAnalyzer> symbolStartAnalyzers,
                 Compilation compilation,
                 AnalysisResultBuilder analysisResultBuilder,
                 ArrayBuilder<(AnalysisScope, ImmutableArray<CompilationEvent>)> builder,
@@ -808,6 +837,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 bool concurrentAnalysis,
                 CancellationToken cancellationToken)
             {
+                // This method processes all the compilation events generated for the tree in the
+                // original requested analysis scope to identify symbol declared events whose symbol
+                // declarations span across different trees. For the given symbolStartAnalyzers to
+                // report the correct set of diagnostics for the original tree/span, we need to
+                // execute them on all the partial declarations of the symbols across these different trees,
+                // followed by the SymbolEnd action at the end.
+                // This method computes these set of trees with partial declarations, and adds
+                // analysis scopes to the 'builder' for each of these trees, along with the corresponding
+                // compilation events generated for each tree.
+
                 var partialTrees = PooledHashSet<SyntaxTree>.GetInstance();
                 partialTrees.Add(tree);
 
@@ -829,6 +868,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
+                    // Next, generate compilation events for each of the partial trees
+                    // and add the (analysisScope, compilationEvents) tuple for each tree to the builder.
                     // Process all trees sequentially: this is required to ensure the appropriate
                     // compilation events are mapped to the tree for which they are generated.
                     foreach (var partialTree in partialTrees)
@@ -849,7 +890,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     scopeAndEvents = null;
 
                     var file = new SourceOrAdditionalFile(partialTree);
-                    var analysisScope = new AnalysisScope(analyzers, file, filterSpan: null,
+                    var analysisScope = new AnalysisScope(symbolStartAnalyzers, file, filterSpan: null,
                         isSyntacticSingleFileAnalysis: false, concurrentAnalysis, categorizeDiagnostics: true);
 
                     analysisScope = GetPendingAnalysisScope(analysisScope, analysisResultBuilder);

@@ -111,9 +111,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return completedAnalyzersForTree;
                 }
             }
-            else if (_completedSyntaxAnalyzersByAdditionalFile.TryGetValue(filterFile.AdditionalFile!, out var completedAnalyzersForFile))
+            else if (filterFile.AdditionalFile is { } additionalFile)
             {
-                return completedAnalyzersForFile;
+                if (_completedSyntaxAnalyzersByAdditionalFile.TryGetValue(additionalFile, out var completedAnalyzersForFile))
+                {
+                    return completedAnalyzersForFile;
+                }
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
             }
 
             return null;
@@ -127,16 +134,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var completedAnalyzersByTree = syntax ? _completedSyntaxAnalyzersByTree : _completedSemanticAnalyzersByTree;
                 completedAnalyzersByTree.Add(tree, completedAnalyzers);
             }
+            else if (filterFile.AdditionalFile is { } additionalFile)
+            {
+                _completedSyntaxAnalyzersByAdditionalFile.Add(additionalFile, completedAnalyzers);
+            }
             else
             {
-                _completedSyntaxAnalyzersByAdditionalFile.Add(filterFile.AdditionalFile!, completedAnalyzers);
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-        internal ImmutableArray<DiagnosticAnalyzer> GetPendingAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, (SourceOrAdditionalFile file, bool syntax)? filterScope = null)
+        /// <summary>
+        /// Filters down the given <paramref name="analyzers"/> to only retain the analyzers which have
+        /// not completed execution. If the <paramref name="filterScope"/> is non-null, then return
+        /// the analyzers which have not fully exected on the filterScope. Otherwise, return the analyzers
+        /// which have not fully executed on the entire compilation.
+        /// </summary>
+        /// <param name="analyzers">Analyzers to be filtered.</param>
+        /// <param name="filterScope">Optional scope for filtering.</param>
+        /// <returns>
+        /// Analyzers which have not fully executed on the given <paramref name="filterScope"/>, if non-null,
+        /// or the entire compilation, if <paramref name="filterScope"/> is null.
+        /// </returns>
+        public ImmutableArray<DiagnosticAnalyzer> GetPendingAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, (SourceOrAdditionalFile file, bool syntax)? filterScope)
         {
             lock (_gate)
             {
+                // If we have a non-null filter scope, then fetch the set of analyzers that have
+                // already completed execution on this filter scope.
                 var completedAnalyzersForFile = filterScope.HasValue
                     ? GetCompletedAnalyzersForFile_NoLock(filterScope.Value.file, filterScope.Value.syntax)
                     : null;
@@ -144,6 +169,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ArrayBuilder<DiagnosticAnalyzer>? builder = null;
                 foreach (var analyzer in analyzers)
                 {
+                    // If the analyzer has not executed for the entire compilation, or we are computing
+                    // pending analyzers for a specific filterScope and the analyzer has not executed on
+                    // this filter scope, then we add the analyzer to pending analyzers.
                     if (!_completedAnalyzersForCompilation.Contains(analyzer) &&
                         (completedAnalyzersForFile == null || !completedAnalyzersForFile.Contains(analyzer)))
                     {
@@ -156,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal void ApplySuppressionsAndStoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts)
+        public void ApplySuppressionsAndStoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts)
         {
             foreach (var analyzer in analysisScope.Analyzers)
             {
@@ -173,10 +201,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
+                    // Determine if we have computed fully syntax/semantic diagnostics
+                    // for a specific filter file or the entire compilation for this analyzer.
+                    // If we have full diagnostics for the filter file/compilation, we add this analyzer to
+                    // the corresponding completed analyzers set to avoid re-executing this analyzer
+                    // for future diagnostic requests on this analysis scope.
                     bool fullSyntaxDiagnosticsForTree = false;
                     bool fullSyntaxDiagnosticsForAdditionalFile = false;
                     bool fullSemanticDiagnosticsForTree = false;
                     bool fullCompilationDiagnostics = false;
+
+                    // Check if we computed syntax/semantic diagnostics for a specific filter file only.
                     if (analysisScope.FilterFileOpt.HasValue)
                     {
                         var completedAnalyzersForFile = GetCompletedAnalyzersForFile_NoLock(analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis);
@@ -198,6 +233,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 AddCompletedAnalyzerForFile_NoLock(analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis, analyzer);
                             }
 
+                            // Set the appropriate full diagnostics for tree/additional file flag.
                             if (analysisScope.IsSyntacticSingleFileAnalysis)
                             {
                                 if (analysisScope.FilterFileOpt.Value.SourceTree != null)
@@ -225,6 +261,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         fullSyntaxDiagnosticsForAdditionalFile = true;
                         fullSemanticDiagnosticsForTree = true;
                     }
+
+                    // Finally, update the appropriate syntax/semantic/compilation diagnostic maps to store the
+                    // computed diagnostics. If we have full diagnostics for the filter file/compilation,
+                    // we overwrite the diagnostics in the map.
+                    // Otherwise, we have computed partial diagnostics for a file span, so we just
+                    // append to the previously computed and stored diagnostics.
 
                     if (!syntaxDiagnostics.IsEmpty)
                     {
