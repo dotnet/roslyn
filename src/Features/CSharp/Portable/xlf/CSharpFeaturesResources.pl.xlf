@@ -202,11 +202,6 @@
         <target state="translated">Ustawiaj pola prywatne jako tylko do odczytu, gdy to możliwe</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">Usuń modyfikator „new”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">Odwróć instrukcję „for”</target>

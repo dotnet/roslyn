@@ -389,9 +389,6 @@
   <data name="The_name_0_does_not_exist_in_the_current_context" xml:space="preserve">
     <value>The name '{0}' does not exist in the current context.</value>
   </data>
-  <data name="Remove_new_modifier" xml:space="preserve">
-    <value>Remove 'new' modifier</value>
-  </data>
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>

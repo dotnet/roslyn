@@ -224,4 +224,7 @@
     <value>Remove 'in' keyword</value>
     <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Remove_new_modifier" xml:space="preserve">
+    <value>Remove 'new' modifier</value>
+  </data>
 </root>
