@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             var thisParameter = (IParameterSymbol?)captures.FirstOrDefault(c => c.IsThisParameter());
 
-            var parameterAndCapturedSymbols = CreateParameterSymbols(captures.Where(c => !c.IsThisParameter()));
+            var parameterAndCapturedSymbols = CreateParameterSymbols(captures.WhereAsArray(c => !c.IsThisParameter()));
 
             // Fix all invocations by passing in additional arguments.
             foreach (var invocation in invocations)
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         /// <summary>
         /// Creates a new parameter symbol paired with the original captured symbol for each captured variables.
         /// </summary>
-        private static ImmutableArray<(IParameterSymbol symbol, ISymbol capture)> CreateParameterSymbols(IEnumerable<ISymbol> captures)
+        private static ImmutableArray<(IParameterSymbol symbol, ISymbol capture)> CreateParameterSymbols(ImmutableArray<ISymbol> captures)
             => captures.SelectAsArray(static capture =>
             {
                 var symbolType = capture.GetSymbolType();
