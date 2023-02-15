@@ -75,9 +75,18 @@ object DebugBuild : BuildType({
 
     dependencies {
 
-        snapshot(AbsoluteId("Metalama_MetalamaBackstage_DebugBuild")) {
+        dependency(AbsoluteId("Metalama_MetalamaBackstage_DebugBuild")) {
+            snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
-                }
+            }
+
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
+            }
+
+        }
 
      }
 
@@ -126,9 +135,18 @@ object ReleaseBuild : BuildType({
 
     dependencies {
 
-        snapshot(AbsoluteId("Metalama_MetalamaBackstage_ReleaseBuild")) {
+        dependency(AbsoluteId("Metalama_MetalamaBackstage_ReleaseBuild")) {
+            snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
-                }
+            }
+
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
+            }
+
+        }
 
      }
 
@@ -177,9 +195,18 @@ object PublicBuild : BuildType({
 
     dependencies {
 
-        snapshot(AbsoluteId("Metalama_MetalamaBackstage_PublicBuild")) {
+        dependency(AbsoluteId("Metalama_MetalamaBackstage_PublicBuild")) {
+            snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
-                }
+            }
+
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
+            }
+
+        }
 
      }
 
@@ -219,19 +246,25 @@ object PublicDeployment : BuildType({
 
     dependencies {
 
-        snapshot(AbsoluteId("Metalama_MetalamaBackstage_PublicDeployment")) {
+        dependency(AbsoluteId("Metalama_MetalamaBackstage_PublicDeployment")) {
+            snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
-                }
+            }
+
+
+        }
 
         dependency(PublicBuild) {
             snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
+                     onDependencyFailure = FailureAction.FAIL_TO_START
             }
+
 
             artifacts {
                 cleanDestination = true
                 artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults"
             }
+
         }
 
      }
