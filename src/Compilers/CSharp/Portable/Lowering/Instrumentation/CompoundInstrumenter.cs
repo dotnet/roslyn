@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// to the constructor of this class. Usually, derived types are going to let the base (this class) to do its work first
     /// and then operate on the result they get back.
     /// </summary>
-    internal class CompoundInstrumenter : Instrumenter
+    internal abstract class CompoundInstrumenter : Instrumenter
     {
         public CompoundInstrumenter(Instrumenter previous)
         {
@@ -23,6 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public Instrumenter Previous { get; }
+
+        /// <summary>
+        /// Returns <see cref="CompoundInstrumenter"/> with <see cref="Previous"/> instrumenter set to <paramref name="previous"/>.
+        /// </summary>
+        public CompoundInstrumenter WithPrevious(Instrumenter previous)
+            => ReferenceEquals(previous, Previous) ? this : WithPreviousImpl(previous);
+
+        protected abstract CompoundInstrumenter WithPreviousImpl(Instrumenter previous);
 
         public override BoundStatement InstrumentNoOpStatement(BoundNoOpStatement original, BoundStatement rewritten)
         {
@@ -69,14 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentBreakStatement(original, rewritten);
         }
 
-        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
+        public override void InstrumentBlock(BoundBlock original, LocalRewriter rewriter, ref TemporaryArray<LocalSymbol> additionalLocals, out BoundStatement? prologue, out BoundStatement? epilogue)
         {
-            return Previous.CreateBlockPrologue(original, out synthesizedLocal);
-        }
-
-        public override BoundStatement? CreateBlockEpilogue(BoundBlock original)
-        {
-            return Previous.CreateBlockEpilogue(original);
+            Previous.InstrumentBlock(original, rewriter, ref additionalLocals, out prologue, out epilogue);
         }
 
         public override BoundExpression InstrumentDoStatementCondition(BoundDoStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)

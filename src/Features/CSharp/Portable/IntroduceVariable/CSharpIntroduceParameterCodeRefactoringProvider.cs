@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected override SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol)
         {
-            return ExpressionGenerator.GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference: true);
+            return ExpressionGenerator.GenerateExpression(CSharpSyntaxGenerator.Instance, parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference: true);
         }
 
         protected override SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl)

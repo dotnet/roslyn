@@ -1452,11 +1452,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">在当前行下方的源文件部分中启用指定警告的报告。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">使 {0} 为异步函数。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">使用正确的控制变量</target>

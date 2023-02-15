@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int? GlobalStatement { get; }
         int TrueKeyword { get; }
         int FalseKeyword { get; }
+        int UsingKeyword { get; }
 
         #endregion
 

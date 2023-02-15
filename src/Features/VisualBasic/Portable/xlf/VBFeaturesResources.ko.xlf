@@ -1452,11 +1452,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">현재 줄 아래의 소스 파일 부분에서 지정한 경고를 보고합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">{0}을(를) 비동기 함수로 설정합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">올바른 제어 변수 사용</target>

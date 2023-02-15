@@ -1452,11 +1452,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Habilita a emissão de relatórios de avisos especificados na parte do arquivo de origem abaixo da linha atual.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">Tornar {0} uma Função Assíncrona.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">Usar a variável de controle correta</target>

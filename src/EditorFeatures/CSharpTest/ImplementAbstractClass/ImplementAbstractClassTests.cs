@@ -2092,6 +2092,43 @@ class D : C
 }");
         }
 
+        [Fact, WorkItem(62092, "https://github.com/dotnet/roslyn/issues/62092")]
+        public async Task TestNullableGenericType2()
+        {
+            await TestAllOptionsOffAsync(
+@"interface I<out T> { }
+
+abstract class C
+{
+    protected abstract void M1<T>(T? t);
+    protected abstract void M2<T>(I<T?> i);
+}
+
+class [|C2|] : C
+{
+}",
+@"interface I<out T> { }
+
+abstract class C
+{
+    protected abstract void M1<T>(T? t);
+    protected abstract void M2<T>(I<T?> i);
+}
+
+class C2 : C
+{
+    protected override void M1<T>(T? t) where T : default
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override void M2<T>(I<T?> i) where T : default
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
         [Fact]
         public async Task TestRequiredMember()
         {

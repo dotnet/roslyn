@@ -4987,6 +4987,8 @@ public class Derived : Base<short, int>
 ";
             CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(
@@ -5046,6 +5048,8 @@ class Derived : Base<int>
 ";
             var compilation = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 // We no longer report a runtime ambiguous override because the compiler

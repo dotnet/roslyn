@@ -90,12 +90,15 @@ namespace Microsoft.CodeAnalysis.FindUsages
             cancellationToken.ThrowIfCancellationRequested();
 
             // If this is a symbol from a metadata-as-source project, then map that symbol back to a symbol in the primary workspace.
-            var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProjectOpt == null)
+            if (symbolAndProject == null)
+            {
+                await context.ReportMessageAsync(FeaturesResources.Find_All_References_not_invoked_on_applicable_symbol, cancellationToken).ConfigureAwait(false);
                 return;
+            }
 
-            var (symbol, project) = symbolAndProjectOpt.Value;
+            var (symbol, project) = symbolAndProject.Value;
 
             await FindSymbolReferencesAsync(
                 context, symbol, project, cancellationToken).ConfigureAwait(false);

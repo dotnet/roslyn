@@ -6181,6 +6181,106 @@ public ref struct A
 }");
         }
 
+        [Fact]
+        public async Task TestNint1_NoNumericIntPtr()
+        {
+            var source =
+@"class A
+{
+    [|System.IntPtr|] i;
+}";
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestMissingInRegularAndScriptAsync(source, new TestParameters(options: featureOptions));
+        }
+
+        [Fact]
+        public async Task TestNint1_WithNumericIntPtr_CSharp11()
+        {
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"">
+        <Document>class A
+{
+    [|System.IntPtr|] i;
+}</Document>
+    </Project>
+</Workspace>
+",
+@"class A
+{
+    nint i;
+}", options: featureOptions);
+        }
+
+        [Fact]
+        public async Task TestNint1_WithNumericIntPtr_CSharp8()
+        {
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestMissingInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"" LanguageVersion=""8"">
+        <Document>class A
+{
+    [|System.IntPtr|] i;
+}</Document>
+    </Project>
+</Workspace>
+", new TestParameters(options: featureOptions));
+        }
+
+        [Fact]
+        public async Task TestNUint1_NoNumericIntPtr()
+        {
+            var source =
+@"class A
+{
+    [|System.UIntPtr|] i;
+}";
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestMissingInRegularAndScriptAsync(source, new TestParameters(options: featureOptions));
+        }
+
+        [Fact]
+        public async Task TestNUint1_WithNumericIntPtr_CSharp11()
+        {
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"">
+        <Document>class A
+{
+    [|System.UIntPtr|] i;
+}</Document>
+    </Project>
+</Workspace>
+",
+@"class A
+{
+    nuint i;
+}", options: featureOptions);
+        }
+
+        [Fact]
+        public async Task TestNUint1_WithNumericIntPtr_CSharp8()
+        {
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestMissingInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"" LanguageVersion=""8"">
+        <Document>class A
+{
+    [|System.UIntPtr|] i;
+}</Document>
+    </Project>
+</Workspace>
+", new TestParameters(options: featureOptions));
+        }
+
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
             => await TestInRegularAndScript1Async(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
 

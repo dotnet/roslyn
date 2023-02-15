@@ -12,10 +12,25 @@
         <target state="translated">'await' 추가</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="new">Add parentheses</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
         <target state="translated">this'를 추가합니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters">
+        <source>Assign 'out' parameters</source>
+        <target state="new">Assign 'out' parameters</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters_at_start">
+        <source>Assign 'out' parameters (at start)</source>
+        <target state="new">Assign 'out' parameters (at start)</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
@@ -65,6 +80,11 @@
       <trans-unit id="Hide_base_member">
         <source>Hide base member</source>
         <target state="translated">기본 멤버 숨기기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_return_Task_instead_of_void">
+        <source>Make {0} return Task instead of void.</source>
+        <target state="new">Make {0} return Task instead of void.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
