@@ -5906,7 +5906,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 using X = int[];
                 """);
             TestNormalizeDeclaration("""
-                using X=(int,int);
+                using X=(int,int) ;
                 """, """
                 using X = (int, int);
                 """);
