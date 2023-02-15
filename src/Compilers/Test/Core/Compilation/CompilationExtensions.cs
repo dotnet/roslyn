@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using SeparatedWithManyChildren = Microsoft.CodeAnalysis.Syntax.SyntaxList.SeparatedWithManyChildren;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -393,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     for (int i = 0; i < childNodesAndTokens.Count; i++)
                     {
-                        if (container.GetNodeSlot(i) is Microsoft.CodeAnalysis.Syntax.SyntaxList.SeparatedWithManyChildren separatedList)
+                        if (container.GetNodeSlot(i) is SeparatedWithManyChildren separatedList)
                         {
                             verifyPositions(separatedList);
                         }
@@ -401,20 +402,51 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            static void verifyPositions(Microsoft.CodeAnalysis.Syntax.SyntaxList.SeparatedWithManyChildren separatedList)
+            static void verifyPositions(SeparatedWithManyChildren separatedList)
+            {
+                var green = (Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList)separatedList.Green;
+
+                // Calculate positions from start, using any existing cache of red nodes on separated list.
+                int[] positions = getPositionsFromStart(separatedList);
+
+                // Calculate positions from end, using any existing cache of red nodes on separated list.
+                AssertEx.Equal(positions, getPositionsFromEnd(separatedList));
+
+                // Avoid testing without caches if the number of children is large.
+                if (separatedList.SlotCount > 100)
+                {
+                    return;
+                }
+
+                // Calculate positions from start, with no caching of red nodes on new separated list.
+                AssertEx.Equal(positions, getPositionsFromStart(new SeparatedWithManyChildren(green, null, separatedList.Position)));
+
+                // Calculate positions from end, with no caching of red nodes on new separated list.
+                AssertEx.Equal(positions, getPositionsFromEnd(new SeparatedWithManyChildren(green, null, separatedList.Position)));
+            }
+
+            static int[] getPositionsFromStart(SeparatedWithManyChildren separatedList)
             {
                 int n = separatedList.SlotCount;
-                var positions1 = new int[n];
+                var positions = new int[n];
+                // PROTOTYPE: Add comment
                 for (int i = 0; i < n; i++)
                 {
-                    positions1[i] = separatedList.GetChildPosition(i);
+                    positions[i] = separatedList.GetChildPosition(i);
                 }
-                var positions2 = new int[n];
+                return positions;
+            }
+
+            static int[] getPositionsFromEnd(SeparatedWithManyChildren separatedList)
+            {
+                int n = separatedList.SlotCount;
+                // PROTOTYPE: Add comment
+                var positions = new int[n];
                 for (int i = n - 1; i >= 0; i--)
                 {
-                    positions2[i] = separatedList.GetChildPositionFromEnd(i);
+                    positions[i] = separatedList.GetChildPositionFromEnd(i);
                 }
-                AssertEx.Equal(positions1, positions2);
+                return positions;
             }
         }
 
