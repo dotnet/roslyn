@@ -5901,7 +5901,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 using X = dynamic;
                 """);
             TestNormalizeDeclaration("""
-                using X=int [];
+                using X=int [] ;
                 """, """
                 using X = int[];
                 """);
