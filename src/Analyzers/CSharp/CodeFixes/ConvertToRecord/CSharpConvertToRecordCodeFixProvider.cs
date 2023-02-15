@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,10 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertToRecord), Shared]
     internal class CSharpConvertToRecordCodeFixProvider : CodeFixProvider
     {
-        /// <summary>
-        /// Only records may inherit from records.
-        /// </summary>
-        private const string CS8865 = nameof(CS8865);
+        private const string CS8865 = nameof(CS8865); // Only records may inherit from records.
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,11 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
         }
 
         public override FixAllProvider? GetFixAllProvider()
-        {
-            return null;
-        }
+            => null;
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8865);
+        public override ImmutableArray<string> FixableDiagnosticIds
+            => ImmutableArray.Create(CS8865);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -46,17 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 
             var typeDeclaration = baseTypeSyntax?.GetAncestor<TypeDeclarationSyntax>();
             if (typeDeclaration == null)
-            {
                 return;
-            }
 
             var action = await ConvertToRecordEngine.GetCodeActionAsync(
-                document, typeDeclaration, cancellationToken).ConfigureAwait(false);
+                document, typeDeclaration, context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
 
             if (action != null)
-            {
                 context.RegisterCodeFix(action, context.Diagnostics);
-            }
         }
     }
 }

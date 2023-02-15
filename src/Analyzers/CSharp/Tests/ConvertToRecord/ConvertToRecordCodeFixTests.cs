@@ -11,12 +11,12 @@ using Microsoft.CodeAnalysis.CSharp.ConvertToRecord;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord
 {
-    [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRecord)]
     public class ConvertToRecordCodeFixTests
     {
@@ -145,31 +145,8 @@ namespace N
             await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
-        private static void AddSolutionTransform(List<Func<Solution, ProjectId, Solution>> solutionTransforms)
+        private class CodeFixTest : CSharpCodeFixVerifier<TestAnalyzer, CSharpConvertToRecordCodeFixProvider>.Test
         {
-            solutionTransforms.Add((solution, projectId) =>
-            {
-                var project = solution.GetProject(projectId)!;
-
-                var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
-                // enable nullable
-                compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
-                solution = solution
-                    .WithProjectCompilationOptions(projectId, compilationOptions)
-                    .WithProjectMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Net60));
-
-                return solution;
-            });
-        }
-
-        private class CodeFixTest :
-            CSharpCodeFixVerifier<TestAnalyzer, CSharpConvertToRecordCodeFixProvider>.Test
-        {
-            public CodeFixTest()
-            {
-                LanguageVersion = LanguageVersion.CSharp10;
-                AddSolutionTransform(SolutionTransforms);
-            }
         }
 
         private static async Task TestCodeFixAsync(string initialMarkup, string fixedMarkup)
@@ -178,6 +155,8 @@ namespace N
             {
                 TestCode = initialMarkup,
                 FixedCode = fixedMarkup,
+                LanguageVersion = LanguageVersion.CSharp10,
+                ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60,
             };
             await test.RunAsync().ConfigureAwait(false);
         }

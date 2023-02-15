@@ -18,11 +18,10 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
-namespace Microsoft.CodeAnalysis.IntroduceVariable
+namespace Microsoft.CodeAnalysis.IntroduceParameter
 {
-    internal abstract partial class AbstractIntroduceParameterService<
+    internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvider<
         TExpressionSyntax,
         TInvocationExpressionSyntax,
         TObjectCreationExpressionSyntax,
@@ -32,6 +31,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TIdentifierNameSyntax : TExpressionSyntax
     {
+        private enum IntroduceParameterCodeActionKind
+        {
+            Refactor,
+            Trampoline,
+            Overload
+        }
+
         protected abstract SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol);
         protected abstract SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<SyntaxNode> arguments);
         protected abstract SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl);
@@ -41,85 +47,66 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         {
             var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
-            {
                 return;
-            }
 
             var expression = await document.TryGetRelevantNodeAsync<TExpressionSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
             if (expression == null || CodeRefactoringHelpers.IsNodeUnderselected(expression, textSpan))
-            {
                 return;
-            }
+
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            if (!IsValidExpression(expression, syntaxFacts))
+                return;
+
+            var containingMethod = expression.FirstAncestorOrSelf<SyntaxNode>(node => generator.GetParameterListNode(node) is not null);
+            if (containingMethod is null)
+                return;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var expressionType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             if (expressionType is null or IErrorTypeSymbol)
-            {
                 return;
-            }
-
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            if (!IsValidExpression(expression, syntaxFacts))
-            {
-                return;
-            }
-
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var containingMethod = expression.FirstAncestorOrSelf<SyntaxNode>(node => generator.GetParameterListNode(node) is not null);
-
-            if (containingMethod is null)
-            {
-                return;
-            }
 
             var containingSymbol = semanticModel.GetDeclaredSymbol(containingMethod, cancellationToken);
             if (containingSymbol is not IMethodSymbol methodSymbol)
-            {
                 return;
-            }
 
             var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
             if (expressionSymbol is IParameterSymbol parameterSymbol && parameterSymbol.ContainingSymbol.Equals(containingSymbol))
-            {
                 return;
-            }
 
             // Code actions for trampoline and overloads will not be offered if the method is a constructor.
             // Code actions for overloads will not be offered if the method if the method is a local function.
             var methodKind = methodSymbol.MethodKind;
             if (methodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction or MethodKind.Constructor))
-            {
                 return;
-            }
 
             if (IsDestructor(methodSymbol))
-            {
                 return;
-            }
 
             var actions = await GetActionsAsync(document, expression, methodSymbol, containingMethod, context.Options, cancellationToken).ConfigureAwait(false);
-
             if (actions is null)
-            {
                 return;
-            }
 
-            var singleLineExpression = syntaxFacts.ConvertToSingleLine(expression);
-            var nodeString = singleLineExpression.ToString();
+            var nodeString = syntaxFacts.ConvertToSingleLine(expression).ToString();
 
             if (actions.Value.actions.Length > 0)
             {
-                context.RegisterRefactoring(CodeActionWithNestedActions.Create(
-                    string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString), actions.Value.actions, isInlinable: false, priority: CodeActionPriority.Low), textSpan);
+                context.RegisterRefactoring(
+                    CodeAction.Create(
+                        string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString),
+                        actions.Value.actions, isInlinable: false, priority: CodeActionPriority.Low),
+                    containingMethod.FullSpan);
             }
 
             if (actions.Value.actionsAllOccurrences.Length > 0)
             {
-                context.RegisterRefactoring(CodeActionWithNestedActions.Create(
-                    string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString), actions.Value.actionsAllOccurrences, isInlinable: false,
-                    priority: CodeActionPriority.Low), textSpan);
+                context.RegisterRefactoring(
+                    CodeAction.Create(
+                        string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString),
+                        actions.Value.actionsAllOccurrences, isInlinable: false, priority: CodeActionPriority.Low),
+                    containingMethod.FullSpan);
             }
         }
 
@@ -128,27 +115,18 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // Need to special case for highlighting of method types because they are also "contained" within a method,
             // but it does not make sense to introduce a parameter in that case.
             if (syntaxFacts.IsInNamespaceOrTypeContext(expression))
-            {
                 return false;
-            }
 
             // Need to special case for expressions whose direct parent is a MemberAccessExpression since they will
             // never introduce a parameter that makes sense in that case.
             if (syntaxFacts.IsNameOfAnyMemberAccessExpression(expression))
-            {
                 return false;
-            }
 
             // Need to special case for expressions that are contained within a parameter or attribute argument
             // because it is technically "contained" within a method, but does not make
             // sense to introduce.
             var invalidNode = expression.FirstAncestorOrSelf<SyntaxNode>(node => syntaxFacts.IsAttributeArgument(node) || syntaxFacts.IsParameter(node));
-            if (invalidNode is not null)
-            {
-                return false;
-            }
-
-            return true;
+            return invalidNode is null;
         }
 
         /// <summary>
@@ -163,9 +141,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var (shouldDisplay, containsClassExpression) = await ShouldExpressionDisplayCodeActionAsync(
                 document, expression, cancellationToken).ConfigureAwait(false);
             if (!shouldDisplay)
-            {
                 return null;
-            }
 
             using var actionsBuilder = TemporaryArray<CodeAction>.Empty;
             using var actionsBuilderAllOccurrences = TemporaryArray<CodeAction>.Empty;
@@ -200,7 +176,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 return CodeAction.Create(
                     actionName,
-                    c => IntroduceParameterAsync(document, expression, methodSymbol, containingMethod, allOccurrences, selectedCodeAction, fallbackOptions, c),
+                    cancellationToken => IntroduceParameterAsync(document, expression, methodSymbol, containingMethod, allOccurrences, selectedCodeAction, fallbackOptions, cancellationToken),
                     actionName);
             }
         }
@@ -222,9 +198,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 // If the expression contains locals or range variables then we do not want to offer
                 // code actions since there will be errors at call sites.
                 if (symbol is IRangeVariableSymbol or ILocalSymbol)
-                {
-                    return (false, false);
-                }
+                    return default;
 
                 if (symbol is IParameterSymbol parameter)
                 {
@@ -232,9 +206,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     // to params parameters because it is difficult to know what is being referenced
                     // at the callsites.
                     if (parameter.IsParams)
-                    {
-                        return (false, false);
-                    }
+                        return default;
                 }
             }
 
@@ -291,8 +263,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var referencedSymbols = progress.GetReferencedSymbols();
 
             // Ordering by descending to sort invocations by starting span to account for nested invocations
-            var referencedLocations = referencedSymbols.SelectMany(referencedSymbol => referencedSymbol.Locations)
-                .Distinct().Where(reference => !reference.IsImplicit)
+            var referencedLocations = referencedSymbols
+                .SelectMany(referencedSymbol => referencedSymbol.Locations)
+                .Distinct()
+                .Where(reference => !reference.IsImplicit)
                 .OrderByDescending(reference => reference.Location.SourceSpan.Start);
 
             // Adding the original document to ensure that it will be seen again when processing the call sites
@@ -307,16 +281,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 {
                     var reference = refLocation.Location.FindNode(cancellationToken).GetRequiredParent();
                     if (reference is not (TObjectCreationExpressionSyntax or TInvocationExpressionSyntax))
-                    {
                         reference = reference.GetRequiredParent();
-                    }
 
                     // Only adding items that are of type InvocationExpressionSyntax or TObjectCreationExpressionSyntax
                     var invocationOrCreation = reference as TObjectCreationExpressionSyntax ?? (SyntaxNode?)(reference as TInvocationExpressionSyntax);
                     if (invocationOrCreation is null)
-                    {
                         continue;
-                    }
 
                     if (!methodCallSites.TryGetValue(refLocation.Document, out var list))
                     {
@@ -329,13 +299,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             return methodCallSites;
-        }
-
-        private enum IntroduceParameterCodeActionKind
-        {
-            Refactor,
-            Trampoline,
-            Overload
         }
     }
 }

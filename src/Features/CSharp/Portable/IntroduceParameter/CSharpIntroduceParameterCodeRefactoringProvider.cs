@@ -7,12 +7,12 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.IntroduceVariable;
+using Microsoft.CodeAnalysis.IntroduceParameter;
 
-namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
+namespace Microsoft.CodeAnalysis.CSharp.IntroduceParameter
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceParameter), Shared]
-    internal partial class CSharpIntroduceParameterCodeRefactoringProvider : AbstractIntroduceParameterService<
+    internal partial class CSharpIntroduceParameterCodeRefactoringProvider : AbstractIntroduceParameterCodeRefactoringProvider<
         ExpressionSyntax,
         InvocationExpressionSyntax,
         ObjectCreationExpressionSyntax,
