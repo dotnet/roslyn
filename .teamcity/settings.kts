@@ -75,7 +75,7 @@ object DebugBuild : BuildType({
 
     dependencies {
 
-        dependency(Metalama_MetalamaBackstage_DebugBuild) {
+        dependency(AbsoluteId("Metalama_MetalamaBackstage_DebugBuild")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
@@ -135,7 +135,7 @@ object ReleaseBuild : BuildType({
 
     dependencies {
 
-        dependency(Metalama_MetalamaBackstage_DebugBuild) {
+        dependency(AbsoluteId("Metalama_MetalamaBackstage_ReleaseBuild")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
@@ -195,7 +195,7 @@ object PublicBuild : BuildType({
 
     dependencies {
 
-        dependency(Metalama_MetalamaBackstage_DebugBuild) {
+        dependency(AbsoluteId("Metalama_MetalamaBackstage_PublicBuild")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
@@ -246,7 +246,7 @@ object PublicDeployment : BuildType({
 
     dependencies {
 
-        dependency(Metalama_MetalamaBackstage_PublicDeployment) {
+        dependency(AbsoluteId("Metalama_MetalamaBackstage_PublicDeployment")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
