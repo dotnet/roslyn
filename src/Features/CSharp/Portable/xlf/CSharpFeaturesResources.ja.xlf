@@ -202,11 +202,6 @@
         <target state="translated">可能な場合、private フィールドを読み取り専用にする</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">'new' 修飾子の削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">'for' ステートメントの反転</target>
