@@ -1217,11 +1217,10 @@ namespace Microsoft.CodeAnalysis.Testing
                                      select method).SingleOrDefault();
             var convertedSourceGenerators = createRangeMethod.MakeGenericMethod(isourceGeneratorType).Invoke(null, new object[] { convertedSourceGeneratorsArray });
 
-            var analyzerOptions = project.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == "AnalyzerOptions").GetValue(project);
-            verifier.True(analyzerOptions is not null, "Failed to locate analyzer options for project");
-
-            var additionalFiles = analyzerOptions.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == "AdditionalFiles").GetValue(analyzerOptions);
-            var analyzerConfigOptionsProvider = analyzerOptions.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == "AnalyzerConfigOptionsProvider").GetValue(analyzerOptions);
+            var analyzerOptions = project.AnalyzerOptions;
+            var additionalFiles = analyzerOptions.AdditionalFiles;
+            var analyzerConfigOptionsProvider = typeof(AnalyzerOptions).GetTypeInfo().DeclaredProperties.SingleOrDefault(property => property.Name == "AnalyzerConfigOptionsProvider")?.GetValue(analyzerOptions);
+            verifier.True(analyzerConfigOptionsProvider is not null, "Failed to locate AnalyzerConfigOptionsProvider for project");
 
             var driver = createMethod.Invoke(null, new[] { convertedSourceGenerators, additionalFiles, project.ParseOptions, analyzerConfigOptionsProvider });
             verifier.True(driver is not null, "Failed to invoke factory method for diagnostic driver");
