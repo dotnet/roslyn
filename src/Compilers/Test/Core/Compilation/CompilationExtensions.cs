@@ -406,10 +406,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 var green = (Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList)separatedList.Green;
 
-                // Calculate positions from start, using any existing cache of red nodes on separated list.
+                // Calculate positions from start, using existing cache.
                 int[] positions = getPositionsFromStart(separatedList);
 
-                // Calculate positions from end, using any existing cache of red nodes on separated list.
+                // Calculate positions from end, using existing cache.
                 AssertEx.Equal(positions, getPositionsFromEnd(separatedList));
 
                 // Avoid testing without caches if the number of children is large.
@@ -418,18 +418,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     return;
                 }
 
-                // Calculate positions from start, with no caching of red nodes on new separated list.
+                // Calculate positions from start, with empty cache.
                 AssertEx.Equal(positions, getPositionsFromStart(new SeparatedWithManyChildren(green, null, separatedList.Position)));
 
-                // Calculate positions from end, with no caching of red nodes on new separated list.
+                // Calculate positions from end, with empty cache.
                 AssertEx.Equal(positions, getPositionsFromEnd(new SeparatedWithManyChildren(green, null, separatedList.Position)));
             }
 
+            // Calculate positions from start, using any existing cache of red nodes on separated list.
             static int[] getPositionsFromStart(SeparatedWithManyChildren separatedList)
             {
                 int n = separatedList.SlotCount;
                 var positions = new int[n];
-                // PROTOTYPE: Add comment
                 for (int i = 0; i < n; i++)
                 {
                     positions[i] = separatedList.GetChildPosition(i);
@@ -437,10 +437,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return positions;
             }
 
+            // Calculate positions from end, using any existing cache of red nodes on separated list.
             static int[] getPositionsFromEnd(SeparatedWithManyChildren separatedList)
             {
                 int n = separatedList.SlotCount;
-                // PROTOTYPE: Add comment
                 var positions = new int[n];
                 for (int i = n - 1; i >= 0; i--)
                 {
