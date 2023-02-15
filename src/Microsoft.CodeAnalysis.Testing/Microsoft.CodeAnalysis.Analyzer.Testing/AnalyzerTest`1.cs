@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var analyzerOptions = project.AnalyzerOptions;
             var additionalFiles = analyzerOptions.AdditionalFiles;
-            var analyzerConfigOptionsProvider = typeof(AnalyzerOptions).GetTypeInfo().DeclaredProperties.SingleOrDefault(property => property.Name == "AnalyzerConfigOptionsProvider")?.GetValue(analyzerOptions);
+            var analyzerConfigOptionsProvider = analyzerOptions.AnalyzerConfigOptionsProvider();
             verifier.True(analyzerConfigOptionsProvider is not null, "Failed to locate AnalyzerConfigOptionsProvider for project");
 
             var driver = createMethod.Invoke(null, new[] { convertedSourceGenerators, additionalFiles, project.ParseOptions, analyzerConfigOptionsProvider });
