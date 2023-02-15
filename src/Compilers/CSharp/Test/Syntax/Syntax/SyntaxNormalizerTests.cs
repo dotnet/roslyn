@@ -5886,7 +5886,7 @@ $"  ///  </summary>{Environment.NewLine}" +
         public void TestNormalizeUsingAlias()
         {
             TestNormalizeDeclaration("""
-                using X=int;
+                using X=int ;
                 """, """
                 using X = int;
                 """);
