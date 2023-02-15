@@ -204,6 +204,10 @@
   <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
     <value>Allow unsafe code in this project</value>
   </data>
+  <data name="Make_ref_struct" xml:space="preserve">
+    <value>Make 'ref struct'</value>
+    <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
+  </data>
   <data name="Remove_unused_function" xml:space="preserve">
     <value>Remove unused function</value>
   </data>
@@ -215,5 +219,16 @@
   </data>
   <data name="Use_0" xml:space="preserve">
     <value>Use '{0}'</value>
+  </data>
+  <data name="Remove_in_keyword" xml:space="preserve">
+    <value>Remove 'in' keyword</value>
+    <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Remove_new_modifier" xml:space="preserve">
+    <value>Remove 'new' modifier</value>
+  </data>
+  <data name="Convert_to_positional_record" xml:space="preserve">
+    <value>Convert to positional record</value>
+    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
   </data>
 </root>

@@ -52,6 +52,11 @@
         <target state="translated">Porovnat s {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="new">Convert to positional record</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_typeof_to_nameof">
         <source>Convert 'typeof' to 'nameof'</source>
         <target state="translated">Převést typeof na nameof</target>
@@ -92,6 +97,11 @@
         <target state="new">Make {0} return Task instead of void.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_ref_struct">
+        <source>Make 'ref struct'</source>
+        <target state="new">Make 'ref struct'</target>
+        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
         <target state="translated">Předat zachycené proměnné jako argumenty</target>
@@ -115,6 +125,16 @@
       <trans-unit id="Remove_blank_lines_between_braces">
         <source>Remove blank line between braces</source>
         <target state="translated">Odebrat prázdný řádek mezi závorkami</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="new">Remove 'in' keyword</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="new">Remove 'new' modifier</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">

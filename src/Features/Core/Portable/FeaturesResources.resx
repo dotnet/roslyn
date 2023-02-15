@@ -928,12 +928,6 @@ This version used in: {2}</value>
   <data name="Rename_type_to_0" xml:space="preserve">
     <value>Rename type to {0}</value>
   </data>
-  <data name="Remove_tag" xml:space="preserve">
-    <value>Remove tag</value>
-  </data>
-  <data name="Add_missing_param_nodes" xml:space="preserve">
-    <value>Add missing param nodes</value>
-  </data>
   <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
     <value>Asynchronously waits for the task to finish.</value>
   </data>
@@ -985,18 +979,6 @@ This version used in: {2}</value>
   </data>
   <data name="Add_tuple_element_name_0" xml:space="preserve">
     <value>Add tuple element name '{0}'</value>
-  </data>
-  <data name="Take_0" xml:space="preserve">
-    <value>Take '{0}'</value>
-  </data>
-  <data name="Take_both" xml:space="preserve">
-    <value>Take both</value>
-  </data>
-  <data name="Take_bottom" xml:space="preserve">
-    <value>Take bottom</value>
-  </data>
-  <data name="Take_top" xml:space="preserve">
-    <value>Take top</value>
   </data>
   <data name="Remove_unused_variable" xml:space="preserve">
     <value>Remove unused variable</value>

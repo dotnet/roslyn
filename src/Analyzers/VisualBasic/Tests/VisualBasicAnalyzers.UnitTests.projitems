@@ -17,6 +17,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddParameter\AddParameterTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AliasAmbiguousTypeTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\RemoveDocCommentNodeCodeFixProviderTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConflictMarkerResolution\ConflictMarkerResolutionTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertGetTypeToNameOf\ConvertGetTypeToNameOfTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\ConvertToAsyncTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.vb" />

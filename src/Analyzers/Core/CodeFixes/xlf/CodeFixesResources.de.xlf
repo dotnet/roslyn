@@ -32,6 +32,11 @@
         <target state="new">Add member name</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_missing_param_nodes">
+        <source>Add missing param nodes</source>
+        <target state="new">Add missing param nodes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parameter_to_0">
         <source>Add parameter to '{0}'</source>
         <target state="new">Add parameter to '{0}'</target>
@@ -102,9 +107,34 @@
         <target state="translated">Überflüssige Zuweisung entfernen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_tag">
+        <source>Remove tag</source>
+        <target state="new">Remove tag</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_or_configure_issues">
         <source>Suppress or configure issues</source>
         <target state="translated">Issues unterdrücken oder konfigurieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_0">
+        <source>Take '{0}'</source>
+        <target state="new">Take '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_both">
+        <source>Take both</source>
+        <target state="new">Take both</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_bottom">
+        <source>Take bottom</source>
+        <target state="new">Take bottom</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_top">
+        <source>Take top</source>
+        <target state="new">Take top</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">
