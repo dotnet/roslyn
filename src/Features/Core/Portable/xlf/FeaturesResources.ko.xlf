@@ -4473,11 +4473,6 @@ DateTimeOffset 값의 경우, "K" 형식 지정자는 "zzz" 형식 지정자와 
         <target state="translated">{0} 분석기 어셈블리를 로드할 수 없습니다. {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">메서드를 동기 메서드로 설정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">소스: {0}</target>

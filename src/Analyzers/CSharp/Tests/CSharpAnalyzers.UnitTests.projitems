@@ -35,6 +35,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AddYieldTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\ChangeToIEnumerableTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\MakeMemberStaticTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeRefStruct\MakeRefStructTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\MakeTypeAbstractTests.cs" />

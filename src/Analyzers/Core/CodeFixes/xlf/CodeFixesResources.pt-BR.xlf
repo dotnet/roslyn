@@ -82,6 +82,11 @@
         <target state="translated">Tornar estático</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="new">Make method synchronous</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
         <target state="translated">Tornar o tipo parcial</target>

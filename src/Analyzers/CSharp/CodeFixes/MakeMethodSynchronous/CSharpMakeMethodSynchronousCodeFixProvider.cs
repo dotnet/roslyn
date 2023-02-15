@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -13,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using static Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
 {
@@ -34,12 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
-        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes)
+        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbol, SyntaxNode node, KnownTypes knownTypes)
         {
             switch (node)
             {
-                case MethodDeclarationSyntax method: return FixMethod(methodSymbolOpt, method, knownTypes);
-                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(methodSymbolOpt, localFunction, knownTypes);
+                case MethodDeclarationSyntax method: return FixMethod(methodSymbol, method, knownTypes);
+                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(methodSymbol, localFunction, knownTypes);
                 case AnonymousMethodExpressionSyntax method: return RemoveAsyncModifierHelpers.WithoutAsyncModifier(method);
                 case ParenthesizedLambdaExpressionSyntax lambda: return RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda);
                 case SimpleLambdaExpressionSyntax lambda: return RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda);
@@ -73,12 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
                 // If the return type is Task<T>, then make the new return type "T".
                 newReturnType = returnType.GetTypeArguments()[0].GenerateTypeSyntax().WithTriviaFrom(returnTypeSyntax);
             }
-            else if (returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTTypeOpt))
+            else if (returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTTypeOpt) &&
+                knownTypes.IEnumerableOfTType != null)
             {
                 // If the return type is IAsyncEnumerable<T>, then make the new return type IEnumerable<T>.
                 newReturnType = knownTypes.IEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
-            else if (returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTTypeOpt))
+            else if (returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTTypeOpt) &&
+                knownTypes.IEnumeratorOfTType != null)
             {
                 // If the return type is IAsyncEnumerator<T>, then make the new return type IEnumerator<T>.
                 newReturnType = knownTypes.IEnumeratorOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();

@@ -4473,11 +4473,6 @@ If the "K" format specifier is used without other custom format specifiers, it's
         <target state="translated">Не удалось загрузить сборку анализатора {0}: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Преобразовать метод в синхронный</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">из {0}</target>

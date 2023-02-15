@@ -4473,11 +4473,6 @@ Pokud se specifikátor formátu K použije bez dalších specifikátorů vlastn�
         <target state="translated">Nejde načíst sestavení analyzátoru {0}: {1}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Nastavit metodu jako synchronní</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">z: {0}</target>
