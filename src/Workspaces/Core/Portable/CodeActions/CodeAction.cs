@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -499,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
             }
 
-            public static CodeActionWithNestedActions Create(
+            public new static CodeActionWithNestedActions Create(
                string title,
                ImmutableArray<CodeAction> nestedActions,
                bool isInlinable,
