@@ -44,16 +44,16 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public async Task TestInUsingAlias()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInGlobalUsingAlias()
+        public async Task TestInGlobalUsingAlias()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"global using Goo = $$");
         }
 

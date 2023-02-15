@@ -44,16 +44,16 @@ $$", options: CSharp9ParseOptions);
         }
 
         [Fact]
-        public async Task TestNotInUsingAlias()
+        public async Task TesInUsingAlias()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"using Goo = $$");
         }
 
         [Fact]
-        public async Task TestNotInGlobalUsingAlias()
+        public async Task TestInGlobalUsingAlias()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"global using Goo = $$");
         }
 
