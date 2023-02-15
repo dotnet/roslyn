@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ? GetCompletedAnalyzersForFile_NoLock(filterScope.Value.file, filterScope.Value.syntax)
                     : null;
 
-                ArrayBuilder<DiagnosticAnalyzer>? builder = null;
+                var builder = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length);
                 foreach (var analyzer in analyzers)
                 {
                     // If the analyzer has not executed for the entire compilation, or we are computing
@@ -175,12 +175,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (!_completedAnalyzersForCompilation.Contains(analyzer) &&
                         (completedAnalyzersForFile == null || !completedAnalyzersForFile.Contains(analyzer)))
                     {
-                        builder = builder ?? ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
                         builder.Add(analyzer);
                     }
                 }
 
-                return builder != null ? builder.ToImmutableAndFree() : ImmutableArray<DiagnosticAnalyzer>.Empty;
+                return builder.ToImmutableAndFree();
             }
         }
 

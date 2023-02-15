@@ -64,8 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// which is a <see cref="CompilerDiagnosticAnalyzer"/>.
         /// </summary>
         public bool IsSemanticSingleFileAnalysisForCompilerAnalyzer =>
-            IsSingleFileAnalysis && !IsSyntacticSingleFileAnalysis &&
-            Analyzers.Length == 1 && Analyzers.Single() is CompilerDiagnosticAnalyzer;
+            IsSingleFileAnalysis && !IsSyntacticSingleFileAnalysis && Analyzers is [CompilerDiagnosticAnalyzer];
 
         public AnalysisScope(Compilation compilation, AnalyzerOptions? analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, bool concurrentAnalysis, bool categorizeDiagnostics)
             : this(compilation.SyntaxTrees, analyzerOptions?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty,
