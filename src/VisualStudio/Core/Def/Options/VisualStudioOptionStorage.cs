@@ -397,7 +397,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_regular_expressions_options_highlight_related_regex_components_under_cursor", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor")},
         {"dotnet_regular_expressions_options_provide_regex_completions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions")},
         {"dotnet_regular_expressions_options_report_invalid_regex_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns")},
-        {"ServiceFeatureOnOffOptions_RemoveDocumentDiagnosticsOnDocumentClose", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose")},
+        {"service_feature_on_off_options_remove_document_diagnostics_on_document_close", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_signature_help_options_show_signature_help", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Auto List Params", vbKey: "TextEditor.Basic.Auto List Params")},
 #pragma warning restore

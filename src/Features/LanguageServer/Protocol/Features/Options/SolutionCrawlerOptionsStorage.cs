@@ -29,7 +29,7 @@ internal static class SolutionCrawlerOptionsStorage
         "dotnet_solution_crawler_options_storage_compiler_diagnostics_scope_option", defaultValue: CompilerDiagnosticsScope.OpenFiles, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<CompilerDiagnosticsScope>());
 
     public static readonly PerLanguageOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
-        "ServiceFeatureOnOffOptions_RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false);
+        "service_feature_on_off_options_remove_document_diagnostics_on_document_close", defaultValue: false);
 
     public static readonly Option2<bool?> EnableDiagnosticsInSourceGeneratedFiles = new(
         "dotnet_workspace_configuration_options_enable_diagnostics_in_source_generated_files", defaultValue: null);
