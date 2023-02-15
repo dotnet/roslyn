@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveNewModifier
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
             var diagnostic = context.Diagnostics.First();
             var diagnosticSpan = diagnostic.Location.SourceSpan;
@@ -54,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveNewModifier
 
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    CSharpFeaturesResources.Remove_new_modifier,
+                    CSharpCodeFixesResources.Remove_new_modifier,
                     ct => FixAsync(context.Document, generator, memberDeclarationSyntax, ct),
-                    nameof(CSharpFeaturesResources.Remove_new_modifier)),
+                    nameof(CSharpCodeFixesResources.Remove_new_modifier)),
                 context.Diagnostics);
         }
 

@@ -202,16 +202,6 @@
         <target state="translated">Cuando sea posible, hacer que los cambios privados sean solo de lectura</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">Quitar la palabra clave "in"</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">Quitar el modificador "new"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">Invertir la instrucción "for"</target>

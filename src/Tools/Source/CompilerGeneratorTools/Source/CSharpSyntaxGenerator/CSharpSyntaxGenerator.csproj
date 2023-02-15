@@ -2,11 +2,7 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <Platforms>AnyCPU</Platforms>
     <RootNamespace>CSharpSyntaxGenerator</RootNamespace>
-    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <!-- We build this against net7.0 to build the console app version, and against netstandard2.0 for
          the Source Generator version. -->
     <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>

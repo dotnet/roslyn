@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -16,9 +14,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveInKeyword
+namespace Microsoft.CodeAnalysis.CSharp.RemoveInKeyword
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveIn), Shared]
     internal class RemoveInKeywordCodeFixProvider : CodeFixProvider
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveInKeyword
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
             var diagnostic = context.Diagnostics.First();
             var diagnosticSpan = diagnostic.Location.SourceSpan;
@@ -51,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveInKeyword
 
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    CSharpFeaturesResources.Remove_in_keyword,
-                    ct => FixAsync(context.Document, argumentSyntax, ct),
-                    nameof(CSharpFeaturesResources.Remove_in_keyword)),
+                    CSharpCodeFixesResources.Remove_in_keyword,
+                    cancellationToken => FixAsync(context.Document, argumentSyntax, cancellationToken),
+                    nameof(CSharpCodeFixesResources.Remove_in_keyword)),
                 context.Diagnostics);
         }
 
@@ -64,10 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveInKeyword
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             return document.WithSyntaxRoot(root.ReplaceNode(
                 argumentSyntax,
-                generator.Argument(generator.SyntaxFacts.GetExpressionOfArgument(argumentSyntax))));
+                generator.Argument(syntaxFacts.GetExpressionOfArgument(argumentSyntax))));
         }
     }
 }
