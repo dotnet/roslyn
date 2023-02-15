@@ -75,9 +75,18 @@ object DebugBuild : BuildType({
 
     dependencies {
 
-        snapshot(AbsoluteId("Metalama_MetalamaBackstage_DebugBuild")) {
+        dependency(Metalama_MetalamaBackstage_DebugBuild) {
+            snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
-                }
+            }
+
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
+            }
+
+        }
 
      }
 
@@ -126,9 +135,18 @@ object ReleaseBuild : BuildType({
 
     dependencies {
 
-        snapshot(AbsoluteId("Metalama_MetalamaBackstage_ReleaseBuild")) {
+        dependency(Metalama_MetalamaBackstage_DebugBuild) {
+            snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
-                }
+            }
+
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
+            }
+
+        }
 
      }
 
@@ -177,9 +195,18 @@ object PublicBuild : BuildType({
 
     dependencies {
 
-        snapshot(AbsoluteId("Metalama_MetalamaBackstage_PublicBuild")) {
+        dependency(Metalama_MetalamaBackstage_DebugBuild) {
+            snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
-                }
+            }
+
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
+            }
+
+        }
 
      }
 
@@ -219,9 +246,13 @@ object PublicDeployment : BuildType({
 
     dependencies {
 
-        snapshot(AbsoluteId("Metalama_MetalamaBackstage_PublicDeployment")) {
+        dependency(Metalama_MetalamaBackstage_PublicDeployment) {
+            snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
-                }
+            }
+
+
+        }
 
         dependency(PublicBuild) {
             snapshot {
