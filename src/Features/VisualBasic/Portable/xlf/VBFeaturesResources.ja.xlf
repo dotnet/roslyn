@@ -1452,11 +1452,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">現在の行以降のソース ファイルの部分で指定された警告のレポートを有効にします。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">{0} を Async Function にします。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">正しい制御変数を使用する</target>

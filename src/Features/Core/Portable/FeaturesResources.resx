@@ -986,18 +986,6 @@ This version used in: {2}</value>
   <data name="Add_tuple_element_name_0" xml:space="preserve">
     <value>Add tuple element name '{0}'</value>
   </data>
-  <data name="Take_0" xml:space="preserve">
-    <value>Take '{0}'</value>
-  </data>
-  <data name="Take_both" xml:space="preserve">
-    <value>Take both</value>
-  </data>
-  <data name="Take_bottom" xml:space="preserve">
-    <value>Take bottom</value>
-  </data>
-  <data name="Take_top" xml:space="preserve">
-    <value>Take top</value>
-  </data>
   <data name="Remove_unused_variable" xml:space="preserve">
     <value>Remove unused variable</value>
   </data>
@@ -2686,9 +2674,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Inline_0" xml:space="preserve">
     <value>Inline '{0}'</value>
-  </data>
-  <data name="Remove_async_modifier" xml:space="preserve">
-    <value>Remove 'async' modifier</value>
   </data>
   <data name="Extract_base_class" xml:space="preserve">
     <value>Extract base class...</value>

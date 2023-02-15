@@ -2490,11 +2490,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">La rimozione del documento non è supportata</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">Rimuovi il modificatore 'async'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
         <source>Remove unnecessary Imports or usings</source>
         <target state="translated">Rimuovi importazioni o utilizzi non necessari</target>
@@ -4708,26 +4703,6 @@ Questa versione è usata {2}</target>
       <trans-unit id="Add_argument_name_0">
         <source>Add argument name '{0}'</source>
         <target state="translated">Aggiungi il nome di argomento '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_0">
-        <source>Take '{0}'</source>
-        <target state="translated">Accetta '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_both">
-        <source>Take both</source>
-        <target state="translated">Accetta entrambi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_bottom">
-        <source>Take bottom</source>
-        <target state="translated">Accetta inferiore</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_top">
-        <source>Take top</source>
-        <target state="translated">Accetta superiore</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variable">

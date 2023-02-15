@@ -2490,11 +2490,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Удаление документа не поддерживается</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">Удалить модификатор "async"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
         <source>Remove unnecessary Imports or usings</source>
         <target state="translated">Удалить ненужные операторы Imports или директивы using</target>
@@ -4708,26 +4703,6 @@ This version used in: {2}</source>
       <trans-unit id="Add_argument_name_0">
         <source>Add argument name '{0}'</source>
         <target state="translated">Добавить имя аргумента "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_0">
-        <source>Take '{0}'</source>
-        <target state="translated">Принимать "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_both">
-        <source>Take both</source>
-        <target state="translated">Принимать оба</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_bottom">
-        <source>Take bottom</source>
-        <target state="translated">Принимать нижнее</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_top">
-        <source>Take top</source>
-        <target state="translated">Принимать верхнее</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variable">

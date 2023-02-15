@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             {
                 if (!keepVoid)
                 {
-                    newReturnType = knownTypes.TaskType.GenerateTypeSyntax();
+                    newReturnType = knownTypes.TaskType!.GenerateTypeSyntax();
                 }
             }
             else
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 {
                     // If it's not already Task-like, then wrap the existing return type
                     // in Task<>.
-                    newReturnType = knownTypes.TaskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax();
+                    newReturnType = knownTypes.TaskOfTType!.Construct(methodSymbol.ReturnType).GenerateTypeSyntax();
                 }
             }
 

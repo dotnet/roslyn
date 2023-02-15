@@ -8,6 +8,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider
 Imports Microsoft.CodeAnalysis.MakeMethodSynchronous
+Imports Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous

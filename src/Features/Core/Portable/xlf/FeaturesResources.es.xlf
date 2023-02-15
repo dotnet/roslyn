@@ -2490,11 +2490,6 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">No se admite la eliminación del documento</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">Quitar el modificador "async"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
         <source>Remove unnecessary Imports or usings</source>
         <target state="translated">Quitar importaciones o usos innecesarios</target>
@@ -4708,26 +4703,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Add_argument_name_0">
         <source>Add argument name '{0}'</source>
         <target state="translated">Agregar nombre de argumento "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_0">
-        <source>Take '{0}'</source>
-        <target state="translated">Tomar "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_both">
-        <source>Take both</source>
-        <target state="translated">Tomar ambas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_bottom">
-        <source>Take bottom</source>
-        <target state="translated">Tomar parte inferior</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_top">
-        <source>Take top</source>
-        <target state="translated">Tomar parte superior</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variable">

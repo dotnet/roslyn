@@ -2490,11 +2490,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Belgenin kaldırılması desteklenmiyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">'async' değiştiricisini kaldırın</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
         <source>Remove unnecessary Imports or usings</source>
         <target state="translated">Gereksiz İçe Aktarmaları veya using’leri kaldır</target>
@@ -4708,26 +4703,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Add_argument_name_0">
         <source>Add argument name '{0}'</source>
         <target state="translated">'{0}' bağımsız değişken adını ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_0">
-        <source>Take '{0}'</source>
-        <target state="translated">'{0}' al</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_both">
-        <source>Take both</source>
-        <target state="translated">Her ikisini de al</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_bottom">
-        <source>Take bottom</source>
-        <target state="translated">Alttakini al</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_top">
-        <source>Take top</source>
-        <target state="translated">Üsttekini al</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variable">

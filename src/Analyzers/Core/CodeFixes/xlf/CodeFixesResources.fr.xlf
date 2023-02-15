@@ -87,6 +87,11 @@
         <target state="new">Related method signatures found in metadata will not be updated.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_async_modifier">
+        <source>Remove 'async' modifier</source>
+        <target state="new">Remove 'async' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
         <source>Remove extra blank lines</source>
         <target state="translated">Supprimer les lignes vides supplémentaires</target>
@@ -100,6 +105,26 @@
       <trans-unit id="Suppress_or_configure_issues">
         <source>Suppress or configure issues</source>
         <target state="translated">Supprimer ou configurer des problèmes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_0">
+        <source>Take '{0}'</source>
+        <target state="new">Take '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_both">
+        <source>Take both</source>
+        <target state="new">Take both</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_bottom">
+        <source>Take bottom</source>
+        <target state="new">Take bottom</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_top">
+        <source>Take top</source>
+        <target state="new">Take top</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

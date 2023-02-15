@@ -22,11 +22,6 @@
         <target state="translated">Agregar las llaves necesarias para las instrucciones de control de una sola línea</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Permitir código no seguro en este proyecto</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Aplicar una línea en blanco después de los dos puntos en las preferencias del inicializador de constructor (experimental)</target>
@@ -205,21 +200,6 @@
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">Cuando sea posible, hacer que los cambios privados sean solo de lectura</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_ref_struct">
-        <source>Make 'ref struct'</source>
-        <target state="translated">Convertir "ref struct"</target>
-        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">Quitar la palabra clave "in"</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">Quitar el modificador "new"</target>
         <note />
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
@@ -415,11 +395,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">Organizar instrucciones Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_0_return_Task_instead_of_void">
-        <source>Make {0} return Task instead of void.</source>
-        <target state="translated">Hacer que {0} devuelva Tarea en lugar de void.</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -682,16 +657,6 @@
         <target state="translated">Selección automática deshabilitada debido a una posible declaración de desconstrucción.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Actualizar este proyecto a la versión del lenguaje de C# "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Actualizar todos los proyectos de C# a la versión del lenguaje "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;nombre de la clase&gt;</target>
@@ -737,16 +702,6 @@
         <target state="translated">(Nombre sugerido)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">Quitar función no utilizada</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
-        <source>Add parentheses</source>
-        <target state="translated">Agregar paréntesis</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">Convertir a "foreach"</target>
@@ -760,11 +715,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">Invertir If</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">Usar "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">

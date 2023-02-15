@@ -2490,11 +2490,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Suppression du document non prise en charge</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">Supprimer le modificateur 'async'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
         <source>Remove unnecessary Imports or usings</source>
         <target state="translated">Supprimer les Imports inutiles ou les usings</target>
@@ -4708,26 +4703,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Add_argument_name_0">
         <source>Add argument name '{0}'</source>
         <target state="translated">Ajouter le nom d'argument '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_0">
-        <source>Take '{0}'</source>
-        <target state="translated">Prendre '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_both">
-        <source>Take both</source>
-        <target state="translated">Prendre les deux</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_bottom">
-        <source>Take bottom</source>
-        <target state="translated">Prendre le bas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_top">
-        <source>Take top</source>
-        <target state="translated">Prendre le haut</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variable">

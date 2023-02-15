@@ -1452,11 +1452,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
         <target state="translated">Habilita la creación de informes de advertencias concretas en la parte del archivo de código fuente situada debajo de la línea actual.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">Convertir {0} en una función Async.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">Utilizar la variable de control correcta</target>
