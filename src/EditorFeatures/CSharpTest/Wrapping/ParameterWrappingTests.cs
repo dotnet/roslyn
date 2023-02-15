@@ -951,13 +951,13 @@ GetIndentionColumn(30),
          string S);");
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task TestClass_Semicolon()
         {
             await TestInRegularAndScript1Async(
 "class R([||]int I, string S);",
 @"class R(int I,
-         string S);");
+        string S);");
         }
 
         [Fact]
@@ -969,13 +969,13 @@ GetIndentionColumn(30),
          string S) { }");
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task TestClass_Braces()
         {
             await TestInRegularAndScript1Async(
 "class R([||]int I, string S) { }",
 @"class R(int I,
-         string S) { }");
+        string S) { }");
         }
 
         [Fact]
@@ -987,13 +987,13 @@ GetIndentionColumn(30),
                 string S);", new TestParameters(TestOptions.RegularPreview));
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task TestStruct_Semicolon()
         {
             await TestInRegularAndScript1Async(
 "struct R([||]int I, string S);",
 @"struct R(int I,
-                string S);", new TestParameters(TestOptions.RegularPreview));
+         string S);", new TestParameters(TestOptions.RegularPreview));
         }
 
         [Fact]
@@ -1005,13 +1005,13 @@ GetIndentionColumn(30),
                 string S) { }", new TestParameters(TestOptions.RegularPreview));
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task TestStruct_Braces()
         {
             await TestInRegularAndScript1Async(
 "struct R([||]int I, string S) { }",
 @"struct R(int I,
-                string S) { }", new TestParameters(TestOptions.RegularPreview));
+         string S) { }", new TestParameters(TestOptions.RegularPreview));
         }
 
         [Fact, WorkItem(61362, "https://github.com/dotnet/roslyn/issues/61362")]

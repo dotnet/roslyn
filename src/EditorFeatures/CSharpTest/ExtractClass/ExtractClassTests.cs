@@ -243,7 +243,7 @@ partial class Test
             }.RunAsync();
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task TestClass_Method()
         {
             var input = """
@@ -268,7 +268,6 @@ partial class Test
                     {
                     }
                 }
-
                 """;
 
             await new Test
@@ -369,7 +368,7 @@ partial class Test
             }.RunAsync();
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/62415")]
         public async Task TestClass_PropertyAndImplicitField()
         {
             var input = """
@@ -390,7 +389,6 @@ partial class Test
                 {
                     public string S { get; set; } = S;
                 }
-
                 """;
 
             await new Test

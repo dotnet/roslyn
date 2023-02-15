@@ -976,7 +976,7 @@ record R(int C, int B, int A)
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_PrimaryConstructor_Class()
         {
             var markup = @"
@@ -1000,7 +1000,7 @@ class R(int C, int B, int A)
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task ReorderParamTagsInDocComments_PrimaryConstructor_Struct()
         {
             var markup = @"

@@ -1294,7 +1294,7 @@ record R(int First, int Third, int Second, int Forth)
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task AddParameters_PrimaryConstructor_Class()
         {
             var markup = @"
@@ -1327,7 +1327,7 @@ class R(int First, int Third, int Second, int Forth)
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task AddParameters_PrimaryConstructor_Struct()
         {
             var markup = @"

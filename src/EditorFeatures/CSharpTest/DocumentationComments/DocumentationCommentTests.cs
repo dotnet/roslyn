@@ -91,7 +91,7 @@ record R(string S, int I);";
             VerifyTypingCharacter(code, expected);
         }
 
-        [WpfFact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [WpfFact]
         public void TypingCharacter_ClassParameters()
         {
             var code =
@@ -127,7 +127,7 @@ record struct R(string S, int I);";
             VerifyTypingCharacter(code, expected);
         }
 
-        [WpfFact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [WpfFact]
         public void TypingCharacter_StructParameters()
         {
             var code =
@@ -1797,7 +1797,7 @@ record R(string S, int I);";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [WpfFact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [WpfFact]
         public void Command_ClassParameters()
         {
             var code = "class R$$(string S, int I);";
@@ -1829,7 +1829,7 @@ record struct R(string S, int I);";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [WpfFact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [WpfFact]
         public void Command_StructParameters()
         {
             var code = "struct R$$(string S, int I);";

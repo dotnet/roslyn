@@ -2809,9 +2809,7 @@ namespace System.Runtime.CompilerServices
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        // System.ArgumentOutOfRangeException
-        // >	Microsoft.CodeAnalysis.Features.dll!Microsoft.CodeAnalysis.AddParameter.AddParameterService.AddParameterAsync(Microsoft.CodeAnalysis.Document invocationDocument, Microsoft.CodeAnalysis.IMethodSymbol method, Microsoft.CodeAnalysis.ITypeSymbol newParameterType, Microsoft.CodeAnalysis.RefKind refKind, string parameterName, int? newParameterIndex, bool fixAllReferences, System.Threading.CancellationToken cancellationToken) Line 112	C#
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task Test_PrimaryConstructor_Class()
         {
             await TestInRegularAndScriptAsync(@"
@@ -2853,9 +2851,7 @@ namespace System.Runtime.CompilerServices
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
-        // System.ArgumentOutOfRangeException
-        // >	Microsoft.CodeAnalysis.Features.dll!Microsoft.CodeAnalysis.AddParameter.AddParameterService.AddParameterAsync(Microsoft.CodeAnalysis.Document invocationDocument, Microsoft.CodeAnalysis.IMethodSymbol method, Microsoft.CodeAnalysis.ITypeSymbol newParameterType, Microsoft.CodeAnalysis.RefKind refKind, string parameterName, int? newParameterIndex, bool fixAllReferences, System.Threading.CancellationToken cancellationToken) Line 112	C#
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task Test_PrimaryConstructor_Struct()
         {
             await TestInRegularAndScriptAsync(@"
@@ -2883,7 +2879,7 @@ record Test(string V);
 ");
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task TestNamingConventions_PrimaryConstructor_Class()
         {
             await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
@@ -2891,7 +2887,7 @@ record Test(string V);
 class Test();
 ", @"new Test(""repro"");
 
-class Test(string V);
+class Test(string v);
 ");
         }
 
@@ -2907,7 +2903,7 @@ record struct Test(string V);
 ");
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task TestNamingConventions_PrimaryConstructor_Struct()
         {
             await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
@@ -2915,7 +2911,7 @@ record struct Test(string V);
 struct Test();
 ", @"new Test(""repro"");
 
-struct Test(string V);
+struct Test(string v);
 ");
         }
 

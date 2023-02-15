@@ -434,7 +434,7 @@ record DerivedR() : BaseR(1, 3, 0);";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/53091")]
         public async Task AddParameter_Cascade_PrimaryConstructor()
         {
             var markup = @"
