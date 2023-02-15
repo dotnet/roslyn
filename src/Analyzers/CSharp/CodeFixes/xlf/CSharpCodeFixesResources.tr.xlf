@@ -52,6 +52,11 @@
         <target state="translated">'{0}' ile karşılaştır</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="new">Convert to positional record</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_typeof_to_nameof">
         <source>Convert 'typeof' to 'nameof'</source>
         <target state="translated">'Typeof' metodunu 'nameof' metoduna dönüştürün</target>
@@ -120,6 +125,16 @@
       <trans-unit id="Remove_blank_lines_between_braces">
         <source>Remove blank line between braces</source>
         <target state="translated">Küme ayraçları arasındaki boş satırı kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="new">Remove 'in' keyword</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="new">Remove 'new' modifier</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">

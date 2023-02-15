@@ -147,11 +147,6 @@
         <target state="translated">Yönteme dönüştür</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_positional_record">
-        <source>Convert to positional record</source>
-        <target state="translated">Konum record’una dönüştür</target>
-        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">Ham dizeye dönüştür</target>
@@ -200,16 +195,6 @@
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">Özel alanları mümkün olduğunda salt okunur yap</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">'in' anahtar sözcüğünü kaldır</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">'New' değiştiricisini kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
