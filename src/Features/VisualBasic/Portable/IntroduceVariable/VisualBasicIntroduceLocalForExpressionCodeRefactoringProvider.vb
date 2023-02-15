@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -39,6 +40,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return localDeclaration.RemoveNode(
                 localDeclaration.Declarators(0).AsClause,
                 SyntaxRemoveOptions.KeepUnbalancedDirectives Or SyntaxRemoveOptions.AddElasticMarker)
+        End Function
+
+        Protected Overrides Function FixupDeconstruction(expressionStatement As ExpressionStatementSyntax, localDeclaration As ExpressionStatementSyntax) As ExpressionStatementSyntax
+            Throw ExceptionUtilities.Unreachable()
+        End Function
+
+        Protected Overrides Function CreateImplicitlyTypedDeconstruction(names As ImmutableArray(Of SyntaxToken), expression As ExpressionSyntax) As ExpressionStatementSyntax
+            Throw ExceptionUtilities.Unreachable()
         End Function
     End Class
 End Namespace

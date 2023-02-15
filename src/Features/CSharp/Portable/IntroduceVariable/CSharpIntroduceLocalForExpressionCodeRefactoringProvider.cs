@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -13,6 +12,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
+    using static SyntaxFactory;
+
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceLocalForExpression), Shared]
     internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
         AbstractIntroduceLocalForExpressionCodeRefactoringProvider<
@@ -39,12 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             }
 
             // We don't want to offer new local for an assignmentExpression `a = 42` -> `int newA = a = 42`
-            if (expressionStatement.Expression is AssignmentExpressionSyntax)
-            {
-                return false;
-            }
-
-            return true;
+            return expressionStatement.Expression is not AssignmentExpressionSyntax;
         }
 
         protected override LocalDeclarationStatementSyntax FixupLocalDeclaration(
@@ -53,14 +49,41 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             // If there wasn't a semicolon before, ensure the trailing trivia of the expression
             // becomes the trailing trivia of a new semicolon that we add.
             var semicolonToken = expressionStatement.SemicolonToken;
-            if (expressionStatement.SemicolonToken.IsMissing)
+            if (expressionStatement.SemicolonToken.IsMissing && localDeclaration is { Declaration.Variables: [{ Initializer.Value: { } value }, ..] })
             {
                 var expression = expressionStatement.Expression;
-                localDeclaration = localDeclaration.ReplaceNode(localDeclaration.Declaration.Variables[0].Initializer.Value, expression.WithoutLeadingTrivia());
-                semicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(expression.GetTrailingTrivia());
+                localDeclaration = localDeclaration.ReplaceNode(value, expression.WithoutLeadingTrivia());
+                semicolonToken = Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(expression.GetTrailingTrivia());
             }
 
             return localDeclaration.WithSemicolonToken(semicolonToken);
+        }
+
+        protected override ExpressionStatementSyntax FixupDeconstruction(
+            ExpressionStatementSyntax expressionStatement, ExpressionStatementSyntax deconstruction)
+        {
+            // If there wasn't a semicolon before, ensure the trailing trivia of the expression
+            // becomes the trailing trivia of a new semicolon that we add.
+            var semicolonToken = expressionStatement.SemicolonToken;
+            if (expressionStatement.SemicolonToken.IsMissing && deconstruction is { Expression: AssignmentExpressionSyntax binary })
+            {
+                var expression = expressionStatement.Expression;
+                deconstruction = deconstruction.ReplaceNode(binary.Right, expression.WithoutLeadingTrivia());
+                semicolonToken = Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(expression.GetTrailingTrivia());
+            }
+
+            return deconstruction.WithSemicolonToken(semicolonToken);
+        }
+
+        protected override ExpressionStatementSyntax CreateImplicitlyTypedDeconstruction(ImmutableArray<SyntaxToken> names, ExpressionSyntax expression)
+        {
+            return ExpressionStatement(
+                AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    DeclarationExpression(
+                        IdentifierName("var"),
+                        ParenthesizedVariableDesignation(SeparatedList(names.SelectAsArray(n => (VariableDesignationSyntax)SingleVariableDesignation(n))))),
+                    expression));
         }
     }
 }

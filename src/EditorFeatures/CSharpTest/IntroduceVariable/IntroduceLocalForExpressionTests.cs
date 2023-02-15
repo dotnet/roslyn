@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -390,6 +388,160 @@ class C
     void M()
     {
         int {|Rename:v|} = 1 + 1;
+    }
+}");
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        var (someString, someInt) = X();
+    }
+}");
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        X();[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        var (someString, someInt) = X();
+    }
+}");
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction3()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        X()[||]
+
+        string someString;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        var (someString1, someInt) = X();
+
+        string someString;
+    }
+}");
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction4()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    ValueTuple<string, int> X() => default;
+
+    void M()
+    {
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    ValueTuple<string, int> X() => default;
+
+    void M()
+    {
+        (string, int) {|Rename:value|} = X();
+    }
+}");
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction5()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string, int) X() => default;
+
+    void M()
+    {
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string, int) X() => default;
+
+    void M()
+    {
+        (string, int) {|Rename:value|} = X();
     }
 }");
         }
