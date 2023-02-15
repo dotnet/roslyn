@@ -5,9 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 {
@@ -24,9 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
         private static bool CanBeCalledFromStaticContext(LocalFunctionStatementSyntax localFunction, DataFlowAnalysis dataFlow)
         {
-            // If other local functions are called the it can't be made static unles the
-            // are static, or the local function is recursive, or its calling a child local function
-            return !dataFlow.UsedLocalFunctions.Any(static (lf, localFunction) => !lf.IsStatic && !IsChildOrSelf(localFunction, lf), localFunction);
+            // If other local functions are called the it can't be made static unless the are static, or the local
+            // function is recursive, or its calling a child local function
+            return !dataFlow.UsedLocalFunctions.Any(static (usedLocalFunction, localFunctionStatement) =>
+                !usedLocalFunction.IsStatic && !IsChildOrSelf(localFunctionStatement, usedLocalFunction), localFunction);
 
             static bool IsChildOrSelf(LocalFunctionStatementSyntax containingLocalFunction, ISymbol calledLocationFunction)
             {
@@ -36,21 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
         }
 
-        private static bool HasCapturesThatArentThis(ImmutableArray<ISymbol> captures)
-            => !captures.IsEmpty && !captures.Any(static s => s.IsThisParameter());
-
         public static bool CanMakeLocalFunctionStaticBecauseNoCaptures(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel)
-            => TryGetDataFlowAnalysis(localFunction, semanticModel, out var dataFLow)
-            && CanBeCalledFromStaticContext(localFunction, dataFLow)
-            && dataFLow.CapturedInside.IsEmpty;
+            => TryGetDataFlowAnalysis(localFunction, semanticModel, out var dataFlow)
+            && CanBeCalledFromStaticContext(localFunction, dataFlow)
+            && dataFlow.CapturedInside.IsEmpty;
 
         public static bool CanMakeLocalFunctionStaticByRefactoringCaptures(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
         {
-            if (TryGetDataFlowAnalysis(localFunction, semanticModel, out var dataFLow) &&
-                CanBeCalledFromStaticContext(localFunction, dataFLow) &&
-                HasCapturesThatArentThis(dataFLow.CapturedInside))
+            if (TryGetDataFlowAnalysis(localFunction, semanticModel, out var dataFlow) &&
+                CanBeCalledFromStaticContext(localFunction, dataFlow) &&
+                !dataFlow.CapturedInside.IsEmpty)
             {
-                captures = dataFLow.CapturedInside;
+                captures = dataFlow.CapturedInside;
                 return true;
             }
 
