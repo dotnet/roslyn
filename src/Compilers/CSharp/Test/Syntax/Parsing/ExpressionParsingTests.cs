@@ -1412,85 +1412,6 @@ class C
             EOF();
         }
 
-        [Fact]
-        public void TopLevel_NewAsyncArray_Incomplete()
-        {
-            UsingTree("new async[",
-                // (1,11): error CS1003: Syntax error, ']' expected
-                // new async[
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 11)
-                );
-
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.NewKeyword);
-                    N(SyntaxKind.ArrayType);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "async");
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.OmittedArraySizeExpression);
-                            {
-                                N(SyntaxKind.OmittedArraySizeExpressionToken);
-                            }
-                            M(SyntaxKind.CloseBracketToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void TopLevel_NewAsyncArray()
-        {
-            UsingTree("new async[1];",
-                // (1,12): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // new async[1];
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(1, 12)
-                );
-
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.NewKeyword);
-                    N(SyntaxKind.ArrayType);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "async");
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "1");
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
         [Theory]
         [InlineData("file")]
         [InlineData("required")]
@@ -1576,6 +1497,7 @@ class C
         [Theory]
         [InlineData("file")]
         [InlineData("required")]
+        [InlineData("async")]
         public void TopLevel_NewContextualKeywordArray(string keyword)
         {
             UsingTree($"""
