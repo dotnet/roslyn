@@ -108,9 +108,10 @@ namespace Microsoft.CodeAnalysis
             if (IsCached)
                 return this;
 
-            // It's only safe to remove entries that were removed due to their input being removed,
-            // but we have to keep entries removed just because they didn't produce anything,
-            // so their state isn't incorrectly reused in later generations.
+            // If the input to an entry was removed, we also need to remove the entry.
+            // However, if the input was present, but the entry didn't produce any values (or removed them all),
+            // we need to keep the empty entry as a placeholder, so that on the next generation pass
+            // we can retrieve it as the cached value of the input.
             var nonRemovedCount = _states.Count(static e => !e.IsRemovedDueToInputRemoval);
 
             var compacted = ArrayBuilder<TableEntry>.GetInstance(nonRemovedCount);
