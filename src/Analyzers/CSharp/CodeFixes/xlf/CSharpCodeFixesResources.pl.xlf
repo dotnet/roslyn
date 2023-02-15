@@ -122,6 +122,11 @@
         <target state="translated">Usuń pusty wiersz w nawiasach klamrowych</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="new">Remove 'in' keyword</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
         <target state="translated">Usuń nieosiągalny kod</target>
