@@ -8624,5 +8624,84 @@ class Program
             await TestAsync(source,
                 MainDescription($"({FeaturesResources.local_variable}) scoped ref int r"));
         }
+
+        [Fact]
+        public async Task TestUsingAliasToType1()
+        {
+            var source =
+@"using X = $$int;";
+            await TestAsync(source,
+                MainDescription($"struct System.Int32"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType1_A()
+        {
+            var source =
+@"using $$X = int;";
+            await TestAsync(source,
+                MainDescription($"struct System.Int32"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType2()
+        {
+            var source =
+@"using X = ($$int a, int b);";
+            await TestAsync(source,
+                MainDescription($"struct System.Int32"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType2_A()
+        {
+            var source =
+@"using $$X = (int a, int b);";
+            await TestAsync(source,
+                MainDescription($"(int a, int b)"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType3()
+        {
+            var source =
+@"using X = $$(int a, int b);";
+            await TestAsync(source);
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType4()
+        {
+            var source =
+@"using unsafe X = $$delegate*<int,int>;";
+            await TestAsync(source);
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType4_A()
+        {
+            var source =
+@"using unsafe $$X = delegate*<int,int>;";
+            await TestAsync(source,
+                MainDescription($"delegate*<int, int>"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType5()
+        {
+            var source =
+@"using unsafe X = $$int*;";
+            await TestAsync(source,
+                MainDescription($"struct System.Int32"));
+        }
+
+        [Fact]
+        public async Task TestUsingAliasToType5_A()
+        {
+            var source =
+@"using unsafe $$X = int*;";
+            await TestAsync(source,
+                MainDescription($"int*"));
+        }
     }
 }
