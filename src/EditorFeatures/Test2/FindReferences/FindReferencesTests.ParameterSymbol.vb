@@ -932,6 +932,7 @@ using System;
 class Goo(int x, int {|Definition:$$y|})
 {
     public int y { get; } = [|y|];
+    public int z => y;
 }
 
 class P
@@ -960,6 +961,7 @@ using System;
 struct Goo(int x, int {|Definition:$$y|})
 {
     public int y { get; } = [|y|];
+    public int z => y;
 }
 
 class P
@@ -1016,6 +1018,7 @@ using System;
 class Goo(int x, int {|Definition:y|})
 {
     public int y { get; } = [|$$y|];
+    public int z => y;
 }
 
 class P
@@ -1044,6 +1047,7 @@ using System;
 struct Goo(int x, int {|Definition:y|})
 {
     public int y { get; } = [|$$y|];
+    public int z => y;
 }
 
 class P
@@ -1100,6 +1104,7 @@ using System;
 class Goo(int x, int {|Definition:y|})
 {
     public int y { get; } = [|y|];
+    public int z => y;
 }
 
 class P
@@ -1128,6 +1133,7 @@ using System;
 struct Goo(int x, int {|Definition:y|})
 {
     public int y { get; } = [|y|];
+    public int z => y;
 }
 
 class P
