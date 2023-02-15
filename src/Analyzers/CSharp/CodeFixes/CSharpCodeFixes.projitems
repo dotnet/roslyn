@@ -32,6 +32,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceTransform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertToRecord\ConvertToRecordEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertToRecord\ConvertToRecordHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertToRecord\CSharpConvertToRecordCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertToRecord\PositionalParameterInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\CSharpConvertTypeOfToNameOfCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.Rewriter.cs" />

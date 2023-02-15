@@ -588,10 +588,6 @@
     <value>Convert '{0}' to record</value>
     <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="Convert_to_positional_record" xml:space="preserve">
-    <value>Convert to positional record</value>
-    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
-  </data>
   <data name="Apply_readonly_struct_preferences" xml:space="preserve">
     <value>Apply 'readonly struct' preferences</value>
   </data>
