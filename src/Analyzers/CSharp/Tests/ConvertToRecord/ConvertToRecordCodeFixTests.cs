@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertToRecord;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -146,11 +147,6 @@ namespace N
 
         private class CodeFixTest : CSharpCodeFixVerifier<TestAnalyzer, CSharpConvertToRecordCodeFixProvider>.Test
         {
-            public CodeFixTest()
-            {
-                LanguageVersion = LanguageVersion.CSharp10;
-                ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60;
-            }
         }
 
         private static async Task TestCodeFixAsync(string initialMarkup, string fixedMarkup)
@@ -159,6 +155,8 @@ namespace N
             {
                 TestCode = initialMarkup,
                 FixedCode = fixedMarkup,
+                LanguageVersion = LanguageVersion.CSharp10,
+                ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60,
             };
             await test.RunAsync().ConfigureAwait(false);
         }
