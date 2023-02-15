@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var allowFixAll = (CodeFixTestBehaviors & CodeFixTestBehaviors.SkipFixAllCheck) != CodeFixTestBehaviors.SkipFixAllCheck;
 
+            var diagnostics = await VerifySourceGeneratorAsync(testState, Verify.PushContext("Generated sources of test state"), cancellationToken).ConfigureAwait(false);
             await VerifyDiagnosticsAsync(new EvaluatedProjectState(testState, ReferenceAssemblies), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), testState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of test state"), cancellationToken).ConfigureAwait(false);
 
             if (CodeFixExpected())
@@ -501,6 +502,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
             ExceptionDispatchInfo? iterationCountFailure;
             (project, iterationCountFailure) = await getFixedProject(analyzers, codeFixProviders, CodeActionIndex, CodeActionEquivalenceKey, CodeActionVerifier, project, numberOfIterations, verifier, cancellationToken).ConfigureAwait(false);
+
+            var diagnostics = await VerifySourceGeneratorAsync(newState, verifier.PushContext("Generated sources of fixed state"), cancellationToken).ConfigureAwait(false);
 
             // After applying all of the code fixes, compare the resulting string to the inputted one
             await VerifyProjectAsync(newState, project, verifier, cancellationToken).ConfigureAwait(false);
