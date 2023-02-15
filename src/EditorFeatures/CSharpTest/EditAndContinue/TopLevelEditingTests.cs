@@ -18762,6 +18762,58 @@ System.Console.Write(1);
                 Diagnostic(RudeEditKind.Update, "long a", FeaturesResources.parameter));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_18([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x, int y) { void M() { x++; } System.Func<int> z = () => y; }";
+            var src2 = keyword + " C(int x, int y) { void M() { x++; } System.Func<int> z = () => x + y; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "z = () => x + y", FeaturesResources.field));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_19([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x, int y) { void M() { x++; } System.Func<int> z = () => x + y; }";
+            var src2 = keyword + " C(int x, int y) { void M() { x++; } System.Func<int> z = () => y; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "z = () => y", FeaturesResources.field));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_20([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x) { void M() { x++; } }";
+            var src2 = keyword + " C(int x) { void M() { x++; } System.Func<int> z = () => x; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "z = () => x", FeaturesResources.field));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_21([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x) { void M() { x++; } System.Func<int> z = () => x; }";
+            var src2 = keyword + " C(int x) { void M() { x++; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, keyword + " C", FeaturesResources.field));
+        }
+
         #endregion
     }
 }
