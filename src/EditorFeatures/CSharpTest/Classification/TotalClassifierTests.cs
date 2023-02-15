@@ -2723,5 +2723,102 @@ Keyword("async"));
                 Operators.EqualsGreaterThan,
                 Parameter("x"));
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task UsingAliasToType1(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using X = int;
+                """,
+                testHost,
+                Keyword("using"),
+                Struct("X"),
+                Operators.Equals,
+                Keyword("int"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task UsingAliasToType2(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using X = int[];
+                """,
+                testHost,
+                Keyword("using"),
+                Identifier("X"),
+                Operators.Equals,
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task UsingAliasToType3(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using unsafe X = int*;
+                """,
+                testHost,
+                Keyword("using"),
+                Keyword("unsafe"),
+                Identifier("X"),
+                Operators.Equals,
+                Keyword("int"),
+                Operators.Asterisk,
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task UsingAliasToType4(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using unsafe X = delegate*<int,int>;
+                """,
+                testHost,
+                Keyword("using"),
+                Keyword("unsafe"),
+                Identifier("X"),
+                Operators.Equals,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task UsingAliasToType5(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using X = (int x, string b);
+                """,
+                testHost,
+                Keyword("using"),
+                Struct("X"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Identifier("x"),
+                Punctuation.Comma,
+                Keyword("string"),
+                Identifier("b"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon);
+        }
     }
 }
