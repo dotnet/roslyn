@@ -24,5 +24,5 @@ internal static class InternalDiagnosticsOptions
         "InternalDiagnosticsOptions_LiveShareDiagnosticMode", defaultValue: DiagnosticMode.LspPull, serializer: s_editorConfigValueSerializer);
 
     public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new(
-        "InternalDiagnosticsOptions_NormalDiagnosticMode", defaultValue: DiagnosticMode.Default, serializer: s_editorConfigValueSerializer);
+        "csharp_internal_diagnostics_options_normal_diagnostic_mode", defaultValue: DiagnosticMode.Default, serializer: s_editorConfigValueSerializer);
 }

@@ -36,7 +36,7 @@ internal static class IdeAnalyzerOptionsStorage
     }
 
     public static readonly Option2<bool> CrashOnAnalyzerException = new(
-        "InternalDiagnosticsOptions_CrashOnAnalyzerException", IdeAnalyzerOptions.CommonDefault.CrashOnAnalyzerException);
+        "dotnet_internal_diagnostics_options_crash_on_analyzer_exception", IdeAnalyzerOptions.CommonDefault.CrashOnAnalyzerException);
 
     public static PerLanguageOption2<bool> ReportInvalidPlaceholdersInStringDotFormatCalls = new(
         "dotnet_validate_format_string_option_report_invalid_placeholders_in_string_dot_format_calls", IdeAnalyzerOptions.CommonDefault.ReportInvalidPlaceholdersInStringDotFormatCalls);
