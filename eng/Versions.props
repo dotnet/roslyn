@@ -69,7 +69,7 @@
     
     <!-- <Metalama> -->
     <MetalamaBackstageVersion></MetalamaBackstageVersion>
-    <PostSharpEngineeringVersion>1.0.122-preview</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion>1.0.123-preview</PostSharpEngineeringVersion>
     
     <!-- this needs to be undefined, not sure why -->
     <MajorVersion>
