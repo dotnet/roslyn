@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
             }
 
-            public new static CodeActionWithNestedActions Create(
+            public static new CodeActionWithNestedActions Create(
                string title,
                ImmutableArray<CodeAction> nestedActions,
                bool isInlinable,
