@@ -10,11 +10,8 @@ stages:
     - download: current
       artifact: Variables-Windows
       displayName: 🔻 Download Variables-Windows artifact
-    - task: PowerShell@2
+    - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
       displayName: ⚙️ Set pipeline variables based on artifacts
-      inputs:
-        targetType: filePath
-        filePath: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
     - download: current
       artifact: symbols-legacy
       displayName: 🔻 Download symbols-legacy artifact

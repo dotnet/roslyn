@@ -36,30 +36,27 @@ stages:
       clean: true
       fetchDepth: 1
     - task: UseDotNet@2
-      displayName: Install .NET SDK
+      displayName: ⚙️ Install .NET SDK
       inputs:
         packageType: sdk
         version: 6.x
     - task: NuGetAuthenticate@1
-      displayName: Authenticate NuGet feeds
+      displayName: 🔏 Authenticate NuGet feeds
       inputs:
         forceReinstallCredentialProvider: true
     - download: current
       artifact: Variables-Windows
-      displayName: Download Variables-Windows artifact
-    - task: PowerShell@2
-      displayName: Set pipeline variables based on artifacts
-      inputs:
-        targetType: filePath
-        filePath: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+      displayName: 🔻 Download Variables-Windows artifact
+    - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+      displayName: ⚙️ Set pipeline variables based on artifacts
     - download: current
       artifact: VSInsertion-Windows
-      displayName: Download VSInsertion-Windows artifact
+      displayName: 🔻 Download VSInsertion-Windows artifact
     - script: dotnet nuget push VSInsertion-windows\*.nupkg -s https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json -k azdo --skip-duplicate
-      displayName: Push CoreXT packages to VS feed
+      displayName: 📦 Push CoreXT packages to VS feed
       workingDirectory: $(Pipeline.Workspace)
     - task: MicroBuildInsertVsPayload@4
-      displayName: Insert VS Payload
+      displayName: 🏭 Insert VS Payload
       inputs:
         TeamName: $(TeamName)
         TeamEmail: $(TeamEmail)
@@ -78,7 +75,7 @@ stages:
         Remember to Abandon and (if allowed) to Delete Source Branch on that insertion PR when validation is complete.
         "@
         azure-pipelines/PostPRMessage.ps1 -AccessToken '$(System.AccessToken)' -Markdown $Markdown -Verbose
-      displayName: Comment on pull request
+      displayName: ✏️ Comment on pull request
       condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
     - task: MicroBuildCleanup@1
-      displayName: Send Telemetry
+      displayName: ☎️ Send Telemetry

@@ -19,24 +19,24 @@ jobs:
   steps:
   - checkout: none
   - powershell: Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
-    displayName: Set pipeline name
+    displayName: ⚙️ Set pipeline name
   - task: UseDotNet@2
-    displayName: Install .NET SDK
+    displayName: ⚙️ Install .NET SDK
     inputs:
       packageType: sdk
       version: 6.x
   - task: NuGetAuthenticate@1
-    displayName: Authenticate NuGet feeds
+    displayName: 🔏 Authenticate NuGet feeds
     inputs:
       forceReinstallCredentialProvider: true
   - template: release-deployment-prep.yml
   - download: CI
     artifact: VSInsertion-Windows
-    displayName: Download VSInsertion-Windows artifact
+    displayName: 🔻 Download VSInsertion-Windows artifact
   - script: dotnet nuget push $(Pipeline.Workspace)\CI\VSInsertion-windows\*.nupkg -s https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json -k azdo --skip-duplicate
-    displayName: Push CoreXT packages to VS feed
+    displayName: 📦 Push CoreXT packages to VS feed
   - task: MicroBuildInsertVsPayload@4
-    displayName: Insert VS Payload
+    displayName: 🏭 Insert VS Payload
     inputs:
       TeamName: $(TeamName)
       TeamEmail: $(TeamEmail)
@@ -45,7 +45,7 @@ jobs:
       AutoCompletePR: true
       AutoCompleteMergeStrategy: Squash
   - task: MicroBuildCleanup@1
-    displayName: Send Telemetry
+    displayName: ☎️ Send Telemetry
   - powershell: |
       $contentType = 'application/json';
       $headers = @{ Authorization = 'Bearer $(System.AccessToken)' };
@@ -54,4 +54,4 @@ jobs:
       Write-Host $request
       $uri = "$(System.CollectionUri)$(System.TeamProject)/_apis/build/retention/leases?api-version=6.0-preview.1";
       Invoke-RestMethod -uri $uri -method POST -Headers $headers -ContentType $contentType -Body $request;
-    displayName: Retain inserted builds
+    displayName: 🗻 Retain inserted builds
