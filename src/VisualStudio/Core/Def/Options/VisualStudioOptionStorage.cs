@@ -373,7 +373,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_internal_feature_on_off_options_snippets", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Snippets2")},
         {"dotnet_internal_feature_on_off_options_squiggles", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Squiggles")},
         {"dotnet_internal_feature_on_off_options_syntactic_colorizer", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Syntactic Colorizer")},
-        {"InternalSolutionCrawlerOptions_Solution Crawler", new LocalUserProfileStorage(@"Roslyn\Internal\SolutionCrawler", "Solution Crawler")},
+        {"dotnet_internal_solution_crawler_options_solution_crawler", new LocalUserProfileStorage(@"Roslyn\Internal\SolutionCrawler", "Solution Crawler")},
         {"dotnet_json_feature_options_colorize_json_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorizeJsonPatterns")},
         {"dotnet_json_feature_options_detect_and_offer_editor_features_for_probable_json_strings", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.DetectAndOfferEditorFeaturesForProbableJsonStrings")},
         {"dotnet_json_feature_options_highlight_related_json_components_under_cursor", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedJsonComponentsUnderCursor")},
