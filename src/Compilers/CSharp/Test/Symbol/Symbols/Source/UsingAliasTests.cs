@@ -254,7 +254,7 @@ partial class A : Object {}
         [InlineData("nint", "nint")]
         public void GetAliasTypeInfo(string aliasType, string expected)
         {
-            // Shoudl get the same results in the semantic model regardless of whether the using has the 'unsafe'
+            // Should get the same results in the semantic model regardless of whether the using has the 'unsafe'
             // keyword or not.
             getAliasTypeInfoHelper("");
             getAliasTypeInfoHelper("unsafe");
