@@ -3,11 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments.CodeFixes
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments
     Public Class RemoveDocCommentNodeCodeFixProviderTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 

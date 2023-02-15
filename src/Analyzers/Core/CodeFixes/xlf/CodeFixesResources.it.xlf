@@ -32,6 +32,11 @@
         <target state="new">Add member name</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_missing_param_nodes">
+        <source>Add missing param nodes</source>
+        <target state="new">Add missing param nodes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parameter_to_0">
         <source>Add parameter to '{0}'</source>
         <target state="new">Add parameter to '{0}'</target>
@@ -100,6 +105,11 @@
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
         <target state="translated">Rimuovi l'assegnazione ridondante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_tag">
+        <source>Remove tag</source>
+        <target state="new">Remove tag</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_or_configure_issues">

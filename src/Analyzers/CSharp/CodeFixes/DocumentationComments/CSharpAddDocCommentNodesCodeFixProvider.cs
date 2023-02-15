@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,10 +9,11 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.DocumentationComments;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
+namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddDocCommentNodes), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
@@ -42,19 +41,17 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         protected override string GetValueFromNameAttribute(XmlNameAttributeSyntax attribute)
             => attribute.Identifier.Identifier.ValueText;
 
-        protected override SyntaxNode TryGetDocCommentNode(SyntaxTriviaList leadingTrivia)
+        protected override SyntaxNode? TryGetDocCommentNode(SyntaxTriviaList leadingTrivia)
         {
             var docCommentNodes = leadingTrivia.Where(f => f.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
 
             foreach (var node in docCommentNodes)
             {
-                var nodeStructure = node.GetStructure();
+                var nodeStructure = node.GetStructure()!;
                 var descendentXmlElements = nodeStructure.DescendantNodes().OfType<XmlElementSyntax>();
 
                 if (descendentXmlElements.Any(element => GetXmlElementLocalName(element) == NodeName))
-                {
                     return nodeStructure;
-                }
             }
 
             return null;
@@ -63,14 +60,15 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         protected override string GetXmlElementLocalName(XmlElementSyntax element)
             => element.StartTag.Name.LocalName.ValueText;
 
-        protected override List<string> GetParameterNames(MemberDeclarationSyntax member)
+        protected override ImmutableArray<string> GetParameterNames(MemberDeclarationSyntax member)
         {
-            var parameterList = (ParameterListSyntax)member.DescendantNodes(descendIntoChildren: _ => true, descendIntoTrivia: false)
-                                                           .FirstOrDefault(f => f is ParameterListSyntax);
+            var parameterList = (ParameterListSyntax?)member
+                .DescendantNodes(descendIntoChildren: _ => true, descendIntoTrivia: false)
+                .FirstOrDefault(f => f is ParameterListSyntax);
 
-            return parameterList != null
-                   ? parameterList.Parameters.Select(s => s.Identifier.ValueText).ToList()
-                   : new List<string>();
+            return parameterList == null
+                ? ImmutableArray<string>.Empty
+                : parameterList.Parameters.SelectAsArray(s => s.Identifier.ValueText);
         }
 
         protected override XmlElementSyntax GetNewNode(string parameterName, bool isFirstNodeInComment)

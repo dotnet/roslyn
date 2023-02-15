@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,9 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
+namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal abstract class AbstractRemoveDocCommentNodeCodeFixProvider<TXmlElementSyntax, TXmlTextSyntax> : CodeFixProvider
         where TXmlElementSyntax : SyntaxNode
@@ -34,20 +33,20 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-            if (GetParamNode(root, context.Span) != null)
+            var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var paramNode = GetParamNode(root, context.Span);
+            if (paramNode != null)
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        FeaturesResources.Remove_tag,
-                        c => RemoveDuplicateParamTagAsync(context.Document, context.Span, c),
-                        nameof(FeaturesResources.Remove_tag)),
+                        CodeFixesResources.Remove_tag,
+                        cancellationToken => RemoveDuplicateParamTagAsync(context.Document, paramNode, cancellationToken),
+                        nameof(CodeFixesResources.Remove_tag)),
                     context.Diagnostics);
             }
         }
 
-        private static TXmlElementSyntax GetParamNode(SyntaxNode root, TextSpan span)
+        private static TXmlElementSyntax? GetParamNode(SyntaxNode root, TextSpan span)
         {
             // First, we get the node the diagnostic fired on
             // Then, we climb the tree to the first parent that is of the type XMLElement
@@ -58,13 +57,12 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         }
 
         private async Task<Document> RemoveDuplicateParamTagAsync(
-            Document document, TextSpan span, CancellationToken cancellationToken)
+            Document document, TXmlElementSyntax paramNode, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var paramNode = GetParamNode(root, span);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var removedNodes = new List<SyntaxNode> { paramNode };
-            var paramNodeSiblings = paramNode.Parent.ChildNodes().ToList();
+            var paramNodeSiblings = paramNode.GetRequiredParent().ChildNodes().ToList();
 
             // This should not cause a crash because the diagnostics are only thrown in
             // doc comment XML nodes, which, by definition, start with `///` (C#) or `'''` (VB.NET)
@@ -81,6 +79,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             // Really, any option should work here because the leading/trailing text
             // around these nodes are not attached to them as trivia.
             var newRoot = root.RemoveNodes(removedNodes, SyntaxRemoveOptions.KeepNoTrivia);
+            Contract.ThrowIfNull(newRoot);
             return document.WithSyntaxRoot(newRoot);
         }
 
