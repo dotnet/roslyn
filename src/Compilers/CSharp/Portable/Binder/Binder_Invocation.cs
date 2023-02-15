@@ -633,6 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var arguments = interceptsLocation.CommonConstructorArguments;
+                if (arguments.Length != 3) { return null; }
                 var filePath = (string)arguments[0].Value!;
                 var line = (int)arguments[1].Value!;
                 var col = (int)arguments[2].Value!;
