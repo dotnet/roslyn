@@ -44,6 +44,13 @@ $$", options: CSharp9ParseOptions);
         }
 
         [Fact]
+        public async Task TestNotInUsing()
+        {
+            await VerifyAbsenceAsync(
+@"using $$");
+        }
+
+        [Fact]
         public async Task TestInUsingAlias()
         {
             await VerifyKeywordAsync(

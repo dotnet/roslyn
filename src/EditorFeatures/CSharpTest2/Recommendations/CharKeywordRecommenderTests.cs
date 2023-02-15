@@ -43,6 +43,13 @@ $$");
 $$");
         }
 
+        [Fact]
+        public async Task TestNotInUsing()
+        {
+            await VerifyAbsenceAsync(
+@"using $$");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUsingAlias()
         {
