@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Testing.Extensions;
+using Microsoft.CodeAnalysis.Testing.Lightup;
 using Microsoft.CodeAnalysis.Testing.Model;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -1742,6 +1743,20 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private sealed class LightupGeneratorDriverRunResult
         {
+            private static readonly Type? s_generatorDriverRunResultType = typeof(Compilation).GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.GeneratorDriverRunResult");
+
+            private static readonly Func<object, ImmutableArray<SyntaxTree>> s_generatedTrees =
+                LightupHelpers.CreatePropertyAccessor<object, ImmutableArray<SyntaxTree>>(
+                    s_generatorDriverRunResultType,
+                    nameof(GeneratedTrees),
+                    defaultValue: ImmutableArray<SyntaxTree>.Empty);
+
+            private static readonly Func<object, ImmutableArray<Diagnostic>> s_diagnostics =
+                LightupHelpers.CreatePropertyAccessor<object, ImmutableArray<Diagnostic>>(
+                    s_generatorDriverRunResultType,
+                    nameof(Diagnostics),
+                    defaultValue: ImmutableArray<Diagnostic>.Empty);
+
             private readonly object _instance;
 
             public LightupGeneratorDriverRunResult(object instance)
@@ -1749,21 +1764,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 _instance = instance;
             }
 
-            public ImmutableArray<SyntaxTree> GeneratedTrees
-            {
-                get
-                {
-                    return (ImmutableArray<SyntaxTree>)_instance.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == nameof(GeneratedTrees)).GetValue(_instance)!;
-                }
-            }
+            public ImmutableArray<SyntaxTree> GeneratedTrees => s_generatedTrees(_instance);
 
-            public ImmutableArray<Diagnostic> Diagnostics
-            {
-                get
-                {
-                    return (ImmutableArray<Diagnostic>)_instance.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == nameof(Diagnostics)).GetValue(_instance)!;
-                }
-            }
+            public ImmutableArray<Diagnostic> Diagnostics => s_diagnostics(_instance);
         }
     }
 }
