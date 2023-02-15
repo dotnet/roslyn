@@ -196,6 +196,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 }", parseOptions: CSharp8ParseOptions);
         }
 
+        [Fact, WorkItem(38734, "https://github.com/dotnet/roslyn/issues/38734")]
+        public async Task ShouldTriggerIfCapturesThisParameter4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int x;
+
+    int N()
+    {
+        return AddLocal(null);
+
+        int [||]AddLocal(C c)
+        {
+            return x + c.x;
+        }
+    }  
+}",
+@"class C
+{
+    int x;
+
+    int N()
+    {
+        return AddLocal(this, null);
+
+        static int AddLocal(C @this, C c)
+        {
+            return @this.x + c.x;
+        }
+    }  
+}", parseOptions: CSharp8ParseOptions);
+        }
+
         [Fact]
         public async Task ShouldTriggerIfExplicitlyPassedInThisParameter()
         {
