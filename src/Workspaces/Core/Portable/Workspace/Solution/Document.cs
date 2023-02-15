@@ -453,7 +453,8 @@ namespace Microsoft.CodeAnalysis
             if (solution.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
-                var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
+                var linkedDocumentIds = this.GetLinkedDocumentIds();
+                var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, linkedDocumentIds, cancellationToken);
                 return newSolution.GetDocument(this.Id)!;
             }
             else

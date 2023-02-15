@@ -1676,9 +1676,9 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
-        internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
+        internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, ImmutableArray<DocumentId> linkedDocumentIds, CancellationToken cancellationToken)
         {
-            var newState = _state.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+            var newState = _state.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, linkedDocumentIds, cancellationToken);
             return new Solution(newState);
         }
 

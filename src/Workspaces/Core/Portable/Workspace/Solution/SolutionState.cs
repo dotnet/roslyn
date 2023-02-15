@@ -1629,12 +1629,27 @@ namespace Microsoft.CodeAnalysis
         ///
         /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
-        public SolutionState WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
+        public SolutionState WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, ImmutableArray<DocumentId> linkedDocumentIds, CancellationToken cancellationToken)
         {
             try
             {
                 var doc = this.GetRequiredDocumentState(documentId);
                 var tree = doc.GetSyntaxTree(cancellationToken);
+                using var _1 = ArrayBuilder<DocumentState>.GetInstance(out var docBuilder);
+                using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(out var treeBuilder);
+
+                docBuilder.Add(doc);
+                treeBuilder.Add(tree);
+
+                foreach (var linkedDocumentId in linkedDocumentIds)
+                {
+                    var linkedDoc = this.GetRequiredDocumentState(linkedDocumentId);
+                    docBuilder.Add(linkedDoc);
+                    treeBuilder.Add(linkedDoc.GetSyntaxTree(cancellationToken));
+                }
+
+                var linkedDocs = docBuilder.AsImmutable();
+                var linkedTrees = treeBuilder.AsImmutable();
 
                 using (this.StateLock.DisposableWait(cancellationToken))
                 {
@@ -1658,13 +1673,22 @@ namespace Microsoft.CodeAnalysis
                         return currentPartialSolution!;
                     }
 
-                    // if we don't have one or it is stale, create a new partial solution
-                    var tracker = this.GetCompilationTracker(documentId.ProjectId);
-                    var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
+                    var newIdToProjectStateMap = _projectIdToProjectStateMap;
+                    var newIdToTrackerMap = _projectIdToTrackerMap;
 
-                    Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(documentId.ProjectId));
-                    var newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(documentId.ProjectId, newTracker.ProjectState);
-                    var newIdToTrackerMap = _projectIdToTrackerMap.SetItem(documentId.ProjectId, newTracker);
+                    for (var i = 0; i < linkedDocs.Length; i++)
+                    {
+                        var linkedDoc = linkedDocs[i];
+                        var linkedTree = linkedTrees[i];
+
+                        // if we don't have one or it is stale, create a new partial solution
+                        var tracker = this.GetCompilationTracker(linkedDoc.Id.ProjectId);
+                        var newTracker = tracker.FreezePartialStateWithTree(this, linkedDoc, linkedTree, cancellationToken);
+
+                        Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(linkedDoc.Id.ProjectId));
+                        newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(linkedDoc.Id.ProjectId, newTracker.ProjectState);
+                        newIdToTrackerMap = _projectIdToTrackerMap.SetItem(linkedDoc.Id.ProjectId, newTracker);
+                    }
 
                     currentPartialSolution = this.Branch(
                         idToProjectStateMap: newIdToProjectStateMap,
