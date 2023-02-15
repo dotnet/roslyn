@@ -8,13 +8,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
+using Microsoft.CodeAnalysis.CSharp.IntroduceParameter;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroduceParameter
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceParameter
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
     public class IntroduceParameterTests : AbstractCSharpCodeActionTest
