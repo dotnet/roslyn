@@ -5921,7 +5921,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 using X = int?;
                 """);
             TestNormalizeDeclaration("""
-                using X=delegate * <int,int>;
+                using X=delegate * <int,int> ;
                 """, """
                 using X = delegate*<int, int>;
                 """);
