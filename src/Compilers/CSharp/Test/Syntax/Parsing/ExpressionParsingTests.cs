@@ -1448,6 +1448,49 @@ class C
             EOF();
         }
 
+        [Fact]
+        public void TopLevel_NewAsyncArray()
+        {
+            UsingTree("new async[1];",
+                // (1,12): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // new async[1];
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(1, 12)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Theory]
         [InlineData("file")]
         [InlineData("required")]
