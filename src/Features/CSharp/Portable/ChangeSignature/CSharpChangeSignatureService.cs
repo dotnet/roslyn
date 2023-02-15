@@ -45,7 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.ParenthesizedLambdaExpression,
             SyntaxKind.LocalFunctionStatement,
             SyntaxKind.RecordStructDeclaration,
-            SyntaxKind.RecordDeclaration);
+            SyntaxKind.RecordDeclaration,
+            SyntaxKind.StructDeclaration,
+            SyntaxKind.ClassDeclaration);
 
         private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
             _declarationKinds.Concat(ImmutableArray.Create(
@@ -90,7 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.ParenthesizedLambdaExpression,
             SyntaxKind.SimpleLambdaExpression,
             SyntaxKind.RecordStructDeclaration,
-            SyntaxKind.RecordDeclaration);
+            SyntaxKind.RecordDeclaration,
+            SyntaxKind.StructDeclaration,
+            SyntaxKind.ClassDeclaration);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -289,7 +293,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 updatedNode.IsKind(SyntaxKind.IndexerDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.DelegateDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.RecordStructDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.RecordDeclaration))
+                updatedNode.IsKind(SyntaxKind.RecordDeclaration) ||
+                updatedNode.IsKind(SyntaxKind.StructDeclaration) ||
+                updatedNode.IsKind(SyntaxKind.ClassDeclaration))
             {
                 var updatedLeadingTrivia = await UpdateParamTagsInLeadingTriviaAsync(document, updatedNode, declarationSymbol, signaturePermutation, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 if (updatedLeadingTrivia != default && !updatedLeadingTrivia.IsEmpty)
@@ -309,6 +315,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 var updatedParameters = UpdateDeclaration(record.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return record.WithParameterList(record.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            }
+
+            if (updatedNode is ClassDeclarationSyntax { ParameterList: not null } @class)
+            {
+                var updatedParameters = UpdateDeclaration(@class.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                return @class.WithParameterList(@class.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            }
+
+            if (updatedNode is StructDeclarationSyntax { ParameterList: not null } @struct)
+            {
+                var updatedParameters = UpdateDeclaration(@struct.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                return @struct.WithParameterList(@struct.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode is LocalFunctionStatementSyntax localFunction)

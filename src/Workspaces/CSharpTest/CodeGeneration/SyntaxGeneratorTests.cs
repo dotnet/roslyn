@@ -3165,7 +3165,8 @@ public class C
 
             Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.DelegateDeclaration("d"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
 
-            Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.StructDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.IdentifierName("x"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
         }
 
@@ -3865,7 +3866,7 @@ $@"public {typeKind} C
 }}");
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public void TestInsertMembersOnClass_SemiColon()
         {
             var comp = Compile(
@@ -3904,7 +3905,7 @@ $@"public class C
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public void TestInsertMembersOnStruct_SemiColon()
         {
             var comp = Compile(
@@ -3919,6 +3920,42 @@ $@"public struct C;
 $@"public struct C
 {{
     T A;
+}}");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnInterface_SemiColon()
+        {
+            var comp = Compile(
+$@"public interface C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.PropertyDeclaration("A", Generator.IdentifierName("T"))),
+$@"public interface C
+{{
+    T A {{ get; set; }}
+}}");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnEnum_SemiColon()
+        {
+            var comp = Compile(
+$@"public enum C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<EnumDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.EnumMember("A")),
+$@"public enum C
+{{
+    A
 }}");
         }
 

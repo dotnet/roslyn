@@ -1328,14 +1328,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 _ => 1,
             };
 
-        private static SyntaxNode EnsureRecordDeclarationHasBody(SyntaxNode declaration)
+        private static SyntaxNode EnsureTypeDeclarationHasBody(SyntaxNode declaration)
         {
-            if (declaration is RecordDeclarationSyntax recordDeclaration)
+            if (declaration is BaseTypeDeclarationSyntax typeDeclaration)
             {
-                return recordDeclaration
+                return typeDeclaration
                     .WithSemicolonToken(default)
-                    .WithOpenBraceToken(recordDeclaration.OpenBraceToken == default ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken) : recordDeclaration.OpenBraceToken)
-                    .WithCloseBraceToken(recordDeclaration.CloseBraceToken == default ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken) : recordDeclaration.CloseBraceToken);
+                    .WithOpenBraceToken(typeDeclaration.OpenBraceToken == default ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken) : typeDeclaration.OpenBraceToken)
+                    .WithCloseBraceToken(typeDeclaration.CloseBraceToken == default ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken) : typeDeclaration.CloseBraceToken);
             }
 
             return declaration;
@@ -1343,7 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertMembers(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> members)
         {
-            declaration = EnsureRecordDeclarationHasBody(declaration);
+            declaration = EnsureTypeDeclarationHasBody(declaration);
             var newMembers = this.AsMembersOf(declaration, members);
 
             var existingMembers = this.GetMembers(declaration);
@@ -2252,6 +2252,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
                     return ((RecordDeclarationSyntax)declaration).WithParameterList((ParameterListSyntax)list);
+                case SyntaxKind.ClassDeclaration:
+                    return ((ClassDeclarationSyntax)declaration).WithParameterList((ParameterListSyntax)list);
+                case SyntaxKind.StructDeclaration:
+                    return ((StructDeclarationSyntax)declaration).WithParameterList((ParameterListSyntax)list);
                 default:
                     return declaration;
             }

@@ -785,7 +785,7 @@ record R(int I);
             End Using
         End Function
 
-        <WpfTheory(Skip:="PROTOTYPE(PrimaryConstructors): fails"), CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitParam_Class(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -804,7 +804,7 @@ class R(int I);
             End Using
         End Function
 
-        <WpfTheory(Skip:="PROTOTYPE(PrimaryConstructors): fails"), CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitParam_Struct(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
