@@ -790,27 +790,47 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 case SyntaxKind.UsingStatement:
-                    var leftUsing = (UsingStatementSyntax)leftNode;
-                    var rightUsing = (UsingStatementSyntax)rightNode;
-
-                    if (leftUsing.Declaration != null && rightUsing.Declaration != null)
                     {
-                        distance = ComputeWeightedDistance(
-                            leftUsing.Declaration,
-                            leftUsing.Statement,
-                            rightUsing.Declaration,
-                            rightUsing.Statement);
-                    }
-                    else
-                    {
-                        distance = ComputeWeightedDistance(
-                            (SyntaxNode?)leftUsing.Expression ?? leftUsing.Declaration!,
-                            leftUsing.Statement,
-                            (SyntaxNode?)rightUsing.Expression ?? rightUsing.Declaration!,
-                            rightUsing.Statement);
+                        var leftUsing = (UsingStatementSyntax)leftNode;
+                        var rightUsing = (UsingStatementSyntax)rightNode;
+
+                        if (leftUsing.Declaration != null && rightUsing.Declaration != null)
+                        {
+                            distance = ComputeWeightedDistance(
+                                leftUsing.Declaration,
+                                leftUsing.Statement,
+                                rightUsing.Declaration,
+                                rightUsing.Statement);
+                        }
+                        else
+                        {
+                            distance = ComputeWeightedDistance(
+                                (SyntaxNode?)leftUsing.Expression ?? leftUsing.Declaration!,
+                                leftUsing.Statement,
+                                (SyntaxNode?)rightUsing.Expression ?? rightUsing.Declaration!,
+                                rightUsing.Statement);
+                        }
+
+                        return true;
                     }
 
-                    return true;
+                case SyntaxKind.UsingDirective:
+                    {
+                        var leftUsing = (UsingDirectiveSyntax)leftNode;
+                        var rightUsing = (UsingDirectiveSyntax)rightNode;
+
+                        distance =
+                            ComputeDistance(leftUsing.Alias, rightUsing.Alias) +
+                            ComputeDistance(leftUsing.Type, rightUsing.Type);
+
+                        if (leftUsing.GlobalKeyword.IsKind(SyntaxKind.None) != rightUsing.GlobalKeyword.IsKind(SyntaxKind.None))
+                            distance += EpsilonDist;
+
+                        if (leftUsing.UnsafeKeyword.IsKind(SyntaxKind.None) != rightUsing.UnsafeKeyword.IsKind(SyntaxKind.None))
+                            distance += EpsilonDist;
+
+                        return true;
+                    }
 
                 case SyntaxKind.LockStatement:
                     var leftLock = (LockStatementSyntax)leftNode;
@@ -1381,7 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((ExternAliasDirectiveSyntax)node).Identifier;
 
                 case SyntaxKind.UsingDirective:
-                    return ((UsingDirectiveSyntax)node).Name;
+                    return ((UsingDirectiveSyntax)node).Type;
 
                 case SyntaxKind.NamespaceDeclaration:
                 case SyntaxKind.FileScopedNamespaceDeclaration:
