@@ -413,10 +413,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ScopedKeyword = 8448,
         /// <summary>Represents <see langword="file"/>.</summary>
         FileKeyword = 8449,
-        /// <summary>Represents <see langword="role"/>.</summary>
-        RoleKeyword = 8450,
         /// <summary>Represents <see langword="extension"/>.</summary>
-        ExtensionKeyword = 8451,
+        ExtensionKeyword = 8450,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
@@ -914,7 +912,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ScopedType = 9075,
 
-        RoleDeclaration = 9076,
-        ExtensionDeclaration = 9077,
+        ExtensionDeclaration = 9076,
     }
 }
