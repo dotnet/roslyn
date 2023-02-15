@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected diagnostic message arguments to match");
                     verifier.SequenceEqual(
                         expected.MessageArguments.Select(argument => argument?.ToString() ?? string.Empty),
-                        GetArguments(actual.diagnostic).Select(argument => argument?.ToString() ?? string.Empty),
+                        actual.diagnostic.Arguments().Select(argument => argument?.ToString() ?? string.Empty),
                         StringComparer.Ordinal,
                         message);
                 }
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     if (expected.MessageArguments?.Length > 0)
                     {
-                        var actualArguments = GetArguments(actual).Select(ToStringOrEmpty);
+                        var actualArguments = actual.Arguments().Select(ToStringOrEmpty);
                         var expectedArguments = expected.MessageArguments.Select(ToStringOrEmpty);
                         return actualArguments.SequenceEqual(expectedArguments);
                     }
@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
                 }
 
-                var arguments = GetArguments(diagnostics[i]);
+                var arguments = diagnostics[i].Arguments();
                 if (arguments.Count > 0)
                 {
                     builder.Append($".{nameof(DiagnosticResult.WithArguments)}(");
@@ -1615,13 +1615,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 .ThenBy(d => d.diagnostic.Location.SourceSpan.Start)
                 .ThenBy(d => d.diagnostic.Location.SourceSpan.End)
                 .ThenBy(d => d.diagnostic.Id)
-                .ThenBy(d => GetArguments(d.diagnostic), LexicographicComparer.Instance).ToImmutableArray();
-        }
-
-        private static IReadOnlyList<object?> GetArguments(Diagnostic diagnostic)
-        {
-            return (IReadOnlyList<object?>?)diagnostic.GetType().GetProperty("Arguments", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(diagnostic)
-                ?? new object[0];
+                .ThenBy(d => d.diagnostic.Arguments(), LexicographicComparer.Instance).ToImmutableArray();
         }
 
         /// <summary>
