@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             SourceText documentText,
             IUnifiedSuggestedAction suggestedAction,
             LSP.CodeActionKind codeActionKind,
-            UnifiedSuggestedActionSetPriority setPriority,
+            CodeActionPriority setPriority,
             LSP.Range? applicableRange,
             int currentSetNumber,
             ref int currentHighestSetNumber,
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 }
             }
 
-            return CodeAction.CodeActionWithNestedActions.Create(
+            return CodeAction.Create(
                 codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
         }
 
@@ -264,13 +264,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 _ => throw ExceptionUtilities.UnexpectedValue(categoryName)
             };
 
-        private static LSP.VSInternalPriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(UnifiedSuggestedActionSetPriority priority)
+        private static LSP.VSInternalPriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(CodeActionPriority priority)
             => priority switch
             {
-                UnifiedSuggestedActionSetPriority.Lowest => LSP.VSInternalPriorityLevel.Lowest,
-                UnifiedSuggestedActionSetPriority.Low => LSP.VSInternalPriorityLevel.Low,
-                UnifiedSuggestedActionSetPriority.Medium => LSP.VSInternalPriorityLevel.Normal,
-                UnifiedSuggestedActionSetPriority.High => LSP.VSInternalPriorityLevel.High,
+                CodeActionPriority.Lowest => LSP.VSInternalPriorityLevel.Lowest,
+                CodeActionPriority.Low => LSP.VSInternalPriorityLevel.Low,
+                CodeActionPriority.Medium => LSP.VSInternalPriorityLevel.Normal,
+                CodeActionPriority.High => LSP.VSInternalPriorityLevel.High,
                 _ => throw ExceptionUtilities.UnexpectedValue(priority)
             };
 

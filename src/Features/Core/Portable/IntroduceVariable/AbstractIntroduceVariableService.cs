@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         // the code action as 'inlinable' so that if the lightbulb is not cluttered
                         // then the nested items can just be lifted into it, giving the user fast
                         // access to them.
-                        return CodeActionWithNestedActions.Create(title, actions, isInlinable: true);
+                        return CodeAction.Create(title, actions, isInlinable: true);
                     }
                 }
 

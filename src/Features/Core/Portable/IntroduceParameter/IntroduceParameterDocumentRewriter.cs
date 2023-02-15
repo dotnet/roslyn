@@ -16,13 +16,13 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.IntroduceVariable
+namespace Microsoft.CodeAnalysis.IntroduceParameter
 {
-    internal abstract partial class AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax>
+    internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax>
     {
         private class IntroduceParameterDocumentRewriter
         {
-            private readonly AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax> _service;
+            private readonly AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax> _service;
             private readonly Document _originalDocument;
             private readonly SyntaxGenerator _generator;
             private readonly ISyntaxFactsService _syntaxFacts;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private readonly bool _allOccurrences;
 
             public IntroduceParameterDocumentRewriter(
-                AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax> service,
+                AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax> service,
                 Document originalDocument,
                 TExpressionSyntax expression,
                 IMethodSymbol methodSymbol,
