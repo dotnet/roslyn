@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         }
 
         private static readonly Option2<bool> s_showDebugInfoOption = new(
-            "InternalFeatureOnOffOptions_ShowDebugInfo", defaultValue: false);
+            "dotnet_internal_feature_on_off_options_show_debug_info", defaultValue: false);
 
         private static readonly Option2<bool> s_removeRecommendationLimitOption = new(
-            "InternalFeatureOnOffOptions_RemoveRecommendationLimit", defaultValue: false);
+            "dotnet_internal_feature_on_off_options_remove_recommendation_limit", defaultValue: false);
     }
 }

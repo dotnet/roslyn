@@ -8,17 +8,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
     internal sealed class InternalFeatureOnOffOptions
     {
-        public static readonly Option2<bool> BraceMatching = new("InternalFeatureOnOffOptions_BraceMatching", defaultValue: true);
-        public static readonly Option2<bool> Classification = new("InternalFeatureOnOffOptions_Classification", defaultValue: true);
-        public static readonly Option2<bool> SemanticColorizer = new("InternalFeatureOnOffOptions_SemanticColorizer", defaultValue: true);
-        public static readonly Option2<bool> SyntacticColorizer = new("InternalFeatureOnOffOptions_SyntacticColorizer", defaultValue: true);
-        public static readonly Option2<bool> AutomaticLineEnder = new("InternalFeatureOnOffOptions_AutomaticLineEnder", defaultValue: true);
-        public static readonly Option2<bool> SmartIndenter = new("InternalFeatureOnOffOptions_SmartIndenter", defaultValue: true);
-        public static readonly Option2<bool> Squiggles = new("InternalFeatureOnOffOptions_Squiggles", defaultValue: true);
-        public static readonly Option2<bool> FormatOnSave = new("InternalFeatureOnOffOptions_FormatOnSave", defaultValue: true);
-        public static readonly Option2<bool> RenameTracking = new("InternalFeatureOnOffOptions_RenameTracking", defaultValue: true);
-        public static readonly Option2<bool> EventHookup = new("InternalFeatureOnOffOptions_EventHookup", defaultValue: true);
-        public static readonly Option2<bool> Snippets = new("InternalFeatureOnOffOptions_Snippets", defaultValue: true);
-        public static readonly Option2<bool> BackgroundAnalysisMemoryMonitor = new("InternalFeatureOnOffOptions_FullSolutionAnalysisMemoryMonitor", defaultValue: true);
+        public static readonly Option2<bool> BraceMatching = new("dotnet_internal_feature_on_off_options_brace_matching", defaultValue: true);
+        public static readonly Option2<bool> Classification = new("dotnet_internal_feature_on_off_options_classification", defaultValue: true);
+        public static readonly Option2<bool> SemanticColorizer = new("dotnet_internal_feature_on_off_options_semantic_colorizer", defaultValue: true);
+        public static readonly Option2<bool> SyntacticColorizer = new("dotnet_internal_feature_on_off_options_syntactic_colorizer", defaultValue: true);
+        public static readonly Option2<bool> AutomaticLineEnder = new("dotnet_internal_feature_on_off_options_automatic_line_ender", defaultValue: true);
+        public static readonly Option2<bool> SmartIndenter = new("dotnet_internal_feature_on_off_options_smart_indenter", defaultValue: true);
+        public static readonly Option2<bool> Squiggles = new("dotnet_internal_feature_on_off_options_squiggles", defaultValue: true);
+        public static readonly Option2<bool> FormatOnSave = new("visual_basic_internal_feature_on_off_options_format_on_save", defaultValue: true);
+        public static readonly Option2<bool> RenameTracking = new("dotnet_internal_feature_on_off_options_rename_tracking", defaultValue: true);
+        public static readonly Option2<bool> EventHookup = new("csharp_internal_feature_on_off_options_event_hook_up", defaultValue: true);
+        public static readonly Option2<bool> Snippets = new("csharp_internal_feature_on_off_options_snippets", defaultValue: true);
+        public static readonly Option2<bool> BackgroundAnalysisMemoryMonitor = new("dotnet_internal_feature_on_off_options_full_solution_analysis_memory_monitor", defaultValue: true);
     }
 }

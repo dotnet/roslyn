@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed class RemoteHostOptions
     {
         // use 64bit OOP
-        public static readonly Option2<bool> OOP64Bit = new("InternalFeatureOnOffOptions_OOP64Bit", defaultValue: true);
+        public static readonly Option2<bool> OOP64Bit = new("dotnet_internal_feature_on_off_options_oop_64_bit", defaultValue: true);
 
-        public static readonly Option2<bool> OOPServerGCFeatureFlag = new("InternalFeatureOnOffOptions_OOPServerGCFeatureFlag", defaultValue: false);
+        public static readonly Option2<bool> OOPServerGCFeatureFlag = new("dotnet_internal_feature_on_off_options_OOP_server_gc_feature_flag", defaultValue: false);
 
         // use coreclr host for OOP
-        public static readonly Option2<bool> OOPCoreClrFeatureFlag = new("InternalFeatureOnOffOptions_OOPCoreClrFeatureFlag", defaultValue: false);
+        public static readonly Option2<bool> OOPCoreClrFeatureFlag = new("dotnet_internal_feature_on_off_options_oop_core_clr_feature_flag", defaultValue: false);
     }
 }
