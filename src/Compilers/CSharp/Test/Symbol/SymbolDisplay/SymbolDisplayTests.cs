@@ -8567,7 +8567,7 @@ class Program
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.MethodName, // Should be MethodName because of 'op_Equality'
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.NamespaceName,
                 SymbolDisplayPartKind.Punctuation,
@@ -8622,7 +8622,7 @@ class Program
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.Operator, // Should be MethodName because of '=='
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,

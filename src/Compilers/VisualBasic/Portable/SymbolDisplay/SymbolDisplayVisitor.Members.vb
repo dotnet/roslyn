@@ -348,6 +348,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If tokenKind = SyntaxKind.None OrElse format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
                         builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name, visitedParents))
+                    ElseIf SyntaxFacts.IsKeywordKind(tokenKind) Then
+                        AddKeyword(tokenKind)
+                    ElseIf SyntaxFacts.IsOperator(tokenKind) Then
+                        AddOperator(tokenKind)
                     Else
                         AddKeyword(tokenKind)
                     End If
