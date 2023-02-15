@@ -5911,7 +5911,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 using X = (int, int);
                 """);
             TestNormalizeDeclaration("""
-                using unsafe X=int *;
+                using  unsafe  X=int * ;
                 """, """
                 using unsafe X = int*;
                 """);
