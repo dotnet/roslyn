@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' classification behavior since inception.
                         AddKeyword(tokenKind)
                     Else
-                        ' Otherise, if it's an operator and not a keyword (like '+'), then add it as an operator.
+                        ' Otherwise, if it's an operator and not a keyword (like '+'), then add it as an operator.
                         AddOperator(tokenKind)
                     End If
 
