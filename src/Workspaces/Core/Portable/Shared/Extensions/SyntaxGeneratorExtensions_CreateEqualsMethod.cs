@@ -350,6 +350,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+#nullable enable
+
         [return: NotNullIfNotNull(nameof(fallback))]
         public static string? GetLocalName(this ITypeSymbol containingType, string? fallback = "v")
         {
@@ -372,6 +374,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return fallback;
         }
+
+#nullable restore
 
         private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol iequatableType)
         {
