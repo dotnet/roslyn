@@ -340,7 +340,7 @@ class Program
     }
 }",
                 CodeActionIndex = 1,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "Program(int, string)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "Program(int, string)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -391,7 +391,7 @@ class Program
     }
 }",
                 CodeActionIndex = 3,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "Program(int, string)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "Program(int, string)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1087,7 +1087,7 @@ class C
     {
     }
 }",
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1130,7 +1130,7 @@ class C
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 1,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1174,7 +1174,7 @@ class C
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 2,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, int, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, int, int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1217,7 +1217,7 @@ class C
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 3,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1261,7 +1261,7 @@ class C
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 4,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1304,7 +1304,7 @@ class C
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 5,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, int, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, int, int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1363,7 +1363,7 @@ class C
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 1,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, double, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, double, int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1418,7 +1418,7 @@ class C
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 3,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, double)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, double)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1458,7 +1458,7 @@ class C
     {
     }
 }",
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1501,7 +1501,7 @@ class C
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 2,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, double, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, double, int)"), codeAction.Title)
             }.RunAsync();
         }
 

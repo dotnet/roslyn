@@ -16,30 +16,32 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
-internal abstract class SyntaxFormattingOptions
+internal record class SyntaxFormattingOptions
 {
-    [DataContract]
-    internal sealed record class CommonOptions
-    {
-        public static readonly CommonOptions Default = new();
+    /// <summary>
+    /// Language agnostic defaults.
+    /// </summary>
+    internal static readonly SyntaxFormattingOptions CommonDefaults = new();
 
-        [DataMember] public LineFormattingOptions LineFormatting { get; init; } = LineFormattingOptions.Default;
-        [DataMember] public bool SeparateImportDirectiveGroups { get; init; } = false;
-        [DataMember] public AccessibilityModifiersRequired AccessibilityModifiersRequired { get; init; } = AccessibilityModifiersRequired.ForNonInterfaceMembers;
+    [DataMember] public LineFormattingOptions LineFormatting { get; init; } = LineFormattingOptions.Default;
+    [DataMember] public bool SeparateImportDirectiveGroups { get; init; } = false;
+    [DataMember] public AccessibilityModifiersRequired AccessibilityModifiersRequired { get; init; } = AccessibilityModifiersRequired.ForNonInterfaceMembers;
+
+    private protected SyntaxFormattingOptions()
+    {
     }
 
-    [DataMember]
-    public CommonOptions Common { get; init; } = CommonOptions.Default;
+    private protected SyntaxFormattingOptions(IOptionsReader options, SyntaxFormattingOptions fallbackOptions, string language)
+    {
+        LineFormatting = options.GetLineFormattingOptions(language, fallbackOptions.LineFormatting);
+        SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language, fallbackOptions.SeparateImportDirectiveGroups);
+        AccessibilityModifiersRequired = options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, language, fallbackOptions.AccessibilityModifiersRequired);
+    }
 
-    public abstract SyntaxFormattingOptions With(LineFormattingOptions lineFormatting);
-
-    public bool UseTabs => Common.LineFormatting.UseTabs;
-    public int TabSize => Common.LineFormatting.TabSize;
-    public int IndentationSize => Common.LineFormatting.IndentationSize;
-    public LineFormattingOptions LineFormatting => Common.LineFormatting;
-    public string NewLine => Common.LineFormatting.NewLine;
-    public bool SeparateImportDirectiveGroups => Common.SeparateImportDirectiveGroups;
-    public AccessibilityModifiersRequired AccessibilityModifiersRequired => Common.AccessibilityModifiersRequired;
+    public bool UseTabs => LineFormatting.UseTabs;
+    public int TabSize => LineFormatting.TabSize;
+    public int IndentationSize => LineFormatting.IndentationSize;
+    public string NewLine => LineFormatting.NewLine;
 
 #if !CODE_STYLE
     public static SyntaxFormattingOptions GetDefault(LanguageServices languageServices)
@@ -57,18 +59,6 @@ internal interface SyntaxFormattingOptionsProvider :
 
 internal static partial class SyntaxFormattingOptionsProviders
 {
-    public static SyntaxFormattingOptions.CommonOptions GetCommonSyntaxFormattingOptions(this IOptionsReader options, string language, SyntaxFormattingOptions.CommonOptions? fallbackOptions)
-    {
-        fallbackOptions ??= SyntaxFormattingOptions.CommonOptions.Default;
-
-        return new()
-        {
-            LineFormatting = options.GetLineFormattingOptions(language, fallbackOptions.LineFormatting),
-            SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language, fallbackOptions.SeparateImportDirectiveGroups),
-            AccessibilityModifiersRequired = options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, language, fallbackOptions.AccessibilityModifiersRequired),
-        };
-    }
-
 #if !CODE_STYLE
     public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IOptionsReader options, SyntaxFormattingOptions? fallbackOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options, fallbackOptions);

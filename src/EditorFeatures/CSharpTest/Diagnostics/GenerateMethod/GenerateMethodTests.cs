@@ -9148,5 +9148,266 @@ abstract class Barry
     protected abstract void Goo(Action<object> action, object arg);
 }");
         }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        return v;
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        return v;
+    }
+
+    private int NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        if (v)
+        {
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        if (v)
+        {
+        }
+    }
+
+    private bool NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        var x = v;
+        return x;
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        var x = v;
+        return x;
+    }
+
+    private int NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var (x, y) = [|NewExpr()|];
+        Goo(x, y);
+    }
+
+    void Goo(string x, int y) { }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var (x, y) = [|NewExpr()|];
+        Goo(x, y);
+    }
+
+    private (string x, int y) NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+
+    void Goo(string x, int y) { }
+}");
+        }
+
+        [Fact, WorkItem(12708, "https://github.com/dotnet/roslyn/issues/12708")]
+        public async Task GenerateEventHookupWithExistingMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Specialized;
+
+class Program
+{
+    void Main(string[] args)
+    {
+        INotifyCollectionChanged collection = null;
+        collection.CollectionChanged += [|OnChanged|];
+    }
+
+    private void OnChanged() { }
+}",
+@"using System;
+using System.Collections.Specialized;
+
+class Program
+{
+    void Main(string[] args)
+    {
+        INotifyCollectionChanged collection = null;
+        collection.CollectionChanged += OnChanged;
+    }
+
+    private void OnChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnChanged() { }
+}");
+        }
+
+        [Fact, WorkItem(29761, "https://github.com/dotnet/roslyn/issues/29761")]
+        public async Task GenerateAlternativeNamesForFuncActionDelegates1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction([|Analyze|]);
+    }
+
+    private void RegisterOperationAction(Action<Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction(Analyze);
+    }
+
+    private void Analyze(Context context)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void RegisterOperationAction(Action<Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}");
+        }
+
+        [Fact, WorkItem(29761, "https://github.com/dotnet/roslyn/issues/29761")]
+        public async Task GenerateAlternativeNamesForFuncActionDelegates2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction([|Analyze|]);
+    }
+
+    private void RegisterOperationAction(Action<Context, Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction(Analyze);
+    }
+
+    private void Analyze(Context context1, Context context2)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void RegisterOperationAction(Action<Context, Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}");
+        }
     }
 }

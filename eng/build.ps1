@@ -35,7 +35,6 @@ param (
   [string]$bootstrapConfiguration = "Release",
   [switch][Alias('bl')]$binaryLog,
   [string]$binaryLogName = "",
-  [switch]$buildServerLog,
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
@@ -81,7 +80,6 @@ function Print-Usage() {
   Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
   Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
   Write-Host "  -binaryLogName            Name of the binary log (default Build.binlog)"
-  Write-Host "  -buildServerLog           Create Roslyn build server log"
   Write-Host ""
   Write-Host "Actions:"
   Write-Host "  -restore                  Restore packages (short: -r)"
@@ -174,9 +172,6 @@ function Process-Arguments() {
 
   if ($ci) {
     $script:binaryLog = $true
-    if ($bootstrap) {
-      $script:buildServerLog = $true
-    }
   }
 
   if ($binaryLog -and ($binaryLogName -eq "")) {
@@ -228,12 +223,10 @@ function BuildSolution() {
     $binaryLogPath = Join-Path $LogDir $binaryLogName
     $bl = "/bl:" + $binaryLogPath
     if ($ci -and (Test-Path $binaryLogPath)) {
-      Write-LogIssue -Type "warning" -Message "Overwriting binary log file $($binaryLogPath)"
+      Write-LogIssue -Type "error" -Message "Overwriting binary log file $($binaryLogPath)"
+      throw "Overwriting binary log files"
     }
-  }
 
-  if ($buildServerLog) {
-    ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
   }
 
   $projects = Join-Path $RepoRoot $solution
@@ -262,40 +255,34 @@ function BuildSolution() {
   # https://github.com/NuGet/Home/issues/12373
   $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
 
-  try {
-    MSBuild $toolsetBuildProj `
-      $bl `
-      /p:Configuration=$configuration `
-      /p:Projects=$projects `
-      /p:RepoRoot=$RepoRoot `
-      /p:Restore=$restore `
-      /p:Build=$build `
-      /p:Rebuild=$rebuild `
-      /p:Pack=$pack `
-      /p:Sign=$sign `
-      /p:Publish=$publish `
-      /p:ContinuousIntegrationBuild=$ci `
-      /p:OfficialBuildId=$officialBuildId `
-      /p:RunAnalyzersDuringBuild=$runAnalyzers `
-      /p:BootstrapBuildPath=$bootstrapDir `
-      /p:TreatWarningsAsErrors=$warnAsError `
-      /p:EnableNgenOptimization=$applyOptimizationData `
-      /p:IbcOptimizationDataDir=$ibcDir `
-      /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
-      /p:VisualStudioIbcDrop=$ibcDropName `
-      /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-      $suppressExtensionDeployment `
-      $msbuildWarnAsError `
-      $buildFromSource `
-      $generateDocumentationFile `
-      $roslynUseHardLinks `
-      @properties
-  }
-  finally {
-    ${env:ROSLYNCOMMANDLINELOGFILE} = $null
-  }
+  MSBuild $toolsetBuildProj `
+    $bl `
+    /p:Configuration=$configuration `
+    /p:Projects=$projects `
+    /p:RepoRoot=$RepoRoot `
+    /p:Restore=$restore `
+    /p:Build=$build `
+    /p:Rebuild=$rebuild `
+    /p:Pack=$pack `
+    /p:Sign=$sign `
+    /p:Publish=$publish `
+    /p:ContinuousIntegrationBuild=$ci `
+    /p:OfficialBuildId=$officialBuildId `
+    /p:RunAnalyzersDuringBuild=$runAnalyzers `
+    /p:BootstrapBuildPath=$bootstrapDir `
+    /p:TreatWarningsAsErrors=$warnAsError `
+    /p:EnableNgenOptimization=$applyOptimizationData `
+    /p:IbcOptimizationDataDir=$ibcDir `
+    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
+    /p:VisualStudioIbcDrop=$ibcDropName `
+    /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
+    $suppressExtensionDeployment `
+    $msbuildWarnAsError `
+    $buildFromSource `
+    $generateDocumentationFile `
+    $roslynUseHardLinks `
+    @properties
 }
-
 
 # Get the branch that produced the IBC data this build is going to consume.
 # IBC data are only merged in official built, but we want to test some of the logic in CI builds as well.

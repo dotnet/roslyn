@@ -187,4 +187,18 @@
   <data name="Place_token_on_following_line" xml:space="preserve">
     <value>Place token on following line</value>
   </data>
+  <data name="Assign_out_parameters" xml:space="preserve">
+    <value>Assign 'out' parameters</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Assign_out_parameters_at_start" xml:space="preserve">
+    <value>Assign 'out' parameters (at start)</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Add_parentheses_around_conditional_expression_in_interpolated_string" xml:space="preserve">
+    <value>Add parentheses</value>
+  </data>
+  <data name="Make_0_return_Task_instead_of_void" xml:space="preserve">
+    <value>Make {0} return Task instead of void.</value>
+  </data>
 </root>

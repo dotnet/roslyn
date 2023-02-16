@@ -26,6 +26,6 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Has the constructor constraint (i.e. 'new' constraint in C#)
         /// </summary>
-        Constructor = 0x0004
+        Constructor = 0x0004,
     }
 }

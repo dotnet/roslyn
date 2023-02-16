@@ -27,6 +27,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     internal interface ICodeStyleOption2 : ICodeStyleOption
     {
+        /// <summary>
+        /// Creates a new <see cref="ICodeStyleOption2"/> from a specified <paramref name="element"/>.
+        /// </summary>
+        /// <exception cref="Exception">
+        /// The type of the serialized data does not match the type of <see cref="ICodeStyleOption.Value"/> or the format of the serialized data is invalid.
+        /// </exception>
+        ICodeStyleOption2 FromXElement(XElement element);
     }
 
     /// <summary>
@@ -134,6 +141,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var intVal = EnumValueAsInt32;
             return intVal is 0 or 1;
         }
+
+        ICodeStyleOption2 ICodeStyleOption2.FromXElement(XElement element)
+            => FromXElement(element);
 
         public static CodeStyleOption2<T> FromXElement(XElement element)
         {

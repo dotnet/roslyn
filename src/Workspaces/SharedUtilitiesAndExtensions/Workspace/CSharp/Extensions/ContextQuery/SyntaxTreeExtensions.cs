@@ -2261,10 +2261,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // ( |
-            if (token.IsKind(SyntaxKind.OpenParenToken) &&
-                token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+            if (token.IsKind(SyntaxKind.OpenParenToken))
             {
-                return true;
+                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+                    return true;
+
+                // If there's a string in the parenthesis in the code below, the parser would return
+                // a CastExpression instead of ParenthesizedExpression. However, some features like keyword completion
+                // might be able tolerate this and still want to treat it as a ParenthesizedExpression.
+                //
+                //         var data = (n$$)
+                //         M();
+                if (token.Parent is CastExpressionSyntax castExpression &&
+                    (castExpression.Expression.IsMissing || castExpression.CloseParenToken.TrailingTrivia.GetFirstNewLine().HasValue))
+                {
+                    return true;
+                }
             }
 
             // - |

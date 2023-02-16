@@ -944,9 +944,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Enables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line" xml:space="preserve">
     <value>Enables reporting of specified warnings in the portion of the source file below the current line.</value>
   </data>
-  <data name="Make_0_an_Async_Function" xml:space="preserve">
-    <value>Make {0} an Async Function.</value>
-  </data>
   <data name="Use_the_correct_control_variable" xml:space="preserve">
     <value>Use the correct control variable</value>
   </data>

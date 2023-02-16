@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         End Sub
 
         Protected Overrides Function GenerateExpressionFromOptionalParameter(parameterSymbol As IParameterSymbol) As SyntaxNode
-            Return GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference:=True)
+            Return GenerateExpression(VisualBasicSyntaxGenerator.Instance, parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference:=True)
         End Function
 
         Protected Overrides Function GetLocalDeclarationFromDeclarator(variableDecl As SyntaxNode) As SyntaxNode

@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.CodeFixes
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
     public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public AddDocCommentNodesCodesFixProviderTests(ITestOutputHelper logger)
@@ -443,7 +444,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument_MultipleParamNodesInVariousPlaces()
         {
@@ -474,7 +474,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
@@ -588,7 +587,6 @@ class Program3
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
@@ -690,7 +688,6 @@ class Program3
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {

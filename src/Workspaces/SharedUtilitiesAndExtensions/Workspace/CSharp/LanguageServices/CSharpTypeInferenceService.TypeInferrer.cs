@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -584,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(int index, IEnumerable<IMethodSymbol> methods, AttributeArgumentSyntax argumentOpt = null)
-                => InferTypeInAttributeArgument(index, methods.Select(m => m.Parameters), argumentOpt);
+                => InferTypeInAttributeArgument(index, methods.SelectAsArray(m => m.Parameters), argumentOpt);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgument(int index, IEnumerable<IMethodSymbol> methods, ArgumentSyntax argumentOpt, InvocationExpressionSyntax parentInvocationExpressionToTypeInfer)
             {
@@ -715,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(
                 int index,
-                IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
+                ImmutableArray<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 AttributeArgumentSyntax argumentOpt = null)
             {
                 if (argumentOpt != null && argumentOpt.NameEquals != null)
@@ -766,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 int index,
-                IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
+                ImmutableArray<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 string name,
                 RefKind refKind)
             {
@@ -2190,47 +2191,95 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var variableType = variableDeclarator.GetVariableType();
                 if (variableType == null)
-                {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
 
                 var symbol = SemanticModel.GetDeclaredSymbol(variableDeclarator);
                 if (symbol == null)
-                {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
 
                 var type = symbol.GetSymbolType();
                 var types = CreateResult(type).Where(IsUsableTypeFunc);
 
-                if (variableType.IsVar)
+                if (!variableType.IsVar ||
+                    variableDeclarator.Parent is not VariableDeclarationSyntax variableDeclaration)
                 {
-                    if (variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration)
+                    return types;
+                }
+
+                // using (var v = Goo())
+                if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
+                    return CreateResult(SpecialType.System_IDisposable);
+
+                // for (var v = Goo(); ..
+                if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
+                    return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+
+                var laterUsageInference = InferTypeBasedOnLaterUsage(symbol, variableDeclaration);
+                if (laterUsageInference is not [] and not [{ InferredType.SpecialType: SpecialType.System_Object }])
+                    return laterUsageInference;
+
+                // Return the types here if they actually bound to a type called 'var'.
+                return types.Where(t => t.InferredType.Name == "var");
+            }
+
+            private ImmutableArray<TypeInferenceInfo> InferTypeBasedOnLaterUsage(ISymbol symbol, SyntaxNode afterNode)
+            {
+                // var v = expr.
+                // Attempt to see how 'v' is used later in the current scope to determine what to do.
+                var container = afterNode.AncestorsAndSelf().FirstOrDefault(a => a is BlockSyntax or SwitchSectionSyntax);
+                if (container != null)
+                {
+                    foreach (var descendant in container.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
                     {
-                        if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
-                        {
-                            // using (var v = Goo())
-                            return CreateResult(SpecialType.System_IDisposable);
-                        }
+                        // only look after the variable we're declaring.
+                        if (descendant.SpanStart <= afterNode.Span.End)
+                            continue;
 
-                        if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
-                        {
-                            // for (var v = Goo(); ..
-                            return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
-                        }
+                        if (descendant.Identifier.ValueText != symbol.Name)
+                            continue;
 
-                        // Return the types here if they actually bound to a type called 'var'.
-                        return types.Where(t => t.InferredType.Name == "var");
+                        // Make sure it's actually a match for this variable.
+                        var descendantSymbol = SemanticModel.GetSymbolInfo(descendant, CancellationToken).GetAnySymbol();
+                        if (symbol.Equals(descendantSymbol))
+                        {
+                            // See if we can infer something interesting about this location.
+                            var inferredDescendantTypes = InferTypes(descendant, filterUnusable: true);
+                            if (inferredDescendantTypes is not [] and not [{ InferredType.SpecialType: SpecialType.System_Object }])
+                                return inferredDescendantTypes;
+                        }
                     }
                 }
 
-                return types;
+                return ImmutableArray<TypeInferenceInfo>.Empty;
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(ExpressionSyntax left)
             {
                 if (left is DeclarationExpressionSyntax declExpr)
                 {
+                    // var (x, y) = Expr();
+                    // Attempt to determine what x and y are based on their future usage.
+                    if (declExpr.Type.IsVar &&
+                        declExpr.Designation is ParenthesizedVariableDesignationSyntax parenthesizedVariableDesignation &&
+                        parenthesizedVariableDesignation.Variables.All(v => v is SingleVariableDesignationSyntax))
+                    {
+                        using var _1 = ArrayBuilder<ITypeSymbol>.GetInstance(out var tupleTypes);
+                        using var _2 = ArrayBuilder<string>.GetInstance(out var names);
+
+                        foreach (var variable in parenthesizedVariableDesignation.Variables.Cast<SingleVariableDesignationSyntax>())
+                        {
+                            var symbol = SemanticModel.GetRequiredDeclaredSymbol(variable, CancellationToken);
+                            var inferredFutureUsage = InferTypeBasedOnLaterUsage(symbol, afterNode: left.Parent);
+                            tupleTypes.Add(inferredFutureUsage.Length > 0 ? inferredFutureUsage[0].InferredType : Compilation.ObjectType);
+                            names.Add(variable.Identifier.ValueText);
+                        }
+
+                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(
+                            Compilation.CreateTupleTypeSymbol(
+                                tupleTypes.ToImmutable(),
+                                names.ToImmutable())));
+                    }
+
                     return GetTypes(declExpr.Type);
                 }
                 else if (left is TupleExpressionSyntax tupleExpression)

@@ -169,6 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
                 SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
                 SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration => ((RecordDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.ClassDeclaration => ((ClassDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.StructDeclaration => ((StructDeclarationSyntax)declaration).ParameterList,
                 _ => null,
             };
 

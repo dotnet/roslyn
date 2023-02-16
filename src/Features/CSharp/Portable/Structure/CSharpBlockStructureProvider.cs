@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
             builder.Add<LiteralExpressionSyntax, StringLiteralExpressionStructureProvider>();
             builder.Add<InterpolatedStringExpressionSyntax, InterpolatedStringExpressionStructureProvider>();
+            builder.Add<IfDirectiveTriviaSyntax, IfDirectiveTriviaStructureProvider>();
 
             return builder.ToImmutable();
         }

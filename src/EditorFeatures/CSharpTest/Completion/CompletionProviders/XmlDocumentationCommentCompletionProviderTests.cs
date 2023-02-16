@@ -984,7 +984,7 @@ public record Goo<T>(string MyParameter);
 ", "param name=\"MyParameter\"", "typeparam name=\"T\"");
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task PrimaryConstructor_Class_Param()
         {
             await VerifyItemsExistAsync(@"
@@ -993,7 +993,7 @@ public class Goo<T>(string MyParameter);
 ", "param name=\"MyParameter\"", "typeparam name=\"T\"");
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task PrimaryConstructor_Struct_Param()
         {
             await VerifyItemsExistAsync(@"
@@ -1013,7 +1013,7 @@ public record Goo<T>(string MyParameter);
 ", "paramref name=\"MyParameter\"", "typeparamref name=\"T\"");
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task PrimaryConstructor_Class_ParamRef()
         {
             await VerifyItemsExistAsync(@"
@@ -1024,7 +1024,7 @@ public class Goo<T>(string MyParameter);
 ", "paramref name=\"MyParameter\"", "typeparamref name=\"T\"");
         }
 
-        [Fact(Skip = "PROTOTYPE(PrimaryConstructors): fails")]
+        [Fact]
         public async Task PrimaryConstructor_Struct_ParamRef()
         {
             await VerifyItemsExistAsync(@"
