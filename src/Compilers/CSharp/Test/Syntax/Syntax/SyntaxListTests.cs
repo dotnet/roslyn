@@ -308,13 +308,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
-        public void EnumerateWithManyChildren_Forward()
+        [Theory]
+        [CombinatorialData]
+        public void EnumerateWithManyChildren_Forward(bool trailingSeparator)
         {
             const int n = 100000;
             var builder = new StringBuilder();
             builder.Append("int[] values = new[] { ");
             for (int i = 0; i < n; i++) builder.Append("0, ");
+            if (!trailingSeparator) builder.Append("0 ");
             builder.AppendLine("};");
 
             var tree = CSharpSyntaxTree.ParseText(builder.ToString());
@@ -328,13 +330,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(66475, "https://github.com/dotnet/roslyn/issues/66475")]
-        [Fact]
-        public void EnumerateWithManyChildren_Reverse()
+        [Theory]
+        [CombinatorialData]
+        public void EnumerateWithManyChildren_Reverse(bool trailingSeparator)
         {
             const int n = 100000;
             var builder = new StringBuilder();
             builder.Append("int[] values = new[] { ");
             for (int i = 0; i < n; i++) builder.Append("0, ");
+            if (!trailingSeparator) builder.Append("0 ");
             builder.AppendLine("};");
 
             var tree = CSharpSyntaxTree.ParseText(builder.ToString());
@@ -347,11 +351,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
-        public void EnumerateWithManyChildren_Compare()
+        [Theory]
+        [InlineData("int[] values = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };")]
+        [InlineData("int[] values = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };")]
+        public void EnumerateWithManyChildren_Compare(string source)
         {
-            var source = "int[] values = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };";
-
             CSharpSyntaxTree.ParseText(source).VerifyChildNodePositions();
 
             var builder = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
