@@ -4,6 +4,7 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -118,11 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             ExpressionSyntax CreateDeclarationExpression()
             {
-                // check the user's 'var' preference.  If it holds for this tuple type and expr, then emit as:
-                // `var (x, y, z) = ...`.
-                var varPreference = simplifierOptions.GetUseVarPreference();
-                if (varPreference != UseVarPreference.None &&
-                    TypeStyleHelper.IsTypeApparentInAssignmentExpression(varPreference, expression, semanticModel, tupleType, cancellationToken))
+                if (CanUseVar())
                 {
                     return DeclarationExpression(
                         IdentifierName("var"),
@@ -131,9 +129,29 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 }
                 else
                 {
-                    // otherwise, emit as `(T1 x, T2 y, T3 z) = ...`
+                    // otherwise, emit as `(T1 x, T2 y, T3 z) = ...`.  Note, the 'T's will get simplified to 'var' if that matches the user's preference.
                     return TupleExpression(SeparatedList(localTypesAndDesignations.SelectAsArray(t =>
                         Argument(DeclarationExpression(t.type.GenerateTypeSyntax(), t.designation)))));
+                }
+
+                bool CanUseVar()
+                {
+                    // check the user's 'var' preference.  If it holds for this tuple type and expr, then emit as:
+                    // `var (x, y, z) = ...`.
+                    var varPreference = simplifierOptions.GetUseVarPreference();
+
+                    // If the user likes 'var' for intrinsics, and all the elements would be intrinsic.  Then use
+                    var isIntrinsic = tupleType.TupleElements.All(f => f.Type?.SpecialType != SpecialType.None);
+                    if (isIntrinsic)
+                        return varPreference.HasFlag(UseVarPreference.ForBuiltInTypes);
+
+                    // now see if the type is apparent using the existing helper.
+                    var isApparent = TypeStyleHelper.IsTypeApparentInAssignmentExpression(varPreference, expression, semanticModel, tupleType, cancellationToken);
+                    if (isApparent)
+                        return varPreference.HasFlag(UseVarPreference.WhenTypeIsApparent);
+
+                    // Finally, use 'var' if the user wants that for non-intrinsic, non-apparent cases.
+                    return varPreference.HasFlag(UseVarPreference.Elsewhere);
                 }
             }
         }

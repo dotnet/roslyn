@@ -18,6 +18,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceVariable
     [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
     public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeActionTest
     {
+        private static readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
+        private static readonly CodeStyleOption2<bool> offWithInfo = new(false, NotificationOption2.Suggestion);
+
+        private OptionsCollection ImplicitTypeEverywhere()
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
+
+        private OptionsCollection ImplicitTypeForIntrinsics()
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
+
+        private OptionsCollection ImplicitTypeForApparent()
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+            };
+
+        private OptionsCollection ImplicitTypeForApparentAndBuiltIn()
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpIntroduceLocalForExpressionCodeRefactoringProvider();
 
@@ -453,6 +488,36 @@ class C
         }
 
         [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction1_C()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        var (someString, someInt) = X();
+    }
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction2_A()
         {
             await TestInRegularAndScriptAsync(
@@ -510,6 +575,36 @@ class C
         (string someString, int someInt) {|Rename:value|} = X();
     }
 }", index: 1);
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction2_C()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        X();[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        var (someString, someInt) = X();
+    }
+}", options: ImplicitTypeEverywhere());
         }
 
         [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
@@ -581,6 +676,40 @@ class C
         }
 
         [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction3_C()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        X()[||]
+
+        string someString;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        var (someString1, someInt) = X();
+
+        string someString;
+    }
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction4_A()
         {
             await TestInRegularAndScriptAsync(
@@ -641,6 +770,36 @@ class C
         }
 
         [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction4_C()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    ValueTuple<string, int> X() => default;
+
+    void M()
+    {
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    ValueTuple<string, int> X() => default;
+
+    void M()
+    {
+        var (item1, item2) = X();
+    }
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
         public async Task IntroduceDeconstruction5_A()
         {
             await TestInRegularAndScriptAsync(
@@ -698,6 +857,184 @@ class C
         (string, int) {|Rename:value|} = X();
     }
 }", index: 1);
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction5_C()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string, int) X() => default;
+
+    void M()
+    {
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string, int) X() => default;
+
+    void M()
+    {
+        var (item1, item2) = X();
+    }
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction_ImplicitTypeForIntrinsics1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        var (someString, someInt) = X();
+    }
+}", options: ImplicitTypeForIntrinsics());
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction_ImplicitTypeForIntrinsics2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, C c) X() => default;
+
+    void M()
+    {
+        // don't use `var (...)` here as not all the individual types will be 'var'
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, C c) X() => default;
+
+    void M()
+    {
+        // don't use `var (...)` here as not all the individual types will be 'var'
+        (var someString, C c) = X();
+    }
+}", options: ImplicitTypeForIntrinsics());
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction_ImplicitTypeWhenApparent1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        (string someString, int someInt) = X();
+    }
+}", options: ImplicitTypeForApparent());
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction_ImplicitTypeWhenApparent2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        // literal is not apparent (it is builtin). default(...) is both apparent
+        (someString: """", someC: default(C))[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        // literal is not apparent (it is builtin). default(...) is both apparent
+        (string someString, C someC) = (someString: """", someC: default(C));
+    }
+}", options: ImplicitTypeForApparent());
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction_ImplicitTypeWhenApparentAndBuiltIn1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        // literal is is builtin, as is default(...)
+        (someString: """", someC: default(C))[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        // literal is is builtin, as is default(...)
+        var (someString, someC) = (someString: """", someC: default(C));
+    }
+}", options: ImplicitTypeForApparentAndBuiltIn());
         }
     }
 }
