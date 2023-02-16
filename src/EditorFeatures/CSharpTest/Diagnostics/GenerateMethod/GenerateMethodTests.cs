@@ -5427,6 +5427,26 @@ class C
         }
 
         [Fact]
+        public async Task TestDoNotGenerateIntoHiddenRegion4()
+        {
+            // This represents a typical Razor generated document, to ensure we don't regress
+            // Razor legacy editor behavior
+            await TestMissingInRegularAndScriptAsync(
+@"#line default
+class C
+{
+#line hidden
+#line default
+    void Goo()
+    {
+        [|Bar|]();
+    }
+#line hidden
+#line default
+}");
+        }
+
+        [Fact]
         public async Task TestDoNotAddImportsIntoHiddenRegion()
         {
             await TestInRegularAndScriptAsync(
