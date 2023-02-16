@@ -2,13 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.IntroduceVariable;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
@@ -75,15 +84,58 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return deconstruction.WithSemicolonToken(semicolonToken);
         }
 
-        protected override ExpressionStatementSyntax CreateImplicitlyTypedDeconstruction(ImmutableArray<SyntaxToken> names, ExpressionSyntax expression)
+        protected override async Task<ExpressionStatementSyntax> CreateTupleDeconstructionAsync(
+            Document document,
+            CodeActionOptionsProvider optionsProvider,
+            INamedTypeSymbol tupleType,
+            ExpressionSyntax expression,
+            CancellationToken cancellationToken)
         {
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var simplifierOptions = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            var tupleUnderlyingType = tupleType.TupleUnderlyingType ?? tupleType;
+
+            // Generate the names for the locals.  For Tuples that have user provided names, keep that name.
+            // Otherwise, generate a reasonable local name for the type of the field, using our helpers.
+            var localTypesAndDesignations = tupleType.TupleElements.SelectAsArray((field, index, _) =>
+                {
+                    var name = field.Name.ToCamelCase();
+                    if (field.Name == tupleUnderlyingType.TupleElements[index].Name)
+                        name = field.Type.GetLocalName(fallback: null) ?? name;
+
+                    var uniqueName = semanticFacts.GenerateUniqueLocalName(semanticModel, expression, container: null, name, cancellationToken);
+                    var designation = SingleVariableDesignation(uniqueName);
+                    return (type: field.Type, designation: (VariableDesignationSyntax)designation);
+                }, arg: /*unused*/false);
+
             return ExpressionStatement(
                 AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
-                    DeclarationExpression(
-                        IdentifierName("var"),
-                        ParenthesizedVariableDesignation(SeparatedList(names.SelectAsArray(n => (VariableDesignationSyntax)SingleVariableDesignation(n))))),
+                    CreateDeclarationExpression(),
                     expression));
+
+            ExpressionSyntax CreateDeclarationExpression()
+            {
+                // check the user's 'var' preference.  If it holds for this tuple type and expr, then emit as:
+                // `var (x, y, z) = ...`.
+                var varPreference = simplifierOptions.GetUseVarPreference();
+                if (varPreference != UseVarPreference.None &&
+                    TypeStyleHelper.IsTypeApparentInAssignmentExpression(varPreference, expression, semanticModel, tupleType, cancellationToken))
+                {
+                    return DeclarationExpression(
+                        IdentifierName("var"),
+                        ParenthesizedVariableDesignation(
+                            SeparatedList(localTypesAndDesignations.SelectAsArray(n => n.designation))));
+                }
+                else
+                {
+                    // otherwise, emit as `(T1 x, T2 y, T3 z) = ...`
+                    return TupleExpression(SeparatedList(localTypesAndDesignations.SelectAsArray(t =>
+                        Argument(DeclarationExpression(t.type.GenerateTypeSyntax(), t.designation)))));
+                }
+            }
         }
     }
 }

@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
-        Public Function SupportsImplicitlyTypedDeconstruction(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsImplicitlyTypedDeconstruction
+        Public Function SupportsTupleDeconstruction(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsTupleDeconstruction
             Return False
         End Function
 

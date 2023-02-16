@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -349,7 +350,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static string GetLocalName(this ITypeSymbol containingType, string fallback = "v")
+        [return: NotNullIfNotNull(nameof(fallback))]
+        public static string? GetLocalName(this ITypeSymbol containingType, string? fallback = "v")
         {
             // Don't want to do things like `String string`.  That's not idiomatic in .net.
             if (!containingType.IsSpecialType())

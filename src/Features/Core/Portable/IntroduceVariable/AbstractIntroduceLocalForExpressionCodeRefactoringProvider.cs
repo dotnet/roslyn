@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -29,7 +27,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract bool IsValid(TExpressionStatementSyntax expressionStatement, TextSpan span);
         protected abstract TLocalDeclarationStatementSyntax FixupLocalDeclaration(TExpressionStatementSyntax expressionStatement, TLocalDeclarationStatementSyntax localDeclaration);
         protected abstract TExpressionStatementSyntax FixupDeconstruction(TExpressionStatementSyntax expressionStatement, TExpressionStatementSyntax localDeclaration);
-        protected abstract TExpressionStatementSyntax CreateImplicitlyTypedDeconstruction(ImmutableArray<SyntaxToken> names, TExpressionSyntax expression);
+        protected abstract Task<TExpressionStatementSyntax> CreateTupleDeconstructionAsync(
+            Document document, CodeActionOptionsProvider optionsProvider, INamedTypeSymbol tupleType, TExpressionSyntax expression, CancellationToken cancellationToken);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -50,11 +49,21 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             var nodeString = syntaxFacts.ConvertToSingleLine(expression).ToString();
+            if (type.IsTupleType && syntaxFacts.SupportsTupleDeconstruction(expression.SyntaxTree.Options))
+            {
+                // prefer to emit as `var (x, y) = ...` or `(T x, T y) = ...`
+                context.RegisterRefactoring(
+                    CodeAction.Create(
+                        string.Format(FeaturesResources.Deconstruct_locals_for_0, nodeString),
+                        cancellationToken => IntroduceLocalAsync(document, context.Options, expressionStatement, type, deconstruct: true, cancellationToken),
+                        nameof(FeaturesResources.Deconstruct_locals_for_0) + "_" + nodeString),
+                    expressionStatement.Span);
+            }
 
             context.RegisterRefactoring(
                 CodeAction.Create(
                     string.Format(FeaturesResources.Introduce_local_for_0, nodeString),
-                    cancellationToken => IntroduceLocalAsync(document, expressionStatement, cancellationToken),
+                    cancellationToken => IntroduceLocalAsync(document, context.Options, expressionStatement, type, deconstruct: false, cancellationToken),
                     nameof(FeaturesResources.Introduce_local_for_0) + "_" + nodeString),
                 expressionStatement.Span);
         }
@@ -68,7 +77,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         private async Task<Document> IntroduceLocalAsync(
-            Document document, TExpressionStatementSyntax expressionStatement, CancellationToken cancellationToken)
+            Document document,
+            CodeActionOptionsProvider optionsProvider,
+            TExpressionStatementSyntax expressionStatement,
+            ITypeSymbol type,
+            bool deconstruct,
+            CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -94,18 +108,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             async Task<TStatementSyntax> CreateLocalDeclarationAsync()
             {
-                var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-                if (type is INamedTypeSymbol { IsTupleType: true, TupleUnderlyingType: not null } tupleType &&
-                    syntaxFacts.SupportsImplicitlyTypedDeconstruction(expression.SyntaxTree.Options) &&
-                    tupleType.TupleElements.Length == tupleType.TupleUnderlyingType.TupleElements.Length &&
-                    tupleType.TupleElements.Zip(tupleType.TupleUnderlyingType.TupleElements, static (f1, f2) => (f1, f2)).All(static t => t.f1.Name != t.f2.Name))
+                if (deconstruct)
                 {
-                    var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-
-                    // prefer to emit as `var (x, y) = ...
-                    return CreateImplicitlyTypedDeconstruction(
-                        tupleType.TupleElements.SelectAsArray(f => semanticFacts.GenerateUniqueLocalName(semanticModel, expression, container: null, f.Name.ToCamelCase(), cancellationToken)),
-                        expression.WithoutLeadingTrivia());
+                    Contract.ThrowIfNull(type);
+                    return await this.CreateTupleDeconstructionAsync(
+                        document, optionsProvider, (INamedTypeSymbol)type, expression, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
