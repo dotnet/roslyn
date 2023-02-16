@@ -825,7 +825,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // SG shouldn't run
             Assert.Equal(1, compilation1.SyntaxTrees.Count());
             Assert.False(generatorRan);
-
         }
     }
 }
