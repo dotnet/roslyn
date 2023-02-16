@@ -697,7 +697,7 @@ namespace Roslyn.Test.Utilities
                 solutionCrawlerRegistrationService.Unregister(TestWorkspace);
 
                 // Some tests will manually call shutdown and exit, so attempting to call this during dispose
-                // will fail as the server's sonrpc instance will be disposed of.
+                // will fail as the server's jsonrpc instance will be disposed of.
                 if (!LanguageServer.GetTestAccessor().HasShutdownStarted())
                 {
                     await ShutdownTestServerAsync();
