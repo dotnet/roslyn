@@ -47,6 +47,15 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpFormattingInteractionServ
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.RazorCSharpInterceptionMiddleLayerWrapper(Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer! razorCSharpInterceptionMiddleLayer) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpProximityExpressionResolverService
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDataTipDebuggingAccessor
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDataTipDebuggingAccessor.RazorDataTipDebuggingAccessor() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugDataTipInfo
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugDataTipInfo.IsDefault.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugDataTipInfo.RazorDebugDataTipInfo() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugDataTipInfo.RazorDebugDataTipInfo(Microsoft.CodeAnalysis.Text.TextSpan span, string! text) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugInfoService
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugInfoService.GetDataTipInfoAsync(Microsoft.CodeAnalysis.Document! document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugDataTipInfo>!
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugInfoService.RazorDebugInfoService() -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentExcerptServiceWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentExcerptServiceWrapper.RazorDocumentExcerptServiceWrapper(Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentExcerptServiceImplementation! impl) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentExcerptServiceWrapper.TryExcerptAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Host.ExcerptMode mode, Microsoft.CodeAnalysis.Classification.ClassificationOptions classificationOptions, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Host.ExcerptResult?>!
@@ -169,6 +178,8 @@ override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSpanMappingServiceWrap
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService.GetHostWorkspaceKind() -> string!
 readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAutoFormattingOptions.UnderlyingObject -> Microsoft.CodeAnalysis.Formatting.AutoFormattingOptions
 readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassificationOptionsWrapper.UnderlyingObject -> Microsoft.CodeAnalysis.Classification.ClassificationOptions
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugDataTipInfo.Span -> Microsoft.CodeAnalysis.Text.TextSpan
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugDataTipInfo.Text -> string!
 readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult.ClassifiedSpans -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Classification.ClassifiedSpan>
 readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult.Content -> Microsoft.CodeAnalysis.Text.SourceText!
 readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult.Document -> Microsoft.CodeAnalysis.Document!
@@ -187,6 +198,7 @@ static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpFormattingInteract
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpFormattingInteractionService.GetFormattedTextChanges(Microsoft.CodeAnalysis.Host.HostWorkspaceServices! services, Microsoft.CodeAnalysis.SyntaxNode! root, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions indentationOptions, System.Threading.CancellationToken cancellationToken) -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>!
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(Microsoft.CodeAnalysis.Document! document, char typedChar, int position, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions indentationOptions, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAutoFormattingOptions autoFormattingOptions, Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle indentStyle, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange>>!
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpProximityExpressionResolverService.GetProximityExpressions(Microsoft.CodeAnalysis.SyntaxTree! syntaxTree, int absoluteIndex, System.Threading.CancellationToken cancellationToken) -> System.Collections.Generic.IList<string!>!
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDataTipDebuggingAccessor.GetDataTipInfoAsync(Microsoft.CodeAnalysis.Document! document, int position, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugInfoService! infoService, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDebugDataTipInfo>!
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions.GetGlobalOptions(Microsoft.CodeAnalysis.Workspace! workspace) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions!
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.implicit operator Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper(Microsoft.CodeAnalysis.Checksum! info) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddAccessibilityModifiers.get -> string!
