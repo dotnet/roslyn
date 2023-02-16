@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                     return false;
 
                 TypeToGenerateIn = sourceType;
-                return CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken);
+                return CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, allowGenerateInHiddenCode: false, cancellationToken);
             }
 
             private bool TryInitializeIdentifierName(

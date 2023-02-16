@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (abstractClassType == null || !abstractClassType.IsAbstractClass())
                 return null;
 
-            if (!CodeGenerator.CanAdd(document.Project.Solution, classType, cancellationToken))
+            if (!CodeGenerator.CanAdd(document.Project.Solution, classType, allowGenerateInHiddenCode: false, cancellationToken))
                 return null;
 
             var unimplementedMembers = classType.GetAllUnimplementedMembers(

@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
 
-                return CanGenerateLocal() || CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken);
+                return CanGenerateLocal() || CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, allowGenerateInHiddenCode: false, cancellationToken);
             }
 
             internal bool CanGeneratePropertyOrField()
