@@ -872,6 +872,97 @@ class Driver
         }
 
         [Fact]
+        public void AddressOf_WithinAwaitBoundary()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    public static async Task Main()
+                    {
+                        long x = 1;
+
+                        unsafe
+                        {
+                            Console.Write(*&x);
+                        }
+
+                        unsafe
+                        {
+                            Console.Write(*&x);
+                        }
+
+                        await Task.Delay(1000);
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "11", symbolValidator: debugSymbolValidator, verify: Verification.Fails);
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "11", symbolValidator: releaseSymbolValidator, verify: Verification.Fails);
+
+            void debugSymbolValidator(ModuleSymbol module)
+            {
+                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program.<Main>d__0");
+                var hoistedField = stateMachine.GetMember<FieldSymbol>("<x>5__1");
+                Assert.Equal(SpecialType.System_Int64, hoistedField.Type.SpecialType);
+            }
+
+            void releaseSymbolValidator(ModuleSymbol module)
+            {
+                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program.<Main>d__0");
+                Assert.Empty(stateMachine.GetMembers().Where(m => m.Name.StartsWith("<x>")));
+            }
+        }
+
+        [Fact]
+        public void AddressOf_AcrossAwaitBoundary()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    public static async Task Main()
+                    {
+                        long x = 1;
+
+                        unsafe
+                        {
+                            Console.Write(*&x);
+                        }
+
+                        await Task.Delay(1000);
+
+                        unsafe
+                        {
+                            Console.Write(*&x);
+                        }
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "11", symbolValidator: debugSymbolValidator, verify: Verification.Fails);
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "11", symbolValidator: releaseSymbolValidator, verify: Verification.Fails);
+
+            void debugSymbolValidator(ModuleSymbol module)
+            {
+                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program.<Main>d__0");
+                var hoistedField = stateMachine.GetMember<FieldSymbol>("<x>5__1");
+                Assert.Equal(SpecialType.System_Int64, hoistedField.Type.SpecialType);
+            }
+
+            void releaseSymbolValidator(ModuleSymbol module)
+            {
+                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program.<Main>d__0");
+                var hoistedField = stateMachine.GetMember<FieldSymbol>("<x>5__2");
+                Assert.Equal(SpecialType.System_Int64, hoistedField.Type.SpecialType);
+            }
+        }
+
+        [Fact]
         public void Inference()
         {
             var source = @"
