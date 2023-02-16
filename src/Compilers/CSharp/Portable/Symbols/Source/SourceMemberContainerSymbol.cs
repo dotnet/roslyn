@@ -2295,15 +2295,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         BaseTypeAnalysis.StructDependsOn((NamedTypeSymbol)type, this) &&
                         !type.IsPrimitiveRecursiveStruct()) // allow System.Int32 to contain a field of its own type
                     {
-                        // If this is a backing field, report the error on the associated property.
-                        var symbol = field.AssociatedSymbol ?? field;
-
-                        if (symbol is SynthesizedPrimaryConstructorParameterBackingFieldSymbol { ParameterSymbol: var parameterSymbol })
+                        if (field is SynthesizedPrimaryConstructorParameterBackingFieldSymbol { ParameterSymbol: var parameterSymbol })
                         {
                             diagnostics.Add(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, parameterSymbol.Locations[0], parameterSymbol, type);
                         }
                         else
                         {
+                            // If this is a backing field, report the error on the associated property.
+                            var symbol = field.AssociatedSymbol ?? field;
+
                             // Struct member '{0}' of type '{1}' causes a cycle in the struct layout
                             diagnostics.Add(ErrorCode.ERR_StructLayoutCycle, symbol.Locations[0], symbol, type);
                         }

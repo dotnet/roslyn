@@ -2714,6 +2714,16 @@ public class C
 {
     public int P3 {get;} = (P3 = 1);
 }
+
+struct S
+{
+    public int F;
+}
+" + keyword + @" R4(ref S P4)
+{
+    int F = (P4.F = 1);
+}
+
 ";
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
@@ -2723,7 +2733,10 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P2").WithArguments("P2").WithLocation(17, 19),
                 // (19,19): warning CS9508: Parameter 'P3' is unread.
                 // class  R3(ref int P3)
-                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P3").WithArguments("P3").WithLocation(19, 19)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P3").WithArguments("P3").WithLocation(19, 19),
+                // (28,17): warning CS9508: Parameter 'P4' is unread.
+                // class  R4(ref S P4)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P4").WithArguments("P4").WithLocation(28, 17)
                 );
         }
 

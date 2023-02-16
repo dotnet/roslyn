@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Some implementations (like in SourceFieldSymbolWithSyntaxReference)
         // try to detect this fact from syntax. It looks like the motivation
         // is to avoid some kind of circularity.
-        // No tests failed when that behavior got disabled. Probably the circularity is no linger
+        // No tests failed when that behavior got disabled. Probably the circularity is no longer
         // possible. Also, while figuring out whether parameter is getting captured, we are likely
-        // to bind arbitraty type references. It feels like the additional complexity (detecting
+        // to bind arbitrary type references. It feels like the additional complexity (detecting
         // the fact from syntax) is not warranted.
         internal override bool HasPointerType
             => base.HasPointerType;
