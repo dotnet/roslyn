@@ -32,6 +32,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConflictMarkerResolution\AbstractConflictMarkerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\AbstractConvertToAsyncCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\AbstractConvertTypeOfToNameOfCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\AbstractAddDocCommentNodesCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\AbstractRemoveDocCommentNodeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\AbstractForEachCastCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingCodeFixHelper.cs" />
@@ -39,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\AbstractMakeFieldReadonlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\AbstractMakeMemberStaticCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\AbstractMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\AbstractMakeTypeAbstractCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypePartial\AbstractMakeTypePartialCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\AbstractChangeNamespaceToMatchFolderCodeFixProvider.cs" />

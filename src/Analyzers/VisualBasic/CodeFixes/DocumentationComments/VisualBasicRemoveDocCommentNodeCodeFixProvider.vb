@@ -6,10 +6,11 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
+Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveDocCommentNode), [Shared]>
     Friend Class VisualBasicRemoveDocCommentNodeCodeFixProvider
         Inherits AbstractRemoveDocCommentNodeCodeFixProvider(Of XmlElementSyntax, XmlTextSyntax)

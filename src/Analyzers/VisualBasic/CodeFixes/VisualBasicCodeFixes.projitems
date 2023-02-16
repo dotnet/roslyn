@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\VisualBasicAddObsoleteAttributeCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddParameter\VisualBasicAddParameterCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\VisualBasicAliasAmbiguousTypeCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\VisualBasicRemoveDocCommentNodeCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConflictMarkerResolution\VisualBasicResolveConflictMarkerCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\VisualBasicConvertToAsyncFunctionCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\VisualBasicConvertGetTypeToNameOfCodeFixProvider.vb" />
@@ -30,6 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicConvertToIteratorCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\VisualBasicMakeFieldReadonlyCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\VisualBasicMakeMethodSynchronousCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\VisualBasicMakeTypeAbstractCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypePartial\VisualBasicMakeTypePartialCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\VisualBasicOrderModifiersCodeFixProvider.vb" />
