@@ -1629,20 +1629,17 @@ namespace Microsoft.CodeAnalysis
         ///
         /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
-        public SolutionState WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, ImmutableArray<DocumentId> linkedDocumentIds, CancellationToken cancellationToken)
+        public SolutionState WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
             try
             {
-                var originalDoc = this.GetRequiredDocumentState(documentId);
-                var originalTree = originalDoc.GetSyntaxTree(cancellationToken);
-                using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(1 + linkedDocumentIds.Length, out var builder);
+                var allDocumentIds = GetRelatedDocumentIds(documentId);
+                using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var builder);
 
-                builder.Add((originalDoc, originalTree));
-
-                foreach (var linkedDocumentId in linkedDocumentIds)
+                foreach (var currentDocumentId in allDocumentIds)
                 {
-                    var linkedDoc = this.GetRequiredDocumentState(linkedDocumentId);
-                    builder.Add((linkedDoc, linkedDoc.GetSyntaxTree(cancellationToken)));
+                    var document = this.GetRequiredDocumentState(currentDocumentId);
+                    builder.Add((document, document.GetSyntaxTree(cancellationToken)));
                 }
 
                 using (this.StateLock.DisposableWait(cancellationToken))
@@ -1699,6 +1696,54 @@ namespace Microsoft.CodeAnalysis
                 throw ExceptionUtilities.Unreachable();
             }
         }
+
+        internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
+        {
+            var projectState = this.GetProjectState(documentId.ProjectId);
+            if (projectState == null)
+            {
+                // this document no longer exist
+                return ImmutableArray<DocumentId>.Empty;
+            }
+
+            var documentState = projectState.DocumentStates.GetState(documentId);
+            if (documentState == null)
+            {
+                // this document no longer exist
+                return ImmutableArray<DocumentId>.Empty;
+            }
+
+            var filePath = documentState.FilePath;
+            if (string.IsNullOrEmpty(filePath))
+            {
+                // this document can't have any related document. only related document is itself.
+                return ImmutableArray.Create(documentId);
+            }
+
+            var documentIds = GetDocumentIdsWithFilePath(filePath);
+            return FilterDocumentIdsByLanguage(this, documentIds, projectState.ProjectInfo.Language);
+        }
+
+        public static ImmutableArray<DocumentId> FilterDocumentIdsByLanguage(SolutionState solution, ImmutableArray<DocumentId> documentIds, string language)
+            => documentIds.WhereAsArray(
+                (documentId, args) =>
+                {
+                    var projectState = args.solution.GetProjectState(documentId.ProjectId);
+                    if (projectState == null)
+                    {
+                        // this document no longer exist
+                        return false;
+                    }
+
+                    var documentState = projectState.DocumentStates.GetState(documentId);
+                    if (documentState == null)
+                    {
+                        // this document no longer exist
+                        return false;
+                    }
+                    return projectState?.ProjectInfo.Language == args.language;
+                },
+                (solution, language));
 
         /// <summary>
         /// Creates a new solution instance with all the documents specified updated to have the same specified text.
