@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Syntax
                 // the last or next to last item, we still want to calculate the position from the end of
                 // the list rather than the start.
                 if (valueIndex > 1
-                    && _children[(valueIndex - 2) >> 1].Value is null
-                    && (valueIndex >= Green.SlotCount - 2 || _children[(valueIndex + 2) >> 1].Value is { }))
+                    && GetCachedSlot(valueIndex - 2) is null
+                    && (valueIndex >= Green.SlotCount - 2 || GetCachedSlot(valueIndex + 2) is { }))
                 {
                     return GetChildPositionFromEnd(index);
                 }
