@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using CodeActionOptionsStorage = Microsoft.CodeAnalysis.CodeActions.CodeActionOptionsStorage;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
@@ -21,8 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             SymbolSearchOptionsStorage.SearchReferenceAssemblies,
             ImplementTypeOptionsStorage.InsertionBehavior,
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
-            CompletionOptionsStorage.HideAdvancedMembers,
-            CodeActionOptionsStorage.WrappingColumn,
-            CodeActionOptionsStorage.ConditionalExpressionWrappingLength);
+            CompletionOptionsStorage.HideAdvancedMembers);
     }
 }

@@ -68,6 +68,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 var options = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JArray>(
                     Methods.WorkspaceConfigurationName, configurationParams, cancellationToken).ConfigureAwait(false);
 
+                if (options == null)
+                {
+                    _lspLogger.LogError($"Failed to get the response of {Methods.WorkspaceConfigurationName}.");
+                    return ImmutableArray<string>.Empty;
+                }
+
                 if (options.Count != configurationItems.Length)
                 {
                     _lspLogger.LogError($"Unexpected configuration number from the response of {Methods.WorkspaceConfigurationName}, expected: {configurationItems.Length}, actual: {options.Count}.");
