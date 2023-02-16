@@ -672,16 +672,6 @@
         <target state="translated">&lt;nazwa struktury&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">Ustaw metodę jako asynchroniczną</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">Ustaw metodę jako asynchroniczną (pozostaw jako unieważnioną)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;Nazwa&gt;</target>

@@ -42,11 +42,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
         End Property
 
         Protected Overrides Function GetMakeAsyncTaskFunctionResource() As String
-            Return VBFeaturesResources.Make_Async_Function
+            Return VisualBasicCodeFixesResources.Make_Async_Function
         End Function
 
         Protected Overrides Function GetMakeAsyncVoidFunctionResource() As String
-            Return VBFeaturesResources.Make_Async_Sub
+            Return VisualBasicCodeFixesResources.Make_Async_Sub
         End Function
 
         Protected Overrides Function IsAsyncSupportingFunctionSyntax(node As SyntaxNode) As Boolean

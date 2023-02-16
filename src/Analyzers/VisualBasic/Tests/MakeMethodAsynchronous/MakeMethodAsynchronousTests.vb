@@ -4,9 +4,10 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMethodAsynchronous
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeMethodAsynchronous
     <Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
     Public Class MakeMethodAsynchronousTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
