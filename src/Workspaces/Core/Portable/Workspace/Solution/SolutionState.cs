@@ -1724,7 +1724,7 @@ namespace Microsoft.CodeAnalysis
             return FilterDocumentIdsByLanguage(this, documentIds, projectState.ProjectInfo.Language);
         }
 
-        public static ImmutableArray<DocumentId> FilterDocumentIdsByLanguage(SolutionState solution, ImmutableArray<DocumentId> documentIds, string language)
+        private static ImmutableArray<DocumentId> FilterDocumentIdsByLanguage(SolutionState solution, ImmutableArray<DocumentId> documentIds, string language)
             => documentIds.WhereAsArray(
                 (documentId, args) =>
                 {
@@ -1735,12 +1735,6 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                    var documentState = projectState.DocumentStates.GetState(documentId);
-                    if (documentState == null)
-                    {
-                        // this document no longer exist
-                        return false;
-                    }
                     return projectState?.ProjectInfo.Language == args.language;
                 },
                 (solution, language));
