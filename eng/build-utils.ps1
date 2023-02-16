@@ -333,8 +333,7 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   # For debug purposes copy all the json files into the log dir
   $jsonDest = Join-Path $LogDir "json"
   Create-Directory $jsonDest
-  Get-ChildItem -re -in *.json (Join-Path $ArtifactsDir "obj")
-    | %{ 
+  Get-ChildItem -re -in *.json (Join-Path $ArtifactsDir "obj") | %{ 
       $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
       Copy-Item $_.FullName (Join-Path $jsonDest $path)
     }
