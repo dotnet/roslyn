@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var caret = testLspServer.GetLocations("caret").Single();
-            var codeActionParams = new LSP.CodeActionParams
+            var codeActionParams = new CodeActionParamsWithOptions
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Range = caret.Range,
@@ -145,18 +146,74 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             Assert.Equal(AddImportDiagnosticIds.CS0103, addImport.Diagnostics.Single().Code.Value);
         }
 
+        [WpfFact]
+        public async Task TestCodeActionHandlerAsync_GenerateMethod_AllowInHidden()
+        {
+            var markup = """
+                #line hidden
+                class A
+                {
+                    void M()
+                    {
+                        {|caret:|}Bar();
+                    }
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var caretLocation = testLspServer.GetLocations("caret").Single();
+            var expected = CreateCodeAction(
+                title: string.Format(FeaturesResources.Generate_method_0, "Bar"),
+                kind: CodeActionKind.QuickFix,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Generate_method_0, "Bar"),
+                    caretLocation,
+                    customTags: new[] { PredefinedCodeFixProviderNames.GenerateMethod }),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn1",
+                applicableRange: new LSP.Range { Start = new Position { Line = 5, Character = 8 }, End = new Position { Line = 5, Character = 11 } },
+                diagnostics: null);
+
+            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation, allowGenerateInHiddenCode: true));
+            var generateMethod = results.Single(r => r.Title == expected.Title);
+
+            AssertJsonEquals(expected, generateMethod);
+        }
+
+        [WpfFact]
+        public async Task TestCodeActionHandlerAsync_GenerateMethod()
+        {
+            var markup = """
+                #line hidden
+                class A
+                {
+                    void M()
+                    {
+                        {|caret:|}Bar();
+                    }
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var caretLocation = testLspServer.GetLocations("caret").Single();
+            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
+            Assert.False(results.Any(r => r.Title == string.Format(FeaturesResources.Generate_method_0, "Bar")));
+        }
+
         private static async Task<LSP.VSInternalCodeAction[]> RunGetCodeActionsAsync(
             TestLspServer testLspServer,
-            CodeActionParams codeActionParams)
+            CodeActionParamsWithOptions codeActionParams)
         {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.CodeActionParams, LSP.CodeAction[]>(
+            var result = await testLspServer.ExecuteRequestAsync<CodeActionParamsWithOptions, LSP.CodeAction[]>(
                 LSP.Methods.TextDocumentCodeActionName, codeActionParams, CancellationToken.None);
             return result.Cast<LSP.VSInternalCodeAction>().ToArray();
         }
 
-        internal static LSP.CodeActionParams CreateCodeActionParams(LSP.Location caret)
-            => new LSP.CodeActionParams
+        internal static CodeActionParamsWithOptions CreateCodeActionParams(LSP.Location caret, bool allowGenerateInHiddenCode = false)
+            => new CodeActionParamsWithOptions
             {
+                AllowGenerateInHiddenCode = allowGenerateInHiddenCode,
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Range = caret.Range,
                 Context = new LSP.CodeActionContext
