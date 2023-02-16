@@ -26,11 +26,19 @@ This is the model used by the `Microsoft.VisualStudio.LanguageServer.Protocol` p
 
 ## Which changes will result in what update types
 
-|Change Type|Ryan's guess of Version update type|Agreed Version update type|
-|---|---|---|
-|Addition/Removal of Class/Interface/etc|Minor|?|
-|Addition/Removal of Member to Interface/Abstract|Major|?|
-|New dependency|Major|?|
-|Dependency version change|Major|?|
-|Change of Method signature|Major|?|
-|Implementation changed|Patch (unless it has big effect on output)|?|
+When in doubt refer back to <https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/breaking-change-rules.md>.
+
+|Change Type|Agreed Version update type|
+|---|---|
+|Addition of Class/Interface/etc|Minor|
+|Removal of Class/interface/etc|Major|
+|Addition/Removal of Member to Interface/Abstract|Major|
+|New dependency if exposed|Major|
+|New dependency if hidden|Minor?|
+|Dependency version change if exposed|Major|
+|Dependency version if upgrade is major|Major|
+|Dep... not exposed|Minor|
+|Change of Method signature|Major|
+|Implementation changed|Patch (unless it has big effect on output)|
+
+Keep a log of breaking changes (a PR label may be ideal here).
