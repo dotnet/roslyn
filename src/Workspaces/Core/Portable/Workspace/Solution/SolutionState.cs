@@ -1635,17 +1635,14 @@ namespace Microsoft.CodeAnalysis
             {
                 var originalDoc = this.GetRequiredDocumentState(documentId);
                 var originalTree = originalDoc.GetSyntaxTree(cancellationToken);
-                using var _1 = ArrayBuilder<DocumentState>.GetInstance(out var docBuilder);
-                using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(1 + linkedDocumentIds.Length, out var treeBuilder);
+                using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(1 + linkedDocumentIds.Length, out var builder);
 
-                docBuilder.Add(originalDoc);
-                treeBuilder.Add(originalTree);
+                builder.Add((originalDoc, originalTree));
 
                 foreach (var linkedDocumentId in linkedDocumentIds)
                 {
                     var linkedDoc = this.GetRequiredDocumentState(linkedDocumentId);
-                    docBuilder.Add(linkedDoc);
-                    treeBuilder.Add(linkedDoc.GetSyntaxTree(cancellationToken));
+                    builder.Add((linkedDoc, linkedDoc.GetSyntaxTree(cancellationToken)));
                 }
 
                 using (this.StateLock.DisposableWait(cancellationToken))
@@ -1673,16 +1670,13 @@ namespace Microsoft.CodeAnalysis
                     var newIdToProjectStateMap = _projectIdToProjectStateMap;
                     var newIdToTrackerMap = _projectIdToTrackerMap;
 
-                    for (var i = 0; i < docBuilder.Count; i++)
+                    foreach (var (doc, tree) in builder)
                     {
-                        var doc = docBuilder[i];
-                        var tree = treeBuilder[i];
-
                         // if we don't have one or it is stale, create a new partial solution
                         var tracker = this.GetCompilationTracker(doc.Id.ProjectId);
                         var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
 
-                        Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(doc.Id.ProjectId));
+                        Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(doc.Id.ProjectId));
                         newIdToProjectStateMap = newIdToProjectStateMap.SetItem(doc.Id.ProjectId, newTracker.ProjectState);
                         newIdToTrackerMap = newIdToTrackerMap.SetItem(doc.Id.ProjectId, newTracker);
                     }
