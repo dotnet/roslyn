@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Options
         public string? LanguageName { get; }
 
 #if !CODE_STYLE
-        public void WriteToGlobalOptionService(IGlobalOptionService globalOptionService, string value);
+        void WriteToGlobalOptionService(IGlobalOptionService globalOptionService, string value);
 #endif
     }
 
