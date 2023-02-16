@@ -28,9 +28,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 TService service,
                 SemanticDocument document,
                 SyntaxNode interfaceNode,
+                bool allowGenerateInHiddenCode,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
+                state.AllowGenerateInHiddenCode = allowGenerateInHiddenCode;
                 if (!await state.TryInitializeMethodAsync(service, document, interfaceNode, cancellationToken).ConfigureAwait(false))
                 {
                     return null;

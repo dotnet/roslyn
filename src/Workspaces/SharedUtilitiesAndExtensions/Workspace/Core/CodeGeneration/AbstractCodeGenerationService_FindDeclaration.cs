@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private IList<bool>? GetAvailableInsertionIndices<TDeclarationNode>(TDeclarationNode destination, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
             => GetAvailableInsertionIndices((SyntaxNode)destination, cancellationToken);
 
-        public bool CanAddTo(ISymbol destination, Solution solution, CancellationToken cancellationToken)
+        public bool CanAddTo(ISymbol destination, Solution solution, bool allowGenerateInHiddenCode, CancellationToken cancellationToken)
         {
             var declarations = _symbolDeclarationService.GetDeclarations(destination);
-            return declarations.Any(static (r, arg) => arg.self.CanAddTo(r.GetSyntax(arg.cancellationToken), arg.solution, arg.cancellationToken), (self: this, solution, cancellationToken));
+            return declarations.Any(static (r, arg) => arg.self.CanAddTo(r.GetSyntax(arg.cancellationToken), arg.solution, arg.allowGenerateInHiddenCode, arg.cancellationToken), (self: this, solution, allowGenerateInHiddenCode, cancellationToken));
         }
 
         protected static SyntaxToken GetEndToken(SyntaxNode node)
@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return TextSpan.FromBounds(start.SpanStart, end.Span.End);
         }
 
-        public bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken)
-            => CanAddTo(destination, solution, cancellationToken, out _);
+        public bool CanAddTo(SyntaxNode destination, Solution solution, bool allowGenerateInHiddenCode, CancellationToken cancellationToken)
+            => CanAddTo(destination, solution, cancellationToken, out _, allowGenerateInHiddenCode: allowGenerateInHiddenCode);
 
         private bool CanAddTo(SyntaxNode? destination, Solution solution, CancellationToken cancellationToken,
-            out IList<bool>? availableIndices, bool checkGeneratedCode = false)
+            out IList<bool>? availableIndices, bool checkGeneratedCode = false, bool allowGenerateInHiddenCode = false)
         {
             availableIndices = null;
             if (destination == null)

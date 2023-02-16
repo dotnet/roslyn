@@ -35,8 +35,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateMethod, cancellationToken))
             {
+                var documentOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var allowGenerateInHiddenCode = documentOptions.AllowGenerateInHiddenCode;
+
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                var state = await State.GenerateMethodStateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+                var state = await State.GenerateMethodStateAsync((TService)this, semanticDocument, node, allowGenerateInHiddenCode, cancellationToken).ConfigureAwait(false);
                 if (state == null)
                 {
                     return ImmutableArray<CodeAction>.Empty;

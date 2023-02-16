@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             public INamedTypeSymbol TypeToGenerateIn { get; protected set; }
             public bool IsStatic { get; protected set; }
             public bool IsContainedInUnsafeType { get; protected set; }
+            public bool AllowGenerateInHiddenCode { get; protected set; }
 
             // Just the name of the method.  i.e. "Goo" in "X.Goo" or "X.Goo()"
             public SyntaxToken IdentifierToken { get; protected set; }
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken))
+                if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, AllowGenerateInHiddenCode, cancellationToken))
                 {
                     return false;
                 }
