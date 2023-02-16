@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionsHandler)), Shared]
     [Method(LSP.Methods.TextDocumentCodeActionName)]
-    internal class CodeActionsHandler : ILspServiceDocumentRequestHandler<LSP.CodeActionParams, LSP.CodeAction[]>
+    internal class CodeActionsHandler : ILspServiceDocumentRequestHandler<CodeActionParamsWithOptions, LSP.CodeAction[]>
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
@@ -48,19 +49,51 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(CodeActionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(CodeActionParamsWithOptions request) => request.TextDocument;
 
-        public async Task<LSP.CodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.CodeAction[]> HandleRequestAsync(CodeActionParamsWithOptions request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
-            var options = _globalOptions.GetCodeActionOptionsProvider();
+            var options = new LSPCodeActionOptionsProvider(request.AllowGenerateInHiddenCode, _globalOptions.GetCodeActionOptionsProvider());
 
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
                 request, document, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
 
             return codeActions;
+        }
+
+        private class LSPCodeActionOptionsProvider : AbstractCodeActionOptionsProvider
+        {
+            private readonly bool _allowGenerateInHiddenCode;
+            private readonly CodeActionOptionsProvider _underlyingProvider;
+            private CodeAnalysis.CodeActions.CodeActionOptions? _options;
+
+            public LSPCodeActionOptionsProvider(bool allowGenerateInHiddenCode, CodeActionOptionsProvider underlyingOptions)
+            {
+                _allowGenerateInHiddenCode = allowGenerateInHiddenCode;
+                _underlyingProvider = underlyingOptions;
+            }
+
+            public override CodeAnalysis.CodeActions.CodeActionOptions GetOptions(LanguageServices languageServices)
+            {
+                if (_options is not null)
+                {
+                    return _options;
+                }
+
+                var underlying = _underlyingProvider.GetOptions(languageServices);
+                _options = underlying with
+                {
+                    CodeGenerationOptions = underlying.CodeGenerationOptions with
+                    {
+                        AllowGenerateInHiddenCode = _allowGenerateInHiddenCode
+                    }
+                };
+
+                return _options;
+            }
         }
     }
 }
