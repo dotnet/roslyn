@@ -153,7 +153,7 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
         Interlocked.Exchange(ref _lspChanged, 1);
     }
 
-    protected override async Task WaitForChangesAsync(RequestContext context)
+    protected override async Task WaitForChangesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         // Spin waiting until our LSP change flag has been set.  When the flag is set (meaning LSP has changed),
         // we reset the flag to false and exit out of the loop allowing the request to close.
@@ -161,7 +161,7 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
         while (Interlocked.CompareExchange(ref _lspChanged, value: 0, comparand: 1) == 0)
         {
             // There have been no changes between now and when the last request finished - we will hold the connection open while we poll for changes.
-            await Task.Delay(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).ConfigureAwait(false);
         }
 
         context.TraceInformation("Closing workspace/diagnostics request");
