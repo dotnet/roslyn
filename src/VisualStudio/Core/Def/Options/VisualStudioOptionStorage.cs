@@ -364,7 +364,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_internal_feature_on_off_options_full_solution_analysis_memory_monitor", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Full Solution Analysis Memory Monitor")},
         {"dotnet_internal_feature_on_off_options_oop_64_bit", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "OOP64Bit")},
         {"dotnet_internal_feature_on_off_options_oop_core_clr_feature_flag", new FeatureFlagStorage(@"Roslyn.ServiceHubCore")},
-        {"dotnet_internal_feature_on_off_options_OOP_server_gc_feature_flag", new FeatureFlagStorage(@"Roslyn.OOPServerGC")},
+        {"dotnet_internal_feature_on_off_options_oop_server_gc_feature_flag", new FeatureFlagStorage(@"Roslyn.OOPServerGC")},
         {"dotnet_internal_feature_on_off_options_remove_recommendation_limit", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "RemoveRecommendationLimit")},
         {"dotnet_internal_feature_on_off_options_rename_tracking", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Rename Tracking")},
         {"dotnet_internal_feature_on_off_options_semantic_colorizer", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Semantic Colorizer")},
