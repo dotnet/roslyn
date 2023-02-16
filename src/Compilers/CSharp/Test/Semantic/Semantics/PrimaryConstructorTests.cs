@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             NotInScope = 1 << 10,
         }
 
+        private static string UnreadParameterWarning()
+        {
+            return ((int)ErrorCode.WRN_UnreadPrimaryConstructorParameter).ToString();
+        }
+
         [Theory]
         [CombinatorialData]
         public void LanguageVersion_01([CombinatorialValues("class ", "struct")] string keyword)
@@ -385,14 +390,13 @@ interface Base{}
             Assert.Equal("string y", parameters[1].ToString());
             Assert.Same(y, model.GetDeclaredSymbol(parameters[1]).GetSymbol());
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording for WRN_UnreadRecordParameter?
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
-                // (1,14): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
-                // struct C(int x, string y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(1, 14),
-                // (1,24): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
-                // struct C(int x, string y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(1, 24)
+                // (1,14): warning CS9508: Parameter 'x' is unread.
+                // class  C(int x, string y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(1, 14),
+                // (1,24): warning CS9508: Parameter 'y' is unread.
+                // class  C(int x, string y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(1, 24)
                 );
 
             if (c.TypeKind == TypeKind.Struct)
@@ -427,7 +431,7 @@ interface Base{}
         public void ConstructorSymbol_01_InAbstractClass()
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 abstract class C(int x, string y);
 ");
             var c = comp.GlobalNamespace.GetTypeMember("C");
@@ -451,8 +455,8 @@ abstract class C(int x, string y);
         [Fact]
         public void StructDefaultCtor()
         {
-            const string src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+            string src = @"
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 public struct S(int X);
 ";
@@ -475,7 +479,7 @@ class C
         public void ConstructorSymbol_02([CombinatorialValues("class ", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 " + keyword + @" C(C x);");
 
             comp.VerifyEmitDiagnostics();
@@ -524,7 +528,7 @@ C()
         public void ConstructorSymbol_04([CombinatorialValues("class", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 static " + keyword + @" C(int x, string y);
 ");
@@ -566,19 +570,19 @@ static " + keyword + @" C(int x, string y);
         public void ConstructorConflict([CombinatorialValues("class ", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 " + keyword + @" C(int x, string y)
 {
     public C(int a, string b)
     {
     }
 }");
-            // PROTOTYPE(PrimaryConstructors): Adjust wording for ERR_UnexpectedOrMissingConstructorInitializerInRecord?
+
             comp.VerifyDiagnostics(
                 // (5,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(5, 12),
-                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12)
                 );
@@ -600,16 +604,16 @@ static " + keyword + @" C(int x, string y);
         public void ConstructorOverloading_01([CombinatorialValues("class ", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 " + keyword + @" C(int x, string y)
 {
     public C(int a, int b) // overload
     {
     }
 }");
-            // PROTOTYPE(PrimaryConstructors): Adjust wording for ERR_UnexpectedOrMissingConstructorInitializerInRecord?
+
             comp.VerifyDiagnostics(
-                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b) // overload
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12)
                 );
@@ -656,7 +660,7 @@ static " + keyword + @" C(int x, string y);
         public void ConstructorOverloading_02([CombinatorialValues("class ", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 " + keyword + @" C(int x, string y)
 {
     public C() // overload
@@ -665,7 +669,7 @@ static " + keyword + @" C(int x, string y);
 }");
 
             comp.VerifyDiagnostics(
-                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C() // overload
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12)
                 );
@@ -699,7 +703,7 @@ static " + keyword + @" C(int x, string y);
         public void Members_01([CombinatorialValues("class", "struct")] string keyword)
         {
             var comp = CreateCompilation(@"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 " + keyword + @"
 C(int x, int y);
 ");
@@ -729,7 +733,7 @@ C(int x, int y);
         public void PartialTypes_01([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 partial " + keyword + @" C(int X, int Y)
 {
@@ -740,9 +744,8 @@ partial " + keyword + @" C(int U, int V)
 }
 ";
             var comp = CreateCompilation(src);
-            // PROTOTYPE(PrimaryConstructors): Adjust wording for ERR_MultipleRecordParameterLists?
             comp.VerifyDiagnostics(
-                // (8,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // (8,17): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial struct C(int U, int V)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int U, int V)").WithLocation(8, 17)
                 );
@@ -766,7 +769,7 @@ partial " + keyword + @" C(int U, int V)
         public void PartialTypes_02([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 partial " + keyword + @" C(int X, int Y)
 {
@@ -777,9 +780,8 @@ partial " + keyword + @" C(int U)
 }
 ";
             var comp = CreateCompilation(src);
-            // PROTOTYPE(PrimaryConstructors): Adjust wording for ERR_MultipleRecordParameterLists?
             comp.VerifyDiagnostics(
-                // (8,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // (8,17): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial struct C(int U)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int U)").WithLocation(8, 17)
                 );
@@ -803,7 +805,7 @@ partial " + keyword + @" C(int U)
         public void PartialTypes_03([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 partial " + keyword + @" C;
 
@@ -835,7 +837,7 @@ partial " + keyword + @" C;
         public void GetDeclaredSymbolOnAnOutLocalInPropertyInitializer([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 " + keyword + @" R(int I)
 {
@@ -1277,7 +1279,7 @@ class Base
     }
     public Base() {}
 }
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 partial class C(int X, int Y)
 {
@@ -1569,7 +1571,7 @@ class Base
     }
     public Base() {}
 }
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 class C(int X) : Base(Y)
 {
@@ -1596,7 +1598,7 @@ class Base
     }
     public Base() {}
 }
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 class C(int X) : Base(this.X)
 {
@@ -1723,7 +1725,7 @@ interface Base
 {
 }
 
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 struct C(int X) : Base(X)
 {
@@ -1763,7 +1765,7 @@ interface Base
 {
 }
 
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 class C(int X) : Base(X)
 {
@@ -1905,7 +1907,7 @@ class Base
     }
     public Base() {}
 }
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 class C(int X, int y)
     : Base(Test(X, out var y),
@@ -1941,7 +1943,7 @@ class Base
     }
     public Base() {}
 }
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 class C(int X, int y)
     : Base(Test(X + 1, out var z),
@@ -2292,7 +2294,7 @@ class Base
 {
 }
 
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 struct C(int X) : Base(X)
 {
@@ -2327,7 +2329,7 @@ struct C(int X) : Base(X)
         [Fact]
         public void BaseArguments_Struct_Speculation()
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 struct R1(int X) : Error1(0, 1)
 {
 }
@@ -2549,7 +2551,7 @@ using System;
         public void Initializers_02([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 " + keyword + @" C(int X)
 {
@@ -2583,7 +2585,7 @@ using System;
         public void Initializers_03([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 " + keyword + @" C(int X)
 {
@@ -2712,12 +2714,30 @@ public class C
 {
     public int P3 {get;} = (P3 = 1);
 }
+
+struct S
+{
+    public int F;
+}
+" + keyword + @" R4(ref S P4)
+{
+    int F = (P4.F = 1);
+}
+
 ";
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "(43, 44)").VerifyDiagnostics();
-
-            // PROTOTYPE(PrimaryConstructors): Report a warning about unused ref parameter for R2?
+            CompileAndVerify(comp, expectedOutput: "(43, 44)").VerifyDiagnostics(
+                // (17,19): warning CS9508: Parameter 'P2' is unread.
+                // class  R2(ref int P2);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P2").WithArguments("P2").WithLocation(17, 19),
+                // (19,19): warning CS9508: Parameter 'P3' is unread.
+                // class  R3(ref int P3)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P3").WithArguments("P3").WithLocation(19, 19),
+                // (28,17): warning CS9508: Parameter 'P4' is unread.
+                // class  R4(ref S P4)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P4").WithArguments("P4").WithLocation(28, 17)
+                );
         }
 
         [Theory]
@@ -2818,7 +2838,7 @@ public class C
         public void ParameterModifiers_This([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 " + keyword + @" R(this int i);
 ";
 
@@ -2861,7 +2881,7 @@ public class C
         public void ParameterDefaultValue([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 " + keyword + @" R(int x, int P = 42)
 {
@@ -2894,7 +2914,7 @@ public class D : System.Attribute
 {
 }
 
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 public " + keyword + @" Test(
     [param: C]
@@ -2930,7 +2950,7 @@ public class A : System.Attribute
 {
 }
 
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 public " + keyword + @" Test1(
     [field: A]
@@ -3023,7 +3043,7 @@ public " + keyword + @" Test2(
         public void AttributesOnPrimaryConstructorParameters_09_CallerMemberName([CombinatorialValues("class ", "struct")] string keyword)
         {
             string source = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 using System.Runtime.CompilerServices;
 " + keyword + @" R(int x, [CallerMemberName] string S = """")
@@ -5436,7 +5456,7 @@ interface I1 {}
         public void XmlDoc([CombinatorialValues("class ", "struct")] string keyword)
         {
             var src = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
@@ -5468,7 +5488,7 @@ public " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_Cref([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for <see cref=""I1""/></param>
 public " + keyword + @" C(int I1)
@@ -5519,7 +5539,7 @@ public " + keyword + @" C(int I1)
         [CombinatorialData]
         public void XmlDoc_Error([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""Error""></param>
 /// <param name=""I1""></param>
@@ -5541,7 +5561,7 @@ public " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_Duplicate([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1""></param>
 /// <param name=""I1""></param>
@@ -5563,7 +5583,7 @@ public " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_ParamRef([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary <paramref name=""I1""/></summary>
 /// <param name=""I1"">Description for I1</param>
 public " + keyword + @" C(int I1);
@@ -5586,7 +5606,7 @@ public " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_ParamRef_Error([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary <paramref name=""Error""/></summary>
 /// <param name=""I1"">Description for I1</param>
 public " + keyword + @" C(int I1);
@@ -5607,7 +5627,7 @@ public " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_ParamRef_InsideType([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary></summary>
 public " + keyword + @" C(int I1)
 {
@@ -5634,7 +5654,7 @@ public " + keyword + @" C(int I1)
         [CombinatorialData]
         public void XmlDoc_WithExplicitProperty([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
 public " + keyword + @" C(int I1)
@@ -5677,7 +5697,7 @@ public " + keyword + @" C(int I1)
         [CombinatorialData]
         public void XmlDoc_EmptyParameterList([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 public " + keyword + @" C();
 ";
@@ -5704,7 +5724,7 @@ public " + keyword + @" C();
         [CombinatorialData]
         public void XmlDoc_Partial_ParamListSecond([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 public partial " + keyword + @" C;
 
 /// <summary>Summary</summary>
@@ -5738,7 +5758,7 @@ public partial " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_Partial_ParamListFirst([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
 public partial " + keyword + @" D(int I1);
@@ -5772,7 +5792,7 @@ public partial " + keyword + @" D;
         [CombinatorialData]
         public void XmlDoc_Partial_ParamListFirst_XmlDocSecond([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 public partial " + keyword + @" E(int I1);
 
 /// <summary>Summary</summary>
@@ -5807,7 +5827,7 @@ public partial " + keyword + @" E;
         [CombinatorialData]
         public void XmlDoc_Partial_ParamListSecond_XmlDocFirst([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
 public partial " + keyword + @" E;
@@ -5842,7 +5862,7 @@ public partial " + keyword + @" E(int I1);
         [CombinatorialData]
         public void XmlDoc_Partial_DuplicateParameterList_XmlDocSecond([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 public partial " + keyword + @" C(int I1);
 
 /// <summary>Summary</summary>
@@ -5852,7 +5872,6 @@ public partial " + keyword + @" C(int I1);
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording for ERR_MultipleRecordParameterLists
             comp.VerifyDiagnostics(
                 // (2,23): warning CS1591: Missing XML comment for publicly visible type or member 'C.C(int)'
                 // public partial class  C(int I1);
@@ -5860,7 +5879,7 @@ public partial " + keyword + @" C(int I1);
                 // (5,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
                 // /// <param name="I1">Description for I1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(5, 18),
-                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial class  C(int I1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(6, 24)
                 );
@@ -5883,7 +5902,7 @@ public partial " + keyword + @" C(int I1);
         [CombinatorialData]
         public void XmlDoc_Partial_DuplicateParameterList_XmlDocFirst([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
 public partial " + keyword + @" D(int I1);
@@ -5893,7 +5912,7 @@ public partial " + keyword + @" D(int I1);
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
             comp.VerifyDiagnostics(
-                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial class  D(int I1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(6, 24)
                 );
@@ -5921,7 +5940,7 @@ public partial " + keyword + @" D(int I1);
         [CombinatorialData]
         public void XmlDoc_Partial_DuplicateParameterList_XmlDocOnBoth([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary1</summary>
 /// <param name=""I1"">Description1 for I1</param>
 public partial " + keyword + @" E(int I1);
@@ -5936,7 +5955,7 @@ public partial " + keyword + @" E(int I1);
                 // (7,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
                 // /// <param name="I1">Description2 for I1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(7, 18),
-                // (8,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (8,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial class  E(int I1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(8, 24)
                 );
@@ -5966,7 +5985,7 @@ public partial " + keyword + @" E(int I1);
         [CombinatorialData]
         public void XmlDoc_Partial_DifferentParameterLists_XmlDocSecond([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 public partial " + keyword + @" E(int I1);
 
 /// <summary>Summary2</summary>
@@ -5982,7 +6001,7 @@ public partial " + keyword + @" E(string S1);
                 // (5,18): warning CS1572: XML comment has a param tag for 'S1', but there is no parameter by that name
                 // /// <param name="S1">Description2 for S1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "S1").WithArguments("S1").WithLocation(5, 18),
-                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial class  E(string S1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(string S1)").WithLocation(6, 24)
                 );
@@ -6005,7 +6024,7 @@ public partial " + keyword + @" E(string S1);
         [CombinatorialData]
         public void XmlDoc_Partial_DifferentParameterLists_XmlDocOnBoth([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary1</summary>
 /// <param name=""I1"">Description1 for I1</param>
 public partial " + keyword + @" E(int I1);
@@ -6020,7 +6039,7 @@ public partial " + keyword + @" E(string S1);
                 // (7,18): warning CS1572: XML comment has a param tag for 'S1', but there is no parameter by that name
                 // /// <param name="S1">Description2 for S1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "S1").WithArguments("S1").WithLocation(7, 18),
-                // (8,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (8,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial class  E(string S1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(string S1)").WithLocation(8, 24)
                 );
@@ -6050,7 +6069,7 @@ public partial " + keyword + @" E(string S1);
         [CombinatorialData]
         public void XmlDoc_Nested([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 public class Outer
 {
@@ -6086,7 +6105,7 @@ public class Outer
         [CombinatorialData]
         public void XmlDoc_Nested_ReferencingOuterParam([CombinatorialValues("class ", "struct")] string keyword)
         {
-            var src = @"#pragma warning disable CS8907 // Parameter is unread.
+            var src = @"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 /// <summary>Summary</summary>
 /// <param name=""O1"">Description for O1</param>
 public " + keyword + @" Outer(object O1)
@@ -6142,7 +6161,7 @@ public " + keyword + @" Outer(object O1)
         {
             var source1 =
 @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 [System.Runtime.InteropServices.ComImport]
 [System.Runtime.InteropServices.Guid(""00112233-4455-6677-8899-aabbccddeeff"")]
@@ -6162,7 +6181,7 @@ class R1(int x);
         {
             var source1 =
 @"
-#pragma warning disable CS8907 // Parameter 'x' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'x' is unread.
 
 [System.Runtime.InteropServices.ComImport]
 [System.Runtime.InteropServices.Guid(""00112233-4455-6677-8899-aabbccddeeff"")]
@@ -6180,15 +6199,15 @@ struct R1(int x);
         [Fact]
         public void AttributedDerived_SemanticInfoOnBaseParameter()
         {
-            var source = """
-                #pragma warning disable CS8907 // Parameter is unread.
+            var source = @"
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
-                public class Base(int X);
-                [Attr]
-                public class Derived(int X) : Base(X);
+public class Base(int X);
+[Attr]
+public class Derived(int X) : Base(X);
 
-                class Attr : System.Attribute {}
-                """;
+class Attr : System.Attribute {}
+";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
@@ -6203,18 +6222,18 @@ struct R1(int x);
         [Fact]
         public void AttributedDerived_BaseParameterNotVisibleInBody()
         {
-            var source = """
-                #pragma warning disable CS8907 // Parameter is unread.
+            var source = @"
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
                 
-                public class Base(int X);
-                [Attr()]
-                public class Derived() : Base(M(out var y))
-                {
-                    static int M(out int y) => y = 1;
-                }
+public class Base(int X);
+[Attr()]
+public class Derived() : Base(M(out var y))
+{
+    static int M(out int y) => y = 1;
+}
 
-                class Attr : System.Attribute {}
-                """;
+class Attr : System.Attribute {}
+";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
@@ -6235,7 +6254,7 @@ struct R1(int x);
         public void OutVarInParameterDefaultValue([CombinatorialValues("class ", "struct")] string keyword)
         {
             var source =
-@"#pragma warning disable CS8907 // Parameter is unread.
+@"#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 " + keyword + @" A(int X = A.M(out int a) + a)
 {
     public static int M(out int a)
@@ -6366,7 +6385,7 @@ public struct D
         public void FieldInitializers_10()
         {
             var source = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 using System;
 
@@ -6416,7 +6435,7 @@ S3 { X = , Y = 3 }
         public void FieldInitializers_11()
         {
             var source = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter is unread.
 
 using System;
 
@@ -7221,9 +7240,9 @@ class Attr1 : System.Attribute
                 if (!isRecord && (flags & TestFlags.NotUsedWarning) != 0)
                 {
                     builder.Add(
-                        // (1000,1): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                        // (1000,1): warning CS9508: Parameter 'p1' is unread.
                         // p1
-                        Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(1000, 1)
+                        Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(1000, 1)
                         );
                 }
 
@@ -7266,9 +7285,9 @@ class Attr1 : System.Attribute
                 if ((flags & (TestFlags.InNestedMethod)) != 0 && (flags & TestFlags.BadReference) == 0 && keyword == "struct")
                 {
                     builder.Add(
-                        // (2000,1): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                        // (2000,1): error CS9506: Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter
                         // p1
-                        Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(2000, 1)
+                        Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember, "p1").WithLocation(2000, 1)
                         );
                 }
             }
@@ -7324,9 +7343,9 @@ class Attr1 : System.Attribute
                 if (!isRecord && ((flags & TestFlags.NotUsedWarning) != 0 || (flags & TestFlags.Captured) != 0))
                 {
                     builder.Add(
-                        // (1000,1): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                        // (1000,1): warning CS9508: Parameter 'p1' is unread.
                         // p1
-                        Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(1000, 1)
+                        Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(1000, 1)
                         );
                 }
 
@@ -7665,9 +7684,9 @@ class C1 (int p1)
 }
 ";
             var verifier = CompileAndVerify(src, expectedOutput: @"TrueFalse").VerifyDiagnostics(
-                // (4,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (4,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(4, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(4, 15)
                 );
 
             Assert.Empty(((CSharpCompilation)verifier.Compilation).GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -8328,9 +8347,9 @@ abstract class C1 (int p1)
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (5,24): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (5,24): warning CS9508: Parameter 'p1' is unread.
                 // abstract class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(5, 24)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(5, 24)
                 );
         }
 
@@ -8384,18 +8403,18 @@ enum E
 
             // Warnings indicate that we do not consider any primary constructor parameters referenced and not capturing them
             comp.VerifyEmitDiagnostics(
-                // (5,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (5,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(5, 15),
-                // (5,33): warning CS8907: Parameter 'p2' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(5, 15),
+                // (5,33): warning CS9508: Parameter 'p2' is unread.
                 // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p2").WithArguments("p2").WithLocation(5, 33),
-                // (5,48): warning CS8907: Parameter 'global' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(5, 33),
+                // (5,48): warning CS9508: Parameter 'global' is unread.
                 // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "global").WithArguments("global").WithLocation(5, 48),
-                // (5,64): warning CS8907: Parameter 'C2' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "global").WithArguments("global").WithLocation(5, 48),
+                // (5,64): warning CS9508: Parameter 'C2' is unread.
                 // class C1 (int p1, System.Action p2 = null, int global = 0, int C2 = default)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "C2").WithArguments("C2").WithLocation(5, 64)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "C2").WithArguments("C2").WithLocation(5, 64)
                 );
         }
 
@@ -8842,9 +8861,9 @@ class C1 (int p1)
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.GetEmitDiagnostics().Where(d => d.Code is not (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
-                // (1000,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (1000,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(1000, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(1000, 15)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -8902,9 +8921,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"-120").VerifyDiagnostics(
-                // (2,15): warning CS8907: Parameter '_' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter '_' is unread.
                 // class C1 (int _)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "_").WithArguments("_").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "_").WithArguments("_").WithLocation(2, 15)
                 );
 
             Assert.Equal(1, comp.GetTypeByMetadataName("C2").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Count);
@@ -8955,9 +8974,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"p1x3040").VerifyDiagnostics(
-                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 15)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -9149,9 +9168,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -9184,9 +9203,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -9227,9 +9246,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -9834,9 +9853,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -9878,9 +9897,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10008,9 +10027,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10050,9 +10069,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"M1").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10095,9 +10114,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"M1").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10130,9 +10149,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10157,9 +10176,9 @@ class Color
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17),
                 // (4,20): error CS9500: Cannot use primary constructor parameter 'Color Color' in this context.
                 //     static int F = Color.M1(new S1());
                 Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "Color").WithArguments("Color Color").WithLocation(4, 20)
@@ -10195,9 +10214,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10222,9 +10241,9 @@ class Color
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17),
                 // (4,33): error CS9500: Cannot use primary constructor parameter 'Color Color' in this context.
                 //     public static int Test() => Color.M1(new S1());
                 Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "Color").WithArguments("Color Color").WithLocation(4, 33)
@@ -10260,9 +10279,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10401,9 +10420,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,16): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,16): warning CS9508: Parameter 'Color' is unread.
                 // class S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 16)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 16)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10476,9 +10495,9 @@ class Color
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28),
                 // (10,22): error CS0150: A constant value is expected
                 //             if (x is Color.Red)
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "Color.Red").WithLocation(10, 22)
@@ -10519,9 +10538,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10562,9 +10581,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"Red").VerifyDiagnostics(
-                // (6,28): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (6,28): warning CS9508: Parameter 'Color' is unread.
                 //     public class C1 (Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 28)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 28)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -10747,9 +10766,9 @@ class Program
             if (isStatic)
             {
                 diagnostics.Verify(
-                    // (6,24): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                    // (6,24): warning CS9508: Parameter 'Color' is unread.
                     // public class C1 (Color Color)
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(6, 24)
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(6, 24)
                     );
             }
             else
@@ -10793,9 +10812,9 @@ struct S3(int p1)
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (7,18): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (7,18): warning CS9508: Parameter 'p1' is unread.
                 // struct S2(string p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(7, 18),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 18),
                 // (15,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Program.Test<T>(T)'
                 //         Test(new S1());
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("Program.Test<T>(T)", "T", "S1").WithLocation(15, 9)
@@ -10994,12 +11013,12 @@ class Program
             var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp1, expectedOutput: @"_10_2_30_3").VerifyDiagnostics(
-                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
-                // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15),
-                // (7,26): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter 'p1' is unread.
+                // class C1 (int p1, string P1)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 15),
+                // (7,26): warning CS9508: Parameter 'P2' is unread.
                 // class C2 (int p2, string P2)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(7, 26)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P2").WithArguments("P2").WithLocation(7, 26)
                 );
 
             Assert.Equal("System.String P1", comp1.GetTypeByMetadataName("C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters().Single().Key.ToTestDisplayString());
@@ -11020,15 +11039,15 @@ class C2 (string P2)
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyEmitDiagnostics(
-                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 15),
                 // (4,27): error CS0103: The name 'P1' does not exist in the current context
                 //     public string M1() => P1;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "P1").WithArguments("P1").WithLocation(4, 27),
-                // (7,18): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // (7,18): warning CS9508: Parameter 'P2' is unread.
                 // class C2 (string P2)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(7, 18),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "P2").WithArguments("P2").WithLocation(7, 18),
                 // (9,24): error CS0103: The name 'p2' does not exist in the current context
                 //     public int M2() => p2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(9, 24)
@@ -11114,9 +11133,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"static").VerifyDiagnostics(
-                // (2,17): warning CS8907: Parameter 'Color' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,17): warning CS9508: Parameter 'Color' is unread.
                 // struct S1(Color Color)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Color").WithArguments("Color").WithLocation(2, 17)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(2, 17)
                 );
 
             Assert.Empty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -11922,7 +11941,7 @@ unsafe " + keyword + @" C(S s)
         fixed (int* b = s_f.Buf) {}
     }
 }", options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
-                // PROTOTYPE(PrimaryConstructors): The warning is unexpected - https://github.com/dotnet/roslyn/issues/66487
+                // The warning is unexpected - https://github.com/dotnet/roslyn/issues/66487
                 // (9,7): warning CS0169: The field 'C.s_f' is never used
                 //     S s_f;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "s_f").WithArguments("C.s_f").WithLocation(9, 7)
@@ -12017,13 +12036,13 @@ struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
-                // PROTOTYPE(PrimaryConstructors): Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
-                // (2,22): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // (2,22): warning CS9508: Parameter 'x' is unread.
                 // unsafe class  C1(int x, S s)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 22),
-                // (2,27): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 22),
+                // (2,27): warning CS9508: Parameter 's' is unread.
                 // unsafe class  C1(int x, S s)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(2, 27)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "s").WithArguments("s").WithLocation(2, 27)
                 );
         }
 
@@ -12044,13 +12063,13 @@ struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
-                // PROTOTYPE(PrimaryConstructors): Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
-                // (7,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // Warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // (7,21): warning CS9508: Parameter 'x' is unread.
                 // unsafe class C1(int x, S s) : Base(&x, &s.f);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(7, 21),
-                // (7,26): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(7, 21),
+                // (7,26): warning CS9508: Parameter 's' is unread.
                 // unsafe class C1(int x, S s) : Base(&x, &s.f);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(7, 26)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "s").WithArguments("s").WithLocation(7, 26)
                 );
         }
 
@@ -12149,13 +12168,13 @@ struct S
                 //                   int* p2 = &s.f;
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.f").WithArguments("s").WithLocation(7, 29),
 
-                // PROTOTYPE(PrimaryConstructors): The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
-                // (2,22): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // (2,22): warning CS9508: Parameter 'x' is unread.
                 // unsafe class  C1(int x, S s)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 22),
-                // (2,27): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 22),
+                // (2,27): warning CS9508: Parameter 's' is unread.
                 // unsafe class  C1(int x, S s)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(2, 27)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "s").WithArguments("s").WithLocation(2, 27)
                 );
         }
 
@@ -12187,13 +12206,13 @@ struct S
                 //                                        int* p2 = &s.f;
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.f").WithArguments("s").WithLocation(10, 50),
 
-                // PROTOTYPE(PrimaryConstructors): The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
-                // (7,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // The following warnings are not expected https://github.com/dotnet/roslyn/issues/66495
+                // (7,21): warning CS9508: Parameter 'x' is unread.
                 // unsafe class C1(int x, S s) : Base(() => 
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(7, 21),
-                // (7,26): warning CS8907: Parameter 's' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(7, 21),
+                // (7,26): warning CS9508: Parameter 's' is unread.
                 // unsafe class C1(int x, S s) : Base(() => 
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "s").WithArguments("s").WithLocation(7, 26)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "s").WithArguments("s").WithLocation(7, 26)
                 );
         }
 
@@ -12344,13 +12363,13 @@ struct S
             if (keyword == "struct")
             {
                 expected = expected.Concat(
-                    // (6,30): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    // (6,30): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                     //                   int* p1 = &x;
-                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(6, 30)
+                    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(6, 30)
                     ).Concat(
-                    // (7,30): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    // (7,30): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                     //                   int* p2 = &s.f;
-                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "s").WithLocation(7, 30)
+                    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "s").WithLocation(7, 30)
                     ).ToArray();
             }
 
@@ -12437,13 +12456,13 @@ struct S
             if (keyword == "struct")
             {
                 expected = expected.Concat(
-                    // (9,23): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    // (9,23): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                     //                   _ = x + s.f;
-                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(9, 23)
+                    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(9, 23)
                     ).Concat(
-                    // (9,27): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                    // (9,27): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                     //                   _ = x + s.f;
-                    Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "s").WithLocation(9, 27)
+                    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "s").WithLocation(9, 27)
                     ).ToArray();
             }
 
@@ -12629,42 +12648,42 @@ struct S
                 // (2,7): error CS0177: The out parameter 'y' must be assigned to before control leaves the current method
                 // class C1(out int x, out S s, out string y)
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "C1").WithArguments("y").WithLocation(2, 7),
-                // (6,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (6,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 13),
-                // (6,17): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,17): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(6, 17),
-                // (6,23): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(6, 17),
+                // (6,23): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(6, 23),
-                // (11,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(6, 23),
+                // (11,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(11, 13),
-                // (11,19): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(11, 13),
+                // (11,19): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 19),
-                // (11,30): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(11, 19),
+                // (11,30): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(11, 30),
-                // (16,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(11, 30),
+                // (16,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(16, 13),
-                // (16,24): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(16, 13),
+                // (16,24): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(16, 24),
-                // (16,28): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(16, 24),
+                // (16,28): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(16, 28),
-                // (21,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(16, 28),
+                // (21,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(21, 13),
-                // (26,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(21, 13),
+                // (26,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(26, 13),
-                // (31,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(26, 13),
+                // (31,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(31, 13)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(31, 13)
                 );
         }
 
@@ -13156,42 +13175,42 @@ struct S
 }
 ";
             CreateCompilation(text).VerifyEmitDiagnostics(
-                // (6,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (6,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 13),
-                // (6,17): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,17): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(6, 17),
-                // (6,23): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(6, 17),
+                // (6,23): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(6, 23),
-                // (11,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(6, 23),
+                // (11,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(11, 13),
-                // (11,19): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(11, 13),
+                // (11,19): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 19),
-                // (11,30): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(11, 19),
+                // (11,30): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(11, 30),
-                // (16,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(11, 30),
+                // (16,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(16, 13),
-                // (16,24): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(16, 13),
+                // (16,24): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(16, 24),
-                // (16,28): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(16, 24),
+                // (16,28): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(16, 28),
-                // (21,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(16, 28),
+                // (21,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(21, 13),
-                // (26,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(21, 13),
+                // (26,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(26, 13),
-                // (31,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(26, 13),
+                // (31,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(31, 13)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(31, 13)
                 );
         }
 
@@ -13239,42 +13258,42 @@ struct S
 }
 ";
             CreateCompilation(text).VerifyEmitDiagnostics(
-                // (6,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (6,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 13),
-                // (6,17): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,17): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(6, 17),
-                // (6,23): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(6, 17),
+                // (6,23): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = x + s.f + y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(6, 23),
-                // (11,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(6, 23),
+                // (11,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(11, 13),
-                // (11,19): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(11, 13),
+                // (11,19): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 19),
-                // (11,30): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(11, 19),
+                // (11,30): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = s.f + y.Length + x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(11, 30),
-                // (16,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(11, 30),
+                // (16,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(16, 13),
-                // (16,24): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(16, 13),
+                // (16,24): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(16, 24),
-                // (16,28): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(16, 24),
+                // (16,28): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = y.Length + x + s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(16, 28),
-                // (21,13): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(16, 28),
+                // (21,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         _ = x;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(21, 13),
-                // (26,13): error CS1628: Cannot use ref, out, or in parameter 's' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(21, 13),
+                // (26,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 's' inside an instance member
                 //         _ = s.f;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "s").WithArguments("s").WithLocation(26, 13),
-                // (31,13): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "s").WithArguments("s").WithLocation(26, 13),
+                // (31,13): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         _ = y.Length;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(31, 13)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(31, 13)
                 );
         }
 
@@ -13329,7 +13348,6 @@ struct C(string? x)
 }";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Should we warn when default value is assigned to 'this' with captured primary constructor parameters?
             comp.VerifyDiagnostics(
                 // (2000,9): warning CS8602: Dereference of a possibly null reference.
                 //         x.ToString();
@@ -13410,11 +13428,10 @@ struct S1(S1 x)
 }";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Do not refer to the backing field in the error message.
             comp.VerifyEmitDiagnostics(
-                // (2,14): error CS0523: Struct member 'S1.<x>PC__BackingField' of type 'S1' causes a cycle in the struct layout
+                // (2,14): error CS9516: Struct primary constructor parameter 'S1 x' of type 'S1' causes a cycle in the struct layout
                 // struct S1(S1 x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S1.<x>PC__BackingField", "S1").WithLocation(2, 14)
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S1 x", "S1").WithLocation(2, 14)
                 );
         }
 
@@ -13436,12 +13453,12 @@ struct S2(S1 x)
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (2,14): error CS0523: Struct member 'S1.<x>PC__BackingField' of type 'S2' causes a cycle in the struct layout
+                // (2,14): error CS9516: Struct primary constructor parameter 'S2 x' of type 'S2' causes a cycle in the struct layout
                 // struct S1(S2 x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S1.<x>PC__BackingField", "S2").WithLocation(2, 14),
-                // (7,14): error CS0523: Struct member 'S2.<x>PC__BackingField' of type 'S1' causes a cycle in the struct layout
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S2 x", "S2").WithLocation(2, 14),
+                // (7,14): error CS9516: Struct primary constructor parameter 'S1 x' of type 'S1' causes a cycle in the struct layout
                 // struct S2(S1 x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S2.<x>PC__BackingField", "S1").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S1 x", "S1").WithLocation(7, 14)
                 );
         }
 
@@ -13457,9 +13474,9 @@ struct S1<T>(S1<S1<int>> x)
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (2,26): error CS0523: Struct member 'S1<T>.<x>PC__BackingField' of type 'S1<S1<int>>' causes a cycle in the struct layout
+                // (2,26): error CS9516: Struct primary constructor parameter 'S1<S1<int>> x' of type 'S1<S1<int>>' causes a cycle in the struct layout
                 // struct S1<T>(S1<S1<int>> x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S1<T>.<x>PC__BackingField", "S1<S1<int>>").WithLocation(2, 26)
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S1<S1<int>> x", "S1<S1<int>>").WithLocation(2, 26)
                 );
         }
 
@@ -13483,17 +13500,17 @@ struct S2(S1<S2> x)
             var comp = CreateCompilation(source1 + source2);
 
             comp.VerifyEmitDiagnostics(
-                // (7,18): error CS0523: Struct member 'S2.<x>PC__BackingField' of type 'S1<S2>' causes a cycle in the struct layout
+                // (7,18): error CS9516: Struct primary constructor parameter 'S1<S2> x' of type 'S1<S2>' causes a cycle in the struct layout
                 // struct S2(S1<S2> x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S2.<x>PC__BackingField", "S1<S2>").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S1<S2> x", "S1<S2>").WithLocation(7, 18)
                 );
 
             comp = CreateCompilation(source2 + source1);
 
             comp.VerifyEmitDiagnostics(
-                // (2,18): error CS0523: Struct member 'S2.<x>PC__BackingField' of type 'S1<S2>' causes a cycle in the struct layout
+                // (2,18): error CS9516: Struct primary constructor parameter 'S1<S2> x' of type 'S1<S2>' causes a cycle in the struct layout
                 // struct S2(S1<S2> x)
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S2.<x>PC__BackingField", "S1<S2>").WithLocation(2, 18)
+                Diagnostic(ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter, "x").WithArguments("S1<S2> x", "S1<S2>").WithLocation(2, 18)
                 );
         }
 
@@ -13573,11 +13590,10 @@ readonly struct S1(int x)
 ";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                // (6,9): error CS9509: A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)
                 //         x = 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "x").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter, "x").WithLocation(6, 9)
                 );
 
             Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
@@ -13625,7 +13641,11 @@ class Program
 3
 6
 -1
-", verify: Verification.Skipped).VerifyDiagnostics();
+", verify: Verification.Skipped).VerifyDiagnostics(
+                // (2,35): warning CS9508: Parameter 'y' is unread.
+                // readonly struct S1(int x, ref int y, out int z)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 35)
+                );
         }
 
         [Fact]
@@ -13758,18 +13778,18 @@ readonly struct S1(in int x, ref int y, out int z)
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (7,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         x = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(7, 9),
                 // (7,9): error CS8331: Cannot assign to variable 'x' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         x = 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "x").WithArguments("variable", "x").WithLocation(7, 9),
-                // (11,9): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                // (11,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         y = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 9),
-                // (15,9): error CS1628: Cannot use ref, out, or in parameter 'z' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(11, 9),
+                // (15,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'z' inside an instance member
                 //         z = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "z").WithArguments("z").WithLocation(15, 9)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "z").WithArguments("z").WithLocation(15, 9)
                 );
 
             Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
@@ -13833,11 +13853,10 @@ readonly struct S1(int x)
 ";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (4,25): error CS8160: A readonly field cannot be returned by writable reference
+                // (4,25): error CS9510: A primary constructor parameter of a readonly type cannot be returned by writable reference
                 //     ref int M1() => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "x").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter, "x").WithLocation(4, 25)
                 );
         }
 
@@ -13855,12 +13874,12 @@ readonly struct S1(int x)
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (4,43): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                // (4,43): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                 //     readonly object y = ref int () => ref x;
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(4, 43),
-                // (4,43): error CS8160: A readonly field cannot be returned by writable reference
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(4, 43),
+                // (4,43): error CS9510: A primary constructor parameter of a readonly type cannot be returned by writable reference
                 //     readonly object y = ref int () => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "x").WithLocation(4, 43)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter, "x").WithLocation(4, 43)
                 );
         }
 
@@ -13872,17 +13891,37 @@ readonly struct S1(int x)
 readonly struct S1(int x)
 {
     void M1() => M2(out x);
+    static int M2(out int x) => throw null;
 
-    static void M2(out int x) => throw null;
+    void M3() => M4(ref x);
+    static int M4(ref int x) => throw null;
+
+    void M5() => M6(in x);
+    static int M6(in int x) => throw null;
+
+    readonly int y = M2(out x) + M4(ref x) + M6(in x);
+
+    int Z
+    {
+        get => x;
+        init
+        {
+            M2(out x);
+            M4(ref x);
+            M6(in x);
+        }
+    }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (4,25): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                // (4,25): error CS9511: A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)
                 //     void M1() => M2(out x);
-                Diagnostic(ErrorCode.ERR_RefReadonly, "x").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter, "x").WithLocation(4, 25),
+                // (7,25): error CS9511: A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)
+                //     void M3() => M4(ref x);
+                Diagnostic(ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter, "x").WithLocation(7, 25)
                 );
         }
 
@@ -13928,6 +13967,17 @@ readonly struct S1(S2 x)
     {
         x.F = 1;
     }
+
+    readonly int y = x.F = 2;
+
+    int Z
+    {
+        get => x.F;
+        init
+        {
+            x.F = value;
+        }
+    }
 }
 
 struct S2
@@ -13935,13 +13985,12 @@ struct S2
     public int F;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS1648: Members of readonly field 'S2 x' cannot be modified (except in a constructor or a variable initializer)
+                // (6,9): error CS9512: Members of primary constructor parameter 'S2 x' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)
                 //         x.F = 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonly2, "x.F").WithArguments("S2 x").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(6, 9)
                 );
 
             Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
@@ -13994,7 +14043,11 @@ class Program
 3
 6
 -1
-", verify: Verification.Skipped).VerifyDiagnostics();
+", verify: Verification.Skipped).VerifyDiagnostics(
+                // (2,33): warning CS9508: Parameter 'y' is unread.
+                // readonly struct S1(S2 x, ref S2 y, out S2 z)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 33)
+                );
         }
 
         [Fact]
@@ -14152,18 +14205,18 @@ struct S2
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (7,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //         x.F = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(7, 9),
                 // (7,9): error CS8332: Cannot assign to a member of variable 'x' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         x.F = 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "x.F").WithArguments("variable", "x").WithLocation(7, 9),
-                // (11,9): error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function
+                // (11,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'y' inside an instance member
                 //         y.F = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "y").WithArguments("y").WithLocation(11, 9),
-                // (15,9): error CS1628: Cannot use ref, out, or in parameter 'z' inside an anonymous method, lambda expression, query expression, or local function
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "y").WithArguments("y").WithLocation(11, 9),
+                // (15,9): error CS9504: Cannot use ref, out, or in primary constructor parameter 'z' inside an instance member
                 //         z.F = 1;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "z").WithArguments("z").WithLocation(15, 9)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "z").WithArguments("z").WithLocation(15, 9)
                 );
 
             Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
@@ -14242,11 +14295,10 @@ struct S2
 ";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (4,25): error CS8162: Members of readonly field 'S2 x' cannot be returned by writable reference
+                // (4,25): error CS9513: Members of primary constructor parameter 'S2 x' of a readonly type cannot be returned by writable reference
                 //     ref int M1() => ref x.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly2, "x.F").WithArguments("S2 x").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(4, 25)
                 );
         }
 
@@ -14269,12 +14321,12 @@ struct S2
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (4,43): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                // (4,43): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                 //     readonly object y = ref int () => ref x.F;
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(4, 43),
-                // (4,43): error CS8162: Members of readonly field 'S2 x' cannot be returned by writable reference
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "x").WithLocation(4, 43),
+                // (4,43): error CS9513: Members of primary constructor parameter 'S2 x' of a readonly type cannot be returned by writable reference
                 //     readonly object y = ref int () => ref x.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly2, "x.F").WithArguments("S2 x").WithLocation(4, 43)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(4, 43)
                 );
         }
 
@@ -14286,8 +14338,26 @@ struct S2
 readonly struct S1(S2 x)
 {
     void M1() => M2(out x.F);
+    static int M2(out int x) => throw null;
 
-    static void M2(out int x) => throw null;
+    void M3() => M4(ref x.F);
+    static int M4(ref int x) => throw null;
+
+    void M5() => M6(in x.F);
+    static int M6(in int x) => throw null;
+
+    readonly int y = M2(out x.F) + M4(ref x.F) + M6(in x.F);
+
+    int Z
+    {
+        get => x.F;
+        init
+        {
+            M2(out x.F);
+            M4(ref x.F);
+            M6(in x.F);
+        }
+    }
 }
 
 struct S2
@@ -14295,13 +14365,15 @@ struct S2
     public int F;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (4,25): error CS1649: Members of readonly field 'S2 x' cannot be used as a ref or out value (except in a constructor)
+                // (4,25): error CS9514: Members of primary constructor parameter 'S2 x' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)
                 //     void M1() => M2(out x.F);
-                Diagnostic(ErrorCode.ERR_RefReadonly2, "x.F").WithArguments("S2 x").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(4, 25),
+                // (7,25): error CS9514: Members of primary constructor parameter 'S2 x' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)
+                //     void M3() => M4(ref x.F);
+                Diagnostic(ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(7, 25)
                 );
         }
 
@@ -14422,11 +14494,10 @@ struct S1(int x)
 ";
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (4,34): error CS8354: Cannot return 'this' by reference.
+                // (4,34): error CS9515: Cannot return primary constructor parameter 'x' by reference.
                 //     readonly ref int M1() => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnThis, "x").WithLocation(4, 34)
+                Diagnostic(ErrorCode.ERR_RefReturnPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 34)
                 );
         }
 
@@ -14450,14 +14521,13 @@ ref struct S2
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
 
-            // PROTOTYPE(PrimaryConstructors): Adjust wording of ERR_AssgReadonly2 to mention primary constructor parameter or use a dedicated error.
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (6,9): error CS9505: Cannot use primary constructor parameter 'x' that has ref-like type inside an instance member
                 //         x.F = ref y; 
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 9),
-                // (6,9): error CS1648: Members of readonly field 'S2 x' cannot be modified (except in a constructor or a variable initializer)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "x").WithArguments("x").WithLocation(6, 9),
+                // (6,9): error CS9512: Members of primary constructor parameter 'S2 x' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)
                 //         x.F = ref y; 
-                Diagnostic(ErrorCode.ERR_AssgReadonly2, "x.F").WithArguments("S2 x").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter2, "x.F").WithArguments("S2 x").WithLocation(6, 9)
                 );
 
             Assert.All(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetBackingFields(), f => Assert.True(f.IsReadOnly));
@@ -14484,9 +14554,9 @@ ref struct S2
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (6,9): error CS9505: Cannot use primary constructor parameter 'x' that has ref-like type inside an instance member
                 //         x.F = ref y; 
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "x").WithArguments("x").WithLocation(6, 9),
                 // (6,9): error CS1604: Cannot assign to 'x.F' because it is read-only
                 //         x.F = ref y; 
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "x.F").WithArguments("x.F").WithLocation(6, 9)
@@ -14506,9 +14576,9 @@ struct S1(ref int x)
             var comp = CreateCompilation(source);
 
             comp.VerifyEmitDiagnostics(
-                // (4,37): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                // (4,37): error CS9504: Cannot use ref, out, or in primary constructor parameter 'x' inside an instance member
                 //     readonly void M1(ref int y) =>  x = ref y;
-                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(4, 37)
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "x").WithArguments("x").WithLocation(4, 37)
                 );
         }
 
@@ -14532,6 +14602,168 @@ struct S1(int x)
         }
 
         [Fact]
+        public void ParameterCapturing_145_ReturnByRef()
+        {
+            var source =
+@"
+class C1(int x, int z)
+{
+    ref int M1() => ref x;
+    ref readonly int M2() => ref x;
+
+    int y = 0;
+    ref int M3() => ref y;
+    ref readonly int M4() => ref y;
+
+    object u1 = ref int() => ref x;
+    object u2 = ref readonly int() => ref x;
+
+    object v1 = ref int() => ref y;
+    object v2 = ref readonly int() => ref y;
+
+    object w1 = ref int() => ref z;
+    object w2 = ref readonly int() => ref z;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (4,25): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     ref int M1() => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(4, 25),
+                // (5,34): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     ref readonly int M2() => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(5, 34),
+                // (11,34): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     object u1 = ref int() => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(11, 34),
+                // (12,43): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     object u2 = ref readonly int() => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(12, 43),
+                // (14,34): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C1.y'
+                //     object v1 = ref int() => ref y;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y").WithArguments("C1.y").WithLocation(14, 34),
+                // (15,43): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C1.y'
+                //     object v2 = ref readonly int() => ref y;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y").WithArguments("C1.y").WithLocation(15, 43),
+                // (17,34): error CS8166: Cannot return a parameter by reference 'z' because it is not a ref parameter
+                //     object w1 = ref int() => ref z;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "z").WithArguments("z").WithLocation(17, 34),
+                // (18,43): error CS8166: Cannot return a parameter by reference 'z' because it is not a ref parameter
+                //     object w2 = ref readonly int() => ref z;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "z").WithArguments("z").WithLocation(18, 43)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_146_RefSafety()
+        {
+            var source =
+@"
+class C1(int x)
+{
+    ref int M1() => ref M2(ref x);
+    static ref int M2(ref int x) => ref x;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (4,25): error CS8347: Cannot use a result of 'C1.M2(ref int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //     ref int M1() => ref M2(ref x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M2(ref x)").WithArguments("C1.M2(ref int)", "x").WithLocation(4, 25),
+                // (4,32): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //     ref int M1() => ref M2(ref x);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(4, 32)
+                );
+        }
+
+        [Fact]
+        public void ParameterCapturing_147_SynthesizedAttributes()
+        {
+            var source = @"
+class C1 (int p1)
+{
+    int M1() => p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp,
+                symbolValidator: (m) =>
+                {
+                    var attr = m.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<FieldSymbol>().Single().GetAttributes();
+                    Assert.Equal(2, attr.Length);
+                    Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attr[0].ToString());
+                    Assert.Equal("System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)", attr[1].ToString());
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_148_SynthesizedAttributes()
+        {
+            var source = @"
+class C1 (nint p1)
+{
+    nint M1() => p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp,
+                symbolValidator: (m) =>
+                {
+                    var attr = m.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<FieldSymbol>().Single().GetAttributes();
+                    Assert.Equal(3, attr.Length);
+                    Assert.Equal("System.Runtime.CompilerServices.NativeIntegerAttribute", attr[0].ToString());
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_149_SynthesizedAttributes()
+        {
+            var source = @"
+class C1 ((int i1, int i2) p1)
+{
+    object M1() => p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp,
+                symbolValidator: (m) =>
+                {
+                    var attr = m.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<FieldSymbol>().Single().GetAttributes();
+                    Assert.Equal(3, attr.Length);
+                    Assert.Equal("System.Runtime.CompilerServices.TupleElementNamesAttribute({\"i1\", \"i2\"})", attr[0].ToString());
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_150_SynthesizedAttributes()
+        {
+            var source = @"
+class C1 (dynamic p1)
+{
+    object M1() => p1;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp,
+                symbolValidator: (m) =>
+                {
+                    var attr = m.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<FieldSymbol>().Single().GetAttributes();
+                    Assert.Equal(3, attr.Length);
+                    Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute", attr[0].ToString());
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute_01()
         {
             var source = @"
@@ -14548,9 +14780,9 @@ class C1 (int p1)
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 15)
                 );
 
             Assert.Equal("p1", comp.GetTypeByMetadataName("C1").Indexers.Single().MetadataName);
@@ -14578,9 +14810,9 @@ class C1 (int p1)
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (2,15): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,15): warning CS9508: Parameter 'p1' is unread.
                 // class C1 (int p1)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 15)
                 );
 
             Assert.Equal("p1", comp.GetTypeByMetadataName("C1").Indexers.Single().MetadataName);
@@ -14623,14 +14855,13 @@ struct C1(int p1, int p2, int p3, int p4)
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(PrimaryConstructors): The message is somewhat confusing because `p1` isn't a member and it cannot be accessed from the struct copy.
             comp.VerifyEmitDiagnostics(
-                // (4,54): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                // (4,54): error CS9506: Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter
                 //     public void M1() { local(); int local() { return p1; } }
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(4, 54),
-                // (5,47): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember, "p1").WithLocation(4, 54),
+                // (5,47): error CS9506: Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter
                 //     public void M2() { var d = () => { return p2; }; d(); }
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p2").WithLocation(5, 47)
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember, "p2").WithLocation(5, 47)
                 );
         }
 
@@ -14647,107 +14878,110 @@ struct C1(int p1)
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(PrimaryConstructors): The message is somewhat confusing because `p1` isn't a member and it cannot be accessed from the struct copy.
             comp.VerifyEmitDiagnostics(
-                // (4,32): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                // (4,32): error CS9507: Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member
                 //     System.Func<int> x = () => p1;
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "p1").WithLocation(4, 32)
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, "p1").WithLocation(4, 32)
                 );
         }
 
         public static IEnumerable<object[]> IllegalCapturingDueToRefness_01_MemberData()
         {
-            var data1 = new (string tag, TestFlags flags, string code)[]
+            var data1 = new (string tag, TestFlags flags, string code, object err)[]
                 {
-                    ("0001", BadReference, "(ref int p1) { void M1() { p1 = 1; } }"),
-                    ("0002", BadReference, "(ref int p1) { void M1() { local(); void local() { p1 = 1; } } }"),
-                    ("0003", BadReference, "(ref int p1) { void M1() { local1(); void local1() { local2(); void local2() { p1 = 1; } } } }"),
-                    ("0004", BadReference, "(in int p1) { void M1() { p1.ToString(); } }"),
-                    ("0005", BadReference, "(in int p1) { void M1() { local(); void local() { p1.ToString(); } } }"),
-                    ("0006", BadReference, "(in int p1) { void M1() { local1(); void local1() { local2(); void local2() { p1.ToString(); } } } }"),
-                    ("0007", BadReference, "(out int p1) { int x = p1 = 0; void M1() { p1 = 1; } }"),
-                    ("0008", BadReference, "(out int p1) { int x = p1 = 0; void M1() { local(); void local() { p1 = 1; } } }"),
-                    ("0009", BadReference, "(out int p1) { int x = p1 = 0; void M1() { local1(); void local1() { local2(); void local2() { p1 = 1; } } } }"),
-                    ("0010", BadReference, "(S1 p1) { void M1() { p1.M(); } } ref struct S1 { public void M(){} }"),
-                    ("0011", BadReference, "(S1 p1) { void M1() { local(); void local() { p1.M(); } } } ref struct S1{ public void M(){} }"),
-                    ("0012", BadReference, "(S1 p1) { void M1() { local1(); void local1() { local2(); void local2() { p1.M(); } } } } ref struct S1{ public void M(){} }"),
+                    ("0001", BadReference, "(ref int p1) { void M1() { p1 = 1; } }", ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef),
+                    ("0002", BadReference, "(ref int p1) { void M1() { local(); void local() { p1 = 1; } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0003", BadReference, "(ref int p1) { void M1() { local1(); void local1() { local2(); void local2() { p1 = 1; } } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0004", BadReference, "(in int p1) { void M1() { p1.ToString(); } }", ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef),
+                    ("0005", BadReference, "(in int p1) { void M1() { local(); void local() { p1.ToString(); } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0006", BadReference, "(in int p1) { void M1() { local1(); void local1() { local2(); void local2() { p1.ToString(); } } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0007", BadReference, "(out int p1) { int x = p1 = 0; void M1() { p1 = 1; } }", ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef),
+                    ("0008", BadReference, "(out int p1) { int x = p1 = 0; void M1() { local(); void local() { p1 = 1; } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0009", BadReference, "(out int p1) { int x = p1 = 0; void M1() { local1(); void local1() { local2(); void local2() { p1 = 1; } } } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0010", BadReference, "(S1 p1) { void M1() { p1.M(); } } ref struct S1 { public void M(){} }", ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike),
+                    ("0011", BadReference, "(S1 p1) { void M1() { local(); void local() { p1.M(); } } } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
+                    ("0012", BadReference, "(S1 p1) { void M1() { local1(); void local1() { local2(); void local2() { p1.M(); } } } } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
+                    ("0013", BadReference, "(ref int p1) { void M1() { _ = (System.Action)(() => { p1 = 1; }); } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0014", BadReference, "(in int p1) { void M1() { _ = (System.Action)(() => { p1.ToString(); }); } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0015", BadReference, "(out int p1) { int x = p1 = 0; void M1() { _ = (System.Action)(() => { p1 = 1; }); } }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0016", BadReference, "(S1 p1) { void M1() { _ = (System.Action)(() => { p1.M(); }); } } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
 
-                    ("0101", Success, "(ref int p1) { void M1() { nameof(p1).ToString(); } }"),
-                    ("0102", Success, "(ref int p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } }"),
-                    ("0103", Success, "(ref int p1) { void M1() { local1(); void local1() { local2(); void local2() {nameof(p1).ToString(); } } } }"),
-                    ("0104", Success, "(in int p1) { void M1() { nameof(p1).ToString(); } }"),
-                    ("0105", Success, "(in int p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } }"),
-                    ("0106", Success, "(in int p1) { void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } }"),
-                    ("0107", Success, "(out int p1) { int x = p1 = 0; void M1() { nameof(p1).ToString(); } }"),
-                    ("0108", Success, "(out int p1) { int x = p1 = 0; void M1() { local(); void local() { nameof(p1).ToString(); } } }"),
-                    ("0109", Success, "(out int p1) { int x = p1 = 0; void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } }"),
-                    ("0110", Success, "(S1 p1) { void M1() { nameof(p1).ToString(); } } ref struct S1 { public void M(){} }"),
-                    ("0111", Success, "(S1 p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } } ref struct S1{ public void M(){} }"),
-                    ("0112", Success, "(S1 p1) { void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } } ref struct S1{ public void M(){} }"),
+                    ("0101", Success, "(ref int p1) { void M1() { nameof(p1).ToString(); } }", null),
+                    ("0102", Success, "(ref int p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } }", null),
+                    ("0103", Success, "(ref int p1) { void M1() { local1(); void local1() { local2(); void local2() {nameof(p1).ToString(); } } } }", null),
+                    ("0104", Success, "(in int p1) { void M1() { nameof(p1).ToString(); } }", null),
+                    ("0105", Success, "(in int p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } }", null),
+                    ("0106", Success, "(in int p1) { void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } }", null),
+                    ("0107", Success, "(out int p1) { int x = p1 = 0; void M1() { nameof(p1).ToString(); } }", null),
+                    ("0108", Success, "(out int p1) { int x = p1 = 0; void M1() { local(); void local() { nameof(p1).ToString(); } } }", null),
+                    ("0109", Success, "(out int p1) { int x = p1 = 0; void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } }", null),
+                    ("0110", Success, "(S1 p1) { void M1() { nameof(p1).ToString(); } } ref struct S1 { public void M(){} }", null),
+                    ("0111", Success, "(S1 p1) { void M1() { local(); void local() { nameof(p1).ToString(); } } } ref struct S1{ public void M(){} }", null),
+                    ("0112", Success, "(S1 p1) { void M1() { local1(); void local1() { local2(); void local2() { nameof(p1).ToString(); } } } } ref struct S1{ public void M(){} }", null),
 
-                    ("0201", BadReference, "(ref int p1) { System.Action F = () => p1 = 0; }"),
-                    ("0202", BadReference, "(ref int p1) { System.Action P { get; } = () => p1 = 0; }"),
-                    ("0203", BadReference, "(ref int p1) { public event System.Action E = () => p1 = 0; }"),
-                    ("0204", BadReference, "(in int p1) { System.Action F = () => p1.ToString(); }"),
-                    ("0205", BadReference, "(in int p1) { System.Action P { get; } = () => p1.ToString(); }"),
-                    ("0206", BadReference, "(in int p1) { public event System.Action E = () => p1.ToString(); }"),
-                    ("0207", BadReference, "(out int p1) { System.Action F = (p1 = 0) == 0 ? () => p1 = 0 : null; }"),
-                    ("0208", BadReference, "(out int p1) { System.Action P { get; } = (p1 = 0) == 0 ? () => p1 = 0 : null; }"),
-                    ("0209", BadReference, "(out int p1) { public event System.Action E = (p1 = 0) == 0 ? () => p1 = 0 : null; }"),
-                    ("0210", BadReference, "(S1 p1) { System.Action F = () => p1.ToString(); } ref struct S1{ public void M(){} }"),
-                    ("0211", BadReference, "(S1 p1) { System.Action P { get; } = () => p1.ToString(); } ref struct S1{ public void M(){} }"),
-                    ("0212", BadReference, "(S1 p1) { public event System.Action E = () => p1.ToString(); } ref struct S1{ public void M(){} }"),
+                    ("0201", BadReference, "(ref int p1) { System.Action F = () => p1 = 0; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0202", BadReference, "(ref int p1) { System.Action P { get; } = () => p1 = 0; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0203", BadReference, "(ref int p1) { public event System.Action E = () => p1 = 0; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0204", BadReference, "(in int p1) { System.Action F = () => p1.ToString(); }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0205", BadReference, "(in int p1) { System.Action P { get; } = () => p1.ToString(); }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0206", BadReference, "(in int p1) { public event System.Action E = () => p1.ToString(); }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0207", BadReference, "(out int p1) { System.Action F = (p1 = 0) == 0 ? () => p1 = 0 : null; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0208", BadReference, "(out int p1) { System.Action P { get; } = (p1 = 0) == 0 ? () => p1 = 0 : null; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0209", BadReference, "(out int p1) { public event System.Action E = (p1 = 0) == 0 ? () => p1 = 0 : null; }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("0210", BadReference, "(S1 p1) { System.Action F = () => p1.ToString(); } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
+                    ("0211", BadReference, "(S1 p1) { System.Action P { get; } = () => p1.ToString(); } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
+                    ("0212", BadReference, "(S1 p1) { public event System.Action E = () => p1.ToString(); } ref struct S1{ public void M(){} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
 
-                    ("0301", Success, "(ref int p1) { System.Action F = () => nameof(p1).ToString(); }"),
-                    ("0302", Success, "(ref int p1) { System.Action P { get; } = () => nameof(p1).ToString(); }"),
-                    ("0303", Success, "(ref int p1) { public event System.Action E = () => nameof(p1).ToString(); }"),
-                    ("0304", Success, "(in int p1) { System.Action F = () => nameof(p1).ToString(); }"),
-                    ("0305", Success, "(in int p1) { System.Action P { get; } = () => nameof(p1).ToString(); }"),
-                    ("0306", Success, "(in int p1) { public event System.Action E = () => nameof(p1).ToString(); }"),
-                    ("0307", Success, "(out int p1) { System.Action F = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }"),
-                    ("0308", Success, "(out int p1) { System.Action P { get; } = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }"),
-                    ("0309", Success, "(out int p1) { public event System.Action E = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }"),
-                    ("0310", Success, "(S1 p1) { System.Action F = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }"),
-                    ("0311", Success, "(S1 p1) { System.Action P { get; } = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }"),
-                    ("0312", Success, "(S1 p1) { public event System.Action E = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }"),
+                    ("0301", Success, "(ref int p1) { System.Action F = () => nameof(p1).ToString(); }", null),
+                    ("0302", Success, "(ref int p1) { System.Action P { get; } = () => nameof(p1).ToString(); }", null),
+                    ("0303", Success, "(ref int p1) { public event System.Action E = () => nameof(p1).ToString(); }", null),
+                    ("0304", Success, "(in int p1) { System.Action F = () => nameof(p1).ToString(); }", null),
+                    ("0305", Success, "(in int p1) { System.Action P { get; } = () => nameof(p1).ToString(); }", null),
+                    ("0306", Success, "(in int p1) { public event System.Action E = () => nameof(p1).ToString(); }", null),
+                    ("0307", Success, "(out int p1) { System.Action F = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }", null),
+                    ("0308", Success, "(out int p1) { System.Action P { get; } = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }", null),
+                    ("0309", Success, "(out int p1) { public event System.Action E = (p1 = 0) == 0 ? () => nameof(p1).ToString() : null; }", null),
+                    ("0310", Success, "(S1 p1) { System.Action F = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }", null),
+                    ("0311", Success, "(S1 p1) { System.Action P { get; } = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }", null),
+                    ("0312", Success, "(S1 p1) { public event System.Action E = () => nameof(p1).ToString(); } ref struct S1{ public void M(){} }", null),
                 };
 
-            var data2 = new (string tag, TestFlags flags, string code)[]
+            var data2 = new (string tag, TestFlags flags, string code, object err)[]
                 {
-                    ("1001", BadReference, "(ref int p1) : Base(() => p1 = 0); class Base { public Base(System.Action x) {} }"),
-                    ("1002", BadReference, "(in int p1) : Base(() => p1.ToString()); class Base { public Base(System.Action x) {} }"),
-                    ("1003", BadReference, "(out int p1) : Base(p1 = 0, () => p1 = 0); class Base { public Base(int y, System.Action x) {} }"),
-                    ("1004", BadReference, "(S1 p1) : Base(() => p1.ToString()); ref struct S1{ public void M(){} } class Base { public Base(System.Action x) {} }"),
+                    ("1001", BadReference, "(ref int p1) : Base(() => p1 = 0); class Base { public Base(System.Action x) {} }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("1002", BadReference, "(in int p1) : Base(() => p1.ToString()); class Base { public Base(System.Action x) {} }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("1003", BadReference, "(out int p1) : Base(p1 = 0, () => p1 = 0); class Base { public Base(int y, System.Action x) {} }", ErrorCode.ERR_AnonDelegateCantUse),
+                    ("1004", BadReference, "(S1 p1) : Base(() => p1.ToString()); ref struct S1{ public void M(){} } class Base { public Base(System.Action x) {} }", ErrorCode.ERR_AnonDelegateCantUseRefLike),
 
-                    ("1011", Success, "(ref int p1) : Base(() => nameof(p1).ToString()); class Base { public Base(System.Action x) {} }"),
-                    ("1012", Success, "(in int p1) : Base(() => nameof(p1).ToString()); class Base { public Base(System.Action x) {} }"),
-                    ("1013", Success, "(out int p1) : Base(p1 = 0, () => nameof(p1).ToString()); class Base { public Base(int y, System.Action x) {} }"),
-                    ("1014", Success, "(S1 p1) : Base(() => nameof(p1).ToString()); ref struct S1{ public void M(){} } class Base { public Base(System.Action x) {} }"),
+                    ("1011", Success, "(ref int p1) : Base(() => nameof(p1).ToString()); class Base { public Base(System.Action x) {} }", null),
+                    ("1012", Success, "(in int p1) : Base(() => nameof(p1).ToString()); class Base { public Base(System.Action x) {} }", null),
+                    ("1013", Success, "(out int p1) : Base(p1 = 0, () => nameof(p1).ToString()); class Base { public Base(int y, System.Action x) {} }", null),
+                    ("1014", Success, "(S1 p1) : Base(() => nameof(p1).ToString()); ref struct S1{ public void M(){} } class Base { public Base(System.Action x) {} }", null),
                 };
 
             foreach (var keyword in new[] { "class", "struct", "ref struct" })
             {
                 foreach (var d in data1)
                 {
-                    yield return new object[] { keyword, d.tag, d.flags, d.code };
+                    yield return new object[] { keyword, d.tag, d.flags, d.code, d.err };
                 }
             }
 
             foreach (var d in data2)
             {
-                yield return new object[] { "class", d.tag, d.flags, d.code };
+                yield return new object[] { "class", d.tag, d.flags, d.code, d.err };
             }
         }
 
         [Theory]
         [MemberData(nameof(IllegalCapturingDueToRefness_01_MemberData))]
-        public void IllegalCapturingDueToRefness_01(string keyword, string tag, TestFlags flags, string code)
+        public void IllegalCapturingDueToRefness_01(string keyword, string tag, TestFlags flags, string code, object err)
         {
             _ = tag;
 
             int i = code.LastIndexOf("p1");
             var source = @"
-#pragma warning disable CS8907 // Parameter 'p1' is unread.
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'p1' is unread.
 
 " + keyword + " C1" + code.Substring(0, i) + @"
 #line 2000
@@ -14758,18 +14992,77 @@ p1
 
             if (flags == TestFlags.BadReference)
             {
-                // PROTOTYPE(PrimaryConstructors): Adjust wording to mention primary constructor scenario explicitly?
-                //                                 Note, this wording is fine for scenarios in field initializes and in base type (cases 02** and 100*).
-                comp.VerifyEmitDiagnostics(
-                    // (2000,1): error CS1628: Cannot use ref, out, or in parameter 'p1' inside an anonymous method, lambda expression, query expression, or local function
-                    // p1
-                    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "p1").WithArguments("p1").WithLocation(2000, 1)
-                    );
+                switch ((ErrorCode)err)
+                {
+                    case ErrorCode.ERR_AnonDelegateCantUse:
+                        comp.VerifyEmitDiagnostics(
+                            // (2000,1): error CS1628: Cannot use ref, out, or in parameter 'p1' inside an anonymous method, lambda expression, query expression, or local function
+                            // p1
+                            Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "p1").WithArguments("p1").WithLocation(2000, 1)
+                            );
+                        break;
+
+                    case ErrorCode.ERR_AnonDelegateCantUseRefLike:
+                        comp.VerifyEmitDiagnostics(
+                            // (2000,1): error CS9503: Cannot use parameter 'p1' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function
+                            // p1
+                            Diagnostic(ErrorCode.ERR_AnonDelegateCantUseRefLike, "p1").WithArguments("p1").WithLocation(2000, 1)
+                            );
+                        break;
+
+                    case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef:
+                        comp.VerifyEmitDiagnostics(
+                            // (2000,1): error CS9504: Cannot use ref, out, or in primary constructor parameter 'p1' inside an instance member
+                            // p1
+                            Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, "p1").WithArguments("p1").WithLocation(2000, 1)
+                            );
+                        break;
+
+                    case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike:
+                        comp.VerifyEmitDiagnostics(
+                            // (2000,1): error CS9505: Cannot use primary constructor parameter 'p1' that has ref-like type inside an instance member
+                            // p1
+                            Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "p1").WithArguments("p1").WithLocation(2000, 1)
+                            );
+                        break;
+
+                    default:
+                        Assert.True(false);
+                        break;
+                }
             }
             else
             {
+                Assert.Null(err);
                 comp.VerifyEmitDiagnostics();
             }
+        }
+
+        [Fact]
+        public void IllegalCapturingDueToRefness_02()
+        {
+            var source = @"#pragma warning disable CS0649 // Field 'R1.F1' is never assigned to, and will always have its default value 0
+ref struct R1
+{
+    public int F1;
+    public ref int F2;
+}
+ref struct R2(R1 r)
+{
+    int M1() => r.F1;
+    ref int M2() => ref r.F2;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS9505: Cannot use primary constructor parameter 'r' that has ref-like type inside an instance member
+                //     int M1() => r.F1;
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "r").WithArguments("r").WithLocation(9, 17),
+                // (10,25): error CS9505: Cannot use primary constructor parameter 'r' that has ref-like type inside an instance member
+                //     ref int M2() => ref r.F2;
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "r").WithArguments("r").WithLocation(10, 25)
+                );
         }
 
         [Fact]
@@ -14810,12 +15103,12 @@ class Base
                 // (6,39): error CS8820: A static anonymous function cannot contain a reference to 'p3'.
                 //     System.Func<int> F = static () => p3;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "p3").WithArguments("p3").WithLocation(6, 39),
-                // (9,14): warning CS8907: Parameter 'p1' is unread. Did you forget to use it to initialize the property with that name?
+                // (9,14): warning CS9508: Parameter 'p1' is unread.
                 // class C2(int p1, int p2, int p3, int p4) : Base(static () => nameof(p4).Length) 
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p1").WithArguments("p1").WithLocation(9, 14),
-                // (9,22): warning CS8907: Parameter 'p2' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(9, 14),
+                // (9,22): warning CS9508: Parameter 'p2' is unread.
                 // class C2(int p1, int p2, int p3, int p4) : Base(static () => nameof(p4).Length) 
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "p2").WithArguments("p2").WithLocation(9, 22)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(9, 22)
                 );
         }
 
@@ -14843,15 +15136,36 @@ class C(int X)
             Assert.Empty(comp.GetTypeByMetadataName("C").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
 
             comp.VerifyEmitDiagnostics(
-                // (2,13): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,13): warning CS9508: Parameter 'X' is unread.
                 // class C(int X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 13),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(2, 13),
                 // (6,9): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
                 //         X.ToString();
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "X.ToString").WithArguments("object.ToString()").WithLocation(6, 9),
                 // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.X.M()'
                 //         X.M();
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "X.M").WithArguments("C.X.M()").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void ConstructorCallsDefaultConstructor()
+        {
+            var source =
+@"
+#pragma warning disable CS" + UnreadParameterWarning() + @" // Parameter 'A' is unread. Did you forget to use it to initialize the property with that name?
+
+struct S3(char A)
+{
+    public S3(object o) : this()
+    { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                //     public S3(object o) : this()
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(6, 27)
                 );
         }
     }

@@ -13334,7 +13334,7 @@ namespace System
         public void CustomValueTuple_StructWithPrimaryConstructor()
         {
             var source = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + ((int)ErrorCode.WRN_UnreadPrimaryConstructorParameter).ToString() + @" // Parameter is unread.
 
 namespace System
 {
@@ -13365,7 +13365,7 @@ namespace System
         public void CustomValueTuple_StructWithRegularConstructor()
         {
             var source = @"
-#pragma warning disable CS8907 // Parameter is unread.
+#pragma warning disable CS" + ((int)ErrorCode.WRN_UnreadPrimaryConstructorParameter).ToString() + @" // Parameter is unread.
 
 namespace System
 {

@@ -53,12 +53,12 @@ record Point(int x, int y);
                     // (2,12): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     // class Point(int x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 12),
-                    // (2,17): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    // (2,17): warning CS9508: Parameter 'x' is unread.
                     // class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 17),
-                    // (2,24): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 17),
+                    // (2,24): warning CS9508: Parameter 'y' is unread.
                     // class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 24)
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 24)
                 );
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
@@ -93,12 +93,12 @@ record Point(int x, int y);
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                    // (2,17): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    // (2,17): warning CS9508: Parameter 'x' is unread.
                     // class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 17),
-                    // (2,24): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 17),
+                    // (2,24): warning CS9508: Parameter 'y' is unread.
                     // class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 24)
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 24)
                 );
 
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular9);
@@ -146,12 +146,12 @@ class E
                     // (4,16): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     class Point(int x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(4, 16),
-                    // (4,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    // (4,21): warning CS9508: Parameter 'x' is unread.
                     //     class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(4, 21),
-                    // (4,28): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 21),
+                    // (4,28): warning CS9508: Parameter 'y' is unread.
                     //     class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(4, 28)
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 28)
                 );
 
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
@@ -176,12 +176,12 @@ class E
 
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
-                    // (4,21): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                    // (4,21): warning CS9508: Parameter 'x' is unread.
                     //     class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(4, 21),
-                    // (4,28): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 21),
+                    // (4,28): warning CS9508: Parameter 'y' is unread.
                     //     class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(4, 28)
+                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 28)
                 );
 
             comp = CreateCompilation(src2);
@@ -217,12 +217,12 @@ record class Point(int x, int y);
                 // (2,19): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 19),
-                // (2,24): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,24): warning CS9508: Parameter 'x' is unread.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 24),
-                // (2,31): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 24),
+                // (2,31): warning CS9508: Parameter 'y' is unread.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 31)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 31)
                 );
 
             comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
@@ -933,7 +933,7 @@ record C(int X, int Y)
                 // (5,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(5, 12),
-                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12),
                 // (11,21): error CS0121: The call is ambiguous between the following methods or properties: 'C.C(int, int)' and 'C.C(int, int)'
@@ -1653,7 +1653,7 @@ record C()
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (4,5): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,5): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     C(int x)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C", isSuppressed: false).WithLocation(4, 5)
                 );
@@ -13444,7 +13444,7 @@ public record C(int j) : B(1)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (3,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public B(ref B b) => throw null; // 1, not recognized as copy constructor
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "B").WithLocation(3, 12)
                 );
@@ -28751,7 +28751,7 @@ namespace System.Runtime.CompilerServices
                 // (5,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
                 // /// <param name="I1">Description for I1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(5, 18),
-                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial record C(int I1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(6, 24)
                 );
@@ -28797,7 +28797,7 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
             comp.VerifyDiagnostics(
-                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial record D(int I1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(6, 24)
                 );
@@ -28853,7 +28853,7 @@ namespace System.Runtime.CompilerServices
                 // (7,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
                 // /// <param name="I1">Description2 for I1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(7, 18),
-                // (8,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (8,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial record E(int I1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(8, 24)
                 );
@@ -28913,7 +28913,7 @@ namespace System.Runtime.CompilerServices
                 // (5,18): warning CS1572: XML comment has a param tag for 'S1', but there is no parameter by that name
                 // /// <param name="S1">Description2 for S1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "S1").WithArguments("S1").WithLocation(5, 18),
-                // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial record E(string S1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(string S1)").WithLocation(6, 24)
                 );
@@ -28960,7 +28960,7 @@ namespace System.Runtime.CompilerServices
                 // (7,18): warning CS1572: XML comment has a param tag for 'S1', but there is no parameter by that name
                 // /// <param name="S1">Description2 for S1</param>
                 Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "S1").WithArguments("S1").WithLocation(7, 18),
-                // (8,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (8,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // public partial record E(string S1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(string S1)").WithLocation(8, 24)
                 );

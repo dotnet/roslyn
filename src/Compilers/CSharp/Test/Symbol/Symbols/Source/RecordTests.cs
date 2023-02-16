@@ -75,7 +75,7 @@ record C(int x, string y)
                 // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12),
-                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
                 );
@@ -104,7 +104,7 @@ record C(int x, string y)
     }
 }");
             comp.VerifyDiagnostics(
-                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b) // overload
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
                 );
@@ -1118,7 +1118,7 @@ partial record C(int X, int Y)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // (13,17): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X, int Y)").WithLocation(13, 17)
                 );
@@ -1147,7 +1147,7 @@ partial record C(int X)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // (13,17): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record C(int X)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X)").WithLocation(13, 17)
                 );
@@ -1228,18 +1228,18 @@ data struct S2(int X, int Y);";
                 // (3,6): error CS1002: ; expected
                 // data class C2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(3, 6),
-                // (3,19): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // (3,19): warning CS9508: Parameter 'X' is unread.
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(3, 19),
-                // (3,26): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(3, 19),
+                // (3,26): warning CS9508: Parameter 'Y' is unread.
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(3, 26),
-                // (5,20): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Y").WithArguments("Y").WithLocation(3, 26),
+                // (5,20): warning CS9508: Parameter 'X' is unread.
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(5, 20),
-                // (5,27): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(5, 20),
+                // (5,27): warning CS9508: Parameter 'Y' is unread.
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(5, 27),
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Y").WithArguments("Y").WithLocation(5, 27),
                 // (4,6): error CS1001: Identifier expected
                 // data struct S1 { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(4, 6),

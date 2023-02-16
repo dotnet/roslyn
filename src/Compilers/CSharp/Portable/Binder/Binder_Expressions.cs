@@ -1931,7 +1931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (IsBadLocalOrParameterCapture(parameter, parameter.Type, parameter.RefKind))
                             {
                                 isError = true;
-                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                                Error(diagnostics, parameter.Type.IsRefLikeType ? ErrorCode.ERR_AnonDelegateCantUseRefLike : ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
                             }
                             else if (primaryCtor is not null)
                             {
@@ -1942,7 +1942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     (parameter.RefKind != RefKind.None || parameter.Type.IsRefLikeType) &&
                                     !IsInsideNameof)
                                 {
-                                    Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                                    Error(diagnostics, parameter.Type.IsRefLikeType ? ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike : ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, node, parameter.Name);
                                 }
                                 else if (primaryCtor is { ThisParameter.RefKind: not RefKind.None } &&
                                          this.ContainingMemberOrLambda is MethodSymbol { MethodKind: MethodKind.AnonymousFunction or MethodKind.LocalFunction } &&
@@ -1950,10 +1950,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     // Captured in a lambda.
 
-                                    if (capture || // Quick check if this reference itself causes the parameter capture in a field  
-                                        primaryCtor.GetCapturedParameters().ContainsKey(parameter)) // check other references in the entire type
+                                    if (capture)
                                     {
-                                        Error(diagnostics, ErrorCode.ERR_ThisStructNotInAnonMeth, node);
+                                        // This reference itself causes the parameter capture in a field  
+                                        Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember, node);
+                                    }
+                                    else if (primaryCtor.GetCapturedParameters().ContainsKey(parameter)) // check other references in the entire type
+                                    {
+                                        Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, node);
                                     }
                                 }
                             }

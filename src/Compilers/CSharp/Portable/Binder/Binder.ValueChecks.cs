@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var isValueType = ((BoundThisReference)expr).Type.IsValueType;
                     if (!isValueType || (RequiresAssignableVariable(valueKind) && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true))
                     {
-                        ReportThisLvalueError(node, valueKind, isValueType, diagnostics);
+                        ReportThisLvalueError(node, valueKind, isValueType, isPrimaryConstructorParameter: false, diagnostics);
                         return false;
                     }
 
@@ -787,9 +787,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void ReportThisLvalueError(SyntaxNode node, BindValueKind valueKind, bool isValueType, BindingDiagnosticBag diagnostics)
+        private static void ReportThisLvalueError(SyntaxNode node, BindValueKind valueKind, bool isValueType, bool isPrimaryConstructorParameter, BindingDiagnosticBag diagnostics)
         {
-            var errorCode = GetThisLvalueError(valueKind, isValueType);
+            var errorCode = GetThisLvalueError(valueKind, isValueType, isPrimaryConstructorParameter);
             if (errorCode is ErrorCode.ERR_InvalidAddrOp or ErrorCode.ERR_IncrementLvalueExpected or ErrorCode.ERR_RefReturnThis or ErrorCode.ERR_RefLocalOrParamExpected or ErrorCode.ERR_RefLvalueExpected)
             {
                 Error(diagnostics, errorCode, node);
@@ -947,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (RequiresAssignableVariable(valueKind) && !backingField.ContainingType.IsReferenceType && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true)
                 {
-                    ReportThisLvalueError(node, valueKind, isValueType: true, diagnostics);
+                    ReportThisLvalueError(node, valueKind, isValueType: true, isPrimaryConstructorParameter: true, diagnostics);
                     return false;
                 }
             }
@@ -976,15 +976,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (valueKind == BindValueKind.RefReturn)
                 {
-                    errorCode = ErrorCode.ERR_RefReturnReadonly2;
+                    errorCode = ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter2;
                 }
                 else if (RequiresRefOrOut(valueKind))
                 {
-                    errorCode = ErrorCode.ERR_RefReadonly2;
+                    errorCode = ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter2;
                 }
                 else
                 {
-                    errorCode = ErrorCode.ERR_AssgReadonly2;
+                    errorCode = ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter2;
                 }
 
                 Error(diagnostics, errorCode, node, parameterSymbol);
@@ -995,15 +995,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (valueKind == BindValueKind.RefReturn)
                 {
-                    errorCode = ErrorCode.ERR_RefReturnReadonly;
+                    errorCode = ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter;
                 }
                 else if (RequiresRefOrOut(valueKind))
                 {
-                    errorCode = ErrorCode.ERR_RefReadonly;
+                    errorCode = ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter;
                 }
                 else
                 {
-                    errorCode = ErrorCode.ERR_AssgReadonly;
+                    errorCode = ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter;
                 }
 
                 Error(diagnostics, errorCode, node);
@@ -2685,7 +2685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, ReadOnlyLocalErrors[index], node, local, cause.Localize());
         }
 
-        private static ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType)
+        private static ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType, bool isPrimaryConstructorParameter)
         {
             switch (kind)
             {
@@ -2704,7 +2704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
-                    return ErrorCode.ERR_RefReturnThis;
+                    return isPrimaryConstructorParameter ? ErrorCode.ERR_RefReturnPrimaryConstructorParameter : ErrorCode.ERR_RefReturnThis;
 
                 case BindValueKind.RefAssignable:
                     return ErrorCode.ERR_RefLocalOrParamExpected;

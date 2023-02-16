@@ -49,9 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
             => ParameterSymbol.TypeWithAnnotations;
 
-        // PROTOTYPE(PrimaryConstructors): Some implementations (like in SourceFieldSymbolWithSyntaxReference)
-        //                                 try to detect this fact from syntax. It looks like the motivation
-        //                                 is to avoid some kind of circularity. Should we do the same?
+        // Some implementations (like in SourceFieldSymbolWithSyntaxReference)
+        // try to detect this fact from syntax. It looks like the motivation
+        // is to avoid some kind of circularity.
+        // No tests failed when that behavior got disabled. Probably the circularity is no longer
+        // possible. Also, while figuring out whether parameter is getting captured, we are likely
+        // to bind arbitrary type references. It feels like the additional complexity (detecting
+        // the fact from syntax) is not warranted.
         internal override bool HasPointerType
             => base.HasPointerType;
 
@@ -60,7 +64,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override NamedTypeSymbol ContainingType
             => ParameterSymbol.ContainingSymbol.ContainingType;
-
-        // PROTOTYPE(PrimaryConstructors): Test synthesized attributes.
     }
 }

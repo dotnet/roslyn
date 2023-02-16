@@ -6590,10 +6590,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Unexpected argument list.</value>
   </data>
   <data name="ERR_UnexpectedOrMissingConstructorInitializerInRecord" xml:space="preserve">
-    <value>A constructor declared in a record with parameter list must have 'this' constructor initializer.</value>
+    <value>A constructor declared in a type with parameter list must have 'this' constructor initializer.</value>
   </data>
   <data name="ERR_MultipleRecordParameterLists" xml:space="preserve">
-    <value>Only a single record partial declaration may have a parameter list</value>
+    <value>Only a single partial type declaration may have a parameter list</value>
   </data>
   <data name="ERR_BadRecordBase" xml:space="preserve">
     <value>Records may only inherit from object or another record</value>
@@ -7179,7 +7179,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A lambda expression with attributes cannot be converted to an expression tree</value>
   </data>
   <data name="ERR_RecordStructConstructorCallsDefaultConstructor" xml:space="preserve">
-    <value>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</value>
+    <value>A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</value>
   </data>
   <data name="ERR_StructHasInitializersAndNoDeclaredConstructor" xml:space="preserve">
     <value>A 'struct' with field initializers must include an explicitly declared constructor.</value>
@@ -7432,5 +7432,50 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title" xml:space="preserve">
     <value>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseRefLike" xml:space="preserve">
+    <value>Cannot use parameter '{0}' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function</value>
+  </data>
+  <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRef" xml:space="preserve">
+    <value>Cannot use ref, out, or in primary constructor parameter '{0}' inside an instance member</value>
+  </data>
+  <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike" xml:space="preserve">
+    <value>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember" xml:space="preserve">
+    <value>Anonymous methods, lambda expressions, query expressions, and local functions inside an instance member of a struct cannot access primary constructor parameter</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured" xml:space="preserve">
+    <value>Anonymous methods, lambda expressions, query expressions, and local functions inside a struct cannot access primary constructor parameter also used inside an instance member</value>
+  </data>
+  <data name="WRN_UnreadPrimaryConstructorParameter" xml:space="preserve">
+    <value>Parameter '{0}' is unread.</value>
+  </data>
+  <data name="WRN_UnreadPrimaryConstructorParameter_Title" xml:space="preserve">
+    <value>Parameter is unread.</value>
+  </data>
+  <data name="ERR_AssgReadonlyPrimaryConstructorParameter" xml:space="preserve">
+    <value>A primary constructor parameter of a readonly type cannot be assigned to (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyPrimaryConstructorParameter" xml:space="preserve">
+    <value>A primary constructor parameter of a readonly type cannot be returned by writable reference</value>
+  </data>
+  <data name="ERR_RefReadonlyPrimaryConstructorParameter" xml:space="preserve">
+    <value>A primary constructor parameter of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_AssgReadonlyPrimaryConstructorParameter2" xml:space="preserve">
+    <value>Members of primary constructor parameter '{0}' of a readonly type cannot be modified (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyPrimaryConstructorParameter2" xml:space="preserve">
+    <value>Members of primary constructor parameter '{0}' of a readonly type cannot be returned by writable reference</value>
+  </data>
+  <data name="ERR_RefReadonlyPrimaryConstructorParameter2" xml:space="preserve">
+    <value>Members of primary constructor parameter '{0}' of a readonly type cannot be used as a ref or out value (except in init-only setter of the type or a variable initializer)</value>
+  </data>
+  <data name="ERR_RefReturnPrimaryConstructorParameter" xml:space="preserve">
+    <value>Cannot return primary constructor parameter '{0}' by reference.</value>
+  </data>
+  <data name="ERR_StructLayoutCyclePrimaryConstructorParameter" xml:space="preserve">
+    <value>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</value>
   </data>
 </root>

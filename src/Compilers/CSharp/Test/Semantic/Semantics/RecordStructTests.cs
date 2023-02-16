@@ -253,12 +253,12 @@ record struct Point(int x, int y);
                 // (2,13): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // struct Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 13),
-                // (2,18): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,18): warning CS9508: Parameter 'x' is unread.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 18),
-                // (2,25): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 18),
+                // (2,25): warning CS9508: Parameter 'y' is unread.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 25)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 25)
                 );
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
@@ -278,12 +278,12 @@ record struct Point(int x, int y);
                 // (2,13): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // struct Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 13),
-                // (2,18): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // (2,18): warning CS9508: Parameter 'x' is unread.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(2, 18),
-                // (2,25): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 18),
+                // (2,25): warning CS9508: Parameter 'y' is unread.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(2, 25)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 25)
                 );
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
@@ -325,12 +325,12 @@ namespace NS
                 // (4,17): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     struct Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(4, 17),
-                // (4,22): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // (4,22): warning CS9508: Parameter 'x' is unread.
                 //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(4, 22),
-                // (4,29): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 22),
+                // (4,29): warning CS9508: Parameter 'y' is unread.
                 //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(4, 29)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 29)
                 );
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
@@ -353,12 +353,12 @@ namespace NS
 
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
-                // (4,22): warning CS8907: Parameter 'x' is unread. Did you forget to use it to initialize the property with that name?
+                // (4,22): warning CS9508: Parameter 'x' is unread.
                 //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "x").WithArguments("x").WithLocation(4, 22),
-                // (4,29): warning CS8907: Parameter 'y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 22),
+                // (4,29): warning CS9508: Parameter 'y' is unread.
                 //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "y").WithArguments("y").WithLocation(4, 29)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 29)
                 );
 
             comp = CreateCompilation(src2);
@@ -1030,10 +1030,10 @@ record struct S6(object o)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,5): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (13,5): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     S3(object o) { } // 1
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S3").WithLocation(13, 5),
-                // (21,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (21,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S5() { } // 2
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S5").WithLocation(21, 12)
                 );
@@ -1278,13 +1278,13 @@ partial record struct S3();
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (3,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // (3,24): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record struct S(int i);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int i)").WithLocation(3, 24),
-                // (6,25): error CS8863: Only a single record partial declaration may have a parameter list
+                // (6,25): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record struct S2();
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(6, 25),
-                // (9,25): error CS8863: Only a single record partial declaration may have a parameter list
+                // (9,25): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record struct S3();
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(9, 25)
                 );
@@ -1864,7 +1864,7 @@ record struct C(int X, int Y)
                 // (5,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(5, 12),
-                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12),
                 // (11,21): error CS0121: The call is ambiguous between the following methods or properties: 'C.C(int, int)' and 'C.C(int, int)'
@@ -10810,13 +10810,13 @@ record class Boxed(string Text)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (4,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     private Value(int X) { } // 1
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Value").WithLocation(4, 13),
-                // (5,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (5,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     private Value(Value original) { } // 2
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Value").WithLocation(5, 13),
-                // (10,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (10,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     private Boxed(int X) { } // 3
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Boxed").WithLocation(10, 13),
                 // (11,13): error CS8878: A copy constructor 'Boxed.Boxed(Boxed)' must be public or protected because the record is not sealed.
@@ -10910,13 +10910,13 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (7,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S2(object o) { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S2").WithLocation(7, 12),
-                // (11,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (11,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S3(object o) { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S3").WithLocation(11, 12),
-                // (15,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (15,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S4(object o) { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S4").WithLocation(15, 12));
         }
@@ -11003,10 +11003,10 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (3,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S3(object o) : this() { }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(3, 27),
-                // (7,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (7,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S4(object o) : this() { }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(7, 27));
         }
@@ -11028,10 +11028,10 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (4,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S3(object o) : this() { F = o; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 27),
-                // (9,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (9,27): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S4(object o) : this() { F = o; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(9, 27));
         }
@@ -11144,7 +11144,7 @@ S4 { A = a, B = b }
                 // (4,12): error CS2111: Type 'S2' already defines a member called 'S2' with the same parameter types
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "S2").WithArguments("S2", "S2").WithLocation(4, 12),
-                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S2").WithLocation(4, 12));
         }
@@ -11173,13 +11173,13 @@ record struct S3(char A)
                 // (7,12): error CS0522: 'S2': structs cannot call base class constructors
                 //     public S2(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S2").WithArguments("S2").WithLocation(7, 12),
-                // (7,27): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (7,27): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S2(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(7, 27),
                 // (11,12): error CS0522: 'S3': structs cannot call base class constructors
                 //     public S3(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S3").WithArguments("S3").WithLocation(11, 12),
-                // (11,27): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (11,27): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public S3(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(11, 27));
         }
@@ -11202,7 +11202,7 @@ record struct S3(char A)
                 // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S(object F)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "F").WithArguments("F").WithLocation(1, 24),
-                // (4,23): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (4,23): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S(int i) : this() { F = i; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 23));
 
@@ -11211,7 +11211,7 @@ record struct S3(char A)
                 // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S(object F)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "F").WithArguments("F").WithLocation(1, 24),
-                // (4,23): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                // (4,23): error CS8982: A constructor declared in a 'struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S(int i) : this() { F = i; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 23));
         }
