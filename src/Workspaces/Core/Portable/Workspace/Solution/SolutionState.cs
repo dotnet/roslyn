@@ -1686,8 +1686,8 @@ namespace Microsoft.CodeAnalysis
                         var newTracker = tracker.FreezePartialStateWithTree(this, linkedDoc, linkedTree, cancellationToken);
 
                         Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(linkedDoc.Id.ProjectId));
-                        newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(linkedDoc.Id.ProjectId, newTracker.ProjectState);
-                        newIdToTrackerMap = _projectIdToTrackerMap.SetItem(linkedDoc.Id.ProjectId, newTracker);
+                        newIdToProjectStateMap = newIdToProjectStateMap.SetItem(linkedDoc.Id.ProjectId, newTracker.ProjectState);
+                        newIdToTrackerMap = newIdToTrackerMap.SetItem(linkedDoc.Id.ProjectId, newTracker);
                     }
 
                     currentPartialSolution = this.Branch(
