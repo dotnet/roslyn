@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             // Try to load MS.CA.Remote.ServiceHub.dll as an analyzer assembly via RemoteAnalyzerAssemblyLoader
             // since it's not one of the special assemblies listed in RemoteAnalyzerAssemblyLoader,
             // RemoteAnalyzerAssemblyLoader should loaded in a spearate DirectoryLoadContext. 
-            loader.AddDependencyLocation(testFixture.Delta1.Path);
-            var remoteAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(testFixture.Delta1.Path);
+            loader.AddDependencyLocation(testFixture.Delta1);
+            var remoteAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(testFixture.Delta1);
 
             var alc1 = AssemblyLoadContext.GetLoadContext(remoteAssemblyInCurrentAlc);
             var alc2 = AssemblyLoadContext.GetLoadContext(remoteAssemblyLoadedViaRemoteLoader);

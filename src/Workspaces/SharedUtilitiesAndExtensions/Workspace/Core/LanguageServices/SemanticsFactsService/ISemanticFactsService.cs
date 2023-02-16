@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -27,28 +25,26 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location,
-            SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
+            SyntaxNode? container, string baseName, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location,
-            SyntaxNode containerOpt, string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken);
+            SyntaxNode? container, string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken);
 
-        SyntaxToken GenerateUniqueName(SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt, string baseName,
+        SyntaxToken GenerateUniqueName(SemanticModel semanticModel, SyntaxNode location, SyntaxNode? container, string baseName,
             Func<ISymbol, bool> filter, IEnumerable<string> usedNames, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueLocalName(
             SemanticModel semanticModel, SyntaxNode location,
-            SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
+            SyntaxNode? container, string baseName, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueLocalName(
             SemanticModel semanticModel, SyntaxNode location,
-            SyntaxNode containerOpt, string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken);
+            SyntaxNode? container, string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames);
 
         CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination);
-
-#nullable enable
 
         IMethodSymbol? TryGetDisposeMethod(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     }

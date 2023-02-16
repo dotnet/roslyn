@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
         {
             var diagnostic = context.Diagnostics.First();
             var serializedNamingStyle = diagnostic.Properties[nameof(NamingStyle)];
+            Contract.ThrowIfNull(serializedNamingStyle);
+
             var style = NamingStyle.FromXElement(XElement.Parse(serializedNamingStyle));
 
             var document = context.Document;
