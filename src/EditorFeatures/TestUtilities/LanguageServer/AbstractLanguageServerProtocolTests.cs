@@ -295,11 +295,11 @@ namespace Roslyn.Test.Utilities
         private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null, bool callInitialized = true)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, initializationOptions, callInitialized);
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, initializationOptions);
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, InitializationOptions? initializationOptions = null)
-            => CreateTestLspServerAsync(markups, LanguageNames.CSharp, initializationOptions, callInitialized: true);
+            => CreateTestLspServerAsync(markups, LanguageNames.CSharp, initializationOptions);
 
         private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null)
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, initializationOptions);
@@ -344,7 +344,7 @@ namespace Roslyn.Test.Utilities
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
 
-            return await TestLspServer.CreateAsync(workspace, initializationOptions, TestOutputLspLogger, callInitialized);
+            return await TestLspServer.CreateAsync(workspace, initializationOptions, TestOutputLspLogger);
         }
 
         private protected async Task<TestLspServer> CreateXmlTestLspServerAsync(
@@ -363,7 +363,7 @@ namespace Roslyn.Test.Utilities
             // Otherwise we could have a race where workspace change events triggered by creation are changing the state
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
-            return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger, callInitialized: true);
+            return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
         }
 
         internal TestWorkspace CreateWorkspace(InitializationOptions? options, string? workspaceKind)
@@ -537,7 +537,7 @@ namespace Roslyn.Test.Utilities
                 return messageFormatter;
             }
 
-            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, InitializationOptions initializationOptions, ILspServiceLogger logger, bool callInitialized = true)
+            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, InitializationOptions initializationOptions, ILspServiceLogger logger)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
 
@@ -551,7 +551,7 @@ namespace Roslyn.Test.Utilities
                     Capabilities = initializationOptions.ClientCapabilities,
                 }, CancellationToken.None);
 
-                if (callInitialized)
+                if (initializationOptions.CallInitialized)
                 {
                     await server.ExecuteRequestAsync<LSP.InitializedParams, object?>(LSP.Methods.InitializedName, new LSP.InitializedParams { }, CancellationToken.None);
                 }
@@ -697,7 +697,7 @@ namespace Roslyn.Test.Utilities
                 solutionCrawlerRegistrationService.Unregister(TestWorkspace);
 
                 // Some tests will manually call shutdown and exit, so attempting to call this during dispose
-                // will fail as the server's jsonrpc instance will be disposed of.
+                // will fail as the server's sonrpc instance will be disposed of.
                 if (!LanguageServer.GetTestAccessor().HasShutdownStarted())
                 {
                     await ShutdownTestServerAsync();
