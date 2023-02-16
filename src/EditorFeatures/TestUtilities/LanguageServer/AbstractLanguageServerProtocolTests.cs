@@ -293,7 +293,7 @@ namespace Roslyn.Test.Utilities
             => new CodeActionResolveData(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri));
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, new InitializationOptions { ClientCapabilities = clientCapabilities }, callInitialized);
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null, bool callInitialized = true)
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, initializationOptions, callInitialized);
@@ -302,9 +302,9 @@ namespace Roslyn.Test.Utilities
             => CreateTestLspServerAsync(markups, LanguageNames.CSharp, initializationOptions, callInitialized: true);
 
         private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, initializationOptions, callInitialized: true);
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, initializationOptions);
 
-        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName, InitializationOptions? initializationOptions, bool callInitialized)
+        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName, InitializationOptions? initializationOptions)
         {
             var lspOptions = initializationOptions ?? new InitializationOptions();
 
@@ -312,10 +312,10 @@ namespace Roslyn.Test.Utilities
 
             workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(languageName, files: markups, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups), openDocuments: false);
 
-            return CreateTestLspServerAsync(workspace, lspOptions, callInitialized);
+            return CreateTestLspServerAsync(workspace, lspOptions);
         }
 
-        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions, bool callInitialized)
+        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions)
         {
             var solution = workspace.CurrentSolution;
 
