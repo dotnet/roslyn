@@ -9897,6 +9897,39 @@ class C
         }
 
         [Fact]
+        public void TestUnsafeAlias14_A()
+        {
+            var csharp = @"
+using unsafe X = int;
+
+class C
+{
+    void ThisMethodIsNotUnsafe(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUnsafeAlias14_B()
+        {
+            var csharp = @"
+using unsafe X = int;
+
+class C
+{
+    void ThisMethodIsNotUnsafe(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // using unsafe X = int;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
+        }
+
+        [Fact]
         public void TestUnsafeAlias1_FP()
         {
             var csharp = @"
