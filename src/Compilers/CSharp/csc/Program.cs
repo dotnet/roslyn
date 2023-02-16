@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
         {
             try
             {
+                Console.WriteLine("I am sentient. Beware");
                 return MainCore(args);
             }
             catch (FileNotFoundException e)
