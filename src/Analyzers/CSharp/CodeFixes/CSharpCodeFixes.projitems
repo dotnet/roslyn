@@ -27,6 +27,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AbstractAssignOutParametersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAboveReturnCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAtStartCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\CSharpAddDocCommentNodesCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\CSharpRemoveDocCommentNodeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConditionalExpressionInStringInterpolation\CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConflictMarkerResolution\CSharpResolveConflictMarkerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceCodeFixProvider.cs" />
@@ -51,6 +53,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\MakeLocalFunctionStaticCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\PassInCapturedVariablesAsArgumentsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\CSharpMakeMemberStaticCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodAsynchronous\CSharpMakeMethodAsynchronousCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\CSharpMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeRefStruct\MakeRefStructCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructReadOnly\CSharpMakeStructReadOnlyCodeFixProvider.cs" />
