@@ -174,4 +174,18 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
         _workspaceManager.LspTextChanged -= OnLspTextChanged;
         _workspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
     }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor
+    {
+        private readonly PublicWorkspacePullDiagnosticsHandler _handler;
+
+        public TestAccessor(PublicWorkspacePullDiagnosticsHandler handler)
+        {
+            _handler = handler;
+        }
+
+        public void TriggerConnectionClose() => _handler.UpdateLspChanged();
+    }
 }

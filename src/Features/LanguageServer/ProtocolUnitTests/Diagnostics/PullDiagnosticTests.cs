@@ -1667,12 +1667,13 @@ class A {";
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: false);
 
-            var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: false, useProgress: true);
+            var resultTask = RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, useProgress: true, triggerConnectionClose: false);
 
             // Assert that the connection isn't closed and task doesn't complete even after some delay.
             await Task.Delay(TimeSpan.FromSeconds(5));
             Assert.False(resultTask.IsCompleted);
 
+            // Make an LSP document change that will trigger connection close.
             var uri = testLspServer.GetCurrentSolution().Projects.First().Documents.First().GetURI();
             await testLspServer.OpenDocumentAsync(uri);
 
@@ -1690,12 +1691,13 @@ class A {";
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: false);
 
-            var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: false, useProgress: true);
+            var resultTask = RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, useProgress: true, triggerConnectionClose: false);
 
             // Assert that the connection isn't closed and task doesn't complete even after some delay.
             await Task.Delay(TimeSpan.FromSeconds(5));
             Assert.False(resultTask.IsCompleted);
 
+            // Make workspace change that will trigger connection close.
             var projectInfo = testLspServer.TestWorkspace.Projects.Single().ToProjectInfo();
             testLspServer.TestWorkspace.OnProjectReloaded(projectInfo);
 
