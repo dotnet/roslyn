@@ -87,6 +87,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 #endif
 
+            // If we are allowed to generate into hidden code then we are done with our checks
+            if (allowGenerateInHiddenCode)
+            {
+                return true;
+            }
+
             // Anything completely hidden is something you can't add to. Anything completely visible
             // is something you can add to.  Anything that is partially hidden will have to defer to
             // the underlying language to make a determination.
