@@ -80,7 +80,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                     return ImmutableArray<string>.Empty;
                 }
 
-                return options.SelectAsArray(token => token.Value<string>());
+                var optionStrings = options.SelectAsArray(token => token.Value<string>());
+                if (optionStrings.Contains(null))
+                {
+                    _lspLogger.LogError($"Configuration from client is null. The request is {configurationItems[optionStrings.IndexOf(null)]}.");
+                    return ImmutableArray<string>.Empty;
+                }
             }
             catch (Exception e)
             {
