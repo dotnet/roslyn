@@ -804,27 +804,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
 
             // froze document2 
-            var frozenDocument2 = project2.GetRequiredDocument(originalDocument2.Id).WithFrozenPartialSemantics(CancellationToken.None);
+            var documentIdsToTest = new[] { originalDocument1.Id, originalDocument2.Id };
+            foreach (var documentIdToTest in documentIdsToTest)
+            {
+                var frozenDocument = workspace.CurrentSolution.GetRequiredDocument(documentIdToTest).WithFrozenPartialSemantics(CancellationToken.None);
+                Assert.Equal(frozenDocument.GetLinkedDocumentIds().Single(), documentIdsToTest.Except(new[] {documentIdToTest}).Single());
+                frozenDocument = frozenDocument.WithText(SourceText.From("// Something else"));
+                var project = frozenDocument.Project;
 
-            // ensure linked doc of document2 is in frozen snapshot
-            Assert.Equal(frozenDocument2.GetLinkedDocumentIds().Single(), originalDocument1.Id);
-
-            // changing text of frozen document2, SG shouldn't run
-            frozenDocument2 = frozenDocument2.WithText(SourceText.From("// Something else"));
-            project2 = frozenDocument2.Project;
-
-            var compilation2 = await project2.GetRequiredCompilationAsync(CancellationToken.None);
-            Assert.Equal(1, compilation2.SyntaxTrees.Count());
-            Assert.False(generatorRan);
-
-            // now change the text of document1 from the frozen snapshot
-            var document1InFrozenSnapshot = project2.Solution.GetRequiredDocument(frozenDocument2.GetLinkedDocumentIds().Single());
-            document1InFrozenSnapshot = document1InFrozenSnapshot.WithText(SourceText.From("// Something else 2"));
-            var compilation1 = await document1InFrozenSnapshot.Project.GetRequiredCompilationAsync(CancellationToken.None);
-
-            // SG shouldn't run
-            Assert.Equal(1, compilation1.SyntaxTrees.Count());
-            Assert.False(generatorRan);
+                var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+                Assert.Equal(1, compilation.SyntaxTrees.Count());
+                Assert.False(generatorRan);
+            }
         }
     }
 }
