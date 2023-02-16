@@ -1697,7 +1697,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
+        public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
         {
             var projectState = this.GetProjectState(documentId.ProjectId);
             if (projectState == null)
@@ -1726,7 +1726,7 @@ namespace Microsoft.CodeAnalysis
 
         private static ImmutableArray<DocumentId> FilterDocumentIdsByLanguage(SolutionState solution, ImmutableArray<DocumentId> documentIds, string language)
             => documentIds.WhereAsArray(
-                (documentId, args) =>
+                static (documentId, args) =>
                 {
                     var projectState = args.solution.GetProjectState(documentId.ProjectId);
                     if (projectState == null)
@@ -1735,7 +1735,7 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                    return projectState?.ProjectInfo.Language == args.language;
+                    return projectState.ProjectInfo.Language == args.language;
                 },
                 (solution, language));
 
