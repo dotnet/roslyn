@@ -9,9 +9,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using System.Diagnostics;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
@@ -30,6 +28,7 @@ internal record CodeGenerationOptions
     internal static readonly CodeGenerationOptions CommonDefaults = new();
 
     [DataMember] public NamingStylePreferences NamingStyle { get; init; } = NamingStylePreferences.Default;
+    [DataMember] public bool AllowGenerateInHiddenCode { get; init; } = false;
 
     private protected CodeGenerationOptions()
     {
@@ -38,6 +37,7 @@ internal record CodeGenerationOptions
     private protected CodeGenerationOptions(IOptionsReader options, CodeGenerationOptions fallbackOptions, string language)
     {
         NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language, fallbackOptions.NamingStyle);
+        AllowGenerateInHiddenCode = fallbackOptions.AllowGenerateInHiddenCode;
     }
 
 #if !CODE_STYLE
