@@ -4473,11 +4473,6 @@ If the "K" format specifier is used without other custom format specifiers, it's
         <target state="translated">Не удалось загрузить сборку анализатора {0}: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Преобразовать метод в синхронный</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">из {0}</target>
@@ -4638,16 +4633,6 @@ This version used in: {2}</source>
       <trans-unit id="Rename_type_to_0">
         <source>Rename type to {0}</source>
         <target state="translated">Переименовать тип в {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">Удалить тег</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">Добавить отсутствующие узлы параметров</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">
