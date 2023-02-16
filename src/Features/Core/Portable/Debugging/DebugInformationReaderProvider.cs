@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Debugging
 
             return CreateNative(stream);
         }
-        
+
         // Do not inline to avoid loading Microsoft.DiaSymReader until it's actually needed.
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static DebugInformationReaderProvider CreateNative(Stream stream)
