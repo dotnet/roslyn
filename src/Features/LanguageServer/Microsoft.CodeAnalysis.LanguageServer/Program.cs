@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
+using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
@@ -39,10 +41,21 @@ var solutionPath = GetSolutionPath(args);
 var msbuildInstances = MSBuildLocator.QueryVisualStudioInstances(new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk, WorkingDirectory = Path.GetDirectoryName(solutionPath) });
 MSBuildLocator.RegisterInstance(msbuildInstances.First());
 
-var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
+using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync();
 
 // Immediately set the logger factory, so that way it'll be available for the rest of the composition
 exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
+
+var brokeredServicePipeName = GetBrokeredServicePipeName(args);
+var bridgeCompletionTask = Task.CompletedTask;
+if (brokeredServicePipeName != null)
+{
+    var container = await BrokeredServiceContainer.CreateAsync(exportProvider, CancellationToken.None);
+
+    var bridgeProvider = exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
+
+    bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, container, CancellationToken.None);
+}
 
 // Create the project system first, since right now the language server will assume there's at least one Workspace
 var projectSystem = exportProvider.GetExportedValue<LanguageServerProjectSystem>();
@@ -59,28 +72,29 @@ server.Start();
 
 projectSystem.OpenSolution(solutionPath);
 
+if (brokeredServicePipeName != null)
+{
+    await exportProvider.GetExportedValue<RemoteHelloWorldProvider>().SayHelloToRemoteServerAsync(CancellationToken.None);
+}
+
 await server.WaitForExitAsync();
 
-// Dispose of our container, so parts can cleanly shut themselves down
-exportProvider.Dispose();
-loggerFactory.Dispose();
+await bridgeCompletionTask;
 
 return;
 
 static LogLevel GetLogLevel(string[] args)
 {
-    var logLevelIndex = Array.IndexOf(args, "--logLevel") + 1;
-    if (logLevelIndex > 0)
+    var logLevel = GetArgumentValue(args, "--logLevel");
+    if (logLevel != null)
     {
-        // Map VSCode log level to the LogLevel we can use with ILogger APIs.
-        var level = args[logLevelIndex];
-        return level switch
+        return logLevel switch
         {
             "off" => LogLevel.None,
             "minimal" => LogLevel.Information,
             "messages" => LogLevel.Debug,
             "verbose" => LogLevel.Trace,
-            _ => throw new InvalidOperationException($"Unexpected logLevel argument {level}"),
+            _ => throw new InvalidOperationException($"Unexpected logLevel argument {logLevel}"),
         };
     }
 
@@ -97,12 +111,22 @@ static void LaunchDebuggerIfEnabled(string[] args)
 
 static string GetSolutionPath(string[] args)
 {
-    var solutionPathIndex = Array.IndexOf(args, "--solutionPath") + 1;
-    if (solutionPathIndex == 0 || solutionPathIndex >= args.Length)
+    return GetArgumentValue(args, "--solutionPath") ?? throw new InvalidOperationException($"Missing valid --solutionPath argument, got {string.Join(",", args)}");
+}
+
+static string? GetBrokeredServicePipeName(string[] args)
+{
+    return GetArgumentValue(args, "--brokeredServicePipeName");
+}
+
+static string? GetArgumentValue(string[] args, string argumentName)
+{
+    var argumentValueIndex = Array.IndexOf(args, argumentName) + 1;
+    if (argumentValueIndex > 0 && argumentValueIndex < args.Length)
     {
-        throw new InvalidOperationException($"Missing valid --solutionPath argument, got {string.Join(",", args)}");
+        return args[argumentValueIndex];
     }
 
-    return args[solutionPathIndex];
+    return null;
 }
 

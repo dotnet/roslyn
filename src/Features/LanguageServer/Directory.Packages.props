@@ -13,10 +13,13 @@
     <MicrosoftExtensionsLoggingVersion>6.0.0</MicrosoftExtensionsLoggingVersion>
     <MicrosoftExtensionsLoggingAbstractionsVersion>6.0.2</MicrosoftExtensionsLoggingAbstractionsVersion>
     <MicrosoftExtensionsLoggingConsoleVersion>$(MicrosoftExtensionsLoggingVersion)</MicrosoftExtensionsLoggingConsoleVersion>
+
+    <ServiceBrokerVersion>4.2.49-beta</ServiceBrokerVersion>
+    <MicrosoftServiceHubFrameworkVersion>$(ServiceBrokerVersion)</MicrosoftServiceHubFrameworkVersion>    
     
     <MicrosoftVisualStudioCompositionVersion>17.2.41</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioLanguageServerProtocolVersion>17.5.20-preview</MicrosoftVisualStudioLanguageServerProtocolVersion>
     <NerdbankStreamsVersion>2.9.112</NerdbankStreamsVersion>
-    <StreamJsonRpcVersion>2.14.20</StreamJsonRpcVersion>
+    <StreamJsonRpcVersion>2.15.3-alpha</StreamJsonRpcVersion>
   </PropertyGroup>
 </Project>
