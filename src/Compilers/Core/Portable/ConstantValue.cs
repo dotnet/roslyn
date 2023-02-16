@@ -11,6 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    // jaredpar was here
     internal enum ConstantValueTypeDiscriminator : byte
     {
         Nothing,
