@@ -393,7 +393,7 @@ class C
         }
 
         [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction1()
+        public async Task IntroduceDeconstruction1_A()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -417,13 +417,43 @@ class C
 
     void M()
     {
-        var (someString, someInt) = X();
+        (string someString, int someInt) = X();
     }
 }");
         }
 
         [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction2()
+        public async Task IntroduceDeconstruction1_B()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        (string someString, int someInt) {|Rename:value|} = X();
+    }
+}", index: 1);
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction2_A()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -447,13 +477,43 @@ class C
 
     void M()
     {
-        var (someString, someInt) = X();
+        (string someString, int someInt) = X();
     }
 }");
         }
 
         [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction3()
+        public async Task IntroduceDeconstruction2_B()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        X();[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        (string someString, int someInt) {|Rename:value|} = X();
+    }
+}", index: 1);
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction3_A()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -479,7 +539,7 @@ class C
 
     void M()
     {
-        var (someString1, someInt) = X();
+        (string someString1, int someInt) = X();
 
         string someString;
     }
@@ -487,7 +547,41 @@ class C
         }
 
         [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction4()
+        public async Task IntroduceDeconstruction3_B()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        X()[||]
+
+        string someString;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string someString, int someInt) X() => default;
+
+    void M()
+    {
+        (string someString, int someInt) {|Rename:value|} = X();
+
+        string someString;
+    }
+}", index: 1);
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction4_A()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -511,13 +605,73 @@ class C
 
     void M()
     {
-        (string, int) {|Rename:value|} = X();
+        (string item1, int item2) = X();
     }
 }");
         }
 
         [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction5()
+        public async Task IntroduceDeconstruction4_B()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    ValueTuple<string, int> X() => default;
+
+    void M()
+    {
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    ValueTuple<string, int> X() => default;
+
+    void M()
+    {
+        (string, int) {|Rename:value|} = X();
+    }
+}", index: 1);
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction5_A()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    (string, int) X() => default;
+
+    void M()
+    {
+        X()[||]
+    }
+}",
+@"
+using System;
+
+class C
+{
+    (string, int) X() => default;
+
+    void M()
+    {
+        (string item1, int item2) = X();
+    }
+}");
+        }
+
+        [Fact, WorkItem(39537, "https://github.com/dotnet/roslyn/issues/39537")]
+        public async Task IntroduceDeconstruction5_B()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -543,7 +697,7 @@ class C
     {
         (string, int) {|Rename:value|} = X();
     }
-}");
+}", index: 1);
         }
     }
 }
