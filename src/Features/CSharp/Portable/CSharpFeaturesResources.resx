@@ -211,9 +211,6 @@
   <data name="Organize_Usings" xml:space="preserve">
     <value>Organize Usings</value>
   </data>
-  <data name="Make_0_return_Task_instead_of_void" xml:space="preserve">
-    <value>Make {0} return Task instead of void.</value>
-  </data>
   <data name="Generate_explicit_conversion_operator_in_0" xml:space="preserve">
     <value>Generate explicit conversion operator in '{0}'</value>
   </data>
@@ -392,9 +389,6 @@
   <data name="The_name_0_does_not_exist_in_the_current_context" xml:space="preserve">
     <value>The name '{0}' does not exist in the current context.</value>
   </data>
-  <data name="Remove_new_modifier" xml:space="preserve">
-    <value>Remove 'new' modifier</value>
-  </data>
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
@@ -409,12 +403,6 @@
   </data>
   <data name="Autoselect_disabled_due_to_possible_deconstruction_declaration" xml:space="preserve">
     <value>Autoselect disabled due to possible deconstruction declaration.</value>
-  </data>
-  <data name="Upgrade_this_project_to_csharp_language_version_0" xml:space="preserve">
-    <value>Upgrade this project to C# language version '{0}'</value>
-  </data>
-  <data name="Upgrade_all_csharp_projects_to_language_version_0" xml:space="preserve">
-    <value>Upgrade all C# projects to language version '{0}'</value>
   </data>
   <data name="class_name" xml:space="preserve">
     <value>&lt;class name&gt;</value>
@@ -452,20 +440,11 @@
   <data name="Suggested_name" xml:space="preserve">
     <value>(Suggested name)</value>
   </data>
-  <data name="Remove_unused_function" xml:space="preserve">
-    <value>Remove unused function</value>
-  </data>
-  <data name="Add_parentheses_around_conditional_expression_in_interpolated_string" xml:space="preserve">
-    <value>Add parentheses</value>
-  </data>
   <data name="Convert_to_foreach" xml:space="preserve">
     <value>Convert to 'foreach'</value>
   </data>
   <data name="Convert_to_for" xml:space="preserve">
     <value>Convert to 'for'</value>
-  </data>
-  <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
-    <value>Allow unsafe code in this project</value>
   </data>
   <data name="Convert_to_method" xml:space="preserve">
     <value>Convert to method</value>
@@ -482,9 +461,6 @@
   <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
     <value>Make private fields readonly when possible</value>
   </data>
-  <data name="Use_0" xml:space="preserve">
-    <value>Use '{0}'</value>
-  </data>
   <data name="Add_missing_usings" xml:space="preserve">
     <value>Add missing usings</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
@@ -492,18 +468,6 @@
   <data name="Introduce_using_statement" xml:space="preserve">
     <value>Introduce 'using' statement</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Make_ref_struct" xml:space="preserve">
-    <value>Make 'ref struct'</value>
-    <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
-  </data>
-  <data name="Assign_out_parameters" xml:space="preserve">
-    <value>Assign 'out' parameters</value>
-    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Assign_out_parameters_at_start" xml:space="preserve">
-    <value>Assign 'out' parameters (at start)</value>
-    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Warning_Inlining_temporary_into_conditional_method_call" xml:space="preserve">
     <value>Warning: Inlining temporary into conditional method call.</value>
@@ -527,10 +491,6 @@
   </data>
   <data name="Convert_to_verbatim_string" xml:space="preserve">
     <value>Convert to verbatim string</value>
-  </data>
-  <data name="Remove_in_keyword" xml:space="preserve">
-    <value>Remove 'in' keyword</value>
-    <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Change_to_as_expression" xml:space="preserve">
     <value>Change to 'as' expression</value>
@@ -626,10 +586,6 @@
   </data>
   <data name="Convert_0_to_record" xml:space="preserve">
     <value>Convert '{0}' to record</value>
-    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Convert_to_positional_record" xml:space="preserve">
-    <value>Convert to positional record</value>
     <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Apply_readonly_struct_preferences" xml:space="preserve">

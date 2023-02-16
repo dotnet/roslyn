@@ -3376,10 +3376,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.BaseExpression();
 
         public override SyntaxNode TypedConstantExpression(TypedConstant value)
-            => ExpressionGenerator.GenerateExpression(value);
+            => ExpressionGenerator.GenerateExpression(this, value);
 
         private protected override SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
-            => ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference);
+            => ExpressionGenerator.GenerateExpression(this, type, value, canUseFieldReference);
 
         public override SyntaxNode IdentifierName(string identifier)
             => identifier.ToIdentifierName();

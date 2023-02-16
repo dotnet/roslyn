@@ -50,11 +50,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">添加 "DebuggerDisplay" 属性</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_member_name">
-        <source>Add member name</source>
-        <target state="translated">添加成员名称</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">为所有参数添加 null 检查</target>
@@ -63,11 +58,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
         <target state="translated">将可选参数添加到构造函数</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
-        <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="translated">将参数添加到“{0}”(和重写/实现)</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
@@ -548,11 +538,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">转换为 LINQ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_to_0">
-        <source>Add to '{0}'</source>
-        <target state="translated">添加到“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
@@ -2500,19 +2485,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">零宽正向后行断言</target>
         <note />
       </trans-unit>
-      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
-        <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="translated">不更新在元数据中发现的相关方法签名。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Removal_of_document_not_supported">
         <source>Removal of document not supported</source>
         <target state="translated">不支持删除文档</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">删除 "async" 修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
@@ -4498,11 +4473,6 @@ If the "K" format specifier is used without other custom format specifiers, it's
         <target state="translated">无法加载分析器程序集 {0}: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">使方法同步</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">自 {0}</target>
@@ -4665,16 +4635,6 @@ This version used in: {2}</source>
         <target state="translated">将类型重命名为 {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">删除标记</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">添加缺少的参数节点</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(未知)</target>
@@ -4730,26 +4690,6 @@ This version used in: {2}</source>
         <target state="translated">添加参数名“{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Take_0">
-        <source>Take '{0}'</source>
-        <target state="translated">采用“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_both">
-        <source>Take both</source>
-        <target state="translated">二者均采用</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_bottom">
-        <source>Take bottom</source>
-        <target state="translated">采用底值</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_top">
-        <source>Take top</source>
-        <target state="translated">采用顶值</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_variable">
         <source>Remove unused variable</source>
         <target state="translated">删除未使用的变量</target>
@@ -4788,11 +4728,6 @@ This version used in: {2}</source>
       <trans-unit id="Remove_separators">
         <source>Remove separators</source>
         <target state="translated">删除分隔符</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parameter_to_0">
-        <source>Add parameter to '{0}'</source>
-        <target state="translated">将参数添加到“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor">

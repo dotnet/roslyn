@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 exception = e;
             }
 
-            var expectedMessage = string.Format(WorkspacesResources.Cannot_generate_code_for_unsupported_operator_0, method.Name);
+            var expectedMessage = string.Format(WorkspaceExtensionsResources.Cannot_generate_code_for_unsupported_operator_0, method.Name);
             Assert.True(exception != null && exception.Message.StartsWith(expectedMessage, StringComparison.Ordinal),
                 string.Format("\r\nExpected exception: {0}\r\nActual exception: {1}\r\n", expectedMessage, exception == null ? "no exception" : exception.Message));
         }

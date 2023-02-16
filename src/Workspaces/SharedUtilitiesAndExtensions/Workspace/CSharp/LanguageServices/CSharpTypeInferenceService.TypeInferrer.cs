@@ -247,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReturnStatementSyntax returnStatement => InferTypeForReturnStatement(returnStatement, token),
                     SingleVariableDesignationSyntax singleVariableDesignationSyntax => InferTypeForSingleVariableDesignation(singleVariableDesignationSyntax),
                     SwitchLabelSyntax switchLabel => InferTypeInSwitchLabel(switchLabel, token),
+                    SwitchExpressionSyntax switchExpression => InferTypeInSwitchExpression(switchExpression, token),
                     SwitchStatementSyntax switchStatement => InferTypeInSwitchStatement(switchStatement, token),
                     ThrowStatementSyntax throwStatement => InferTypeInThrowStatement(throwStatement, token),
                     TupleExpressionSyntax tupleExpression => InferTypeInTupleExpression(tupleExpression, token),
@@ -2097,7 +2098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (arm.Parent is SwitchExpressionSyntax switchExpression)
                 {
-                    // see if we can figure out an appropriate type from a prior arm.
+                    // see if we can figure out an appropriate type from a prior/next arm.
                     var armIndex = switchExpression.Arms.IndexOf(arm);
                     if (armIndex > 0)
                     {
@@ -2107,10 +2108,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return priorArmTypes;
                     }
 
+                    if (armIndex < switchExpression.Arms.Count - 1)
+                    {
+                        var nextArm = switchExpression.Arms[armIndex + 1];
+                        var priorArmTypes = GetTypes(nextArm.Expression, objectAsDefault: false);
+                        if (priorArmTypes.Any())
+                            return priorArmTypes;
+                    }
+
                     // if a prior arm gave us nothing useful, or we're the first arm, then try to infer looking at
                     // what type gets inferred for the switch expression itself.
                     return InferTypes(switchExpression);
                 }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInSwitchExpression(SwitchExpressionSyntax switchExpression, SyntaxToken token)
+            {
+                if (token.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken)
+                    return GetTypes(switchExpression.GoverningExpression);
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }

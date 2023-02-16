@@ -50,11 +50,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Adicionar atributo 'DebuggerDisplay'</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_member_name">
-        <source>Add member name</source>
-        <target state="translated">Adicionar o nome do membro</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">Adicionar verificações nulas para todos os parâmetros</target>
@@ -63,11 +58,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
         <target state="translated">Adicionar parâmetro opcional ao construtor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
-        <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="translated">Adicionar parâmetro ao '{0}' (e substituições/implementações)</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
@@ -548,11 +538,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">Converter para LINQ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_to_0">
-        <source>Add to '{0}'</source>
-        <target state="translated">Adicionar para '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
@@ -2500,19 +2485,9 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">asserção lookbehind positiva de largura zero</target>
         <note />
       </trans-unit>
-      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
-        <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="translated">As assinaturas de método relacionadas encontradas nos metadados não serão atualizadas.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Removal_of_document_not_supported">
         <source>Removal of document not supported</source>
         <target state="translated">Não há suporte para a remoção do documento</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">Remover o modificador 'async'</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
@@ -4498,11 +4473,6 @@ Se o especificador de formato "K" for usado sem outros especificadores de format
         <target state="translated">Não é possível carregar o assembly do Analisador {0} : {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Tornar o método síncrono</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">de {0}</target>
@@ -4665,16 +4635,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Renomear tipo para {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">Remover tag</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">Adicionar nós de parâmetro ausentes</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Desconhecido)</target>
@@ -4730,26 +4690,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Adicionar nome de argumento '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Take_0">
-        <source>Take '{0}'</source>
-        <target state="translated">Obter '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_both">
-        <source>Take both</source>
-        <target state="translated">Obter ambos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_bottom">
-        <source>Take bottom</source>
-        <target state="translated">Obter inferior</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_top">
-        <source>Take top</source>
-        <target state="translated">Obter superior</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_variable">
         <source>Remove unused variable</source>
         <target state="translated">Remover variável não usada</target>
@@ -4788,11 +4728,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Remove_separators">
         <source>Remove separators</source>
         <target state="translated">Remover separadores</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parameter_to_0">
-        <source>Add parameter to '{0}'</source>
-        <target state="translated">Adicionar parâmetro ao '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor">

@@ -22,6 +22,11 @@
         <target state="translated">Convertir 'GetType' en 'NameOf'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_0_an_Async_Function">
+        <source>Make {0} an Async Function.</source>
+        <target state="new">Make {0} an Async Function.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
         <target state="translated">Rendre '{0}' héritable</target>
