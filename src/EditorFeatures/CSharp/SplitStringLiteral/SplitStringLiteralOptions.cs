@@ -8,5 +8,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 
 internal sealed class SplitStringLiteralOptions
 {
-    public static Option2<bool> Enabled = new("csharp_split_string_literal_options_enabled", defaultValue: true);
+    public static Option2<bool> Enabled = new("csharp_split_string_literal_on_return", defaultValue: true);
 }
