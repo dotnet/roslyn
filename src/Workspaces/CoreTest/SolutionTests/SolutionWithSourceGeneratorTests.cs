@@ -753,6 +753,41 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task LinkedDocumentOfFrozenShouldNotRunSourceGenerator()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var generatorRan = false;
+            var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+
+            var originalDocument1 = AddEmptyProject(workspace.CurrentSolution, name: "Project1")
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs");
+
+            // this is a linked document of document1 above
+            var originalDocument2 = AddEmptyProject(originalDocument1.Project.Solution, name: "Project2")
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument(originalDocument1.Name, await originalDocument1.GetTextAsync().ConfigureAwait(false), filePath: originalDocument1.FilePath);
+
+            var project2 = originalDocument2.Project;
+            Assert.True(workspace.SetCurrentSolution(_ => project2.Solution, WorkspaceChangeKind.SolutionChanged));
+            originalDocument2 = project2.GetRequiredDocument(originalDocument2.Id).WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenSolution = originalDocument2.Project.Solution;
+            var documentIdsToTest = new[] { originalDocument1.Id, originalDocument2.Id };
+            
+            foreach (var documentIdToTest in documentIdsToTest)
+            {
+                var document = frozenSolution.GetRequiredDocument(documentIdToTest);
+                Assert.Equal(document.GetLinkedDocumentIds().Single(), documentIdsToTest.Except(new[] { documentIdToTest }).Single());
+                document = document.WithText(SourceText.From("// Something else"));
+                var project = document.Project;
+
+                var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+                Assert.Single(compilation.SyntaxTrees);
+                Assert.False(generatorRan);
+            }
+        }
+
+        [Fact]
         public async Task DynamicFilesNotPassedToSourceGenerators()
         {
             using var workspace = CreateWorkspace();
@@ -778,44 +813,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // We should have ran the generator, and it should not have had any trees
             Assert.True(noTreesPassed.HasValue);
             Assert.False(noTreesPassed!.Value);
-        }
-
-        [Fact]
-        public async Task LinkedDocumentOfFrozenShouldNotRunSourceGenerator()
-        {
-            using var workspace = CreateWorkspaceWithPartialSemantics();
-            var generatorRan = false;
-            var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
-
-            var originalDocument1 = AddEmptyProject(workspace.CurrentSolution, name: "Project1")
-                .AddAnalyzerReference(analyzerReference)
-                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs");
-
-            // this is a linked document of document1 above
-            var originalDocument2 = AddEmptyProject(originalDocument1.Project.Solution, name: "Project2")
-                .AddAnalyzerReference(analyzerReference)
-                .AddDocument(originalDocument1.Name, await originalDocument1.GetTextAsync().ConfigureAwait(false), filePath: originalDocument1.FilePath);
-
-            var project2 = originalDocument2.Project;
-            Assert.True(workspace.SetCurrentSolution(_ => project2.Solution, WorkspaceChangeKind.SolutionChanged));
-
-            // check both documents are in the snapshot
-            Assert.Equal(project2.GetRequiredDocument(originalDocument2.Id).GetLinkedDocumentIds().Single(), originalDocument1.Id);
-            Assert.False(generatorRan);
-
-            // froze document2 
-            var documentIdsToTest = new[] { originalDocument1.Id, originalDocument2.Id };
-            foreach (var documentIdToTest in documentIdsToTest)
-            {
-                var frozenDocument = workspace.CurrentSolution.GetRequiredDocument(documentIdToTest).WithFrozenPartialSemantics(CancellationToken.None);
-                Assert.Equal(frozenDocument.GetLinkedDocumentIds().Single(), documentIdsToTest.Except(new[] {documentIdToTest}).Single());
-                frozenDocument = frozenDocument.WithText(SourceText.From("// Something else"));
-                var project = frozenDocument.Project;
-
-                var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
-                Assert.Equal(1, compilation.SyntaxTrees.Count());
-                Assert.False(generatorRan);
-            }
         }
     }
 }
