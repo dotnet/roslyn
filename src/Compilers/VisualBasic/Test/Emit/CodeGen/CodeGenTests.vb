@@ -3366,7 +3366,7 @@ End Module</file>
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function (a As Boolean, b As System.Guid)?.GetValueOrDefault() As (a As Boolean, b As System.Guid)"
+  IL_0002:  call       "Function ValueTuple(Of Boolean, System.Guid)?.GetValueOrDefault() As ValueTuple(Of Boolean, System.Guid)"
   IL_0007:  ret
 }]]>).
             VerifyIL("Program.CoalesceUserStruct",
@@ -3416,7 +3416,7 @@ End Module</file>
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function (a As Boolean, b As System.Guid, c As String)?.GetValueOrDefault() As (a As Boolean, b As System.Guid, c As String)"
+  IL_0002:  call       "Function ValueTuple(Of Boolean, System.Guid, String)?.GetValueOrDefault() As ValueTuple(Of Boolean, System.Guid, String)"
   IL_0007:  ret
 }
 ]]>)

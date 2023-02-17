@@ -966,7 +966,7 @@ End Class
   .maxstack  4
   .locals init (VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))) V_0, //a
                 System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>) V_1, //b
-                (Integer, a As <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
+                ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""Sub System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))..ctor()""
@@ -1000,7 +1000,7 @@ End Class
   .maxstack  4
   .locals init (VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))) V_0, //a
                 System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>) V_1, //b
-                (Integer, a As <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
+                ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""Sub System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))..ctor()""
@@ -1031,7 +1031,7 @@ End Class
   .maxstack  4
   .locals init (VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))) V_0, //a
                 System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>) V_1, //b
-                (Integer, a As <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
+                ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
   IL_0006:  newobj     ""Sub System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))..ctor()""

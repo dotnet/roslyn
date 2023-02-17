@@ -84,9 +84,9 @@ End Class
 {
   // Code size        9 (0x9)
   .maxstack  1
-  .locals init (C(Of (a As Integer, b As Integer)).E V_0, //v1
-                C(Of (a As Integer, b As Integer)).E V_1, //v2
-                C(Of (a As Integer, b As Integer)).E V_2) //v3
+  .locals init (C(Of ValueTuple(Of Integer, Integer)).E V_0, //v1
+                C(Of ValueTuple(Of Integer, Integer)).E V_1, //v2
+                C(Of ValueTuple(Of Integer, Integer)).E V_2) //v3
   IL_0000:  nop
   IL_0001:  ldc.i4.0
   IL_0002:  stloc.0
