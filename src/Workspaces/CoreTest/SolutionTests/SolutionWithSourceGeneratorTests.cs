@@ -768,10 +768,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument(originalDocument1.Name, await originalDocument1.GetTextAsync().ConfigureAwait(false), filePath: originalDocument1.FilePath);
 
-            var project2 = originalDocument2.Project;
-            Assert.True(workspace.SetCurrentSolution(_ => project2.Solution, WorkspaceChangeKind.SolutionChanged));
-            originalDocument2 = project2.GetRequiredDocument(originalDocument2.Id).WithFrozenPartialSemantics(CancellationToken.None);
-            var frozenSolution = originalDocument2.Project.Solution;
+            var frozenSolution = originalDocument2.WithFrozenPartialSemantics(CancellationToken.None).Project.Solution;
             var documentIdsToTest = new[] { originalDocument1.Id, originalDocument2.Id };
 
             foreach (var documentIdToTest in documentIdsToTest)
@@ -779,9 +776,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var document = frozenSolution.GetRequiredDocument(documentIdToTest);
                 Assert.Equal(document.GetLinkedDocumentIds().Single(), documentIdsToTest.Except(new[] { documentIdToTest }).Single());
                 document = document.WithText(SourceText.From("// Something else"));
-                var project = document.Project;
 
-                var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+                var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
                 Assert.Single(compilation.SyntaxTrees);
                 Assert.False(generatorRan);
             }
