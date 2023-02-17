@@ -1381,7 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((ExternAliasDirectiveSyntax)node).Identifier;
 
                 case SyntaxKind.UsingDirective:
-                    return ((UsingDirectiveSyntax)node).Name;
+                    return ((UsingDirectiveSyntax)node).NamespaceOrType;
 
                 case SyntaxKind.NamespaceDeclaration:
                 case SyntaxKind.FileScopedNamespaceDeclaration:
