@@ -18,11 +18,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AliasAmbiguousTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAboveReturnTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAtStartTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\AddDocCommentNodesCodeFixProviderTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\RemoveDocCommentNodeCodeFixProviderTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConditionalExpressionInStringInterpolation\CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProviderTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConflictMarkerResolution\ConflictMarkerResolutionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToBlockScopedNamespaceAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToFileScopedNamespaceAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\ConvertToAsyncTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertToRecord\ConvertToRecordCodeFixTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisambiguateSameVariable\DisambiguateSameVariableTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FixIncorrectConstraint\FixIncorrectConstraintTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FixReturnType\FixReturnTypeTests.cs" />
@@ -32,6 +35,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AddYieldTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\ChangeToIEnumerableTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\MakeMemberStaticTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodAsynchronous\MakeMethodAsynchronousTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeRefStruct\MakeRefStructTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\MakeTypeAbstractTests.cs" />

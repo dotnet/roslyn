@@ -3085,7 +3085,7 @@
         <Field Name="Alias" Type="NameEqualsSyntax"/>
       </Sequence>
     </Choice>
-    <Field Name="Type" Type="TypeSyntax"/>
+    <Field Name="NamespaceOrType" Type="TypeSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
     </Field>

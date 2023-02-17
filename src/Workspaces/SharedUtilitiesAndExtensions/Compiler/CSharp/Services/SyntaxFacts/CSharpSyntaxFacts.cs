@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is UsingDirectiveSyntax usingDirective &&
-               usingDirective.Type == node;
+               usingDirective.NamespaceOrType == node;
 
         public bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)
             => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             var usingDirective = (UsingDirectiveSyntax)node;
             globalKeyword = usingDirective.GlobalKeyword;
             alias = usingDirective.Alias!.Name.Identifier;
-            name = usingDirective.Type;
+            name = usingDirective.NamespaceOrType;
         }
 
         public bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node)

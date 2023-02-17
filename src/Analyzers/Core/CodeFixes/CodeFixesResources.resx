@@ -201,4 +201,13 @@
   <data name="Take_top" xml:space="preserve">
     <value>Take top</value>
   </data>
+  <data name="Add_missing_param_nodes" xml:space="preserve">
+    <value>Add missing param nodes</value>
+  </data>
+  <data name="Remove_tag" xml:space="preserve">
+    <value>Remove tag</value>
+  </data>
+  <data name="Make_method_synchronous" xml:space="preserve">
+    <value>Make method synchronous</value>
+  </data>
 </root>

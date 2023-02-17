@@ -325,7 +325,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        /// <summary>Are we possibly at the start of an attribute list, or at a modifier which is valid on a type, or on a keyword of a type declaration?</summary>
         private static bool IsPossibleStartOfTypeDeclaration(SyntaxKind kind)
+        {
+            return IsTypeModifierOrTypeKeyword(kind) || kind == SyntaxKind.OpenBracketToken;
+        }
+
+        /// <summary>Are we at a modifier which is valid on a type declaration or at a type keyword?</summary>
+        private static bool IsTypeModifierOrTypeKeyword(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -343,7 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.SealedKeyword:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.UnsafeKeyword:
-                case SyntaxKind.OpenBracketToken:
                     return true;
                 default:
                     return false;
@@ -1245,13 +1251,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // ... 'TOKEN' [partial] <typename> <membername> ...
             // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
             // anything other than async methods are detected as erroneous later, during the define phase
-            // The comments in general were not updated to add "async or required" everywhere to preserve
-            // history, but generally wherever async occurs, it can also be required.
+            // Generally wherever we refer to 'async' here, it can also be 'required' or 'file'.
 
             if (!parsingStatementNotDeclaration)
             {
                 var currentTokenKind = this.CurrentToken.Kind;
-                if (IsPossibleStartOfTypeDeclaration(currentTokenKind) ||
+                if (IsTypeModifierOrTypeKeyword(currentTokenKind) ||
                     currentTokenKind == SyntaxKind.EventKeyword ||
                     (currentTokenKind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword && PeekToken(1).Kind == SyntaxKind.OperatorKeyword))
                 {
@@ -7924,6 +7929,7 @@ done:;
             //   new T []
             //   new T { }
             //   new <non-type>
+            //   new partial []
             //
             if (SyntaxFacts.GetBaseTypeDeclarationKind(nextToken.Kind) != SyntaxKind.None)
             {
@@ -7940,7 +7946,7 @@ done:;
 
                 // class, struct, enum, interface keywords, but also other modifiers that are not allowed after 
                 // partial keyword but start class declaration, so we can assume the user just swapped them.
-                if (IsPossibleStartOfTypeDeclaration(PeekToken(2).Kind))
+                if (IsTypeModifierOrTypeKeyword(PeekToken(2).Kind))
                 {
                     return false;
                 }

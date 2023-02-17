@@ -147,11 +147,6 @@
         <target state="translated">Convertir al método</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_positional_record">
-        <source>Convert to positional record</source>
-        <target state="translated">Convertir a positional record</target>
-        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">Convertir en cadena sin formato</target>
@@ -675,16 +670,6 @@
       <trans-unit id="struct_name">
         <source>&lt;struct name&gt;</source>
         <target state="translated">&lt;nombre de estructura&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">Convertir el método en asincrónico</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">Convertir método en asincónico (permanecer nulo)</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">

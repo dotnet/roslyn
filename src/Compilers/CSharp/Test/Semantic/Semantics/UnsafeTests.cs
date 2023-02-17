@@ -9897,6 +9897,39 @@ class C
         }
 
         [Fact]
+        public void TestUnsafeAlias14_A()
+        {
+            var csharp = @"
+using unsafe X = int;
+
+class C
+{
+    void ThisMethodIsNotUnsafe(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUnsafeAlias14_B()
+        {
+            var csharp = @"
+using unsafe X = int;
+
+class C
+{
+    void ThisMethodIsNotUnsafe(X x) { }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // using unsafe X = int;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
+        }
+
+        [Fact]
         public void TestUnsafeAlias1_FP()
         {
             var csharp = @"
@@ -10043,6 +10076,65 @@ class C
                 // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M1(X t) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void TestStructWithReferenceToItselfThroughAliasPointer1()
+        {
+            var csharp = @"
+using unsafe X = S*;
+
+unsafe struct S
+{
+    X x;
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,7): warning CS0169: The field 'S.x' is never used
+                //     X x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S.x").WithLocation(6, 7));
+
+            Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
+
+            // Try again with a fresh compilation, without having done anything to pull on this type.
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
+        }
+
+        [Fact]
+        public void TestStructWithReferenceToItselfThroughAliasPointer2()
+        {
+            var csharp = @"
+using unsafe X = S*;
+
+unsafe struct S
+{
+    X x;
+}
+
+class C
+{
+    void M(S s)
+    {
+        N<S>(s);
+    }
+
+    void N<T>(T t) where T : unmanaged { }
+}
+
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,7): warning CS0169: The field 'S.x' is never used
+                //     X x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S.x").WithLocation(6, 7));
+
+            Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
+
+            // Try again with a fresh compilation, without having done anything to pull on this type.
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
         }
     }
 }

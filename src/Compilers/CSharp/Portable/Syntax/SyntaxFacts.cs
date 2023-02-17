@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (parent.Kind())
                     {
                         case UsingDirective:
-                            return ((UsingDirectiveSyntax)parent).Type == node;
+                            return ((UsingDirectiveSyntax)parent).NamespaceOrType == node;
 
                         case QualifiedName:
                             // left of QN is namespace or type.  Note: when you have "a.b.c()", then

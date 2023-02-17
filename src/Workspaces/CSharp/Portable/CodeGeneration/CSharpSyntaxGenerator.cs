@@ -1929,7 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 EnumMemberDeclarationSyntax enumMemberDeclaration => ReplaceWithTrivia(declaration, enumMemberDeclaration.Identifier, id),
                 EventDeclarationSyntax eventDeclaration => ReplaceWithTrivia(declaration, eventDeclaration.Identifier, id),
                 BaseNamespaceDeclarationSyntax namespaceDeclaration => ReplaceWithTrivia(declaration, namespaceDeclaration.Name, this.DottedName(name)),
-                UsingDirectiveSyntax usingDeclaration => ReplaceWithTrivia(declaration, usingDeclaration.Type, this.DottedName(name)),
+                UsingDirectiveSyntax usingDeclaration => ReplaceWithTrivia(declaration, usingDeclaration.NamespaceOrType, this.DottedName(name)),
                 ParameterSyntax parameter => ReplaceWithTrivia(declaration, parameter.Identifier, id),
 
                 LocalDeclarationStatementSyntax localDeclaration when localDeclaration.Declaration.Variables.Count == 1 =>
