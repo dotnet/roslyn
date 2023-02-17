@@ -10095,8 +10095,11 @@ unsafe struct S
                 //     X x;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S.x").WithLocation(6, 7));
 
-            var globalNamespace = comp.GlobalNamespace;
-            Assert.Equal(ManagedKind.Unmanaged, globalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
+
+            // Try again with a fresh compilation, without having done anything to pull on this type.
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -10126,6 +10129,12 @@ class C
                 // (6,7): warning CS0169: The field 'S.x' is never used
                 //     X x;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S.x").WithLocation(6, 7));
+
+            Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
+
+            // Try again with a fresh compilation, without having done anything to pull on this type.
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
         }
     }
 }
