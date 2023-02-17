@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     internal sealed class InlineDiagnosticsOptions
     {
         public static readonly PerLanguageOption2<bool> EnableInlineDiagnostics =
-            new("dotnet_inline_diagnostics_options_enable_inline_diagnostics",
+            new("dotnet_enable_inline_diagnostics",
                 defaultValue: false);
 
         public static readonly PerLanguageOption2<InlineDiagnosticsLocations> Location =
-            new("dotnet_inline_diagnostics_options_location",
+            new("dotnet_inline_diagnostics_location",
                 defaultValue: InlineDiagnosticsLocations.PlacedAtEndOfCode, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<InlineDiagnosticsLocations>());
     }
 }
