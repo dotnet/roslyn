@@ -18,7 +18,7 @@ internal static class ClassificationOptionsStorage
         };
 
     public static PerLanguageOption2<bool> ClassifyReassignedVariables =
-        new("dotnet_classification_options_classify_reassigned_variables", ClassificationOptions.Default.ClassifyReassignedVariables);
+        new("dotnet_classify_reassigned_variables", ClassificationOptions.Default.ClassifyReassignedVariables);
 
     public static PerLanguageOption2<bool> ColorizeRegexPatterns =
         new("dotnet_regular_expressions_options_colorize_regex_patterns", ClassificationOptions.Default.ColorizeRegexPatterns);
