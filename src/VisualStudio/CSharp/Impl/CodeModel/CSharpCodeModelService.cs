@@ -1852,7 +1852,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     ? null
                     : usingDirective.Parent;
 
-                name = usingDirective.Type.ToString();
+                name = usingDirective.NamespaceOrType.ToString();
 
                 return;
             }
