@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case AttributeSyntax parent when parent.Name == node: // [nint]
                     return null;
                 case UsingDirectiveSyntax usingDirective:
-                    if (usingDirective.Alias != null && usingDirective.Type == node)
+                    if (usingDirective.Alias != null && usingDirective.NamespaceOrType == node)
                     {
                         // legal to write `using A = nuint;` as long as using-alias-to-type is enabled (checked later).
                         break;

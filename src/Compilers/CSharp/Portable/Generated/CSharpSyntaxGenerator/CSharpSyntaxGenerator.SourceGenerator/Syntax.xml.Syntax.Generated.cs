@@ -9193,7 +9193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class UsingDirectiveSyntax : CSharpSyntaxNode
     {
         private NameEqualsSyntax? alias;
-        private TypeSyntax? type;
+        private TypeSyntax? namespaceOrType;
 
         internal UsingDirectiveSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9231,7 +9231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public NameEqualsSyntax? Alias => GetRed(ref this.alias, 4);
 
-        public TypeSyntax Type => GetRed(ref this.type, 5)!;
+        public TypeSyntax NamespaceOrType => GetRed(ref this.namespaceOrType, 5)!;
 
         public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.UsingDirectiveSyntax)this.Green).semicolonToken, GetChildPosition(6), GetChildIndex(6));
 
@@ -9239,7 +9239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 4 => GetRed(ref this.alias, 4),
-                5 => GetRed(ref this.type, 5)!,
+                5 => GetRed(ref this.namespaceOrType, 5)!,
                 _ => null,
             };
 
@@ -9247,18 +9247,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 4 => this.alias,
-                5 => this.type,
+                5 => this.namespaceOrType,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingDirective(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUsingDirective(this);
 
-        public UsingDirectiveSyntax Update(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, SyntaxToken unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax type, SyntaxToken semicolonToken)
+        public UsingDirectiveSyntax Update(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, SyntaxToken unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken)
         {
-            if (globalKeyword != this.GlobalKeyword || usingKeyword != this.UsingKeyword || staticKeyword != this.StaticKeyword || unsafeKeyword != this.UnsafeKeyword || alias != this.Alias || type != this.Type || semicolonToken != this.SemicolonToken)
+            if (globalKeyword != this.GlobalKeyword || usingKeyword != this.UsingKeyword || staticKeyword != this.StaticKeyword || unsafeKeyword != this.UnsafeKeyword || alias != this.Alias || namespaceOrType != this.NamespaceOrType || semicolonToken != this.SemicolonToken)
             {
-                var newNode = SyntaxFactory.UsingDirective(globalKeyword, usingKeyword, staticKeyword, unsafeKeyword, alias, type, semicolonToken);
+                var newNode = SyntaxFactory.UsingDirective(globalKeyword, usingKeyword, staticKeyword, unsafeKeyword, alias, namespaceOrType, semicolonToken);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -9266,13 +9266,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public UsingDirectiveSyntax WithGlobalKeyword(SyntaxToken globalKeyword) => Update(globalKeyword, this.UsingKeyword, this.StaticKeyword, this.UnsafeKeyword, this.Alias, this.Type, this.SemicolonToken);
-        public UsingDirectiveSyntax WithUsingKeyword(SyntaxToken usingKeyword) => Update(this.GlobalKeyword, usingKeyword, this.StaticKeyword, this.UnsafeKeyword, this.Alias, this.Type, this.SemicolonToken);
-        public UsingDirectiveSyntax WithStaticKeyword(SyntaxToken staticKeyword) => Update(this.GlobalKeyword, this.UsingKeyword, staticKeyword, this.UnsafeKeyword, this.Alias, this.Type, this.SemicolonToken);
-        public UsingDirectiveSyntax WithUnsafeKeyword(SyntaxToken unsafeKeyword) => Update(this.GlobalKeyword, this.UsingKeyword, this.StaticKeyword, unsafeKeyword, this.Alias, this.Type, this.SemicolonToken);
-        public UsingDirectiveSyntax WithAlias(NameEqualsSyntax? alias) => Update(this.GlobalKeyword, this.UsingKeyword, this.StaticKeyword, this.UnsafeKeyword, alias, this.Type, this.SemicolonToken);
-        public UsingDirectiveSyntax WithType(TypeSyntax type) => Update(this.GlobalKeyword, this.UsingKeyword, this.StaticKeyword, this.UnsafeKeyword, this.Alias, type, this.SemicolonToken);
-        public UsingDirectiveSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.GlobalKeyword, this.UsingKeyword, this.StaticKeyword, this.UnsafeKeyword, this.Alias, this.Type, semicolonToken);
+        public UsingDirectiveSyntax WithGlobalKeyword(SyntaxToken globalKeyword) => Update(globalKeyword, this.UsingKeyword, this.StaticKeyword, this.UnsafeKeyword, this.Alias, this.NamespaceOrType, this.SemicolonToken);
+        public UsingDirectiveSyntax WithUsingKeyword(SyntaxToken usingKeyword) => Update(this.GlobalKeyword, usingKeyword, this.StaticKeyword, this.UnsafeKeyword, this.Alias, this.NamespaceOrType, this.SemicolonToken);
+        public UsingDirectiveSyntax WithStaticKeyword(SyntaxToken staticKeyword) => Update(this.GlobalKeyword, this.UsingKeyword, staticKeyword, this.UnsafeKeyword, this.Alias, this.NamespaceOrType, this.SemicolonToken);
+        public UsingDirectiveSyntax WithUnsafeKeyword(SyntaxToken unsafeKeyword) => Update(this.GlobalKeyword, this.UsingKeyword, this.StaticKeyword, unsafeKeyword, this.Alias, this.NamespaceOrType, this.SemicolonToken);
+        public UsingDirectiveSyntax WithAlias(NameEqualsSyntax? alias) => Update(this.GlobalKeyword, this.UsingKeyword, this.StaticKeyword, this.UnsafeKeyword, alias, this.NamespaceOrType, this.SemicolonToken);
+        public UsingDirectiveSyntax WithNamespaceOrType(TypeSyntax namespaceOrType) => Update(this.GlobalKeyword, this.UsingKeyword, this.StaticKeyword, this.UnsafeKeyword, this.Alias, namespaceOrType, this.SemicolonToken);
+        public UsingDirectiveSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.GlobalKeyword, this.UsingKeyword, this.StaticKeyword, this.UnsafeKeyword, this.Alias, this.NamespaceOrType, semicolonToken);
     }
 
     /// <summary>Member declaration syntax.</summary>
