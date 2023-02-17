@@ -2950,4 +2950,94 @@ using X = scoped System.AppDomain;
         }
         EOF();
     }
+
+    [Fact]
+    public void TestArgList()
+    {
+        var text = @"
+using X = __arglist;
+";
+
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using X = __arglist;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = __arglist;").WithLocation(2, 1),
+            // (2,11): error CS1031: Type expected
+            // using X = __arglist;
+            Diagnostic(ErrorCode.ERR_TypeExpected, "__arglist").WithLocation(2, 11));
+
+        UsingTree(text,
+            // (2,11): error CS1031: Type expected
+            // using X = __arglist;
+            Diagnostic(ErrorCode.ERR_TypeExpected, "__arglist").WithLocation(2, 11));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestMakeref()
+    {
+        var text = @"
+using X = __makeref;
+";
+
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using X = __makeref;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = __makeref;").WithLocation(2, 1),
+            // (2,11): error CS1031: Type expected
+            // using X = __makeref;
+            Diagnostic(ErrorCode.ERR_TypeExpected, "__makeref").WithLocation(2, 11));
+
+        UsingTree(text,
+            // (2,11): error CS1031: Type expected
+            // using X = __makeref;
+            Diagnostic(ErrorCode.ERR_TypeExpected, "__makeref").WithLocation(2, 11));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
 }
