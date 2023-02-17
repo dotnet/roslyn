@@ -1006,9 +1006,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var node in nodesToAnalyze)
             {
-                if (ShouldExecuteNode(node, analyzer))
+                // Most nodes have no registered actions. Check for actions before checking if the analyzer should be
+                // executed on the node since the generated code check in ShouldExecuteNode can be expensive in
+                // aggregate.
+                if (nodeActionsByKind.TryGetValue(getKind(node), out var actionsForKind))
                 {
-                    if (nodeActionsByKind.TryGetValue(getKind(node), out var actionsForKind))
+                    Debug.Assert(!actionsForKind.IsEmpty, $"Unexpected empty action collection in {nameof(nodeActionsByKind)}");
+                    if (ShouldExecuteNode(node, analyzer))
                     {
                         foreach (var action in actionsForKind)
                         {
@@ -1089,9 +1093,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var operation in operationsToAnalyze)
             {
-                if (ShouldExecuteOperation(operation, analyzer))
+                // Most operations have no registered actions. Check for actions before checking if the analyzer should
+                // be executed on the operation since the generated code check in ShouldExecuteOperation can be
+                // expensive in aggregate.
+                if (operationActionsByKind.TryGetValue(operation.Kind, out var actionsForKind))
                 {
-                    if (operationActionsByKind.TryGetValue(operation.Kind, out var actionsForKind))
+                    Debug.Assert(!actionsForKind.IsEmpty, $"Unexpected empty action collection in {nameof(operationActionsByKind)}");
+                    if (ShouldExecuteOperation(operation, analyzer))
                     {
                         foreach (var action in actionsForKind)
                         {
