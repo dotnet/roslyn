@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                         distance =
                             ComputeDistance(leftUsing.Alias, rightUsing.Alias) +
-                            ComputeDistance(leftUsing.Type, rightUsing.Type);
+                            ComputeDistance(leftUsing.NamespaceOrType, rightUsing.NamespaceOrType);
 
                         if (leftUsing.GlobalKeyword.IsKind(SyntaxKind.None) != rightUsing.GlobalKeyword.IsKind(SyntaxKind.None))
                             distance += EpsilonDist;
