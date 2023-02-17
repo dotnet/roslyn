@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
                 {
                     var typeSyntax = declarationPattern.Type;
 
-                    if (typeSyntax is QualifiedNameSyntax qualifiedName)
-                        typeSyntax = qualifiedName.GetLeftmostName();
+                    while (typeSyntax is QualifiedNameSyntax qualifiedName)
+                        typeSyntax = qualifiedName.Left;
 
                     if (typeSyntax is IdentifierNameSyntax identifierName &&
                         identifierName.GetAncestor<TypeDeclarationSyntax>() is { } containingTypeSyntax)
