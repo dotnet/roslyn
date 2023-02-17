@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -490,6 +491,115 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
                     }
                     """,
                 LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        public async Task TestPropertyNamedGlobalAndAliasQualifiedName1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        string global { get; }
+
+                        void M(object o)
+                        {
+                            if (o is global::System.String [|_|])
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """ 
+                    class C
+                    {
+                        string global { get; }
+                    
+                        void M(object o)
+                        {
+                            if (o is global::System.String)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        public async Task TestPropertyNamedGlobalAndAliasQualifiedName2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        string global { get; }
+
+                        void M(object o)
+                        {
+                            if (o is not global::System.String [|_|])
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """ 
+                    class C
+                    {
+                        string global { get; }
+                    
+                        void M(object o)
+                        {
+                            if (o is not global::System.String)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        public async Task TestPropertyNamedGlobalAndAliasQualifiedName3()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        string global { get; }
+
+                        void M(object o)
+                        {
+                            var v = o switch
+                            {
+                                global::System.String [|_|] => 0
+                            };
+                        }
+                    }
+                    """,
+                FixedCode = """ 
+                    class C
+                    {
+                        string global { get; }
+                    
+                        void M(object o)
+                        {
+                            var v = o switch
+                            {
+                                global::System.String => 0
+                            };
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
     }
