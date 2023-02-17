@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -62,12 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
                     if (typeSyntax is IdentifierNameSyntax identifierName &&
                         identifierName.GetAncestor<TypeDeclarationSyntax>() is { } containingTypeSyntax)
                     {
-                        var typeSymbol = semanticModel.GetDeclaredSymbol(containingTypeSyntax, cancellationToken);
+                        var typeSymbol = semanticModel.GetDeclaredSymbol(containingTypeSyntax, cancellationToken)!;
 
                         // If we find other symbols with the same name in the type we are currently in, removing discard can lead to a compiler error.
                         // For instance, we can have a property in the type we are currently in with the same name as an identifier in the discard designation.
                         // Since a single identifier binds stronger to property name, we cannot remove discard.
-                        if (!typeSymbol?.GetMembers(identifierName.Identifier.Text).IsEmpty ?? true)
+                        if (typeSymbol.GetMembers(identifierName.Identifier.ValueText).Any())
                             return;
                     }
                 }
