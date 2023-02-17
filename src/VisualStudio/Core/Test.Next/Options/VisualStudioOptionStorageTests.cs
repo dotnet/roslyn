@@ -69,7 +69,7 @@ public class VisualStudioOptionStorageTests
     /// applicable to the other language.
     /// </summary>
     [Theory]
-    [MemberData(nameof(PerLanguageConfigNames))]
+    [MemberData(nameof(PerLanguageConfigNames), DisableDiscoveryEnumeration = true)]
     public void PerLanguageOptionDefinedInCorrectAssembly(string configName)
     {
         var infos = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location));
@@ -96,7 +96,7 @@ public class VisualStudioOptionStorageTests
     /// Language-specific options have correct name prefix and are defined in language-specific assemblies.
     /// </summary>
     [Theory]
-    [MemberData(nameof(ConfigNames))]
+    [MemberData(nameof(ConfigNames), DisableDiscoveryEnumeration = true)]
     public void LanguageSpecificOptionsHaveCorrectPrefix(string configName)
     {
         var infos = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location));
@@ -134,7 +134,7 @@ public class VisualStudioOptionStorageTests
     /// </summary>
     /// <param name="configName"></param>
     [Theory]
-    [MemberData(nameof(PublicOptionConfigNames))]
+    [MemberData(nameof(PublicOptionConfigNames), DisableDiscoveryEnumeration = true)]
     public void PublicOptionHasPublicAccessor(string configName)
     {
         var storages = VisualStudioOptionStorage.Storages;
@@ -152,7 +152,7 @@ public class VisualStudioOptionStorageTests
     /// Options with per-language values specify %LANGUAGE% in the storage key, and vice versa.
     /// </summary>
     [Theory]
-    [MemberData(nameof(ConfigNamesWithRoamingProfileStorage))]
+    [MemberData(nameof(ConfigNamesWithRoamingProfileStorage), DisableDiscoveryEnumeration = true)]
     public void OptionHasCorrectLanguageSubstitution(string configName)
     {
         var infos = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location));
@@ -186,7 +186,7 @@ public class VisualStudioOptionStorageTests
     /// Each storage is used by an option.
     /// </summary>
     [Theory]
-    [MemberData(nameof(StorageNames))]
+    [MemberData(nameof(StorageNames), DisableDiscoveryEnumeration = true)]
     public void StorageMapsToOption(string storageName)
     {
         var infos = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location));
@@ -198,7 +198,7 @@ public class VisualStudioOptionStorageTests
     /// Options have no VS storage except for known storage-less cases.
     /// </summary>
     [Theory]
-    [MemberData(nameof(ConfigNames))]
+    [MemberData(nameof(ConfigNames), DisableDiscoveryEnumeration = true)]
     public void OptionHasStorageIfNecessary(string configName)
     {
         var storages = VisualStudioOptionStorage.Storages;
