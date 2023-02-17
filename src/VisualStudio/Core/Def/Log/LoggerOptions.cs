@@ -8,8 +8,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal sealed class LoggerOptions
     {
-        public static readonly Option2<bool> EtwLoggerKey = new("dotnet_logger_options_etw_logger_key", defaultValue: true);
-        public static readonly Option2<bool> TraceLoggerKey = new("dotnet_logger_options_trace_logger_key", defaultValue: false);
-        public static readonly Option2<bool> OutputWindowLoggerKey = new("dotnet_logger_options_output_window_logger_key", defaultValue: false);
+        public static readonly Option2<bool> EtwLoggerKey = new("dotnet_etw_logger_key", defaultValue: true);
+        public static readonly Option2<bool> TraceLoggerKey = new("dotnet_trace_logger_key", defaultValue: false);
+        public static readonly Option2<bool> OutputWindowLoggerKey = new("dotnet_output_window_logger_key", defaultValue: false);
     }
 }
