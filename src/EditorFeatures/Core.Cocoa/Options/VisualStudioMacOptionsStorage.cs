@@ -56,7 +56,7 @@ internal static class VisualStudioMacOptionStorage
     /// </summary>
     public static readonly IReadOnlyDictionary<string, PropertyName> PersistedOptionsWithLegacyPropertyNames = new Dictionary<string, PropertyName>()
     {
-        {"csharp_brace_completion_options_auto_formatting_on_close_brace", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace")},
+        {"csharp_brace_completion_auto_formatting_on_close_brace", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace")},
         {"csharp_formatting_options_auto_formatting_on_return", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return")},
         {"dotnet_formatting_options_auto_formatting_on_semicolon", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon")},
         {"csharp_formatting_options_auto_formatting_on_typing", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing")},

@@ -127,7 +127,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_block_structure_show_outlining_for_code_level_constructs", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowOutliningForCodeLevelConstructs")},
         {"dotnet_block_structure_show_outlining_for_comments_and_preprocessor_regions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowOutliningForCommentsAndPreprocessorRegions")},
         {"dotnet_block_structure_show_outlining_for_declaration_level_constructs", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowOutliningForDeclarationLevelConstructs")},
-        {"csharp_brace_completion_options_auto_formatting_on_close_brace", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace")},
+        {"csharp_brace_completion_auto_formatting_on_close_brace", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace")},
         {"dotnet_classification_options_classify_reassigned_variables", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyReassignedVariables")},
         {"dotnet_code_style_options_prefer_system_hash_code", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode")},
         {"dotnet_color_scheme_options_color_scheme_name", new RoamingProfileStorage("TextEditor.Roslyn.ColorSchemeName")},
