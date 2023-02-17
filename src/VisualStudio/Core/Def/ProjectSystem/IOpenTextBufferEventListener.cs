@@ -8,10 +8,10 @@ using Microsoft.VisualStudio.Text;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     /// <summary>
-    /// Defines the methods that get called by the <see cref="RunningDocumentTableEventTracker"/>
+    /// Defines the methods that get called by the <see cref="OpenTextBufferProvider"/>
     /// for getting notified about running document table events.
     /// </summary>
-    internal interface IRunningDocumentTableEventListener
+    internal interface IOpenTextBufferEventListener
     {
         /// <summary>
         /// Triggered when a document is opened.
@@ -19,7 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <param name="moniker">the moniker of the opened document.</param>
         /// <param name="textBuffer">the text buffer of the opened document)</param>
         /// <param name="hierarchy">the hierarchy of the text buffer if available.</param>
-        void OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame);
+        void OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy);
+
+        void OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame);
 
         /// <summary>
         /// Triggered when a document is closed.
