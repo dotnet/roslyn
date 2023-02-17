@@ -2985,6 +2985,7 @@ class C
         EOF();
     }
 
+    [Fact]
     public void AliasUsingDirectiveDynamic4()
     {
         var text = @"
@@ -3008,6 +3009,8 @@ class dynamic
 
         EOF();
     }
+
+    [Fact]
     public void AliasUsingDirectiveDynamic5()
     {
         var text = @"
@@ -3299,6 +3302,7 @@ class C
         EOF();
     }
 
+    [Fact]
     public void TestScopedType1()
     {
         var text = @"
