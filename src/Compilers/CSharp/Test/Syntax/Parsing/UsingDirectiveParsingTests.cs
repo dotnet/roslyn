@@ -3027,7 +3027,6 @@ class C
         UsingTree(text);
         CreateCompilation(text).VerifyDiagnostics();
 
-
         EOF();
     }
 
