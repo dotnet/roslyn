@@ -2560,7 +2560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.StaticKeyword);
             Assert.Null(node.UnsafeKeyword);
             Assert.Null(node.Alias);
-            Assert.NotNull(node.Type);
+            Assert.NotNull(node.NamespaceOrType);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
 
             AttachAndCheckDiagnostics(node);
@@ -12533,9 +12533,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.StaticKeyword.Kind());
             Assert.Equal(SyntaxKind.None, node.UnsafeKeyword.Kind());
             Assert.Null(node.Alias);
-            Assert.NotNull(node.Type);
+            Assert.NotNull(node.NamespaceOrType);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
-            var newNode = node.WithGlobalKeyword(node.GlobalKeyword).WithUsingKeyword(node.UsingKeyword).WithStaticKeyword(node.StaticKeyword).WithUnsafeKeyword(node.UnsafeKeyword).WithAlias(node.Alias).WithType(node.Type).WithSemicolonToken(node.SemicolonToken);
+            var newNode = node.WithGlobalKeyword(node.GlobalKeyword).WithUsingKeyword(node.UsingKeyword).WithStaticKeyword(node.StaticKeyword).WithUnsafeKeyword(node.UnsafeKeyword).WithAlias(node.Alias).WithNamespaceOrType(node.NamespaceOrType).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
 
