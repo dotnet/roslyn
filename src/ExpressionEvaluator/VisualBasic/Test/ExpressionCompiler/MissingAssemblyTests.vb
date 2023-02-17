@@ -610,7 +610,7 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0, //x
                 System.ValueTuple(Of Integer, Integer) V_1, //y
-                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer, ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }")
@@ -635,7 +635,7 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0, //x
                 System.ValueTuple(Of Integer, Integer) V_1, //y
-                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer, ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }", LanguageVersion.VisualBasic15_3)
@@ -660,7 +660,7 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0, //x
                 System.ValueTuple(Of Integer, Integer) V_1, //y
-                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer, ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }")

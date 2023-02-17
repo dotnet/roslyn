@@ -472,7 +472,7 @@ End Class"
   .maxstack  1
   IL_0000:  ldstr      ""t""
   IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
-  IL_000a:  castclass  ""(A As Integer, B As (Integer, D As Integer))()""
+  IL_000a:  castclass  ""ValueTuple(Of Integer, ValueTuple(Of Integer, Integer))()""
   IL_000f:  ret
 }")
                     locals.Free()
@@ -526,12 +526,12 @@ End Class"
   .maxstack  2
   IL_0000:  ldstr      ""x""
   IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
-  IL_000a:  unbox.any  ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer))""
-  IL_000f:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)).Item4 As Integer""
+  IL_000a:  unbox.any  ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer, Integer))""
+  IL_000f:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer, Integer)).Item4 As Integer""
   IL_0014:  ldstr      ""x""
   IL_0019:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
-  IL_001e:  unbox.any  ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer))""
-  IL_0023:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)).Rest As (Integer, Integer)""
+  IL_001e:  unbox.any  ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer, Integer))""
+  IL_0023:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer, Integer)).Rest As ValueTuple(Of Integer, Integer)""
   IL_0028:  ldfld      ""System.ValueTuple(Of Integer, Integer).Item1 As Integer""
   IL_002d:  add.ovf
   IL_002e:  ret
