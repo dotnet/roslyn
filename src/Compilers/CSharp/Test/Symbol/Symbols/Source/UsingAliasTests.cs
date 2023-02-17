@@ -100,7 +100,7 @@ partial class A : Object {}
 
             var model = comp.GetSemanticModel(tree);
 
-            var usingAliasType = model.GetTypeInfo(usingAlias.Type).Type;
+            var usingAliasType = model.GetTypeInfo(usingAlias.NamespaceOrType).Type;
             Assert.Equal(SpecialType.System_Object, usingAliasType.SpecialType);
 
             var info1 = model.GetSemanticInfoSummary(base1);
@@ -215,7 +215,7 @@ partial class A : Object {}
 
             var model = comp.GetSemanticModel(tree);
 
-            var usingAliasType = model.GetTypeInfo(usingAlias.Type).Type;
+            var usingAliasType = model.GetTypeInfo(usingAlias.NamespaceOrType).Type;
             Assert.Equal(SpecialType.System_Object, usingAliasType.SpecialType);
 
             var info1 = model.GetSemanticInfoSummary(base1);
@@ -270,7 +270,7 @@ partial class A : Object {}
 
                 var model = comp.GetSemanticModel(tree);
 
-                var usingAliasType = model.GetTypeInfo(usingAlias.Type).Type;
+                var usingAliasType = model.GetTypeInfo(usingAlias.NamespaceOrType).Type;
                 AssertEx.Equal(expected, usingAliasType.ToDisplayString(SymbolDisplayFormat.TestFormat));
 
                 var alias = model.GetDeclaredSymbol(usingAlias);
@@ -300,10 +300,10 @@ partial class A : Object {}
             var a3 = root.Members[2] as TypeDeclarationSyntax;
             var a4 = root.Members[3] as TypeDeclarationSyntax;
 
-            var base1 = a1.BaseList.Types[0].Type as TypeSyntax;
-            var base2 = a2.BaseList.Types[0].Type as TypeSyntax;
-            var base3 = a3.BaseList.Types[0].Type as TypeSyntax;
-            var base4 = a4.BaseList.Types[0].Type as TypeSyntax;
+            var base1 = a1.BaseList.Types[0].Type;
+            var base2 = a2.BaseList.Types[0].Type;
+            var base3 = a3.BaseList.Types[0].Type;
+            var base4 = a4.BaseList.Types[0].Type;
 
             var model = comp.GetSemanticModel(tree);
 
@@ -346,10 +346,10 @@ partial class A : Object {}
             var a3 = root.Members[2] as TypeDeclarationSyntax;
             var a4 = root.Members[3] as TypeDeclarationSyntax;
 
-            var base1 = a1.BaseList.Types[0].Type as TypeSyntax;
-            var base2 = a2.BaseList.Types[0].Type as TypeSyntax;
-            var base3 = a3.BaseList.Types[0].Type as TypeSyntax;
-            var base4 = a4.BaseList.Types[0].Type as TypeSyntax;
+            var base1 = a1.BaseList.Types[0].Type;
+            var base2 = a2.BaseList.Types[0].Type;
+            var base3 = a3.BaseList.Types[0].Type;
+            var base4 = a4.BaseList.Types[0].Type;
 
             var model = comp.GetSemanticModel(tree);
 
