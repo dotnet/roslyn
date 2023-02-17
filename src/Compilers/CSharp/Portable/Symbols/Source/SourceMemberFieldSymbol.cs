@@ -420,25 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyTypeAndRefKind?.Type.DefaultType is { } defaultType)
-                {
-                    return defaultType.IsPointerOrFunctionPointer();
-                }
-
-                return IsPointerFieldSyntactically();
+                return TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
             }
-        }
-
-        private bool IsPointerFieldSyntactically()
-        {
-            var declaration = GetFieldDeclaration(VariableDeclaratorNode).Declaration;
-            if (declaration.Type.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false })
-            {
-                // public int * Blah;   // pointer
-                return true;
-            }
-
-            return IsFixedSizeBuffer;
         }
 
         internal sealed override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
