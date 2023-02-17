@@ -163,7 +163,7 @@ public class GlobalOptionsTests
              property.DeclaringType == typeof(DocumentFormattingOptions) && property.Name == nameof(DocumentFormattingOptions.InsertFinalNewLine) ||
              property.DeclaringType == typeof(ClassificationOptions) && property.Name == nameof(ClassificationOptions.ForceFrozenPartialSemanticsForCrossProcessOperations) ||
              property.DeclaringType == typeof(BlockStructureOptions) && property.Name == nameof(BlockStructureOptions.IsMetadataAsSource) ||
-             property.DeclaringType == typeof(CodeGenerationOptions) && property.Name == nameof(CodeGenerationOptions.AllowGenerateInHiddenCode));
+             property.DeclaringType == typeof(CodeGenerationOptions) && property.Name == nameof(CodeGenerationOptions.AllowInHiddenCode));
 
     /// <summary>
     /// Our mock <see cref="IGlobalOptionService"/> implementation returns a non-default value for each option it reads.

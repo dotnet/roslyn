@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private IList<bool>? GetAvailableInsertionIndices<TDeclarationNode>(TDeclarationNode destination, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
             => GetAvailableInsertionIndices((SyntaxNode)destination, cancellationToken);
 
-        public bool CanAddTo(ISymbol destination, Solution solution, bool allowGenerateInHiddenCode, CancellationToken cancellationToken)
+        public bool CanAddTo(ISymbol destination, Solution solution, bool allowInHiddenCode, CancellationToken cancellationToken)
         {
             var declarations = _symbolDeclarationService.GetDeclarations(destination);
-            return declarations.Any(static (r, arg) => arg.self.CanAddTo(r.GetSyntax(arg.cancellationToken), arg.solution, arg.allowGenerateInHiddenCode, arg.cancellationToken), (self: this, solution, allowGenerateInHiddenCode, cancellationToken));
+            return declarations.Any(static (r, arg) => arg.self.CanAddTo(r.GetSyntax(arg.cancellationToken), arg.solution, arg.allowInHiddenCode, arg.cancellationToken), (self: this, solution, allowInHiddenCode, cancellationToken));
         }
 
         protected static SyntaxToken GetEndToken(SyntaxNode node)
@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return TextSpan.FromBounds(start.SpanStart, end.Span.End);
         }
 
-        public bool CanAddTo(SyntaxNode destination, Solution solution, bool allowGenerateInHiddenCode, CancellationToken cancellationToken)
-            => CanAddTo(destination, solution, cancellationToken, out _, allowGenerateInHiddenCode: allowGenerateInHiddenCode);
+        public bool CanAddTo(SyntaxNode destination, Solution solution, bool allowInHiddenCode, CancellationToken cancellationToken)
+            => CanAddTo(destination, solution, cancellationToken, out _, allowInHiddenCode: allowInHiddenCode);
 
         private bool CanAddTo(SyntaxNode? destination, Solution solution, CancellationToken cancellationToken,
-            out IList<bool>? availableIndices, bool checkGeneratedCode = false, bool allowGenerateInHiddenCode = false)
+            out IList<bool>? availableIndices, bool checkGeneratedCode = false, bool allowInHiddenCode = false)
         {
             availableIndices = null;
             if (destination == null)
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 #endif
 
             // If we are allowed to generate into hidden code then we are done with our checks
-            if (allowGenerateInHiddenCode)
+            if (allowInHiddenCode)
             {
                 return true;
             }

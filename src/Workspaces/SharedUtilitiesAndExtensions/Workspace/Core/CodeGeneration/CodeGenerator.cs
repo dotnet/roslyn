@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Returns <c>true</c> if additional declarations can be added to the destination symbol's declaration.
         /// </summary>
-        public static bool CanAdd(Solution solution, ISymbol destination, bool allowGenerateInHiddenCode, CancellationToken cancellationToken)
-            => GetCodeGenerationService(solution.Services, destination.Language).CanAddTo(destination, solution, allowGenerateInHiddenCode, cancellationToken);
+        public static bool CanAdd(Solution solution, ISymbol destination, bool allowInHiddenCode, CancellationToken cancellationToken)
+            => GetCodeGenerationService(solution.Services, destination.Language).CanAddTo(destination, solution, allowInHiddenCode, cancellationToken);
     }
 }

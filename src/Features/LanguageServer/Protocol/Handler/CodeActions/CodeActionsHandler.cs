@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,8 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using CodeActionOptions = Microsoft.CodeAnalysis.CodeActions.CodeActionOptions;
+using CodeActionOptionsStorage = Microsoft.CodeAnalysis.CodeActions.CodeActionOptionsStorage;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -56,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
-            var options = new LSPCodeActionOptionsProvider(request.AllowGenerateInHiddenCode, _globalOptions.GetCodeActionOptionsProvider());
+            var options = GetCodeActionOptionsProvider(_globalOptions, request.AllowGenerateInHiddenCode);
 
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
                 request, document, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
@@ -64,36 +67,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return codeActions;
         }
 
-        private class LSPCodeActionOptionsProvider : AbstractCodeActionOptionsProvider
+        private static CodeActionOptionsProvider GetCodeActionOptionsProvider(IGlobalOptionService globalOptions, bool allowGenerateInHiddenCode)
         {
-            private readonly bool _allowGenerateInHiddenCode;
-            private readonly CodeActionOptionsProvider _underlyingProvider;
-            private CodeAnalysis.CodeActions.CodeActionOptions? _options;
+            var cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
+            return new DelegatingCodeActionOptionsProvider(languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (_, options) => CreateCodeActionOptions(allowGenerateInHiddenCode, languageService, options), globalOptions));
+        }
 
-            public LSPCodeActionOptionsProvider(bool allowGenerateInHiddenCode, CodeActionOptionsProvider underlyingOptions)
+        private static CodeActionOptions CreateCodeActionOptions(bool allowGenerateInHiddenCode, LanguageServices languageService, IGlobalOptionService globalOptions)
+        {
+            var options = CodeActionOptionsStorage.GetCodeActionOptions(globalOptions, languageService);
+            options = options with
             {
-                _allowGenerateInHiddenCode = allowGenerateInHiddenCode;
-                _underlyingProvider = underlyingOptions;
-            }
-
-            public override CodeAnalysis.CodeActions.CodeActionOptions GetOptions(LanguageServices languageServices)
-            {
-                if (_options is not null)
+                CodeGenerationOptions = options.CodeGenerationOptions with
                 {
-                    return _options;
+                    AllowInHiddenCode = allowGenerateInHiddenCode
                 }
-
-                var underlying = _underlyingProvider.GetOptions(languageServices);
-                _options = underlying with
-                {
-                    CodeGenerationOptions = underlying.CodeGenerationOptions with
-                    {
-                        AllowGenerateInHiddenCode = _allowGenerateInHiddenCode
-                    }
-                };
-
-                return _options;
-            }
+            };
+            return options;
         }
     }
 }

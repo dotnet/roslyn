@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
 
-                var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, allowGenerateInHiddenCode: false, cancellationToken);
+                var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, allowInHiddenCode: false, cancellationToken);
 
                 if (canGenerateMember && state.CanGeneratePropertyOrField())
                 {

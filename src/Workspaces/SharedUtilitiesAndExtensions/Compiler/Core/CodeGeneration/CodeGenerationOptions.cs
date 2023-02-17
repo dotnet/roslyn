@@ -28,7 +28,7 @@ internal record CodeGenerationOptions
     internal static readonly CodeGenerationOptions CommonDefaults = new();
 
     [DataMember] public NamingStylePreferences NamingStyle { get; init; } = NamingStylePreferences.Default;
-    [DataMember] public bool AllowGenerateInHiddenCode { get; init; } = false;
+    [DataMember] public bool AllowInHiddenCode { get; init; } = false;
 
     private protected CodeGenerationOptions()
     {
@@ -37,7 +37,8 @@ internal record CodeGenerationOptions
     private protected CodeGenerationOptions(IOptionsReader options, CodeGenerationOptions fallbackOptions, string language)
     {
         NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language, fallbackOptions.NamingStyle);
-        AllowGenerateInHiddenCode = fallbackOptions.AllowGenerateInHiddenCode;
+        // Not read from options because this is not persisted, but rather set on the CodeGenerationOptions instance directly
+        AllowInHiddenCode = fallbackOptions.AllowInHiddenCode;
     }
 
 #if !CODE_STYLE

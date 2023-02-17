@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 }
 
                 Contract.ThrowIfNull(TypeToGenerateIn);
-                if (!CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, allowGenerateInHiddenCode: false, cancellationToken))
+                if (!CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, allowInHiddenCode: false, cancellationToken))
                     return false;
 
                 ParameterTypes = ParameterTypes.IsDefault ? GetParameterTypes(cancellationToken) : ParameterTypes;

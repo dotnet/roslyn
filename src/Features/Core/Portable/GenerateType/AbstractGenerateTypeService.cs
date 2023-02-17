@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             return
                 decl != null &&
-                semanticDocument.Document.GetLanguageService<ICodeGenerationService>().CanAddTo(decl, semanticDocument.Project.Solution, allowGenerateInHiddenCode: false, cancellationToken);
+                semanticDocument.Document.GetLanguageService<ICodeGenerationService>().CanAddTo(decl, semanticDocument.Project.Solution, allowInHiddenCode: false, cancellationToken);
         }
 
         private static bool IsGeneratingIntoContainingNamespace(

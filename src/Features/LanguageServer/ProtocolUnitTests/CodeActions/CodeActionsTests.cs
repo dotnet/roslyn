@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
 
-            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
+            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation, allowInHiddenCode: false));
             var useImplicitType = results.FirstOrDefault(r => r.Title == CSharpAnalyzersResources.Use_implicit_type);
 
             AssertJsonEquals(expected, useImplicitType);
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 12 }, End = new Position { Line = 4, Character = 12 } },
                 diagnostics: null);
 
-            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
+            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation, allowInHiddenCode: false));
 
             var topLevelAction = Assert.Single(results.Where(action => action.Title == FeaturesResources.Introduce_constant));
             var expectedChildActionTitle = FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1");
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 applicableRange: new LSP.Range { Start = new Position { Line = 5, Character = 8 }, End = new Position { Line = 5, Character = 11 } },
                 diagnostics: null);
 
-            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation, allowGenerateInHiddenCode: true));
+            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation, allowInHiddenCode: true));
             var generateMethod = results.Single(r => r.Title == expected.Title);
 
             AssertJsonEquals(expected, generateMethod);
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             await using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var caretLocation = testLspServer.GetLocations("caret").Single();
-            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
+            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation, allowInHiddenCode: false));
             Assert.False(results.Any(r => r.Title == string.Format(FeaturesResources.Generate_method_0, "Bar")));
         }
 
@@ -210,10 +210,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             return result.Cast<LSP.VSInternalCodeAction>().ToArray();
         }
 
-        internal static CodeActionParamsWithOptions CreateCodeActionParams(LSP.Location caret, bool allowGenerateInHiddenCode = false)
+        internal static CodeActionParamsWithOptions CreateCodeActionParams(LSP.Location caret, bool allowInHiddenCode)
             => new CodeActionParamsWithOptions
             {
-                AllowGenerateInHiddenCode = allowGenerateInHiddenCode,
+                AllowGenerateInHiddenCode = allowInHiddenCode,
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Range = caret.Range,
                 Context = new LSP.CodeActionContext

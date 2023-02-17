@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 if (TypeToGenerateInOpt != null)
                 {
-                    if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateInOpt, allowGenerateInHiddenCode: false, cancellationToken))
+                    if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateInOpt, allowInHiddenCode: false, cancellationToken))
                     {
                         TypeToGenerateInOpt = null;
                     }

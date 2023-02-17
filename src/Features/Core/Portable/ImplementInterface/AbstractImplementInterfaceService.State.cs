@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return null;
                 }
 
-                if (!CodeGenerator.CanAdd(document.Project.Solution, classOrStructType, allowGenerateInHiddenCode: false, cancellationToken))
+                if (!CodeGenerator.CanAdd(document.Project.Solution, classOrStructType, allowInHiddenCode: false, cancellationToken))
                 {
                     return null;
                 }
