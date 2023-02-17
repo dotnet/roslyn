@@ -487,6 +487,127 @@ namespace Microsoft.CodeAnalysis.Runtime
         }
 
         [Fact]
+        public void HelpersMissing()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    DateTime F(int p, ref int q)
+    {
+        var a = DateTime.Now;
+        p = 1;
+        q = 1;
+
+        ref var r = ref a;
+        ref var s = ref q;
+
+        return a;
+    }
+} ";
+
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, targetFramework: s_targetFramework);
+
+            compilation.VerifyEmitDiagnostics(s_emitOptions,
+                // (4,1): error CS0656: Missing compiler required member 'Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry'
+                // class C
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"class C
+{
+    DateTime F(int p, ref int q)
+    {
+        var a = DateTime.Now;
+        p = 1;
+        q = 1;
+
+        ref var r = ref a;
+        ref var s = ref q;
+
+        return a;
+    }
+}").WithArguments("Microsoft.CodeAnalysis.Runtime.LocalStoreTracker", "LogMethodEntry").WithLocation(4, 1),
+                // (4,1): error CS0656: Missing compiler required member 'Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn'
+                // class C
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"class C
+{
+    DateTime F(int p, ref int q)
+    {
+        var a = DateTime.Now;
+        p = 1;
+        q = 1;
+
+        ref var r = ref a;
+        ref var s = ref q;
+
+        return a;
+    }
+}").WithArguments("Microsoft.CodeAnalysis.Runtime.LocalStoreTracker", "LogReturn").WithLocation(4, 1),
+                // (7,5): error CS0656: Missing compiler required member 'Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        var a = DateTime.Now;
+        p = 1;
+        q = 1;
+
+        ref var r = ref a;
+        ref var s = ref q;
+
+        return a;
+    }").WithArguments("Microsoft.CodeAnalysis.Runtime.LocalStoreTracker", "LogParameterStore").WithLocation(7, 5),
+                // (7,5): error CS0656: Missing compiler required member 'Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        var a = DateTime.Now;
+        p = 1;
+        q = 1;
+
+        ref var r = ref a;
+        ref var s = ref q;
+
+        return a;
+    }").WithArguments("Microsoft.CodeAnalysis.Runtime.LocalStoreTracker", "LogParameterStore").WithLocation(7, 5),
+                // (7,5): error CS0656: Missing compiler required member 'Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        var a = DateTime.Now;
+        p = 1;
+        q = 1;
+
+        ref var r = ref a;
+        ref var s = ref q;
+
+        return a;
+    }").WithArguments("Microsoft.CodeAnalysis.Runtime.LocalStoreTracker", "LogMethodEntry").WithLocation(7, 5),
+                // (7,5): error CS0656: Missing compiler required member 'Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        var a = DateTime.Now;
+        p = 1;
+        q = 1;
+
+        ref var r = ref a;
+        ref var s = ref q;
+
+        return a;
+    }").WithArguments("Microsoft.CodeAnalysis.Runtime.LocalStoreTracker", "LogReturn").WithLocation(7, 5),
+                // (8,13): error CS0656: Missing compiler required member 'Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreUnmanaged'
+                //         var a = DateTime.Now;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "a = DateTime.Now").WithArguments("Microsoft.CodeAnalysis.Runtime.LocalStoreTracker", "LogLocalStoreUnmanaged").WithLocation(8, 13),
+                // (9,9): error CS0656: Missing compiler required member 'Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore'
+                //         p = 1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "p = 1").WithArguments("Microsoft.CodeAnalysis.Runtime.LocalStoreTracker", "LogParameterStore").WithLocation(9, 9),
+                // (10,9): error CS0656: Missing compiler required member 'Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore'
+                //         q = 1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "q = 1").WithArguments("Microsoft.CodeAnalysis.Runtime.LocalStoreTracker", "LogParameterStore").WithLocation(10, 9),
+                // (12,17): error CS0656: Missing compiler required member 'Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreLocalAlias'
+                //         ref var r = ref a;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "r = ref a").WithArguments("Microsoft.CodeAnalysis.Runtime.LocalStoreTracker", "LogLocalStoreLocalAlias").WithLocation(12, 17),
+                // (13,17): error CS0656: Missing compiler required member 'Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreParameterAlias'
+                //         ref var s = ref q;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s = ref q").WithArguments("Microsoft.CodeAnalysis.Runtime.LocalStoreTracker", "LogLocalStoreParameterAlias").WithLocation(13, 17));
+        }
+
+        [Fact]
         public void ObjectInitializers_NotInstrumented()
         {
             var source = WithHelpers(@"

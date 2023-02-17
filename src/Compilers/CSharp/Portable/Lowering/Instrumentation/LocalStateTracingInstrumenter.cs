@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     ///    </code>
     ///
     ///    Where Xyz is a combination of <c>StateMachine</c> and either <c>Method</c> or <c>Lambda</c>, and $ids is the corresponding set of arguments identifying the context.
-    ///    -Entry methods are static factory methods for <see cref="WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker"/>. 
+    ///    LogXyzEntry methods are static factory methods for <see cref="WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker"/>. 
     ///    
     ///    The tracker type is a <c>ref struct</c>. It can only be allocated on the stack and accessed only directly from the declaring method (no lifting).
     ///    For member methods $ids is a single argument that is the method token.
@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(_lazyPreviousContextVariables?.IsEmpty() != false);
                     _lazyPreviousContextVariables?.Free();
+                    _lazyPreviousContextVariables = null;
                 }
             }
         }
@@ -120,18 +121,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Scope _scope;
         private readonly SyntheticBoundNodeFactory _factory;
         private readonly BindingDiagnosticBag _diagnostics;
-        private readonly TypeSymbol _instrumentationType;
+
+        /// <summary>
+        /// Type of the variable that holds on the instrumentation context (LocalStateTracker).
+        /// </summary>
+        private readonly TypeSymbol _contextType;
 
         private LocalStateTracingInstrumenter(
             Scope scope,
-            TypeSymbol instrumentationType,
+            TypeSymbol contextType,
             SyntheticBoundNodeFactory factory,
             BindingDiagnosticBag diagnostics,
             Instrumenter previous)
             : base(previous)
         {
             _scope = scope;
-            _instrumentationType = instrumentationType;
+            _contextType = contextType;
             _factory = factory;
             _diagnostics = diagnostics;
         }
@@ -139,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override CompoundInstrumenter WithPreviousImpl(Instrumenter previous)
             => new LocalStateTracingInstrumenter(
                 _scope,
-                _instrumentationType,
+                _contextType,
                 _factory,
                 _diagnostics,
                 previous);
@@ -167,22 +172,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var instrumentationType = factory.Compilation.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker);
-            if (IsInstrumentationOrNestedType(method.ContainingType, instrumentationType))
+            var contextType = factory.Compilation.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker);
+            if (IsSameOrNestedType(method.ContainingType, contextType))
             {
                 return false;
             }
 
-            var scope = new Scope(factory.SynthesizedLocal(instrumentationType, methodBody.Syntax, kind: SynthesizedLocalKind.LocalStoreTracker));
-            instrumenter = new LocalStateTracingInstrumenter(scope, instrumentationType, factory, diagnostics, previous);
+            var scope = new Scope(factory.SynthesizedLocal(contextType, methodBody.Syntax, kind: SynthesizedLocalKind.LocalStoreTracker));
+            instrumenter = new LocalStateTracingInstrumenter(scope, contextType, factory, diagnostics, previous);
             return true;
         }
 
-        private static bool IsInstrumentationOrNestedType(NamedTypeSymbol type, NamedTypeSymbol instrumentationType)
+        private static bool IsSameOrNestedType(NamedTypeSymbol type, NamedTypeSymbol otherType)
         {
             while (true)
             {
-                if (type.Equals(instrumentationType))
+                if (type.Equals(otherType))
                 {
                     return true;
                 }
@@ -254,21 +259,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var overload = overloadOpt.Value + enumDelta;
 
             var symbol = GetWellKnownMethodSymbol(overload, syntax);
-            if (symbol is not null)
-            {
-                Debug.Assert(!symbol.IsGenericMethod);
-                return symbol;
-            }
-
-            var objectOverload = enumDelta + WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreObject;
-
-            if (refAssignmentSourceIsLocal.HasValue || variableType.IsRefLikeType || variableType.IsPointerOrFunctionPointer() || overload == objectOverload)
-            {
-                return null;
-            }
-
-            // fall back to Object overload if the specialized one is not present
-            return GetWellKnownMethodSymbol(objectOverload, syntax);
+            Debug.Assert(symbol?.IsGenericMethod != true);
+            return symbol;
         }
 
         private MethodSymbol? GetWellKnownMethodSymbol(WellKnownMember overload, SyntaxNode syntax)
@@ -280,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewriter.CurrentLambdaBody == original)
             {
-                _scope.Open(_factory.SynthesizedLocal(_instrumentationType, original.Syntax, kind: SynthesizedLocalKind.LocalStoreTracker));
+                _scope.Open(_factory.SynthesizedLocal(_contextType, original.Syntax, kind: SynthesizedLocalKind.LocalStoreTracker));
             }
         }
 
@@ -397,7 +389,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!TryGetLocalOrParameterInfo(original.Left, out var targetSymbol, out var targetType, out var targetIndex))
             {
-                Debug.Fail("Must be local or parameter");
+                // Must be local or parameter
+                throw ExceptionUtilities.UnexpectedValue(original.Left);
             }
 
             var logger = GetLocalOrParameterStoreLogger(targetType, targetSymbol, refAssignmentSourceIsLocal, original.Syntax);
@@ -585,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (refKinds[i] is not (RefKind.Ref or RefKind.Out))
                 {
-                    // not by-ref
+                    // not writable reference
                     continue;
                 }
 
@@ -598,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var logger = GetLocalOrParameterStoreLogger(targetType, targetSymbol, refAssignmentSourceIsLocal: null, invocation.Syntax);
                 if (logger is null)
                 {
-                    return invocation;
+                    continue;
                 }
 
                 builder.Add(_factory.Call(

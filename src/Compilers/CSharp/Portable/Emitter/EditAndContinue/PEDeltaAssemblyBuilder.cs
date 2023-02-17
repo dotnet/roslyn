@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override MethodInstrumentation GetMethodBodyInstrumentations(MethodSymbol method)
         {
-            // EmitDifference does not allow settings these:
+            // EmitDifference does not allow setting instrumentation kinds on EmitOptions:
             Debug.Assert(EmitOptions.InstrumentationKinds.IsEmpty);
 
             return _previousDefinitions.GetMethodBodyInstrumentations(method);

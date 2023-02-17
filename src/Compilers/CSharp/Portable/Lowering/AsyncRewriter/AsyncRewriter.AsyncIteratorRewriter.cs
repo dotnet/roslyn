@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (instanceIdField is not null &&
                     F.WellKnownMethod(WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId) is { } getId)
                 {
+                    // this.instanceId = LocalStoreTracker.GetNewStateMachineInstanceId();
                     bodyBuilder.Add(F.Assignment(F.InstanceField(instanceIdField), F.Call(receiver: null, getId)));
                 }
 

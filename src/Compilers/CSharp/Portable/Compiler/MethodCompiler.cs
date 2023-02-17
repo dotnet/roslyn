@@ -863,8 +863,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics);
             try
             {
-                var instrumentation = _moduleBeingBuiltOpt.GetMethodBodyInstrumentations(accessor);
-
                 BoundBlock boundBody = MethodBodySynthesizer.ConstructFieldLikeEventAccessorBody(eventSymbol, isAddMethod, _compilation, diagnosticsThisMethod);
                 var hasErrors = diagnosticsThisMethod.HasAnyErrors();
                 SetGlobalErrorIfTrue(hasErrors);
@@ -875,6 +873,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors && !_hasDeclarationErrors && _emitMethodBodies)
                 {
                     const int accessorOrdinal = -1;
+
+                    var instrumentation = _moduleBeingBuiltOpt.GetMethodBodyInstrumentations(accessor);
 
                     MethodBody emittedBody = GenerateMethodBody(
                         _moduleBeingBuiltOpt,
