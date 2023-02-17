@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             "insert_final_newline", DocumentFormattingOptions.Default.InsertFinalNewLine, FormattingOptionGroups.NewLine, isEditorConfigOption: true);
 
         public static PerLanguageOption2<IndentStyle> SmartIndent = new PerLanguageOption2<IndentStyle>(
-            "dotnet_formatting_Options_smart_Indent",
+            "dotnet_smart_Indent",
             defaultValue: IndentationOptions.DefaultIndentStyle,
             group: FormattingOptionGroups.IndentationAndSpacing)
             .WithPublicOption(PublicFeatureName, "SmartIndent", static value => (PublicIndentStyle)value, static value => (IndentStyle)value);

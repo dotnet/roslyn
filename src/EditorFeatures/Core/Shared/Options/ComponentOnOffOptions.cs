@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     /// </summary>
     internal sealed class EditorComponentOnOffOptions
     {
-        public static readonly Option2<bool> Adornment = new("dotnet_editor_component_on_off_options_adornment", defaultValue: true);
-        public static readonly Option2<bool> Tagger = new("dotnet_editor_component_on_off_options_tagger", defaultValue: true);
-        public static readonly Option2<bool> CodeRefactorings = new("dotnet_editor_component_on_off_options_code_refactorings", defaultValue: true);
+        public static readonly Option2<bool> Adornment = new("dotnet_enable_editor_adornment", defaultValue: true);
+        public static readonly Option2<bool> Tagger = new("dotnet_enable_editor_tagger", defaultValue: true);
+        public static readonly Option2<bool> CodeRefactorings = new("dotnet_enable_code_refactorings", defaultValue: true);
     }
 }

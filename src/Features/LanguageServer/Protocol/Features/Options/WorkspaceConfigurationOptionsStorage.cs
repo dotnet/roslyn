@@ -23,7 +23,7 @@ internal static class WorkspaceConfigurationOptionsStorage
         "dotnet_storage_database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
 
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
-        "dotnet_storage_cloud_cache_feature_flag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
+        "dotnet_storage_cloud_cache", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
 
     public static readonly Option2<bool> DisableReferenceManagerRecoverableMetadata = new(
         "dotnet_workspace_configuration_options_disable_reference_manager_recoverable_metadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata);
