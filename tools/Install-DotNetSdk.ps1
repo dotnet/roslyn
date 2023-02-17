@@ -92,19 +92,18 @@ Function Get-FileFromWeb([Uri]$Uri, $OutDir) {
 }
 
 Function Get-InstallerExe(
-    $Version,
+    [Version]$Version,
     $Architecture,
     [ValidateSet('Sdk','Runtime','WindowsDesktop')]
     [string]$sku
 ) {
     # Get the latest/actual version for the specified one
-    $TypedVersion = [Version]$Version
-    if ($TypedVersion.Build -eq -1) {
+    if ($Version.Build -eq -1) {
         $versionInfo = -Split (Invoke-WebRequest -Uri "https://dotnetcli.blob.core.windows.net/dotnet/$sku/$Version/latest.version" -UseBasicParsing)
         $Version = $versionInfo[-1]
     }
 
-    $majorMinor = "$($TypedVersion.Major).$($TypedVersion.Minor)"
+    $majorMinor = "$($Version.Major).$($Version.Minor)"
     $ReleasesFile = Join-Path $DotNetInstallScriptRoot "$majorMinor\releases.json"
     if (!(Test-Path $ReleasesFile)) {
         Get-FileFromWeb -Uri "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/$majorMinor/releases.json" -OutDir (Split-Path $ReleasesFile) | Out-Null
