@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -86,6 +87,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                     _lspLogger.LogError($"Configuration from client is null. The request is {configurationItems[optionStrings.IndexOf(null)]}.");
                     return ImmutableArray<string>.Empty;
                 }
+
+                return optionStrings;
             }
             catch (Exception e)
             {
