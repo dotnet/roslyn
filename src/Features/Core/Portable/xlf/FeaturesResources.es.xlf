@@ -610,6 +610,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">descompilado</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deconstruct_locals_for_0">
+        <source>Deconstruct locals for '{0}'</source>
+        <target state="new">Deconstruct locals for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">Para eliminar {0} alrededor de una instrucción de acción se requiere reiniciar la aplicación.</target>
