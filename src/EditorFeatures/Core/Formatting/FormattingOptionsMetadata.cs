@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal sealed class FormattingOptionsMetadata
     {
         public static readonly PerLanguageOption2<bool> FormatOnPaste =
-            new("dotnet_formatting_options_format_on_paste", defaultValue: true);
+            new("dotnet_format_on_paste", defaultValue: true);
     }
 }

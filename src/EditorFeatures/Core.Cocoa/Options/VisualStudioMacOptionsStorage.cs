@@ -60,7 +60,7 @@ internal static class VisualStudioMacOptionStorage
         {"csharp_formatting_options_auto_formatting_on_return", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return")},
         {"dotnet_formatting_options_auto_formatting_on_semicolon", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon")},
         {"csharp_formatting_options_auto_formatting_on_typing", new PropertyName("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing")},
-        {"dotnet_formatting_options_format_on_paste", new PropertyName("TextEditor.%LANGUAGE%.SpeciAddImportsOnPaste2fic.FormatOnPaste")},
+        {"dotnet_format_on_paste", new PropertyName("TextEditor.%LANGUAGE%.SpeciAddImportsOnPaste2fic.FormatOnPaste")},
         {"dotnet_sort_system_directives_first", new PropertyName("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst")},
         {"dotnet_separate_import_directive_groups", new PropertyName("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},
         {"dotnet_quick_info_options_show_remarks_in_quick_info", new PropertyName("TextEditor.%LANGUAGE%.Specific.ShowRemarks")},
