@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             originalDocument2 = project2.GetRequiredDocument(originalDocument2.Id).WithFrozenPartialSemantics(CancellationToken.None);
             var frozenSolution = originalDocument2.Project.Solution;
             var documentIdsToTest = new[] { originalDocument1.Id, originalDocument2.Id };
-            
+
             foreach (var documentIdToTest in documentIdsToTest)
             {
                 var document = frozenSolution.GetRequiredDocument(documentIdToTest);
