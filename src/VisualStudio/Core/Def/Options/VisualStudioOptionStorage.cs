@@ -331,8 +331,8 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning restore
         {"dotnet_inline_diagnostics_options_enable_inline_diagnostics", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics")},
         {"dotnet_inline_diagnostics_options_location", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics.LocationOption")},
-        {"dotnet_inline_hints_options_color_hints", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorHints")},
-        {"dotnet_inline_hints_options_display_all_hints_while_pressing_alt_f1", new RoamingProfileStorage("TextEditor.Specific.DisplayAllHintsWhilePressingAltF1")},
+        {"dotnet_inline_hints_colorize", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorHints")},
+        {"dotnet_inline_hints_display_all_while_pressing_alt_f1", new RoamingProfileStorage("TextEditor.Specific.DisplayAllHintsWhilePressingAltF1")},
         {"dotnet_inline_hints_options_enabled_for_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints")},
         {"csharp_inline_hints_options_enabled_for_types", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints")},
         {"csharp_inline_hints_options_for_implicit_object_creation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitObjectCreation")},

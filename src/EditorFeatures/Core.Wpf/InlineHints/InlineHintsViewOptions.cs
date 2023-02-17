@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     internal sealed class InlineHintsViewOptions
     {
         public static readonly Option2<bool> DisplayAllHintsWhilePressingAltF1 = new(
-            "dotnet_inline_hints_options_display_all_hints_while_pressing_alt_f1", defaultValue: true);
+            "dotnet_inline_hints_display_all_while_pressing_alt_f1", defaultValue: true);
 
         public static readonly PerLanguageOption2<bool> ColorHints = new(
-            "dotnet_inline_hints_options_color_hints", defaultValue: true);
+            "dotnet_inline_hints_colorize", defaultValue: true);
     }
 }
