@@ -819,13 +819,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         var leftUsing = (UsingDirectiveSyntax)leftNode;
                         var rightUsing = (UsingDirectiveSyntax)rightNode;
 
+                        // For now, just compute the distances of both the alias and name and combine their weights
+                        // 50/50. We could consider weighting the alias more heavily.  i.e. if you have `using X = ...`
+                        // and `using X = ...` it's more likely that this is the same alias, and just the name portion
+                        // changed versus thinking that some other using became this alias.
                         distance =
                             ComputeDistance(leftUsing.Alias, rightUsing.Alias) +
                             ComputeDistance(leftUsing.NamespaceOrType, rightUsing.NamespaceOrType);
 
+                        // Consider two usings that only differ by presence/absence of 'global' to be a near match.
                         if (leftUsing.GlobalKeyword.IsKind(SyntaxKind.None) != rightUsing.GlobalKeyword.IsKind(SyntaxKind.None))
                             distance += EpsilonDist;
 
+                        // Consider two usings that only differ by presence/absence of 'unsafe' to be a near match.
                         if (leftUsing.UnsafeKeyword.IsKind(SyntaxKind.None) != rightUsing.UnsafeKeyword.IsKind(SyntaxKind.None))
                             distance += EpsilonDist;
 
