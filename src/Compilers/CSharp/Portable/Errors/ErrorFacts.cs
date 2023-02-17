@@ -2298,6 +2298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter2:
                 case ErrorCode.ERR_RefReturnPrimaryConstructorParameter:
                 case ErrorCode.ERR_StructLayoutCyclePrimaryConstructorParameter:
+                case ErrorCode.ERR_UnexpectedParameterList:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

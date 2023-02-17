@@ -633,9 +633,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.ParameterList != null)
                 {
-                    Debug.Assert(node.Kind() is not SyntaxKind.InterfaceDeclaration);
-
-                    MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node.ParameterList);
+                    if (node.Kind() is SyntaxKind.InterfaceDeclaration)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedParameterList, node.ParameterList.GetLocation());
+                    }
+                    else
+                    {
+                        MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node.ParameterList);
+                    }
                 }
                 else if (node.OpenBraceToken == default && node.CloseBraceToken == default && node.SemicolonToken != default)
                 {

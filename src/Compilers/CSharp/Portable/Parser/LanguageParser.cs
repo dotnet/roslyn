@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken && keyword.Kind is not SyntaxKind.InterfaceKeyword
+            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? ParseParenthesizedParameterList() : null;
 
             var baseList = this.ParseBaseList();
@@ -1641,13 +1641,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.InterfaceKeyword:
-                        RoslynDebug.Assert(paramList is null);
                         return syntaxFactory.InterfaceDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,

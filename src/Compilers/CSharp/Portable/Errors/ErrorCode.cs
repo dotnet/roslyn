@@ -2180,6 +2180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReadonlyPrimaryConstructorParameter2 = 9514,
         ERR_RefReturnPrimaryConstructorParameter = 9515,
         ERR_StructLayoutCyclePrimaryConstructorParameter = 9516,
+        ERR_UnexpectedParameterList = 9517,
 
         #endregion
 

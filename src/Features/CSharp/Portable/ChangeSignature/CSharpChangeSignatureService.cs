@@ -311,22 +311,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode is RecordDeclarationSyntax { ParameterList: not null } record)
+            if (updatedNode is TypeDeclarationSyntax { ParameterList: not null } typeWithParameters)
             {
-                var updatedParameters = UpdateDeclaration(record.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-                return record.WithParameterList(record.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
-            }
-
-            if (updatedNode is ClassDeclarationSyntax { ParameterList: not null } @class)
-            {
-                var updatedParameters = UpdateDeclaration(@class.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-                return @class.WithParameterList(@class.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
-            }
-
-            if (updatedNode is StructDeclarationSyntax { ParameterList: not null } @struct)
-            {
-                var updatedParameters = UpdateDeclaration(@struct.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-                return @struct.WithParameterList(@struct.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var updatedParameters = UpdateDeclaration(typeWithParameters.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                return typeWithParameters.WithParameterList(typeWithParameters.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode is LocalFunctionStatementSyntax localFunction)

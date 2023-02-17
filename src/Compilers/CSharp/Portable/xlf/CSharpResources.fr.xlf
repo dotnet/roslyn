@@ -1697,6 +1697,11 @@
         <target state="translated">Le champ '{0}' doit être entièrement attribué avant que le contrôle soit retourné à l’appelant. Envisagez de mettre à jour la version de langue «{1}» pour définir automatiquement le champ par défaut.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedParameterList">
+        <source>Unexpected parameter list.</source>
+        <target state="new">Unexpected parameter list.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}' est attribué avec 'UnmanagedCallersOnly' et ne peut pas être appelé directement. Obtenez un pointeur de fonction vers cette méthode.</target>

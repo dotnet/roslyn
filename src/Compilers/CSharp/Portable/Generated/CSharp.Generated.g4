@@ -320,7 +320,7 @@ class_declaration
   ;
 
 interface_declaration
-  : attribute_list* modifier* 'interface' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  : attribute_list* modifier* 'interface' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 record_declaration

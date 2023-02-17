@@ -1697,6 +1697,11 @@
         <target state="translated">제어가 호출자에게 반환되기 전에 필드 '{0}'이(가) 완전히 할당되어야 합니다. 필드를 자동으로 기본 설정하려면 언어 버전 '{1}'으로 업데이트하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedParameterList">
+        <source>Unexpected parameter list.</source>
+        <target state="new">Unexpected parameter list.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}'에는 'UnmanagedCallersOnly' 특성을 지정할 수 없으며 이 항목은 직접 호출할 수 없습니다. 이 메서드에 대한 함수 포인터를 가져오세요.</target>

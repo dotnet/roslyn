@@ -2038,6 +2038,36 @@ class [|C|]
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameInterfaceWithNoBody1(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                interface [|$$Goo|](int a);
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameRecordWithBody(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -2104,6 +2134,36 @@ class [|C|]
                         <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
                             <Document>
                                 struct [|$$Goo|](int a) { }
+                                class C
+                                {
+                                    [|Goo|] g;
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameInterfaceWithBody(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="9.0">
+                            <Document>
+                                interface [|$$Goo|](int a) { }
                                 class C
                                 {
                                     [|Goo|] g;

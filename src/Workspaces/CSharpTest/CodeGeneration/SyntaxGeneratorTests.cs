@@ -3167,6 +3167,7 @@ public class C
 
             Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
             Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.StructDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.InterfaceDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.IdentifierName("x"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
         }
 
@@ -3924,7 +3925,7 @@ $@"public struct C
         }
 
         [Fact]
-        public void TestInsertMembersOnInterface_SemiColon()
+        public void TestInsertMembersOnInterface_SemiColon_01()
         {
             var comp = Compile(
 $@"public interface C;
@@ -3936,6 +3937,24 @@ $@"public interface C;
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InsertMembers(declC, 0, Generator.PropertyDeclaration("A", Generator.IdentifierName("T"))),
 $@"public interface C
+{{
+    T A {{ get; set; }}
+}}");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnInterface_SemiColon_02()
+        {
+            var comp = Compile(
+$@"public interface C();
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.PropertyDeclaration("A", Generator.IdentifierName("T"))),
+$@"public interface C()
 {{
     T A {{ get; set; }}
 }}");

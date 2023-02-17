@@ -144,11 +144,24 @@ class MyClass
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
-        public async Task ExtractInterface_Invocation_FromInterface()
+        public async Task ExtractInterface_Invocation_FromInterface_01()
         {
             var markup = @"
 using System;
 interface IMyInterface
+{
+    $$void Goo();
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Goo", expectedInterfaceName: "IMyInterface1");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task ExtractInterface_Invocation_FromInterface_02()
+        {
+            var markup = @"
+using System;
+interface IMyInterface()
 {
     $$void Goo();
 }";

@@ -961,6 +961,15 @@ GetIndentionColumn(30),
         }
 
         [Fact]
+        public async Task TestInterface_Semicolon()
+        {
+            await TestInRegularAndScript1Async(
+"interface R([||]int I, string S);",
+@"interface R(int I,
+            string S);");
+        }
+
+        [Fact]
         public async Task TestRecord_Braces()
         {
             await TestInRegularAndScript1Async(
@@ -976,6 +985,15 @@ GetIndentionColumn(30),
 "class R([||]int I, string S) { }",
 @"class R(int I,
         string S) { }");
+        }
+
+        [Fact]
+        public async Task TestInterface_Braces()
+        {
+            await TestInRegularAndScript1Async(
+"interface R([||]int I, string S) { }",
+@"interface R(int I,
+            string S) { }");
         }
 
         [Fact]

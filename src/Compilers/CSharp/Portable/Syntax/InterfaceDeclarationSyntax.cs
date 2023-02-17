@@ -6,14 +6,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     partial class InterfaceDeclarationSyntax
     {
-        protected override ParameterListSyntax? ParameterListCore => null;
-    }
-}
-
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
-{
-    partial class InterfaceDeclarationSyntax
-    {
-        protected override ParameterListSyntax? ParameterListCore => null;
+        public InterfaceDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            return Update(attributeLists, modifiers, keyword, identifier, typeParameterList, ParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+        }
     }
 }

@@ -30,10 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new TypeDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
             => (TypeDeclarationSyntax)WithModifiersCore(modifiers);
 
-        public ParameterListSyntax? ParameterList => ParameterListCore;
-
-        protected abstract ParameterListSyntax? ParameterListCore { get; }
-
         internal PrimaryConstructorBaseTypeSyntax? PrimaryConstructorBaseTypeIfClass
         {
             get
@@ -46,16 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return null;
             }
         }
-    }
-}
-
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
-{
-    partial class TypeDeclarationSyntax
-    {
-        public ParameterListSyntax? ParameterList => ParameterListCore;
-
-        protected abstract ParameterListSyntax? ParameterListCore { get; }
     }
 }
 

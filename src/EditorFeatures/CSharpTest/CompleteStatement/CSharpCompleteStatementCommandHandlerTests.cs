@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         [InlineData("public struct C(int X, $$int Y)", "public struct C(int X, int Y)")]
         [InlineData("public struct C(int X, int$$ Y)", "public struct C(int X, int Y)")]
         [InlineData("public struct C(int X, int Y$$)", "public struct C(int X, int Y)")]
+        [InlineData("public interface C(int X, $$int Y)", "public interface C(int X, int Y)")]
+        [InlineData("public interface C(int X, int$$ Y)", "public interface C(int X, int Y)")]
+        [InlineData("public interface C(int X, int Y$$)", "public interface C(int X, int Y)")]
         public void ParameterList_CouldBeHandled(string signature, string expectedSignature)
         {
             var code = $@"
