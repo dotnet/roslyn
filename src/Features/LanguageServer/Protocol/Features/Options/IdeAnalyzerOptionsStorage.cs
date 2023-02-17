@@ -45,8 +45,8 @@ internal static class IdeAnalyzerOptionsStorage
         "dotnet_regular_expressions_options_report_invalid_regex_patterns", IdeAnalyzerOptions.CommonDefault.ReportInvalidRegexPatterns);
 
     public static PerLanguageOption2<bool> ReportInvalidJsonPatterns = new(
-        "dotnet_json_feature_options_report_invalid_json_patterns", IdeAnalyzerOptions.CommonDefault.ReportInvalidJsonPatterns);
+        "dotnet_report_invalid_json_patterns", IdeAnalyzerOptions.CommonDefault.ReportInvalidJsonPatterns);
 
     public static PerLanguageOption2<bool> DetectAndOfferEditorFeaturesForProbableJsonStrings = new(
-        "dotnet_json_feature_options_detect_and_offer_editor_features_for_probable_json_strings", IdeAnalyzerOptions.CommonDefault.DetectAndOfferEditorFeaturesForProbableJsonStrings);
+        "dotnet_detect_and_offer_editor_features_for_probable_json_strings", IdeAnalyzerOptions.CommonDefault.DetectAndOfferEditorFeaturesForProbableJsonStrings);
 }
