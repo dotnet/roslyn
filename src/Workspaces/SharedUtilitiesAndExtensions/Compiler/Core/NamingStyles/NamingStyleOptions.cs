@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class NamingStyleOptions
     {
-        public const string NamingPreferencesOptionName = "dotnet_simplification_options_naming_preferences";
+        public const string NamingPreferencesOptionName = "dotnet_naming_preferences";
 
         /// <summary>
         /// This option describes the naming rules that should be applied to specified categories of symbols, 

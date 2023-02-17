@@ -69,9 +69,9 @@ internal static class VisualStudioMacOptionStorage
         {"dotnet_trigger_completion_on_deletion", new PropertyName("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion")},
         {"dotnet_trigger_completion_on_typing_letters", new PropertyName("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters")},
         {"dotnet_show_completion_item_filters", new PropertyName("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters")},
-        {"dotnet_solution_crawler_options_storage_background_analysis_scope_option", new PropertyName("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
-        {"dotnet_solution_crawler_options_storage_compiler_diagnostics_scope_option", new PropertyName("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
-        {"dotnet_symbol_search_options_suggest_for_types_in_nuget_packages", new PropertyName("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
+        {"dotnet_solution_crawler_background_analysis_scope", new PropertyName("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
+        {"dotnet_compiler_diagnostics_scope", new PropertyName("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
+        {"dotnet_suggest_for_types_in_nuget_packages", new PropertyName("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
         {"FeatureOnOffOptions_AutomaticallyCompleteStatementOnSemicolon", new PropertyName("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},
     };
 }
