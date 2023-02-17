@@ -44,6 +44,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperatorPrecedence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParseOptionsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\QualifiedNameSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleNameSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StatementSyntaxExtensions.cs" />

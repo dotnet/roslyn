@@ -376,5 +376,121 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryDiscar
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        public async Task TestNestedPropertyWithTheSameNameAsNestedType()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    class D
+                    {
+                        public class Length
+                        {
+                        }
+                    }
+
+                    class C
+                    {
+                        string D { get; }
+
+                        void M(object o)
+                        {
+                            if (o is D.Length [|_|])
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    using System;
+                    
+                    class D
+                    {
+                        public class Length
+                        {
+                        }
+                    }
+                    
+                    class C
+                    {
+                        string D { get; }
+                    
+                        void M(object o)
+                        {
+                            if (o is D.Length)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        public async Task TestNotWhenRemovingDiscardChangesMeaning3()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    
+                    class D
+                    {
+                        public class Length
+                        {
+                        }
+                    }
+                    
+                    class C
+                    {
+                        string D { get; }
+                    
+                        void M(object o)
+                        {
+                            if (o is not D.Length _)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(66841, "https://github.com/dotnet/roslyn/issues/66841")]
+        public async Task TestNotWhenRemovingDiscardChangesMeaning4()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    class D
+                    {
+                        public class Length
+                        {
+                        }
+                    }
+
+                    class C
+                    {
+                        string D { get; }
+
+                        void M(object o)
+                        {
+                            var v = o switch
+                            {
+                                D.Length _ => 0
+                            };
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
