@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
                     if (typeSyntax is IdentifierNameSyntax identifierName &&
                         identifierName.GetAncestor<TypeDeclarationSyntax>() is { } containingTypeSyntax)
                     {
-                        var typeSymbol = semanticModel.GetDeclaredSymbol(containingTypeSyntax, cancellationToken)!;
+                        var typeSymbol = semanticModel.GetRequiredDeclaredSymbol(containingTypeSyntax, cancellationToken);
 
                         // If we find other symbols with the same name in the type we are currently in, removing discard can lead to a compiler error.
                         // For instance, we can have a property in the type we are currently in with the same name as an identifier in the discard designation.
