@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 }));
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = new(
-            "dotnet_code_style_options_prefer_system_hash_code",
+            "dotnet_code_style_prefer_system_hash_code",
             IdeAnalyzerOptions.CommonDefault.PreferSystemHashCode,
             group: CodeStyleOptionGroups.ExpressionLevelPreferences);
 
