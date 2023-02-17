@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class QualifiedNameSyntaxExtensions
     {
-        public static NameSyntax? GetLeftmostName(this QualifiedNameSyntax qualifiedName)
+        public static NameSyntax GetLeftmostName(this QualifiedNameSyntax qualifiedName)
         {
             var result = qualifiedName.Left;
 
