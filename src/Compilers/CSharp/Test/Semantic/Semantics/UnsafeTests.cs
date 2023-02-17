@@ -10077,5 +10077,55 @@ class C
                 //     void M1(X t) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 13));
         }
+
+        [Fact]
+        public void TestStructWithReferenceToItselfThroughAliasPointer1()
+        {
+            var csharp = @"
+using unsafe X = S*;
+
+unsafe struct S
+{
+    X x;
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,7): warning CS0169: The field 'S.x' is never used
+                //     X x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S.x").WithLocation(6, 7));
+
+            var globalNamespace = comp.GlobalNamespace;
+            Assert.Equal(ManagedKind.Unmanaged, globalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
+        }
+
+        [Fact]
+        public void TestStructWithReferenceToItselfThroughAliasPointer2()
+        {
+            var csharp = @"
+using unsafe X = S*;
+
+unsafe struct S
+{
+    X x;
+}
+
+class C
+{
+    void M(S s)
+    {
+        N<S>(s);
+    }
+
+    void N<T>(T t) where T : unmanaged { }
+}
+
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,7): warning CS0169: The field 'S.x' is never used
+                //     X x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S.x").WithLocation(6, 7));
+        }
     }
 }

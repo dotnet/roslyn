@@ -422,14 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyTypeAndRefKind?.Type.DefaultType is { } defaultType)
                 {
-                    bool isPointerType = defaultType.Kind switch
-                    {
-                        SymbolKind.PointerType => true,
-                        SymbolKind.FunctionPointerType => true,
-                        _ => false
-                    };
-                    Debug.Assert(isPointerType == IsPointerFieldSyntactically());
-                    return isPointerType;
+                    return defaultType.IsPointerOrFunctionPointer();
                 }
 
                 return IsPointerFieldSyntactically();
@@ -604,8 +597,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-
-            Debug.Assert(type.DefaultType.IsPointerOrFunctionPointer() == IsPointerFieldSyntactically());
 
             // update the lazyType only if it contains value last seen by the current thread:
             if (Interlocked.CompareExchange(ref _lazyTypeAndRefKind, new TypeAndRefKind(refKind, type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
