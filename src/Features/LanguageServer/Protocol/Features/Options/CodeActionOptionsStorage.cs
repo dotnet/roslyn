@@ -42,6 +42,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(
-            "dotnet_use_conditional_expression_options_conditional_expression_wrapping_length", CodeActionOptions.DefaultConditionalExpressionWrappingLength);
+            "dotnet_conditional_expression_wrapping_length", CodeActionOptions.DefaultConditionalExpressionWrappingLength);
     }
 }
