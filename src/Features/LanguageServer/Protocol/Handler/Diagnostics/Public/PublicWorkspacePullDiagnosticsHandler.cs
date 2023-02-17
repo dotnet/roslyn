@@ -50,6 +50,12 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
         _workspaceManager.LspTextChanged += OnLspTextChanged;
     }
 
+    public void Dispose()
+    {
+        _workspaceManager.LspTextChanged -= OnLspTextChanged;
+        _workspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
+    }
+
     /// <summary>
     /// Public API doesn't support categories (yet).
     /// </summary>
@@ -167,12 +173,6 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
         context.TraceInformation("Closing workspace/diagnostics request");
         // We've hit a change, so we close the current request to allow the client to open a new one.
         return;
-    }
-
-    public void Dispose()
-    {
-        _workspaceManager.LspTextChanged -= OnLspTextChanged;
-        _workspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
     }
 
     internal TestAccessor GetTestAccessor() => new(this);
