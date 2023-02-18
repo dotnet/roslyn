@@ -610,6 +610,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">디컴파일됨</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deconstruct_locals_for_0">
+        <source>Deconstruct locals for '{0}'</source>
+        <target state="new">Deconstruct locals for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">활성 문 주변의 {0}을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
@@ -4473,11 +4478,6 @@ DateTimeOffset 값의 경우, "K" 형식 지정자는 "zzz" 형식 지정자와 
         <target state="translated">{0} 분석기 어셈블리를 로드할 수 없습니다. {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">메서드를 동기 메서드로 설정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">소스: {0}</target>
@@ -4638,16 +4638,6 @@ This version used in: {2}</source>
       <trans-unit id="Rename_type_to_0">
         <source>Rename type to {0}</source>
         <target state="translated">{0}(으)로 형식 이름 바꾸기</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">태그 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">누락된 매개 변수 노드 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">

@@ -227,4 +227,14 @@
   <data name="Remove_new_modifier" xml:space="preserve">
     <value>Remove 'new' modifier</value>
   </data>
+  <data name="Convert_to_positional_record" xml:space="preserve">
+    <value>Convert to positional record</value>
+    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Make_method_async" xml:space="preserve">
+    <value>Make method async</value>
+  </data>
+  <data name="Make_method_async_remain_void" xml:space="preserve">
+    <value>Make method async (stay void)</value>
+  </data>
 </root>

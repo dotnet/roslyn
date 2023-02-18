@@ -416,12 +416,6 @@
   <data name="struct_name" xml:space="preserve">
     <value>&lt;struct name&gt;</value>
   </data>
-  <data name="Make_method_async" xml:space="preserve">
-    <value>Make method async</value>
-  </data>
-  <data name="Make_method_async_remain_void" xml:space="preserve">
-    <value>Make method async (stay void)</value>
-  </data>
   <data name="Convert_to_switch_statement" xml:space="preserve">
     <value>Convert to 'switch' statement</value>
   </data>
@@ -586,10 +580,6 @@
   </data>
   <data name="Convert_0_to_record" xml:space="preserve">
     <value>Convert '{0}' to record</value>
-    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Convert_to_positional_record" xml:space="preserve">
-    <value>Convert to positional record</value>
     <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Apply_readonly_struct_preferences" xml:space="preserve">

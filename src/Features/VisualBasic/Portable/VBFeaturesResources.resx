@@ -1162,12 +1162,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>{0}.set</value>
     <comment>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</comment>
   </data>
-  <data name="Make_Async_Function" xml:space="preserve">
-    <value>Make Async Function</value>
-  </data>
-  <data name="Make_Async_Sub" xml:space="preserve">
-    <value>Make Async Sub</value>
-  </data>
   <data name="Multiple_Types" xml:space="preserve">
     <value>&lt;Multiple Types&gt;</value>
   </data>
