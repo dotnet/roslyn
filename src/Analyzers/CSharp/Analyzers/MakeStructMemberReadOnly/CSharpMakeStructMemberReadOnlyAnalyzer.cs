@@ -2,17 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
@@ -42,19 +39,31 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             context.RegisterSymbolStartAction(context =>
             {
                 // Only run on non-readonly structs.  If the struct is already readonly, no need to make the members readonly.
-                if (context.Symbol is not INamedTypeSymbol { TypeKind: TypeKind.Struct, IsReadOnly: false } structType)
+                if (context.Symbol is not INamedTypeSymbol
+                    {
+                        TypeKind: TypeKind.Struct,
+                        IsReadOnly: false,
+                        DeclaringSyntaxReferences.Length: > 0,
+                    } structType)
+                {
+                    return;
+                }
+
+                var cancellationToken = context.CancellationToken;
+                var declaration = structType.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                var options = context.GetCSharpAnalyzerOptions(declaration.SyntaxTree);
+                var option = options.PreferReadOnlyStructMember;
+                if (!option.Value)
                     return;
 
-                using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var methodsToMakeReadOnly);
-                context.RegisterOperationBlockAction(context => AnalyzeBlock(context, structType.OriginalDefinition, methodsToMakeReadOnly));
-                context.RegisterSymbolEndAction(context => ReportDiagnostics(context, methodsToMakeReadOnly));
+                context.RegisterOperationBlockAction(context => AnalyzeBlock(context, structType.OriginalDefinition, option.Notification.Severity));
             }, SymbolKind.NamedType);
         });
 
-    private static void AnalyzeBlock(
+    private void AnalyzeBlock(
         OperationBlockAnalysisContext context,
         INamedTypeSymbol structType,
-        ArrayBuilder<IMethodSymbol> methodsToMakeReadOnly)
+        ReportDiagnostic severity)
     {
         var cancellationToken = context.CancellationToken;
 
@@ -64,6 +73,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 MethodKind: MethodKind.Ordinary or MethodKind.PropertyGet or MethodKind.PropertySet,
                 IsReadOnly: false,
                 IsImplicitlyDeclared: false,
+                DeclaringSyntaxReferences.Length: > 0,
             } owningMethod)
         {
             return;
@@ -117,18 +127,23 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             }
         }
 
-        methodsToMakeReadOnly.Add(owningMethod);
-    }
+        var declaration = owningMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+        var location = declaration switch
+        {
+            MethodDeclarationSyntax methodDeclaration => methodDeclaration.Identifier.GetLocation(),
+            AccessorDeclarationSyntax accessorDeclaration => accessorDeclaration.Keyword.GetLocation(),
+            PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Identifier.GetLocation(),
+            _ => null
+        };
 
-    private void ReportDiagnostics(
-        SymbolAnalysisContext context,
-        ArrayBuilder<IMethodSymbol> methodsToMakeReadOnly)
-    {
+        if (location is null)
+            return;
+
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
-            typeDeclaration.Identifier.GetLocation(),
-            option.Notification.Severity,
-            additionalLocations: ImmutableArray.Create(typeDeclaration.GetLocation()),
+            location,
+            severity,
+            additionalLocations: ImmutableArray.Create(declaration.GetLocation()),
             properties: null));
 
     }
