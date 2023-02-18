@@ -47,6 +47,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static readonly CodeStyleOption2<bool> FalseWithSilentEnforcement = new(value: false, notification: NotificationOption2.Silent);
         public static readonly CodeStyleOption2<bool> TrueWithSuggestionEnforcement = new(value: true, notification: NotificationOption2.Suggestion);
         public static readonly CodeStyleOption2<bool> FalseWithSuggestionEnforcement = new(value: false, notification: NotificationOption2.Suggestion);
+
+        /// <summary>
+        /// Use singletons for most common values.
+        /// </summary>
+        public static CodeStyleOption2<bool> GetCodeStyle(bool value, NotificationOption2 notification)
+            => (value, notification.Severity) switch
+            {
+                (true, ReportDiagnostic.Hidden) => TrueWithSilentEnforcement,
+                (true, ReportDiagnostic.Info) => TrueWithSuggestionEnforcement,
+                (false, ReportDiagnostic.Hidden) => FalseWithSilentEnforcement,
+                (false, ReportDiagnostic.Info) => FalseWithSuggestionEnforcement,
+                _ => new(value, notification)
+            };
     }
 
     /// <summary>
@@ -89,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         object? ICodeStyleOption.Value => this.Value;
-        ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
+        ICodeStyleOption ICodeStyleOption.WithValue(object value) => WithValue((T)value);
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption2<T>(Value, notification);
 
 #pragma warning disable RS0030 // Do not used banned APIs: CodeStyleOption<T>
@@ -102,6 +115,22 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.AsInternalCodeStyleOption() => this;
 #endif
 #pragma warning restore
+
+        public CodeStyleOption2<T> WithValue(T value)
+        {
+            if (typeof(T) == typeof(bool))
+            {
+                var boolValue = (bool)(object)value!;
+                if (boolValue == (bool)(object)Value!)
+                {
+                    return this;
+                }
+
+                return (CodeStyleOption2<T>)(object)CodeStyleOption2.GetCodeStyle(boolValue, Notification);
+            }
+
+            return EqualityComparer<T>.Default.Equals(value, Value) ? this : new CodeStyleOption2<T>(value, Notification);
+        }
 
         private int EnumValueAsInt32 => (int)(object)Value!;
 
