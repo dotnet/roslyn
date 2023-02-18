@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (priority != CodeActionRequestPriority.None && priority != fixer.RequestPriority)
+                    if (!priority.MatchesPriority(fixer))
                         continue;
 
                     foreach (var (span, diagnostics) in fixerToRangesAndDiagnostics[fixer])

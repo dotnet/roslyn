@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CancellationToken cancellationToken)
             {
                 if (!stateSet.Analyzer.SupportAnalysisKind(kind) ||
-                    !MatchesPriority(stateSet.Analyzer))
+                    !await MatchesPriorityAsync(stateSet.Analyzer, cancellationToken).ConfigureAwait(false))
                 {
                     // In the case where the analyzer doesn't support the requested kind or priority, act as if we succeeded, but just
                     // added no items to the result.  Effectively we did add the cached values, just that all the values that could have
@@ -315,7 +315,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Debug.Assert(!supportsSpanBasedAnalysis || kind == AnalysisKind.Semantic);
                 Debug.Assert(!supportsSpanBasedAnalysis || stateSets.All(stateSet => stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
-                stateSets = stateSets.WhereAsArray(s => MatchesPriority(s.Analyzer));
+                using var _ = ArrayBuilder<StateSet>.GetInstance(stateSets.Length, out var stateSetBuilder);
+                foreach (var stateSet in stateSets)
+                {
+                    if (await MatchesPriorityAsync(stateSet.Analyzer, cancellationToken).ConfigureAwait(false))
+                        stateSetBuilder.Add(stateSet);
+                }
+
+                stateSets = stateSetBuilder.ToImmutable();
 
                 if (stateSets.IsEmpty)
                     return;
@@ -401,27 +408,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private bool MatchesPriority(DiagnosticAnalyzer analyzer)
-            {
-                // If caller isn't asking for prioritized result, then run all analyzers.
-                if (_priority == CodeActionRequestPriority.None)
-                    return true;
-
-                // 'CodeActionRequestPriority.Lowest' is used for suppression/configuration fixes,
-                // which requires all analyzer diagnostics.
-                if (_priority == CodeActionRequestPriority.Lowest)
-                    return true;
-
-                // The compiler analyzer always counts for any priority.  It's diagnostics may be fixed
-                // by high pri or normal pri fixers.
-                if (analyzer.IsCompilerAnalyzer())
-                    return true;
-
-                var analyzerPriority = analyzer is IBuiltInAnalyzer { RequestPriority: var requestPriority }
-                    ? requestPriority
-                    : CodeActionRequestPriority.Normal;
-                return _priority == analyzerPriority;
-            }
+            private Task<bool> MatchesPriorityAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+                => _priority.MatchesPriorityAsync(analyzer, _compilationWithAnalyzers, cancellationToken);
 
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
