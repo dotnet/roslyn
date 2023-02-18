@@ -1276,7 +1276,7 @@ class C
         private struct S3 { System.DateTime X; System.Guid Y; decimal Z; unsafe void* P; }
 #pragma warning restore
 
-        public static IEnumerable<object[]> UnmanagedStruct_TestData 
+        public static IEnumerable<object[]> UnmanagedStruct_TestData
         {
             get
             {
