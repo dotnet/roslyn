@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -130,14 +131,24 @@ namespace Microsoft.CodeAnalysis.Text
         /// in its current project context.
         /// </summary>
         public static Document? GetOpenDocumentInCurrentContext(this SourceTextContainer container)
+            => TryGetOpenDocumentInCurrentContext(container, out var document, out _) ? document : null;
+
+        /// <summary>
+        /// Gets the document from the corresponding workspace's current solution that is associated with the text container 
+        /// in its current project context.
+        /// </summary>
+        public static bool TryGetOpenDocumentInCurrentContext(this SourceTextContainer container, [NotNullWhen(true)] out Document? document, [NotNullWhen(true)] out Workspace? workspace)
         {
-            if (Workspace.TryGetWorkspace(container, out var workspace))
+            if (Workspace.TryGetWorkspace(container, out workspace))
             {
                 var id = workspace.GetDocumentIdInCurrentContext(container);
-                return workspace.CurrentSolution.GetDocument(id);
+                document = workspace.CurrentSolution.GetDocument(id);
+                return document != null;
             }
 
-            return null;
+            document = null;
+            workspace = null;
+            return false;
         }
 
         /// <summary>

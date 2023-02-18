@@ -100,8 +100,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         if (!caret.HasValue)
             return false;
 
-        var document = subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-        if (document == null)
+        if (!subjectBuffer.AsTextContainer().TryGetOpenDocumentInCurrentContext(out var document, out var workspace))
             return false;
 
         var service = document.GetLanguageService<TLanguageService>();
@@ -114,11 +113,12 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
         // we're going to return immediately from ExecuteCommand and kick off our own async work to invoke the
         // operation. Once this returns, the editor will close the threaded wait dialog it created.
-        _inProgressCommand = ExecuteCommandAsync(document, caret.Value.Position, _cancellationTokenSource);
+        _inProgressCommand = ExecuteCommandAsync(workspace, document, caret.Value.Position, _cancellationTokenSource);
         return true;
     }
 
     private async Task ExecuteCommandAsync(
+        Workspace workspace,
         Document document,
         int position,
         CancellationTokenSource cancellationTokenSource)
@@ -140,7 +140,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             // any failures from it.  Technically this should not be possible as it should be inside this same
             // try/catch. however this code wants to be very resilient to any prior mistakes infecting later operations.
             await _inProgressCommand.NoThrowAwaitable(captureContext: false);
-            await ExecuteCommandWorkerAsync(document, position, cancellationTokenSource).ConfigureAwait(false);
+            await ExecuteCommandWorkerAsync(workspace, document, position, cancellationTokenSource).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -151,6 +151,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     }
 
     private async Task ExecuteCommandWorkerAsync(
+        Workspace workspace,
         Document document,
         int position,
         CancellationTokenSource cancellationTokenSource)
@@ -191,7 +192,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
                 var title = await findContext.GetSearchTitleAsync(cancellationToken).ConfigureAwait(false);
                 var location = await _streamingPresenter.TryPresentLocationOrNavigateIfOneAsync(
                     _threadingContext,
-                    document.Project.Solution.Workspace,
+                    workspace,
                     title ?? DisplayName,
                     definitions,
                     cancellationToken).ConfigureAwait(false);
