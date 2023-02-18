@@ -31,9 +31,6 @@ internal sealed record class CSharpCodeGenerationOptions : CodeGenerationOptions
     private static readonly CodeStyleOption2<NamespaceDeclarationPreference> s_blockedScopedWithSilentEnforcement =
         new(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent);
 
-    private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement =
-        new(value: true, notification: NotificationOption2.Suggestion);
-
     public static readonly CSharpCodeGenerationOptions Default = new();
 
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedMethods { get; init; } = s_neverWithSilentEnforcement;
@@ -44,7 +41,7 @@ internal sealed record class CSharpCodeGenerationOptions : CodeGenerationOptions
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedOperators { get; init; } = s_neverWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLocalFunctions { get; init; } = s_neverWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = s_trueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations { get; init; } = s_blockedScopedWithSilentEnforcement;
 
     public CSharpCodeGenerationOptions()

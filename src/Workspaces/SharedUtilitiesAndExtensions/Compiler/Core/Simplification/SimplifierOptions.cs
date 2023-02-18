@@ -5,36 +5,31 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
 #if !CODE_STYLE
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.CodeGeneration;
 #endif
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
     internal record class SimplifierOptions
     {
-        public static readonly CodeStyleOption2<bool> DefaultQualifyAccess = CodeStyleOption2<bool>.Default;
-        public static readonly CodeStyleOption2<bool> DefaultPreferPredefinedTypeKeyword = new(value: true, notification: NotificationOption2.Silent);
+        public static readonly CodeStyleOption2<bool> DefaultQualifyAccess = CodeStyleOptions2.FalseWithSilentEnforcement;
 
         /// <summary>
         /// Language agnostic defaults.
         /// </summary>
         internal static readonly SimplifierOptions CommonDefaults = new();
 
-        [DataMember] public CodeStyleOption2<bool> QualifyFieldAccess { get; init; } = DefaultQualifyAccess;
-        [DataMember] public CodeStyleOption2<bool> QualifyPropertyAccess { get; init; } = DefaultQualifyAccess;
-        [DataMember] public CodeStyleOption2<bool> QualifyMethodAccess { get; init; } = DefaultQualifyAccess;
-        [DataMember] public CodeStyleOption2<bool> QualifyEventAccess { get; init; } = DefaultQualifyAccess;
-        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess { get; init; } = DefaultPreferPredefinedTypeKeyword;
-        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = DefaultPreferPredefinedTypeKeyword;
+        [DataMember] public CodeStyleOption2<bool> QualifyFieldAccess { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> QualifyPropertyAccess { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> QualifyMethodAccess { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> QualifyEventAccess { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
 
         private protected SimplifierOptions()
         {

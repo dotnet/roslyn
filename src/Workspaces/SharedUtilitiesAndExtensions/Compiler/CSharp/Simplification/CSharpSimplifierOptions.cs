@@ -18,22 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static readonly CodeStyleOption2<PreferBracesPreference> s_defaultPreferBraces =
             new(PreferBracesPreference.Always, NotificationOption2.Silent);
 
-        private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement =
-            new(value: true, notification: NotificationOption2.Suggestion);
-
-        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement =
-            new(value: true, notification: NotificationOption2.Silent);
-
         public static readonly CSharpSimplifierOptions Default = new();
 
-        [DataMember] public CodeStyleOption2<bool> VarForBuiltInTypes { get; init; } = CodeStyleOption2<bool>.Default;
-        [DataMember] public CodeStyleOption2<bool> VarWhenTypeIsApparent { get; init; } = CodeStyleOption2<bool>.Default;
-        [DataMember] public CodeStyleOption2<bool> VarElsewhere { get; init; } = CodeStyleOption2<bool>.Default;
-        [DataMember] public CodeStyleOption2<bool> PreferSimpleDefaultExpression { get; init; } = s_trueWithSuggestionEnforcement;
-        [DataMember] public CodeStyleOption2<bool> PreferParameterNullChecking { get; init; } = s_trueWithSuggestionEnforcement;
-        [DataMember] public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = s_trueWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> VarForBuiltInTypes { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> VarWhenTypeIsApparent { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> VarElsewhere { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferSimpleDefaultExpression { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferParameterNullChecking { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
         [DataMember] public CodeStyleOption2<PreferBracesPreference> PreferBraces { get; init; } = s_defaultPreferBraces;
-        [DataMember] public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = s_trueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
 
         public CSharpSimplifierOptions()
         {

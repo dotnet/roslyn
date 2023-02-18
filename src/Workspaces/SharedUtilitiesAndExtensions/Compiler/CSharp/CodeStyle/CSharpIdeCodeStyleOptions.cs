@@ -45,35 +45,35 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
 
     public static readonly CSharpIdeCodeStyleOptions Default = new();
 
-    [DataMember] public CodeStyleOption2<bool> ImplicitObjectCreationWhenTypeIsApparent { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferNullCheckOverTypeCheck { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> AllowBlankLinesBetweenConsecutiveBraces { get; init; } = s_trueWithSilentEnforcement;
-    [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterColonInConstructorInitializer { get; init; } = s_trueWithSilentEnforcement;
-    [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterTokenInArrowExpressionClause { get; init; } = s_trueWithSilentEnforcement;
-    [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterTokenInConditionalExpression { get; init; } = s_trueWithSilentEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferConditionalDelegateCall { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferSwitchExpression { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferPatternMatching { get; init; } = s_trueWithSilentEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferPatternMatchingOverAsWithNullCheck { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferPatternMatchingOverIsWithCastCheck { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferNotPattern { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferExtendedPropertyPattern { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferInlinedVariableDeclaration { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferDeconstructedVariableDeclaration { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferIndexOperator { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferRangeOperator { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferUtf8StringLiterals { get; init; } = s_trueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> ImplicitObjectCreationWhenTypeIsApparent { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferNullCheckOverTypeCheck { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> AllowBlankLinesBetweenConsecutiveBraces { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterColonInConstructorInitializer { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterTokenInArrowExpressionClause { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> AllowBlankLineAfterTokenInConditionalExpression { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferConditionalDelegateCall { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferSwitchExpression { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferPatternMatching { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferPatternMatchingOverAsWithNullCheck { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferPatternMatchingOverIsWithCastCheck { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferNotPattern { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferExtendedPropertyPattern { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferInlinedVariableDeclaration { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferDeconstructedVariableDeclaration { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferIndexOperator { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferRangeOperator { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferUtf8StringLiterals { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<string> PreferredModifierOrder { get; init; } = s_defaultModifierOrder;
-    [DataMember] public CodeStyleOption2<bool> PreferSimpleUsingStatement { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferLocalOverAnonymousFunction { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferTupleSwap { get; init; } = s_trueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferSimpleUsingStatement { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferLocalOverAnonymousFunction { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferTupleSwap { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement { get; init; } = s_discardVariableWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment { get; init; } = s_discardVariableWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferMethodGroupConversion { get; init; } = s_trueWithSilentEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferMethodGroupConversion { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
 
     // the following are also used in code generation features, consider sharing:
-    [DataMember] public CodeStyleOption2<bool> PreferReadOnlyStruct { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = s_trueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferReadOnlyStruct { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
 
     public CSharpIdeCodeStyleOptions()

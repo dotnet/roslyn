@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration = CreatePerLanguageOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage,
-            defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
+            defaultValue: SimplifierOptions.CommonDefaults.PreferPredefinedTypeKeywordInDeclaration,
             name: "dotnet_style_predefined_type_for_locals_parameters_members")
             .WithPublicOption(PublicFeatureName, "PreferIntrinsicPredefinedTypeKeywordInDeclaration");
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = CreatePerLanguageOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage,
-            defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
+            defaultValue: SimplifierOptions.CommonDefaults.PreferPredefinedTypeKeywordInMemberAccess,
             name: "dotnet_style_predefined_type_for_member_access")
             .WithPublicOption(PublicFeatureName, "PreferIntrinsicPredefinedTypeKeywordInMemberAccess");
 
