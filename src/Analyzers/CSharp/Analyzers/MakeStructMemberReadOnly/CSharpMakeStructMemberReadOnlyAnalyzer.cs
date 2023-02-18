@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
@@ -72,6 +73,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             {
                 MethodKind: MethodKind.Ordinary or MethodKind.PropertyGet or MethodKind.PropertySet,
                 IsReadOnly: false,
+                IsStatic: false,
                 IsImplicitlyDeclared: false,
                 DeclaringSyntaxReferences.Length: > 0,
             } owningMethod)
@@ -128,6 +130,9 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         }
 
         var declaration = owningMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+        if (declaration is ArrowExpressionClauseSyntax)
+            declaration = declaration.GetRequiredParent();
+
         var location = declaration switch
         {
             MethodDeclarationSyntax methodDeclaration => methodDeclaration.Identifier.GetLocation(),
