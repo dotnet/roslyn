@@ -11,17 +11,9 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class DocumentSpanExtensions
     {
-        private static (Workspace workspace, IDocumentNavigationService service) GetNavigationParts(DocumentSpan documentSpan)
+        public static Task<INavigableLocation?> GetNavigableLocationAsync(this DocumentSpan documentSpan, Workspace workspace, CancellationToken cancellationToken)
         {
-            var solution = documentSpan.Document.Project.Solution;
-            var workspace = solution.Workspace;
-            var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-            return (workspace, service);
-        }
-
-        public static Task<INavigableLocation?> GetNavigableLocationAsync(this DocumentSpan documentSpan, CancellationToken cancellationToken)
-        {
-            var (workspace, service) = GetNavigationParts(documentSpan);
+            var service = documentSpan.Document.Project.Solution.Services.GetRequiredService<IDocumentNavigationService>();
             return service.GetLocationForSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, allowInvalidSpan: false, cancellationToken);
         }
 

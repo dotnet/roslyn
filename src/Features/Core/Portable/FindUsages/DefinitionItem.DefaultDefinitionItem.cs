@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return null;
                 }
 
-                return await SourceSpans[0].GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
+                return await SourceSpans[0].GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
             }
 
             private async ValueTask<(Project? project, ISymbol? symbol)> TryResolveSymbolAsync(Solution solution, string symbolKey, CancellationToken cancellationToken)

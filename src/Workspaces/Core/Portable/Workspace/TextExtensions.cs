@@ -61,15 +61,9 @@ namespace Microsoft.CodeAnalysis.Text
 
         private static TextDocument? GetOpenTextDocumentInCurrentContextWithChanges(this SourceText text, bool sourceDocumentOnly)
         {
-            if (Workspace.TryGetWorkspace(text.Container, out var workspace))
+            if (text.Container.TryGetOpenDocumentIdInCurrentContext(out var id, out var workspace))
             {
                 var solution = workspace.CurrentSolution;
-                var id = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (id == null)
-                {
-                    return null;
-                }
-
                 if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var documentIdentity))
                 {
                     return solution.WithFrozenSourceGeneratedDocument(documentIdentity, text);

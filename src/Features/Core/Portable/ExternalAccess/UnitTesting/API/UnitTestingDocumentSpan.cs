@@ -4,7 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 
@@ -31,7 +30,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public async Task NavigateToAsync(UnitTestingNavigationOptions options, CancellationToken cancellationToken)
         {
-            var location = await this.DocumentSpan.GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
+            var workspace = DocumentSpan.Document.Project.Solution.Workspace;
+            var location = await DocumentSpan.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
             if (location != null)
                 await location.NavigateToAsync(new NavigationOptions(options.PreferProvisionalTab, options.ActivateTab), cancellationToken).ConfigureAwait(false);
         }
