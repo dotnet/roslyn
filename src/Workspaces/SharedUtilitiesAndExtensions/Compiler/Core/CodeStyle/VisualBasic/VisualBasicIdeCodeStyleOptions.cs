@@ -26,8 +26,8 @@ internal sealed record class VisualBasicIdeCodeStyleOptions : IdeCodeStyleOption
     public static readonly VisualBasicIdeCodeStyleOptions Default = new();
 
     [DataMember] public CodeStyleOption2<string> PreferredModifierOrder { get; init; } = s_defaultModifierOrder;
-    [DataMember] public CodeStyleOption2<bool> PreferIsNotExpression { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferSimplifiedObjectCreation { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferIsNotExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferSimplifiedObjectCreation { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement { get; init; } = s_unusedLocalVariableWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment { get; init; } = s_unusedLocalVariableWithSuggestionEnforcement;
 

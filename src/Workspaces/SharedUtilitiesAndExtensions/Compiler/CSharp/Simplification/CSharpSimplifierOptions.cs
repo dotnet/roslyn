@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         public static readonly CSharpSimplifierOptions Default = new();
 
-        [DataMember] public CodeStyleOption2<bool> VarForBuiltInTypes { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
-        [DataMember] public CodeStyleOption2<bool> VarWhenTypeIsApparent { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
-        [DataMember] public CodeStyleOption2<bool> VarElsewhere { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
-        [DataMember] public CodeStyleOption2<bool> PreferSimpleDefaultExpression { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
-        [DataMember] public CodeStyleOption2<bool> PreferParameterNullChecking { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
-        [DataMember] public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> VarForBuiltInTypes { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> VarWhenTypeIsApparent { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> VarElsewhere { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferSimpleDefaultExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferParameterNullChecking { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
         [DataMember] public CodeStyleOption2<PreferBracesPreference> PreferBraces { get; init; } = s_defaultPreferBraces;
-        [DataMember] public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
 
         public CSharpSimplifierOptions()
         {

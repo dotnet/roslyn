@@ -17,19 +17,19 @@ namespace Microsoft.CodeAnalysis.Simplification
 {
     internal record class SimplifierOptions
     {
-        public static readonly CodeStyleOption2<bool> DefaultQualifyAccess = CodeStyleOptions2.FalseWithSilentEnforcement;
+        public static readonly CodeStyleOption2<bool> DefaultQualifyAccess = CodeStyleOption2.FalseWithSilentEnforcement;
 
         /// <summary>
         /// Language agnostic defaults.
         /// </summary>
         internal static readonly SimplifierOptions CommonDefaults = new();
 
-        [DataMember] public CodeStyleOption2<bool> QualifyFieldAccess { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
-        [DataMember] public CodeStyleOption2<bool> QualifyPropertyAccess { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
-        [DataMember] public CodeStyleOption2<bool> QualifyMethodAccess { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
-        [DataMember] public CodeStyleOption2<bool> QualifyEventAccess { get; init; } = CodeStyleOptions2.FalseWithSilentEnforcement;
-        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
-        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = CodeStyleOptions2.TrueWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> QualifyFieldAccess { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> QualifyPropertyAccess { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> QualifyMethodAccess { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> QualifyEventAccess { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
 
         private protected SimplifierOptions()
         {
