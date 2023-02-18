@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             var solution = workspace.CurrentSolution;
             var document = solution.GetDocument(documentId);
-            if (document == null || !document.IsOpen())
+            if (document == null || !workspace.IsDocumentOpen(document.Id))
             {
                 return ImmutableArray<ITrackingPoint>.Empty;
             }

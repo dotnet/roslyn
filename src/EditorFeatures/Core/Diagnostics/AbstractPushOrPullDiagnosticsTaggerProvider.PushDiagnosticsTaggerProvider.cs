@@ -88,7 +88,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             // document, we'll just use the current editor snapshot.  If that's the same, then the tags
             // will be hte same.  If it is different, we'll eventually hear about the new diagnostics 
             // for it and we'll reach our fixed point.
-            if (document != null && document.IsOpen())
+            if (document != null && e.Workspace.IsDocumentOpen(document.Id))
             {
                 // This should always be fast since the document is open.
                 var sourceText = document.State.GetTextSynchronously(cancellationToken: default);

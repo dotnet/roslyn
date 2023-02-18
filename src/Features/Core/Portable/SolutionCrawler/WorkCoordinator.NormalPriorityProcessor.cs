@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     // analyzer will simply return same data back
                                     if (workItem.MustRefresh && !workItem.IsRetry)
                                     {
-                                        var isOpen = textDocument.IsOpen();
+                                        var isOpen = Processor._registration.Workspace.IsDocumentOpen(textDocument.Id);
 
                                         await ProcessOpenDocumentIfNeededAsync(analyzers, workItem, textDocument, isOpen, cancellationToken).ConfigureAwait(false);
                                         await ProcessCloseDocumentIfNeededAsync(analyzers, workItem, textDocument, isOpen, cancellationToken).ConfigureAwait(false);
