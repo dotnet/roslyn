@@ -73,6 +73,7 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
 
     // the following are also used in code generation features, consider sharing:
     [DataMember] public CodeStyleOption2<bool> PreferReadOnlyStruct { get; init; } = s_trueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferReadOnlyStructMember { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
 
@@ -111,6 +112,7 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
         PreferMethodGroupConversion = options.GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion, fallbackOptions.PreferMethodGroupConversion);
         PreferExpressionBodiedLambdas = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, fallbackOptions.PreferExpressionBodiedLambdas);
         PreferReadOnlyStruct = options.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, fallbackOptions.PreferReadOnlyStruct);
+        PreferReadOnlyStructMember = options.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStructMember, fallbackOptions.PreferReadOnlyStructMember);
         PreferStaticLocalFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, fallbackOptions.PreferStaticLocalFunction);
     }
 }
