@@ -68,23 +68,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             // If we can't find this doc, or outlining is not enabled for it, no need to computed anything synchronously.
 
-            var openDocument = subjectBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
-            if (openDocument == null)
+            if (!subjectBuffer.AsTextContainer().TryGetOpenDocumentInCurrentContext(out var document, out var workspace))
                 return false;
 
             // If the main Outlining option is turned off, we can just skip computing tags synchronously
             // so when the document first opens, there won't be any tags yet. When the tags do come in
             // the IsDefaultCollapsed property, which controls the initial collapsing, won't have any effect
             // because the document will already be open.
-            if (!GlobalOptions.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
+            if (!GlobalOptions.GetOption(FeatureOnOffOptions.Outlining, document.Project.Language))
                 return false;
 
-            var options = BlockStructureOptionsStorage.GetBlockStructureOptions(GlobalOptions, openDocument.Project);
+            var options = BlockStructureOptionsStorage.GetBlockStructureOptions(GlobalOptions, document.Project);
 
             // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
             // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
-            if (openDocument.Project.Solution.Workspace is MetadataAsSourceWorkspace masWorkspace &&
-                masWorkspace.FileService.ShouldCollapseOnOpen(openDocument.FilePath, options))
+            if (workspace is MetadataAsSourceWorkspace masWorkspace &&
+                masWorkspace.FileService.ShouldCollapseOnOpen(document.FilePath, options))
             {
                 return true;
             }
@@ -92,15 +91,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             // If the user wants to collapse imports or #regions then we need to compute
             // synchronously, but only if there are imports or #regions in the file. To
             // save some work, we'll look for both in a single pass.
-            var collapseRegions = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, openDocument.Project.Language);
-            var collapseImports = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, openDocument.Project.Language);
+            var collapseRegions = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, document.Project.Language);
+            var collapseImports = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, document.Project.Language);
 
             if (!collapseRegions && !collapseImports)
             {
                 return false;
             }
 
-            if (ContainsRegionOrImport(subjectBuffer.CurrentSnapshot, collapseRegions, collapseImports, openDocument.Project.Language))
+            if (ContainsRegionOrImport(subjectBuffer.CurrentSnapshot, collapseRegions, collapseImports, document.Project.Language))
             {
                 return true;
             }

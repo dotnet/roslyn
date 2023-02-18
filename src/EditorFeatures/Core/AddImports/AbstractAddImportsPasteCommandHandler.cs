@@ -116,13 +116,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var snapshotSpan = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot);
 
             var sourceTextContainer = args.SubjectBuffer.AsTextContainer();
-            if (!Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
-            {
-                return;
-            }
-
-            var document = sourceTextContainer.GetOpenDocumentInCurrentContext();
-            if (document is null)
+            if (!sourceTextContainer.TryGetOpenDocumentInCurrentContext(out var document, out var workspace))
             {
                 return;
             }
@@ -132,12 +126,12 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var token = _listener.BeginAsyncOperation(nameof(ExecuteAsync));
 
-            ExecuteAsync(document, snapshotSpan, args.TextView)
+            ExecuteAsync(workspace, document, snapshotSpan, args.TextView)
                 .ReportNonFatalErrorAsync()
                 .CompletesAsyncOperation(token);
         }
 
-        private async Task ExecuteAsync(Document document, SnapshotSpan snapshotSpan, ITextView textView)
+        private async Task ExecuteAsync(Workspace workspace, Document document, SnapshotSpan snapshotSpan, ITextView textView)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
@@ -173,7 +167,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             // Required to switch back to the UI thread to call TryApplyChanges
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            document.Project.Solution.Workspace.TryApplyChanges(updatedDocument.Project.Solution);
+            workspace.TryApplyChanges(updatedDocument.Project.Solution);
         }
     }
 }

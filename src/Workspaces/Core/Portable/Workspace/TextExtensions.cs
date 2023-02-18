@@ -112,15 +112,11 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public static ImmutableArray<Document> GetRelatedDocuments(this SourceTextContainer container)
         {
-            if (Workspace.TryGetWorkspace(container, out var workspace))
+            if (container.TryGetOpenDocumentIdInCurrentContext(out var documentId, out var workspace))
             {
                 var solution = workspace.CurrentSolution;
-                var documentId = workspace.GetDocumentIdInCurrentContext(container);
-                if (documentId != null)
-                {
-                    var relatedIds = solution.GetRelatedDocumentIds(documentId);
-                    return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
-                }
+                var relatedIds = solution.GetRelatedDocumentIds(documentId);
+                return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
             }
 
             return ImmutableArray<Document>.Empty;
@@ -131,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// in its current project context.
         /// </summary>
         public static Document? GetOpenDocumentInCurrentContext(this SourceTextContainer container)
-            => TryGetOpenDocumentInCurrentContext(container, out var document, out _) ? document : null;
+            => container.TryGetOpenDocumentInCurrentContext(out var document, out _) ? document : null;
 
         /// <summary>
         /// Gets the document from the corresponding workspace's current solution that is associated with the text container 
@@ -139,14 +135,28 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public static bool TryGetOpenDocumentInCurrentContext(this SourceTextContainer container, [NotNullWhen(true)] out Document? document, [NotNullWhen(true)] out Workspace? workspace)
         {
-            if (Workspace.TryGetWorkspace(container, out workspace))
+            if (container.TryGetOpenDocumentIdInCurrentContext(out var id, out workspace))
             {
-                var id = workspace.GetDocumentIdInCurrentContext(container);
                 document = workspace.CurrentSolution.GetDocument(id);
                 return document != null;
             }
 
             document = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the id of a document that is associated with the text container in its current project context.
+        /// </summary>
+        public static bool TryGetOpenDocumentIdInCurrentContext(this SourceTextContainer container, [NotNullWhen(true)] out DocumentId? documentId, [NotNullWhen(true)] out Workspace? workspace)
+        {
+            if (Workspace.TryGetWorkspace(container, out workspace))
+            {
+                documentId = workspace.GetDocumentIdInCurrentContext(container);
+                return documentId != null;
+            }
+
+            documentId = null;
             workspace = null;
             return false;
         }
