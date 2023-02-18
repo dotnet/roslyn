@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -18,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         NotificationOption2 Notification { get; }
         ICodeStyleOption WithValue(object value);
         ICodeStyleOption WithNotification(NotificationOption2 notification);
-        ICodeStyleOption AsCodeStyleOption<TCodeStyleOption>();
 #if !CODE_STYLE
         ICodeStyleOption AsInternalCodeStyleOption();
         ICodeStyleOption AsPublicCodeStyleOption();
@@ -106,11 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption2<T>(Value, notification);
 
 #pragma warning disable RS0030 // Do not used banned APIs: CodeStyleOption<T>
-#if CODE_STYLE
-        ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>() => this;
-#else
-        ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
-            => this is TCodeStyleOption ? this : new CodeStyleOption<T>(this);
+#if !CODE_STYLE
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
         ICodeStyleOption ICodeStyleOption.AsInternalCodeStyleOption() => this;
 #endif
