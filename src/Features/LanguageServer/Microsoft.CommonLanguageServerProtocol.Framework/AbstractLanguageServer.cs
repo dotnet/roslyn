@@ -169,7 +169,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
 
     /// <summary>
     /// Wrapper class to hold the method and properties from the <see cref="AbstractLanguageServer{RequestContextType}"/>
-    /// that the method info passed to streamjsonrpc is created from.
+    /// that the method info passed to StreamJsonRpc is created from.
     /// </summary>
     private class DelegatingEntryPoint
     {
@@ -213,8 +213,10 @@ public abstract class AbstractLanguageServer<TRequestContext>
 
         private void CheckServerState()
         {
-            if (_target.IsInitialized)
-                throw new InvalidOperationException($"'initialize' has not been called.");
+            if (!_target.IsInitialized && _method != "initialize" && _method != "initialized")
+            {
+                throw new InvalidOperationException($"'initialized' has not been called.");
+            }
         }
     }
 

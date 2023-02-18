@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using System.Diagnostics;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
@@ -21,32 +22,27 @@ namespace Microsoft.CodeAnalysis.CodeGeneration;
 /// <summary>
 /// Document-specific options for controlling the code produced by code generation.
 /// </summary>
-internal abstract class CodeGenerationOptions
+internal record CodeGenerationOptions
 {
-    [DataContract]
-    internal sealed record class CommonOptions
-    {
-        public static readonly CommonOptions Default = new();
+    /// <summary>
+    /// Language agnostic defaults.
+    /// </summary>
+    internal static readonly CodeGenerationOptions CommonDefaults = new();
 
-        [DataMember] public NamingStylePreferences NamingStyle { get; init; } = NamingStylePreferences.Default;
+    [DataMember] public NamingStylePreferences NamingStyle { get; init; } = NamingStylePreferences.Default;
+
+    private protected CodeGenerationOptions()
+    {
     }
 
-    [DataMember]
-    public CommonOptions Common { get; init; } = CommonOptions.Default;
-
-    public NamingStylePreferences NamingStyle => Common.NamingStyle;
+    private protected CodeGenerationOptions(IOptionsReader options, CodeGenerationOptions fallbackOptions, string language)
+    {
+        NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language, fallbackOptions.NamingStyle);
+    }
 
 #if !CODE_STYLE
     public static CodeGenerationOptions GetDefault(LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationService>().DefaultOptions;
-
-    public abstract CodeGenerationContextInfo GetInfo(CodeGenerationContext context, ParseOptions parseOptions);
-
-    public CodeGenerationContextInfo GetInfo(CodeGenerationContext context, Project project)
-    {
-        Contract.ThrowIfNull(project.ParseOptions);
-        return GetInfo(context, project.ParseOptions);
-    }
 #endif
 }
 
@@ -111,16 +107,6 @@ internal interface CodeAndImportGenerationOptionsProvider :
 
 internal static class CodeGenerationOptionsProviders
 {
-    public static CodeGenerationOptions.CommonOptions GetCommonCodeGenerationOptions(this IOptionsReader options, string language, CodeGenerationOptions.CommonOptions? fallbackOptions)
-    {
-        fallbackOptions ??= CodeGenerationOptions.CommonOptions.Default;
-
-        return new()
-        {
-            NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language, fallbackOptions.NamingStyle)
-        };
-    }
-
 #if !CODE_STYLE
     public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
@@ -133,5 +119,14 @@ internal static class CodeGenerationOptionsProviders
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await GetCodeGenerationOptionsAsync(document, await ((OptionsProvider<CodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+
+    public static async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(this Document document, CodeGenerationContext context, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(document.Project.ParseOptions);
+
+        var options = await GetCodeGenerationOptionsAsync(document, fallbackOptionsProvider, cancellationToken).ConfigureAwait(false);
+        var service = document.Project.Services.GetRequiredService<ICodeGenerationService>();
+        return service.GetInfo(context, options, document.Project.ParseOptions);
+    }
 #endif
 }

@@ -22,11 +22,6 @@
         <target state="translated">Geschweifte Klammern für einzeilige Steuerungsanweisungen hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Unsicheren Code in diesem Projekt zulassen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Leerzeile nach Doppelpunkt in Konstruktorinitialisierereinstellungen anwenden (experimentell)</target>
@@ -127,16 +122,6 @@
         <target state="translated">„var“-Einstellungen anwenden</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assign_out_parameters">
-        <source>Assign 'out' parameters</source>
-        <target state="translated">out-Parameter zuweisen</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_out_parameters_at_start">
-        <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">out-Parameter zuweisen (beim Start)</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">Automatische Auswahl aufgrund einer potenziellen Mustervariablendeklaration deaktiviert.</target>
@@ -161,11 +146,6 @@
         <source>Convert to method</source>
         <target state="translated">In Methode konvertieren</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_positional_record">
-        <source>Convert to positional record</source>
-        <target state="translated">In positionellen record konvertieren</target>
-        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
@@ -217,21 +197,6 @@
         <target state="translated">Private Felder nach Möglichkeit als schreibgeschützt festlegen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_ref_struct">
-        <source>Make 'ref struct'</source>
-        <target state="translated">"ref struct" erstellen</target>
-        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">Schlüsselwort "in" entfernen</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">new-Modifizierer entfernen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">for-Anweisung umkehren</target>
@@ -280,6 +245,11 @@
       <trans-unit id="extern_alias">
         <source>extern alias</source>
         <target state="translated">externer Alias</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="init_only_property">
+        <source>init-only property</source>
+        <target state="new">init-only property</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -420,11 +390,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">Using-Direktiven organisieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_0_return_Task_instead_of_void">
-        <source>Make {0} return Task instead of void.</source>
-        <target state="translated">"{0}" in Rückgabeaufgabe umwandeln, statt leer zu lassen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -687,16 +652,6 @@
         <target state="translated">Die automatische Auswahl wurde aufgrund einer möglichen Dekonstruktionsdeklaration deaktiviert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Upgrade für dieses Projekt auf C#-Sprachversion "{0}" durchführen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Upgrade für alle C#-Projekte auf Sprachversion "{0}" durchführen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;Klassenname&gt;</target>
@@ -717,16 +672,6 @@
         <target state="translated">&lt;Strukturname&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">Methode als asynchron definieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">Methode als asynchron definieren ("void" beibehalten)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;Name&gt;</target>
@@ -742,16 +687,6 @@
         <target state="translated">(Empfohlener Name)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">Nicht verwendete Funktion entfernen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
-        <source>Add parentheses</source>
-        <target state="translated">Klammern hinzufügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">In "foreach" konvertieren</target>
@@ -765,11 +700,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">"If" umkehren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">"{0}" verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">

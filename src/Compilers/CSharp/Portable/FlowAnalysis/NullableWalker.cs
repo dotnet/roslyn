@@ -10934,6 +10934,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             var result = base.VisitQueryClause(node);
+
+            if (node.Value is BoundLambda lambda)
+            {
+                // 'VisitConversion' only visits a lambda when the lambda has an AnonymousFunction conversion.
+                // This lambda doesn't have a conversion, so we need to visit it here.
+                Debug.Assert(node.HasAnyErrors);
+                VisitLambda(lambda, delegateTypeOpt: null);
+            }
+
             SetNotNullResult(node); // https://github.com/dotnet/roslyn/issues/29863 Implement nullability analysis in LINQ queries
             return result;
         }
