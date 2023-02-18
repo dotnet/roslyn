@@ -14,8 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 
@@ -46,42 +46,65 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
     {
         var declarations = diagnostics.Select(d => d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
 
-        //using var _1 = PooledHashSet<MethodDeclarationSyntax>.GetInstance(out var methodsToUpdate);
-        //using var _2 = PooledHashSet<PropertyDeclarationSyntax>.GetInstance(out var propertiesToUpdate);
-        //using var _3 = PooledHashSet<AccessorDeclarationSyntax>.GetInstance(out var accessorsToUpdate);
-
-        //foreach (var declaration in declarations)
-        //{
-        //    if (declaration is MethodDeclarationSyntax methodDeclaration)
-        //    {
-        //        methodsToUpdate.Add(methodDeclaration);
-        //    }
-        //    else if (declaration is PropertyDeclarationSyntax propertyDeclaration)
-        //    {
-        //        propertiesToUpdate.Add(propertyDeclaration);
-        //    }
-        //    else if (declaration is AccessorDeclarationSyntax { Parent: PropertyDeclarationSyntax property } accessorDeclaration)
-        //    {
-        //        if ()
-        //    }
-        //}
-
         // process from lower to higher, that way we will fixup a nested struct first before fixing the outer struct.
-        foreach (var typeDeclaration in declarations.OrderByDescending(t => t.SpanStart))
+        var generator = editor.Generator;
+        foreach (var declaration in declarations.OrderByDescending(t => t.SpanStart))
         {
-            editor.ReplaceNode(
-                typeDeclaration,
-                (current, generator) =>
+            if (declaration is MethodDeclarationSyntax or PropertyDeclarationSyntax)
+            {
+                editor.ReplaceNode(
+                    declaration,
+                    UpdateReadOnlyModifier(generator, declaration, add: true));
+            }
+            else if (declaration is AccessorDeclarationSyntax { Parent: AccessorListSyntax { Parent: PropertyDeclarationSyntax property } accessorList } accessor)
+            {
+                if (accessorList.Accessors.Count == 1)
                 {
-                    if (current is MethodDeclarationSyntax or PropertyDeclarationSyntax)
-                        return generator.WithModifiers(current, generator.GetModifiers(current).WithIsReadOnly(true));
-
-                    if ()
-
-                    return current;
+                    // `int X { readonly get { } }` is not legal.it has to be `readonly int X { get { } }`.
+                    // So add the modifier to the property
+                    editor.ReplaceNode(
+                        property,
+                        UpdateReadOnlyModifier(generator, property, add: true));
                 }
+                else if (accessorList.Accessors.Count == 2)
+                {
+                    // `int X { readonly get { } readonly set { } }` is not legal.  Has to add the modifier to the property.
+                    editor.ReplaceNode(
+                        property,
+                        (current, generator) =>
+                        {
+                            var currentProperty = (PropertyDeclarationSyntax)current;
+                            var currentAccessorList = currentProperty.AccessorList;
+                            Contract.ThrowIfNull(currentAccessorList);
+
+                            var currentAccessor = currentAccessorList.Accessors.First(a => a.Kind() == accessor.Kind());
+                            var otherAccessor = currentAccessorList.Accessors.Single(a => a != current);
+
+                            if (otherAccessor.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
+                            {
+                                // both accessors would have 'readonly' on them.  Remove from the accessors and place on the property.
+                                currentProperty = currentProperty.ReplaceNode(
+                                    otherAccessor,
+                                    UpdateReadOnlyModifier(generator, otherAccessor, add: false));
+                                return UpdateReadOnlyModifier(generator, currentProperty, add: true);
+                            }
+                            else
+                            {
+                                return currentProperty.ReplaceNode(
+                                    currentAccessor,
+                                    UpdateReadOnlyModifier(generator, current, add: true));
+                            }
+                        });
+                }
+            }
         }
 
         return Task.CompletedTask;
+
+        static TNode UpdateReadOnlyModifier<TNode>(SyntaxGenerator generator, TNode node, bool add)
+            where TNode : SyntaxNode
+        {
+            return (TNode)generator.WithModifiers(node, generator.GetModifiers(node).WithIsReadOnly(add));
+        }
     }
 }
