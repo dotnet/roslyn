@@ -54,7 +54,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
             {
                 editor.ReplaceNode(
                     declaration,
-                    UpdateReadOnlyModifier(generator, declaration, add: true));
+                    UpdateReadOnlyModifier(declaration, add: true));
             }
             else if (declaration is AccessorDeclarationSyntax { Parent: AccessorListSyntax { Parent: PropertyDeclarationSyntax property } accessorList } accessor)
             {
@@ -64,7 +64,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
                     // So add the modifier to the property
                     editor.ReplaceNode(
                         property,
-                        UpdateReadOnlyModifier(generator, property, add: true));
+                        UpdateReadOnlyModifier(property, add: true));
                 }
                 else if (accessorList.Accessors.Count == 2)
                 {
@@ -85,14 +85,14 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
                                 // both accessors would have 'readonly' on them.  Remove from the accessors and place on the property.
                                 currentProperty = currentProperty.ReplaceNode(
                                     otherAccessor,
-                                    UpdateReadOnlyModifier(generator, otherAccessor, add: false));
-                                return UpdateReadOnlyModifier(generator, currentProperty, add: true);
+                                    UpdateReadOnlyModifier(otherAccessor, add: false));
+                                return UpdateReadOnlyModifier(currentProperty, add: true);
                             }
                             else
                             {
                                 return currentProperty.ReplaceNode(
                                     currentAccessor,
-                                    UpdateReadOnlyModifier(generator, current, add: true));
+                                    UpdateReadOnlyModifier(current, add: true));
                             }
                         });
                 }
@@ -101,8 +101,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
 
         return Task.CompletedTask;
 
-        static TNode UpdateReadOnlyModifier<TNode>(SyntaxGenerator generator, TNode node, bool add)
-            where TNode : SyntaxNode
+        TNode UpdateReadOnlyModifier<TNode>(TNode node, bool add) where TNode : SyntaxNode
         {
             return (TNode)generator.WithModifiers(node, generator.GetModifiers(node).WithIsReadOnly(add));
         }
