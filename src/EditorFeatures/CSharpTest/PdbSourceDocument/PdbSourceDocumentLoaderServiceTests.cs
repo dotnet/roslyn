@@ -32,7 +32,7 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Move the source file to a path that only our fake debugger service knows about
                 var sourceFilePath = Path.Combine(path, "SourceLink.cs");
@@ -66,7 +66,7 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Move the source file to a path that only our fake debugger service knows about
                 var sourceFilePath = Path.Combine(path, "SourceLink.cs");

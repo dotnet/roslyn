@@ -3281,7 +3281,7 @@ public class SomeClass : Base
             var text = await document.GetTextAsync();
             var newText = text.WithChanges(commit.TextChange);
             var newDoc = document.WithText(newText);
-            document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
+            workspace.TryApplyChanges(newDoc.Project.Solution);
 
             var textBuffer = workspace.Documents.Single().GetTextBuffer();
             var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         {
             MarkupTestFile.GetSpan(metadataSource, out var source, out var expectedSpan);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(
+            var (workspace, project, symbol) = await CompileAndFindSymbolAsync(
                 path,
                 pdbLocation,
                 sourceLocation,
@@ -97,18 +97,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 buildReferenceAssembly,
                 windowsPdb: false);
 
-            await GenerateFileAndVerifyAsync(project, symbol, sourceLocation, source, expectedSpan, expectNullResult);
+            await GenerateFileAndVerifyAsync(workspace, project, symbol, sourceLocation, source, expectedSpan, expectNullResult);
         }
 
         protected static async Task GenerateFileAndVerifyAsync(
+            TestWorkspace workspace,
             Project project,
             ISymbol symbol,
             Location sourceLocation,
             string expected,
-            Text.TextSpan expectedSpan,
+            TextSpan expectedSpan,
             bool expectNullResult)
         {
-            var (actual, actualSpan) = await GetGeneratedSourceTextAsync(project, symbol, sourceLocation, expectNullResult);
+            var (actual, actualSpan) = await GetGeneratedSourceTextAsync(workspace, project, symbol, sourceLocation, expectNullResult);
 
             if (actual is null)
                 return;
@@ -121,13 +122,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         }
 
         protected static async Task<(SourceText?, TextSpan)> GetGeneratedSourceTextAsync(
+            TestWorkspace workspace,
             Project project,
             ISymbol symbol,
             Location sourceLocation,
             bool expectNullResult)
         {
-            using var workspace = (TestWorkspace)project.Solution.Workspace;
-
             var service = workspace.GetService<IMetadataAsSourceFileService>();
             try
             {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             }
         }
 
-        protected static Task<(Project, ISymbol)> CompileAndFindSymbolAsync(
+        protected static Task<(TestWorkspace, Project, ISymbol)> CompileAndFindSymbolAsync(
             string path,
             Location pdbLocation,
             Location sourceLocation,
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             return CompileAndFindSymbolAsync(path, pdbLocation, sourceLocation, sourceText, symbolMatcher, preprocessorSymbols, buildReferenceAssembly, windowsPdb);
         }
 
-        protected static async Task<(Project, ISymbol)> CompileAndFindSymbolAsync(
+        protected static async Task<(TestWorkspace, Project, ISymbol)> CompileAndFindSymbolAsync(
             string path,
             Location pdbLocation,
             Location sourceLocation,
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
             AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
 
-            return (project, symbol);
+            return (workspace, project, symbol);
         }
 
         protected static TestComposition GetTestComposition()

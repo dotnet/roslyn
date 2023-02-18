@@ -405,12 +405,12 @@ public class C
 
                 // Compile reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(Path.Combine(path, "ref"), Location.Embedded, Location.OnDisk, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(Path.Combine(path, "ref"), Location.Embedded, Location.OnDisk, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly
                 CompileTestSource(Path.Combine(path, "lib"), sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
             });
         }
 
@@ -434,7 +434,7 @@ public class C
 
                 // Compile reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly
                 CompileTestSource(sharedDir, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -445,7 +445,7 @@ public class C
                     </FileList>
                     """);
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
             });
         }
 
@@ -470,15 +470,15 @@ public class C
                 var sharedDir = Directory.CreateDirectory(Path.Combine(path, "shared", "MyPack", "1.0")).FullName;
 
                 var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.M"), buildReferenceAssembly: true);
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.M"), buildReferenceAssembly: true);
 
-                var workspace = TestWorkspace.Create(@$"
+                var implWorkspace = TestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
 </Workspace>", composition: GetTestComposition());
 
-                var implProject = workspace.CurrentSolution.Projects.First();
+                var implProject = implWorkspace.CurrentSolution.Projects.First();
 
                 // Compile implementation assembly
                 CompileTestSource(sharedDir, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -489,7 +489,7 @@ public class C
                     </FileList>
                     """);
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
             });
         }
 
@@ -517,15 +517,15 @@ public class [|C|]
                 var sharedDir = Directory.CreateDirectory(Path.Combine(path, "shared", "MyPack", "1.0")).FullName;
 
                 var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C"), buildReferenceAssembly: true);
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C"), buildReferenceAssembly: true);
 
-                var workspace = TestWorkspace.Create(@$"
+                var implWorkspace = TestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
 </Workspace>", composition: GetTestComposition());
 
-                var implProject = workspace.CurrentSolution.Projects.First();
+                var implProject = implWorkspace.CurrentSolution.Projects.First();
 
                 // Compile implementation assembly
                 var implementationDllFilePath = Path.Combine(sharedDir, "implementation.dll");
@@ -551,7 +551,7 @@ public class [|C|]
                     </FileList>
                     """);
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
             });
         }
 
@@ -568,12 +568,12 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Now delete the PDB
                 File.Delete(GetPdbPath(path));
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -590,12 +590,12 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Now delete the DLL
                 File.Delete(GetDllPath(path));
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -611,12 +611,12 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Now delete the source
                 File.Delete(GetSourceFilePath(path));
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -632,10 +632,10 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), windowsPdb: true);
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), windowsPdb: true);
 
                 //TODO: This should not be a null result: https://github.com/dotnet/roslyn/issues/55834
-                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -652,12 +652,12 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Now make the PDB a zero byte file
                 File.WriteAllBytes(GetPdbPath(path), new byte[0]);
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -674,14 +674,14 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // The first four bytes of this are BSJB so it is identified as a portable PDB.
                 // The next two bytes are unimportant, they're just not valid PDB data.
                 var corruptPdb = new byte[] { 66, 83, 74, 66, 68, 87 };
                 File.WriteAllBytes(GetPdbPath(path), corruptPdb);
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -704,7 +704,7 @@ public class C
             {
                 MarkupTestFile.GetSpan(source1, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Archive off the current PDB so we can restore it later
                 var pdbFilePath = GetPdbPath(path);
@@ -717,7 +717,7 @@ public class C
                 File.Delete(pdbFilePath);
                 File.Move(archivePdbFilePath, pdbFilePath);
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source1, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.OnDisk, source1, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -741,11 +741,11 @@ public class C
             {
                 MarkupTestFile.GetSpan(source1, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 File.WriteAllText(GetSourceFilePath(path), source2, Encoding.UTF8);
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, metadataSource, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.OnDisk, metadataSource, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -779,9 +779,9 @@ public class C
                 using var ms = new MemoryStream(encoding.GetBytes(source));
                 var encodedSourceText = EncodedStringText.Create(ms, encoding, canBeEmbedded: true);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"));
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"));
 
-                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false);
+                var (actualText, _) = await GetGeneratedSourceTextAsync(workspace, project, symbol, Location.Embedded, expectNullResult: false);
 
                 AssertEx.NotNull(actualText);
                 AssertEx.NotNull(actualText.Encoding);
@@ -808,9 +808,9 @@ public class C
                 using var ms = new MemoryStream(encoding.GetBytes(source));
                 var encodedSourceText = EncodedStringText.Create(ms, encoding, canBeEmbedded: true);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"));
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"));
 
-                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false);
+                var (actualText, _) = await GetGeneratedSourceTextAsync(workspace, project, symbol, Location.Embedded, expectNullResult: false);
 
                 AssertEx.NotNull(actualText);
                 AssertEx.NotNull(actualText.Encoding);
@@ -837,9 +837,9 @@ public class C
                 using var ms = new MemoryStream(encoding.GetBytes(source));
                 var encodedSourceText = EncodedStringText.Create(ms, encoding, canBeEmbedded: true);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"), fallbackEncoding: encoding);
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"), fallbackEncoding: encoding);
 
-                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false);
+                var (actualText, _) = await GetGeneratedSourceTextAsync(workspace, project, symbol, Location.Embedded, expectNullResult: false);
 
                 AssertEx.NotNull(actualText);
                 AssertEx.NotNull(actualText.Encoding);
@@ -860,9 +860,7 @@ public class C
             await RunTestAsync(async path =>
             {
                 var sourceText = SourceText.From(source, Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"));
-
-                using var workspace = (TestWorkspace)project.Solution.Workspace;
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"));
 
                 var service = workspace.GetService<IMetadataAsSourceFileService>();
                 try
@@ -935,7 +933,7 @@ public partial class C
 
                 AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
 
-                await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, source2.ToString(), expectedSpan, expectNullResult: false);
+                await GenerateFileAndVerifyAsync(workspace, project, symbol, Location.Embedded, source2.ToString(), expectedSpan, expectNullResult: false);
             });
         }
     }
