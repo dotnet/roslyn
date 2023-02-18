@@ -25,10 +25,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class LanguageServerProjectSystem
 {
     private readonly ILogger _logger;
-    private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
     private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
     private readonly AsyncBatchingWorkQueue<string> _projectsToLoadAndReload;
-    private readonly ProjectSystemHostInfo _projectHostInfo;
     private readonly IFileChangeWatcher _fileChangeWatcher;
 
     /// <summary>
@@ -42,7 +40,7 @@ internal sealed class LanguageServerProjectSystem
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         Workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices);
-        _projectSystemProjectFactory = new ProjectSystemProjectFactory(Workspace, new FileChangeWatcher(), static _ => { }, _ => { });
+        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(Workspace, new FileChangeWatcher(), static (_, _) => Task.CompletedTask, _ => { });
 
         analyzerLoader.InitializeDiagnosticsServices(Workspace);
 
@@ -57,7 +55,7 @@ internal sealed class LanguageServerProjectSystem
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
 
         // TODO: fill this out
-        _projectHostInfo = new ProjectSystemHostInfo(
+        ProjectSystemHostInfo = new ProjectSystemHostInfo(
             DynamicFileInfoProviders: ImmutableArray<Lazy<IDynamicFileInfoProvider, Host.Mef.FileExtensionsMetadata>>.Empty,
             null!,
             null!);
@@ -65,6 +63,9 @@ internal sealed class LanguageServerProjectSystem
     }
 
     public Workspace Workspace { get; }
+
+    public ProjectSystemProjectFactory ProjectSystemProjectFactory { get; }
+    public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
 
     public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths)
     {
@@ -84,7 +85,7 @@ internal sealed class LanguageServerProjectSystem
             }
         }
 
-        await _projectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w => w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
+        await ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w => w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
     }
 
     public void OpenSolution(string solutionFilePath)
@@ -157,11 +158,11 @@ internal sealed class LanguageServerProjectSystem
                         var projectSystemName = $"{projectPath} (${loadedProjectInfo.TargetFramework})";
                         var projectCreationInfo = new ProjectSystemProjectCreationInfo { AssemblyName = projectSystemName, FilePath = projectPath };
 
-                        var projectSystemProject = await _projectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
+                        var projectSystemProject = await ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
                             projectSystemName,
                             loadedProjectInfo.Language,
                             projectCreationInfo,
-                            _projectHostInfo);
+                            ProjectSystemHostInfo);
 
                         var loadedProject = new LoadedProject(projectSystemProject, Workspace.Services.SolutionServices, _fileChangeWatcher);
                         loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectPath);

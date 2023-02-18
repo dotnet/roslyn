@@ -4,11 +4,12 @@
     <MicrosoftBuildVersion>17.4.0</MicrosoftBuildVersion>
     <MicrosoftBuildLocatorVersion>1.5.5</MicrosoftBuildLocatorVersion>
 
-    <MicrosoftCodeAnalysisVersion>4.6.0-2.23101.21</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisVersion>4.6.0-2.23125.2</MicrosoftCodeAnalysisVersion>
     <MicrosoftCodeAnalysisCSharpFeaturesVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpFeaturesVersion>
     <MicrosoftCodeAnalysisLanguageServerProtocolVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisLanguageServerProtocolVersion>
     <MicrosoftCodeAnalysisWorkspacesDesktopVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisWorkspacesDesktopVersion>
     <MicrosoftCodeAnalysisWorkspacesMSBuildVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisWorkspacesMSBuildVersion>
+    <MicrosoftCodeAnalysisRemoteWorkspacesVersion>$(MicrosoftCodeAnalysisVersion)</MicrosoftCodeAnalysisRemoteWorkspacesVersion>
     
     <MicrosoftExtensionsLoggingVersion>6.0.0</MicrosoftExtensionsLoggingVersion>
     <MicrosoftExtensionsLoggingAbstractionsVersion>6.0.2</MicrosoftExtensionsLoggingAbstractionsVersion>
