@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type)
         {
             Debug.Assert(Type is null && type.HasType);
-            return this.Update(type.NullableAnnotation, this.IsInferred, type.Type);
+            Debug.Assert(this.IsInferred);
+            return this.Update(type.NullableAnnotation, isInferred: true, type.Type);
         }
 
         public BoundDiscardExpression FailInference(Binder binder, BindingDiagnosticBag? diagnosticsOpt)

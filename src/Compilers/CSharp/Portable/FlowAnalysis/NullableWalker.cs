@@ -6719,7 +6719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _variables.SetType(local.LocalSymbol, varType);
                             lValueType = varType;
                         }
-                        else if (argument is BoundDiscardExpression discard && !discard.IsInferred)
+                        else if (argument is BoundDiscardExpression discard && discard.IsInferred)
                         {
                             SetAnalyzedNullability(discard, new VisitResult(parameterWithState, parameterWithState.ToTypeWithAnnotations(compilation)), isLvalue: true);
                         }
@@ -10995,7 +10995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
-            var result = TypeWithAnnotations.Create(node.Type, node.IsInferred ? node.NullableAnnotation : NullableAnnotation.Annotated);
+            var result = TypeWithAnnotations.Create(node.Type, node.IsInferred ? NullableAnnotation.Annotated : node.NullableAnnotation);
             var rValueType = TypeWithState.ForType(node.Type);
             SetResult(node, rValueType, result);
             return null;

@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var pending = (BoundDiscardExpression)expression;
                         Debug.Assert((object?)pending.Type == null);
-                        return pending.SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(type));
+                        return pending.SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(true, type, true));
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
@@ -852,7 +852,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeWithAnnotations declTypeWithAnnotations)
         {
-            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.NullableAnnotation, declTypeWithAnnotations.Type is not null, declTypeWithAnnotations.Type);
+            var type = declTypeWithAnnotations.Type;
+            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.NullableAnnotation, isInferred: type is null, type);
         }
 
         /// <summary>

@@ -708,21 +708,13 @@ public class C
             // out _
             foreach (var discardOut in GetDiscardIdentifiers(tree))
             {
-                Assert.Null(model.GetDeclaredSymbol(discardOut));
-                var discardSymbol = (IDiscardSymbol)model.GetSymbolInfo(discardOut).Symbol;
-                Assert.Equal("System.String?", discardSymbol.Type.ToTestDisplayString(includeNonNullable: true));
-                Assert.Equal("System.String?", model.GetTypeInfo(discardOut).Type.ToTestDisplayString(includeNonNullable: true));
+                checkDiscard(model, discardOut, "System.String?");
             }
 
             // out T _, out var _, out T? _
             foreach (var discardDecl in GetDiscardDesignations(tree))
             {
-                Assert.Null(model.GetDeclaredSymbol(discardDecl));
-                Assert.Null(model.GetTypeInfo(discardDecl).Type);
-                Assert.Null(model.GetSymbolInfo(discardDecl).Symbol);
-                var declaration = (DeclarationExpressionSyntax)discardDecl.Parent;
-                Assert.Equal("System.String?", model.GetTypeInfo(declaration).Type.ToTestDisplayString(includeNonNullable: true));
-                Assert.Null(model.GetSymbolInfo(declaration).Symbol);
+                checkDiscard(model, discardDecl, "System.String?");
             }
         }
 
@@ -778,22 +770,104 @@ public class C
             // out _
             foreach (var discardOut in GetDiscardIdentifiers(tree))
             {
-                Assert.Null(model.GetDeclaredSymbol(discardOut));
-                var discardSymbol = (IDiscardSymbol)model.GetSymbolInfo(discardOut).Symbol;
-                Assert.Equal("System.String!", discardSymbol.Type.ToTestDisplayString(includeNonNullable: true));
-                Assert.Equal("System.String!", model.GetTypeInfo(discardOut).Type.ToTestDisplayString(includeNonNullable: true));
+                checkDiscard(model, discardOut, "System.String!");
             }
 
             // out var _, out T _
             foreach (var discardDecl in GetDiscardDesignations(tree))
             {
-                Assert.Null(model.GetDeclaredSymbol(discardDecl));
-                Assert.Null(model.GetTypeInfo(discardDecl).Type);
-                Assert.Null(model.GetSymbolInfo(discardDecl).Symbol);
-                var declaration = (DeclarationExpressionSyntax)discardDecl.Parent;
-                Assert.Equal("System.String!", model.GetTypeInfo(declaration).Type.ToTestDisplayString(includeNonNullable: true));
-                Assert.Null(model.GetSymbolInfo(declaration).Symbol);
+                checkDiscard(model, discardDecl, "System.String!");
             }
+        }
+
+        [Fact]
+        public void Bug50782_3()
+        {
+            string source = """
+#nullable enable
+
+interface IOperation<T> 
+{ }
+
+public class StringOperation : IOperation<string> 
+{ }
+
+public class C 
+{   
+    static void Main() 
+    {
+        TestA(new StringOperation(), out string? discardA);
+        TestA(new StringOperation(), out string? _);
+
+        TestC(out string? discardC);
+        TestC(out string? _);
+    }
+   
+    static void TestA<T>(IOperation<T> operation, out T result) => result = default;
+    static void TestC(out string result) => result = "";
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(new[] {                    
+                // (20,77): warning CS8601: Possible null reference assignment.
+                //     static void TestA<T>(IOperation<T> operation, out T result) => result = default;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(20, 77)
+            });
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // out _
+            foreach (var discardOut in GetDiscardIdentifiers(tree))
+            {
+                checkDiscard(model, discardOut, "System.String?");
+            }
+
+            // out var _, out T _
+            foreach (var discardDecl in GetDiscardDesignations(tree))
+            {
+                checkDiscard(model, discardDecl, "System.String?");
+            }
+        }
+
+        [Fact]
+        public void Bug50782_4()
+        {
+            string source = """
+#nullable enable
+void M((string, string?) tuple)
+{
+    (_, _) = tuple;
+    (string _, string _) = tuple;
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(new[] { 
+                 // (2,6): warning CS8321: The local function 'M' is declared but never used
+                // void M((string, string?) tuple)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(2, 6),
+                // (5,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     (string _, string _) = tuple;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "tuple").WithLocation(5, 28)
+            });
+        }
+
+        private static void checkDiscard(SemanticModel model, DiscardDesignationSyntax discard, string type) {
+            Assert.Null(model.GetDeclaredSymbol(discard));
+            Assert.Null(model.GetTypeInfo(discard).Type);
+            Assert.Null(model.GetSymbolInfo(discard).Symbol);
+            var declaration = (DeclarationExpressionSyntax)discard.Parent;
+            Assert.Equal(type, model.GetTypeInfo(declaration).Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Null(model.GetSymbolInfo(declaration).Symbol);
+        }
+
+        private static void checkDiscard(SemanticModel model, IdentifierNameSyntax discard, string type)
+        {
+            Assert.Null(model.GetDeclaredSymbol(discard));
+            var discardSymbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+            Assert.Equal(type, discardSymbol.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal(type, model.GetTypeInfo(discard).Type.ToTestDisplayString(includeNonNullable: true));
         }
 
         private static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
