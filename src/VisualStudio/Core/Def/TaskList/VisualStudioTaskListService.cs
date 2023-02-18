@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 // our old ones, then notify them of the change.
                 var taskListUpdated = this.TaskListUpdated;
                 if (TaskListUpdated != null && !oldComments.SequenceEqual(newItems))
-                    TaskListUpdated?.Invoke(this, new TaskListUpdatedArgs(documentId, _workspace.CurrentSolution, documentId, newItems));
+                    TaskListUpdated?.Invoke(this, new TaskListUpdatedArgs(documentId, _workspace, _workspace.CurrentSolution, documentId, newItems));
             }
 
             return ValueTaskFactory.CompletedTask;

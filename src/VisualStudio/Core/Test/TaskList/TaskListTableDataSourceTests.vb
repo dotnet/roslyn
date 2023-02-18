@@ -411,13 +411,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
 
                 For Each group In map
                     RaiseEvent TaskListUpdated(Me, New TaskListUpdatedArgs(
-                        Me, workspace.CurrentSolution, group.Key, group.ToImmutableArrayOrEmpty()))
+                        Me, workspace, workspace.CurrentSolution, group.Key, group.ToImmutableArrayOrEmpty()))
                 Next
             End Sub
 
             Public Sub RaiseClearTodoListUpdated(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId)
                 RaiseEvent TaskListUpdated(Me, New TaskListUpdatedArgs(
-                    Me, workspace.CurrentSolution, documentId, ImmutableArray(Of TaskListItem).Empty))
+                    Me, workspace, workspace.CurrentSolution, documentId, ImmutableArray(Of TaskListItem).Empty))
             End Sub
         End Class
     End Class
