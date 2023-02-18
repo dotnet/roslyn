@@ -2439,7 +2439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function CompileMethods(
             moduleBuilder As CommonPEModuleBuilder,
             emittingPdb As Boolean,
-            Diagnostics As DiagnosticBag,
+            diagnostics As DiagnosticBag,
             filterOpt As Predicate(Of ISymbolInternal),
             cancellationToken As CancellationToken) As Boolean
 
@@ -2447,7 +2447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that we don't emit
             ' metadata if there are declaration errors or method body errors (but we do insert all errors from method body binding...)
-            Dim hasDeclarationErrors = Not FilterAndAppendDiagnostics(Diagnostics, GetDiagnostics(CompilationStage.Declare, True, cancellationToken), exclude:=Nothing, cancellationToken)
+            Dim hasDeclarationErrors = Not FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, True, cancellationToken), exclude:=Nothing, cancellationToken)
 
             Dim moduleBeingBuilt = DirectCast(moduleBuilder, PEModuleBuilder)
 
@@ -2457,7 +2457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We don't need to translate them if there are any declaration errors since 
             ' we are not going to emit the metadata.
             If Not hasDeclarationErrors Then
-                moduleBeingBuilt.TranslateImports(Diagnostics)
+                moduleBeingBuilt.TranslateImports(diagnostics)
             End If
 
             If emitMetadataOnly Then
@@ -2467,7 +2467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If moduleBeingBuilt.SourceModule.HasBadAttributes Then
                     ' If there were errors but no declaration diagnostics, explicitly add a "Failed to emit module" error.
-                    Diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuilt.SourceModule.Name,
+                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuilt.SourceModule.Name,
                         New LocalizableResourceString(NameOf(CodeAnalysisResources.ModuleHasInvalidAttributes), CodeAnalysisResources.ResourceManager, GetType(CodeAnalysisResources)))
                     Return False
                 End If
@@ -2476,7 +2476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 ' start generating PDB checksums if we need to emit PDBs
                 If (emittingPdb OrElse moduleBuilder.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage)) AndAlso
-                   Not CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, Diagnostics) Then
+                   Not CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics) Then
                     Return False
                 End If
 
@@ -2495,7 +2495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     New BindingDiagnosticBag(methodBodyDiagnosticBag),
                     cancellationToken)
 
-                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(Diagnostics, methodBodyDiagnosticBag, cancellationToken)
+                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag, cancellationToken)
                 If hasDeclarationErrors OrElse hasMethodBodyErrors Then
                     Return False
                 End If

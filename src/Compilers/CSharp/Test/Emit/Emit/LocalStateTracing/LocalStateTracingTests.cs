@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 #if NET
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -172,6 +174,7 @@ namespace Microsoft.CodeAnalysis.Runtime
                 targetFramework: s_targetFramework,
                 expectedOutput: expectedOutput);
 
+        // Only used to diagnose test verification failures (rename CompileAndVerify to CompileAndVerifyFails and rerun).
         public CompilationVerifier CompileAndVerifyFails(string source, string? ilVerifyMessage = null, string? expectedOutput = null)
             => CompileAndVerify(
                 source,
@@ -1273,20 +1276,27 @@ class C
         private struct S3 { System.DateTime X; System.Guid Y; decimal Z; unsafe void* P; }
 #pragma warning restore
 
-        [Theory]
-        [InlineData("", "nint", "IntPtr", typeof(nint))]
-        [InlineData("", "nuint", "UIntPtr", typeof(nuint))]
-        [InlineData("", "System.Int128", "'[System.Runtime]System.Int128'", typeof(Int128))]
-        [InlineData("", "System.Guid", "'[System.Runtime]System.Guid'", typeof(Guid))]
-        [InlineData("", "System.ValueTuple<int, bool>", "'[System.Runtime]System.ValueTuple`2<int32,bool>'", typeof((int, bool)))]
-        [InlineData("struct S { }", "S", "'S'", typeof(S1))]
-        [InlineData("struct S<T> where T : struct { T t; }", "S<int>", "'S`1<int32>'", typeof(S2<int>))]
-        [InlineData("struct S { System.DateTime X; System.Guid Y; decimal Z; unsafe void* P; }", "S", "'S'", typeof(S3))]
-        [InlineData("", "System.ValueTuple<int?, bool?>", "'[System.Runtime]System.ValueTuple`2<System.Nullable`1<int32>,System.Nullable`1<bool>>'", typeof((int?, bool?)))]
-        [InlineData("", "int?", "'[System.Runtime]System.Nullable`1<int32>'", typeof(int?))]
-        public void UnmanagedStruct(string definition, string typeName, string ilTypeName, Type type)
+        public static IEnumerable<object[]> UnmanagedStruct_TestData 
         {
-            var expectedSize = (int)typeof(Unsafe).GetMethod("SizeOf")!.MakeGenericMethod(type)!.Invoke(null, Array.Empty<object>())!;
+            get
+            {
+                yield return new object[] { "", "nint", "IntPtr", Unsafe.SizeOf<nint>() };
+                yield return new object[] { "", "nuint", "UIntPtr", Unsafe.SizeOf<nuint>() };
+                yield return new object[] { "", "System.Int128", "'[System.Runtime]System.Int128'", Unsafe.SizeOf<Int128>() };
+                yield return new object[] { "", "System.Guid", "'[System.Runtime]System.Guid'", Unsafe.SizeOf<Guid>() };
+                yield return new object[] { "", "System.ValueTuple<int, bool>", "'[System.Runtime]System.ValueTuple`2<int32,bool>'", Unsafe.SizeOf<(int, bool)>() };
+                yield return new object[] { "struct S { }", "S", "'S'", Unsafe.SizeOf<S1>() };
+                yield return new object[] { "struct S<T> where T : struct { T t; }", "S<int>", "'S`1<int32>'", Unsafe.SizeOf<S2<int>>() };
+                yield return new object[] { "struct S { System.DateTime X; System.Guid Y; decimal Z; unsafe void* P; }", "S", "'S'", Unsafe.SizeOf<S3>() };
+                yield return new object[] { "", "System.ValueTuple<int?, bool?>", "'[System.Runtime]System.ValueTuple`2<System.Nullable`1<int32>,System.Nullable`1<bool>>'", Unsafe.SizeOf<(int?, bool?)>() };
+                yield return new object[] { "", "int?", "'[System.Runtime]System.Nullable`1<int32>'", Unsafe.SizeOf<int?>() };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(UnmanagedStruct_TestData))]
+        public void UnmanagedStruct(string definition, string typeName, string ilTypeName, int expectedSize)
+        {
             var expectedValue = $"<{string.Join("-", Enumerable.Repeat("00", expectedSize))}>";
 
             var source = WithHelpers($$"""
@@ -3593,7 +3603,7 @@ class C
         });
     }
 
-    static void F(Action<int> f) => f(2);
+    static void F(Action<int> f) => f(3);
 }
 ");
 
@@ -3602,7 +3612,7 @@ Main: Entered
 F: Entered
 F: P'f'[0] = System.Action`1[System.Int32]
 Main: Entered lambda '<Main>b__0_0'
-<Main>b__0_0: P'b'[0] = 2
+<Main>b__0_0: P'b'[0] = 3
 <Main>b__0_0: L1 = 1
 <Main>b__0_0: P'b'[0] = 2
 <Main>b__0_0: L2 -> L1
