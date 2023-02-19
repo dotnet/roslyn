@@ -110,16 +110,27 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                     return;
                 }
 
-                // We're writing to a field in the containing type.  Can't make this `readonly`.
-                if (operation is IMemberReferenceOperation
-                    {
-                        Kind: OperationKind.FieldReference or OperationKind.PropertyReference,
-                        Instance: IInstanceReferenceOperation,
-                    } fieldOrPropReference &&
-                    structType.Equals(fieldOrPropReference.Member.ContainingType) &&
-                    CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, fieldOrPropReference.Syntax, cancellationToken))
+                // If we're writing to a field off of 'this'.  Can't make this `readonly`.
+                if (operation is IFieldReferenceOperation { Instance: IInstanceReferenceOperation } fieldReference &&
+                    structType.Equals(fieldReference.Field.ContainingType) &&
+                    CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, fieldReference.Syntax, cancellationToken))
                 {
                     return;
+                }
+
+                if (operation is IPropertyReferenceOperation { Instance: IInstanceReferenceOperation } propertyReference &&
+                    structType.Equals(propertyReference.Property.ContainingType))
+                {
+                    // If we're writing to a prop off of 'this'.  Can't make this `readonly`.
+                    if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, propertyReference.Syntax, cancellationToken))
+                        return;
+
+                    // If we're reading, that's only ok if we know the get-accessor exists and it is itself readonly.
+                    if (propertyReference.Property.GetMethod is null)
+                        return;
+
+                    if (!propertyReference.Property.GetMethod.IsReadOnly)
+                        return;
                 }
 
                 if (TryGetMethodReference(operation, out var methodReference) &&

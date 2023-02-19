@@ -586,7 +586,7 @@ public sealed class MakeStructMemberReadOnlyTests
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.cs(5,32): info IDE0251: 
-                    VerifyCS.Diagnostic("IDE0251").WithSeverity(DiagnosticSeverity.Info).WithSpan(5, 32, 5, 35).WithOptions(DiagnosticOptions.IgnoreAdditionalLocations),
+                    VerifyCS.Diagnostic("IDE0251").WithSeverity(DiagnosticSeverity.Info).WithSpan(5, 42, 5, 45).WithOptions(DiagnosticOptions.IgnoreAdditionalLocations),
                 },
             },
             BatchFixedCode = """
@@ -733,7 +733,7 @@ public sealed class MakeStructMemberReadOnlyTests
             struct S
             {
                 int x;
-                int this[int x] { get { x++; } set { return x++; } }
+                int this[int y] { get { return x++; } set { x++; } }
 
                 void M()
                 {
@@ -859,7 +859,7 @@ public sealed class MakeStructMemberReadOnlyTests
             }
             """,
             FixedCode = """
-            struct Sstruct S
+            struct S
             {
                 int i;
                 int this[int x] { readonly get => 0; set { i++; } }
