@@ -30,7 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\CSharpForEachCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\CSharpMakeFieldReadonlyDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)makestructmemberreadonly\CSharpMakeStructMemberReadOnlyAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeStructMemberReadOnly\CSharpMakeStructMemberReadOnlyAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ArrowExpressionClausePlacement\ArrowExpressionClausePlacementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConditionalExpressionPlacement\ConditionalExpressionPlacementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveBracePlacement\ConsecutiveBracePlacementDiagnosticAnalyzer.cs" />
