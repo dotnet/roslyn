@@ -41,9 +41,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool HasEventHandlerSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? eventArgsType)
             => eventArgsType != null &&
-               method.Parameters.Length == 2 &&
-               method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-               method.Parameters[1].Type.InheritsFromOrEquals(eventArgsType);
+               method.Parameters is [{ Type.SpecialType: SpecialType.System_Object}, var secondParam] &&
+               secondParam.Type.InheritsFromOrEquals(eventArgsType);
 
         public static bool TryGetPredefinedComparisonOperator(this IMethodSymbol symbol, out PredefinedOperator op)
         {
