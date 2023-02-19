@@ -83,21 +83,6 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             return;
         }
 
-        // No need to update an accessor if the containing property is already marked readonly.  Note, we have to check
-        // the actual modifier, not the IPropertySymbol.IsReadOnly property as that property only tells us if the
-        // property is getter-only.  It doesn't verify that the actual getter is non-mutating.
-        if (owningMethod.IsPropertyAccessor())
-        {
-            if (owningMethod.AssociatedSymbol is not IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] })
-                return;
-
-            if (reference.GetSyntax(cancellationToken) is not BasePropertyDeclarationSyntax propertyDeclaration)
-                return;
-
-            if (propertyDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
-                return;
-        }
-
         foreach (var blockOperation in context.OperationBlocks)
         {
             if (BlockOperationPotentiallyMutatesThis(owningMethod, blockOperation, cancellationToken))
