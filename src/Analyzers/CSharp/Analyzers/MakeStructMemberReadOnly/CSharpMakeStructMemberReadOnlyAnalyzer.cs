@@ -47,20 +47,21 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                     {
                         TypeKind: TypeKind.Struct,
                         IsReadOnly: false,
-                        DeclaringSyntaxReferences.Length: > 0,
+                        DeclaringSyntaxReferences: [var reference, ..],
                     } structType)
                 {
                     return;
                 }
 
                 var cancellationToken = context.CancellationToken;
-                var declaration = structType.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                var declaration = reference.GetSyntax(cancellationToken);
                 var options = context.GetCSharpAnalyzerOptions(declaration.SyntaxTree);
                 var option = options.PreferReadOnlyStructMember;
                 if (!option.Value)
                     return;
 
-                context.RegisterOperationBlockAction(context => AnalyzeBlock(context, structType.OriginalDefinition, option.Notification.Severity));
+                context.RegisterOperationBlockAction(
+                    context => AnalyzeBlock(context, structType.OriginalDefinition, option.Notification.Severity));
             }, SymbolKind.NamedType);
         });
 
@@ -84,7 +85,9 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             return;
         }
 
-        // No need to update an accessor if the containing property is already marked readonly
+        // No need to update an accessor if the containing property is already marked readonly.  Note, we have to check
+        // the actual modifier, not the IPropertySymbol.IsReadOnly property as that property only tells us if the
+        // property is getter-only.  It doesn't verify that the actual getter is non-mutating.
         if (owningMethod.IsPropertyAccessor())
         {
             if (owningMethod.AssociatedSymbol is not IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] })
@@ -118,6 +121,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                     return;
                 }
 
+                // See if we're accessing a property off of 'this'.
                 if (operation is IPropertyReferenceOperation { Instance: IInstanceReferenceOperation } propertyReference &&
                     structType.Equals(propertyReference.Property.ContainingType))
                 {
@@ -126,11 +130,11 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                         return;
 
                     // If we're reading, that's only ok if we know the get-accessor exists and it is itself readonly.
-                    if (propertyReference.Property.GetMethod is null)
+                    if (propertyReference.Property.GetMethod is null ||
+                        !propertyReference.Property.GetMethod.IsReadOnly)
+                    {
                         return;
-
-                    if (!propertyReference.Property.GetMethod.IsReadOnly)
-                        return;
+                    }
                 }
 
                 // += or -= on an event off of this instance will cause a copy if we become readonly.
@@ -140,12 +144,20 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                     return;
                 }
 
-                if (TryGetMethodReference(operation, out var methodReference) &&
+                // See if we're accessing a method off of 'this'.
+                var methodReference = operation switch
+                {
+                    IMethodReferenceOperation { Instance: IInstanceReferenceOperation } methodRefOperation => methodRefOperation.Method,
+                    IInvocationOperation { Instance: IInstanceReferenceOperation } invocationOperation => invocationOperation.TargetMethod,
+                    _ => null,
+                };
+
+                if (methodReference != null &&
                     !methodReference.IsReadOnly &&
                     structType.Equals(methodReference.ContainingType))
                 {
-                    // If we're referencing this method (Which isn't readonly yet) we don't want to mark us as not-readonly.
-                    // a recursive call shouldn't impact the final result.
+                    // If we're referencing the method we're in (Which isn't readonly yet) we don't want to mark us as
+                    // not-readonly. a recursive call shouldn't impact the final result.
                     if (methodReference.Equals(owningMethod))
                         continue;
 
@@ -163,38 +175,23 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         if (declaration is ArrowExpressionClauseSyntax)
             declaration = declaration.GetRequiredParent();
 
-        var location = declaration switch
+        var nameToken = declaration switch
         {
-            MethodDeclarationSyntax methodDeclaration => methodDeclaration.Identifier.GetLocation(),
-            AccessorDeclarationSyntax accessorDeclaration => accessorDeclaration.Keyword.GetLocation(),
-            PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Identifier.GetLocation(),
-            IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.ThisKeyword.GetLocation(),
-            _ => null
+            MethodDeclarationSyntax methodDeclaration => methodDeclaration.Identifier,
+            AccessorDeclarationSyntax accessorDeclaration => accessorDeclaration.Keyword,
+            PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Identifier,
+            IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.ThisKeyword,
+            _ => (SyntaxToken?)null
         };
 
-        if (location is null)
+        if (nameToken is null)
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
-            location,
+            nameToken.Value.GetLocation(),
             severity,
             additionalLocations: ImmutableArray.Create(declaration.GetLocation()),
             properties: null));
-    }
-
-    private static bool TryGetMethodReference(IOperation operation, [NotNullWhen(true)] out IMethodSymbol? methodReference)
-    {
-        methodReference = null;
-        if (operation is IMethodReferenceOperation { Instance: IInstanceReferenceOperation } methodRefOperation)
-        {
-            methodReference = methodRefOperation.Method;
-        }
-        else if (operation is IInvocationOperation { Instance: IInstanceReferenceOperation } invocationOperation)
-        {
-            methodReference = invocationOperation.TargetMethod;
-        }
-
-        return methodReference != null;
     }
 }
