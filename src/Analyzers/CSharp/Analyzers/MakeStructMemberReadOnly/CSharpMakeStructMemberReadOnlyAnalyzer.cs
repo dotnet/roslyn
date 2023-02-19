@@ -111,7 +111,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 }
 
                 // If we're writing to a field off of 'this'.  Can't make this `readonly`.
-                if (operation is IFieldReferenceOperation { Instance: IInstanceReferenceOperation } fieldReference &&
+                if (operation is IFieldReferenceOperation { Instance: IInstanceReferenceOperation, Field.IsReadOnly: false } fieldReference &&
                     structType.Equals(fieldReference.Field.ContainingType) &&
                     CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, fieldReference.Syntax, cancellationToken))
                 {

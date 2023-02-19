@@ -236,6 +236,100 @@ public sealed class MakeStructMemberReadOnlyTests
     }
 
     [Fact]
+    public async Task TestNotWithWriteToField5()
+    {
+        var test = """
+            struct S
+            {
+                int x;
+                void M()
+                {
+                    (x, x) = (0, 0);
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithWriteToField6()
+    {
+        var test = """
+            struct D
+            {
+                public int i;
+            }
+            struct S
+            {
+                D d;
+                void M()
+                {
+                    d.i = 0;
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithWriteToField7()
+    {
+        var test = """
+            struct BitVector
+            {
+                int x;
+                public bool this[int index] { get => x++ > 0; set => x++; }
+            }
+            struct S
+            {
+                BitVector bits;
+                void M()
+                {
+                    bits[0] = true;
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithWriteToField8()
+    {
+        var test = """
+            struct BitVector
+            {
+                int x;
+                public bool this[int index] { get => x++ > 0; set => x++; }
+            }
+            struct S
+            {
+                BitVector bits;
+                void M()
+                {
+                    (bits[0], bits[1]) = (true, false);
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNotInCSharp7()
     {
         var test = """

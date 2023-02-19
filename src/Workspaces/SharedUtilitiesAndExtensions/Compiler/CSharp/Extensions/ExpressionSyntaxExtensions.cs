@@ -326,58 +326,93 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             expression = GetExpressionToAnalyzeForWrites(expression);
 
-            if (expression.IsOnlyWrittenTo())
-                return true;
-
-            if (expression.IsInRefContext(out var refParent))
+            while (true)
             {
-                // most cases of `ref x` will count as a potential write of `x`.  An important exception is:
-                // `ref readonly y = ref x`.  In that case, because 'y' can't be written to, this would not 
-                // be a write of 'x'.
-                if (refParent.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type: { } variableDeclarationType } } })
-                {
-                    if (variableDeclarationType is ScopedTypeSyntax scopedType)
-                    {
-                        variableDeclarationType = scopedType.Type;
-                    }
+                if (IsWrittenToWorker(expression, semanticModel, cancellationToken))
+                    return true;
 
-                    if (variableDeclarationType is RefTypeSyntax refType && refType.ReadOnlyKeyword != default)
+                // if we have expression that is a value type, and we're accessing a field off of it, then the
+                // expression is written to as well if the field is written to.
+                var expressionType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+                if (expressionType.IsStructType())
+                {
+                    if (expression.Parent is MemberAccessExpressionSyntax memberAccessExpression)
                     {
-                        return false;
+                        var memberSymbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).GetAnySymbol();
+                        if (memberSymbol is IFieldSymbol)
+                        {
+                            expression = memberAccessExpression;
+                            continue;
+                        }
+                    }
+                    else if (expression.Parent is ElementAccessExpressionSyntax elementAccess)
+                    {
+                        // Similarly, if we're indexing into a struct, and the index operation is written into,
+                        // then most likely the expression is written into.
+                        expression = elementAccess;
+                        continue;
                     }
                 }
 
-                return true;
+
+                return false;
             }
 
-            // Similar to `ref x`, `&x` allows reads and write of the value, meaning `x` may be (but is not definitely)
-            // written to.
-            if (expression.Parent.IsKind(SyntaxKind.AddressOfExpression))
-                return true;
-
-            // We're written if we're used in a ++, or -- expression.
-            if (expression.IsOperandOfIncrementOrDecrementExpression())
-                return true;
-
-            if (expression.IsLeftSideOfAnyAssignExpression())
-                return true;
-
-            // An extension method invocation with a ref-this parameter can write to an expression.
-            if (expression.Parent is MemberAccessExpressionSyntax memberAccess &&
-                expression == memberAccess.Expression)
+            static bool IsWrittenToWorker(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
-                if (symbol is IMethodSymbol
-                    {
-                        MethodKind: MethodKind.ReducedExtension,
-                        ReducedFrom.Parameters: [{ RefKind: RefKind.Ref }],
-                    })
+                if (expression.IsOnlyWrittenTo())
+                    return true;
+
+                if (expression.IsInRefContext(out var refParent))
                 {
+                    // most cases of `ref x` will count as a potential write of `x`.  An important exception is:
+                    // `ref readonly y = ref x`.  In that case, because 'y' can't be written to, this would not 
+                    // be a write of 'x'.
+                    if (refParent.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type: { } variableDeclarationType } } })
+                    {
+                        if (variableDeclarationType is ScopedTypeSyntax scopedType)
+                        {
+                            variableDeclarationType = scopedType.Type;
+                        }
+
+                        if (variableDeclarationType is RefTypeSyntax refType && refType.ReadOnlyKeyword != default)
+                        {
+                            return false;
+                        }
+                    }
+
                     return true;
                 }
-            }
 
-            return false;
+                // Similar to `ref x`, `&x` allows reads and write of the value, meaning `x` may be (but is not definitely)
+                // written to.
+                if (expression.Parent.IsKind(SyntaxKind.AddressOfExpression))
+                    return true;
+
+                // We're written if we're used in a ++, or -- expression.
+                if (expression.IsOperandOfIncrementOrDecrementExpression())
+                    return true;
+
+                if (expression.IsLeftSideOfAnyAssignExpression())
+                    return true;
+
+                // An extension method invocation with a ref-this parameter can write to an expression.
+                if (expression.Parent is MemberAccessExpressionSyntax memberAccess &&
+                    expression == memberAccess.Expression)
+                {
+                    var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
+                    if (symbol is IMethodSymbol
+                        {
+                            MethodKind: MethodKind.ReducedExtension,
+                            ReducedFrom.Parameters: [{ RefKind: RefKind.Ref }],
+                        })
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         public static bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] this ExpressionSyntax? expression)
