@@ -77,7 +77,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 IsReadOnly: false,
                 IsStatic: false,
                 IsImplicitlyDeclared: false,
-                DeclaringSyntaxReferences.Length: > 0,
+                DeclaringSyntaxReferences: [var methodReference, ..],
             } owningMethod)
         {
             return;
@@ -89,7 +89,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 return;
         }
 
-        var declaration = owningMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+        var declaration = methodReference.GetSyntax(cancellationToken);
         if (declaration is ArrowExpressionClauseSyntax)
             declaration = declaration.GetRequiredParent();
 
