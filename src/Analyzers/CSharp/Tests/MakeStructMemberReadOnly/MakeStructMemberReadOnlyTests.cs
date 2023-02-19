@@ -1042,4 +1042,71 @@ public sealed class MakeStructMemberReadOnlyTests
             FixedCode = testCode,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNotWithNonReadOnlyMethodCallOnField()
+    {
+        var testCode = """
+            struct T
+            {
+                int i;
+                public void Dispose() { i++; }
+            }
+
+            struct S
+            {
+                T t;
+
+                void Dispose()
+                {
+                    t.Dispose();
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = testCode,
+            FixedCode = testCode,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithReadOnlyMethodCallOnField()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct T
+            {
+                public readonly void Dispose() { }
+            }
+
+            struct S
+            {
+                T t;
+
+                void [|Dispose|]()
+                {
+                    t.Dispose();
+                }
+            }
+            """,
+            FixedCode = """
+            struct T
+            {
+                public readonly void Dispose() { }
+            }
+
+            struct S
+            {
+                T t;
+
+                readonly void Dispose()
+                {
+                    t.Dispose();
+                }
+            }
+            """,
+        }.RunAsync();
+    }
 }

@@ -3,7 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Xml.Linq;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -58,13 +59,12 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                     return;
 
                 context.RegisterOperationBlockAction(
-                    context => AnalyzeBlock(context, structType.OriginalDefinition, option.Notification.Severity));
+                    context => AnalyzeBlock(context, option.Notification.Severity));
             }, SymbolKind.NamedType);
         });
 
     private void AnalyzeBlock(
         OperationBlockAnalysisContext context,
-        INamedTypeSymbol structType,
         ReportDiagnostic severity)
     {
         var cancellationToken = context.CancellationToken;
@@ -101,69 +101,82 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         {
             var semanticModel = operationBlock.SemanticModel;
             Contract.ThrowIfNull(semanticModel);
-            foreach (var operation in operationBlock.DescendantsAndSelf())
+            foreach (var instanceOperation in operationBlock.DescendantsAndSelf().OfType<IInstanceReferenceOperation>())
             {
                 // if we're writing to `this` (e.g. `ref this` or `this = ...` then can't make this `readonly`.
-                if (operation is IInstanceReferenceOperation { IsImplicit: false } instanceOperation &&
+                if (!instanceOperation.IsImplicit &&
                     CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, instanceOperation.Syntax, cancellationToken))
                 {
                     return;
                 }
 
-                // If we're writing to a field off of 'this'.  Can't make this `readonly`.
-                if (operation is IFieldReferenceOperation { Instance: IInstanceReferenceOperation, Field.IsReadOnly: false } fieldReference &&
-                    structType.Equals(fieldReference.Field.ContainingType) &&
-                    CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, fieldReference.Syntax, cancellationToken))
+                // Now walk up the instance-operation and see if any operation actually or potentially mutates this value.
+                for (var operation = instanceOperation.Parent; operation != null; operation = operation.Parent)
                 {
-                    return;
-                }
-
-                // See if we're accessing a property off of 'this'.
-                if (operation is IPropertyReferenceOperation { Instance: IInstanceReferenceOperation } propertyReference &&
-                    structType.Equals(propertyReference.Property.ContainingType))
-                {
-                    // If we're writing to a prop off of 'this'.  Can't make this `readonly`.
-                    if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, propertyReference.Syntax, cancellationToken))
-                        return;
-
-                    // If we're reading, that's only ok if we know the get-accessor exists and it is itself readonly.
-                    if (propertyReference.Property.GetMethod is null ||
-                        !propertyReference.Property.GetMethod.IsReadOnly)
+                    if (operation is IFieldReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct, Field.IsReadOnly: false } fieldReference)
                     {
+                        // If we're writing to a field off of 'this'.  Can't make this `readonly`.
+                        if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, fieldReference.Syntax, cancellationToken))
+                            return;
+
+                        // otherwise, keeping walking upwards to make sure subsequent accesses off this field are ok.
+                        continue;
+                    }
+
+                    if (operation is IPropertyReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct } propertyReference)
+                    {
+                        // If we're writing to a prop off of 'this'.  Can't make this `readonly`.
+                        if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, propertyReference.Syntax, cancellationToken))
+                            return;
+
+                        // If we're reading, that's only ok if we know the get-accessor exists and it is itself readonly.
+                        // At that point we can stop looking upwards as properties must return values that would not mutate
+                        // this.
+                        if (propertyReference.Property.GetMethod is not null &&
+                            propertyReference.Property.GetMethod.IsReadOnly)
+                        {
+                            break;
+                        }
+
+                        // otherwise, we may mutate this instance and cannot make this method we're in readonly.
                         return;
                     }
-                }
 
-                // += or -= on an event off of this instance will cause a copy if we become readonly.
-                if (operation is IEventAssignmentOperation { EventReference: IEventReferenceOperation { Instance: IInstanceReferenceOperation } eventReference } &&
-                    structType.Equals(eventReference.Event.ContainingType))
-                {
-                    return;
-                }
+                    if (operation is IEventReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct, Parent: IEventAssignmentOperation })
+                    {
+                        // += or -= on an event off of a struct will cause a copy if we become readonly.
+                        return;
+                    }
 
-                // See if we're accessing a method off of 'this'.
-                var methodReference = operation switch
-                {
-                    IMethodReferenceOperation { Instance: IInstanceReferenceOperation } methodRefOperation => methodRefOperation.Method,
-                    IInvocationOperation { Instance: IInstanceReferenceOperation } invocationOperation => invocationOperation.TargetMethod,
-                    _ => null,
-                };
+                    // See if we're accessing or invoking a method.
+                    var methodReference = operation switch
+                    {
+                        IMethodReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct } methodRefOperation => methodRefOperation.Method,
+                        IInvocationOperation { Instance.Type.TypeKind: TypeKind.Struct } invocationOperation => invocationOperation.TargetMethod,
+                        _ => null,
+                    };
 
-                if (methodReference != null &&
-                    !methodReference.IsReadOnly &&
-                    structType.Equals(methodReference.ContainingType))
-                {
-                    // If we're referencing the method we're in (Which isn't readonly yet) we don't want to mark us as
-                    // not-readonly. a recursive call shouldn't impact the final result.
-                    if (methodReference.Equals(owningMethod))
-                        continue;
+                    if (methodReference != null)
+                    {
+                        // Calling a readonly method off of a struct is fine since we know it can't mutate.
+                        if (methodReference.IsReadOnly)
+                            break;
 
-                    // Any methods from System.Object or System.ValueType called on this `this` don't stop this from being readonly.
-                    if (methodReference.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType)
-                        continue;
+                        // If we're referencing the method we're in (Which isn't readonly yet) we don't want to mark us as
+                        // not-readonly. a recursive call shouldn't impact the final result.
+                        if (methodReference.Equals(owningMethod))
+                            break;
 
-                    // Any other non-readonly method usage on this means we can't be readonly.
-                    return;
+                        // Any methods from System.Object or System.ValueType called on this `this` don't stop this from being readonly.
+                        if (methodReference.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType)
+                            break;
+
+                        // Any other non-readonly method usage on this means we can't be readonly.
+                        return;
+                    }
+
+                    // Wasn't a method off a struct.  This chain off this instance expression seems fine.
+                    break;
                 }
             }
         }
@@ -191,4 +204,62 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             additionalLocations: ImmutableArray.Create(declaration.GetLocation()),
             properties: null));
     }
+
+#if false
+
+    private static bool IsPotentialMutation(
+        SemanticModel semanticModel,
+        IMethodSymbol owningMethod,
+        IOperation operation,
+        CancellationToken cancellationToken)
+    {
+        // If we're writing to a field off of 'this'.  Can't make this `readonly`.
+        if (operation is IFieldReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct, Field.IsReadOnly: false } fieldReference &&
+            CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, fieldReference.Syntax, cancellationToken))
+        {
+            return true;
+        }
+
+        // See if we're accessing a property off of 'this'.
+        if (operation is IPropertyReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct } propertyReference)
+        {
+            // If we're writing to a prop off of 'this'.  Can't make this `readonly`.
+            if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, propertyReference.Syntax, cancellationToken))
+                return true;
+
+            // If we're reading, that's only ok if we know the get-accessor exists and it is itself readonly.
+            if (propertyReference.Property.GetMethod is null ||
+                !propertyReference.Property.GetMethod.IsReadOnly)
+            {
+                return true;
+            }
+        }
+
+        // += or -= on an event off of this instance will cause a copy if we become readonly.
+        if (operation is IEventAssignmentOperation { EventReference: IEventReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct } })
+            return true;
+
+        // See if we're accessing a method off of 'this'.
+        var methodReference = operation switch
+        {
+            IMethodReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct } methodRefOperation => methodRefOperation.Method,
+            IInvocationOperation { Instance.Type.TypeKind: TypeKind.Struct } invocationOperation => invocationOperation.TargetMethod,
+            _ => null,
+        };
+
+        if (methodReference != null &&
+            !methodReference.IsReadOnly)
+        {
+            // If we're referencing the method we're in (Which isn't readonly yet) we don't want to mark us as
+            // not-readonly. a recursive call shouldn't impact the final result.
+
+            // Any methods from System.Object or System.ValueType called on this `this` don't stop this from being readonly.
+            return !methodReference.Equals(owningMethod) &&
+                methodReference.ContainingType.SpecialType is not SpecialType.System_Object and not SpecialType.System_ValueType;
+        }
+
+        return false;
+    }
+
+#endif
 }
