@@ -449,16 +449,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var baseName = fieldName.TrimStart(s_underscoreCharArray);
 
             // Trim leading "m_"
-            if (baseName.Length >= 2 && baseName[0] == 'm' && baseName[1] == '_')
-            {
+            if (baseName is ['m', '_', ..])
                 baseName = baseName[2..];
-            }
 
             // Take original name if no characters left
             if (baseName.Length == 0)
-            {
                 baseName = fieldName;
-            }
 
             // Make the first character upper case using the "en-US" culture.  See discussion at
             // https://github.com/dotnet/roslyn/issues/5524.
