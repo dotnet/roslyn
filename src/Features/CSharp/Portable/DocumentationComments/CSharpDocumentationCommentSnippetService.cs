@@ -296,9 +296,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             existingCommentText = textTokens.Count == 1 ? "" : firstTextToken.ValueText;
 
             return lastTextToken.Kind() == SyntaxKind.XmlTextLiteralNewLineToken
-                && firstTextToken.LeadingTrivia.Count == 1
-                && firstTextToken.LeadingTrivia.ElementAt(0).Kind() == SyntaxKind.DocumentationCommentExteriorTrivia
-                && firstTextToken.LeadingTrivia.ElementAt(0).ToString() == ExteriorTriviaText
+                && firstTextToken.LeadingTrivia is [(kind: SyntaxKind.DocumentationCommentExteriorTrivia) firstTrivia]
+                && firstTrivia.ToString() == ExteriorTriviaText
                 && lastTextToken.TrailingTrivia.Count == 0;
         }
 
