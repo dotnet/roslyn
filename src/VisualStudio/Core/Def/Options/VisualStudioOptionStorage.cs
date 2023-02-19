@@ -223,6 +223,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_prefer_pattern_matching", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferPatternMatching")},
         {"csharp_style_prefer_range_operator", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferRangeOperator")},
         {"csharp_style_prefer_readonly_struct", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferReadOnlyStruct")},
+        {"csharp_style_prefer_readonly_struct_member", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferReadOnlyStructMember")},
         {"csharp_style_prefer_switch_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSwitchExpression")},
         {"csharp_style_prefer_top_level_statements", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferTopLevelStatements")},
         {"csharp_style_prefer_tuple_swap", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferTupleSwap")},
