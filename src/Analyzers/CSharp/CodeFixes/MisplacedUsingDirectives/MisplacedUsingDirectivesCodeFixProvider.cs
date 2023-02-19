@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var firstMemberTrivia = firstMember.GetLeadingTrivia();
 
             // If the first member already contains a leading new line then, this will already break up the usings from these members.
-            if (firstMemberTrivia is [SyntaxTrivia(SyntaxKind.EndOfLineTrivia), ..])
+            if (firstMemberTrivia is [(kind: SyntaxKind.EndOfLineTrivia), ..])
                 return node;
 
             var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));
