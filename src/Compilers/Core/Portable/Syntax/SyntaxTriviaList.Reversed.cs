@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
-                public SyntaxTrivia Current
+                public readonly SyntaxTrivia Current
                 {
                     get
                     {

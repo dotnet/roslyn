@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     _index = -1;
                 }
 
-                public V Current => _valueSet[_index];
+                public readonly V Current => _valueSet[_index];
 
                 object IEnumerator.Current => Current;
 
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     _index = -1;
                 }
 
-                public void Dispose()
+                public readonly void Dispose()
                 {
                 }
             }

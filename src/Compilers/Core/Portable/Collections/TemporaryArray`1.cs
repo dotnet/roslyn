@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 _nextIndex = 0;
             }
 
-            public T Current => _current;
+            public readonly T Current => _current;
 
             public bool MoveNext()
             {

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 DictionaryEntry,
             }
 
-            public KeyValuePair<TKey, TValue> Current => _enumerator.Current;
+            public readonly KeyValuePair<TKey, TValue> Current => _enumerator.Current;
 
             object IEnumerator.Current => _returnType == ReturnType.DictionaryEntry ? ((IDictionaryEnumerator)this).Entry : Current;
 
@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Collections
 
             object? IDictionaryEnumerator.Value => Current.Value;
 
-            public void Dispose()
+            public readonly void Dispose()
                 => _enumerator.Dispose();
 
-            public bool MoveNext()
+            public readonly bool MoveNext()
                 => _enumerator.MoveNext();
 
             public void Reset()

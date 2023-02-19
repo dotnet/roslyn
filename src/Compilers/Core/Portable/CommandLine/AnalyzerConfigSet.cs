@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis
                 return globalConfig;
             }
 
-            private Section GetSection(string sectionName)
+            private readonly Section GetSection(string sectionName)
             {
                 Debug.Assert(_values is object);
 
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis
                 return new Section(sectionName, result);
             }
 
-            private void MergeSection(string configPath, Section section, int globalLevel, bool isGlobalSection)
+            private readonly void MergeSection(string configPath, Section section, int globalLevel, bool isGlobalSection)
             {
                 Debug.Assert(_values is object);
                 Debug.Assert(_duplicates is object);

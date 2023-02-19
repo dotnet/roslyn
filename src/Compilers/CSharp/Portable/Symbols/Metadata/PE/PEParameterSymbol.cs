@@ -70,22 +70,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             private int _bits;
 
-            public RefKind RefKind
+            public readonly RefKind RefKind
             {
                 get { return (RefKind)((_bits >> RefKindOffset) & RefKindMask); }
             }
 
-            public bool HasNameInMetadata
+            public readonly bool HasNameInMetadata
             {
                 get { return (_bits & HasNameInMetadataBit) != 0; }
             }
 
-            public ScopedKind Scope
+            public readonly ScopedKind Scope
             {
                 get { return (ScopedKind)((_bits >> ScopeOffset) & ScopeMask); }
             }
 
-            public bool HasUnscopedRefAttribute
+            public readonly bool HasUnscopedRefAttribute
             {
                 get { return (_bits & HasUnscopedRefAttributeBit) != 0; }
             }
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return value;
             }
 
-            public bool TryGetWellKnownAttribute(WellKnownAttributeFlags flag, out bool value)
+            public readonly bool TryGetWellKnownAttribute(WellKnownAttributeFlags flag, out bool value)
             {
                 int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
                 value = (theBits & ((int)flag << WellKnownAttributeDataOffset)) != 0;
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
-            public bool TryGetFlowAnalysisAnnotations(out FlowAnalysisAnnotations value)
+            public readonly bool TryGetFlowAnalysisAnnotations(out FlowAnalysisAnnotations value)
             {
                 int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
                 value = (FlowAnalysisAnnotations)((theBits >> FlowAnalysisAnnotationsOffset) & FlowAnalysisAnnotationsMask);

@@ -11331,14 +11331,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new LocalState(snapshot.Id, container, snapshot.State.Clone());
             }
 
-            internal LocalStateSnapshot CreateSnapshot()
+            internal readonly LocalStateSnapshot CreateSnapshot()
             {
                 return new LocalStateSnapshot(Id, _container?.Value.CreateSnapshot(), _state.Clone());
             }
 
-            public bool Reachable => _state[0];
+            public readonly bool Reachable => _state[0];
 
-            public bool NormalizeToBottom => false;
+            public readonly bool NormalizeToBottom => false;
 
             public static LocalState ReachableState(Variables variables)
             {
@@ -11383,7 +11383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new LocalState(variables.Id, container, CreateBitVector(reachable));
             }
 
-            public LocalState CreateNestedMethodState(Variables variables)
+            public readonly LocalState CreateNestedMethodState(Variables variables)
             {
                 Debug.Assert(Id == variables.Container!.Id);
                 return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(reachable: true));
@@ -11396,9 +11396,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return state;
             }
 
-            private int Capacity => _state.Capacity / 2;
+            private readonly int Capacity => _state.Capacity / 2;
 
-            private void EnsureCapacity(int capacity)
+            private readonly void EnsureCapacity(int capacity)
             {
                 _state.EnsureCapacity(capacity * 2);
             }
@@ -11565,7 +11565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            internal LocalState GetStateForVariables(int id)
+            internal readonly LocalState GetStateForVariables(int id)
             {
                 var state = this;
                 while (state.Id != id)
@@ -11579,7 +11579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Produce a duplicate of this flow analysis state.
             /// </summary>
             /// <returns></returns>
-            public LocalState Clone()
+            public readonly LocalState Clone()
             {
                 var container = _container is null ? null : new Boxed(_container.Value.Clone());
                 return new LocalState(Id, container, _state.Clone());

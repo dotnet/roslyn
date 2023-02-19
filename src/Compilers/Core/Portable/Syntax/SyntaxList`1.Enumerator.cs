@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public TNode Current
+            public readonly TNode Current
             {
                 get
                 {
@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis
                 _index = -1;
             }
 
-            public override bool Equals(object? obj)
+            public override readonly bool Equals(object? obj)
             {
                 throw new NotSupportedException();
             }
 
-            public override int GetHashCode()
+            public override readonly int GetHashCode()
             {
                 throw new NotSupportedException();
             }

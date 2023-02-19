@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 this.SubWordTextChunks = BreakPatternIntoSubWords(text, allowFuzzyMatching);
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
                 this.TotalTextChunk.Dispose();
                 foreach (var chunk in this.SubWordTextChunks)

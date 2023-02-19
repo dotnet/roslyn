@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
-            public bool TryGetFlowAnalysisAnnotations(out FlowAnalysisAnnotations value)
+            public readonly bool TryGetFlowAnalysisAnnotations(out FlowAnalysisAnnotations value)
             {
                 int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
                 value = FlowAnalysisAnnotations.None;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(IsVolatile == isVolatile);
             }
 
-            public bool IsVolatile => (_bits & IsVolatileBit) != 0;
+            public readonly bool IsVolatile => (_bits & IsVolatileBit) != 0;
 
             public void SetRefKind(RefKind refKind)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(RefKind == refKind);
             }
 
-            public RefKind RefKind => (RefKind)((_bits >> RefKindOffset) & RefKindMask);
+            public readonly RefKind RefKind => (RefKind)((_bits >> RefKindOffset) & RefKindMask);
 
             public bool SetHasRequiredMemberAttribute(bool isRequired)
             {
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
-            public bool TryGetHasRequiredMemberAttribute(out bool hasRequiredMemberAttribute)
+            public readonly bool TryGetHasRequiredMemberAttribute(out bool hasRequiredMemberAttribute)
             {
                 if ((_bits & RequiredMemberCompletionBit) != 0)
                 {

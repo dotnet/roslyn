@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 End = end
             };
 
-        public bool Equals(LineSpan other)
+        public readonly bool Equals(LineSpan other)
             => this.Start == other.Start && this.End == other.End;
 
         public override bool Equals(object? obj)
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 && this.Equals(other);
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
             => Hash.Combine(this.Start, this.End);
     }
 }

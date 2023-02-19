@@ -20,17 +20,17 @@ namespace Microsoft.CodeAnalysis.Collections
                     _enumerator = enumerator;
                 }
 
-                public TKey Current => _enumerator.Current.Key;
+                public readonly TKey Current => _enumerator.Current.Key;
 
                 object IEnumerator.Current => Current;
 
-                public void Dispose()
+                public readonly void Dispose()
                     => _enumerator.Dispose();
 
-                public bool MoveNext()
+                public readonly bool MoveNext()
                     => _enumerator.MoveNext();
 
-                public void Reset()
+                public readonly void Reset()
                     => _enumerator.Reset();
             }
         }

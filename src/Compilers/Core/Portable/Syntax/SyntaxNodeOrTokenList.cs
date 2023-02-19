@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Gets the struct that this enumerator instance is currently pointing to.
             /// </summary>
-            public SyntaxNodeOrToken Current => _list[_index];
+            public readonly SyntaxNodeOrToken Current => _list[_index];
 
             /// <summary>
             /// Gets the struct that this enumerator instance is currently pointing to.
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis
             /// Sets the enumerator to its initial position, which is before the first element in the collection.
             /// </summary>
             /// <exception cref="InvalidOperationException">The collection was modified after the enumerator was created. </exception>
-            void IEnumerator.Reset()
+            readonly void IEnumerator.Reset()
             {
                 throw new NotSupportedException();
             }
@@ -552,16 +552,16 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
             /// </summary>
-            void IDisposable.Dispose()
+            readonly void IDisposable.Dispose()
             {
             }
 
-            public override bool Equals(object? obj)
+            public override readonly bool Equals(object? obj)
             {
                 throw new NotSupportedException();
             }
 
-            public override int GetHashCode()
+            public override readonly int GetHashCode()
             {
                 throw new NotSupportedException();
             }

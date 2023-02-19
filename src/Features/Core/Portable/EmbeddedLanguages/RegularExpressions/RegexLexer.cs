@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexLexer(VirtualCharSequence text) : this()
             => Text = text;
 
-        public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
+        public readonly VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
 
         public VirtualCharSequence GetSubPatternToCurrentPos(int start)
             => GetSubPattern(start, Position);
 
-        public VirtualCharSequence GetSubPattern(int start, int end)
+        public readonly VirtualCharSequence GetSubPattern(int start, int end)
             => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public RegexToken ScanNextToken(bool allowTrivia, RegexOptions options)
@@ -175,13 +175,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return null;
         }
 
-        public TextSpan GetTextSpan(int startInclusive, int endExclusive)
+        public readonly TextSpan GetTextSpan(int startInclusive, int endExclusive)
             => TextSpan.FromBounds(Text[startInclusive].Span.Start, Text[endExclusive - 1].Span.End);
 
         public bool IsAt(string val)
             => TextAt(this.Position, val);
 
-        private bool TextAt(int position, string val)
+        private readonly bool TextAt(int position, string val)
         {
             for (var i = 0; i < val.Length; i++)
             {

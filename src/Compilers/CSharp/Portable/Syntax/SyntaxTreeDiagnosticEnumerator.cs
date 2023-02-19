@@ -106,7 +106,7 @@ tryAgain:
         /// <summary>
         /// The current diagnostic that the enumerator is pointing at.
         /// </summary>
-        public Diagnostic Current
+        public readonly Diagnostic Current
         {
             get { Debug.Assert(_current is object); return _current; }
         }
@@ -184,7 +184,7 @@ tryAgain:
                 _count--;
             }
 
-            internal bool Any()
+            internal readonly bool Any()
             {
                 return _count > 0;
             }
@@ -197,7 +197,7 @@ tryAgain:
                 }
             }
 
-            internal NodeIteration this[int index]
+            internal readonly NodeIteration this[int index]
             {
                 get
                 {
@@ -207,14 +207,14 @@ tryAgain:
                 }
             }
 
-            internal void UpdateSlotIndexForStackTop(int slotIndex)
+            internal readonly void UpdateSlotIndexForStackTop(int slotIndex)
             {
                 Debug.Assert(_stack != null);
                 Debug.Assert(_count > 0);
                 _stack[_count - 1].SlotIndex = slotIndex;
             }
 
-            internal void UpdateDiagnosticIndexForStackTop(int diagnosticIndex)
+            internal readonly void UpdateDiagnosticIndexForStackTop(int diagnosticIndex)
             {
                 Debug.Assert(_stack != null);
                 Debug.Assert(_count > 0);

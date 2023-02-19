@@ -32,17 +32,17 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public int Count => ReadOnlyList.Count;
 
-            private SegmentedList<T> ReadOnlyList => _mutableList ?? _list._list;
+            private readonly SegmentedList<T> ReadOnlyList => _mutableList ?? _list._list;
 
-            bool ICollection<T>.IsReadOnly => false;
+            readonly bool ICollection<T>.IsReadOnly => false;
 
-            bool IList.IsFixedSize => false;
+            readonly bool IList.IsFixedSize => false;
 
-            bool IList.IsReadOnly => false;
+            readonly bool IList.IsReadOnly => false;
 
-            bool ICollection.IsSynchronized => false;
+            readonly bool ICollection.IsSynchronized => false;
 
-            object ICollection.SyncRoot => throw new NotSupportedException();
+            readonly object ICollection.SyncRoot => throw new NotSupportedException();
 
             public T this[int index]
             {

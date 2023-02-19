@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ///  
             ///  NOTE: A trivial bucket with only one case constant is by definition degenerate.
             /// </summary>
-            internal bool IsDegenerate
+            internal readonly bool IsDegenerate
             {
                 get
                 {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _isKnownDegenerate = isDegenerate;
             }
 
-            internal uint LabelsCount
+            internal readonly uint LabelsCount
             {
                 get
                 {
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            private bool IsContiguous(ConstantValue lastConst, ConstantValue nextConst)
+            private readonly bool IsContiguous(ConstantValue lastConst, ConstantValue nextConst)
             {
                 if (!lastConst.IsNumeric || !nextConst.IsNumeric)
                 {
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     || GetBucketSize(startConstant, endConstant) > Int32.MaxValue;
             }
 
-            internal int StartLabelIndex
+            internal readonly int StartLabelIndex
             {
                 get
                 {
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            internal int EndLabelIndex
+            internal readonly int EndLabelIndex
             {
                 get
                 {
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            internal ConstantValue StartConstant
+            internal readonly ConstantValue StartConstant
             {
                 get
                 {
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            internal ConstantValue EndConstant
+            internal readonly ConstantValue EndConstant
             {
                 get
                 {

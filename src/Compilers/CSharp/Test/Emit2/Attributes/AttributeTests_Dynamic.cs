@@ -211,7 +211,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 ValidateDynamicAttribute(_inner3Class.GetAttributes(), expectedDynamicAttribute: false);
             }
 
-            private void ValidateAttributesOnFields()
+            private readonly void ValidateAttributesOnFields()
             {
                 bool[] expectedTransformFlags;
 
@@ -407,7 +407,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 ValidateDynamicAttribute(prop2.SetMethod.Parameters[0].GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
             }
 
-            private void ValidateAttributesOnIndexer()
+            private readonly void ValidateAttributesOnIndexer()
             {
                 // public dynamic this[dynamic param]
                 var indexer = _derivedClass.GetIndexer<PropertySymbol>("Item");
@@ -451,7 +451,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 ValidateDynamicAttribute(nullableField.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
             }
 
-            private void ValidateAttributesForSynthesizedDelegateMembers()
+            private readonly void ValidateAttributesForSynthesizedDelegateMembers()
             {
                 // public delegate dynamic[] MyDelegate(dynamic[] x);
 

@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return IsAtEnd(allowNewline: kind is InterpolatedStringKind.Verbatim or InterpolatedStringKind.MultiLineRaw);
             }
 
-            private bool IsAtEnd(bool allowNewline)
+            private readonly bool IsAtEnd(bool allowNewline)
             {
                 char ch = _lexer.TextWindow.PeekChar();
                 return
@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            private bool IsAtEndOfMultiLineRawLiteral(InterpolatedStringKind kind, int startingQuoteCount)
+            private readonly bool IsAtEndOfMultiLineRawLiteral(InterpolatedStringKind kind, int startingQuoteCount)
             {
                 if (kind == InterpolatedStringKind.MultiLineRaw)
                 {
@@ -1111,9 +1111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// for when we are attempting to recover from that situation.  Note that just running into new lines will
             /// not make us think we're in runaway lexing.
             /// </summary>
-            private bool RecoveringFromRunawayLexing() => Error != null;
+            private readonly bool RecoveringFromRunawayLexing() => Error != null;
 
-            private void ScanInterpolatedStringLiteralNestedString()
+            private readonly void ScanInterpolatedStringLiteralNestedString()
             {
                 var info = default(TokenInfo);
                 _lexer.ScanStringLiteral(ref info, inDirective: false);

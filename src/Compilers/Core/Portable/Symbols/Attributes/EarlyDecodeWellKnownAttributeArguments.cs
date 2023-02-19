@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if some decoded data has been stored into <see cref="_lazyDecodeData"/>.
         /// </summary>
-        public bool HasDecodedData
+        public readonly bool HasDecodedData
         {
             get
             {

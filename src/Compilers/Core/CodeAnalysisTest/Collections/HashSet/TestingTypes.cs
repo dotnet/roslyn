@@ -183,16 +183,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
         public int Val
         {
-            get { return _val; }
+            readonly get { return _val; }
             set { _val = value; }
         }
 
-        public int CompareTo(SimpleInt other)
+        public readonly int CompareTo(SimpleInt other)
         {
             return other.Val - _val;
         }
 
-        public int CompareTo(object? obj)
+        public readonly int CompareTo(object? obj)
         {
             if (obj?.GetType() == typeof(SimpleInt))
             {
@@ -201,21 +201,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             return -1;
         }
 
-        public int CompareTo(object? other, IComparer comparer)
+        public readonly int CompareTo(object? other, IComparer comparer)
         {
             if (other?.GetType() == typeof(SimpleInt))
                 return ((SimpleInt)other).Val - _val;
             return -1;
         }
 
-        public bool Equals(object? other, IEqualityComparer comparer)
+        public readonly bool Equals(object? other, IEqualityComparer comparer)
         {
             if (other?.GetType() == typeof(SimpleInt))
                 return ((SimpleInt)other).Val == _val;
             return false;
         }
 
-        public int GetHashCode(IEqualityComparer comparer)
+        public readonly int GetHashCode(IEqualityComparer comparer)
         {
             return comparer.GetHashCode(_val);
         }
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
     {
         public Func<ValueDelegateEquatable, bool> EqualsWorker { get; set; }
 
-        public bool Equals(ValueDelegateEquatable other) => EqualsWorker(other);
+        public readonly bool Equals(ValueDelegateEquatable other) => EqualsWorker(other);
     }
 
     public sealed class TrackingEqualityComparer<T> : IEqualityComparer<T>

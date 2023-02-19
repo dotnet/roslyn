@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Produce a duplicate of this flow analysis state.
             /// </summary>
             /// <returns></returns>
-            public LocalState Clone()
+            public readonly LocalState Clone()
             {
                 return this;
             }
 
-            public bool Reachable
+            public readonly bool Reachable
             {
                 get { return Alive; }
             }

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private bool EndOfInput
+            private readonly bool EndOfInput
             {
                 get
                 {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private char Current
+            private readonly char Current
             {
                 get
                 {

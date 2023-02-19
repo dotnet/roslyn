@@ -386,10 +386,10 @@ namespace Microsoft.CodeAnalysis.Collections
                 _current = default!;
             }
 
-            public T Current => _current;
+            public readonly T Current => _current;
             object? IEnumerator.Current => Current;
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
 

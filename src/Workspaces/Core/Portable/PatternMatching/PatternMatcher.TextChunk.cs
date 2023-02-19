@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 IsLowercase = !ContainsUpperCaseLetter(text);
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
                 this.PatternHumps.Dispose();
                 this.SimilarityChecker?.Free();

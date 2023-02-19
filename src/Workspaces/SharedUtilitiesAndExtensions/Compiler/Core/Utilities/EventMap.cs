@@ -152,7 +152,7 @@ namespace Roslyn.Utilities
             internal EventHandlerSet(ImmutableArray<Registry<TEventHandler>> registries)
                 => _registries = registries;
 
-            public bool HasHandlers
+            public readonly bool HasHandlers
             {
                 get { return _registries != null && _registries.Length > 0; }
             }

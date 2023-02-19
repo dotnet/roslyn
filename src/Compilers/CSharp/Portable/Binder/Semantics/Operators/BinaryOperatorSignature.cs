@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return $"kind: {this.Kind} leftType: {this.LeftType} leftRefKind: {this.LeftRefKind} rightType: {this.RightType} rightRefKind: {this.RightRefKind} return: {this.ReturnType}";
         }
 
-        public bool Equals(BinaryOperatorSignature other)
+        public readonly bool Equals(BinaryOperatorSignature other)
         {
             return
                 this.Kind == other.Kind &&
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return obj is BinaryOperatorSignature && Equals((BinaryOperatorSignature)obj);
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return Hash.Combine(ReturnType,
                    Hash.Combine(LeftType,
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    Hash.Combine(Method, (int)Kind))));
         }
 
-        public RefKind LeftRefKind
+        public readonly RefKind LeftRefKind
         {
             get
             {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public RefKind RightRefKind
+        public readonly RefKind RightRefKind
         {
             get
             {

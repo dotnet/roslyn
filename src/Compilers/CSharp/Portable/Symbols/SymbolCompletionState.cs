@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private volatile int _completeParts;
 
-        internal int IncompleteParts
+        internal readonly int IncompleteParts
         {
             get
             {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NotePartComplete(CompletionPart.All);
         }
 
-        internal bool HasComplete(CompletionPart part)
+        internal readonly bool HasComplete(CompletionPart part)
         {
             // completeParts is used as a flag indicating completion of other assignments 
             // Volatile.Read is used to ensure the read is not reordered/optimized to happen 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override string ToString()
+        public override readonly string ToString()
         {
             StringBuilder result = new StringBuilder();
             result.Append("CompletionParts(");
