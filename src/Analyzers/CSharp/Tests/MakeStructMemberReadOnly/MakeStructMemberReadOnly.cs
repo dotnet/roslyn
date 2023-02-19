@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpMakeStructMemberReadOnlyCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructMemberReadOnly)]
-public class MakeStructMemberReadOnlyTests
+public sealed class MakeStructMemberReadOnlyTests
 {
     [Fact]
     public async Task TestEmptyMethod()
@@ -273,7 +273,7 @@ public class MakeStructMemberReadOnlyTests
     }
 
     [Fact]
-    public async Task TestAutoPropertyAccessor1()
+    public async Task TestPropertyAccessor1()
     {
         var test = """
             struct S
@@ -290,7 +290,7 @@ public class MakeStructMemberReadOnlyTests
     }
 
     [Fact]
-    public async Task TestAutoPropertyAccessor2()
+    public async Task TestPropertyAccessor2()
     {
         await new VerifyCS.Test
         {
@@ -310,7 +310,27 @@ public class MakeStructMemberReadOnlyTests
     }
 
     [Fact]
-    public async Task TestAutoPropertyAccessor3()
+    public async Task TestIndexerAccessor2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int this[int i] { [|get|] => 0; }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                readonly int this[int i] { get => 0; }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestPropertyAccessor3()
     {
         await new VerifyCS.Test
         {
@@ -324,6 +344,26 @@ public class MakeStructMemberReadOnlyTests
             struct S
             {
                 readonly int P { get { return 0; } }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestIndexerAccessor3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int this[int i] { [|get|] { return 0; } }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                readonly int this[int i] { get { return 0; } }
             }
             """
         }.RunAsync();
@@ -450,6 +490,30 @@ public class MakeStructMemberReadOnlyTests
     }
 
     [Fact]
+    public async Task TestMultipleIndexerAccessor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+
+                int this[int x] { [|get|] => 0; [|set|] { } }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                int i;
+
+                readonly int this[int x] { get => 0; set { } }
+            }
+            """,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestMultipleAccessor_FixOne1()
     {
         await new VerifyCS.Test
@@ -494,6 +558,50 @@ public class MakeStructMemberReadOnlyTests
     }
 
     [Fact]
+    public async Task TestMultipleIndexerAccessor_FixOne1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+
+                int this[int x] { [|get|] => 0; [|set|] { } }
+            }
+            """,
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    struct S
+                    {
+                        int i;
+
+                        int this[int x] { readonly get => 0; set { } }
+                    }
+                    """,
+                },
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(5,32): info IDE0251: 
+                    VerifyCS.Diagnostic("IDE0251").WithSeverity(DiagnosticSeverity.Info).WithSpan(5, 32, 5, 35).WithOptions(DiagnosticOptions.IgnoreAdditionalLocations),
+                },
+            },
+            BatchFixedCode = """
+            struct S
+            {
+                int i;
+
+                readonly int this[int x] { get => 0; set { } }
+            }
+            """,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestMultipleAccessor2()
     {
         await new VerifyCS.Test
@@ -512,6 +620,30 @@ public class MakeStructMemberReadOnlyTests
                 int i;
 
                 readonly int X { get => 0; set { } }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleIndexerAccessor2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+
+                int this[int x] { [|get|] => 0; readonly set { } }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                int i;
+
+                readonly int this[int x] { get => 0; set { } }
             }
             """
         }.RunAsync();
@@ -584,6 +716,28 @@ public class MakeStructMemberReadOnlyTests
                 void X()
                 {
                     x = 1;
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithCallToNonReadOnlyIndexer()
+    {
+        var test = """
+            struct S
+            {
+                int x;
+                int this[int x] { get { x++; } set { return x++; } }
+
+                void M()
+                {
+                    var v = this[0];
                 }
             }
             """;
@@ -682,6 +836,70 @@ public class MakeStructMemberReadOnlyTests
             {
                 readonly void M() { this.X(); }
                 readonly void X() { }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCallToReadOnlyIndexer1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+                int this[int x] { readonly get => 0; set { i++; } }
+
+                void [|M|]()
+                {
+                    var v = this[0];
+                }
+            }
+            """,
+            FixedCode = """
+            struct Sstruct S
+            {
+                int i;
+                int this[int x] { readonly get => 0; set { i++; } }
+
+                readonly void M()
+                {
+                    var v = this[0];
+                }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCallToReadOnlyIndexer2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+                readonly int this[int x] { get => 0; }
+
+                void [|M|]()
+                {
+                    var v = this[0];
+                }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                int i;
+                readonly int this[int x] { get => 0; }
+            
+                readonly void M()
+                {
+                    var v = this[0];
+                }
             }
             """
         }.RunAsync();

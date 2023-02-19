@@ -90,7 +90,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             if (owningMethod.AssociatedSymbol is not IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] })
                 return;
 
-            if (reference.GetSyntax(cancellationToken) is not PropertyDeclarationSyntax propertyDeclaration)
+            if (reference.GetSyntax(cancellationToken) is not BasePropertyDeclarationSyntax propertyDeclaration)
                 return;
 
             if (propertyDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
@@ -150,6 +150,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             MethodDeclarationSyntax methodDeclaration => methodDeclaration.Identifier.GetLocation(),
             AccessorDeclarationSyntax accessorDeclaration => accessorDeclaration.Keyword.GetLocation(),
             PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Identifier.GetLocation(),
+            IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.ThisKeyword.GetLocation(),
             _ => null
         };
 

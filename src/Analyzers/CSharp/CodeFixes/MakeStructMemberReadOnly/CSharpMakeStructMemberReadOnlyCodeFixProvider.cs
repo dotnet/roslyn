@@ -50,13 +50,13 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
         var generator = editor.Generator;
         foreach (var declaration in declarations.OrderByDescending(t => t.SpanStart))
         {
-            if (declaration is MethodDeclarationSyntax or PropertyDeclarationSyntax)
+            if (declaration is MethodDeclarationSyntax or BasePropertyDeclarationSyntax)
             {
                 editor.ReplaceNode(
                     declaration,
                     UpdateReadOnlyModifier(declaration, add: true));
             }
-            else if (declaration is AccessorDeclarationSyntax { Parent: AccessorListSyntax { Parent: PropertyDeclarationSyntax property } accessorList } accessor)
+            else if (declaration is AccessorDeclarationSyntax { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax property } accessorList } accessor)
             {
                 if (accessorList.Accessors.Count == 1)
                 {
@@ -73,7 +73,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
                         property,
                         (current, generator) =>
                         {
-                            var currentProperty = (PropertyDeclarationSyntax)current;
+                            var currentProperty = (BasePropertyDeclarationSyntax)current;
                             var currentAccessorList = currentProperty.AccessorList;
                             Contract.ThrowIfNull(currentAccessorList);
 
