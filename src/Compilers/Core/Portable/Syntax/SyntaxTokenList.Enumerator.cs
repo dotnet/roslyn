@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Gets the current element in the collection.
             /// </summary>
-            public SyntaxToken Current
+            public readonly SyntaxToken Current
             {
                 get
                 {
@@ -117,12 +117,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public override bool Equals(object? obj)
+            public override readonly bool Equals(object? obj)
             {
                 throw new NotSupportedException();
             }
 
-            public override int GetHashCode()
+            public override readonly int GetHashCode()
             {
                 throw new NotSupportedException();
             }

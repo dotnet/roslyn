@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private const int IsNullableAnalysisEnabledBit = 1 << IsNullableAnalysisEnabledOffset;
 
-            public bool TryGetReturnsVoid(out bool value)
+            public readonly bool TryGetReturnsVoid(out bool value)
             {
                 int bits = _flags;
                 value = (bits & ReturnsVoidBit) != 0;
@@ -88,22 +88,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ThreadSafeFlagOperations.Set(ref _flags, (int)(ReturnsVoidIsSetBit | (value ? ReturnsVoidBit : 0)));
             }
 
-            public MethodKind MethodKind
+            public readonly MethodKind MethodKind
             {
                 get { return (MethodKind)((_flags >> MethodKindOffset) & MethodKindMask); }
             }
 
-            public bool IsExtensionMethod
+            public readonly bool IsExtensionMethod
             {
                 get { return (_flags & IsExtensionMethodBit) != 0; }
             }
 
-            public bool IsNullableAnalysisEnabled
+            public readonly bool IsNullableAnalysisEnabled
             {
                 get { return (_flags & IsNullableAnalysisEnabledBit) != 0; }
             }
 
-            public bool IsMetadataVirtualLocked
+            public readonly bool IsMetadataVirtualLocked
             {
                 get { return (_flags & IsMetadataVirtualLockedBit) != 0; }
             }
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public bool TryGetNullableContext(out byte? value)
+            public readonly bool TryGetNullableContext(out byte? value)
             {
                 return ((NullableContextKind)((_flags >> NullableContextOffset) & NullableContextMask)).TryGetByte(out value);
             }

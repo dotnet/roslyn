@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.Generation = generation;
         }
 
-        public bool Equals(DebugId other)
+        public readonly bool Equals(DebugId other)
         {
             return this.Ordinal == other.Ordinal
                 && this.Generation == other.Generation;
@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return obj is DebugId && Equals((DebugId)obj);
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return Hash.Combine(this.Ordinal, this.Generation);
         }
 
-        internal string GetDebuggerDisplay()
+        internal readonly string GetDebuggerDisplay()
         {
             return (Generation > 0) ? $"{Ordinal}#{Generation}" : Ordinal.ToString();
         }

@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
                 foreach (var local in _locals)
                 {
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _analysis._inUnsafeRegion = inUnsafeRegion;
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
                 _analysis._inUnsafeRegion = _previousRegion;
             }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _analysis._patternInputValEscape = patternInputValEscape;
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
                 _analysis._patternInputValEscape = _previousInputValEscape;
             }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
                 foreach (var (placeholder, _) in _placeholders)
                 {

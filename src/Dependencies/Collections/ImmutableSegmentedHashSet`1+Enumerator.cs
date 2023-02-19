@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Collections
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Current"/>
             public T Current => _enumerator.Current;
 
-            object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
+            readonly object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Dispose()"/>
             public void Dispose()

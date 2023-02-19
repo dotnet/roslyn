@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             private int _curStack;
             private int _instructionsEmitted;
 
-            internal int InstructionsEmitted
+            internal readonly int InstructionsEmitted
             {
                 get
                 {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// </summary>
             internal int MaxStack
             {
-                get
+                readonly get
                 {
                     return _maxStack;
                 }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// </summary>
             internal int CurStack
             {
-                get
+                readonly get
                 {
                     return _curStack;
                 }

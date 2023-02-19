@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 _index = -1;
             }
 
-            public T Current
+            public readonly T Current
             {
                 get
                 {

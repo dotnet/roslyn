@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis
         {
             public int Exponent;
             public string Mantissa;
-            public uint MantissaCount => (uint)Mantissa.Length;
+            public readonly uint MantissaCount => (uint)Mantissa.Length;
 
             /// <summary>
             /// Create a DecimalFloatingPointString from a string representing a floating-point literal.

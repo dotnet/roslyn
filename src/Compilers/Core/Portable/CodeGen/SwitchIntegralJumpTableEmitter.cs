@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return crumbled.ToImmutableAndFree();
         }
 
-        private SwitchBucket CreateNextBucket(int startLabelIndex, int endLabelIndex)
+        private readonly SwitchBucket CreateNextBucket(int startLabelIndex, int endLabelIndex)
         {
             Debug.Assert(startLabelIndex >= 0 && startLabelIndex <= endLabelIndex);
             return new SwitchBucket(_sortedCaseLabels, startLabelIndex);
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _builder.EmitBranch(ILOpCode.Br, bucketFallThroughLabel);
         }
 
-        private object[] CreateBucketLabels(SwitchBucket switchBucket)
+        private readonly object[] CreateBucketLabels(SwitchBucket switchBucket)
         {
             //  switch (N, t1, t2... tN)
             //      IL ==> ILOpCode.Switch < unsigned int32 > < int32 >... < int32 >
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         #region "Helper emit methods"
 
-        private void EmitCondBranchForSwitch(ILOpCode branchCode, ConstantValue constant, object targetLabel)
+        private readonly void EmitCondBranchForSwitch(ILOpCode branchCode, ConstantValue constant, object targetLabel)
         {
             Debug.Assert(branchCode.IsBranch());
             RoslynDebug.Assert(constant != null &&
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _builder.EmitBranch(branchCode, targetLabel, GetReverseBranchCode(branchCode));
         }
 
-        private void EmitEqBranchForSwitch(ConstantValue constant, object targetLabel)
+        private readonly void EmitEqBranchForSwitch(ConstantValue constant, object targetLabel)
         {
             RoslynDebug.Assert(constant != null &&
                 SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(constant));
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private void EmitRangeCheckedBranch(ConstantValue startConstant, ConstantValue endConstant, object targetLabel)
+        private readonly void EmitRangeCheckedBranch(ConstantValue startConstant, ConstantValue endConstant, object targetLabel)
         {
             _builder.EmitLoad(_key);
 
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _builder.EmitNumericConversion(_keyTypeCode, Microsoft.Cci.PrimitiveTypeCode.UInt32, false);
         }
 
-        private void EmitRangeCheckIfNeeded(ConstantValue startConstant, ConstantValue endConstant, object bucketFallThroughLabel)
+        private readonly void EmitRangeCheckIfNeeded(ConstantValue startConstant, ConstantValue endConstant, object bucketFallThroughLabel)
         {
             // switch treats key as an unsigned int.
             // this ensures that normalization does not introduce [over|under]flows issues with 32bit or shorter keys.

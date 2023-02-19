@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 return false;
             }
 
-            public GreenNode Current
+            public readonly GreenNode Current
             {
                 get { return _currentChild!; }
             }

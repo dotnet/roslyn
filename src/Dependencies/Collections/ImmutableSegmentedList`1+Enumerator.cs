@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public T Current => _enumerator.Current;
 
-            object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
+            readonly object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
 
             public void Dispose()
                 => _enumerator.Dispose();

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public MethodKind MethodKind
             {
-                get
+                readonly get
                 {
                     return (MethodKind)((_bits >> MethodKindOffset) & MethodKindMask);
                 }
@@ -123,29 +123,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            public bool MethodKindIsPopulated => (_bits & MethodKindIsPopulatedBit) != 0;
-            public bool IsExtensionMethod => (_bits & IsExtensionMethodBit) != 0;
-            public bool IsExtensionMethodIsPopulated => (_bits & IsExtensionMethodIsPopulatedBit) != 0;
-            public bool IsExplicitFinalizerOverride => (_bits & IsExplicitFinalizerOverrideBit) != 0;
-            public bool IsExplicitClassOverride => (_bits & IsExplicitClassOverrideBit) != 0;
-            public bool IsExplicitOverrideIsPopulated => (_bits & IsExplicitOverrideIsPopulatedBit) != 0;
-            public bool IsObsoleteAttributePopulated => (_bits & IsObsoleteAttributePopulatedBit) != 0;
-            public bool IsCustomAttributesPopulated => (_bits & IsCustomAttributesPopulatedBit) != 0;
-            public bool IsUseSiteDiagnosticPopulated => (_bits & IsUseSiteDiagnosticPopulatedBit) != 0;
-            public bool IsConditionalPopulated => (_bits & IsConditionalPopulatedBit) != 0;
-            public bool IsOverriddenOrHiddenMembersPopulated => (_bits & IsOverriddenOrHiddenMembersPopulatedBit) != 0;
-            public bool IsReadOnly => (_bits & IsReadOnlyBit) != 0;
-            public bool IsReadOnlyPopulated => (_bits & IsReadOnlyPopulatedBit) != 0;
-            public bool DoesNotReturn => (_bits & DoesNotReturnBit) != 0;
-            public bool IsDoesNotReturnPopulated => (_bits & IsDoesNotReturnPopulatedBit) != 0;
-            public bool IsMemberNotNullPopulated => (_bits & IsMemberNotNullPopulatedBit) != 0;
-            public bool IsInitOnly => (_bits & IsInitOnlyBit) != 0;
-            public bool IsInitOnlyPopulated => (_bits & IsInitOnlyPopulatedBit) != 0;
-            public bool IsUnmanagedCallersOnlyAttributePopulated => (_bits & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
-            public bool HasSetsRequiredMembers => (_bits & HasSetsRequiredMembersBit) != 0;
-            public bool HasSetsRequiredMembersPopulated => (_bits & HasSetsRequiredMembersPopulatedBit) != 0;
-            public bool IsUnscopedRef => (_bits & IsUnscopedRefBit) != 0;
-            public bool IsUnscopedRefPopulated => (_bits & IsUnscopedRefPopulatedBit) != 0;
+            public readonly bool MethodKindIsPopulated => (_bits & MethodKindIsPopulatedBit) != 0;
+            public readonly bool IsExtensionMethod => (_bits & IsExtensionMethodBit) != 0;
+            public readonly bool IsExtensionMethodIsPopulated => (_bits & IsExtensionMethodIsPopulatedBit) != 0;
+            public readonly bool IsExplicitFinalizerOverride => (_bits & IsExplicitFinalizerOverrideBit) != 0;
+            public readonly bool IsExplicitClassOverride => (_bits & IsExplicitClassOverrideBit) != 0;
+            public readonly bool IsExplicitOverrideIsPopulated => (_bits & IsExplicitOverrideIsPopulatedBit) != 0;
+            public readonly bool IsObsoleteAttributePopulated => (_bits & IsObsoleteAttributePopulatedBit) != 0;
+            public readonly bool IsCustomAttributesPopulated => (_bits & IsCustomAttributesPopulatedBit) != 0;
+            public readonly bool IsUseSiteDiagnosticPopulated => (_bits & IsUseSiteDiagnosticPopulatedBit) != 0;
+            public readonly bool IsConditionalPopulated => (_bits & IsConditionalPopulatedBit) != 0;
+            public readonly bool IsOverriddenOrHiddenMembersPopulated => (_bits & IsOverriddenOrHiddenMembersPopulatedBit) != 0;
+            public readonly bool IsReadOnly => (_bits & IsReadOnlyBit) != 0;
+            public readonly bool IsReadOnlyPopulated => (_bits & IsReadOnlyPopulatedBit) != 0;
+            public readonly bool DoesNotReturn => (_bits & DoesNotReturnBit) != 0;
+            public readonly bool IsDoesNotReturnPopulated => (_bits & IsDoesNotReturnPopulatedBit) != 0;
+            public readonly bool IsMemberNotNullPopulated => (_bits & IsMemberNotNullPopulatedBit) != 0;
+            public readonly bool IsInitOnly => (_bits & IsInitOnlyBit) != 0;
+            public readonly bool IsInitOnlyPopulated => (_bits & IsInitOnlyPopulatedBit) != 0;
+            public readonly bool IsUnmanagedCallersOnlyAttributePopulated => (_bits & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
+            public readonly bool HasSetsRequiredMembers => (_bits & HasSetsRequiredMembersBit) != 0;
+            public readonly bool HasSetsRequiredMembersPopulated => (_bits & HasSetsRequiredMembersPopulatedBit) != 0;
+            public readonly bool IsUnscopedRef => (_bits & IsUnscopedRefBit) != 0;
+            public readonly bool IsUnscopedRefPopulated => (_bits & IsUnscopedRefPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ThreadSafeFlagOperations.Set(ref _bits, IsOverriddenOrHiddenMembersPopulatedBit);
             }
 
-            public bool TryGetNullableContext(out byte? value)
+            public readonly bool TryGetNullableContext(out byte? value)
             {
                 return ((NullableContextKind)((_bits >> NullableContextOffset) & NullableContextMask)).TryGetByte(out value);
             }

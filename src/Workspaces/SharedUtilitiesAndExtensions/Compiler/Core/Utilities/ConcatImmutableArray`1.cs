@@ -65,11 +65,11 @@ namespace Roslyn.Utilities
                 return _current.MoveNext();
             }
 
-            void IDisposable.Dispose()
+            readonly void IDisposable.Dispose()
             {
             }
 
-            void IEnumerator.Reset()
+            readonly void IEnumerator.Reset()
                 => throw new NotSupportedException();
         }
     }

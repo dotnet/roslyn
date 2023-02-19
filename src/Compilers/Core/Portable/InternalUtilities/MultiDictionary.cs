@@ -53,11 +53,11 @@ namespace Roslyn.Utilities
                     }
                 }
 
-                public void Dispose()
+                public readonly void Dispose()
                 {
                 }
 
-                public void Reset()
+                public readonly void Reset()
                 {
                     throw new NotSupportedException();
                 }

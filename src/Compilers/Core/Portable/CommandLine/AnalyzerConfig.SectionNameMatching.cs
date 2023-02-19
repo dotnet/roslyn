@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis
                 Position = 0;
             }
 
-            public bool IsDone => Position >= _sectionName.Length;
+            public readonly bool IsDone => Position >= _sectionName.Length;
 
             public TokenKind Lex()
             {
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public char CurrentCharacter => _sectionName[Position];
+            public readonly char CurrentCharacter => _sectionName[Position];
 
             /// <summary>
             /// Call after getting <see cref="TokenKind.SimpleCharacter" /> from <see cref="Lex()" />
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public char this[int position] => _sectionName[position];
+            public readonly char this[int position] => _sectionName[position];
 
             /// <summary>
             /// Returns the string representation of a decimal integer, or null if

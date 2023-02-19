@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public int Code, Line, Column;
         public string[] Parameters;
 
-        public override string ToString()
+        public override readonly string ToString()
         {
             return string.Format("Line={0}, Column={1}, Code={2}, IsWarning={3}", this.Line, this.Column, this.Code, this.IsWarning);
         }

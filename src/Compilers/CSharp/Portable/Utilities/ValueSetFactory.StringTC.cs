@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private struct StringTC : IEquatableValueTC<string>
         {
-            string IEquatableValueTC<string>.FromConstantValue(ConstantValue constantValue)
+            readonly string IEquatableValueTC<string>.FromConstantValue(ConstantValue constantValue)
             {
                 var result = constantValue.IsBad ? string.Empty : constantValue.StringValue;
                 Debug.Assert(result != null);
                 return result;
             }
 
-            string[] IEquatableValueTC<string>.RandomValues(int count, Random random, int scope)
+            readonly string[] IEquatableValueTC<string>.RandomValues(int count, Random random, int scope)
             {
                 Debug.Assert(count > 0);
                 Debug.Assert(scope >= count);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            ConstantValue IEquatableValueTC<string>.ToConstantValue(string value) => ConstantValue.Create(value);
+            readonly ConstantValue IEquatableValueTC<string>.ToConstantValue(string value) => ConstantValue.Create(value);
         }
     }
 }

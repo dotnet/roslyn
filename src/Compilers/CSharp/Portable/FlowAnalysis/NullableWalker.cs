@@ -11338,7 +11338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool Reachable => _state[0];
 
-            public bool NormalizeToBottom => false;
+            public readonly bool NormalizeToBottom => false;
 
             public static LocalState ReachableState(Variables variables)
             {
@@ -11383,7 +11383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new LocalState(variables.Id, container, CreateBitVector(reachable));
             }
 
-            public LocalState CreateNestedMethodState(Variables variables)
+            public readonly LocalState CreateNestedMethodState(Variables variables)
             {
                 Debug.Assert(Id == variables.Container!.Id);
                 return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(reachable: true));
@@ -11565,7 +11565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            internal LocalState GetStateForVariables(int id)
+            internal readonly LocalState GetStateForVariables(int id)
             {
                 var state = this;
                 while (state.Id != id)

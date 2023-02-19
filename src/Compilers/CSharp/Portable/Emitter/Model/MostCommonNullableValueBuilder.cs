@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private int _value1;
         private int _value2;
 
-        internal byte? MostCommonValue
+        internal readonly byte? MostCommonValue
         {
             get
             {

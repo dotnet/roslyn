@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public Enumerator GetEnumerator()
+        public readonly Enumerator GetEnumerator()
         {
             return new Enumerator(_node);
         }
 
-        public Reversed Reverse()
+        public readonly Reversed Reverse()
         {
             return new Reversed(_node);
         }

@@ -13,20 +13,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private struct DoubleTC : FloatingTC<double>, INumericTC<double>
         {
-            double INumericTC<double>.MinValue => double.NegativeInfinity;
+            readonly double INumericTC<double>.MinValue => double.NegativeInfinity;
 
-            double INumericTC<double>.MaxValue => double.PositiveInfinity;
+            readonly double INumericTC<double>.MaxValue => double.PositiveInfinity;
 
-            double FloatingTC<double>.NaN => double.NaN;
+            readonly double FloatingTC<double>.NaN => double.NaN;
 
-            double INumericTC<double>.Zero => 0.0;
+            readonly double INumericTC<double>.Zero => 0.0;
 
             /// <summary>
             /// The implementation of Next depends critically on the internal representation of an IEEE floating-point
             /// number.  Every bit sequence between the representation of 0 and MaxValue represents a distinct
             /// value, and the integer representations are ordered by value the same as the floating-point numbers they represent.
             /// </summary>
-            public double Next(double value)
+            public readonly double Next(double value)
             {
                 Debug.Assert(!double.IsNaN(value));
                 Debug.Assert(value != double.PositiveInfinity);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BitConverter.Int64BitsToDouble((long)l);
             }
 
-            bool INumericTC<double>.Related(BinaryOperatorKind relation, double left, double right)
+            readonly bool INumericTC<double>.Related(BinaryOperatorKind relation, double left, double right)
             {
                 switch (relation)
                 {
@@ -78,14 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            double INumericTC<double>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0.0 : constantValue.DoubleValue;
+            readonly double INumericTC<double>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0.0 : constantValue.DoubleValue;
 
-            ConstantValue INumericTC<double>.ToConstantValue(double value) => ConstantValue.Create(value);
+            readonly ConstantValue INumericTC<double>.ToConstantValue(double value) => ConstantValue.Create(value);
 
             /// <summary>
             /// Produce a string for testing purposes that is likely to be the same independent of platform and locale.
             /// </summary>
-            string INumericTC<double>.ToString(double value) =>
+            readonly string INumericTC<double>.ToString(double value) =>
                 double.IsNaN(value) ? "NaN" :
                 value == double.NegativeInfinity ? "-Inf" :
                 value == double.PositiveInfinity ? "Inf" :
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return -Next(-value);
             }
 
-            double INumericTC<double>.Random(Random random)
+            readonly double INumericTC<double>.Random(Random random)
             {
                 return random.NextDouble() * 100 - 50;
             }

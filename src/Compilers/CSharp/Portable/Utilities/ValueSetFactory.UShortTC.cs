@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private struct UShortTC : INumericTC<ushort>
         {
-            ushort INumericTC<ushort>.MinValue => ushort.MinValue;
+            readonly ushort INumericTC<ushort>.MinValue => ushort.MinValue;
 
-            ushort INumericTC<ushort>.MaxValue => ushort.MaxValue;
+            readonly ushort INumericTC<ushort>.MaxValue => ushort.MaxValue;
 
-            ushort INumericTC<ushort>.Zero => 0;
+            readonly ushort INumericTC<ushort>.Zero => 0;
 
-            bool INumericTC<ushort>.Related(BinaryOperatorKind relation, ushort left, ushort right)
+            readonly bool INumericTC<ushort>.Related(BinaryOperatorKind relation, ushort left, ushort right)
             {
                 switch (relation)
                 {
@@ -38,25 +38,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ushort INumericTC<ushort>.Next(ushort value)
+            readonly ushort INumericTC<ushort>.Next(ushort value)
             {
                 Debug.Assert(value != ushort.MaxValue);
                 return (ushort)(value + 1);
             }
 
-            ushort INumericTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (ushort)0 : constantValue.UInt16Value;
+            readonly ushort INumericTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (ushort)0 : constantValue.UInt16Value;
 
-            ConstantValue INumericTC<ushort>.ToConstantValue(ushort value) => ConstantValue.Create(value);
+            readonly ConstantValue INumericTC<ushort>.ToConstantValue(ushort value) => ConstantValue.Create(value);
 
-            string INumericTC<ushort>.ToString(ushort value) => value.ToString();
+            readonly string INumericTC<ushort>.ToString(ushort value) => value.ToString();
 
-            ushort INumericTC<ushort>.Prev(ushort value)
+            readonly ushort INumericTC<ushort>.Prev(ushort value)
             {
                 Debug.Assert(value != ushort.MinValue);
                 return (ushort)(value - 1);
             }
 
-            ushort INumericTC<ushort>.Random(Random random)
+            readonly ushort INumericTC<ushort>.Random(Random random)
             {
                 return (ushort)random.Next();
             }

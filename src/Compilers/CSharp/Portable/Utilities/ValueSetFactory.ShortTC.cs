@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private struct ShortTC : INumericTC<short>
         {
-            short INumericTC<short>.MinValue => short.MinValue;
+            readonly short INumericTC<short>.MinValue => short.MinValue;
 
-            short INumericTC<short>.MaxValue => short.MaxValue;
+            readonly short INumericTC<short>.MaxValue => short.MaxValue;
 
-            short INumericTC<short>.Zero => 0;
+            readonly short INumericTC<short>.Zero => 0;
 
-            bool INumericTC<short>.Related(BinaryOperatorKind relation, short left, short right)
+            readonly bool INumericTC<short>.Related(BinaryOperatorKind relation, short left, short right)
             {
                 switch (relation)
                 {
@@ -38,25 +38,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            short INumericTC<short>.Next(short value)
+            readonly short INumericTC<short>.Next(short value)
             {
                 Debug.Assert(value != short.MaxValue);
                 return (short)(value + 1);
             }
 
-            short INumericTC<short>.Prev(short value)
+            readonly short INumericTC<short>.Prev(short value)
             {
                 Debug.Assert(value != short.MinValue);
                 return (short)(value - 1);
             }
 
-            short INumericTC<short>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (short)0 : constantValue.Int16Value;
+            readonly short INumericTC<short>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (short)0 : constantValue.Int16Value;
 
-            ConstantValue INumericTC<short>.ToConstantValue(short value) => ConstantValue.Create(value);
+            readonly ConstantValue INumericTC<short>.ToConstantValue(short value) => ConstantValue.Create(value);
 
-            string INumericTC<short>.ToString(short value) => value.ToString();
+            readonly string INumericTC<short>.ToString(short value) => value.ToString();
 
-            short INumericTC<short>.Random(Random random)
+            readonly short INumericTC<short>.Random(Random random)
             {
                 return (short)random.Next();
             }
