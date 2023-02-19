@@ -142,10 +142,15 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                         break;
                     }
 
-                    if (operation is IEventReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct, Parent: IEventAssignmentOperation })
+                    if (operation is IEventReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct })
                     {
                         // += or -= on an event off of a struct will cause a copy if we become readonly.
-                        return;
+                        if (operation.Parent is IEventAssignmentOperation)
+                            return;
+
+                        // a safe event reference.  Can stop looking upwards as this cannot return a value that could
+                        // mutate this value.
+                        break;
                     }
 
                     // See if we're accessing or invoking a method.
