@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
                 // For regular parameter arrays the code fix will need to search down
                 ReportParameterArrayDiagnostic(context, arrayCreationOperation.Syntax, elements, option.Notification.Severity, ArrayCreationOperationLocation.Descendants);
             }
-            else if (elements.Length > 0 && elements[0].Syntax.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
+            else if (elements is [{ Syntax.Parent: SyntaxNode(SyntaxKind.CollectionInitializerExpression) }, ..])
             {
                 // For collection initializers where the Add method takes a parameter array, the code fix
                 // will have to search up
