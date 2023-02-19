@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
@@ -1071,7 +1072,7 @@ public sealed class MakeStructMemberReadOnlyTests
     }
 
     [Fact]
-    public async Task TestNotWithReadOnlyMethodCallOnField()
+    public async Task TestWithReadOnlyMethodCallOnField()
     {
         await new VerifyCS.Test
         {
@@ -1105,6 +1106,66 @@ public sealed class MakeStructMemberReadOnlyTests
                 {
                     t.Dispose();
                 }
+            }
+            """,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithNonReadOnlyMethodOnUnconstrainedField()
+    {
+        var testCode = """
+            using System;
+            struct T<X> where X : IComparable
+            {
+                X x;
+                public void M() { x.CompareTo(null); }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = testCode,
+            FixedCode = testCode,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithNonReadOnlyMethodOnStructConstrainedField()
+    {
+        var testCode = """
+            using System;
+            struct T<X> where X : struct, IComparable
+            {
+                X x;
+                public void M() { x.CompareTo(null); }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = testCode,
+            FixedCode = testCode,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithNonReadOnlyMethodOnClassConstrainedField()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            struct T<X> where X : class, IComparable
+            {
+                X x;
+                public void [|M|]() { x.CompareTo(null); }
+            }
+            """,
+            FixedCode = """
+            using System;
+            struct T<X> where X : class, IComparable
+            {
+                X x;
+                public readonly void M() { x.CompareTo(null); }
             }
             """,
         }.RunAsync();

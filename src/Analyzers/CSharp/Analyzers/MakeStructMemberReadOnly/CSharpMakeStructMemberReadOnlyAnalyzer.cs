@@ -144,6 +144,14 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         return false;
     }
 
+    private static bool IsPotentiallyValueType(IOperation? instance)
+    {
+        // 1. A struct is a value type.
+        // 2. A type paramater that does not have the explicit 'class' constraint is potentially a value type.
+        return instance is { Type.TypeKind: TypeKind.Struct } ||
+               instance is { Type: ITypeParameterSymbol { HasReferenceTypeConstraint: false } };
+    }
+
     private static bool InstanceReferencePotentiallyMutatesThis(
         SemanticModel semanticModel,
         IMethodSymbol owningMethod,
@@ -161,7 +169,8 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         // Now walk up the instance-operation and see if any operation actually or potentially mutates this value.
         for (var operation = instanceOperation.Parent; operation != null; operation = operation.Parent)
         {
-            if (operation is IFieldReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct, Field.IsReadOnly: false } fieldReference)
+            if (operation is IFieldReferenceOperation { Field.IsReadOnly: false } fieldReference &&
+                IsPotentiallyValueType(fieldReference.Instance))
             {
                 // If we're writing to a field off of 'this'.  Can't make this `readonly`.
                 if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, fieldReference.Syntax, cancellationToken))
@@ -171,7 +180,8 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 continue;
             }
 
-            if (operation is IPropertyReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct } propertyReference)
+            if (operation is IPropertyReferenceOperation propertyReference &&
+                IsPotentiallyValueType(propertyReference.Instance))
             {
                 // If we're writing to a prop off of 'this'.  Can't make this `readonly`.
                 if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, propertyReference.Syntax, cancellationToken))
@@ -190,7 +200,8 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 return false;
             }
 
-            if (operation is IEventReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct })
+            if (operation is IEventReferenceOperation eventReference &&
+                IsPotentiallyValueType(eventReference.Instance))
             {
                 // += or -= on an event off of a struct will cause a copy if we become readonly.
                 if (operation.Parent is IEventAssignmentOperation)
@@ -202,18 +213,18 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             }
 
             // See if we're accessing or invoking a method.
-            if (operation is IMethodReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct } methodRefOperation)
+            if (operation is IMethodReferenceOperation methodRefOperation)
             {
                 // Either a mutating or not mutating method reference.  Regardless, once we examine it, we're done
                 // looking up as the method itself cannot return anything that could mutate this.
-                return IsPotentiallyMutatingMethod(owningMethod, methodRefOperation.Method);
+                return IsPotentiallyMutatingMethod(owningMethod, methodRefOperation.Instance, methodRefOperation.Method);
             }
 
-            if (operation is IInvocationOperation { Instance.Type.TypeKind: TypeKind.Struct } invocationOperation)
+            if (operation is IInvocationOperation invocationOperation)
             {
                 // Either a mutating or not mutating method reference.  Regardless, once we examine it, we're done
                 // looking up as the method itself cannot return anything that could mutate this.
-                return IsPotentiallyMutatingMethod(owningMethod, invocationOperation.TargetMethod);
+                return IsPotentiallyMutatingMethod(owningMethod, invocationOperation.Instance, invocationOperation.TargetMethod);
             }
 
             // Wasn't something that mutates this instance.  Go onto the next instance expression.
@@ -223,8 +234,14 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         return false;
     }
 
-    private static bool IsPotentiallyMutatingMethod(IMethodSymbol owningMethod, IMethodSymbol methodReference)
+    private static bool IsPotentiallyMutatingMethod(
+        IMethodSymbol owningMethod,
+        IOperation? instance,
+        IMethodSymbol methodReference)
     {
+        if (!IsPotentiallyValueType(instance))
+            return false;
+
         // Calling a readonly method off of a struct is fine since we know it can't mutate.
         if (methodReference.IsReadOnly)
             return false;
