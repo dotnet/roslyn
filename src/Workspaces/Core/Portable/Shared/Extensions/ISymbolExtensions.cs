@@ -141,11 +141,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var attribute in attributes)
             {
                 if (Equals(attribute.AttributeConstructor, constructor) &&
-                    attribute.ConstructorArguments.Length == 1 &&
-                    attribute.ConstructorArguments.First().Value is int)
+                    attribute.ConstructorArguments is [{ Value: int value }])
                 {
 #nullable disable // Should use unboxed value from previous 'is int' https://github.com/dotnet/roslyn/issues/39166
-                    var state = (EditorBrowsableState)attribute.ConstructorArguments.First().Value;
+                    var state = (EditorBrowsableState)value;
 #nullable enable
 
                     if (EditorBrowsableState.Never == state)
