@@ -351,11 +351,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol;
         }
 
-        public static bool IsParams([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            var parameters = symbol.GetParameters();
-            return parameters.Length > 0 && parameters[^1].IsParams;
-        }
+        public static bool IsParams([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol.GetParameters() is [.., { IsParams: true }];
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)
             => symbol switch
