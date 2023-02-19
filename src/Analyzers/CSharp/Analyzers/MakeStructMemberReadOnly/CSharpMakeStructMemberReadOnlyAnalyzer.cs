@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -81,20 +83,33 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             return;
         }
 
+        // No need to update an accessor if the containing property is already marked readonly
+        if (owningMethod.IsPropertyAccessor())
+        {
+            if (owningMethod.AssociatedSymbol is not IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] })
+                return;
+
+            if (reference.GetSyntax(cancellationToken) is not PropertyDeclarationSyntax propertyDeclaration)
+                return;
+
+            if (propertyDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
+                return;
+        }
+
         foreach (var operationBlock in context.OperationBlocks)
         {
             var semanticModel = operationBlock.SemanticModel;
             Contract.ThrowIfNull(semanticModel);
             foreach (var operation in operationBlock.DescendantsAndSelf())
             {
-                // if we're writing to `this` (e.g. `ref this` or `this = ...` then can't make this readonly.
+                // if we're writing to `this` (e.g. `ref this` or `this = ...` then can't make this `readonly`.
                 if (operation is IInstanceReferenceOperation { IsImplicit: false } instanceOperation &&
                     CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, instanceOperation.Syntax, cancellationToken))
                 {
                     return;
                 }
 
-                // We're writing to a field in the containing type.  Can't make this readonly.
+                // We're writing to a field in the containing type.  Can't make this `readonly`.
                 if (operation is IMemberReferenceOperation
                     {
                         Kind: OperationKind.FieldReference or OperationKind.PropertyReference,
@@ -150,6 +165,5 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             severity,
             additionalLocations: ImmutableArray.Create(declaration.GetLocation()),
             properties: null));
-
     }
 }

@@ -78,7 +78,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
                             Contract.ThrowIfNull(currentAccessorList);
 
                             var currentAccessor = currentAccessorList.Accessors.First(a => a.Kind() == accessor.Kind());
-                            var otherAccessor = currentAccessorList.Accessors.Single(a => a != current);
+                            var otherAccessor = currentAccessorList.Accessors.Single(a => a != currentAccessor);
 
                             if (otherAccessor.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
                             {
@@ -92,7 +92,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
                             {
                                 return currentProperty.ReplaceNode(
                                     currentAccessor,
-                                    UpdateReadOnlyModifier(current, add: true));
+                                    UpdateReadOnlyModifier(currentAccessor, add: true));
                             }
                         });
                 }

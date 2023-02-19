@@ -152,7 +152,7 @@ public class MakeStructMemberReadOnlyTests
     }
 
     [Fact]
-    public async Task TestNotWithWriteToField()
+    public async Task TestNotWithWriteToField1()
     {
         var test = """
             struct S
@@ -162,6 +162,70 @@ public class MakeStructMemberReadOnlyTests
                 {
                     x = 0;
                 }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithWriteToField2()
+    {
+        var test = """
+            struct S
+            {
+                int x;
+                void M()
+                {
+                    x++;
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithWriteToField3()
+    {
+        var test = """
+            struct S
+            {
+                int x;
+                void M()
+                {
+                    G(ref x);
+                }
+
+                static void G(ref int x) { }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithWriteToField4()
+    {
+        var test = """
+            struct S
+            {
+                int x;
+                void M()
+                {
+                    G(out x);
+                }
+
+                static void G(out int x) { x = 0; }
             }
             """;
         await new VerifyCS.Test
@@ -260,6 +324,194 @@ public class MakeStructMemberReadOnlyTests
             struct S
             {
                 readonly int P { get { return 0; } }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWriteToFieldNotThroughThis()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+
+                void [|M|]()
+                {
+                    S s;
+                    s.i = 1;
+                }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                int i;
+
+                readonly void M()
+                {
+                    S s;
+                    s.i = 1;
+                }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCallToStaticMethod()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+
+                void [|M|]()
+                {
+                    G();
+                }
+
+                static void G() { }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                int i;
+
+                readonly void M()
+                {
+                    G();
+                }
+            
+                static void G() { }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRecursiveCall()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+
+                void [|M|]()
+                {
+                    M();
+                }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                int i;
+
+                readonly void M()
+                {
+                    M();
+                }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleAccessor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+
+                int X { [|get|] => 0; [|set|] { } }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                int i;
+
+                readonly int X { get => 0; set { } }
+            }
+            """,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleAccessor_FixOne1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+
+                int X { [|get|] => 0; [|set|] { } }
+            }
+            """,
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    struct S
+                    {
+                        int i;
+
+                        int X { readonly get => 0; set { } }
+                    }
+                    """,
+                },
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(5,32): info IDE0251: 
+                    VerifyCS.Diagnostic("IDE0251").WithSeverity(DiagnosticSeverity.Info).WithSpan(5, 32, 5, 35).WithOptions(DiagnosticOptions.IgnoreAdditionalLocations),
+                },
+            },
+            BatchFixedCode = """
+            struct S
+            {
+                int i;
+
+                readonly int X { get => 0; set { } }
+            }
+            """,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleAccessor2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+
+                int X { [|get|] => 0; readonly set { } }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                int i;
+
+                readonly int X { get => 0; set { } }
             }
             """
         }.RunAsync();
