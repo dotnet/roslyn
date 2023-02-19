@@ -130,16 +130,16 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                             return;
 
                         // If we're reading, that's only ok if we know the get-accessor exists and it is itself readonly.
-                        // At that point we can stop looking upwards as properties must return values that would not mutate
-                        // this.
-                        if (propertyReference.Property.GetMethod is not null &&
-                            propertyReference.Property.GetMethod.IsReadOnly)
+                        // Otherwise it could mutate the value.
+                        if (propertyReference.Property.GetMethod is null ||
+                            !propertyReference.Property.GetMethod.IsReadOnly)
                         {
-                            break;
+                            return;
                         }
 
-                        // otherwise, we may mutate this instance and cannot make this method we're in readonly.
-                        return;
+                        // a safe property reference.  Can stop looking upwards as this cannot return a value that could
+                        // mutate this value.
+                        break;
                     }
 
                     if (operation is IEventReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct, Parent: IEventAssignmentOperation })
@@ -149,33 +149,27 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                     }
 
                     // See if we're accessing or invoking a method.
-                    var methodReference = operation switch
+                    if (operation is IMethodReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct } methodRefOperation)
                     {
-                        IMethodReferenceOperation { Instance.Type.TypeKind: TypeKind.Struct } methodRefOperation => methodRefOperation.Method,
-                        IInvocationOperation { Instance.Type.TypeKind: TypeKind.Struct } invocationOperation => invocationOperation.TargetMethod,
-                        _ => null,
-                    };
+                        if (IsPotentiallyMutatingMethod(methodRefOperation.Method))
+                            return;
 
-                    if (methodReference != null)
-                    {
-                        // Calling a readonly method off of a struct is fine since we know it can't mutate.
-                        if (methodReference.IsReadOnly)
-                            break;
-
-                        // If we're referencing the method we're in (Which isn't readonly yet) we don't want to mark us as
-                        // not-readonly. a recursive call shouldn't impact the final result.
-                        if (methodReference.Equals(owningMethod))
-                            break;
-
-                        // Any methods from System.Object or System.ValueType called on this `this` don't stop this from being readonly.
-                        if (methodReference.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType)
-                            break;
-
-                        // Any other non-readonly method usage on this means we can't be readonly.
-                        return;
+                        // a safe method reference.  Can stop looking upwards as this cannot return a value that could
+                        // mutate this value.
+                        break;
                     }
 
-                    // Wasn't a method off a struct.  This chain off this instance expression seems fine.
+                    if (operation is IInvocationOperation { Instance.Type.TypeKind: TypeKind.Struct } invocationOperation)
+                    {
+                        if (IsPotentiallyMutatingMethod(invocationOperation.TargetMethod))
+                            return;
+
+                        // a safe method reference.  Can stop looking upwards as this cannot return a value that could
+                        // mutate this value.
+                        break;
+                    }
+
+                    // Wasn't something that mutates this instance.  Go onto the next instance expression.
                     break;
                 }
             }
@@ -203,5 +197,24 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             severity,
             additionalLocations: ImmutableArray.Create(declaration.GetLocation()),
             properties: null));
+
+        bool IsPotentiallyMutatingMethod(IMethodSymbol methodReference)
+        {
+            // Calling a readonly method off of a struct is fine since we know it can't mutate.
+            if (methodReference.IsReadOnly)
+                return false;
+
+            // If we're referencing the method we're in (Which isn't readonly yet) we don't want to mark us as
+            // not-readonly. a recursive call shouldn't impact the final result.
+            if (methodReference.Equals(owningMethod))
+                return false;
+
+            // Any methods from System.Object or System.ValueType called on this `this` don't stop this from being readonly.
+            if (methodReference.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType)
+                return false;
+
+            // Any other non-readonly method usage on this means we can't be readonly.
+            return true;
+        }
     }
 }
