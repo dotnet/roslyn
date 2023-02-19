@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     if (symbol is IMethodSymbol
                         {
                             MethodKind: MethodKind.ReducedExtension,
-                            ReducedFrom.Parameters: [{ RefKind: RefKind.Ref }],
+                            ReducedFrom.Parameters: [{ RefKind: RefKind.Ref }, ..],
                         })
                     {
                         return true;
