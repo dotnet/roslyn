@@ -2392,6 +2392,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
+            // 1..|
+            if (token.IsKind(SyntaxKind.DotDotToken) &&
+                token.Parent.IsKind(SyntaxKind.RangeExpression))
+            {
+                return true;
+            }
+
             // goo ? |
             if (token.IsKind(SyntaxKind.QuestionToken) &&
                 token.Parent is ConditionalExpressionSyntax conditionalExpression)

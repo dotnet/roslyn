@@ -12002,8 +12002,7 @@ ref struct MyRefStruct { }
             await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
         }
 
-        [Fact]
-        [WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")]
+        [Fact, WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")]
         public async Task DoNotProvideMemberOnSystemVoid()
         {
             var source = @"
@@ -12030,6 +12029,27 @@ public static class Extension
             var source = "enum E : $$";
 
             await VerifyNoItemsExistAsync(source);
+        }
+
+        [Fact, WorkItem(66903, "https://github.com/dotnet/roslyn/issues/66903")]
+        public async Task InRangeExpression()
+        {
+            var source = """
+                class C
+                {
+                    const int Test = 1;
+
+                    void M(string s)
+                    {
+                        var endIndex = 1;
+                        var substr = s[1..$$];
+                    }
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "endIndex");
+            await VerifyItemExistsAsync(source, "Test");
+            await VerifyItemExistsAsync(source, "C");
         }
 
         private static string MakeMarkup(string source, string languageVersion = "Preview")
