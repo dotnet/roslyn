@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -121,12 +122,8 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                     return;
                 }
 
-                if (operation is IMethodReferenceOperation
-                    {
-                        Instance: IInstanceReferenceOperation,
-                        Method.IsReadOnly: false,
-                        Method: var methodReference,
-                    } &&
+                if (TryGetMethodReference(operation, out var methodReference) &&
+                    !methodReference.IsReadOnly &&
                     structType.Equals(methodReference.ContainingType))
                 {
                     // If we're referencing this method (Which isn't readonly yet) we don't want to mark us as not-readonly.
@@ -165,5 +162,20 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             severity,
             additionalLocations: ImmutableArray.Create(declaration.GetLocation()),
             properties: null));
+    }
+
+    private static bool TryGetMethodReference(IOperation operation, [NotNullWhen(true)] out IMethodSymbol? methodReference)
+    {
+        methodReference = null;
+        if (operation is IMethodReferenceOperation { Instance: IInstanceReferenceOperation } methodRefOperation)
+        {
+            methodReference = methodRefOperation.Method;
+        }
+        else if (operation is IInvocationOperation { Instance: IInstanceReferenceOperation } invocationOperation)
+        {
+            methodReference = invocationOperation.TargetMethod;
+        }
+
+        return methodReference != null;
     }
 }

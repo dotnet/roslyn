@@ -516,4 +516,174 @@ public class MakeStructMemberReadOnlyTests
             """
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestTakeRefReadOnlyToField()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                int i;
+
+                void [|M|]()
+                {
+                    ref readonly int x = ref i;
+                }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                int i;
+            
+                readonly void M()
+                {
+                    ref readonly int x = ref i;
+                }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithAddressOfFieldTaken()
+    {
+        var test = """
+            struct S
+            {
+                int x;
+                unsafe void M()
+                {
+                    fixed (int* y = &x)
+                    {
+                    }
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithCallToNonReadOnlyMethod()
+    {
+        var test = """
+            struct S
+            {
+                int x;
+                void M()
+                {
+                    this.X();
+                }
+
+                void X()
+                {
+                    x = 1;
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithCaptureOfNonReadOnlyMethod1()
+    {
+        var test = """
+            struct S
+            {
+                int x;
+                void M()
+                {
+                    System.Action v = this.X;
+                }
+
+                void X()
+                {
+                    x = 1;
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithCaptureOfNonReadOnlyMethod2()
+    {
+        var test = """
+            struct S
+            {
+                int x;
+                void M()
+                {
+                    var v = this.X;
+                }
+
+                void X()
+                {
+                    x = 1;
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCallToObjectMethod()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                void [|M|]() { this.ToString(); }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                readonly void M() { this.ToString(); }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCallToReadOnlyMethod()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                void [|M|]() { this.X(); }
+                readonly void X() { }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                readonly void M() { this.X(); }
+                readonly void X() { }
+            }
+            """
+        }.RunAsync();
+    }
 }
