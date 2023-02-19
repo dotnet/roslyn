@@ -44,12 +44,12 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
         CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
+        var generator = editor.Generator;
         var declarations = diagnostics.Select(d => d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
 
-        // process from lower to higher, that way we will fixup a nested struct first before fixing the outer struct.
-        var generator = editor.Generator;
         foreach (var declaration in declarations.OrderByDescending(t => t.SpanStart))
         {
+            // Methods and properties are easy to directly update.  We just add the 'readonly' modifier directly to them.
             if (declaration is MethodDeclarationSyntax or BasePropertyDeclarationSyntax)
             {
                 editor.ReplaceNode(
@@ -58,6 +58,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
             }
             else if (declaration is AccessorDeclarationSyntax { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax property } accessorList } accessor)
             {
+                // Accessors have rules about how 'readonly' should be added to it vs the containing property.
                 if (accessorList.Accessors.Count == 1)
                 {
                     // `int X { readonly get { } }` is not legal.it has to be `readonly int X { get { } }`.
@@ -90,6 +91,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
                             }
                             else
                             {
+                                // Otherwise, just add to this accessor alone.
                                 return currentProperty.ReplaceNode(
                                     currentAccessor,
                                     UpdateReadOnlyModifier(currentAccessor, add: true));
