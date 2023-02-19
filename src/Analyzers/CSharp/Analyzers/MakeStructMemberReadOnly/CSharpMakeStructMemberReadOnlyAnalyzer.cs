@@ -74,7 +74,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         // if it's not a method, or it's already readonly, nothing to do.
         if (context.OwningSymbol is not IMethodSymbol
             {
-                MethodKind: MethodKind.Ordinary or MethodKind.PropertyGet or MethodKind.PropertySet,
+                MethodKind: MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet,
                 IsReadOnly: false,
                 IsStatic: false,
                 IsImplicitlyDeclared: false,

@@ -686,4 +686,26 @@ public class MakeStructMemberReadOnlyTests
             """
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestExplicitInterfaceImpl()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            struct S : IEquatable<S>
+            {
+                bool IEquatable<S>.[|Equals|](S s) => true;
+            }
+            """,
+            FixedCode = """
+            using System;
+            struct S : IEquatable<S>
+            {
+                readonly bool IEquatable<S>.Equals(S s) => true;
+            }
+            """
+        }.RunAsync();
+    }
 }
