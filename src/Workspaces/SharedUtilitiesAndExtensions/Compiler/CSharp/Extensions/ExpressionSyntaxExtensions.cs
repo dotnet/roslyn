@@ -354,7 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
 
-
                 return false;
             }
 
