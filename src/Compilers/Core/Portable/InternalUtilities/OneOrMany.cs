@@ -195,7 +195,7 @@ namespace Roslyn.Utilities
                 return _index < _collection.Count;
             }
 
-            public readonly T Current => _collection[_index];
+            public T Current => _collection[_index];
         }
     }
 

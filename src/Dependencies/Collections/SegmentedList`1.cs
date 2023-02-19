@@ -1176,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 _current = default;
             }
 
-            public readonly void Dispose()
+            public void Dispose()
             {
             }
 
@@ -1205,7 +1205,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return false;
             }
 
-            public readonly T Current => _current!;
+            public T Current => _current!;
 
             object? IEnumerator.Current
             {

@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private struct ByteTC : INumericTC<byte>
         {
-            readonly byte INumericTC<byte>.MinValue => byte.MinValue;
+            byte INumericTC<byte>.MinValue => byte.MinValue;
 
-            readonly byte INumericTC<byte>.MaxValue => byte.MaxValue;
+            byte INumericTC<byte>.MaxValue => byte.MaxValue;
 
-            readonly byte INumericTC<byte>.Zero => 0;
+            byte INumericTC<byte>.Zero => 0;
 
-            readonly bool INumericTC<byte>.Related(BinaryOperatorKind relation, byte left, byte right)
+            bool INumericTC<byte>.Related(BinaryOperatorKind relation, byte left, byte right)
             {
                 switch (relation)
                 {
@@ -38,25 +38,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            readonly byte INumericTC<byte>.Next(byte value)
+            byte INumericTC<byte>.Next(byte value)
             {
                 Debug.Assert(value != byte.MaxValue);
                 return (byte)(value + 1);
             }
 
-            readonly byte INumericTC<byte>.Prev(byte value)
+            byte INumericTC<byte>.Prev(byte value)
             {
                 Debug.Assert(value != byte.MinValue);
                 return (byte)(value - 1);
             }
 
-            readonly byte INumericTC<byte>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (byte)0 : constantValue.ByteValue;
+            byte INumericTC<byte>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (byte)0 : constantValue.ByteValue;
 
-            readonly ConstantValue INumericTC<byte>.ToConstantValue(byte value) => ConstantValue.Create(value);
+            ConstantValue INumericTC<byte>.ToConstantValue(byte value) => ConstantValue.Create(value);
 
-            readonly string INumericTC<byte>.ToString(byte value) => value.ToString();
+            string INumericTC<byte>.ToString(byte value) => value.ToString();
 
-            readonly byte INumericTC<byte>.Random(Random random)
+            byte INumericTC<byte>.Random(Random random)
             {
                 return (byte)random.Next(byte.MinValue, byte.MaxValue + 1);
             }

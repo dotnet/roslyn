@@ -405,7 +405,7 @@ namespace Roslyn.Utilities
             private static ObjectPool<SegmentedDictionary<object, int>> GetDictionaryPool(bool valueEquality)
                 => valueEquality ? s_valueDictionaryPool : s_referenceDictionaryPool;
 
-            public readonly void Dispose()
+            public void Dispose()
             {
                 var pool = GetDictionaryPool(_valueEquality);
 
@@ -422,7 +422,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            public readonly bool TryGetReferenceId(object value, out int referenceId)
+            public bool TryGetReferenceId(object value, out int referenceId)
                 => _valueToIdMap.TryGetValue(value, out referenceId);
 
             public void Add(object value, bool isReusable)

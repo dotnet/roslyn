@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 _stack.Push(type);
             }
 
-            public readonly Type Current => _stack.Peek();
+            public Type Current => _stack.Peek();
 
             public bool MoveNext()
             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return _stack.Count > 0;
             }
 
-            public readonly void Reset()
+            public void Reset()
             {
                 throw new NotSupportedException();
             }

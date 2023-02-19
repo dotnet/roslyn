@@ -223,11 +223,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 _current = (-1, -1);
             }
 
-            public readonly (int depth, int localFuncIndex) Current => _current;
+            public (int depth, int localFuncIndex) Current => _current;
 
-            readonly object IEnumerator.Current => throw new NotImplementedException();
+            object IEnumerator.Current => throw new NotImplementedException();
 
-            public readonly void Dispose() => throw new NotImplementedException();
+            public void Dispose() => throw new NotImplementedException();
 
             public bool MoveNext()
             {
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 }
             }
 
-            public readonly void Reset() => throw new NotImplementedException();
+            public void Reset() => throw new NotImplementedException();
         }
 
         private class MethodInfo

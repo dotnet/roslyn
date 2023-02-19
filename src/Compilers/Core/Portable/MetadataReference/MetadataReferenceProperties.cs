@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException">
         /// <see cref="Kind"/> is <see cref="MetadataImageKind.Module"/>, as modules can't be aliased.
         /// </exception>
-        public readonly MetadataReferenceProperties WithAliases(ImmutableArray<string> aliases)
+        public MetadataReferenceProperties WithAliases(ImmutableArray<string> aliases)
         {
             return new MetadataReferenceProperties(_kind, aliases, _embedInteropTypes, HasRecursiveAliases);
         }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns <see cref="MetadataReferenceProperties"/> with <see cref="EmbedInteropTypes"/> set to specified value.
         /// </summary>
         /// <exception cref="ArgumentException"><see cref="Kind"/> is <see cref="MetadataImageKind.Module"/>, as interop types can't be embedded from modules.</exception>
-        public readonly MetadataReferenceProperties WithEmbedInteropTypes(bool embedInteropTypes)
+        public MetadataReferenceProperties WithEmbedInteropTypes(bool embedInteropTypes)
         {
             return new MetadataReferenceProperties(_kind, _aliases, embedInteropTypes, HasRecursiveAliases);
         }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns <see cref="MetadataReferenceProperties"/> with <see cref="HasRecursiveAliases"/> set to specified value.
         /// </summary>
-        internal readonly MetadataReferenceProperties WithRecursiveAliases(bool value)
+        internal MetadataReferenceProperties WithRecursiveAliases(bool value)
         {
             return new MetadataReferenceProperties(_kind, _aliases, _embedInteropTypes, value);
         }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The image kind (assembly or module) the reference refers to.
         /// </summary>
-        public readonly MetadataImageKind Kind => _kind;
+        public MetadataImageKind Kind => _kind;
 
         /// <summary>
         /// Alias that represents a global declaration space.
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// In C# these aliases can be used in "extern alias" syntax to disambiguate type names. 
         /// </remarks>
-        public readonly ImmutableArray<string> Aliases
+        public ImmutableArray<string> Aliases
         {
             get
             {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if interop types defined in the referenced metadata should be embedded into the compilation referencing the metadata.
         /// </summary>
-        public readonly bool EmbedInteropTypes => _embedInteropTypes;
+        public bool EmbedInteropTypes => _embedInteropTypes;
 
         /// <summary>
         /// True to apply <see cref="Aliases"/> recursively on the target assembly and on all its transitive dependencies.

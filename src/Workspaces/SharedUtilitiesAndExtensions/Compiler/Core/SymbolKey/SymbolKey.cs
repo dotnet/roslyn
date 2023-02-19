@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis
         /// Tries to resolve this <see cref="SymbolKey"/> in the given 
         /// <paramref name="compilation"/> to a matching symbol.
         /// </summary>
-        public readonly SymbolKeyResolution Resolve(
+        public SymbolKeyResolution Resolve(
             Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
         {
             return ResolveString(_symbolKeyData, compilation, ignoreAssemblyKey, cancellationToken);
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis
         /// Roslyn.  As such it should only be used for caching data, with the knowledge that
         /// the data may need to be recomputed if the cached data can no longer be used.
         /// </summary>
-        public override readonly string ToString()
+        public override string ToString()
             => _symbolKeyData;
 
         private static SymbolKeyResolution CreateResolution<TSymbol>(
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis
             return reader.Position;
         }
 
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             var position = GetDataStartPosition(_symbolKeyData);
 
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis
         public bool Equals(SymbolKey other)
             => Equals(other, ignoreCase: false);
 
-        private readonly bool Equals(SymbolKey other, bool ignoreCase)
+        private bool Equals(SymbolKey other, bool ignoreCase)
         {
             var position1 = GetDataStartPosition(_symbolKeyData);
             var position2 = GetDataStartPosition(other._symbolKeyData);

@@ -31,7 +31,7 @@ namespace Roslyn.Utilities
                 _tail = list;
             }
 
-            public readonly T Current
+            public T Current
             {
                 get
                 {
@@ -60,7 +60,7 @@ namespace Roslyn.Utilities
                 return false;
             }
 
-            public readonly void Dispose()
+            public void Dispose()
             {
             }
 
@@ -72,7 +72,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            public readonly void Reset()
+            public void Reset()
             {
                 throw new NotSupportedException();
             }

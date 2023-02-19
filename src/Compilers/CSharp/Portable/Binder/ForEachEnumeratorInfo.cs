@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public TypeSymbol CollectionType;
             public TypeWithAnnotations ElementTypeWithAnnotations;
-            public readonly TypeSymbol ElementType => ElementTypeWithAnnotations.Type;
+            public TypeSymbol ElementType => ElementTypeWithAnnotations.Type;
 
             public MethodArgumentInfo? GetEnumeratorInfo;
             public MethodSymbol CurrentPropertyGetter;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     location);
             }
 
-            public readonly bool IsIncomplete
+            public bool IsIncomplete
                 => GetEnumeratorInfo is null || MoveNextInfo is null || CurrentPropertyGetter is null;
         }
     }

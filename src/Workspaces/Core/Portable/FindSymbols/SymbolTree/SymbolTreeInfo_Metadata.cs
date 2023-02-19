@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     _checksum, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
 
-            public readonly void Dispose()
+            public void Dispose()
             {
                 // Return all the metadata nodes back to the pool so that they can be
                 // used for the next PEReference we read.
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private readonly void LookupMetadataDefinitions(
+            private void LookupMetadataDefinitions(
                 MetadataReader metadataReader,
                 NamespaceDefinition namespaceDefinition,
                 OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private readonly void AddNamespaceParts(
+            private void AddNamespaceParts(
                 MetadataReader metadataReader,
                 NamespaceDefinitionHandle namespaceHandle,
                 List<string> simpleNames)
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private readonly MetadataNode GetOrCreateChildNode(
+            private MetadataNode GetOrCreateChildNode(
                MetadataNode currentNode, string simpleName)
             {
                 if (_parentToChildren.TryGetValue(currentNode, static (childNode, simpleName) => childNode.Name == simpleName, simpleName, out var childNode))
@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return unsortedNodes.ToImmutableAndFree();
             }
 
-            private readonly void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
+            private void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
                 MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap,
                 MetadataNode parentNode,
                 int parentIndex,

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             _expectedSeparator = false;
         }
 
-        public readonly bool IsNull
+        public bool IsNull
         {
             get
             {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
         }
 
-        public readonly int Count
+        public int Count
         {
             get
             {
@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
         }
 
-        public readonly void Clear()
+        public void Clear()
         {
             _builder.Clear();
         }
 
-        private readonly void CheckExpectedElement()
+        private void CheckExpectedElement()
         {
             if (_expectedSeparator)
             {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
         }
 
-        private readonly void CheckExpectedSeparator()
+        private void CheckExpectedSeparator()
         {
             if (!_expectedSeparator)
             {
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             return this;
         }
 
-        public readonly SeparatedSyntaxList<TNode> ToList()
+        public SeparatedSyntaxList<TNode> ToList()
         {
             if (_builder == null)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             return _builder.ToSeparatedList<TNode>();
         }
 
-        public readonly SeparatedSyntaxList<TDerived> ToList<TDerived>() where TDerived : TNode
+        public SeparatedSyntaxList<TDerived> ToList<TDerived>() where TDerived : TNode
         {
             if (_builder == null)
             {

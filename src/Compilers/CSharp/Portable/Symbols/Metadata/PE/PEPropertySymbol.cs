@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
-            public readonly bool TryGetHasRequiredMemberAttribute(out bool hasRequiredMemberAttribute)
+            public bool TryGetHasRequiredMemberAttribute(out bool hasRequiredMemberAttribute)
             {
                 if ((_bits & RequiredMemberCompletionBit) != 0)
                 {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
-            public readonly bool TryGetHasUnscopedRefAttribute(out bool hasUnscopedRefAttribute)
+            public bool TryGetHasUnscopedRefAttribute(out bool hasUnscopedRefAttribute)
             {
                 if ((_bits & UnscopedRefCompletionBit) != 0)
                 {
@@ -113,9 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return false;
             }
 
-            public readonly bool IsSpecialName => (_bits & IsSpecialNameFlag) != 0;
-            public readonly bool IsRuntimeSpecialName => (_bits & IsRuntimeSpecialNameFlag) != 0;
-            public readonly bool CallMethodsDirectly => (_bits & CallMethodsDirectlyFlag) != 0;
+            public bool IsSpecialName => (_bits & IsSpecialNameFlag) != 0;
+            public bool IsRuntimeSpecialName => (_bits & IsRuntimeSpecialNameFlag) != 0;
+            public bool CallMethodsDirectly => (_bits & CallMethodsDirectlyFlag) != 0;
         }
 
         internal static PEPropertySymbol Create(

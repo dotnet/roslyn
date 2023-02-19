@@ -1178,13 +1178,13 @@ ReturnNotFound:
                 return false;
             }
 
-            public readonly KeyValuePair<TKey, TValue> Current => _current;
+            public KeyValuePair<TKey, TValue> Current => _current;
 
-            public readonly void Dispose()
+            public void Dispose()
             {
             }
 
-            readonly object? IEnumerator.Current
+            object? IEnumerator.Current
             {
                 get
                 {
@@ -1213,7 +1213,7 @@ ReturnNotFound:
                 _current = default;
             }
 
-            readonly DictionaryEntry IDictionaryEnumerator.Entry
+            DictionaryEntry IDictionaryEnumerator.Entry
             {
                 get
                 {
@@ -1226,7 +1226,7 @@ ReturnNotFound:
                 }
             }
 
-            readonly object IDictionaryEnumerator.Key
+            object IDictionaryEnumerator.Key
             {
                 get
                 {
@@ -1239,7 +1239,7 @@ ReturnNotFound:
                 }
             }
 
-            readonly object? IDictionaryEnumerator.Value
+            object? IDictionaryEnumerator.Value
             {
                 get
                 {
@@ -1398,7 +1398,7 @@ ReturnNotFound:
                     _currentKey = default;
                 }
 
-                public readonly void Dispose()
+                public void Dispose()
                 {
                 }
 
@@ -1425,9 +1425,9 @@ ReturnNotFound:
                     return false;
                 }
 
-                public readonly TKey Current => _currentKey!;
+                public TKey Current => _currentKey!;
 
-                readonly object? IEnumerator.Current
+                object? IEnumerator.Current
                 {
                     get
                     {
@@ -1598,7 +1598,7 @@ ReturnNotFound:
                     _currentValue = default;
                 }
 
-                public readonly void Dispose()
+                public void Dispose()
                 {
                 }
 
@@ -1624,9 +1624,9 @@ ReturnNotFound:
                     return false;
                 }
 
-                public readonly TValue Current => _currentValue!;
+                public TValue Current => _currentValue!;
 
-                readonly object? IEnumerator.Current
+                object? IEnumerator.Current
                 {
                     get
                     {

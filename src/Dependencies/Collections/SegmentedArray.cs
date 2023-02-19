@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 _current = (Memory<T>.Empty, Memory<T>.Empty);
             }
 
-            public readonly (Memory<T> first, Memory<T> second) Current => _current;
+            public (Memory<T> first, Memory<T> second) Current => _current;
 
             public bool MoveNext()
             {
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 _current = (Memory<T>.Empty, Memory<T>.Empty);
             }
 
-            public readonly (Memory<T> first, Memory<T> second) Current => _current;
+            public (Memory<T> first, Memory<T> second) Current => _current;
 
             public bool MoveNext()
             {
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     _current = (Memory<T>.Empty, Memory<T>.Empty);
                 }
 
-                public readonly (Memory<T> first, Memory<T> second) Current => _current;
+                public (Memory<T> first, Memory<T> second) Current => _current;
 
                 public bool MoveNext()
                 {
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 _current = Memory<T>.Empty;
             }
 
-            public readonly Memory<T> Current => _current;
+            public Memory<T> Current => _current;
 
             public bool MoveNext()
             {
@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     _current = Memory<T>.Empty;
                 }
 
-                public readonly Memory<T> Current => _current;
+                public Memory<T> Current => _current;
 
                 public bool MoveNext()
                 {

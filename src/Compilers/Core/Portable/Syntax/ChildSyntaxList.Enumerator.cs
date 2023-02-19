@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>Gets the element at the current position of the enumerator.</summary>
             /// <returns>The element in the <see cref="ChildSyntaxList" /> at the current position of the enumerator.</returns>
-            public readonly SyntaxNodeOrToken Current
+            public SyntaxNodeOrToken Current
             {
                 get
                 {

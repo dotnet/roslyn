@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return $"kind: {this.Kind} operandType: {this.OperandType} operandRefKind: {this.RefKind} return: {this.ReturnType}";
         }
 
-        public readonly RefKind RefKind
+        public RefKind RefKind
         {
             get
             {

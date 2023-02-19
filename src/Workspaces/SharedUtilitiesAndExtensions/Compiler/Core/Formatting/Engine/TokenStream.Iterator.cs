@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     _current = default;
                 }
 
-                public readonly void Dispose()
+                public void Dispose()
                 {
                 }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return false;
                 }
 
-                public readonly (int index, SyntaxToken currentToken, SyntaxToken nextToken) Current => _current;
+                public (int index, SyntaxToken currentToken, SyntaxToken nextToken) Current => _current;
 
                 object System.Collections.IEnumerator.Current
                 {

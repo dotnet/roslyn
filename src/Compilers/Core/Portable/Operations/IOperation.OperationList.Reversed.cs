@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
                         _currentIndex = int.MaxValue;
                     }
 
-                    public readonly IOperation Current
+                    public IOperation Current
                     {
                         get
                         {

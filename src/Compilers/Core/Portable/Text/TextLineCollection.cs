@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Text
                 _index = index;
             }
 
-            public readonly TextLine Current
+            public TextLine Current
             {
                 get
                 {
@@ -137,20 +137,20 @@ namespace Microsoft.CodeAnalysis.Text
                 return this.MoveNext();
             }
 
-            readonly void IEnumerator.Reset()
+            void IEnumerator.Reset()
             {
             }
 
-            readonly void IDisposable.Dispose()
+            void IDisposable.Dispose()
             {
             }
 
-            public override readonly bool Equals(object? obj)
+            public override bool Equals(object? obj)
             {
                 throw new NotSupportedException();
             }
 
-            public override readonly int GetHashCode()
+            public override int GetHashCode()
             {
                 throw new NotSupportedException();
             }

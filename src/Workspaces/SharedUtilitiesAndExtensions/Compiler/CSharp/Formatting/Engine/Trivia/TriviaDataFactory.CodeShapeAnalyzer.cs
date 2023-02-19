@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _touchedNoisyCharacterOnCurrentLine = false;
             }
 
-            private readonly bool UseIndentation
+            private bool UseIndentation
             {
                 get { return _lastLineBreakIndex >= 0; }
             }

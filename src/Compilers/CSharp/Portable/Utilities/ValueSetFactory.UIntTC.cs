@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private struct UIntTC : INumericTC<uint>
         {
-            readonly uint INumericTC<uint>.MinValue => uint.MinValue;
+            uint INumericTC<uint>.MinValue => uint.MinValue;
 
-            readonly uint INumericTC<uint>.MaxValue => uint.MaxValue;
+            uint INumericTC<uint>.MaxValue => uint.MaxValue;
 
-            readonly uint INumericTC<uint>.Zero => 0;
+            uint INumericTC<uint>.Zero => 0;
 
-            public readonly bool Related(BinaryOperatorKind relation, uint left, uint right)
+            public bool Related(BinaryOperatorKind relation, uint left, uint right)
             {
                 switch (relation)
                 {
@@ -38,25 +38,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            readonly uint INumericTC<uint>.Next(uint value)
+            uint INumericTC<uint>.Next(uint value)
             {
                 Debug.Assert(value != uint.MaxValue);
                 return value + 1;
             }
 
-            public readonly uint FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (uint)0 : constantValue.UInt32Value;
+            public uint FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (uint)0 : constantValue.UInt32Value;
 
-            public readonly ConstantValue ToConstantValue(uint value) => ConstantValue.Create(value);
+            public ConstantValue ToConstantValue(uint value) => ConstantValue.Create(value);
 
-            readonly string INumericTC<uint>.ToString(uint value) => value.ToString();
+            string INumericTC<uint>.ToString(uint value) => value.ToString();
 
-            readonly uint INumericTC<uint>.Prev(uint value)
+            uint INumericTC<uint>.Prev(uint value)
             {
                 Debug.Assert(value != uint.MinValue);
                 return value - 1;
             }
 
-            public readonly uint Random(Random random)
+            public uint Random(Random random)
             {
                 return (uint)((random.Next() << 10) ^ random.Next());
             }

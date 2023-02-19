@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Members = pool.Allocate<MemberDeclarationSyntax>();
             }
 
-            internal readonly void Free(SyntaxListPool pool)
+            internal void Free(SyntaxListPool pool)
             {
                 pool.Free(Members);
                 pool.Free(Attributes);

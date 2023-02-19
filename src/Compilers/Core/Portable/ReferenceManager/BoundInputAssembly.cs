@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             /// </remarks>
             internal AssemblyReferenceBinding[]? ReferenceBinding;
 
-            private readonly string? GetDebuggerDisplay()
+            private string? GetDebuggerDisplay()
             {
                 return AssemblySymbol == null ? "?" : AssemblySymbol.ToString();
             }

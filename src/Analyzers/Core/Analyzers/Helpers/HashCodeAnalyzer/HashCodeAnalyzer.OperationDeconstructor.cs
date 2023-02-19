@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 _accessesBase = false;
             }
 
-            public readonly void Dispose()
+            public void Dispose()
                 => _hashedSymbols.Free();
 
-            public readonly (bool accessesBase, ImmutableArray<ISymbol> hashedSymbol) GetResult()
+            public (bool accessesBase, ImmutableArray<ISymbol> hashedSymbol) GetResult()
                 => (_accessesBase, _hashedSymbols.ToImmutable());
 
             /// <summary>
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            private readonly bool TryAddSymbol(ISymbol member)
+            private bool TryAddSymbol(ISymbol member)
             {
                 // Not a legal GetHashCode to convert if we refer to members multiple times.
                 if (_hashedSymbols.Contains(member))

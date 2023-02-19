@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             LambdaId = lambdaId;
         }
 
-        public readonly bool Equals(LambdaDebugInfo other)
+        public bool Equals(LambdaDebugInfo other)
         {
             return SyntaxOffset == other.SyntaxOffset
                 && ClosureOrdinal == other.ClosureOrdinal
@@ -56,13 +56,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return obj is LambdaDebugInfo && Equals((LambdaDebugInfo)obj);
         }
 
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return Hash.Combine(ClosureOrdinal,
                    Hash.Combine(SyntaxOffset, LambdaId.GetHashCode()));
         }
 
-        internal readonly string GetDebuggerDisplay()
+        internal string GetDebuggerDisplay()
         {
             return
                 ClosureOrdinal == StaticClosureOrdinal ? $"({LambdaId.GetDebuggerDisplay()} @{SyntaxOffset}, static)" :

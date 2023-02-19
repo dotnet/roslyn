@@ -420,9 +420,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 #nullable disable
 
-        private readonly bool HasFlag => _index < _dynamicTransformFlags.Length || !_checkLength;
+        private bool HasFlag => _index < _dynamicTransformFlags.Length || !_checkLength;
 
-        private readonly bool PeekFlag() => _index < _dynamicTransformFlags.Length && _dynamicTransformFlags[_index];
+        private bool PeekFlag() => _index < _dynamicTransformFlags.Length && _dynamicTransformFlags[_index];
 
         private bool ConsumeFlag()
         {

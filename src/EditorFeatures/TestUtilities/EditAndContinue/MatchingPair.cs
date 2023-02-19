@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public string Old;
         public string New;
 
-        public override readonly string ToString()
+        public override string ToString()
             => "{ \"" + Old.Replace("\"", "\\\"") + "\", \"" + New.Replace("\"", "\\\"") + "\" }";
     }
 

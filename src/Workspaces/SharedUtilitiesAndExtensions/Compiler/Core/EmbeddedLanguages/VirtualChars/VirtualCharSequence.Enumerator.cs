@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             }
 
             public bool MoveNext() => ++_position < _virtualCharSequence.Length;
-            public readonly VirtualChar Current => _virtualCharSequence[_position];
+            public VirtualChar Current => _virtualCharSequence[_position];
 
             public void Reset()
                 => _position = -1;
 
             object? IEnumerator.Current => this.Current;
-            public readonly void Dispose() { }
+            public void Dispose() { }
         }
     }
 }

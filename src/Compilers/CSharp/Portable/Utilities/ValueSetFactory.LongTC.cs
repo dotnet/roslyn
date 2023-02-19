@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private struct LongTC : INumericTC<long>
         {
-            readonly long INumericTC<long>.MinValue => long.MinValue;
+            long INumericTC<long>.MinValue => long.MinValue;
 
-            readonly long INumericTC<long>.MaxValue => long.MaxValue;
+            long INumericTC<long>.MaxValue => long.MaxValue;
 
-            readonly long INumericTC<long>.Zero => 0;
+            long INumericTC<long>.Zero => 0;
 
-            readonly bool INumericTC<long>.Related(BinaryOperatorKind relation, long left, long right)
+            bool INumericTC<long>.Related(BinaryOperatorKind relation, long left, long right)
             {
                 switch (relation)
                 {
@@ -38,25 +38,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            readonly long INumericTC<long>.Next(long value)
+            long INumericTC<long>.Next(long value)
             {
                 Debug.Assert(value != long.MaxValue);
                 return value + 1;
             }
 
-            readonly long INumericTC<long>.Prev(long value)
+            long INumericTC<long>.Prev(long value)
             {
                 Debug.Assert(value != long.MinValue);
                 return value - 1;
             }
 
-            readonly long INumericTC<long>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0L : constantValue.Int64Value;
+            long INumericTC<long>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0L : constantValue.Int64Value;
 
-            readonly ConstantValue INumericTC<long>.ToConstantValue(long value) => ConstantValue.Create(value);
+            ConstantValue INumericTC<long>.ToConstantValue(long value) => ConstantValue.Create(value);
 
-            readonly string INumericTC<long>.ToString(long value) => value.ToString();
+            string INumericTC<long>.ToString(long value) => value.ToString();
 
-            readonly long INumericTC<long>.Random(Random random)
+            long INumericTC<long>.Random(Random random)
             {
                 return ((long)random.Next() << 35) ^ ((long)random.Next() << 10) ^ (long)random.Next();
             }

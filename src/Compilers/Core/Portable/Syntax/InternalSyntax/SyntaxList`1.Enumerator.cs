@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 return false;
             }
 
-            public readonly TNode Current
+            public TNode Current
             {
                 get
                 {

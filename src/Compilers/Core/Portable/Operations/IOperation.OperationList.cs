@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis
                     _currentIndex = -1;
                 }
 
-                public readonly IOperation Current
+                public IOperation Current
                 {
                     get
                     {

@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private struct ULongTC : INumericTC<ulong>
         {
-            readonly ulong INumericTC<ulong>.MinValue => ulong.MinValue;
+            ulong INumericTC<ulong>.MinValue => ulong.MinValue;
 
-            readonly ulong INumericTC<ulong>.MaxValue => ulong.MaxValue;
+            ulong INumericTC<ulong>.MaxValue => ulong.MaxValue;
 
-            readonly ulong INumericTC<ulong>.Zero => 0;
+            ulong INumericTC<ulong>.Zero => 0;
 
-            readonly bool INumericTC<ulong>.Related(BinaryOperatorKind relation, ulong left, ulong right)
+            bool INumericTC<ulong>.Related(BinaryOperatorKind relation, ulong left, ulong right)
             {
                 switch (relation)
                 {
@@ -38,25 +38,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            readonly ulong INumericTC<ulong>.Next(ulong value)
+            ulong INumericTC<ulong>.Next(ulong value)
             {
                 Debug.Assert(value != ulong.MaxValue);
                 return value + 1;
             }
 
-            readonly ulong INumericTC<ulong>.Prev(ulong value)
+            ulong INumericTC<ulong>.Prev(ulong value)
             {
                 Debug.Assert(value != ulong.MinValue);
                 return value - 1;
             }
 
-            readonly ulong INumericTC<ulong>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0UL : constantValue.UInt64Value;
+            ulong INumericTC<ulong>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0UL : constantValue.UInt64Value;
 
-            readonly ConstantValue INumericTC<ulong>.ToConstantValue(ulong value) => ConstantValue.Create(value);
+            ConstantValue INumericTC<ulong>.ToConstantValue(ulong value) => ConstantValue.Create(value);
 
-            readonly string INumericTC<ulong>.ToString(ulong value) => value.ToString();
+            string INumericTC<ulong>.ToString(ulong value) => value.ToString();
 
-            readonly ulong INumericTC<ulong>.Random(Random random)
+            ulong INumericTC<ulong>.Random(Random random)
             {
                 return ((ulong)random.Next() << 35) ^ ((ulong)random.Next() << 10) ^ (ulong)random.Next();
             }

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             Check();
         }
 
-        public readonly bool Equals(BitVector other)
+        public bool Equals(BitVector other)
         {
             // Bit arrays only equal if their underlying sets are of the same size
             return _capacity == other._capacity
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             return !left.Equals(right);
         }
 
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             int bitsHash = _bits0.GetHashCode();
 
@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis
             return lastIndex;
         }
 
-        public readonly int Capacity => _capacity;
+        public int Capacity => _capacity;
 
         [Conditional("DEBUG_BITARRAY")]
-        private readonly void Check()
+        private void Check()
         {
             Debug.Assert(_capacity == 0 || WordsForCapacity(_capacity) <= _bits.Length);
         }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
             Check();
         }
 
-        public readonly IEnumerable<Word> Words()
+        public IEnumerable<Word> Words()
         {
             if (_capacity > 0)
             {
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
         /// Make a copy of a bit array.
         /// </summary>
         /// <returns></returns>
-        public readonly BitVector Clone()
+        public BitVector Clone()
         {
             Word[] newBits;
             if (_bits is null || _bits.Length == 0)
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Is the given bit array null?
         /// </summary>
-        public readonly bool IsNull
+        public bool IsNull
         {
             get
             {
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool this[int index]
         {
-            readonly get
+            get
             {
                 if (index < 0)
                     throw new IndexOutOfRangeException();

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _current = new ExtensionMethodScope();
         }
 
-        public readonly ExtensionMethodScope Current
+        public ExtensionMethodScope Current
         {
             get { return _current; }
         }

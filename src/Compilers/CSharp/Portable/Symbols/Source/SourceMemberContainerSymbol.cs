@@ -73,28 +73,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int HasDeclaredMembersBit = (1 << HasDeclaredRequiredMembersOffset);
             private const int HasDeclaredMembersBitSet = (1 << (HasDeclaredRequiredMembersOffset + 1));
 
-            public readonly SpecialType SpecialType
+            public SpecialType SpecialType
             {
                 get { return (SpecialType)((_flags >> SpecialTypeOffset) & SpecialTypeMask); }
             }
 
-            public readonly ManagedKind ManagedKind
+            public ManagedKind ManagedKind
             {
                 get { return (ManagedKind)((_flags >> ManagedKindOffset) & ManagedKindMask); }
             }
 
-            public readonly bool FieldDefinitionsNoted
+            public bool FieldDefinitionsNoted
             {
                 get { return (_flags & FieldDefinitionsNotedBit) != 0; }
             }
 
             // True if "lazyMembersFlattened" is sorted.
-            public readonly bool FlattenedMembersIsSorted
+            public bool FlattenedMembersIsSorted
             {
                 get { return (_flags & FlattenedMembersIsSortedBit) != 0; }
             }
 
-            public readonly TypeKind TypeKind
+            public TypeKind TypeKind
             {
                 get { return (TypeKind)((_flags >> TypeKindOffset) & TypeKindMask); }
             }
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ThreadSafeFlagOperations.Set(ref _flags, bitsToSet);
             }
 
-            public readonly bool TryGetNullableContext(out byte? value)
+            public bool TryGetNullableContext(out byte? value)
             {
                 return ((NullableContextKind)((_flags >> NullableContextOffset) & NullableContextMask)).TryGetByte(out value);
             }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ThreadSafeFlagOperations.Set(ref _flags, (((int)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
             }
 
-            public readonly bool TryGetHasDeclaredRequiredMembers(out bool value)
+            public bool TryGetHasDeclaredRequiredMembers(out bool value)
             {
                 if ((_flags & (HasDeclaredMembersBitSet)) != 0)
                 {

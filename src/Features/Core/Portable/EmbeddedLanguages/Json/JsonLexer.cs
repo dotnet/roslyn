@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             Text = text;
         }
 
-        public readonly VirtualChar CurrentChar => Text[Position];
+        public VirtualChar CurrentChar => Text[Position];
 
         public VirtualCharSequence GetCharsToCurrentPosition(int start)
             => GetSubSequence(start, Position);
 
-        public readonly VirtualCharSequence GetSubSequence(int start, int end)
+        public VirtualCharSequence GetSubSequence(int start, int end)
             => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public JsonToken ScanNextToken()
@@ -314,13 +314,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
                 new EmbeddedDiagnostic(FeaturesResources.Unterminated_comment, GetTextSpan(start, Position)));
         }
 
-        private readonly TextSpan GetTextSpan(int startInclusive, int endExclusive)
+        private TextSpan GetTextSpan(int startInclusive, int endExclusive)
             => TextSpan.FromBounds(Text[startInclusive].Span.Start, Text[endExclusive - 1].Span.End);
 
         private bool IsAt(string val)
             => TextAt(this.Position, val);
 
-        private readonly bool TextAt(int position, string val)
+        private bool TextAt(int position, string val)
         {
             for (var i = 0; i < val.Length; i++)
             {

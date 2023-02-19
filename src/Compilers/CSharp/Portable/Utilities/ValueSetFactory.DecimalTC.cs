@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             private static readonly decimal normalZero = new decimal(lo: 0, mid: 0, hi: 0, isNegative: false, scale: maxScale);
             private static readonly decimal epsilon = new decimal(lo: 1, mid: 0, hi: 0, isNegative: false, scale: maxScale);
 
-            readonly decimal INumericTC<decimal>.MinValue => decimal.MinValue;
+            decimal INumericTC<decimal>.MinValue => decimal.MinValue;
 
-            readonly decimal INumericTC<decimal>.MaxValue => decimal.MaxValue;
+            decimal INumericTC<decimal>.MaxValue => decimal.MaxValue;
 
-            readonly decimal INumericTC<decimal>.Zero => 0M;
+            decimal INumericTC<decimal>.Zero => 0M;
 
-            public readonly decimal FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0m : constantValue.DecimalValue;
+            public decimal FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0m : constantValue.DecimalValue;
 
-            public readonly ConstantValue ToConstantValue(decimal value) => ConstantValue.Create(value);
+            public ConstantValue ToConstantValue(decimal value) => ConstantValue.Create(value);
 
-            public readonly decimal Next(decimal value)
+            public decimal Next(decimal value)
             {
                 Debug.Assert(value != decimal.MaxValue);
                 if (value == 0m)
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            readonly bool INumericTC<decimal>.Related(BinaryOperatorKind relation, decimal left, decimal right)
+            bool INumericTC<decimal>.Related(BinaryOperatorKind relation, decimal left, decimal right)
             {
                 switch (relation)
                 {
@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            readonly string INumericTC<decimal>.ToString(decimal value) => FormattableString.Invariant($"{value:G}");
+            string INumericTC<decimal>.ToString(decimal value) => FormattableString.Invariant($"{value:G}");
 
             decimal INumericTC<decimal>.Prev(decimal value)
             {
                 return -Next(-value);
             }
 
-            public readonly decimal Random(Random random)
+            public decimal Random(Random random)
             {
                 INumericTC<uint> uinttc = default(UIntTC);
                 return new DecimalRep(

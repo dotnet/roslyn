@@ -69,19 +69,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
                 _enumerator = enumerator;
             }
 
-            public readonly bool MoveNext()
+            public bool MoveNext()
                 => _enumerator.MoveNext();
 
-            public readonly AspNetCoreVirtualChar Current
+            public AspNetCoreVirtualChar Current
                 => new(_enumerator.Current);
 
-            public readonly void Reset()
+            public void Reset()
                 => _enumerator.Reset();
 
             object IEnumerator.Current
                 => this.Current;
 
-            public readonly void Dispose()
+            public void Dispose()
                 => _enumerator.Dispose();
         }
     }

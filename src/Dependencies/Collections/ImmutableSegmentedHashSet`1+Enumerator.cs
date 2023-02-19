@@ -23,16 +23,16 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Current"/>
-            public readonly T Current => _enumerator.Current;
+            public T Current => _enumerator.Current;
 
-            readonly object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
+            object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Dispose()"/>
-            public readonly void Dispose()
+            public void Dispose()
                 => _enumerator.Dispose();
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.MoveNext()"/>
-            public readonly bool MoveNext()
+            public bool MoveNext()
                 => _enumerator.MoveNext();
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Reset()"/>

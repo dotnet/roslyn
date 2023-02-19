@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             this.MatchIgnoringCase = matchIgnoringCase;
         }
 
-        public readonly string FullName
+        public string FullName
         {
             get { return Namespace + "." + Name; }
         }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             return FullName + "(" + Signatures.Length + ")";
         }
 
-        internal readonly int GetParameterCount(int signatureIndex)
+        internal int GetParameterCount(int signatureIndex)
         {
             var signature = this.Signatures[signatureIndex];
 

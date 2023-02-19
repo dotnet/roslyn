@@ -18,7 +18,7 @@ namespace RunTests
 {
     internal record struct WorkItemInfo(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>> Filters, int PartitionIndex)
     {
-        internal readonly string DisplayName
+        internal string DisplayName
         {
             get
             {

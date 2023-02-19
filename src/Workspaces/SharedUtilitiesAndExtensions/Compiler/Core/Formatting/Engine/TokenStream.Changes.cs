@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // Created lazily
             private ConcurrentDictionary<int, TriviaData> _map;
 
-            public readonly bool TryRemove(int pairIndex)
+            public bool TryRemove(int pairIndex)
                 => _map?.TryRemove(pairIndex, out _) ?? false;
 
             public void AddOrReplace(int key, TriviaData triviaInfo)
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 map[key] = triviaInfo;
             }
 
-            public readonly bool TryGet(int key, [NotNullWhen(true)] out TriviaData? triviaInfo)
+            public bool TryGet(int key, [NotNullWhen(true)] out TriviaData? triviaInfo)
             {
                 triviaInfo = null;
 #pragma warning disable CS8762 // Parameter may not have a null value when exiting in some condition. https://github.com/dotnet/roslyn/issues/43241

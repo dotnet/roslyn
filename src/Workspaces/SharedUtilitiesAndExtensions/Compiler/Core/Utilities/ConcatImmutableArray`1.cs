@@ -50,7 +50,7 @@ namespace Roslyn.Utilities
                 _next = second.NullToEmpty();
             }
 
-            public readonly T Current => _current.Current;
+            public T Current => _current.Current;
             object? IEnumerator.Current => Current;
 
             public bool MoveNext()
@@ -65,11 +65,11 @@ namespace Roslyn.Utilities
                 return _current.MoveNext();
             }
 
-            readonly void IDisposable.Dispose()
+            void IDisposable.Dispose()
             {
             }
 
-            readonly void IEnumerator.Reset()
+            void IEnumerator.Reset()
                 => throw new NotSupportedException();
         }
     }

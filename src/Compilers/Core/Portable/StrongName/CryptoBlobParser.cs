@@ -51,17 +51,17 @@ namespace Microsoft.CodeAnalysis
             public const int RsaSign = 0x00002400;
             public const int Sha = 0x00008004;
 
-            public readonly bool IsSet
+            public bool IsSet
             {
                 get { return _flags != 0; }
             }
 
-            public readonly AlgorithmClass Class
+            public AlgorithmClass Class
             {
                 get { return (AlgorithmClass)((_flags >> AlgorithmClassOffset) & AlgorithmClassMask); }
             }
 
-            public readonly AlgorithmSubId SubId
+            public AlgorithmSubId SubId
             {
                 get { return (AlgorithmSubId)((_flags >> AlgorithmSubIdOffset) & AlgorithmSubIdMask); }
             }

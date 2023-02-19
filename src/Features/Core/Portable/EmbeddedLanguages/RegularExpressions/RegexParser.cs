@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private readonly bool ShouldConsumeSequenceElement(bool consumeCloseParen)
+        private bool ShouldConsumeSequenceElement(bool consumeCloseParen)
         {
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 ? GetTokenStartPositionSpan(token)
                 : token.GetSpan();
 
-        private readonly TextSpan GetTokenStartPositionSpan(RegexToken token)
+        private TextSpan GetTokenStartPositionSpan(RegexToken token)
         {
             return token.Kind == RegexKind.EndOfFile
                 ? new TextSpan(_lexer.Text.Last().Span.End, 0)
@@ -852,10 +852,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 result, ParseGroupingCloseParen());
         }
 
-        private readonly bool HasCapture(int value)
+        private bool HasCapture(int value)
             => _captureNumbersToSpan.ContainsKey(value);
 
-        private readonly bool HasCapture(string value)
+        private bool HasCapture(string value)
             => _captureNamesToSpan.ContainsKey(value);
 
         private void MoveBackBeforePreviousScan()
@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return false;
         }
 
-        private readonly bool TryGetRangeComponentValueWorker(RegexNode component, out int ch)
+        private bool TryGetRangeComponentValueWorker(RegexNode component, out int ch)
         {
             switch (component.Kind)
             {

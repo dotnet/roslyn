@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             return new JsonSeparatedList(result.ToImmutable());
         }
 
-        private readonly bool ShouldConsumeSequenceElement()
+        private bool ShouldConsumeSequenceElement()
             => _currentToken.Kind switch
             {
                 JsonKind.EndOfFile => false,
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             return result.AddDiagnosticIfNone(new EmbeddedDiagnostic(error, GetTokenStartPositionSpan(_currentToken)));
         }
 
-        private readonly TextSpan GetTokenStartPositionSpan(JsonToken token)
+        private TextSpan GetTokenStartPositionSpan(JsonToken token)
             => token.Kind == JsonKind.EndOfFile
                 ? new TextSpan(_lexer.Text.Last().Span.End, 0)
                 : new TextSpan(token.VirtualChars[0].Span.Start, 0);

@@ -29,15 +29,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _bits = bits;
         }
 
-        internal readonly bool IsNull => _bits.IsNull;
+        internal bool IsNull => _bits.IsNull;
 
-        internal readonly int Capacity => _bits.Capacity / 2;
+        internal int Capacity => _bits.Capacity / 2;
 
-        internal readonly IEnumerable<ulong> Words() => _bits.Words();
+        internal IEnumerable<ulong> Words() => _bits.Words();
 
         internal RefKind this[int index]
         {
-            readonly get
+            get
             {
                 index *= 2;
                 return (_bits[index + 1], _bits[index]) switch
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public readonly bool Equals(RefKindVector other)
+        public bool Equals(RefKindVector other)
         {
             return _bits.Equals(other._bits);
         }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return obj is RefKindVector other && this.Equals(other);
         }
 
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return _bits.GetHashCode();
         }

@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 }
             }
 
-            private readonly TextSpan GetGroupingSpan(RegexGroupingNode grouping)
+            private TextSpan GetGroupingSpan(RegexGroupingNode grouping)
             {
                 Debug.Assert(!grouping.OpenParenToken.IsMissing);
                 var lastChar = grouping.CloseParenToken.IsMissing
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 AddIfMissing(_captureNumberToSpan, list: null, _autoNumber++, GetGroupingSpan(node));
             }
 
-            private readonly void RecordCapture(RegexToken token, TextSpan span)
+            private void RecordCapture(RegexToken token, TextSpan span)
             {
                 if (!token.IsMissing)
                 {

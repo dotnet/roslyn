@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public readonly bool IsNotEmpty { get { return _stackPtr >= 0; } }
+            public bool IsNotEmpty { get { return _stackPtr >= 0; } }
 
             public bool TryGetNextInSpan(in TextSpan span, out SyntaxNodeOrToken value)
             {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public readonly void Dispose()
+            public void Dispose()
             {
                 // Return only reasonably-sized stacks to the pool.
                 if (_stack?.Length < 256)
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public readonly void Dispose()
+            public void Dispose()
             {
                 // Return only reasonably-sized stacks to the pool.
                 if (_stack?.Length < 256)
@@ -211,15 +211,15 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public readonly bool IsNotEmpty { get { return _discriminatorStack?.Count > 0; } }
+            public bool IsNotEmpty { get { return _discriminatorStack?.Count > 0; } }
 
-            public readonly Which PeekNext()
+            public Which PeekNext()
             {
                 Debug.Assert(_discriminatorStack is object);
                 return _discriminatorStack.Peek();
             }
 
-            public readonly bool TryGetNextInSpan(in TextSpan span, out SyntaxNodeOrToken value)
+            public bool TryGetNextInSpan(in TextSpan span, out SyntaxNodeOrToken value)
             {
                 if (_nodeStack.TryGetNextInSpan(in span, out value))
                 {
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public readonly bool TryGetNext(out SyntaxTrivia value)
+            public bool TryGetNext(out SyntaxTrivia value)
             {
                 if (_triviaStack.TryGetNext(out value))
                 {
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public readonly void PushChildren(SyntaxNode node, Func<SyntaxNode, bool>? descendIntoChildren)
+            public void PushChildren(SyntaxNode node, Func<SyntaxNode, bool>? descendIntoChildren)
             {
                 if (descendIntoChildren == null || descendIntoChildren(node))
                 {
@@ -253,21 +253,21 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public readonly void PushLeadingTrivia(in SyntaxToken token)
+            public void PushLeadingTrivia(in SyntaxToken token)
             {
                 Debug.Assert(_discriminatorStack is object);
                 _triviaStack.PushLeadingTrivia(in token);
                 _discriminatorStack.Push(Which.Trivia);
             }
 
-            public readonly void PushTrailingTrivia(in SyntaxToken token)
+            public void PushTrailingTrivia(in SyntaxToken token)
             {
                 Debug.Assert(_discriminatorStack is object);
                 _triviaStack.PushTrailingTrivia(in token);
                 _discriminatorStack.Push(Which.Trivia);
             }
 
-            public readonly void Dispose()
+            public void Dispose()
             {
                 _nodeStack.Dispose();
                 _triviaStack.Dispose();
@@ -306,15 +306,15 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public readonly bool IsNotEmpty { get { return _discriminatorStack?.Count > 0; } }
+            public bool IsNotEmpty { get { return _discriminatorStack?.Count > 0; } }
 
-            public readonly Which PeekNext()
+            public Which PeekNext()
             {
                 Debug.Assert(_discriminatorStack is object);
                 return _discriminatorStack.Peek();
             }
 
-            public readonly bool TryGetNextInSpan(in TextSpan span, out SyntaxNodeOrToken value)
+            public bool TryGetNextInSpan(in TextSpan span, out SyntaxNodeOrToken value)
             {
                 if (_nodeStack.TryGetNextInSpan(in span, out value))
                 {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public readonly bool TryGetNext(out SyntaxTrivia value)
+            public bool TryGetNext(out SyntaxTrivia value)
             {
                 if (_triviaStack.TryGetNext(out value))
                 {
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public readonly SyntaxNodeOrToken PopToken()
+            public SyntaxNodeOrToken PopToken()
             {
                 Debug.Assert(_discriminatorStack is object);
                 Debug.Assert(_tokenStack is object);
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis
                 return _tokenStack.Pop();
             }
 
-            public readonly void PushChildren(SyntaxNode node, Func<SyntaxNode, bool>? descendIntoChildren)
+            public void PushChildren(SyntaxNode node, Func<SyntaxNode, bool>? descendIntoChildren)
             {
                 if (descendIntoChildren == null || descendIntoChildren(node))
                 {
@@ -356,21 +356,21 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public readonly void PushLeadingTrivia(in SyntaxToken token)
+            public void PushLeadingTrivia(in SyntaxToken token)
             {
                 Debug.Assert(_discriminatorStack is object);
                 _triviaStack.PushLeadingTrivia(in token);
                 _discriminatorStack.Push(Which.Trivia);
             }
 
-            public readonly void PushTrailingTrivia(in SyntaxToken token)
+            public void PushTrailingTrivia(in SyntaxToken token)
             {
                 Debug.Assert(_discriminatorStack is object);
                 _triviaStack.PushTrailingTrivia(in token);
                 _discriminatorStack.Push(Which.Trivia);
             }
 
-            public readonly void PushToken(in SyntaxNodeOrToken value)
+            public void PushToken(in SyntaxNodeOrToken value)
             {
                 Debug.Assert(_discriminatorStack is object);
                 Debug.Assert(_tokenStack is object);
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis
                 _discriminatorStack.Push(Which.Token);
             }
 
-            public readonly void Dispose()
+            public void Dispose()
             {
                 _nodeStack.Dispose();
                 _triviaStack.Dispose();

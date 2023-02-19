@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis
                     return _index < _entry.Count;
                 }
 
-                public readonly T Current => _entry.GetItem(_index);
+                public T Current => _entry.GetItem(_index);
             }
 
 #if DEBUG

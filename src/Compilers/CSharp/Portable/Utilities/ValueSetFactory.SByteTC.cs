@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private struct SByteTC : INumericTC<sbyte>
         {
-            readonly sbyte INumericTC<sbyte>.MinValue => sbyte.MinValue;
+            sbyte INumericTC<sbyte>.MinValue => sbyte.MinValue;
 
-            readonly sbyte INumericTC<sbyte>.MaxValue => sbyte.MaxValue;
+            sbyte INumericTC<sbyte>.MaxValue => sbyte.MaxValue;
 
-            readonly sbyte INumericTC<sbyte>.Zero => 0;
+            sbyte INumericTC<sbyte>.Zero => 0;
 
-            readonly bool INumericTC<sbyte>.Related(BinaryOperatorKind relation, sbyte left, sbyte right)
+            bool INumericTC<sbyte>.Related(BinaryOperatorKind relation, sbyte left, sbyte right)
             {
                 switch (relation)
                 {
@@ -38,25 +38,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            readonly sbyte INumericTC<sbyte>.Next(sbyte value)
+            sbyte INumericTC<sbyte>.Next(sbyte value)
             {
                 Debug.Assert(value != sbyte.MaxValue);
                 return (sbyte)(value + 1);
             }
 
-            readonly sbyte INumericTC<sbyte>.Prev(sbyte value)
+            sbyte INumericTC<sbyte>.Prev(sbyte value)
             {
                 Debug.Assert(value != sbyte.MinValue);
                 return (sbyte)(value - 1);
             }
 
-            readonly sbyte INumericTC<sbyte>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (sbyte)0 : constantValue.SByteValue;
+            sbyte INumericTC<sbyte>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (sbyte)0 : constantValue.SByteValue;
 
-            public readonly ConstantValue ToConstantValue(sbyte value) => ConstantValue.Create(value);
+            public ConstantValue ToConstantValue(sbyte value) => ConstantValue.Create(value);
 
-            readonly string INumericTC<sbyte>.ToString(sbyte value) => value.ToString();
+            string INumericTC<sbyte>.ToString(sbyte value) => value.ToString();
 
-            readonly sbyte INumericTC<sbyte>.Random(Random random)
+            sbyte INumericTC<sbyte>.Random(Random random)
             {
                 return (sbyte)random.Next();
             }

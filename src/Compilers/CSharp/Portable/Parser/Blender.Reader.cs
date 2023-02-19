@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return _newDirectives.IncrementallyEquivalent(_oldDirectives);
             }
 
-            private readonly bool IntersectsNextChange(SyntaxNodeOrToken nodeOrToken)
+            private bool IntersectsNextChange(SyntaxNodeOrToken nodeOrToken)
             {
                 if (_changes.IsEmpty)
                 {
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            private readonly BlendedNode CreateBlendedNode(CSharp.CSharpSyntaxNode node, SyntaxToken token)
+            private BlendedNode CreateBlendedNode(CSharp.CSharpSyntaxNode node, SyntaxToken token)
             {
                 return new BlendedNode(node, token,
                     new Blender(_lexer, _oldTreeCursor, _changes, _newPosition, _changeDelta, _newDirectives, _oldDirectives, _newLexerDrivenMode));

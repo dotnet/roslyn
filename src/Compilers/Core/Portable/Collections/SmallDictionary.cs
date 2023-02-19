@@ -537,7 +537,7 @@ hasBucket:
                     }
                 }
 
-                public readonly K Current => _current!.Key;
+                public K Current => _current!.Key;
 
                 public bool MoveNext()
                 {
@@ -563,7 +563,7 @@ hasBucket:
                     return true;
                 }
 
-                private readonly void PushIfNotNull(AvlNode? child)
+                private void PushIfNotNull(AvlNode? child)
                 {
                     if (child != null)
                     {
@@ -654,7 +654,7 @@ hasBucket:
                     }
                 }
 
-                public readonly V Current => _current!.Value;
+                public V Current => _current!.Value;
 
                 public bool MoveNext()
                 {
@@ -680,7 +680,7 @@ hasBucket:
                     return true;
                 }
 
-                private readonly void PushIfNotNull(AvlNode? child)
+                private void PushIfNotNull(AvlNode? child)
                 {
                     if (child != null)
                     {
@@ -760,7 +760,7 @@ hasBucket:
                 }
             }
 
-            public readonly KeyValuePair<K, V> Current => new KeyValuePair<K, V>(_current!.Key, _current!.Value);
+            public KeyValuePair<K, V> Current => new KeyValuePair<K, V>(_current!.Key, _current!.Value);
 
             public bool MoveNext()
             {
@@ -786,7 +786,7 @@ hasBucket:
                 return true;
             }
 
-            private readonly void PushIfNotNull(AvlNode? child)
+            private void PushIfNotNull(AvlNode? child)
             {
                 if (child != null)
                 {

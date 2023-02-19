@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                     return --_childIndex >= 0;
                 }
 
-                public readonly SyntaxNodeOrToken Current
+                public SyntaxNodeOrToken Current
                 {
                     get
                     {

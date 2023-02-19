@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public readonly int Current => _current;
+            public int Current => _current;
 
             public void Dispose() => _arities = null;
 
-            readonly object? System.Collections.IEnumerator.Current => _current;
+            object? System.Collections.IEnumerator.Current => _current;
 
             public bool MoveNext()
             {
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
                 AddArity(arity);
             }
 
-            private readonly bool HasUniqueSymbol => _uniqueSymbolOrArities != null && !(_uniqueSymbolOrArities is HashSet<int>);
+            private bool HasUniqueSymbol => _uniqueSymbolOrArities != null && !(_uniqueSymbolOrArities is HashSet<int>);
 
             private void AddArity(int arity)
             {
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis
             }
 
 #if DEBUG
-            internal readonly TSymbol? UniqueSymbol => _uniqueSymbolOrArities as TSymbol;
+            internal TSymbol? UniqueSymbol => _uniqueSymbolOrArities as TSymbol;
 #endif
         }
 

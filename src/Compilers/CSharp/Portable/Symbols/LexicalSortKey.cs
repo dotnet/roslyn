@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private int _position;
 
         // If -1, symbols is in metadata or otherwise not in source
-        public readonly int TreeOrdinal
+        public int TreeOrdinal
         {
             get { return _treeOrdinal; }
         }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // 
         // Negative value indicates that the structure was not initialized yet, is used for lazy 
         // initializations only along with LexicalSortKey.NotInitialized
-        public readonly int Position
+        public int Position
         {
             get { return _position; }
         }

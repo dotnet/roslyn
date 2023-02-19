@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : new PossiblyConditionalState(nullableWalker.State);
             }
 
-            public readonly PossiblyConditionalState Clone()
+            public PossiblyConditionalState Clone()
             {
                 return IsConditionalState
                     ? new PossiblyConditionalState(StateWhenTrue, StateWhenFalse)

@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public readonly SyntaxTrivia Current
+            public SyntaxTrivia Current
             {
                 get
                 {

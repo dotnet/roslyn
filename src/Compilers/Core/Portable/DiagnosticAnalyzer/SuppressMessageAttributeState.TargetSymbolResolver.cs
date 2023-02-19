@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return segment;
             }
 
-            private readonly char PeekNextChar()
+            private char PeekNextChar()
             {
                 return _index >= _name.Length ? '\0' : _name[_index];
             }

@@ -168,9 +168,9 @@ namespace Microsoft.CodeAnalysis
             _discardLevel = discardLevel;
         }
 
-        public readonly TAssemblySymbol? AssemblyBeingBuilt => _assemblyBeingBuilt;
+        public TAssemblySymbol? AssemblyBeingBuilt => _assemblyBeingBuilt;
 
-        private readonly DiscardLevel DiscardLevelWithValidation
+        private DiscardLevel DiscardLevelWithValidation
         {
             get
             {
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis
             _info = info;
         }
 
-        public readonly bool IsInitialized => (object?)_info != Sentinel;
+        public bool IsInitialized => (object?)_info != Sentinel;
 
         public void Initialize(DiagnosticInfo? diagnosticInfo)
         {
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis
             return secondaryDependencies;
         }
 
-        public readonly UseSiteInfo<TAssemblySymbol> ToUseSiteInfo(TAssemblySymbol primaryDependency)
+        public UseSiteInfo<TAssemblySymbol> ToUseSiteInfo(TAssemblySymbol primaryDependency)
         {
             Expand(_info, out var diagnosticInfo, out var dependencies);
 

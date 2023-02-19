@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             public string Text { get; set; }
             public string DocumentName { get; set; }
             public string DocumentFilePath { get; set; }
-            public readonly string[] DocumentFolders => GetDocumentFolders(DocumentFilePath);
+            public string[] DocumentFolders => GetDocumentFolders(DocumentFilePath);
         }
 
         protected async Task TestRenameDocument(
