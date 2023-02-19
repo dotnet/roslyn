@@ -133,6 +133,13 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                         return;
                 }
 
+                // += or -= on an event off of this instance will cause a copy if we become readonly.
+                if (operation is IEventAssignmentOperation { EventReference: IEventReferenceOperation { Instance: IInstanceReferenceOperation } eventReference } &&
+                    structType.Equals(eventReference.Event.ContainingType))
+                {
+                    return;
+                }
+
                 if (TryGetMethodReference(operation, out var methodReference) &&
                     !methodReference.IsReadOnly &&
                     structType.Equals(methodReference.ContainingType))

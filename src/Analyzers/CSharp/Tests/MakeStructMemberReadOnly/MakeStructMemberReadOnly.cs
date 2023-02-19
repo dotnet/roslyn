@@ -926,4 +926,26 @@ public sealed class MakeStructMemberReadOnlyTests
             """
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestEventMutation()
+    {
+        var testCode = """
+            using System;
+            struct S
+            {
+                event Action E;
+
+                void M()
+                {
+                    this.E += () => { };
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = testCode,
+            FixedCode = testCode,
+        }.RunAsync();
+    }
 }
