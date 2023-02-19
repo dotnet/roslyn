@@ -775,8 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                                             : token);
 
                                     if (index == 0 &&
-                                        tokens.Length >= 2 &&
-                                        tokens[0].IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
+                                        tokens is [(kind: SyntaxKind.XmlTextLiteralNewLineToken), ..])
                                     {
                                         // remove the starting line and trivia from the first line
                                         tokens = tokens.RemoveAt(0);
@@ -786,10 +785,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                                     tokens = tokens.Replace(tokens[0], tokens[0].WithoutLeadingTrivia());
 
                                     if (index == summaryContent.Count - 1 &&
-                                        tokens.Length >= 2 &&
-                                        tokens[^1].IsKind(SyntaxKind.XmlTextLiteralToken) &&
-                                        tokens[^1].Text.GetFirstNonWhitespaceIndexInString() == -1 &&
-                                        tokens[^2].IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
+                                        tokens is [.., (kind: SyntaxKind.XmlTextLiteralNewLineToken), (kind: SyntaxKind.XmlTextLiteralToken)] &&
+                                        tokens[^1].Text.GetFirstNonWhitespaceIndexInString() == -1)
                                     {
                                         // the last text token contains a new line, then a whitespace only text (which would start the closing tag)
                                         // remove the new line and the trivia from the extra text
