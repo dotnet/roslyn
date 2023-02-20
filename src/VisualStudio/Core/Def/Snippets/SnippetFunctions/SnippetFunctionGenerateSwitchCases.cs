@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             : base(snippetExpansionClient, subjectBuffer, threadingContext)
         {
             this.CaseGenerationLocationField = caseGenerationLocationField;
-            this.SwitchExpressionField = switchExpressionField is ['$', .., '$'] ? switchExpressionField[1..^1] : switchExpressionField;
+            this.SwitchExpressionField = switchExpressionField is ['$', .. var middle, '$'] ? middle : switchExpressionField;
         }
 
         protected override int FieldChanged(string field, out int requeryFunction)
