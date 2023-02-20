@@ -1226,5 +1226,33 @@ class D
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(40848, "https://github.com/dotnet/roslyn/issues/40848")>
+        Public Async Function TestDottedConstructorUsage(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Imports Test
+
+Module Module1
+    Sub Main()
+        Dim a = New Test.{|TypeOrNamespaceUsageInfo.ObjectCreation:[|$$TestClass|]|}()
+        Dim b = New {|TypeOrNamespaceUsageInfo.ObjectCreation:[|TestClass|]|}()
+    End Sub
+End Module
+
+Namespace Test
+  Public Class TestClass
+    Public Sub {|Definition:New|}()
+    End Sub
+  End Class
+End Namespace]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

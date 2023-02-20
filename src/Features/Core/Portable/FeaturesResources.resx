@@ -3182,4 +3182,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Find_All_References_not_invoked_on_applicable_symbol" xml:space="preserve">
     <value>'Find All References' not invoked on applicable symbol</value>
   </data>
+  <data name="Deconstruct_locals_for_0" xml:space="preserve">
+    <value>Deconstruct locals for '{0}'</value>
+  </data>
 </root>

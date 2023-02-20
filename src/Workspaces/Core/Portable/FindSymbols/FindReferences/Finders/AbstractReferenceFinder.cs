@@ -590,13 +590,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var semanticFacts = state.SemanticFacts;
             var semanticModel = state.SemanticModel;
 
-            if (syntaxFacts.IsInNamespaceOrTypeContext(node))
-            {
-                var typeOrNamespaceUsageInfo = GetTypeOrNamespaceUsageInfo();
-                return SymbolUsageInfo.Create(typeOrNamespaceUsageInfo);
-            }
+            return IsInNamespaceOrTypeContext()
+                ? SymbolUsageInfo.Create(GetTypeOrNamespaceUsageInfo())
+                : GetSymbolUsageInfoCommon();
 
-            return GetSymbolUsageInfoCommon();
+            bool IsInNamespaceOrTypeContext()
+            {
+                var current = node;
+                while (syntaxFacts.IsQualifiedName(current.Parent))
+                    current = current.Parent;
+
+                return syntaxFacts.IsInNamespaceOrTypeContext(current);
+            }
 
             // Local functions.
             TypeOrNamespaceUsageInfo GetTypeOrNamespaceUsageInfo()
@@ -615,9 +620,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
 
                 while (syntaxFacts.IsQualifiedName(node.Parent))
-                {
                     node = node.Parent;
-                }
 
                 if (syntaxFacts.IsTypeArgumentList(node.Parent))
                 {
