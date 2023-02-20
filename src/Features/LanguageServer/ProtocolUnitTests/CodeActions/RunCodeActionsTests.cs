@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), customTags: ImmutableArray<string>.Empty, caretLocation.Range, new LSP.TextDocumentIdentifier
             {
                 Uri = caretLocation.Uri
-            });
+            }, allowGenerateInHiddenCode: false);
 
             var results = await ExecuteRunCodeActionCommandAsync(testLspServer, commandArgument);
 

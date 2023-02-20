@@ -290,7 +290,7 @@ namespace Roslyn.Test.Utilities
             };
 
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, IEnumerable<string>? customTags = null)
-            => new CodeActionResolveData(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri));
+            => new CodeActionResolveData(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri), allowGenerateInHiddenCode: false);
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities)
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, new InitializationOptions { ClientCapabilities = clientCapabilities });

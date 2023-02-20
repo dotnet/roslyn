@@ -30,12 +30,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         public LSP.TextDocumentIdentifier TextDocument { get; }
 
-        public CodeActionResolveData(string uniqueIdentifier, ImmutableArray<string> customTags, LSP.Range range, LSP.TextDocumentIdentifier textDocument)
+        public bool AllowGenerateInHiddenCode { get; }
+
+        public CodeActionResolveData(string uniqueIdentifier, ImmutableArray<string> customTags, LSP.Range range, LSP.TextDocumentIdentifier textDocument, bool allowGenerateInHiddenCode)
         {
             UniqueIdentifier = uniqueIdentifier;
             CustomTags = customTags;
             Range = range;
             TextDocument = textDocument;
+            AllowGenerateInHiddenCode = allowGenerateInHiddenCode;
         }
     }
 }

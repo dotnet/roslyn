@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
+            bool allowGenerateInHiddenCode,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
@@ -69,7 +70,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         setPriority: set.Priority,
                         applicableRange: set.ApplicableToSpan.HasValue ? ProtocolConversions.TextSpanToRange(set.ApplicableToSpan.Value, documentText) : null,
                         currentSetNumber: currentSetNumber,
-                        currentHighestSetNumber: ref currentHighestSetNumber));
+                        currentHighestSetNumber: ref currentHighestSetNumber,
+                        allowGenerateInHiddenCode: allowGenerateInHiddenCode));
                 }
             }
 
@@ -85,6 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             LSP.Range? applicableRange,
             int currentSetNumber,
             ref int currentHighestSetNumber,
+            bool allowGenerateInHiddenCode,
             string currentTitle = "")
         {
             if (!string.IsNullOrEmpty(currentTitle))
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var diagnosticsForFix = GetApplicableDiagnostics(request.Context, suggestedAction);
 
             // Nested code actions' unique identifiers consist of: parent code action unique identifier + '|' + title of code action
-            var nestedActions = GenerateNestedVSCodeActions(request, documentText, suggestedAction, codeActionKind, ref currentHighestSetNumber, currentTitle);
+            var nestedActions = GenerateNestedVSCodeActions(request, documentText, suggestedAction, codeActionKind, ref currentHighestSetNumber, allowGenerateInHiddenCode, currentTitle);
 
             return new VSInternalCodeAction
             {
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 Priority = UnifiedSuggestedActionSetPriorityToPriorityLevel(setPriority),
                 Group = $"Roslyn{currentSetNumber}",
                 ApplicableRange = applicableRange,
-                Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument)
+                Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, allowGenerateInHiddenCode)
             };
 
             static VSInternalCodeAction[] GenerateNestedVSCodeActions(
@@ -119,6 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 IUnifiedSuggestedAction suggestedAction,
                 CodeActionKind codeActionKind,
                 ref int currentHighestSetNumber,
+                bool allowGenerateInHiddenCode,
                 string currentTitle)
             {
                 if (suggestedAction is not UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions)
@@ -137,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                             request, documentText, nestedSuggestedAction, codeActionKind, nestedActionSet.Priority,
                             applicableRange: nestedActionSet.ApplicableToSpan.HasValue
                                 ? ProtocolConversions.TextSpanToRange(nestedActionSet.ApplicableToSpan.Value, documentText) : null,
-                            nestedSetNumber, ref currentHighestSetNumber, currentTitle));
+                            nestedSetNumber, ref currentHighestSetNumber, allowGenerateInHiddenCode, currentTitle));
                     }
                 }
 

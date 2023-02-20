@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
             Assumes.Present(data);
 
-            var options = _globalOptions.GetCodeActionOptionsProvider();
+            var options = CodeActionsHandler.GetCodeActionOptionsProvider(_globalOptions, data.AllowGenerateInHiddenCode);
 
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 document,

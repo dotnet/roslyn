@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var options = GetCodeActionOptionsProvider(_globalOptions, request.AllowGenerateInHiddenCode);
 
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
-                request, document, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
+                request, document, options, _codeFixService, _codeRefactoringService, request.AllowGenerateInHiddenCode, cancellationToken).ConfigureAwait(false);
 
             return codeActions;
         }
 
-        private static CodeActionOptionsProvider GetCodeActionOptionsProvider(IGlobalOptionService globalOptions, bool allowGenerateInHiddenCode)
+        internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(IGlobalOptionService globalOptions, bool allowGenerateInHiddenCode)
         {
             var cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
             return new DelegatingCodeActionOptionsProvider(languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (_, options) => CreateCodeActionOptions(allowGenerateInHiddenCode, languageService, options), globalOptions));
