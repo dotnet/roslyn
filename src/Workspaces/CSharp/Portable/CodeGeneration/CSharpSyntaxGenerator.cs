@@ -3136,7 +3136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     (ExpressionSyntax)condition,
                     CreateBlock(trueStatements),
                     SyntaxFactory.ElseClause(
-                        falseArray.Count == 1 && falseArray[0] is IfStatementSyntax ? (StatementSyntax)falseArray[0] : CreateBlock(falseArray)));
+                        falseArray is [IfStatementSyntax ifStatement] ? ifStatement : CreateBlock(falseArray)));
             }
         }
 

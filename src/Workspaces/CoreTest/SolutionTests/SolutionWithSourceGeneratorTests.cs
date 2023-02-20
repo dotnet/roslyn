@@ -206,16 +206,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     return step.Inputs.Length == 1
                     && step.Inputs[0].Source.Outputs[step.Inputs[0].OutputIndex].Reason == IncrementalStepRunReason.Modified
-                    && step.Outputs.Length == 1
-                    && step.Outputs[0].Reason == IncrementalStepRunReason.Modified;
+                    && step.Outputs is [{ Reason: IncrementalStepRunReason.Modified }];
                 });
             Assert.Contains(runResult.TrackedSteps[GenerateFileForEachAdditionalFileWithContentsCommented.StepName],
                 step =>
                 {
                     return step.Inputs.Length == 1
                     && step.Inputs[0].Source.Outputs[step.Inputs[0].OutputIndex].Reason == IncrementalStepRunReason.Cached
-                    && step.Outputs.Length == 1
-                    && step.Outputs[0].Reason == IncrementalStepRunReason.Cached;
+                    && step.Outputs is [{ Reason: IncrementalStepRunReason.Cached }];
                 });
 
             // Change one of the source documents, and rerun; we should again only reprocess that one change.
