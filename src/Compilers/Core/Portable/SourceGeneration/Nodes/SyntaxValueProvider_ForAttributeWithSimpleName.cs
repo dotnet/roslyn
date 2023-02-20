@@ -32,7 +32,7 @@ public partial struct SyntaxValueProvider
     private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = new ObjectPool<Stack<SyntaxNode>>(static () => new Stack<SyntaxNode>());
 
     /// <summary>
-    /// Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
+    /// Returns all syntax nodes that match <paramref name="predicate"/> if that node has an attribute on it that
     /// could possibly bind to the provided <paramref name="simpleName"/>. <paramref name="simpleName"/> should be the
     /// simple, non-qualified, name of the attribute, including the <c>Attribute</c> suffix, and not containing any
     /// generics, containing types, or namespaces.  For example <c>CLSCompliantAttribute</c> for <see
@@ -63,7 +63,8 @@ public partial struct SyntaxValueProvider
         // changed. CreateSyntaxProvider will have to rerun all incremental nodes since it passes along the
         // SemanticModel, and that model is updated whenever any tree changes (since it is tied to the compilation).
         var syntaxTreesProvider = _context.CompilationProvider
-            .SelectMany((compilation, cancellationToken) => GetSourceGeneratorInfo(syntaxHelper, compilation, cancellationToken))
+            .SelectMany(static (compilation, _) => compilation.CommonSyntaxTrees)
+            .Select((tree, cancellationToken) => (Tree: tree, Info: tree.GetSourceGeneratorInfo(syntaxHelper, cancellationToken)))
             .WithTrackingName("compilationUnit_ForAttribute");
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
@@ -121,32 +122,6 @@ public partial struct SyntaxValueProvider
 
             return GlobalAliases.Create(globalAliases.ToImmutableAndFree());
         }
-    }
-
-    private static ImmutableArray<(SyntaxTree Tree, SourceGeneratorSyntaxTreeInfo Info)> GetSourceGeneratorInfo(
-        ISyntaxHelper syntaxHelper, Compilation compilation, CancellationToken cancellationToken)
-    {
-        // Get the count up front so we can allocate without waste.
-        var count = 0;
-        foreach (var tree in compilation.CommonSyntaxTrees)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var info = tree.GetSourceGeneratorInfo(syntaxHelper, cancellationToken);
-            if ((info & SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliasesOrAttributeList) != 0)
-                count++;
-        }
-
-        var builder = ImmutableArray.CreateBuilder<(SyntaxTree Tree, SourceGeneratorSyntaxTreeInfo Info)>(count);
-
-        // Iterate again.  This will be free as the values from before will already be cached on the syntax tree.
-        foreach (var tree in compilation.CommonSyntaxTrees)
-        {
-            var info = tree.GetSourceGeneratorInfo(syntaxHelper, cancellationToken);
-            if ((info & SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliasesOrAttributeList) != 0)
-                builder.Add((tree, info));
-        }
-
-        return builder.MoveToImmutable();
     }
 
     private static ImmutableArray<SyntaxNode> GetMatchingNodes(
