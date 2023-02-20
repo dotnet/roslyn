@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                                             : token);
 
                                     if (index == 0 &&
-                                        tokens is [(kind: SyntaxKind.XmlTextLiteralNewLineToken), ..])
+                                        tokens is [(kind: SyntaxKind.XmlTextLiteralNewLineToken), _, ..])
                                     {
                                         // remove the starting line and trivia from the first line
                                         tokens = tokens.RemoveAt(0);
