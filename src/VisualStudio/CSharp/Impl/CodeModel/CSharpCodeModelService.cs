@@ -792,7 +792,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         [return: NotNullIfNotNull(nameof(name))]
         public override string? GetUnescapedName(string? name)
-            => name is ['@', ..] ? name[1..] : name;
+            => name is ['@', .. var rest] ? rest : name;
 
         public override string GetName(SyntaxNode node)
         {
