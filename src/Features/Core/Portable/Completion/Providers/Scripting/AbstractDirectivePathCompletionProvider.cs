@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool EndsWithQuote(string quotedPath)
-            => quotedPath is [.., '"'];
+            => quotedPath is [.., _, '"'];
 
         /// <summary>
         /// Returns the index right after the last slash that precedes 'position'.  If there is no
