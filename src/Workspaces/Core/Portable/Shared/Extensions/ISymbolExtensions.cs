@@ -134,28 +134,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, IMethodSymbol? constructor)
         {
             if (constructor == null)
-            {
                 return (isProhibited: false, isEditorBrowsableStateAdvanced: false);
-            }
 
             foreach (var attribute in attributes)
             {
                 if (Equals(attribute.AttributeConstructor, constructor) &&
                     attribute.ConstructorArguments is [{ Value: int value }])
                 {
-#nullable disable // Should use unboxed value from previous 'is int' https://github.com/dotnet/roslyn/issues/39166
                     var state = (EditorBrowsableState)value;
-#nullable enable
-
                     if (EditorBrowsableState.Never == state)
-                    {
                         return (isProhibited: true, isEditorBrowsableStateAdvanced: false);
-                    }
 
                     if (EditorBrowsableState.Advanced == state)
-                    {
                         return (isProhibited: hideAdvancedMembers, isEditorBrowsableStateAdvanced: true);
-                    }
                 }
             }
 
