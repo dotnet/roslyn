@@ -449,8 +449,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var baseName = fieldName.TrimStart(s_underscoreCharArray);
 
             // Trim leading "m_"
-            if (baseName is ['m', '_', ..])
-                baseName = baseName[2..];
+            if (baseName is ['m', '_', .. var rest])
+                baseName = rest;
 
             // Take original name if no characters left
             if (baseName.Length == 0)
