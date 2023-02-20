@@ -66,7 +66,7 @@ namespace Roslyn.Utilities
 
                 // Note that this property is not guaranteed to throw either before MoveNext()
                 // has been called or after the end of the set has been reached.
-                public readonly V Current
+                public V Current
                 {
                     get
                     {

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return _enumerator.MoveNext();
             }
 
-            public readonly SyntaxTrivia Current => _enumerator.Current;
+            public SyntaxTrivia Current => _enumerator.Current;
         }
     }
 }

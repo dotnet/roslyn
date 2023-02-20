@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             _lexer = lexer;
         }
 
-        private readonly StackFrameToken CurrentCharAsToken() => _lexer.CurrentCharAsToken();
+        private StackFrameToken CurrentCharAsToken() => _lexer.CurrentCharAsToken();
 
         /// <summary>
         /// Given an input text, and set of options, parses out a fully representative syntax tree 
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ///                                           ^--------^- "(String s)" identifiers the method paramters
         /// </code>
         /// </summary>
-        private readonly Result<StackFrameGeneratedNameNode> TryScanGeneratedName()
+        private Result<StackFrameGeneratedNameNode> TryScanGeneratedName()
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.LessThanToken, out var lessThanToken))
             {
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ///                         ^------------- Arity token of "1" 
         /// </code>
         /// </summary>
-        private readonly Result<StackFrameSimpleNameNode> TryScanGenericTypeIdentifier(StackFrameToken identifierToken)
+        private Result<StackFrameSimpleNameNode> TryScanGenericTypeIdentifier(StackFrameToken identifierToken)
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
             {
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// 
         /// Assumes the identifier "MyMethod" has already been parsed, and the type arguments will need to be parsed.
         /// </summary>
-        private readonly Result<StackFrameTypeArgumentList> TryParseTypeArguments()
+        private Result<StackFrameTypeArgumentList> TryParseTypeArguments()
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(
                     kind => kind is StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken,
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ///                  0: "[,]
         ///                  1: "[]"
         /// </summary>
-        private readonly Result<ImmutableArray<StackFrameArrayRankSpecifier>> ParseArrayRankSpecifiers()
+        private Result<ImmutableArray<StackFrameArrayRankSpecifier>> ParseArrayRankSpecifiers()
         {
             using var _ = ArrayBuilder<StackFrameArrayRankSpecifier>.GetInstance(out var builder);
             using var _1 = ArrayBuilder<StackFrameToken>.GetInstance(out var commaBuilder);
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// Can return if only a path is available but not line numbers, but throws if the value after the path is a colon as the expectation
         /// is that line number should follow.
         /// </summary>
-        private readonly Result<StackFrameFileInformationNode> TryParseFileInformation()
+        private Result<StackFrameFileInformationNode> TryParseFileInformation()
         {
             var (success, path) = _lexer.TryScanPath();
             if (!success)
