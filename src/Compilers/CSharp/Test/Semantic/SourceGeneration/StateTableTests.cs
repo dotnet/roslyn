@@ -874,6 +874,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 });
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem(66324, "https://github.com/dotnet/roslyn/issues/66324")]
+        public void Transform_Twice(bool track)
+        {
+            // [A, B]
+            var input = ImmutableArray.Create("A", "B");
+            var inputNode = new InputNode<string>(_ => input);
+            var dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: track);
+            var table = dstBuilder.GetLatestStateTableForNode(inputNode);
+            AssertTableEntries(table, new[] { ("A", EntryState.Added, 0), ("B", EntryState.Added, 0) });
+            AssertTableEntries(table.AsCached(), new[] { ("A", EntryState.Cached, 0), ("B", EntryState.Cached, 0) });
+            assertTablesCounts(2);
+
+            // filter out A => [B]
+            var transformNode1 = new TransformNode<string, string>(inputNode, (x, _) => x != "A" ? ImmutableArray.Create(x) : ImmutableArray<string>.Empty);
+            table = dstBuilder.GetLatestStateTableForNode(transformNode1);
+            AssertTableEntries(table, new[] { ("B", EntryState.Added, 0) });
+            AssertTableEntries(table.AsCached(), new[] { ("B", EntryState.Cached, 0) });
+            assertTablesCounts(1);
+
+            // no-op => [B]
+            var transformNode2 = new TransformNode<string, string>(transformNode1, (x, _) => ImmutableArray.Create(x));
+            table = dstBuilder.GetLatestStateTableForNode(transformNode2);
+            AssertTableEntries(table, new[] { ("B", EntryState.Added, 0) });
+            AssertTableEntries(table.AsCached(), new[] { ("B", EntryState.Cached, 0) });
+            assertTablesCounts(1);
+
+            // [C, B]
+            input = ImmutableArray.Create("C", "B");
+            dstBuilder = GetBuilder(dstBuilder.ToImmutable(), trackIncrementalGeneratorSteps: track);
+            table = dstBuilder.GetLatestStateTableForNode(inputNode);
+            AssertTableEntries(table, new[] { ("C", EntryState.Modified, 0), ("B", EntryState.Cached, 0) });
+            AssertTableEntries(table.AsCached(), new[] { ("C", EntryState.Cached, 0), ("B", EntryState.Cached, 0) });
+            assertTablesCounts(2);
+
+            // filter out A => [C, B]
+            table = dstBuilder.GetLatestStateTableForNode(transformNode1);
+            AssertTableEntries(table, new[] { ("C", EntryState.Added, 0), ("B", EntryState.Cached, 0) });
+            AssertTableEntries(table.AsCached(), new[] { ("C", EntryState.Cached, 0), ("B", EntryState.Cached, 0) });
+            assertTablesCounts(2);
+
+            // no-op => [C, B]
+            table = dstBuilder.GetLatestStateTableForNode(transformNode2);
+            AssertTableEntries(table, new[] { ("C", EntryState.Added, 0), ("B", EntryState.Cached, 0) });
+            AssertTableEntries(table.AsCached(), new[] { ("C", EntryState.Cached, 0), ("B", EntryState.Cached, 0) });
+            assertTablesCounts(2);
+
+            void assertTablesCounts(int totalEntryItemCount)
+            {
+                assertTableCounts(table, totalEntryItemCount);
+                assertTableCounts(table.AsCached(), totalEntryItemCount);
+            }
+
+            static void assertTableCounts(NodeStateTable<string> table, int totalEntryItemCount)
+            {
+                Assert.Equal(2, table.Count);
+                Assert.Equal(totalEntryItemCount, table.GetTotalEntryItemCount());
+                Assert.Equal(2, table.GetTotalEntryItemCountPlusEmpty());
+            }
+        }
+
         [Fact]
         public void User_Comparer_Is_Not_Used_To_Determine_Inputs()
         {
