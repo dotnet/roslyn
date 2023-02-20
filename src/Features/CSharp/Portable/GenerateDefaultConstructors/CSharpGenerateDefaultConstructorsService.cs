@@ -45,11 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors
 
             var syntaxTree = semanticDocument.SyntaxTree;
             var node = semanticDocument.Root.FindToken(textSpan.Start).GetAncestor<TypeSyntax>();
-            if (node is { Parent: BaseTypeSyntax { Parent: BaseListSyntax baseList } })
+            if (node is { Parent: BaseTypeSyntax { Parent: BaseListSyntax { Types: [var firstType, ..] } baseList } })
             {
                 if (baseList.Parent is TypeDeclarationSyntax(SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration) parentTypeDecl &&
-                    baseList.Types.Count > 0 &&
-                    baseList.Types[0].Type == node)
+                    firstType.Type == node)
                 {
                     classType = semanticDocument.SemanticModel.GetDeclaredSymbol(parentTypeDecl, cancellationToken);
                     return classType != null;
