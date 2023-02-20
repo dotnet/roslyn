@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                 return previousTable;
             }
 
-            var totalEntryItemCount = input1Table.GetTotalEntryItemCount();
+            var totalEntryItemCount = input1Table.GetTotalEntryItemCountPlusEmpty();
             var builder = graphState.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
 
             // Semantics of a join:
@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis
             // append the input2 item to each item in input1 
             foreach (var entry1 in input1Table)
             {
+                builder.CopyEmpty(input1Table);
+
                 var stopwatch = SharedStopwatch.StartNew();
 
                 var stepInputs = builder.TrackIncrementalSteps ? ImmutableArray.Create((entry1.Step!, entry1.OutputIndex), (input2Step!, 0)) : default;

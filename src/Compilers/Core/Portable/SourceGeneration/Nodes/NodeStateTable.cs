@@ -90,6 +90,26 @@ namespace Microsoft.CodeAnalysis
         public int GetTotalEntryItemCount()
             => _states.Sum(static e => e.Count);
 
+        public int GetTotalEntryItemCountPlusEmpty()
+        {
+            int sum = 0;
+            int trailingEmpty = 0;
+            foreach (var entry in _states)
+            {
+                if (entry.Count == 0)
+                {
+                    sum++;
+                    trailingEmpty++;
+                }
+                else
+                {
+                    sum += entry.Count;
+                    trailingEmpty = 0;
+                }
+            }
+            return sum - trailingEmpty;
+        }
+
         public IEnumerator<NodeStateEntry<T>> GetEnumerator()
         {
             for (int i = 0; i < _states.Length; i++)
@@ -258,6 +278,21 @@ namespace Microsoft.CodeAnalysis
                 _states.Add(new TableEntry(OneOrMany.Create(chosen), state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
+            }
+
+            public void CopyEmpty<TPrevious>(NodeStateTable<TPrevious> source)
+            {
+                while (_states.Count < source._states.Length)
+                {
+                    var sourceEntry = source._states[_states.Count];
+                    if (sourceEntry.Count != 0)
+                    {
+                        return;
+                    }
+
+                    _states.Add(new TableEntry(OneOrMany<T>.Empty, EntryState.Added));
+                    RecordStepInfoForLastEntry(TimeSpan.Zero, TrackIncrementalSteps ? ImmutableArray.Create((source.Steps[_states.Count], 0)) : default, EntryState.Added);
+                }
             }
 
             public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)

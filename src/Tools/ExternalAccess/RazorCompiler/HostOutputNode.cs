@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
             var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<TOutput>.Default);
             foreach (var entry in sourceTable)
             {
+                nodeTable.CopyEmpty(sourceTable);
+
                 var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
                 if (entry.State == EntryState.Removed)
                 {
