@@ -353,13 +353,13 @@
 
   <!--
     ========================
-    SourceGenerator Support
+    SourceGeneratorProjectReference Support
     ========================
   -->
-  <Target Name="TranslateSourceGeneratorItems"
+  <Target Name="TranslateSourceGeneratorProjectReferenceItems"
           BeforeTargets="ResolveProjectReferences">
     <ItemGroup>
-      <ProjectReference Include="@(SourceGenerator)" OutputItemType="Analyzer" ReferenceOutputAssembly="false" AdditionalProperties="IsRidAgnostic=true" />
+      <ProjectReference Include="@(SourceGeneratorProjectReference)" OutputItemType="Analyzer" ReferenceOutputAssembly="false" AdditionalProperties="IsRidAgnostic=true" />
     </ItemGroup>
   </Target>
 

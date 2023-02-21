@@ -661,8 +661,8 @@ some_prop = some_val");
             VerifyValues(
                 customProps: """
                 <ItemGroup>
-                    <SourceGenerator Include="MySourceGenerator1.csproj" />
-                    <SourceGenerator Include="MySourceGenerator2.csproj" />
+                    <SourceGeneratorProjectReference Include="MySourceGenerator1.csproj" />
+                    <SourceGeneratorProjectReference Include="MySourceGenerator2.csproj" />
                 </ItemGroup>
                 """,
                 customTargets: null,
