@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var language = args.SubjectBuffer.GetLanguageName();
 
             // If the feature is not explicitly enabled we can exit early
-            if (language is null || !_globalOptions.GetOption(AddImportOnPasteOptions.AddImportsOnPaste, language))
+            if (language is null || !_globalOptions.GetOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, language))
             {
                 nextCommandHandler();
                 return;

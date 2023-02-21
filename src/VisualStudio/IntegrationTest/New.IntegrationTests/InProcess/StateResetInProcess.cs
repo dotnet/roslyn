@@ -49,7 +49,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
             ResetPerLanguageOption(globalOptions, NavigationBarViewOptionsStorage.ShowNavigationBar);
             ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
-            ResetPerLanguageOption(globalOptions, AddImportOnPasteOptions.AddImportsOnPaste);
+            ResetPerLanguageOption(globalOptions, AddImportOnPasteOptionsStorage.AddImportsOnPaste);
             ResetPerLanguageOption(globalOptions, LineCommitOptions.PrettyListing);
             ResetPerLanguageOption(globalOptions, CompletionViewOptions.EnableArgumentCompletionSnippets);
 

@@ -153,10 +153,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property AddImportsOnPaste As Boolean
             Get
-                Return GetBooleanOption(AddImportOnPasteOptions.AddImportsOnPaste)
+                Return GetBooleanOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(AddImportOnPasteOptions.AddImportsOnPaste, value)
+                SetBooleanOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, value)
             End Set
         End Property
 

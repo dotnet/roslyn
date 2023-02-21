@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.AddImportOnPaste
 {
-    internal static class AddImportOnPasteOptions
+    internal static class AddImportOnPasteOptionsStorage
     {
         /// <summary>
         /// This option was previously "bool?" to accomodate different supported defaults

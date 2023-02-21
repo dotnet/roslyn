@@ -51,7 +51,7 @@ class Program
 }", HangMitigatingCancellationToken);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(AddImportOnPasteOptions.AddImportsOnPaste, LanguageNames.CSharp, false);
+            globalOptions.SetGlobalOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.CSharp, false);
 
             await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
@@ -99,7 +99,7 @@ class Program
             await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(AddImportOnPasteOptions.AddImportsOnPaste, LanguageNames.CSharp, true);
+            globalOptions.SetGlobalOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.CSharp, true);
 
             await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
@@ -146,7 +146,7 @@ namespace MyNs
 }", HangMitigatingCancellationToken);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(AddImportOnPasteOptions.AddImportsOnPaste, LanguageNames.CSharp, true);
+            globalOptions.SetGlobalOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.CSharp, true);
 
             await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 

@@ -123,8 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int AddImportsOnPaste
         {
-            get { return GetBooleanOption(AddImportOnPasteOptions.AddImportsOnPaste); }
-            set { SetBooleanOption(AddImportOnPasteOptions.AddImportsOnPaste, value); }
+            get { return GetBooleanOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste); }
+            set { SetBooleanOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, value); }
         }
 
         public int OfferRemoveUnusedReferences
