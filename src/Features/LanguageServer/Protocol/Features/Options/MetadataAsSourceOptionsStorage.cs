@@ -19,6 +19,6 @@ internal static class MetadataAsSourceOptionsStorage
         };
 
     public static Option2<bool> NavigateToDecompiledSources = new("FeatureOnOffOptions_NavigateToDecompiledSources", defaultValue: true);
-    public static Option2<bool> AlwaysUseDefaultSymbolServers = new("FeatureOnOffOptions_AlwaysUseDefaultSymbolServers", defaultValue: true);
+    public static Option2<bool> AlwaysUseDefaultSymbolServers = new("dotnet_always_use_default_symbol_servers", defaultValue: true);
     public static Option2<bool> NavigateToSourceLinkAndEmbeddedSources = new("FeatureOnOffOptions_NavigateToSourceLinkAndEmbeddedSources", defaultValue: true);
 }
