@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.StringIndentation
 {
     internal static class StringIndentationOptions
     {
-        public static readonly PerLanguageOption2<bool> StringIdentation = new("dotnet_string_indentation_options_string_identation", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> StringIdentation = new("dotnet_string_identation", defaultValue: true);
     }
 }
