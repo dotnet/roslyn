@@ -42,9 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             ISyntaxFactsService syntaxFacts,
             SignatureHelpTriggerReason triggerReason,
             CancellationToken cancellationToken,
-            out SyntaxToken genericIdentifier, out SyntaxToken lessThanToken)
+            out SyntaxToken genericIdentifier,
+            out SyntaxToken lessThanToken)
         {
-            if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out GenericNameSyntax name))
+            if (CommonSignatureHelpUtilities.TryGetSyntax(
+                    root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out GenericNameSyntax? name))
             {
                 genericIdentifier = name.Identifier;
                 lessThanToken = name.TypeArgumentList.LessThanToken;

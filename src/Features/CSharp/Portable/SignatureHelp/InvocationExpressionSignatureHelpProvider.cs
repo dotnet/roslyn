@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             var argumentState = await GetCurrentArgumentStateAsync(
-                document, position, currentSymbol, parameterIndex, textSpan, cancellationToken).ConfigureAwait(false);
+                document, position, textSpan, cancellationToken).ConfigureAwait(false);
             return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem);
         }
 
@@ -163,15 +163,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             var argumentState = await GetCurrentArgumentStateAsync(
-                document, position, currentSymbol, parameterIndex, textSpan, cancellationToken).ConfigureAwait(false);
+                document, position, textSpan, cancellationToken).ConfigureAwait(false);
             return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem);
         }
 
         private async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(
             Document document,
             int position,
-            IMethodSymbol currentSymbol,
-            int parameterIndex,
             TextSpan currentSpan,
             CancellationToken cancellationToken)
         {
@@ -180,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (expression is { ArgumentList: not null } &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
             {
-                return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position, currentSymbol, parameterIndex);
+                return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);
             }
 
             return null;

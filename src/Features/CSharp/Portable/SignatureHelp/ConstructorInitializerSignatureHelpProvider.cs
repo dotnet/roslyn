@@ -120,19 +120,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var selectedItem = TryGetSelectedIndex(constructors, currentSymbol);
 
             var argumentState = await GetCurrentArgumentStateAsync(
-                document, position, currentSymbol, parameterIndex, textSpan, cancellationToken).ConfigureAwait(false);
+                document, position, textSpan, cancellationToken).ConfigureAwait(false);
             return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem);
         }
 
         private async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(
-            Document document, int position, IMethodSymbol? currentMethod, int parameterIndex, TextSpan currentSpan, CancellationToken cancellationToken)
+            Document document, int position, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             var initializer = await TryGetConstructorInitializerAsync(
                 document, position, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken).ConfigureAwait(false);
             if (initializer is { ArgumentList: not null } &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(initializer.ArgumentList).Start)
             {
-                return SignatureHelpUtilities.GetSignatureHelpState(initializer.ArgumentList, position, currentMethod, parameterIndex);
+                return SignatureHelpUtilities.GetSignatureHelpState(initializer.ArgumentList, position);
             }
 
             return null;
