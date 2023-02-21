@@ -1296,4 +1296,90 @@ public sealed class MakeStructMemberReadOnlyTests
             """,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNotWithMethodThatOnlyThrows1()
+    {
+        var test = """
+            struct S
+            {
+                void M() => throw new System.Exception();
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithMethodThatOnlyThrows2()
+    {
+        var test = """
+            struct S
+            {
+                void M()
+                {
+                    throw new System.Exception();
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithBadOperation()
+    {
+        var test = """
+            struct S
+            {
+                void M()
+                {
+                    {|CS0103:Goo|}();
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = test,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithLinqRewrite()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System.Collections.Generic;
+            using System.Linq;
+            struct S
+            {
+                void [|M|](IEnumerable<int> x)
+                {
+                    var v = from y in x
+                            select y;
+                }
+            }
+            """,
+            FixedCode = """
+            using System.Collections.Generic;
+            using System.Linq;
+            struct S
+            {
+                readonly void M(IEnumerable<int> x)
+                {
+                    var v = from y in x
+                            select y;
+                }
+            }
+            """,
+        }.RunAsync();
+    }
 }

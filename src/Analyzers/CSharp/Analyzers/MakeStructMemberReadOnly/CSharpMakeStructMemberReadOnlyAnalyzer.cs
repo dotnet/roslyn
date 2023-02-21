@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -85,6 +83,12 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
 
         foreach (var blockOperation in context.OperationBlocks)
         {
+            // If we have a trivial method that is just `{ throw ... }` or `=> throw ...`, then do not bother
+            // analyzing/reporting that it could be made 'readonly'.  These members are likely just being written (or
+            // have been generated) and spamming the user with notifications to go change these all is unhelpful.
+            if (blockOperation is IBlockOperation { Operations: [IThrowOperation or IExpressionStatementOperation { Operation: IThrowOperation }] })
+                return;
+
             if (BlockOperationPotentiallyMutatesThis(owningMethod, blockOperation, cancellationToken))
                 return;
         }
@@ -120,10 +124,17 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
     {
         var semanticModel = blockOperation.SemanticModel;
         Contract.ThrowIfNull(semanticModel);
-        foreach (var instanceOperation in blockOperation.DescendantsAndSelf().OfType<IInstanceReferenceOperation>())
+        foreach (var operation in blockOperation.DescendantsAndSelf())
         {
-            if (InstanceReferencePotentiallyMutatesThis(semanticModel, owningMethod, instanceOperation, cancellationToken))
+            // Do not suggest making containing method readonly until we have full understanding of it.
+            if (operation is IInvalidOperation)
                 return true;
+
+            if (operation is IInstanceReferenceOperation instanceOperation &&
+                InstanceReferencePotentiallyMutatesThis(semanticModel, owningMethod, instanceOperation, cancellationToken))
+            {
+                return true;
+            }
         }
 
         return false;
