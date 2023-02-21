@@ -1873,7 +1873,7 @@ class Program
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check),
                 Options =
                 {
-                    { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOptions2.FalseWithSuggestionEnforcement }
+                    { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOption2.FalseWithSuggestionEnforcement }
                 }
             }.RunAsync();
         }
