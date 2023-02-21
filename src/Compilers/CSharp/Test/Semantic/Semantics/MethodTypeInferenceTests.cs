@@ -835,7 +835,8 @@ void M((string, string?) tuple)
             });
         }
 
-        private static void CheckDiscard(SemanticModel model, DiscardDesignationSyntax discard, string type) {
+        private static void CheckDiscard(SemanticModel model, DiscardDesignationSyntax discard, string type)
+        {
             Assert.Null(model.GetDeclaredSymbol(discard));
             Assert.Null(model.GetTypeInfo(discard).Type);
             Assert.Null(model.GetSymbolInfo(discard).Symbol);
