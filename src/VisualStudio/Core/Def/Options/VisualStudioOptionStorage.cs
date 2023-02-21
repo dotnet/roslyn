@@ -385,9 +385,9 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_etw_logger_key", new LocalUserProfileStorage(@"Roslyn\Internal\Performance\Logger", "EtwLogger")},
         {"dotnet_output_window_logger_key", new LocalUserProfileStorage(@"Roslyn\Internal\Performance\Logger", "OutputWindowLogger")},
         {"dotnet_trace_logger_key", new LocalUserProfileStorage(@"Roslyn\Internal\Performance\Logger", "TraceLogger")},
-        {"dotnet_lsp_editor", new FeatureFlagStorage(@"Roslyn.LSP.Editor")},
-        {"dotnet_lsp_semantic_tokens", new FeatureFlagStorage(@"Roslyn.LSP.SemanticTokens")},
-        {"dotnet_lsp_max_completion_list_size", new LocalUserProfileStorage(@"Roslyn\Internal\Lsp", "MaxCompletionListSize")},
+        {"dotnet_language_server_protocol_editor_enabled", new FeatureFlagStorage(@"Roslyn.LSP.Editor")},
+        {"dotnet_language_server_protocol_semantic_tokens_enabled", new FeatureFlagStorage(@"Roslyn.LSP.SemanticTokens")},
+        {"dotnet_language_server_protocol_max_completion_list_size", new LocalUserProfileStorage(@"Roslyn\Internal\Lsp", "MaxCompletionListSize")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_show_navigation_bar", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Dropdown Bar", vbKey: "TextEditor.Basic.Dropdown Bar")},
 #pragma warning restore
