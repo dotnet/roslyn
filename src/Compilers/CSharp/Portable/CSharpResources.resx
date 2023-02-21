@@ -7478,4 +7478,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_StructLayoutCyclePrimaryConstructorParameter" xml:space="preserve">
     <value>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</value>
   </data>
+  <data name="ERR_UnexpectedParameterList" xml:space="preserve">
+    <value>Unexpected parameter list.</value>
+  </data>
 </root>

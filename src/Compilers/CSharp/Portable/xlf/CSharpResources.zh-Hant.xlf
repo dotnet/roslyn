@@ -1697,6 +1697,11 @@
         <target state="translated">在控制項傳回呼叫者之前，必須先完全指派欄位 '{0}'。請考慮更新至語言版本 '{1}' 以自動預設欄位。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedParameterList">
+        <source>Unexpected parameter list.</source>
+        <target state="new">Unexpected parameter list.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}' 使用 'UnmanagedCallersOnly' 屬性化，因此無法直接呼叫。取得此方法的函式指標。</target>

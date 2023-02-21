@@ -10000,6 +10000,18 @@ class  R(int X)  ;
         }
 
         [Fact]
+        public async Task Interface()
+        {
+            await AssertFormatAsync(
+                @"
+interface R(int X);
+",
+                @"
+interface  R(int X)  ;
+");
+        }
+
+        [Fact]
         public async Task RecordStruct()
         {
             await AssertFormatAsync(

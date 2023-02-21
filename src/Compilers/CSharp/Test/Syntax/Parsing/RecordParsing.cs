@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -325,45 +328,55 @@ class C
         {
             var text = "interface P(int x, int y);";
             var tree = ParseTree(text, options: TestOptions.Regular8);
-            tree.GetDiagnostics().Verify(
-                // (1,12): error CS1514: { expected
-                // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 12),
-                // (1,12): error CS1513: } expected
-                // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
-                // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
-                // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(1, 12));
+            tree.GetDiagnostics().Verify();
 
-            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (1,12): error CS1514: { expected
+            tree = ParseTree(text, options: TestOptions.RegularPreview);
+            tree.GetDiagnostics().Verify();
+
+            var comp = CreateCompilation(text).VerifyDiagnostics(
+                // (1,12): error CS9517: Unexpected parameter list.
                 // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 12),
-                // (1,12): error CS1513: } expected
-                // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
-                // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
-                // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(1, 12),
-                // (1,12): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(1, 12),
-                // (1,12): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(1, 12),
-                // (1,13): error CS8185: A declaration is not allowed in this context.
-                // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(1, 13),
-                // (1,13): error CS0165: Use of unassigned local variable 'x'
-                // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(1, 13),
-                // (1,20): error CS8185: A declaration is not allowed in this context.
-                // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(1, 20),
-                // (1,20): error CS0165: Use of unassigned local variable 'y'
-                // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(1, 20));
+                Diagnostic(ErrorCode.ERR_UnexpectedParameterList, "(int x, int y)").WithLocation(1, 12)
+                );
+
+            Assert.Empty(comp.GetTypeByMetadataName("P").GetMembers());
+            Assert.Null(((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("P")).PrimaryConstructor);
+
+            UsingNode(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "P");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -2391,23 +2404,7 @@ class C(int X, int Y)
         public void Base_04()
         {
             var text = "interface C(int X, int Y) : B;";
-            UsingTree(text,
-                // (1,12): error CS1514: { expected
-                // interface C(int X, int Y) : B;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 12),
-                // (1,12): error CS1513: } expected
-                // interface C(int X, int Y) : B;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
-                // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
-                // interface C(int X, int Y) : B;
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y) ").WithLocation(1, 12),
-                // (1,27): error CS1002: ; expected
-                // interface C(int X, int Y) : B;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 27),
-                // (1,27): error CS1022: Type or namespace definition, or end-of-file expected
-                // interface C(int X, int Y) : B;
-                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 27)
-                );
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2415,60 +2412,40 @@ class C(int X, int Y)
                 {
                     N(SyntaxKind.InterfaceKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.TupleExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "X");
-                                    }
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Y");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.IdentifierToken, "X");
                         }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.BaseList);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
                         {
-                            N(SyntaxKind.IdentifierToken, "B");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
                         }
-                        N(SyntaxKind.SemicolonToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2937,16 +2914,7 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "interface").WithLocation(1, 8),
                 // (1,8): error CS1513: } expected
                 // record interface C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "interface").WithLocation(1, 8),
-                // (1,19): error CS1514: { expected
-                // record interface C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 19),
-                // (1,19): error CS1513: } expected
-                // record interface C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 19),
-                // (1,19): error CS8803: Top-level statements must precede namespace and type declarations.
-                // record interface C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "interface").WithLocation(1, 8)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -2962,49 +2930,29 @@ class C(int X, int Y)
                 {
                     N(SyntaxKind.InterfaceKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.TupleExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "X");
-                                    }
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Y");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.IdentifierToken, "X");
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

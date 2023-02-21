@@ -2251,11 +2251,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     }
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                    return ((RecordDeclarationSyntax)declaration).WithParameterList((ParameterListSyntax)list);
                 case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)declaration).WithParameterList((ParameterListSyntax)list);
                 case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)declaration).WithParameterList((ParameterListSyntax)list);
+                case SyntaxKind.InterfaceDeclaration:
+                    return ((TypeDeclarationSyntax)declaration).WithParameterList((ParameterListSyntax)list);
                 default:
                     return declaration;
             }

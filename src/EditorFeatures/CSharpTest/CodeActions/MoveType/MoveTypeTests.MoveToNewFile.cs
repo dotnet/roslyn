@@ -1466,6 +1466,26 @@ struct CacheContext(String Message);
         }
 
         [WpfFact]
+        public async Task MoveInterfaceToNewFilePreserveUsings_PrimaryConstructor()
+        {
+            var code =
+@"using System;
+
+[||]interface CacheContext(String Message);
+
+class Program { }";
+            var codeAfterMove = @"using System;
+
+class Program { }";
+
+            var expectedDocumentName = "CacheContext.cs";
+            var destinationDocumentText = @"interface CacheContext(String Message);
+";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact]
         public async Task MoveClassInTopLevelStatements()
         {
             var code = @"

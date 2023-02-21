@@ -1697,6 +1697,11 @@
         <target state="translated">Das Feld "{0}" muss vollständig zugewiesen werden, bevor das Steuerelement an den Aufrufer zurückgegeben wird. Aktualisieren Sie ggf. auf die Sprachversion "{1}", um das Feld automatisch als Standard zu verwenden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedParameterList">
+        <source>Unexpected parameter list.</source>
+        <target state="new">Unexpected parameter list.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">"{0}" ist mit dem Attribut "UnmanagedCallersOnly" versehen und kann nicht direkt aufgerufen werden. Rufen Sie einen Funktionszeiger auf diese Methode ab.</target>
