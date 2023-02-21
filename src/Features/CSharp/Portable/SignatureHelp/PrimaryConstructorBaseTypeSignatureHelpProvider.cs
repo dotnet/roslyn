@@ -70,10 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (root is null || syntaxFacts is null ||
-                !TryGetBaseTypeSyntax(root, position, syntaxFacts, triggerInfo.TriggerReason, cancellationToken, out var baseTypeSyntax))
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            if (!TryGetBaseTypeSyntax(root, position, syntaxFacts, triggerInfo.TriggerReason, cancellationToken, out var baseTypeSyntax))
             {
                 return null;
             }
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
                 Convert(c, baseTypeSyntax.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
+                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem, parameterIndexOverride: -1);
         }
 
         private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)

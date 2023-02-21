@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken);
 
         protected static SignatureHelpItems? CreateSignatureHelpItems(
-            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItem)
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItem, int parameterIndexOverride)
         {
             if (!items.Any() || state == null)
                 return null;
@@ -46,7 +46,24 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 selectedItem = null;
 
             (items, selectedItem) = Filter(items, state.Value.ArgumentNames, selectedItem);
-            return new SignatureHelpItems(items, applicableSpan, state.Value.ArgumentIndex, state.Value.ArgumentCount, state.Value.ArgumentName, selectedItem);
+
+            // If the caller provided a preferred parameter for us to be on then override whatever we found syntactically.
+            var argumentIndex = state.Value.ArgumentIndex;
+            if (parameterIndexOverride != argumentIndex &&
+                selectedItem != null)
+            {
+                // However, in the case where we'd move the index back, and the item is variadic, do not do this.  The
+                // syntactic index is valid for teh variadic member, and we still want to remember where we are
+                // syntactically so that if the user picks another member that we correctly pick the right parameter for
+                // it.
+                if (!items[selectedItem.Value].IsVariadic ||
+                    items[selectedItem.Value].Parameters.Length != (parameterIndexOverride + 1))
+                {
+                    argumentIndex = parameterIndexOverride;
+                }
+            }
+
+            return new SignatureHelpItems(items, applicableSpan, argumentIndex, state.Value.ArgumentCount, state.Value.ArgumentName, selectedItem);
         }
 
         protected static SignatureHelpItems? CreateCollectionInitializerSignatureHelpItems(
@@ -71,7 +88,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             // So, we include all the .Add methods, but we prefer selecting the first that has
             // at least two parameters.
             return CreateSignatureHelpItems(
-                items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2));
+                items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2), parameterIndexOverride: -1);
         }
 
         private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, ImmutableArray<string> parameterNames, int? selectedItem)
@@ -314,9 +331,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             {
                 var found = candidates.IndexOf(matched);
                 if (found >= 0)
-                {
                     return found;
-                }
             }
 
             return null;

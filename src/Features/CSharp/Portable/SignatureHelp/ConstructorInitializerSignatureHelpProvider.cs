@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 ? ImmutableArray.Create(exactSymbol)
                 : constructors;
             LightweightOverloadResolution.RefineOverloadAndPickParameter(
-                document, position, semanticModel, candidates, arguments, out var currentSymbol, out var parameterIndex);
+                document, position, semanticModel, candidates, arguments, out var currentSymbol, out var parameterIndexOverride);
 
             // present items and select
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var argumentState = await GetCurrentArgumentStateAsync(
                 document, position, textSpan, cancellationToken).ConfigureAwait(false);
-            return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem);
+            return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem, parameterIndexOverride);
         }
 
         private async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(

@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             return CreateSignatureHelpItems(accessibleSymbols.Select(s =>
                 Convert(s, lessThanToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, cancellationToken), selectedItem: null);
+                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, cancellationToken), selectedItem: null, parameterIndexOverride: -1);
         }
 
         private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)

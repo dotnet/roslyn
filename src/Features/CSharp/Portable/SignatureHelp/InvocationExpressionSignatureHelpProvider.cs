@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 ? ImmutableArray.Create(exactMatch)
                 : methods;
             LightweightOverloadResolution.RefineOverloadAndPickParameter(
-                document, position, semanticModel, candidates, arguments, out var currentSymbol, out var parameterIndex);
+                document, position, semanticModel, candidates, arguments, out var currentSymbol, out var parameterIndexOverride);
 
             // if the symbol could be bound, replace that item in the symbol list
             if (currentSymbol?.IsGenericMethod == true)
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             var argumentState = await GetCurrentArgumentStateAsync(
                 document, position, textSpan, cancellationToken).ConfigureAwait(false);
-            return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem);
+            return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem, parameterIndexOverride);
         }
 
         protected async Task<SignatureHelpItems?> GetItemsWorkerForDelegateOrFunctionPointerAsync(
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var arguments = invocationExpression.ArgumentList.Arguments;
             var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
             LightweightOverloadResolution.FindParameterIndexIfCompatibleMethod(
-                arguments, currentSymbol, position, semanticModel, semanticFactsService, out var parameterIndex);
+                arguments, currentSymbol, position, semanticModel, semanticFactsService, out var parameterIndexOverride);
 
             // present item and select
             var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             var argumentState = await GetCurrentArgumentStateAsync(
                 document, position, textSpan, cancellationToken).ConfigureAwait(false);
-            return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem);
+            return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem, parameterIndexOverride);
         }
 
         private async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(

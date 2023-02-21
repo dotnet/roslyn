@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(initializer, initializer.SpanStart, s_getCollectionInitializerCloseToken)
         End Function
 
-        Friend Function GetSignatureHelpState(argumentList As ArgumentListSyntax, position As Integer) As SignatureHelpState
+        Friend Function GetSignatureHelpState(argumentList As ArgumentListSyntax, position As Integer) As SignatureHelpState?
             Return CommonSignatureHelpUtilities.GetSignatureHelpState(
                 argumentList,
                 position,
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 s_getArgumentListNames)
         End Function
 
-        Friend Function GetSignatureHelpState(typeArgumentList As TypeArgumentListSyntax, position As Integer) As SignatureHelpState
+        Friend Function GetSignatureHelpState(typeArgumentList As TypeArgumentListSyntax, position As Integer) As SignatureHelpState?
             Return CommonSignatureHelpUtilities.GetSignatureHelpState(
                 typeArgumentList,
                 position,
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 s_getTypeArgumentListNames)
         End Function
 
-        Friend Function GetSignatureHelpState(initializer As CollectionInitializerSyntax, position As Integer) As SignatureHelpState
+        Friend Function GetSignatureHelpState(initializer As CollectionInitializerSyntax, position As Integer) As SignatureHelpState?
             Return CommonSignatureHelpUtilities.GetSignatureHelpState(
                 initializer,
                 position,
