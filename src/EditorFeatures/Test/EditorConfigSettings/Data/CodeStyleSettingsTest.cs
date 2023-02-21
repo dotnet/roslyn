@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
 
         private static Option2<CodeStyleOption2<bool>> CreateBoolOption(bool defaultValue = false)
         {
-            var defaultCodeStyle = (CodeStyleOption2<bool>)((ICodeStyleOption)CodeStyleOption2<bool>.Default).WithValue(defaultValue);
+            var defaultCodeStyle = CodeStyleOption2<bool>.Default.WithValue(defaultValue);
 
             return new Option2<CodeStyleOption2<bool>>(
                 name: "dotnet_test_option",
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
         private static Option2<CodeStyleOption2<T>> CreateEnumOption<T>(T defaultValue)
             where T : notnull, Enum
         {
-            var defaultCodeStyle = (CodeStyleOption2<T>)((ICodeStyleOption)CodeStyleOption2<T>.Default).WithValue(defaultValue);
+            var defaultCodeStyle = CodeStyleOption2<T>.Default.WithValue(defaultValue);
             return new Option2<CodeStyleOption2<T>>(
                 name: "dotnet_test_option",
                 defaultValue: defaultCodeStyle,
