@@ -654,5 +654,28 @@ some_prop = some_val");
                     "mycustom.config"
                 }));
         }
+
+        [Fact, WorkItem(60744, "https://github.com/dotnet/roslyn/issues/60744")]
+        public void SourceGenerators()
+        {
+            VerifyValues(
+                customProps: """
+                <ItemGroup>
+                    <SourceGenerator Include=".\MySourceGenerator1.csproj" />
+                    <SourceGenerator Include=".\MySourceGenerator2.csproj" />
+                </ItemGroup>
+                """,
+                customTargets: null,
+                targets: new[] { "CoreCompile" },
+                expressions: new[]
+                {
+                    "@(ProjectReference->'%(Identity) %(OutputItemType) %(ReferenceOutputAssembly) %(AdditionalProperties)')",
+                },
+                expectedResults: new[]
+                {
+                    @".\MySourceGenerator1.csproj Analyzer false IsRidAgnostic=true",
+                    @".\MySourceGenerator2.csproj Analyzer false IsRidAgnostic=true"
+                });
+        }
     }
 }
