@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.AddImportOnPaste
         /// to on by default, so the storage location was changed to
         /// TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2 (note the 2 suffix).
         /// </summary>
-        public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new("dotnet_add_import_on_paste_options_add_imports_on_paste", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new("dotnet_add_imports_on_paste", defaultValue: true);
     }
 }
