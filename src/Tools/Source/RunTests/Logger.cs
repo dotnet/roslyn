@@ -55,6 +55,12 @@ namespace RunTests
             }
         }
 
+        internal static void LogAndConsole(string line)
+        {
+            Console.WriteLine(line);
+            Log(line);
+        }
+
         internal static void Log(string line)
         {
             lock (s_lines)

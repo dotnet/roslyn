@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using Mono.Options;
 
 namespace PrepareTests;
@@ -12,7 +13,7 @@ internal static class Program
     internal const int ExitFailure = 1;
     internal const int ExitSuccess = 0;
 
-    public static int Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
         string? source = null;
         string? destination = null;
@@ -46,7 +47,7 @@ internal static class Program
             return ExitFailure;
         }
 
-        var success = TestDiscovery.RunDiscovery(source, dotnetPath, isUnix);
+        var success = await TestDiscovery.RunDiscovery(source, dotnetPath, isUnix).ConfigureAwait(false);
         if (!success)
         {
             return ExitFailure;

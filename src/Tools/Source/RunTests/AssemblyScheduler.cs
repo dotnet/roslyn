@@ -36,6 +36,20 @@ namespace RunTests
     internal sealed class AssemblyScheduler
     {
         /// <summary>
+        /// Many of our tests were authored before we began tracking the time it takes to execute them in PR. Several of 
+        /// these tests take up a significantly longer period of time than we'd like. They are also unfortunately hard to
+        /// break up into smaller units. As such we ignore them for the moment so we can keep the focus on spotting new
+        /// tests that break our partitioning rules.
+        /// </summary>
+        private static readonly ImmutableHashSet<string> IgnoreTestMethodSet = ImmutableHashSet.Create<string>(
+            "Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenCapturing.AllCaptureTests",
+            "Microsoft.CodeAnalysis.CSharp.UnitTests.OperationAnalyzerTests.LongArithmeticExpressionCSharp",
+            "Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.NumericIntPtrTests.BinaryOperators",
+            "Microsoft.CodeAnalysis.CSharp.UnitTests.ConstantTests.TestLargeStringConcatenation",
+            "Microsoft.CodeAnalysis.CSharp.UnitTests.SyntaxBinderTests.BinaryIntrinsicSymbols1",
+            "Microsoft.CodeAnalysis.CSharp.UnitTests.SyntaxBinderTests.BinaryIntrinsicSymbols2");
+
+        /// <summary>
         /// We attempt to partition our tests into work items that execute in under 2 minutes 30s.  This is a derived limit based on a goal of running all tests
         /// in under 5 minutes.  However because of overhead in setting up the test run, e.g.
         ///   1.  Test discovery.
@@ -276,12 +290,12 @@ namespace RunTests
             {
                 var totalExecutionTime = TimeSpan.FromMilliseconds(workItem.Filters.Values.SelectMany(f => f).Sum(f => f.ExecutionTime.TotalMilliseconds));
                 Logger.Log($"- Work Item {workItem.PartitionIndex} (Execution time {totalExecutionTime})");
-                if (totalExecutionTime > s_maxExecutionTime)
+                if (totalExecutionTime > s_maxExecutionTime && !workItem.Filters.Values.Any(x => IgnoreTestMethodSet.Contains(x)))
                 {
                     // Log a warning to the console with work item details when we were not able to partition in under our limit.
                     // This can happen when a single specific test exceeds our execution time limit.
                     ConsoleUtil.Warning($"Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
-                    LogFilters(workItem, ConsoleUtil.WriteLine);
+                    LogFilters(workItem, Logger.LogAndConsole);
                 }
                 else
                 {
