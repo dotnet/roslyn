@@ -146,6 +146,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }
         }
 
+        private static ImmutableArray<MethodInfo> MethodInfos { get; } = MakeAllMethods().ToImmutableArray();
+
+        public static IEnumerable<object[]> CaptureTheoryData
+        {
+            get
+            {
+                const int PartitionSize = 1500;
+                var index = 0;
+                while (index < MethodInfos.Length)
+                {
+                    var end = Math.Min(MethodInfos.Length, index + PartitionSize);
+                    yield return new object[] { index, end - index };
+                    index = end;
+                }
+            }
+        }
+
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30212")]
         public void GenerateAllTest()
         {
@@ -424,14 +441,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// a maximum number of local functions, and a maximum scope depth to decide the
         /// limits of the combinations.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/30212")]
-        public void AllCaptureTests()
+        [ConditionalTheory(typeof(WindowsOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/30212")]
+        [MemberData(nameof(CaptureTheoryData))]
+        public void AllCaptureTests(int start, int count)
         {
-            var methods = MakeAllMethods().ToList();
+            var fields = MethodInfos[0].CaptureContext.VariablesByScope[0];
 
-            var fields = methods.First().CaptureContext.VariablesByScope[0];
-
-            const int PartitionSize = 500;
             const string ClassFmt = @"
 using System;
 public class C
@@ -441,25 +456,23 @@ public class C
                 => new StringBuilder(string.Format(ClassFmt,
                     string.Join("\r\n", fields.Select(f => $"public int {f} = 0;"))));
 
-            Parallel.ForEach(Partitioner.Create(0, methods.Count, PartitionSize), (range, state) =>
+            var methodsText = GetClassStart();
+
+            var end = start + count;
+            for (int methodIndex = start; methodIndex < end; methodIndex++)
             {
-                var methodsText = GetClassStart();
+                var methodInfo = MethodInfos[methodIndex];
 
-                for (int methodIndex = range.Item1; methodIndex < range.Item2; methodIndex++)
+                if (methodInfo.TotalLocalFuncs == 0)
                 {
-                    var methodInfo = methods[methodIndex];
-
-                    if (methodInfo.TotalLocalFuncs == 0)
-                    {
-                        continue;
-                    }
-
-                    SerializeMethod(methodInfo, methodsText, methodIndex);
+                    continue;
                 }
 
-                methodsText.AppendLine("\r\n}");
-                CreateCompilation(methodsText.ToString()).VerifyEmitDiagnostics();
-            });
+                SerializeMethod(methodInfo, methodsText, methodIndex);
+            }
+
+            methodsText.AppendLine("\r\n}");
+            CreateCompilation(methodsText.ToString()).VerifyEmitDiagnostics();
         }
     }
 }
