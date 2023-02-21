@@ -7381,6 +7381,7 @@ done:;
                     case SyntaxKind.ReturnKeyword:
                         return this.ParseReturnStatement(attributes);
                     case SyntaxKind.SwitchKeyword:
+                    case SyntaxKind.CaseKeyword: // error recovery case.
                         return this.ParseSwitchStatement(attributes);
                     case SyntaxKind.ThrowKeyword:
                         return this.ParseThrowStatement(attributes);
@@ -8201,6 +8202,7 @@ done:;
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.ExternKeyword:
                 case SyntaxKind.OpenBracketToken:
+                case SyntaxKind.CaseKeyword: // for parsing an errant case without a switch.
                     return true;
 
                 case SyntaxKind.IdentifierToken:
@@ -9032,53 +9034,72 @@ done:;
 
         private SwitchStatementSyntax ParseSwitchStatement(SyntaxList<AttributeListSyntax> attributes)
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.SwitchKeyword);
-            var @switch = this.EatToken(SyntaxKind.SwitchKeyword);
-            var expression = this.ParseExpressionCore();
-            SyntaxToken openParen;
-            SyntaxToken closeParen;
-            if (expression.Kind == SyntaxKind.ParenthesizedExpression)
-            {
-                var parenExpression = (ParenthesizedExpressionSyntax)expression;
-                openParen = parenExpression.OpenParenToken;
-                expression = parenExpression.Expression;
-                closeParen = parenExpression.CloseParenToken;
+            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.SwitchKeyword or SyntaxKind.CaseKeyword);
 
-                Debug.Assert(parenExpression.GetDiagnostics().Length == 0);
-            }
-            else if (expression.Kind == SyntaxKind.TupleExpression)
-            {
-                // As a special case, when a tuple literal is the governing expression of
-                // a switch statement we permit the switch statement's own parentheses to be omitted.
-                // LDM 2018-04-04.
-                openParen = closeParen = null;
-            }
-            else
-            {
-                // Some other expression has appeared without parens. Give a syntax error.
-                openParen = SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken);
-                expression = this.AddError(expression, ErrorCode.ERR_SwitchGoverningExpressionRequiresParens);
-                closeParen = SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken);
-            }
-
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-
+            parseSwitchHeader(out var switchKeyword, out var openParen, out var expression, out var closeParen, out var openBrace);
             var sections = _pool.Allocate<SwitchSectionSyntax>();
 
             while (this.IsPossibleSwitchSection())
-            {
                 sections.Add(this.ParseSwitchSection());
-            }
 
             return _syntaxFactory.SwitchStatement(
                 attributes,
-                @switch,
+                switchKeyword,
                 openParen,
                 expression,
                 closeParen,
                 openBrace,
                 _pool.ToListAndFree(sections),
                 this.EatToken(SyntaxKind.CloseBraceToken));
+
+            void parseSwitchHeader(
+                out SyntaxToken switchKeyword,
+                out SyntaxToken openParen,
+                out ExpressionSyntax expression,
+                out SyntaxToken closeParen,
+                out SyntaxToken openBrace)
+            {
+                if (this.CurrentToken.Kind is SyntaxKind.CaseKeyword)
+                {
+                    // try to eat a 'switch' so the user gets a good error message about what's wrong. then directly
+                    // creating missing tokens for the rest so they don't get cascading errors.
+                    switchKeyword = EatToken(SyntaxKind.SwitchKeyword);
+                    openParen = SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken);
+                    expression = CreateMissingIdentifierName();
+                    closeParen = SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken);
+                    openBrace = SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken);
+                }
+                else
+                {
+                    switchKeyword = this.EatToken(SyntaxKind.SwitchKeyword);
+                    expression = this.ParseExpressionCore();
+                    if (expression.Kind == SyntaxKind.ParenthesizedExpression)
+                    {
+                        var parenExpression = (ParenthesizedExpressionSyntax)expression;
+                        openParen = parenExpression.OpenParenToken;
+                        expression = parenExpression.Expression;
+                        closeParen = parenExpression.CloseParenToken;
+
+                        Debug.Assert(parenExpression.GetDiagnostics().Length == 0);
+                    }
+                    else if (expression.Kind == SyntaxKind.TupleExpression)
+                    {
+                        // As a special case, when a tuple literal is the governing expression of
+                        // a switch statement we permit the switch statement's own parentheses to be omitted.
+                        // LDM 2018-04-04.
+                        openParen = closeParen = null;
+                    }
+                    else
+                    {
+                        // Some other expression has appeared without parens. Give a syntax error.
+                        openParen = SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken);
+                        expression = this.AddError(expression, ErrorCode.ERR_SwitchGoverningExpressionRequiresParens);
+                        closeParen = SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken);
+                    }
+
+                    openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+                }
+            }
         }
 
         private bool IsPossibleSwitchSection()
@@ -9151,7 +9172,7 @@ done:;
 
             // Next, parse statement list stopping for new sections
             CSharpSyntaxNode tmp = labels[^1];
-            this.ParseStatements(ref tmp, statements, true);
+            this.ParseStatements(ref tmp, statements, stopOnSwitchSections: true);
             labels[^1] = (SwitchLabelSyntax)tmp;
 
             return _syntaxFactory.SwitchSection(
