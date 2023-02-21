@@ -11,6 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         public static readonly Option2<ReSharperStatus> ReSharperStatus = new("dotnet_resharper_key_binding_status", defaultValue: KeybindingReset.ReSharperStatus.NotInstalledOrDisabled);
         public static readonly Option2<bool> NeedsReset = new("dotnet_key_binding_needs_reset", defaultValue: false);
         public static readonly Option2<bool> NeverShowAgain = new("dotnet_key_binding_reset_never_show_again", defaultValue: false);
-        public static readonly Option2<bool> EnabledFeatureFlag = new("dotnet_key_binding_reset_enabled", defaultValue: false);
+        public static readonly Option2<bool> EnabledFeatureFlag = new("dotnet_enable_key_binding_reset", defaultValue: false);
     }
 }

@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static readonly Option2<int> MaxCompletionListSize = new("dotnet_language_server_protocol_max_completion_list_size", defaultValue: 1000);
 
         // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
-        public static readonly Option2<bool> LspEditorFeatureFlag = new("dotnet_language_server_protocol_editor_enabled", defaultValue: false);
+        public static readonly Option2<bool> LspEditorFeatureFlag = new("dotnet_enable_language_server_protocol_editor", defaultValue: false);
 
         // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
-        public static readonly Option2<bool> LspSemanticTokensFeatureFlag = new("dotnet_language_server_protocol_semantic_tokens_enabled", defaultValue: false);
+        public static readonly Option2<bool> LspSemanticTokensFeatureFlag = new("dotnet_enable_language_server_protocol_semantic_tokens", defaultValue: false);
     }
 }
