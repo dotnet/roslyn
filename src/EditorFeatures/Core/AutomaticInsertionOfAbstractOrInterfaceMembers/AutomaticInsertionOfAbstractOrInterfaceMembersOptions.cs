@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.AutomaticInsertionOfAbstractOrInterfaceMembers
     {
         // This value is only used by Visual Basic, and so is using the old serialization name that was used by VB.
         public static readonly PerLanguageOption2<bool> AutomaticInsertionOfAbstractOrInterfaceMembers = new(
-            "visual_basic_automatic_insertion_of_abstract_or_interface_members", defaultValue: true);
+            "visual_basic_automatic_insertion_of_abstract_or_interface_members_enabled", defaultValue: true);
     }
 }
