@@ -7698,9 +7698,11 @@ class C1 (int p1)
             var source = @"
 class Base
 {
+    public System.Func<int> Z;
     public Base(int x, int y, System.Func<int> z)
     {
         System.Console.Write(z() - 1);
+        Z = z;
     }
 }
 
@@ -7733,6 +7735,7 @@ class Program
         System.Console.Write(c1.M1());
         System.Console.Write(c1.P1);
         System.Console.Write(c1.P2);
+        System.Console.Write(c1.Z());
     }
 }
 ";
@@ -7752,14 +7755,14 @@ class Program
                 Assert.Contains(symbol, model.LookupSymbols(p1.SpanStart, name: "p1"));
             }
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"122123124125", verify: Verification.Fails).VerifyDiagnostics(
-                // (15,50): warning CS9502: Parameter 'int p1' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.
+            var verifier = CompileAndVerify(comp, expectedOutput: @"122123124125125", verify: Verification.Fails).VerifyDiagnostics(
+                // (17,50): warning CS9502: Parameter 'int p1' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.
                 // partial class C1 (int p1, int p2, int p3) : Base(p1, p2, () => p1)
-                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase, "p1").WithArguments("int p1").WithLocation(15, 50)
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase, "p1").WithArguments("int p1").WithLocation(17, 50)
                 );
 
             verifier.VerifyTypeIL("C1", @"
-    .class private auto ansi beforefieldinit C1
+.class private auto ansi beforefieldinit C1
 	extends Base
 {
 	// Nested Types
@@ -7776,7 +7779,7 @@ class Program
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x2203
+			// Method begins at RVA 0x221b
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -7786,7 +7789,7 @@ class Program
 		.method assembly hidebysig 
 			instance void '<.ctor>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x220c
+			// Method begins at RVA 0x2224
 			// Code size 17 (0x11)
 			.maxstack 3
 			.locals init (
@@ -7805,7 +7808,7 @@ class Program
 		.method assembly hidebysig 
 			instance int32 '<.ctor>b__1' () cil managed 
 		{
-			// Method begins at RVA 0x2229
+			// Method begins at RVA 0x2241
 			// Code size 12 (0xc)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -7834,7 +7837,7 @@ class Program
 			int32 p3
 		) cil managed 
 	{
-		// Method begins at RVA 0x207c
+		// Method begins at RVA 0x2084
 		// Code size 98 (0x62)
 		.maxstack 5
 		.locals init (
@@ -7884,7 +7887,7 @@ class Program
 	.method public hidebysig specialname 
 		instance int32 get_P1 () cil managed 
 	{
-		// Method begins at RVA 0x20ea
+		// Method begins at RVA 0x20f2
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -7894,7 +7897,7 @@ class Program
 	.method public hidebysig specialname 
 		instance int32 get_P2 () cil managed 
 	{
-		// Method begins at RVA 0x20f4
+		// Method begins at RVA 0x20fc
 		// Code size 18 (0x12)
 		.maxstack 3
 		.locals init (
@@ -7914,7 +7917,7 @@ class Program
 	.method public hidebysig 
 		instance int32 M1 () cil managed 
 	{
-		// Method begins at RVA 0x2114
+		// Method begins at RVA 0x211c
 		// Code size 18 (0x12)
 		.maxstack 3
 		.locals init (
@@ -7936,7 +7939,7 @@ class Program
 			class [mscorlib]System.Action 'value'
 		) cil managed 
 	{
-		// Method begins at RVA 0x2132
+		// Method begins at RVA 0x213a
 		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -7952,7 +7955,7 @@ class Program
 			class [mscorlib]System.Action 'value'
 		) cil managed 
 	{
-		// Method begins at RVA 0x2142
+		// Method begins at RVA 0x214a
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -7967,7 +7970,7 @@ class Program
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x214c
+		// Method begins at RVA 0x2154
 		// Code size 41 (0x29)
 		.maxstack 3
 		.locals init (
@@ -8006,7 +8009,7 @@ class Program
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2184
+		// Method begins at RVA 0x218c
 		// Code size 41 (0x29)
 		.maxstack 3
 		.locals init (
@@ -8040,7 +8043,7 @@ class Program
 	.method public hidebysig 
 		instance class [mscorlib]System.Action M2 () cil managed 
 	{
-		// Method begins at RVA 0x21b9
+		// Method begins at RVA 0x21c1
 		// Code size 13 (0xd)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -8054,7 +8057,7 @@ class Program
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x21c7
+		// Method begins at RVA 0x21cf
 		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -8071,7 +8074,7 @@ class Program
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2132
+		// Method begins at RVA 0x213a
 		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -14761,6 +14764,265 @@ class C1 (dynamic p1)
                     Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute", attr[0].ToString());
                 }
                 ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterCapturing_151_LambdasCaptureOnlyCapturedParameter()
+        {
+            var source = @"
+class Base
+{
+    public System.Func<int> Z;
+    public Base(int x, int y, System.Func<int> z)
+    {
+        System.Console.Write(z() - 1);
+        Z = z;
+    }
+}
+
+partial class C1
+{
+    public int F1 = p2 + 1;
+}
+
+partial class C1 (int p1, int p2) : Base(p1, p2, () => p1)
+{
+    public int F2 = p2 + 2;
+    public int P1 => p1;
+}
+
+partial class C1
+{
+    public int F3 = p2 + 3;
+    public int P2 => ++p1;
+    public int M1() { return p1++; }
+    event System.Action E1 { add { p1++; } remove { void local() { p1--; } local(); }}
+    public System.Action M2() => () => p1++;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1(123,-1);
+        System.Console.Write(c1.M1());
+        System.Console.Write(c1.P1);
+        System.Console.Write(c1.P2);
+        System.Console.Write(c1.Z());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"122123124125125", verify: Verification.Fails).VerifyDiagnostics(
+                // (17,42): warning CS9502: Parameter 'int p1' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.
+                // partial class C1 (int p1, int p2) : Base(p1, p2, () => p1)
+                Diagnostic(ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase, "p1").WithArguments("int p1").WithLocation(17, 42)
+                );
+
+            verifier.VerifyTypeIL("C1", @"
+.class private auto ansi beforefieldinit C1
+	extends Base
+{
+	// Fields
+	.field public int32 F1
+	.field private int32 '<p1>PC__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	.field public int32 F2
+	.field public int32 F3
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			int32 p1,
+			int32 p2
+		) cil managed 
+	{
+		// Method begins at RVA 0x2083
+		// Code size 60 (0x3c)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldarg.0
+		IL_0008: ldarg.2
+		IL_0009: ldc.i4.1
+		IL_000a: add
+		IL_000b: stfld int32 C1::F1
+		IL_0010: ldarg.0
+		IL_0011: ldarg.2
+		IL_0012: ldc.i4.2
+		IL_0013: add
+		IL_0014: stfld int32 C1::F2
+		IL_0019: ldarg.0
+		IL_001a: ldarg.2
+		IL_001b: ldc.i4.3
+		IL_001c: add
+		IL_001d: stfld int32 C1::F3
+		IL_0022: ldarg.0
+		IL_0023: ldarg.0
+		IL_0024: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0029: ldarg.2
+		IL_002a: ldarg.0
+		IL_002b: ldftn instance int32 C1::'<.ctor>b__1_0'()
+		IL_0031: newobj instance void class [mscorlib]System.Func`1<int32>::.ctor(object, native int)
+		IL_0036: call instance void Base::.ctor(int32, int32, class [mscorlib]System.Func`1<int32>)
+		IL_003b: ret
+	} // end of method C1::.ctor
+	.method public hidebysig specialname 
+		instance int32 get_P1 () cil managed 
+	{
+		// Method begins at RVA 0x20c0
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0006: ret
+	} // end of method C1::get_P1
+	.method public hidebysig specialname 
+		instance int32 get_P2 () cil managed 
+	{
+		// Method begins at RVA 0x20c8
+		// Code size 18 (0x12)
+		.maxstack 3
+		.locals init (
+			[0] int32
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldc.i4.1
+		IL_0008: add
+		IL_0009: stloc.0
+		IL_000a: ldloc.0
+		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0010: ldloc.0
+		IL_0011: ret
+	} // end of method C1::get_P2
+	.method public hidebysig 
+		instance int32 M1 () cil managed 
+	{
+		// Method begins at RVA 0x20e8
+		// Code size 18 (0x12)
+		.maxstack 3
+		.locals init (
+			[0] int32
+		)
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: stloc.0
+		IL_0008: ldloc.0
+		IL_0009: ldc.i4.1
+		IL_000a: add
+		IL_000b: stfld int32 C1::'<p1>PC__BackingField'
+		IL_0010: ldloc.0
+		IL_0011: ret
+	} // end of method C1::M1
+	.method private hidebysig specialname 
+		instance void add_E1 (
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2106
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldc.i4.1
+		IL_0008: add
+		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000e: ret
+	} // end of method C1::add_E1
+	.method private hidebysig specialname 
+		instance void remove_E1 (
+			class [mscorlib]System.Action 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2116
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void C1::'<remove_E1>g__local|12_0'()
+		IL_0006: ret
+	} // end of method C1::remove_E1
+	.method public hidebysig 
+		instance class [mscorlib]System.Action M2 () cil managed 
+	{
+		// Method begins at RVA 0x211e
+		// Code size 13 (0xd)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldftn instance void C1::'<M2>b__13_0'()
+		IL_0007: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+		IL_000c: ret
+	} // end of method C1::M2
+	.method private hidebysig 
+		instance int32 '<.ctor>b__1_0' () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x20c0
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0006: ret
+	} // end of method C1::'<.ctor>b__1_0'
+	.method private hidebysig 
+		instance void '<remove_E1>g__local|12_0' () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x212c
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldc.i4.1
+		IL_0008: sub
+		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000e: ret
+	} // end of method C1::'<remove_E1>g__local|12_0'
+	.method private hidebysig 
+		instance void '<M2>b__13_0' () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2106
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C1::'<p1>PC__BackingField'
+		IL_0007: ldc.i4.1
+		IL_0008: add
+		IL_0009: stfld int32 C1::'<p1>PC__BackingField'
+		IL_000e: ret
+	} // end of method C1::'<M2>b__13_0'
+	// Events
+	.event [mscorlib]System.Action E1
+	{
+		.addon instance void C1::add_E1(class [mscorlib]System.Action)
+		.removeon instance void C1::remove_E1(class [mscorlib]System.Action)
+	}
+	// Properties
+	.property instance int32 P1()
+	{
+		.get instance int32 C1::get_P1()
+	}
+	.property instance int32 P2()
+	{
+		.get instance int32 C1::get_P2()
+	}
+} // end of class C1
+".Replace("[mscorlib]", ExecutionConditionUtil.IsDesktop ? "[mscorlib]" : "[netstandard]"));
         }
 
         [Fact]

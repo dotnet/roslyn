@@ -330,6 +330,9 @@ class C
             var tree = ParseTree(text, options: TestOptions.Regular8);
             tree.GetDiagnostics().Verify();
 
+            tree = ParseTree(text, options: TestOptions.RegularPreview);
+            tree.GetDiagnostics().Verify();
+
             var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (1,12): error CS9517: Unexpected parameter list.
                 // interface P(int x, int y);
@@ -338,6 +341,42 @@ class C
 
             Assert.Empty(comp.GetTypeByMetadataName("P").GetMembers());
             Assert.Null(((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("P")).PrimaryConstructor);
+
+            UsingNode(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "P");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
