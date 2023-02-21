@@ -661,20 +661,22 @@ some_prop = some_val");
             VerifyValues(
                 customProps: """
                 <ItemGroup>
-                    <SourceGeneratorProjectReference Include="MySourceGenerator1.csproj" />
-                    <SourceGeneratorProjectReference Include="MySourceGenerator2.csproj" />
+                  <SourceGeneratorProjectReference Include="MySourceGenerator1.csproj" />
+                  <SourceGeneratorProjectReference Include="MySourceGenerator2.csproj" AdditionalProperties="Configuration=Debug;TargetFramework=netstandard2.0" />
+                  <ProjectReference Include="MySourceGenerator3.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" AdditionalProperties="Configuration=Debug;TargetFramework=netstandard2.0;IsRidAgnostic=true" />
                 </ItemGroup>
                 """,
                 customTargets: null,
                 targets: new[] { "ResolveProjectReferences" },
                 expressions: new[]
                 {
-                    "@(ProjectReference->'%(Identity) %(OutputItemType) %(ReferenceOutputAssembly) %(AdditionalProperties)')",
+                    "@(ProjectReference->'%(Identity) OutputItemType=%(OutputItemType) ReferenceOutputAssembly=%(ReferenceOutputAssembly) %(AdditionalProperties)'->Replace(';',','))",
                 },
                 expectedResults: new[]
                 {
-                    @"MySourceGenerator1.csproj Analyzer false IsRidAgnostic=true",
-                    @"MySourceGenerator2.csproj Analyzer false IsRidAgnostic=true"
+                    "MySourceGenerator3.csproj OutputItemType=Analyzer ReferenceOutputAssembly=false Configuration=Debug,TargetFramework=netstandard2.0,IsRidAgnostic=true",
+                    "MySourceGenerator1.csproj OutputItemType=Analyzer ReferenceOutputAssembly=false ,IsRidAgnostic=true",
+                    "MySourceGenerator2.csproj OutputItemType=Analyzer ReferenceOutputAssembly=false Configuration=Debug,TargetFramework=netstandard2.0,IsRidAgnostic=true"
                 });
         }
     }

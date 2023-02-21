@@ -359,7 +359,7 @@
   <Target Name="TranslateSourceGeneratorProjectReferenceItems"
           BeforeTargets="ResolveProjectReferences">
     <ItemGroup>
-      <ProjectReference Include="@(SourceGeneratorProjectReference)" OutputItemType="Analyzer" ReferenceOutputAssembly="false" AdditionalProperties="IsRidAgnostic=true" />
+      <ProjectReference Include="@(SourceGeneratorProjectReference)" OutputItemType="Analyzer" ReferenceOutputAssembly="false" AdditionalProperties="%(SourceGeneratorProjectReference.AdditionalProperties);IsRidAgnostic=true" />
     </ItemGroup>
   </Target>
 
