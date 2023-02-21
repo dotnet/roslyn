@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.AddImportOnPaste;
-using Microsoft.CodeAnalysis.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
+using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.LineSeparators;

@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.CompleteStatement
+namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 {
     internal static class CompleteStatementOptions
     {
