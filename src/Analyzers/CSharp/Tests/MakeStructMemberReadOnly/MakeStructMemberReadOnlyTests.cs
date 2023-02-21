@@ -153,6 +153,132 @@ public sealed class MakeStructMemberReadOnlyTests
     }
 
     [Fact]
+    public async Task TestWithThisPassedByIn1_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                void [|M|]()
+                {
+                    G(in this);
+                }
+
+                static void G(in S s) { }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                readonly void M()
+                {
+                    G(in this);
+                }
+
+                static void G(in S s) { }
+            }
+            """,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithThisPassedByIn1_B()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                void [|M|]()
+                {
+                    G(this);
+                }
+
+                static void G(in S s) { }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                readonly void M()
+                {
+                    G(this);
+                }
+
+                static void G(in S s) { }
+            }
+            """,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithThisPassedByIn2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                void [|M|]()
+                {
+                    this.G();
+                }
+            }
+
+            static class X
+            {
+                public static void G(in this S s) { }
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                readonly void M()
+                {
+                    this.G();
+                }
+            }
+
+            static class X
+            {
+                public static void G(in this S s) { }
+            }
+            """,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithThisPassedByIn3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            struct S
+            {
+                void [|M|]()
+                {
+                    var v = this + this;
+                }
+
+                public static S operator+(in S s1, in S s2) => default;
+            }
+            """,
+            FixedCode = """
+            struct S
+            {
+                readonly void M()
+                {
+                    var v = this + this;
+                }
+
+                public static S operator+(in S s1, in S s2) => default;
+            }
+            """,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNotWithWriteToField1()
     {
         var test = """
