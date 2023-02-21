@@ -379,6 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return false;
                         }
                     }
+
+                    return true;
                 }
 
                 // Similar to `ref x`, `&x` allows reads and write of the value, meaning `x` may be (but is not definitely)

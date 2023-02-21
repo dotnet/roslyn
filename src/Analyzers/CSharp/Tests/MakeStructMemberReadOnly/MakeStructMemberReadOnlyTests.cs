@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructReadOnly;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructMemberReadOnly;
 
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer,
