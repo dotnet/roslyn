@@ -294,7 +294,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_inheritance_margin_combined_with_indicator_margin", new RoamingProfileStorage("TextEditor.InheritanceMarginCombinedWithIndicatorMargin")},
         {"dotnet_inheritance_margin_includes_global_imports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports")},
 #pragma warning disable CS0612 // Type or member is obsolete
-        {"dotnet_keyword_highlighting_options_keyword_highlighting", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Keyword Highlighting", "TextEditor.VisualBasic.Specific.EnableHighlightRelatedKeywords")},
+        {"dotnet_keyword_highlighting", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Keyword Highlighting", "TextEditor.VisualBasic.Specific.EnableHighlightRelatedKeywords")},
         {"dotnet_line_separators_options_line_separator", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Line Separator", "TextEditor.VisualBasic.Specific.DisplayLineSeparators")},
 #pragma warning restore
         {"dotnet_feature_on_off_options_navigate_asynchronously", new RoamingProfileStorage("TextEditor.NavigateAsynchronously")},

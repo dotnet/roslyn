@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.KeywordHighlighting
 {
     internal static class KeywordHighlightingOptions
     {
-        public static readonly PerLanguageOption2<bool> KeywordHighlighting = new("dotnet_keyword_highlighting_options_keyword_highlighting", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> KeywordHighlighting = new("dotnet_keyword_highlighting", defaultValue: true);
     }
 }
