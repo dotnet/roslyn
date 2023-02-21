@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Structure
 {
     internal static class OutliningOptions
     {
-        public static readonly PerLanguageOption2<bool> Outlining = new("dotnet_outlining_options_outlining", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> Outlining = new("dotnet_enter_outlining_mode_when_files_open", defaultValue: true);
     }
 }
