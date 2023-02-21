@@ -683,24 +683,17 @@ public class C
     }
    
     static void TestA<T>(IOperation<T> operation, [MaybeNull] out T result) => result = default;
-    static void TestB<T>(IOperation<T> operation, out T result) => result = default;
+    static void TestB<T>(IOperation<T> operation, out T result) => result = default!;
     
     static void TestC<T>([MaybeNull] out T result) => result = default;
-    static void TestD<T>(out T result) => result = default;
+    static void TestD<T>(out T result) => result = default!;
 
     static void TestE([MaybeNull] out string result) => result = default;
     static void TestF(out string result) => result = "";
 }
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics(new[] {
-                // (45,77): warning CS8601: Possible null reference assignment.
-                //     static void TestB<T>(IOperation<T> operation, out T result) => result = default;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(45, 77),
-                // (48,52): warning CS8601: Possible null reference assignment.
-                //     static void TestD<T>(out T result) => result = default;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(48, 52)
-            });
+            comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -708,13 +701,13 @@ public class C
             // out _
             foreach (var discardOut in GetDiscardIdentifiers(tree))
             {
-                checkDiscard(model, discardOut, "System.String?");
+                CheckDiscard(model, discardOut, "System.String?");
             }
 
             // out T _, out var _, out T? _
             foreach (var discardDecl in GetDiscardDesignations(tree))
             {
-                checkDiscard(model, discardDecl, "System.String?");
+                CheckDiscard(model, discardDecl, "System.String?");
             }
         }
 
@@ -749,20 +742,13 @@ public class C
         TestC(out _);
     }
    
-    static void TestA<T>(IOperation<T> operation, out T result) => result = default;
-    static void TestB<T>(out T result) => result = default;
+    static void TestA<T>(IOperation<T> operation, out T result) => result = default!;
+    static void TestB<T>(out T result) => result = default!;
     static void TestC(out string result) => result = "";
 }
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics(new[] {                    
-                // (25,77): warning CS8601: Possible null reference assignment.
-                //     static void TestA<T>(IOperation<T> operation, out T result) => result = default;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(28, 77),
-                // (26,52): warning CS8601: Possible null reference assignment.
-                //     static void TestB<T>(out T result) => result = default;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(29, 52)
-            });
+            comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -770,13 +756,13 @@ public class C
             // out _
             foreach (var discardOut in GetDiscardIdentifiers(tree))
             {
-                checkDiscard(model, discardOut, "System.String!");
+                CheckDiscard(model, discardOut, "System.String!");
             }
 
             // out var _, out T _
             foreach (var discardDecl in GetDiscardDesignations(tree))
             {
-                checkDiscard(model, discardDecl, "System.String!");
+                CheckDiscard(model, discardDecl, "System.String!");
             }
         }
 
@@ -803,16 +789,12 @@ public class C
         TestC(out string? _);
     }
    
-    static void TestA<T>(IOperation<T> operation, out T result) => result = default;
+    static void TestA<T>(IOperation<T> operation, out T result) => result = default!;
     static void TestC(out string result) => result = "";
 }
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics(new[] {                    
-                // (20,77): warning CS8601: Possible null reference assignment.
-                //     static void TestA<T>(IOperation<T> operation, out T result) => result = default;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(20, 77)
-            });
+            comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -820,13 +802,13 @@ public class C
             // out _
             foreach (var discardOut in GetDiscardIdentifiers(tree))
             {
-                checkDiscard(model, discardOut, "System.String?");
+                CheckDiscard(model, discardOut, "System.String?");
             }
 
             // out var _, out T _
             foreach (var discardDecl in GetDiscardDesignations(tree))
             {
-                checkDiscard(model, discardDecl, "System.String?");
+                CheckDiscard(model, discardDecl, "System.String?");
             }
         }
 
@@ -853,7 +835,7 @@ void M((string, string?) tuple)
             });
         }
 
-        private static void checkDiscard(SemanticModel model, DiscardDesignationSyntax discard, string type) {
+        private static void CheckDiscard(SemanticModel model, DiscardDesignationSyntax discard, string type) {
             Assert.Null(model.GetDeclaredSymbol(discard));
             Assert.Null(model.GetTypeInfo(discard).Type);
             Assert.Null(model.GetSymbolInfo(discard).Symbol);
@@ -862,7 +844,7 @@ void M((string, string?) tuple)
             Assert.Null(model.GetSymbolInfo(declaration).Symbol);
         }
 
-        private static void checkDiscard(SemanticModel model, IdentifierNameSyntax discard, string type)
+        private static void CheckDiscard(SemanticModel model, IdentifierNameSyntax discard, string type)
         {
             Assert.Null(model.GetDeclaredSymbol(discard));
             var discardSymbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;

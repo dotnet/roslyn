@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var pending = (BoundDiscardExpression)expression;
                         Debug.Assert((object?)pending.Type == null);
-                        return pending.SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(true, type, true));
+                        return pending.SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(type));
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
