@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             CancellationToken cancellationToken)
         {
             var items = accessibleMethods.SelectAsArray(method => ConvertMethodGroupMethod(
-                document, method, invocationExpression.SpanStart, semanticModel.ParentModel!));
+                document, method, invocationExpression.SpanStart, semanticModel));
             var selectedItemIndex = TryGetSelectedIndex(accessibleMethods, currentSymbol);
             return Task.FromResult((items, selectedItemIndex));
         }
