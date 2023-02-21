@@ -34,7 +34,7 @@ internal static class CompletionOptionsStorage
 
     public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new("csharp_disable_unnamed_symbol_completion", CompletionOptions.Default.UnnamedSymbolCompletionDisabled);
     public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new("csharp_show_new_snippet_experience_feature_flag", CompletionOptions.Default.ShowNewSnippetExperienceFeatureFlag);
-    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new("dotnet_completion_hide_advanced_members", CompletionOptions.Default.HideAdvancedMembers);
+    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new("dotnet_hide_advanced_members_in_completion", CompletionOptions.Default.HideAdvancedMembers);
     public static readonly PerLanguageOption2<bool> TriggerOnTyping = new("dotnet_trigger_completion_on_typing", CompletionOptions.Default.TriggerOnTyping);
     public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new("dotnet_trigger_completion_on_typing_letters", CompletionOptions.Default.TriggerOnTypingLetters);
     public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new("dotnet_trigger_completion_on_deletion", CompletionOptions.Default.TriggerOnDeletion);
