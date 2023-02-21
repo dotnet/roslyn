@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.LineSeparators
 {
     internal static class LineSeparatorsOptions
     {
-        public static readonly PerLanguageOption2<bool> LineSeparator = new("dotnet_line_separators_options_line_separator", defaultValue: false);
+        public static readonly PerLanguageOption2<bool> LineSeparator = new("dotnet_line_separator", defaultValue: false);
     }
 }
