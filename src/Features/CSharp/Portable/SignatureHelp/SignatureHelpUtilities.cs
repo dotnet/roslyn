@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private static readonly Func<InitializerExpressionSyntax, IEnumerable<SyntaxNodeOrToken>> s_getInitializerExpressionArgumentsWithSeparators =
             e => e.Expressions.GetWithSeparators();
         private static readonly Func<AttributeArgumentListSyntax, IEnumerable<SyntaxNodeOrToken>> s_getAttributeArgumentListArgumentsWithSeparators =
-                    list => list.Arguments.GetWithSeparators();
+            list => list.Arguments.GetWithSeparators();
 
         private static readonly Func<BaseArgumentListSyntax, IEnumerable<string?>> s_getBaseArgumentListNames =
             list => list.Arguments.Select(argument => argument.NameColon?.Name.Identifier.ValueText);
@@ -46,7 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     ? argument.NameColon.Name.Identifier.ValueText
                     : argument.NameEquals?.Name.Identifier.ValueText);
 
-        internal static SignatureHelpState? GetSignatureHelpState(BaseArgumentListSyntax argumentList, int position, int parameterIndex)
+        internal static SignatureHelpState? GetSignatureHelpState(
+            BaseArgumentListSyntax argumentList,
+            int position,
+            IMethodSymbol method,
+            int parameterIndex)
         {
             var result = GetSignatureHelpState(argumentList, position);
             if (result is not null && parameterIndex >= 0)

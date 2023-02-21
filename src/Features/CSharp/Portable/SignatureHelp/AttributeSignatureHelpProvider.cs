@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,9 +37,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         public override bool IsRetriggerCharacter(char ch)
             => ch == ')';
 
-        private bool TryGetAttributeExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out AttributeSyntax attribute)
+        private bool TryGetAttributeExpression(
+            SyntaxNode root,
+            int position,
+            ISyntaxFactsService syntaxFacts,
+            SignatureHelpTriggerReason triggerReason,
+            CancellationToken cancellationToken,
+            [NotNullWhen(true)] out AttributeSyntax? attribute)
         {
-            if (!CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out attribute))
+            if (!CommonSignatureHelpUtilities.TryGetSyntax(
+                    root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out attribute))
             {
                 return false;
             }

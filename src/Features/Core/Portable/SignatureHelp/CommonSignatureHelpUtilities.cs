@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -108,6 +109,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return TextSpan.FromBounds(start, nextToken.SpanStart);
         }
 
+#nullable enable
+
         internal static bool TryGetSyntax<TSyntax>(
             SyntaxNode root,
             int position,
@@ -116,7 +119,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             Func<SyntaxToken, bool> isTriggerToken,
             Func<TSyntax, SyntaxToken, bool> isArgumentListToken,
             CancellationToken cancellationToken,
-            out TSyntax expression)
+            [NotNullWhen(true)] out TSyntax? expression)
             where TSyntax : SyntaxNode
         {
             var token = root.FindTokenOnLeftOfPosition(position);
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     !syntaxFacts.IsInNonUserCode(root.SyntaxTree, position, cancellationToken))
                 {
                     expression = token.GetAncestor<TSyntax>();
-                    return true;
+                    return expression != null;
                 }
             }
             else if (triggerReason == SignatureHelpTriggerReason.InvokeSignatureHelpCommand)
@@ -152,6 +155,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return false;
         }
 
+#nullable restore
+
         public static async Task<ImmutableArray<IMethodSymbol>> GetCollectionInitializerAddMethodsAsync(
             Document document, SyntaxNode initializer, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
@@ -160,7 +165,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 return default;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
             var ienumerableType = compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
             if (ienumerableType == null)

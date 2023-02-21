@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,14 +39,21 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         public override bool IsRetriggerCharacter(char ch)
             => ch == ')';
 
-        private bool TryGetInvocationExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out InvocationExpressionSyntax expression)
+        private async Task<InvocationExpressionSyntax?> TryGetInvocationExpressionAsync(Document document, int position, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken)
         {
-            if (!CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out expression))
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            if (!CommonSignatureHelpUtilities.TryGetSyntax(
+                    root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out InvocationExpressionSyntax? expression))
             {
-                return false;
+                return null;
             }
 
-            return expression.ArgumentList != null;
+            if (expression.ArgumentList is null)
+                return null;
+
+            return expression;
         }
 
         private bool IsTriggerToken(SyntaxToken token)
@@ -62,18 +67,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!TryGetInvocationExpression(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var invocationExpression))
-            {
+            var invocationExpression = await TryGetInvocationExpressionAsync(
+                document, position, triggerInfo.TriggerReason, cancellationToken).ConfigureAwait(false);
+            if (invocationExpression is null)
                 return null;
-            }
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(invocationExpression, cancellationToken).ConfigureAwait(false);
             var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
             if (within == null)
-            {
                 return null;
-            }
 
             var invokedType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type;
             if (invokedType is INamedTypeSymbol { TypeKind: TypeKind.Delegate }
@@ -102,7 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var candidates = symbolInfo.Symbol is IMethodSymbol exactMatch
                 ? ImmutableArray.Create(exactMatch)
                 : methods;
-            LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, candidates, arguments, out var currentSymbol, out var parameterIndex);
+            LightweightOverloadResolution.RefineOverloadAndPickParameter(
+                document, position, semanticModel, candidates, arguments, out var currentSymbol, out var parameterIndex);
 
             // if the symbol could be bound, replace that item in the symbol list
             if (currentSymbol?.IsGenericMethod == true)
@@ -115,8 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 methods, document, invocationExpression, semanticModel, symbolInfo, currentSymbol, cancellationToken).ConfigureAwait(false);
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, parameterIndex, syntaxFacts, textSpan, cancellationToken), selectedItem);
+            var argumentState = await GetCurrentArgumentStateAsync(
+                document, position, currentSymbol, parameterIndex, textSpan, cancellationToken).ConfigureAwait(false);
+            return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem);
         }
 
         protected async Task<SignatureHelpItems?> GetItemsWorkerForDelegateOrFunctionPointerAsync(Document document, int position,
@@ -147,7 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             // determine parameter index
             var arguments = invocationExpression.ArgumentList.Arguments;
             var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
-            LightweightOverloadResolution.FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out var parameterIndex);
+            LightweightOverloadResolution.FindParameterIndexIfCompatibleMethod(
+                arguments, currentSymbol, position, semanticModel, semanticFactsService, out var parameterIndex);
 
             // present item and select
             var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
@@ -157,23 +162,25 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, out var selectedItem, cancellationToken);
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, parameterIndex, syntaxFacts, textSpan, cancellationToken), selectedItem);
+            var argumentState = await GetCurrentArgumentStateAsync(
+                document, position, currentSymbol, parameterIndex, textSpan, cancellationToken).ConfigureAwait(false);
+            return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem);
         }
 
-        private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, int parameterIndex, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        private async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(
+            Document document,
+            int position,
+            IMethodSymbol currentSymbol,
+            int parameterIndex,
+            TextSpan currentSpan,
+            CancellationToken cancellationToken)
         {
-            if (TryGetInvocationExpression(
-                    root,
-                    position,
-                    syntaxFacts,
-                    SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
-                    cancellationToken,
-                    out var expression) &&
+            var expression = await TryGetInvocationExpressionAsync(
+                document, position, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken).ConfigureAwait(false);
+            if (expression is { ArgumentList: not null } &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
             {
-                return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position, parameterIndex);
+                return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position, currentSymbol, parameterIndex);
             }
 
             return null;
