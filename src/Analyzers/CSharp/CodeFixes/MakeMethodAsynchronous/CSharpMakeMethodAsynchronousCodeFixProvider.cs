@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         }
 
         protected override string GetMakeAsyncTaskFunctionResource()
-            => CSharpFeaturesResources.Make_method_async;
+            => CSharpCodeFixesResources.Make_method_async;
 
         protected override string GetMakeAsyncVoidFunctionResource()
-            => CSharpFeaturesResources.Make_method_async_remain_void;
+            => CSharpCodeFixesResources.Make_method_async_remain_void;
 
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();

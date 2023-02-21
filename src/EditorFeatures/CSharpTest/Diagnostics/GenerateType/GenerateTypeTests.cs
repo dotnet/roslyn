@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateTypeCodeFixProvider());
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> codeActions)
@@ -5529,6 +5527,35 @@ internal class D
     {
         this.x = x;
     }
+}", index: 1);
+        }
+
+        [Fact, WorkItem(40605, "https://github.com/dotnet/roslyn/issues/40605")]
+        public async Task DoNoInferArrayBaseType1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Array.Sort(new[] { ""a"", ""b"", ""c"" }, new [|MyComparer|]());
+    }
+}",
+@"using System;
+using System.Collections;
+
+class C
+{
+    void M()
+    {
+        Array.Sort(new[] { ""a"", ""b"", ""c"" }, new MyComparer());
+    }
+}
+
+internal class MyComparer : IComparer
+{
 }", index: 1);
         }
     }

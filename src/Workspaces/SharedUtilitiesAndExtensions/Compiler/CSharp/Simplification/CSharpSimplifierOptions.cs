@@ -6,6 +6,7 @@ using System;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -48,6 +49,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             AllowEmbeddedStatementsOnSameLine = options.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, fallbackOptions.AllowEmbeddedStatementsOnSameLine);
             PreferBraces = options.GetOption(CSharpCodeStyleOptions.PreferBraces, fallbackOptions.PreferBraces);
             PreferThrowExpression = options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression, fallbackOptions.PreferThrowExpression);
+        }
+
+        public UseVarPreference GetUseVarPreference()
+        {
+            var styleForIntrinsicTypes = this.VarForBuiltInTypes;
+            var styleForApparent = this.VarWhenTypeIsApparent;
+            var styleForElsewhere = this.VarElsewhere;
+
+            var stylePreferences = UseVarPreference.None;
+
+            if (styleForIntrinsicTypes.Value)
+                stylePreferences |= UseVarPreference.ForBuiltInTypes;
+
+            if (styleForApparent.Value)
+                stylePreferences |= UseVarPreference.WhenTypeIsApparent;
+
+            if (styleForElsewhere.Value)
+                stylePreferences |= UseVarPreference.Elsewhere;
+
+            return stylePreferences;
         }
     }
 }
