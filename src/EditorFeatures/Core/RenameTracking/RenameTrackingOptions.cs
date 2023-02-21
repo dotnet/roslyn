@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.RenameTracking
 {
     internal static class RenameTrackingOptions
     {
-        public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new("dotnet_rename_tracking_options_rename_tracking_preview", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new("dotnet_rename_tracking_preview", defaultValue: true);
     }
 }
