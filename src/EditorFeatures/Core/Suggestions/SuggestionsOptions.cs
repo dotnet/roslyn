@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal sealed class SuggestionsOptions
     {
         public static readonly Option2<bool?> Asynchronous = new("dotnet_asynchronous_suggestions", defaultValue: null);
-        public static readonly Option2<bool> AsynchronousQuickActionsDisableFeatureFlag = new("dotnet_asynchronous_quick_actions_disable", defaultValue: false);
+        public static readonly Option2<bool> AsynchronousQuickActionsDisableFeatureFlag = new("dotnet_disable_asynchronous_quick_actions", defaultValue: false);
     }
 }
