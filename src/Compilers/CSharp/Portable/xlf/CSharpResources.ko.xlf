@@ -1907,6 +1907,16 @@
         <target state="translated">포인터 요소 액세스</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AddressOfInAsync">
+        <source>The '&amp;' operator should not be used in async methods.</source>
+        <target state="new">The '&amp;' operator should not be used in async methods.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AddressOfInAsync_Title">
+        <source>The '&amp;' operator should not be used in async methods.</source>
+        <target state="new">The '&amp;' operator should not be used in async methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">'{1}' 형식을 포함하는 '{0}' 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>

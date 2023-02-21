@@ -1907,6 +1907,16 @@
         <target state="translated">指针元素访问</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AddressOfInAsync">
+        <source>The '&amp;' operator should not be used in async methods.</source>
+        <target state="new">The '&amp;' operator should not be used in async methods.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AddressOfInAsync_Title">
+        <source>The '&amp;' operator should not be used in async methods.</source>
+        <target state="new">The '&amp;' operator should not be used in async methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">包含类型“{1}”的程序集“{0}”引用了 .NET Framework，而此操作不受支持。</target>

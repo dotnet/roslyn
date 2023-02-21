@@ -1907,6 +1907,16 @@
         <target state="translated">přístup k elementu ukazatele</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AddressOfInAsync">
+        <source>The '&amp;' operator should not be used in async methods.</source>
+        <target state="new">The '&amp;' operator should not be used in async methods.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AddressOfInAsync_Title">
+        <source>The '&amp;' operator should not be used in async methods.</source>
+        <target state="new">The '&amp;' operator should not be used in async methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">Sestavení {0}, které obsahuje typ {1}, se odkazuje na architekturu .NET Framework, což se nepodporuje.</target>

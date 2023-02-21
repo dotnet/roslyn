@@ -2479,6 +2479,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindAddressOfExpression(PrefixUnaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             BoundExpression operand = BindToNaturalType(BindValue(node.Operand, diagnostics, BindValueKind.AddressOf), diagnostics);
+            if (this.IsInAsyncMethod())
+            {
+                diagnostics.Add(ErrorCode.WRN_AddressOfInAsync, operand.Syntax.Location);
+            }
+
             ReportSuppressionIfNeeded(operand, diagnostics);
 
             bool hasErrors = operand.HasAnyErrors; // This would propagate automatically, but by reading it explicitly we can reduce cascading.

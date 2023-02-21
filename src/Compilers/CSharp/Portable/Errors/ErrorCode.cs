@@ -2162,6 +2162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
         ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
         ERR_BadSpecialByRefUsing = 9104,
+        WRN_AddressOfInAsync = 9105,
         #endregion
 
         // Note: you will need to do the following after adding warnings:
