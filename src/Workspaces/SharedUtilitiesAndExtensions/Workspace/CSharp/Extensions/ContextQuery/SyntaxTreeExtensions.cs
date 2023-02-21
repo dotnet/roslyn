@@ -2369,7 +2369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // 1..|
             if (token.IsKind(SyntaxKind.DotDotToken) &&
                 token.Parent.IsKind(SyntaxKind.RangeExpression) &&
-                position == token.Span.End)
+                position >= token.Span.End)
             {
                 return true;
             }
