@@ -661,8 +661,8 @@ some_prop = some_val");
             VerifyValues(
                 customProps: """
                 <ItemGroup>
-                    <SourceGenerator Include=".\MySourceGenerator1.csproj" />
-                    <SourceGenerator Include=".\MySourceGenerator2.csproj" />
+                    <SourceGenerator Include="MySourceGenerator1.csproj" />
+                    <SourceGenerator Include="MySourceGenerator2.csproj" />
                 </ItemGroup>
                 """,
                 customTargets: null,
@@ -673,8 +673,8 @@ some_prop = some_val");
                 },
                 expectedResults: new[]
                 {
-                    @".\MySourceGenerator1.csproj Analyzer false IsRidAgnostic=true",
-                    @".\MySourceGenerator2.csproj Analyzer false IsRidAgnostic=true"
+                    @"MySourceGenerator1.csproj Analyzer false IsRidAgnostic=true",
+                    @"MySourceGenerator2.csproj Analyzer false IsRidAgnostic=true"
                 });
         }
     }
