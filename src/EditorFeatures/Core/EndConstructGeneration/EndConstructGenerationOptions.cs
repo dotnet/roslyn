@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.EndConstructGeneration
 {
     internal static class EndConstructGenerationOptions
     {
-        public static readonly PerLanguageOption2<bool> EndConstruct = new("visual_basic_end_construct_generation_options_end_construct", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> EndConstruct = new("visual_basic_generate_end_construct", defaultValue: true);
     }
 }
