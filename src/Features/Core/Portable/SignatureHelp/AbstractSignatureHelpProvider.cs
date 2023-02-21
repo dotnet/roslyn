@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -49,7 +50,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
             // If the caller provided a preferred parameter for us to be on then override whatever we found syntactically.
             var argumentIndex = state.Value.ArgumentIndex;
-            if (parameterIndexOverride != argumentIndex &&
+            if (parameterIndexOverride >= 0 &&
+                parameterIndexOverride != argumentIndex &&
                 selectedItem != null)
             {
                 // However, in the case where we'd move the index back, and the item is variadic, do not do this.  The
@@ -110,8 +112,17 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         private static bool Include(SignatureHelpItem item, ImmutableArray<string> parameterNames)
         {
-            var itemParameterNames = item.Parameters.Select(p => p.Name).ToSet();
-            return parameterNames.All(itemParameterNames.Contains);
+            using var _ = PooledHashSet<string>.GetInstance(out var itemParameterNames);
+            foreach (var parameter in item.Parameters)
+                itemParameterNames.Add(parameter.Name);
+
+            foreach (var name in parameterNames)
+            {
+                if (!itemParameterNames.Contains(name))
+                    return false;
+            }
+
+            return true;
         }
 
         // TODO: remove once Pythia moves to ExternalAccess APIs
