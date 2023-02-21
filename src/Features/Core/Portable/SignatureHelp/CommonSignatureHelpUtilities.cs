@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 {
     internal static class CommonSignatureHelpUtilities
     {
-        internal static SignatureHelpState GetSignatureHelpState<TArgumentList>(
+        internal static SignatureHelpState? GetSignatureHelpState<TArgumentList>(
             TArgumentList argumentList,
             int position,
             Func<TArgumentList, SyntaxToken> getOpenToken,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     argumentIndex,
                     argumentCount,
                     argumentIndex < argumentNames.Count ? argumentNames[argumentIndex] : null,
-                    argumentNames.Where(s => s != null).ToList());
+                    argumentNames.Where(s => s != null).ToImmutableArray());
             }
 
             return null;

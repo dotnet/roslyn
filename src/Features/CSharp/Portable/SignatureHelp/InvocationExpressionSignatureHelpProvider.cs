@@ -65,7 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 token != expression.ArgumentList.CloseParenToken;
         }
 
-        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(
+            Document document,
+            int position,
+            SignatureHelpTriggerInfo triggerInfo,
+            SignatureHelpOptions options,
+            CancellationToken cancellationToken)
         {
             var invocationExpression = await TryGetInvocationExpressionAsync(
                 document, position, triggerInfo.TriggerReason, cancellationToken).ConfigureAwait(false);
@@ -78,25 +83,23 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
 
             var invokedType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type;
-            if (invokedType is INamedTypeSymbol { TypeKind: TypeKind.Delegate }
-                || invokedType is IFunctionPointerTypeSymbol)
+            if (invokedType is INamedTypeSymbol { TypeKind: TypeKind.Delegate } or IFunctionPointerTypeSymbol)
             {
                 return await GetItemsWorkerForDelegateOrFunctionPointerAsync(document, position, invocationExpression, within, cancellationToken).ConfigureAwait(false);
             }
 
             // get the candidate methods
             var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
-            var methods = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken)
-                                                       .OfType<IMethodSymbol>()
-                                                       .ToImmutableArray()
-                                                       .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
+            var methods = semanticModel
+                .GetMemberGroup(invocationExpression.Expression, cancellationToken)
+                .OfType<IMethodSymbol>()
+                .ToImmutableArray()
+                .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
             methods = GetAccessibleMethods(invocationExpression, semanticModel, within, methods, cancellationToken);
             methods = methods.Sort(semanticModel, invocationExpression.SpanStart);
 
             if (!methods.Any())
-            {
                 return null;
-            }
 
             // guess the best candidate if needed and determine parameter index
             var arguments = invocationExpression.ArgumentList.Arguments;
@@ -123,8 +126,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem);
         }
 
-        protected async Task<SignatureHelpItems?> GetItemsWorkerForDelegateOrFunctionPointerAsync(Document document, int position,
-            InvocationExpressionSyntax invocationExpression, ISymbol within, CancellationToken cancellationToken)
+        protected async Task<SignatureHelpItems?> GetItemsWorkerForDelegateOrFunctionPointerAsync(
+            Document document,
+            int position,
+            InvocationExpressionSyntax invocationExpression,
+            ISymbol within,
+            CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(invocationExpression, cancellationToken).ConfigureAwait(false);
 

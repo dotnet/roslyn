@@ -37,20 +37,16 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken);
 
         protected static SignatureHelpItems? CreateSignatureHelpItems(
-            IList<SignatureHelpItem>? items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItem)
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItem)
         {
-            if (items == null || !items.Any() || state == null)
-            {
+            if (!items.Any() || state == null)
                 return null;
-            }
 
             if (selectedItem < 0)
-            {
                 selectedItem = null;
-            }
 
-            (items, selectedItem) = Filter(items, state.ArgumentNames, selectedItem);
-            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName, selectedItem);
+            (items, selectedItem) = Filter(items, state.Value.ArgumentNames, selectedItem);
+            return new SignatureHelpItems(items, applicableSpan, state.Value.ArgumentIndex, state.Value.ArgumentCount, state.Value.ArgumentName, selectedItem);
         }
 
         protected static SignatureHelpItems? CreateCollectionInitializerSignatureHelpItems(
@@ -78,19 +74,15 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2));
         }
 
-        private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string>? parameterNames, int? selectedItem)
+        private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, ImmutableArray<string> parameterNames, int? selectedItem)
         {
-            if (parameterNames == null)
-            {
+            if (parameterNames.IsDefault)
                 return (items.ToList(), selectedItem);
-            }
 
             var filteredList = items.Where(i => Include(i, parameterNames)).ToList();
             var isEmpty = filteredList.Count == 0;
             if (!selectedItem.HasValue || isEmpty)
-            {
                 return (isEmpty ? items.ToList() : filteredList, selectedItem);
-            }
 
             // adjust the selected item
             var selection = items[selectedItem.Value];
@@ -99,7 +91,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return (filteredList, selectedItem);
         }
 
-        private static bool Include(SignatureHelpItem item, IEnumerable<string> parameterNames)
+        private static bool Include(SignatureHelpItem item, ImmutableArray<string> parameterNames)
         {
             var itemParameterNames = item.Parameters.Select(p => p.Name).ToSet();
             return parameterNames.All(itemParameterNames.Contains);

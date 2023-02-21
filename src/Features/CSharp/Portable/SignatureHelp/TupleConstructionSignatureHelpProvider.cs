@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                         argumentIndex: 0,
                         argumentCount: 0,
                         argumentName: string.Empty,
-                        argumentNames: null);
+                        argumentNames: default);
                 }
             }
 
