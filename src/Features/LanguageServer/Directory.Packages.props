@@ -21,5 +21,6 @@
     <MicrosoftVisualStudioLanguageServerProtocolVersion>17.5.20-preview</MicrosoftVisualStudioLanguageServerProtocolVersion>
     <NerdbankStreamsVersion>2.9.112</NerdbankStreamsVersion>
     <StreamJsonRpcVersion>2.15.3-alpha</StreamJsonRpcVersion>
+    <SystemCommandLineVersion>2.0.0-beta4.22272.1</SystemCommandLineVersion>
   </PropertyGroup>
 </Project>

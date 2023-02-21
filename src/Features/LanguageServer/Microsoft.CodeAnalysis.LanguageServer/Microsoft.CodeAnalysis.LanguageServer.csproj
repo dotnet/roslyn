@@ -29,6 +29,7 @@
         <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
         <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
         <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+        <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
 
         <!-- Dlls we don't directly reference but need to include to build the MEF composition -->
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(MicrosoftCodeAnalysisCSharpFeaturesVersion)" />
