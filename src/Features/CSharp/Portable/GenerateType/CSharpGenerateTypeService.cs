@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 var syntaxTree = semanticModel.SyntaxTree;
                 var start = nameOrMemberAccessExpression.SpanStart;
                 var tokenOnLeftOfStart = syntaxTree.FindTokenOnLeftOfPosition(start, cancellationToken);
-                var isExpressionContext = syntaxTree.IsExpressionContext(start, tokenOnLeftOfStart, attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel);
+                var isExpressionContext = syntaxTree.IsExpressionContext(start, tokenOnLeftOfStart, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel);
                 var isStatementContext = syntaxTree.IsStatementContext(start, tokenOnLeftOfStart, cancellationToken);
                 var isExpressionOrStatementContext = isExpressionContext || isStatementContext;
 
