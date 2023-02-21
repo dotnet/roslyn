@@ -274,5 +274,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInExpressionTree
             Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
         End Function
+
+        Public Function GenerateNameForExpression(semanticModel As SemanticModel,
+                                                  expression As SyntaxNode,
+                                                  capitalize As Boolean,
+                                                  cancellationToken As CancellationToken) As String Implements ISemanticFacts.GenerateNameForExpression
+            Return semanticModel.GenerateNameForExpression(
+                DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
+        End Function
     End Class
 End Namespace
