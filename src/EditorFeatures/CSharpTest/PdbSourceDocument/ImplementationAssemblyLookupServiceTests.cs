@@ -41,7 +41,7 @@ public class C
 
                 // Create reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly
                 CompileTestSource(sharedDir, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -51,7 +51,6 @@ public class C
                     FileList FrameworkName="MyPack">
                     """);
 
-                var workspace = (TestWorkspace)project.Solution.Workspace;
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
                 Assert.False(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
@@ -78,7 +77,7 @@ public class C
 
                 // Compile reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly
                 CompileTestSource(sharedDir, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -89,7 +88,6 @@ public class C
                     </FileList>
                     """);
 
-                var workspace = (TestWorkspace)project.Solution.Workspace;
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
                 Assert.True(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
@@ -119,7 +117,7 @@ public class C
 
                 // Compile reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+                var (workspace, project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly
                 CompileTestSource(sharedDir, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -130,7 +128,6 @@ public class C
                     </FileList>
                     """);
 
-                var workspace = (TestWorkspace)project.Solution.Workspace;
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
                 Assert.True(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
@@ -156,7 +153,7 @@ public class C
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
                 var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
                 var workspace = TestWorkspace.Create(@$"
 <Workspace>
@@ -216,7 +213,7 @@ namespace A
 
                 // Compile reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("A.B.C.D.E"), buildReferenceAssembly: true);
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("A.B.C.D.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly to a different DLL
                 var dllFilePath = Path.Combine(path, "implementation.dll");
@@ -276,7 +273,7 @@ namespace A
 
                 // Compile reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("A.B.C.D.E"), buildReferenceAssembly: true);
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("A.B.C.D.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly to a different DLL
                 var dllFilePath = Path.Combine(path, "implementation.dll");
@@ -330,7 +327,7 @@ public class C
 
                 // Compile reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.D.E"), buildReferenceAssembly: true);
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.D.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly to a different DLL
                 var dllFilePath = Path.Combine(path, "implementation.dll");
@@ -380,7 +377,7 @@ public class C
 
                 // Compile reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly to a different DLL
                 var dllFilePath = Path.Combine(path, "implementation.dll");
@@ -444,7 +441,7 @@ public class F { }";
 
                 // Compile reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly to a different DLL
                 var dllFilePath = Path.Combine(path, "implementation.dll");
@@ -501,7 +498,7 @@ public class C
 
                 // Compile reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly to a different DLL
                 var dllFilePath = Path.Combine(path, "implementation.dll");

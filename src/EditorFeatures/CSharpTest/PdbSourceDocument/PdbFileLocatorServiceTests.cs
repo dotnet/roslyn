@@ -28,7 +28,7 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Move the PDB to a path that only our fake debugger service knows about
                 var pdbFilePath = Path.Combine(path, "SourceLink.pdb");
@@ -58,7 +58,7 @@ public class C
 
                 // Ideally we don't want to pass in true for windowsPdb here, and this is supposed to test that the service ignores non-portable PDBs when the debugger
                 // tells us they're not portable, but the debugger has a bug at the moment.
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), windowsPdb: true);
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), windowsPdb: true);
 
                 // Move the PDB to a path that only our fake debugger service knows about
                 var pdbFilePath = Path.Combine(path, "SourceLink.pdb");
@@ -86,7 +86,7 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+                var (_, _, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Move the PDB to a path that only our fake debugger service knows about
                 var pdbFilePath = Path.Combine(path, "SourceLink.pdb");

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -60,15 +61,9 @@ namespace Microsoft.CodeAnalysis.Text
 
         private static TextDocument? GetOpenTextDocumentInCurrentContextWithChanges(this SourceText text, bool sourceDocumentOnly)
         {
-            if (Workspace.TryGetWorkspace(text.Container, out var workspace))
+            if (text.Container.TryGetOpenDocumentIdInCurrentContext(out var id, out var workspace))
             {
                 var solution = workspace.CurrentSolution;
-                var id = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (id == null)
-                {
-                    return null;
-                }
-
                 if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var documentIdentity))
                 {
                     return solution.WithFrozenSourceGeneratedDocument(documentIdentity, text);
@@ -111,15 +106,11 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public static ImmutableArray<Document> GetRelatedDocuments(this SourceTextContainer container)
         {
-            if (Workspace.TryGetWorkspace(container, out var workspace))
+            if (container.TryGetOpenDocumentIdInCurrentContext(out var documentId, out var workspace))
             {
                 var solution = workspace.CurrentSolution;
-                var documentId = workspace.GetDocumentIdInCurrentContext(container);
-                if (documentId != null)
-                {
-                    var relatedIds = solution.GetRelatedDocumentIds(documentId);
-                    return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
-                }
+                var relatedIds = solution.GetRelatedDocumentIds(documentId);
+                return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
             }
 
             return ImmutableArray<Document>.Empty;
@@ -130,14 +121,38 @@ namespace Microsoft.CodeAnalysis.Text
         /// in its current project context.
         /// </summary>
         public static Document? GetOpenDocumentInCurrentContext(this SourceTextContainer container)
+            => container.TryGetOpenDocumentInCurrentContext(out var document, out _) ? document : null;
+
+        /// <summary>
+        /// Gets the document from the corresponding workspace's current solution that is associated with the text container 
+        /// in its current project context.
+        /// </summary>
+        public static bool TryGetOpenDocumentInCurrentContext(this SourceTextContainer container, [NotNullWhen(true)] out Document? document, [NotNullWhen(true)] out Workspace? workspace)
         {
-            if (Workspace.TryGetWorkspace(container, out var workspace))
+            if (container.TryGetOpenDocumentIdInCurrentContext(out var id, out workspace))
             {
-                var id = workspace.GetDocumentIdInCurrentContext(container);
-                return workspace.CurrentSolution.GetDocument(id);
+                document = workspace.CurrentSolution.GetDocument(id);
+                return document != null;
             }
 
-            return null;
+            document = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the id of a document that is associated with the text container in its current project context.
+        /// </summary>
+        public static bool TryGetOpenDocumentIdInCurrentContext(this SourceTextContainer container, [NotNullWhen(true)] out DocumentId? documentId, [NotNullWhen(true)] out Workspace? workspace)
+        {
+            if (Workspace.TryGetWorkspace(container, out workspace))
+            {
+                documentId = workspace.GetDocumentIdInCurrentContext(container);
+                return documentId != null;
+            }
+
+            documentId = null;
+            workspace = null;
+            return false;
         }
 
         /// <summary>
