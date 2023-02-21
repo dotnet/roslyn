@@ -309,7 +309,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_rename_tracking_preview", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview", "TextEditor.VisualBasic.Specific.RenameTrackingPreview")},
 #pragma warning restore
         {"dotnet_show_inheritance_margin", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin")},
-        {"dotnet_feature_on_off_options_skip_analyzers_for_implicitly_triggered_builds", new RoamingProfileStorage("TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds")},
+        {"dotnet_skip_analyzers_for_implicitly_triggered_builds", new RoamingProfileStorage("TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds")},
         {"dotnet_string_indentation_options_string_identation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.StringIdentation")},
         {"FindUsagesOptions_DefinitionGroupingPriority", new LocalUserProfileStorage(@"Roslyn\Internal\FindUsages", "DefinitionGroupingPriority")},
         {"FormattingOptions_AutoFormattingOnReturn", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return")},

@@ -34,6 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         /// Not used by Roslyn but exposed in C# and VB option UI. Used by TestWindow and Project System.
         /// TODO: remove https://github.com/dotnet/roslyn/issues/57253
         /// </summary>
-        public static readonly Option2<bool> SkipAnalyzersForImplicitlyTriggeredBuilds = new("dotnet_feature_on_off_options_skip_analyzers_for_implicitly_triggered_builds", defaultValue: true);
+        public static readonly Option2<bool> SkipAnalyzersForImplicitlyTriggeredBuilds = new("dotnet_skip_analyzers_for_implicitly_triggered_builds", defaultValue: true);
     }
 }
