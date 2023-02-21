@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.CompleteStatement
 {
     internal static class CompleteStatementOptions
     {
-        public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new("csharp_automatically_complete_statement_on_semicolon", defaultValue: true);
+        public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new("csharp_complete_statement_on_semicolon", defaultValue: true);
     }
 }

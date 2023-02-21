@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.StringCopyPaste
 {
     internal static class StringCopyPasteOptions
     {
-        public static readonly PerLanguageOption2<bool> AutomaticallyFixStringContentsOnPaste = new("csharp_automatically_fix_string_contents_on_paste", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> AutomaticallyFixStringContentsOnPaste = new("csharp_fix_string_contents_on_paste", defaultValue: true);
     }
 }
