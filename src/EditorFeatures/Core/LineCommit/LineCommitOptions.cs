@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.LineCommit
 {
     internal class LineCommitOptions
     {
-        public static readonly PerLanguageOption2<bool> PrettyListing = new("visual_basic_line_commit_options_pretty_listing", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> PrettyListing = new("visual_basic_pretty_listing", defaultValue: true);
     }
 }
