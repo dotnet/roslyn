@@ -5,7 +5,6 @@
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImportOnPaste
-Imports Microsoft.CodeAnalysis.AutomaticInsertionOfAbstractOrInterfaceMembers
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.ColorSchemes
@@ -38,6 +37,7 @@ Imports Microsoft.CodeAnalysis.RenameTracking
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
+Imports Microsoft.CodeAnalysis.VisualBasic.AutomaticInsertionOfAbstractOrInterfaceMembers
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
@@ -129,7 +129,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ' Editor help
             BindToOption(EnableEndConstruct, EndConstructGenerationOptions.EndConstruct, LanguageNames.VisualBasic)
             BindToOption(EnableLineCommit, LineCommitOptions.PrettyListing, LanguageNames.VisualBasic)
-            BindToOption(AutomaticInsertionOfInterfaceAndMustOverrideMembers, AutomaticInsertionOfAbstractOrInterfaceMembersOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic)
+            BindToOption(AutomaticInsertionOfInterfaceAndMustOverrideMembers, AutomaticInsertionOfAbstractOrInterfaceMembersOptionsStorage.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic)
             BindToOption(RenameTrackingPreview, RenameTrackingOptions.RenameTrackingPreview, LanguageNames.VisualBasic)
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic)
