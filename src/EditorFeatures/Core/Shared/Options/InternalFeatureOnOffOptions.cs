@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     {
         public static readonly Option2<bool> BraceMatching = new("dotnet_brace_matching", defaultValue: true);
         public static readonly Option2<bool> Classification = new("dotnet_classification", defaultValue: true);
-        public static readonly Option2<bool> SemanticColorizer = new("dotnet_semantic_colorize", defaultValue: true);
-        public static readonly Option2<bool> SyntacticColorizer = new("dotnet_syntactic_colorize", defaultValue: true);
+        public static readonly Option2<bool> SemanticColorizer = new("dotnet_semantic_colorizer_enabled", defaultValue: true);
+        public static readonly Option2<bool> SyntacticColorizer = new("dotnet_syntactic_colorizer_enabled", defaultValue: true);
         public static readonly Option2<bool> AutomaticLineEnder = new("dotnet_automatic_line_ender", defaultValue: true);
         public static readonly Option2<bool> SmartIndenter = new("dotnet_smart_indenter", defaultValue: true);
         public static readonly Option2<bool> Squiggles = new("dotnet_squiggles", defaultValue: true);
