@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.AddImportOnPaste;
-using Microsoft.CodeAnalysis.BlockCommentEditing;
 using Microsoft.CodeAnalysis.CompleteStatement;
+using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.LineSeparators;
@@ -21,8 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         public int AutoInsertAsteriskForNewLinesOfBlockComments
         {
-            get { return GetBooleanOption(BlockCommentEditingOptions.AutoInsertBlockCommentStartString); }
-            set { SetBooleanOption(BlockCommentEditingOptions.AutoInsertBlockCommentStartString, value); }
+            get { return GetBooleanOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString); }
+            set { SetBooleanOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, value); }
         }
 
         public int AutomaticallyFixStringContentsOnPaste

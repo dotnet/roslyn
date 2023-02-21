@@ -4,9 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                         if (line.End == position &&
                             line.IsEmptyOrWhitespace(0, line.Length - 2))
                         {
-                            if (_editorOptionsService.GlobalOptions.GetOption(BlockCommentEditingOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp) &&
+                            if (_editorOptionsService.GlobalOptions.GetOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp) &&
                                 BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value, args.SubjectBuffer, _editorOptionsService, out _, out _, executionContext.OperationContext.UserCancellationToken))
                             {
                                 args.SubjectBuffer.Replace(new VisualStudio.Text.Span(position - 1, 1), "/");

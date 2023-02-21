@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -286,7 +285,7 @@ a    * /$$
             Verify(code, expected, workspace =>
             {
                 var globalOptions = workspace.GetService<IGlobalOptionService>();
-                globalOptions.SetGlobalOption(BlockCommentEditingOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp, false);
+                globalOptions.SetGlobalOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp, false);
             });
         }
 

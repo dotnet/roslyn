@@ -7,7 +7,6 @@
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImportOnPaste;
-using Microsoft.CodeAnalysis.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.ColorSchemes;
@@ -16,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             // Comments
             BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
             BindToOption(InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments, SplitCommentOptions.Enabled, LanguageNames.CSharp);
-            BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, BlockCommentEditingOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
+            BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
 
             // Editor Help
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.CSharp);
