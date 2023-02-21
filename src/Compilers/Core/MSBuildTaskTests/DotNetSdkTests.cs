@@ -666,7 +666,7 @@ some_prop = some_val");
                 </ItemGroup>
                 """,
                 customTargets: null,
-                targets: new[] { "CoreCompile" },
+                targets: new[] { "ResolveProjectReferences" },
                 expressions: new[]
                 {
                     "@(ProjectReference->'%(Identity) %(OutputItemType) %(ReferenceOutputAssembly) %(AdditionalProperties)')",

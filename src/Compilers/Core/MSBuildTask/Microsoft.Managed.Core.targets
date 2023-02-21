@@ -357,7 +357,7 @@
     ========================
   -->
   <Target Name="TranslateSourceGeneratorItems"
-          BeforeTargets="CoreCompile">
+          BeforeTargets="ResolveProjectReferences">
     <ItemGroup>
       <ProjectReference Include="@(SourceGenerator)" OutputItemType="Analyzer" ReferenceOutputAssembly="false" AdditionalProperties="IsRidAgnostic=true" />
     </ItemGroup>
