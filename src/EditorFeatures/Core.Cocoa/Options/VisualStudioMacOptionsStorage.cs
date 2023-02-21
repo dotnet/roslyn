@@ -72,6 +72,6 @@ internal static class VisualStudioMacOptionStorage
         {"SolutionCrawlerOptionsStorage_BackgroundAnalysisScopeOption", new PropertyName("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
         {"SolutionCrawlerOptionsStorage_CompilerDiagnosticsScopeOption", new PropertyName("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
         {"SymbolSearchOptions_SuggestForTypesInNuGetPackages", new PropertyName("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
-        {"csharp_complete_statement_options_automatically_complete_statement_on_semicolon", new PropertyName("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},
+        {"csharp_automatically_complete_statement_on_semicolon", new PropertyName("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},
     };
 }
