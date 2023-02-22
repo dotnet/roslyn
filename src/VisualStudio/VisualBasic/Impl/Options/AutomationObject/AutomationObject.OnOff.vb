@@ -63,10 +63,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property EnableHighlightRelatedKeywords As Boolean
             Get
-                Return GetBooleanOption(KeywordHighlightingOptions.KeywordHighlighting)
+                Return GetBooleanOption(KeywordHighlightingOptionsStorage.KeywordHighlighting)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(KeywordHighlightingOptions.KeywordHighlighting, value)
+                SetBooleanOption(KeywordHighlightingOptionsStorage.KeywordHighlighting, value)
             End Set
         End Property
 

@@ -101,7 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Highlighting
             BindToOption(EnableHighlightReferences, ReferenceHighlightingOptionsStorage.ReferenceHighlighting, LanguageNames.VisualBasic)
-            BindToOption(EnableHighlightKeywords, KeywordHighlightingOptions.KeywordHighlighting, LanguageNames.VisualBasic)
+            BindToOption(EnableHighlightKeywords, KeywordHighlightingOptionsStorage.KeywordHighlighting, LanguageNames.VisualBasic)
 
             ' Outlining
             BindToOption(EnableOutlining, OutliningOptionsStorage.Outlining, LanguageNames.VisualBasic)

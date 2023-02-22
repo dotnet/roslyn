@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
 
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(KeywordHighlightingOptions.KeywordHighlighting);
+        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(KeywordHighlightingOptionsStorage.KeywordHighlighting);
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 return;
             }
 
-            if (!GlobalOptions.GetOption(KeywordHighlightingOptions.KeywordHighlighting, document.Project.Language))
+            if (!GlobalOptions.GetOption(KeywordHighlightingOptionsStorage.KeywordHighlighting, document.Project.Language))
             {
                 return;
             }

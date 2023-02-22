@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.KeywordHighlighting
 {
-    internal static class KeywordHighlightingOptions
+    internal static class KeywordHighlightingOptionsStorage
     {
         public static readonly PerLanguageOption2<bool> KeywordHighlighting = new("dotnet_highlight_keywords", defaultValue: true);
     }

@@ -39,8 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int EnableHighlightRelatedKeywords
         {
-            get { return GetBooleanOption(KeywordHighlightingOptions.KeywordHighlighting); }
-            set { SetBooleanOption(KeywordHighlightingOptions.KeywordHighlighting, value); }
+            get { return GetBooleanOption(KeywordHighlightingOptionsStorage.KeywordHighlighting); }
+            set { SetBooleanOption(KeywordHighlightingOptionsStorage.KeywordHighlighting, value); }
         }
 
         public int EnterOutliningModeOnOpen
