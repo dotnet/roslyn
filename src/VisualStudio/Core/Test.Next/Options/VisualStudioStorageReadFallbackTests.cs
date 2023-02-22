@@ -2,15 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Options;
 using Xunit;
@@ -21,16 +15,30 @@ namespace Microsoft.VisualStudio.LanguageServices.UnitTests;
 public class VisualStudioStorageReadFallbackTests
 {
     [Fact]
-    public void Fallbacks()
+    public void SpaceBetweenParentheses()
     {
         var exportProvider = VisualStudioTestCompositions.LanguageServices.ExportProviderFactory.CreateExportProvider();
-        foreach (var export in exportProvider.GetExports<IVisualStudioStorageReadFallback, OptionNameMetadata>())
-        {
-            var langauge = export.Metadata.ConfigName.StartsWith("csharp_") || export.Metadata.ConfigName.StartsWith("visual_basic_")
-                ? null : LanguageNames.CSharp;
+        var export = exportProvider.GetExports<IVisualStudioStorageReadFallback, OptionNameMetadata>().Single(export => export.Metadata.ConfigName == "csharp_space_between_parentheses");
+        string? language = null;
 
-            // if no flags are set the result should be default:
-            Assert.Equal(default(Optional<object?>), export.Value.TryRead(langauge, (storageKey, storageType) => default(Optional<object?>)));
-        }
+        // if no flags are set the result should be default:
+        Assert.Equal(default(Optional<object?>), export.Value.TryRead(language, (storageKey, storageType) => default(Optional<object?>)));
+
+        // all flags set:
+        Assert.Equal(export.Value.TryRead(language, (storageKey, storageType) => true).Value, SpacePlacementWithinParentheses.All);
+    }
+
+    [Fact]
+    public void NewLinesForBraces()
+    {
+        var exportProvider = VisualStudioTestCompositions.LanguageServices.ExportProviderFactory.CreateExportProvider();
+        var export = exportProvider.GetExports<IVisualStudioStorageReadFallback, OptionNameMetadata>().Single(export => export.Metadata.ConfigName == "csharp_new_line_before_open_brace");
+        string? language = null;
+
+        // if no flags are set the result should be default:
+        Assert.Equal(default(Optional<object?>), export.Value.TryRead(language, (storageKey, storageType) => default(Optional<object?>)));
+
+        // all flags set:
+        Assert.Equal(export.Value.TryRead(language, (storageKey, storageType) => true).Value, NewLineBeforeOpenBracePlacement.All);
     }
 }
