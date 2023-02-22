@@ -290,7 +290,7 @@ namespace RunTests
             {
                 var totalExecutionTime = TimeSpan.FromMilliseconds(workItem.Filters.Values.SelectMany(f => f).Sum(f => f.ExecutionTime.TotalMilliseconds));
                 Logger.Log($"- Work Item {workItem.PartitionIndex} (Execution time {totalExecutionTime})");
-                if (totalExecutionTime > s_maxExecutionTime && !workItem.Filters.Values.Any(x => IgnoreTestMethodSet.Contains(x)))
+                if (totalExecutionTime > s_maxExecutionTime && !workItem.Filters.Values.SelectMany(x => x).Any(x => IgnoreTestMethodSet.Contains(x.FullyQualifiedName)))
                 {
                     // Log a warning to the console with work item details when we were not able to partition in under our limit.
                     // This can happen when a single specific test exceeds our execution time limit.
