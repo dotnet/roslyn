@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Options
             defaultValue: false);
 
         private static readonly PerLanguageOption2<bool> s_implementIEquatable = new(
-            "dotnet_generate_equals_and_get_hash_code_from_members_when_implement_iequatable",
+            "dotnet_generate_iequatable_implementation",
             defaultValue: false);
 
         private static readonly PerLanguageOption2<bool> s_addNullChecks = new(
