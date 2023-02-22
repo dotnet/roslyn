@@ -6211,8 +6211,8 @@ class B
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-            var formatWithLongHandValueTuple = formatWithoutLongHandValueTuple.WithCompilerInternalOptions(
-                SymbolDisplayCompilerInternalOptions.UseValueTuple);
+            var formatWithLongHandValueTuple = formatWithoutLongHandValueTuple.AddMiscellaneousOptions(
+                SymbolDisplayMiscellaneousOptions.ExpandValueTuple);
 
             var method = comp.GetMember<IMethodSymbol>("B.F1");
 

@@ -10,6 +10,7 @@ Microsoft.CodeAnalysis.RuntimeCapability.NumericIntPtr = 4 -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.RuntimeCapability.UnmanagedSignatureCallingConvention = 5 -> Microsoft.CodeAnalysis.RuntimeCapability
 Microsoft.CodeAnalysis.RuntimeCapability.VirtualStaticsInInterfaces = 6 -> Microsoft.CodeAnalysis.RuntimeCapability
 Microsoft.CodeAnalysis.SymbolDisplayLocalOptions.IncludeModifiers = 4 -> Microsoft.CodeAnalysis.SymbolDisplayLocalOptions
+Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.ExpandValueTuple = 1024 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeModifiers = 2 -> Microsoft.CodeAnalysis.SymbolDisplayParameterOptions
 Microsoft.CodeAnalysis.SyntaxNode.ContainsDirective(int rawKind) -> bool
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IAttributeOperation! attribute, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph!

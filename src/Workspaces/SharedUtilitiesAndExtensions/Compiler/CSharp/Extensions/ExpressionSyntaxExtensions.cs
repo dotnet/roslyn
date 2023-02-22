@@ -367,9 +367,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression == memberAccess.Expression)
             {
                 var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
-                if (symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension, ReducedFrom: IMethodSymbol reducedFrom } &&
-                    reducedFrom.Parameters.Length > 0 &&
-                    reducedFrom.Parameters.First().RefKind == RefKind.Ref)
+                if (symbol is IMethodSymbol
+                    {
+                        MethodKind: MethodKind.ReducedExtension,
+                        ReducedFrom.Parameters: [{ RefKind: RefKind.Ref }, ..],
+                    })
                 {
                     return true;
                 }

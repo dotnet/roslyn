@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             pdbImage.WriteToStream(pdbStream);
 
             var pdbStreamCom = SymUnmanagedStreamFactory.CreateStream(pdbStream);
-            if (pdbImage.Length > 4 && pdbImage[0] == 'B' && pdbImage[1] == 'S' && pdbImage[2] == 'J' && pdbImage[3] == 'B')
+            if (pdbImage is [(byte)'B', (byte)'S', (byte)'J', (byte)'B', ..])
             {
                 var hr = symBinder.GetReaderFromPdbStream(metadataImportProvider, pdbStreamCom, out var symReader);
                 Assert.Equal(0, hr);
