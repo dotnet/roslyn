@@ -1334,11 +1334,10 @@ class C { }
             {
                 var parseOptions = TestOptions.Regular;
                 source = source.Replace(Environment.NewLine, "\r\n");
-                var compilation = CreateCompilation(source, sourceFileName: "sourcefile.cs", options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+                var compilation = CreateCompilation(source, parseOptions: parseOptions);
                 compilation.VerifyDiagnostics();
                 var syntaxTree = compilation.SyntaxTrees.Single();
-                var actualDiagnostics = reportDiagnostics
-                    .Select(x =>
+                var actualDiagnostics = reportDiagnostics.SelectAsArray(x =>
                     {
                         if (string.IsNullOrEmpty(x.Location))
                         {
@@ -1348,8 +1347,7 @@ class C { }
                         Assert.True(start >= 0, $"Not found in source: '{x.Location}'");
                         var end = start + x.Location.Length;
                         return x.Diagnostic.WithLocation(Location.Create(syntaxTree, TextSpan.FromBounds(start, end)));
-                    })
-                    .ToImmutableArray();
+                    });
 
                 var gen = new CallbackGenerator(c => { }, c =>
                 {
