@@ -165,8 +165,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(prefer_auto_properties, ImplementTypeOptionsStorage.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.CSharp);
 
             // Inline Hints
-            BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsViewOptions.DisplayAllHintsWhilePressingAltF1);
-            BindToOption(ColorHints, InlineHintsViewOptions.ColorHints, LanguageNames.CSharp);
+            BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1);
+            BindToOption(ColorHints, InlineHintsViewOptionsStorage.ColorHints, LanguageNames.CSharp);
 
             BindToOption(DisplayInlineParameterNameHints, InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.CSharp);
             BindToOption(ShowHintsForLiterals, InlineHintsOptionsStorage.ForLiteralParameters, LanguageNames.CSharp);
