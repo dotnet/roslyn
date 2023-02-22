@@ -60,14 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal static bool IsTriggerCharacter(SourceText text, int characterPosition, in CompletionOptions options)
         {
             var ch = text[characterPosition];
-            if (ch == '.')
-            {
-                // Do not trigger completions in `..` scenario
-                if (characterPosition >= 1 && text[characterPosition - 1] == '.')
-                {
-                    return false;
-                }
 
+            // Trigger off of a normal `.`, but not off of `..`
+            if (ch == '.' && !(characterPosition >= 1 && text[characterPosition - 1] == '.'))
+            {
                 return true;
             }
 
