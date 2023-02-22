@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
     internal sealed class InternalFeatureOnOffOptions
     {
-        public static readonly Option2<bool> FormatOnSave = new("dotnet_format_on_save", defaultValue: true);
         public static readonly Option2<bool> RenameTracking = new("dotnet_rename_tracking", defaultValue: true);
         public static readonly Option2<bool> EventHookup = new("dotnet_event_hook_up", defaultValue: true);
         public static readonly Option2<bool> Snippets = new("dotnet_enable_snippets", defaultValue: true);

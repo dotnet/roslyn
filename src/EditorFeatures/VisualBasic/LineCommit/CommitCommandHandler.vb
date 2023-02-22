@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As SaveCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of SaveCommandArgs).ExecuteCommand
-            If _globalOptions.GetOption(InternalFeatureOnOffOptions.FormatOnSave) Then
+            If _globalOptions.GetOption(FormattingOptionsStorage.FormatOnSave) Then
                 Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
                     Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Format_on_Save)
                         _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=context.OperationContext.UserCancellationToken)
