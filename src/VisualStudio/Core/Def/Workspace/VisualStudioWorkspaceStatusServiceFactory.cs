@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceStatusService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
     {
-        private static readonly Option2<bool> s_partialLoadModeFeatureFlag = new("dotnet_visual_studio_workspace_partial_load_mode", defaultValue: false);
+        private static readonly Option2<bool> s_partialLoadModeFeatureFlag = new("visual_studio_workspace_partial_load_mode", defaultValue: false);
 
         private readonly IAsyncServiceProvider2 _serviceProvider;
         private readonly IThreadingContext _threadingContext;

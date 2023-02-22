@@ -425,7 +425,7 @@ internal abstract class VisualStudioOptionStorage
         {"visual_basic_style_unused_value_assignment_preference", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.UnusedValueAssignmentPreference")},
         {"visual_basic_style_unused_value_expression_statement_preference", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.UnusedValueExpressionStatementPreference")},
         {"visual_basic_visual_studio_navigation_options_navigate_to_object_browser", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NavigateToObjectBrowser")},
-        {"dotnet_visual_studio_workspace_partial_load_mode", new FeatureFlagStorage(@"Roslyn.PartialLoadMode")},
+        {"visual_studio_workspace_partial_load_mode", new FeatureFlagStorage(@"Roslyn.PartialLoadMode")},
         {"dotnet_disable_background_compilation", new FeatureFlagStorage(@"Roslyn.DisableBackgroundCompilation")},
         {"dotnet_disable_reference_manager_recoverable_metadata", new FeatureFlagStorage(@"Roslyn.DisableReferenceManagerRecoverableMetadata")},
         {"dotnet_disable_shared_syntax_trees", new FeatureFlagStorage(@"Roslyn.DisableSharedSyntaxTrees")},
