@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -415,43 +416,84 @@ oneMoreTime:
             switch (condition.Kind)
             {
                 case BoundKind.BinaryOperator:
+
                     var binOp = (BoundBinaryOperator)condition;
-                    bool testBothArgs = sense;
+                    Debug.Assert(binOp.ConstantValueOpt is null);
 
-                    switch (binOp.OperatorKind.OperatorWithLogical())
+#nullable enable 
+                    if (binOp.OperatorKind.OperatorWithLogical() is BinaryOperatorKind.LogicalOr or BinaryOperatorKind.LogicalAnd)
                     {
-                        case BinaryOperatorKind.LogicalOr:
-                            testBothArgs = !testBothArgs;
-                            // Fall through
-                            goto case BinaryOperatorKind.LogicalAnd;
+                        var stack = ArrayBuilder<(BoundExpression? condition, StrongBox<object?> destBox, bool sense)>.GetInstance();
+                        var destBox = new StrongBox<object?>(dest);
+                        stack.Push((binOp, destBox, sense));
 
-                        case BinaryOperatorKind.LogicalAnd:
-                            if (testBothArgs)
+                        do
+                        {
+                            (BoundExpression? condition, StrongBox<object?> destBox, bool sense) top = stack.Pop();
+
+                            if (top.condition is null)
                             {
-                                // gotoif(a != sense) fallThrough
-                                // gotoif(b == sense) dest
-                                // fallThrough:
-
-                                object fallThrough = null;
-
-                                EmitCondBranch(binOp.Left, ref fallThrough, !sense);
-                                EmitCondBranch(binOp.Right, ref dest, sense);
-
+                                // This is a special entry to indicate that it is time to append the block
+                                object? fallThrough = top.destBox.Value;
                                 if (fallThrough != null)
                                 {
                                     _builder.MarkLabel(fallThrough);
                                 }
                             }
-                            else
+                            else if (top.condition.ConstantValueOpt is null &&
+                                     top.condition is BoundBinaryOperator binary &&
+                                     binary.OperatorKind.OperatorWithLogical() is BinaryOperatorKind.LogicalOr or BinaryOperatorKind.LogicalAnd)
                             {
-                                // gotoif(a == sense) labDest
-                                // gotoif(b == sense) labDest
+                                if (binary.OperatorKind.OperatorWithLogical() is BinaryOperatorKind.LogicalOr ? !top.sense : top.sense)
+                                {
+                                    // gotoif(a != sense) fallThrough
+                                    // gotoif(b == sense) dest
+                                    // fallThrough:
 
-                                EmitCondBranch(binOp.Left, ref dest, sense);
-                                condition = binOp.Right;
+                                    var fallThrough = new StrongBox<object?>();
+
+                                    // Note, operations are pushed to the stack in opposite order
+                                    stack.Push((null, fallThrough, true)); // This is a special entry to indicate that it is time to append the fallThrough block
+                                    stack.Push((binary.Right, top.destBox, top.sense));
+                                    stack.Push((binary.Left, fallThrough, !top.sense));
+                                }
+                                else
+                                {
+                                    // gotoif(a == sense) labDest
+                                    // gotoif(b == sense) labDest
+
+                                    // Note, operations are pushed to the stack in opposite order
+                                    stack.Push((binary.Right, top.destBox, top.sense));
+                                    stack.Push((binary.Left, top.destBox, top.sense));
+                                }
+                            }
+                            else if (stack.Count == 0 && ReferenceEquals(destBox.Value, top.destBox.Value))
+                            {
+                                // Instead of recursion we can restart from the top with new condition
+                                condition = top.condition;
+                                sense = top.sense;
+                                dest = destBox.Value;
+                                stack.Free();
                                 goto oneMoreTime;
                             }
-                            return;
+                            else
+                            {
+                                EmitCondBranch(top.condition, ref top.destBox.Value, top.sense);
+                            }
+                        }
+                        while (stack.Count != 0);
+
+                        dest = destBox.Value;
+                        stack.Free();
+                        return;
+                    }
+#nullable disable
+
+                    switch (binOp.OperatorKind.OperatorWithLogical())
+                    {
+                        case BinaryOperatorKind.LogicalOr:
+                        case BinaryOperatorKind.LogicalAnd:
+                            throw ExceptionUtilities.Unreachable();
 
                         case BinaryOperatorKind.Equal:
                         case BinaryOperatorKind.NotEqual:
