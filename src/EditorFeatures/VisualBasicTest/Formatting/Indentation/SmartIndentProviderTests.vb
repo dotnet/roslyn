@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.CodeAnalysis.SmartIndent
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     <[UseExportProvider]>
@@ -26,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
         Public Sub GetSmartIndent2()
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                Assert.Equal(True, globalOptions.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
+                Assert.Equal(True, globalOptions.GetOption(SmartIndenterOptionsStorage.SmartIndenter))
 
                 Dim document = workspace.Projects.Single().Documents.Single()
                 Dim provider = workspace.ExportProvider.GetExportedValues(Of ISmartIndentProvider)().OfType(Of SmartIndentProvider)().Single()
@@ -40,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
         Public Sub GetSmartIndent3()
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(InternalFeatureOnOffOptions.SmartIndenter, False)
+                globalOptions.SetGlobalOption(SmartIndenterOptionsStorage.SmartIndenter, False)
 
                 Dim document = workspace.Projects.Single().Documents.Single()
                 Dim provider = workspace.ExportProvider.GetExportedValues(Of ISmartIndentProvider)().OfType(Of SmartIndentProvider)().Single()
