@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml
     /// </summary>
     internal sealed class XamlOptions
     {
-        public static readonly Option2<bool> EnableLspIntelliSenseFeatureFlag = new("dotnet_enable_lsp_intellisense_in_xaml", defaultValue: false);
+        public static readonly Option2<bool> EnableLspIntelliSenseFeatureFlag = new("xaml_enable_lsp_intellisense", defaultValue: false);
     }
 }
