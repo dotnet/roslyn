@@ -127,7 +127,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.VisualBasic)
 
             ' Go To Definition
-            BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic)
+            BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, LanguageNames.VisualBasic)
             BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
                          Function()
                              ' If the option has Not been set by the user, check if the option is enabled from experimentation.

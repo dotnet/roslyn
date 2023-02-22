@@ -46,7 +46,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
             ResetPerLanguageOption(globalOptions, NavigationBarViewOptionsStorage.ShowNavigationBar);
-            ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
+            ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser);
             ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
             ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.PrettyListing);
             ResetPerLanguageOption(globalOptions, CompletionViewOptionsStorage.EnableArgumentCompletionSnippets);

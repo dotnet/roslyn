@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal sealed class VisualStudioNavigationOptions
+    internal sealed class VisualStudioNavigationOptionsStorage
     {
         public static readonly PerLanguageOption2<bool> NavigateToObjectBrowser = new("dotnet_navigation_options_navigate_to_object_browser", defaultValue: false);
     }
