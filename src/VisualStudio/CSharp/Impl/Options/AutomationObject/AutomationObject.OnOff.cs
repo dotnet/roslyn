@@ -93,8 +93,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int RenameTrackingPreview
         {
-            get { return GetBooleanOption(RenameTrackingOptions.RenameTrackingPreview); }
-            set { SetBooleanOption(RenameTrackingOptions.RenameTrackingPreview, value); }
+            get { return GetBooleanOption(RenameTrackingOptionsStorage.RenameTrackingPreview); }
+            set { SetBooleanOption(RenameTrackingOptionsStorage.RenameTrackingPreview, value); }
         }
 
         public int NavigateAsynchronously

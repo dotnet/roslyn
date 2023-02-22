@@ -36,10 +36,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property RenameTrackingPreview As Boolean
             Get
-                Return GetBooleanOption(RenameTrackingOptions.RenameTrackingPreview)
+                Return GetBooleanOption(RenameTrackingOptionsStorage.RenameTrackingPreview)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(RenameTrackingOptions.RenameTrackingPreview, value)
+                SetBooleanOption(RenameTrackingOptionsStorage.RenameTrackingPreview, value)
             End Set
         End Property
 

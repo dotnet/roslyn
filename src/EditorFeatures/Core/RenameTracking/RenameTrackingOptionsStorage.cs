@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.RenameTracking
 {
-    internal static class RenameTrackingOptions
+    internal static class RenameTrackingOptionsStorage
     {
-        public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new("dotnet_rename_tracking_preview", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new("dotnet_show_preview_for_rename_tracking", defaultValue: true);
     }
 }
