@@ -278,7 +278,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_editor_adornment", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Components", "Adornment")},
         {"dotnet_enable_code_refactorings", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Components", "Code Refactorings")},
         {"dotnet_enable_editor_tagger", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Components", "Tagger")},
-        {"dotnet_allow_best_effort_when_extract_method", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Allow Best Effort")},
+        {"dotnet_allow_best_effort_when_extracting_method", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Allow Best Effort")},
         {"dotnet_don't_put_out_or_ref_on_struct_when_extract_method", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Don't Put Out Or Ref On Strcut")},
         {"dotnet_fade_out_unreachable_code", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnreachableCode")},
         {"dotnet_fade_out_unused_imports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnusedImports")},
