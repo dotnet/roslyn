@@ -700,7 +700,7 @@ class A
 }";
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
             var firstLocation = testLspServer.GetLocations("first").Single().Range;
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(FadingOptionsStorage.FadeOutUnusedImports, LanguageNames.CSharp, true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp, true);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -739,7 +739,7 @@ class A
 }";
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
             var firstLocation = testLspServer.GetLocations("first").Single().Range;
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(FadingOptionsStorage.FadeOutUnusedImports, LanguageNames.CSharp, false);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp, false);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 

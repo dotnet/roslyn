@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
                    EnforceOnBuildValues.RemoveUnreachableCode,
                    option: null,
-                   fadingOption: FadingOptionsStorage.FadeOutUnreachableCode,
+                   fadingOption: FadingOptions.FadeOutUnreachableCode,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Unreachable_code_detected), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    configurable: false)
         {

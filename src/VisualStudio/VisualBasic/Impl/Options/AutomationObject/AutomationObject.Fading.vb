@@ -8,19 +8,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
         Public Property Fading_FadeOutUnreachableCode As Boolean
             Get
-                Return GetBooleanOption(FadingOptionsStorage.FadeOutUnreachableCode)
+                Return GetBooleanOption(FadingOptions.FadeOutUnreachableCode)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FadingOptionsStorage.FadeOutUnreachableCode, value)
+                SetBooleanOption(FadingOptions.FadeOutUnreachableCode, value)
             End Set
         End Property
 
         Public Property Fading_FadeOutUnusedImports As Boolean
             Get
-                Return GetBooleanOption(FadingOptionsStorage.FadeOutUnusedImports)
+                Return GetBooleanOption(FadingOptions.FadeOutUnusedImports)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FadingOptionsStorage.FadeOutUnusedImports, value)
+                SetBooleanOption(FadingOptions.FadeOutUnusedImports, value)
             End Set
         End Property
     End Class
