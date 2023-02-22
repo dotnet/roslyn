@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Highlight_related_JSON_components_under_cursor, HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.CSharp);
 
             // Classifications
-            BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme);
+            BindToOption(Editor_color_scheme, ColorSchemeOptionsStorage.ColorScheme);
 
             // Extract Method
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
