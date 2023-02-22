@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             }
 
             // feature off
-            if (!EditorOptionsService.GlobalOptions.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
+            if (!EditorOptionsService.GlobalOptions.GetOption(AutomaticLineEnderOptionsStorage.AutomaticLineEnder))
             {
                 NextAction(operations, nextHandler);
                 return;

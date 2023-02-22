@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
     internal sealed class InternalFeatureOnOffOptions
     {
-        public static readonly Option2<bool> SyntacticColorizer = new("dotnet_enable_syntactic_colorizer", defaultValue: true);
-        public static readonly Option2<bool> AutomaticLineEnder = new("dotnet_automatic_line_ender", defaultValue: true);
         public static readonly Option2<bool> SmartIndenter = new("dotnet_smart_indenter", defaultValue: true);
         public static readonly Option2<bool> Squiggles = new("dotnet_squiggles", defaultValue: true);
         public static readonly Option2<bool> FormatOnSave = new("dotnet_format_on_save", defaultValue: true);
