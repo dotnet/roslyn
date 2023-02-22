@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal sealed class FormattingOptionsMetadata
+    internal sealed class FormattingOptionsStorage
     {
         public static readonly PerLanguageOption2<bool> FormatOnPaste =
             new("dotnet_format_on_paste", defaultValue: true);
