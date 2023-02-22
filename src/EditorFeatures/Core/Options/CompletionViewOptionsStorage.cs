@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal sealed class CompletionViewOptions
+    internal sealed class CompletionViewOptionsStorage
     {
         public static readonly PerLanguageOption2<bool> HighlightMatchingPortionsOfCompletionListItems =
             new("dotnet_highlight_matching_portions_of_completion_list_items", defaultValue: true);

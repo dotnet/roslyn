@@ -541,7 +541,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            if (!(EditorOptionsService.GlobalOptions.GetOption(CompletionViewOptions.EnableArgumentCompletionSnippets, document.Project.Language) ?? false))
+            if (!(EditorOptionsService.GlobalOptions.GetOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, document.Project.Language) ?? false))
             {
                 // Argument completion snippets are not enabled
                 return false;

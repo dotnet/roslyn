@@ -25,7 +25,7 @@ public class OptionSerializerTests
     {
         var options = new IOption2[]
         {
-            CompletionViewOptions.EnableArgumentCompletionSnippets,
+            CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
             FeatureOnOffOptions.ShowInheritanceMargin,
             SuggestionsOptions.Asynchronous,
