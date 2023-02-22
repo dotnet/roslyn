@@ -322,7 +322,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_add_null_checks_when_generate_constructor_from_members", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks")},
         {"dotnet_generate_equals_and_get_hash_code_from_members_when_generate_operators", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators")},
         {"dotnet_generate_equals_and_get_hash_code_from_members_when_implement_iequatable", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable")},
-        {"dotnet_select_all_when_generate_overrides", new RoamingProfileStorage("TextEditor.Specific.GenerateOverridesOptions.SelectAll")},
+        {"dotnet_generate_overrides_for_all_members", new RoamingProfileStorage("TextEditor.Specific.GenerateOverridesOptions.SelectAll")},
         {"dotnet_insertion_behavior_when_implement_type", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior")},
         {"dotnet_property_generation_behavior_when_implement_type", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.PropertyGenerationBehavior")},
 #pragma warning disable CS0612 // Type or member is obsolete
