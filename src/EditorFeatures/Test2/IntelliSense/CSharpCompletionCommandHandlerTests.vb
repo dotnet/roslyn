@@ -1070,12 +1070,12 @@ class c { void M() { this$$.ToString() } }
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, WorkItem(66903, "https://github.com/dotnet/roslyn/issues/66903")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTypingDotAfterExistingDot(showCompletionInArgumentLists As Boolean) As Task
             ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
             ' A test above (TestTypingDotBeforeExistingDot) verifies that the completion happens
             ' if we type dot before a single dot.
-            ' However, completions after DotDotToken are different and should not provide items for members
+            ' However, we should not have a completion if typing dot after a dot.
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class c { void M() { this.$$ToString() } }
@@ -1083,13 +1083,7 @@ class c { void M() { this.$$ToString() } }
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars(".")
-                Await state.AssertCompletionSession()
-                Await state.AssertCompletionItemsDoNotContainAny("M")
-                Await state.AssertCompletionItemsDoNotContainAny("Equals")
-                Await state.AssertCompletionItemsDoNotContainAny("GetHashCode")
-                Await state.AssertCompletionItemsDoNotContainAny("GetType")
-                Await state.AssertCompletionItemsDoNotContainAny("MemberwiseClone")
-                Await state.AssertCompletionItemsDoNotContainAny("ToString")
+                Await state.AssertNoCompletionSession()
             End Using
         End Function
 

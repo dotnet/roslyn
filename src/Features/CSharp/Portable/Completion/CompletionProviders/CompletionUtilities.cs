@@ -62,6 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var ch = text[characterPosition];
             if (ch == '.')
             {
+                // Do not trigger completions in `..` scenario
+                if (characterPosition >= 1 && text[characterPosition - 1] == '.')
+                {
+                    return false;
+                }
+
                 return true;
             }
 
