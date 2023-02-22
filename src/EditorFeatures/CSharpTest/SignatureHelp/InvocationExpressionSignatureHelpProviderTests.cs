@@ -2130,6 +2130,7 @@ class Program
         [InlineData("i1: 1, i2: new int[] { }$$", 1)]
         [InlineData("i2: new int[] { }, i1: 1$$", 0)]
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
+        [WorkItem(66984, "https://github.com/dotnet/roslyn/issues/66984")]
         public async Task PickCorrectOverload_Params(string arguments, int expectedParameterIndex)
         {
             var markup = @"
