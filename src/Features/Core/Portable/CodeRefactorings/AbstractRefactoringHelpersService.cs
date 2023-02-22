@@ -236,35 +236,35 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             return (tokenToLeft, tokenToRight);
-        }
 
-        private static bool IsAcceptableLineDistanceAway(
-            SourceText sourceText, SyntaxToken tokenOnLocation, int location)
-        {
-            // assume non-trivia token can't span multiple lines
-            var tokenLine = sourceText.Lines.GetLineFromPosition(tokenOnLocation.Span.Start);
-            var locationLine = sourceText.Lines.GetLineFromPosition(location);
-
-            // Change location to nearest token only if the token is off by one line or less
-            var lineDistance = tokenLine.LineNumber - locationLine.LineNumber;
-            if (lineDistance is not 0 and not 1)
-                return false;
-
-            // Note: being a line below a tokenOnLocation is impossible in current model as whitespace 
-            // trailing trivia ends on new line. Which is fine because if you're a line _after_ some node
-            // you usually don't want refactorings for what's above you.
-
-            if (lineDistance == 1)
+            static bool IsAcceptableLineDistanceAway(
+                SourceText sourceText, SyntaxToken tokenOnLocation, int location)
             {
-                // position is one line above the node of interest.  This is fine if that
-                // line is blank.  Otherwise, if it isn't (i.e. it contains comments,
-                // directives, or other trivia), then it's not likely the user is selecting
-                // this entry.
-                return locationLine.IsEmptyOrWhitespace();
-            }
+                // assume non-trivia token can't span multiple lines
+                var tokenLine = sourceText.Lines.GetLineFromPosition(tokenOnLocation.Span.Start);
+                var locationLine = sourceText.Lines.GetLineFromPosition(location);
 
-            // On hte same line.  This position is acceptable.
-            return true;
+                // Change location to nearest token only if the token is off by one line or less
+                var lineDistance = tokenLine.LineNumber - locationLine.LineNumber;
+                if (lineDistance is not 0 and not 1)
+                    return false;
+
+                // Note: being a line below a tokenOnLocation is impossible in current model as whitespace 
+                // trailing trivia ends on new line. Which is fine because if you're a line _after_ some node
+                // you usually don't want refactorings for what's above you.
+
+                if (lineDistance == 1)
+                {
+                    // position is one line above the node of interest.  This is fine if that
+                    // line is blank.  Otherwise, if it isn't (i.e. it contains comments,
+                    // directives, or other trivia), then it's not likely the user is selecting
+                    // this entry.
+                    return locationLine.IsEmptyOrWhitespace();
+                }
+
+                // On hte same line.  This position is acceptable.
+                return true;
+            }
         }
 
         private void AddNodesForTokenToLeft<TSyntaxNode>(
