@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
-    internal static class InheritanceMarginOptions
+    internal static class InheritanceMarginOptionsStorage
     {
         public static readonly PerLanguageOption2<bool?> ShowInheritanceMargin = new("dotnet_show_inheritance_margin", defaultValue: true);
 

@@ -123,8 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void OnGlobalOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option.Equals(InheritanceMarginOptions.ShowInheritanceMargin) ||
-                e.Option.Equals(InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin))
+            if (e.Option.Equals(InheritanceMarginOptionsStorage.ShowInheritanceMargin) ||
+                e.Option.Equals(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin))
             {
                 UpdateMarginVisibility();
             }
@@ -133,8 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private void UpdateMarginVisibility()
         {
             _mainCanvas.Visibility =
-                (_globalOptions.GetOption(InheritanceMarginOptions.ShowInheritanceMargin, _languageName) ?? true) &&
-                !_globalOptions.GetOption(InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin) ? Visibility.Visible : Visibility.Collapsed;
+                (_globalOptions.GetOption(InheritanceMarginOptionsStorage.ShowInheritanceMargin, _languageName) ?? true) &&
+                !_globalOptions.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void OnTagsChanged(object sender, BatchedTagsChangedEventArgs e)
@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void RefreshGlyphsOver(ITextViewLine textViewLine)
         {
-            if (!_globalOptions.GetOption(InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin))
+            if (!_globalOptions.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin))
             {
                 foreach (var mappingTagSpan in _tagAggregator.GetTags(textViewLine.ExtentAsMappingSpan))
                 {

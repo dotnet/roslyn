@@ -192,9 +192,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Inheritance Margin
             // Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
-            BindToOption(ShowInheritanceMargin, InheritanceMarginOptions.ShowInheritanceMargin, LanguageNames.CSharp, () => true);
-            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin);
-            BindToOption(IncludeGlobalImports, InheritanceMarginOptions.InheritanceMarginIncludeGlobalImports, LanguageNames.CSharp);
+            BindToOption(ShowInheritanceMargin, InheritanceMarginOptionsStorage.ShowInheritanceMargin, LanguageNames.CSharp, () => true);
+            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin);
+            BindToOption(IncludeGlobalImports, InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, LanguageNames.CSharp);
 
             // Stack Trace Explorer
             BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsMetadata.OpenOnFocus);

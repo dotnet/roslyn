@@ -28,7 +28,7 @@ public class OptionSerializerTests
         {
             CompletionViewOptions.EnableArgumentCompletionSnippets,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
-            InheritanceMarginOptions.ShowInheritanceMargin,
+            InheritanceMarginOptionsStorage.ShowInheritanceMargin,
             SuggestionsOptions.Asynchronous,
             WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
             SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,

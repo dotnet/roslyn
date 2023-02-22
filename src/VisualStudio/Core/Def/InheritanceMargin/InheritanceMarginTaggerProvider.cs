@@ -68,8 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptions.ShowInheritanceMargin),
-               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin));
+               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptionsStorage.ShowInheritanceMargin),
+               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
@@ -103,10 +103,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (inheritanceMarginInfoService == null)
                 return;
 
-            if (GlobalOptions.GetOption(InheritanceMarginOptions.ShowInheritanceMargin, document.Project.Language) == false)
+            if (GlobalOptions.GetOption(InheritanceMarginOptionsStorage.ShowInheritanceMargin, document.Project.Language) == false)
                 return;
 
-            var includeGlobalImports = GlobalOptions.GetOption(InheritanceMarginOptions.InheritanceMarginIncludeGlobalImports, document.Project.Language);
+            var includeGlobalImports = GlobalOptions.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, document.Project.Language);
 
             // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
             // response. (Since the full load might take a long time)
