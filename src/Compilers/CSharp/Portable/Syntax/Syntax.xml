@@ -3475,6 +3475,16 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
+  <Node Name="ForTypeSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Class representing a 'for' token followed by a type.</summary>
+    </TypeComment>
+    <Kind Name="ForType"/>
+    <Field Name="ForKeyword" Type="SyntaxToken">
+      <Kind Name="ForKeyword"/>
+    </Field>
+    <Field Name="UnderlyingType" Type="TypeSyntax"/>
+  </Node>
   <Node Name="ExtensionDeclarationSyntax" Base="TypeDeclarationSyntax" SkipConvenienceFactories="true">
     <Kind Name="ExtensionDeclaration" />
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
@@ -3493,10 +3503,7 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
-    <Field Name="ForKeyword" Type="SyntaxToken">
-      <Kind Name="ForKeyword"/>
-    </Field>
-    <Field Name="UnderlyingType" Type="TypeSyntax"/>
+    <Field Name="ForUnderlyingType" Type="ForTypeSyntax" Optional="true"/>
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">

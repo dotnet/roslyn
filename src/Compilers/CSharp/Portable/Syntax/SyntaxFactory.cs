@@ -2835,21 +2835,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, TypeSyntax underlyingType, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
-            => SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword: default, keyword, identifier, typeParameterList,
-                SyntaxFactory.Token(SyntaxKind.ForKeyword), underlyingType, baseList, constraintClauses,
+        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, keyword, identifier, typeParameterList,
+                forUnderlyingType, baseList, constraintClauses,
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), semicolonToken: default);
 
         /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxToken keyword, SyntaxToken identifier, TypeSyntax underlyingType)
-            => SyntaxFactory.ExtensionDeclaration(default, default, implicitOrExplicitKeyword: default, keyword, identifier, null,
-                SyntaxFactory.Token(SyntaxKind.ForKeyword), underlyingType, null, default,
-                SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), semicolonToken: default);
+        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxToken keyword, SyntaxToken identifier)
+            => SyntaxFactory.ExtensionDeclaration(attributeLists: default, modifiers: default, implicitOrExplicitKeyword: default, keyword, identifier,
+                typeParameterList: null, forUnderlyingType: null, baseList: null, constraintClauses: default,
+                SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members: default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), semicolonToken: default);
 
         /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxToken keyword, string identifier, TypeSyntax underlyingType)
-            => SyntaxFactory.ExtensionDeclaration(default, default, implicitOrExplicitKeyword: default, keyword, SyntaxFactory.Identifier(identifier), null,
-                SyntaxFactory.Token(SyntaxKind.ForKeyword), underlyingType, null, default,
-                SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), semicolonToken: default);
+        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxToken keyword, string identifier)
+            => SyntaxFactory.ExtensionDeclaration(attributeLists: default, modifiers: default, implicitOrExplicitKeyword: default, keyword, SyntaxFactory.Identifier(identifier),
+                typeParameterList: null, forUnderlyingType: null, baseList: null, constraintClauses: default,
+                SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members: default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), semicolonToken: default);
     }
 }

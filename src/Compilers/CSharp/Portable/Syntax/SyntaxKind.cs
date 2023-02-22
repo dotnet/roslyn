@@ -913,5 +913,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ScopedType = 9075,
 
         ExtensionDeclaration = 9076,
+        ForType = 9077,
     }
 }

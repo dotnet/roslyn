@@ -10703,6 +10703,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new RecordDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => WithMembers(this.Members.AddRange(items));
     }
 
+    /// <summary>Class representing a 'for' token followed by a type.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ForType"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class ForTypeSyntax : CSharpSyntaxNode
+    {
+        private TypeSyntax? underlyingType;
+
+        internal ForTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken ForKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ForTypeSyntax)this.Green).forKeyword, Position, 0);
+
+        public TypeSyntax UnderlyingType => GetRed(ref this.underlyingType, 1)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.underlyingType, 1)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.underlyingType : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForType(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitForType(this);
+
+        public ForTypeSyntax Update(SyntaxToken forKeyword, TypeSyntax underlyingType)
+        {
+            if (forKeyword != this.ForKeyword || underlyingType != this.UnderlyingType)
+            {
+                var newNode = SyntaxFactory.ForType(forKeyword, underlyingType);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public ForTypeSyntax WithForKeyword(SyntaxToken forKeyword) => Update(forKeyword, this.UnderlyingType);
+        public ForTypeSyntax WithUnderlyingType(TypeSyntax underlyingType) => Update(this.ForKeyword, underlyingType);
+    }
+
     /// <remarks>
     /// <para>This node is associated with the following syntax kinds:</para>
     /// <list type="bullet">
@@ -10713,7 +10756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         private SyntaxNode? attributeLists;
         private TypeParameterListSyntax? typeParameterList;
-        private TypeSyntax? underlyingType;
+        private ForTypeSyntax? forUnderlyingType;
         private BaseListSyntax? baseList;
         private SyntaxNode? constraintClauses;
         private SyntaxNode? members;
@@ -10750,31 +10793,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 5);
 
-        public SyntaxToken ForKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ExtensionDeclarationSyntax)this.Green).forKeyword, GetChildPosition(6), GetChildIndex(6));
+        public ForTypeSyntax? ForUnderlyingType => GetRed(ref this.forUnderlyingType, 6);
 
-        public TypeSyntax UnderlyingType => GetRed(ref this.underlyingType, 7)!;
+        public override BaseListSyntax? BaseList => GetRed(ref this.baseList, 7);
 
-        public override BaseListSyntax? BaseList => GetRed(ref this.baseList, 8);
-
-        public override SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new SyntaxList<TypeParameterConstraintClauseSyntax>(GetRed(ref this.constraintClauses, 9));
+        public override SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new SyntaxList<TypeParameterConstraintClauseSyntax>(GetRed(ref this.constraintClauses, 8));
 
         public override SyntaxToken OpenBraceToken
         {
             get
             {
                 var slot = ((Syntax.InternalSyntax.ExtensionDeclarationSyntax)this.Green).openBraceToken;
-                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(10), GetChildIndex(10)) : default;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(9), GetChildIndex(9)) : default;
             }
         }
 
-        public override SyntaxList<MemberDeclarationSyntax> Members => new SyntaxList<MemberDeclarationSyntax>(GetRed(ref this.members, 11));
+        public override SyntaxList<MemberDeclarationSyntax> Members => new SyntaxList<MemberDeclarationSyntax>(GetRed(ref this.members, 10));
 
         public override SyntaxToken CloseBraceToken
         {
             get
             {
                 var slot = ((Syntax.InternalSyntax.ExtensionDeclarationSyntax)this.Green).closeBraceToken;
-                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(12), GetChildIndex(12)) : default;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(11), GetChildIndex(11)) : default;
             }
         }
 
@@ -10783,7 +10824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             get
             {
                 var slot = ((Syntax.InternalSyntax.ExtensionDeclarationSyntax)this.Green).semicolonToken;
-                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(13), GetChildIndex(13)) : default;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(12), GetChildIndex(12)) : default;
             }
         }
 
@@ -10792,10 +10833,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 0 => GetRedAtZero(ref this.attributeLists)!,
                 5 => GetRed(ref this.typeParameterList, 5),
-                7 => GetRed(ref this.underlyingType, 7)!,
-                8 => GetRed(ref this.baseList, 8),
-                9 => GetRed(ref this.constraintClauses, 9)!,
-                11 => GetRed(ref this.members, 11)!,
+                6 => GetRed(ref this.forUnderlyingType, 6),
+                7 => GetRed(ref this.baseList, 7),
+                8 => GetRed(ref this.constraintClauses, 8)!,
+                10 => GetRed(ref this.members, 10)!,
                 _ => null,
             };
 
@@ -10804,21 +10845,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 0 => this.attributeLists,
                 5 => this.typeParameterList,
-                7 => this.underlyingType,
-                8 => this.baseList,
-                9 => this.constraintClauses,
-                11 => this.members,
+                6 => this.forUnderlyingType,
+                7 => this.baseList,
+                8 => this.constraintClauses,
+                10 => this.members,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExtensionDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExtensionDeclaration(this);
 
-        public ExtensionDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, SyntaxToken forKeyword, TypeSyntax underlyingType, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        public ExtensionDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || forKeyword != this.ForKeyword || underlyingType != this.UnderlyingType || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || forUnderlyingType != this.ForUnderlyingType || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
             {
-                var newNode = SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, keyword, identifier, typeParameterList, forKeyword, underlyingType, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                var newNode = SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, keyword, identifier, typeParameterList, forUnderlyingType, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -10827,30 +10868,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-        public new ExtensionDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForKeyword, this.UnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        public new ExtensionDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForUnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
         internal override MemberDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
-        public new ExtensionDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForKeyword, this.UnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
-        public ExtensionDeclarationSyntax WithImplicitOrExplicitKeyword(SyntaxToken implicitOrExplicitKeyword) => Update(this.AttributeLists, this.Modifiers, implicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForKeyword, this.UnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        public new ExtensionDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForUnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        public ExtensionDeclarationSyntax WithImplicitOrExplicitKeyword(SyntaxToken implicitOrExplicitKeyword) => Update(this.AttributeLists, this.Modifiers, implicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForUnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
         internal override TypeDeclarationSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
-        public new ExtensionDeclarationSyntax WithKeyword(SyntaxToken keyword) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, keyword, this.Identifier, this.TypeParameterList, this.ForKeyword, this.UnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        public new ExtensionDeclarationSyntax WithKeyword(SyntaxToken keyword) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, keyword, this.Identifier, this.TypeParameterList, this.ForUnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
         internal override BaseTypeDeclarationSyntax WithIdentifierCore(SyntaxToken identifier) => WithIdentifier(identifier);
-        public new ExtensionDeclarationSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, identifier, this.TypeParameterList, this.ForKeyword, this.UnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        public new ExtensionDeclarationSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, identifier, this.TypeParameterList, this.ForUnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
         internal override TypeDeclarationSyntax WithTypeParameterListCore(TypeParameterListSyntax? typeParameterList) => WithTypeParameterList(typeParameterList);
-        public new ExtensionDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax? typeParameterList) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, typeParameterList, this.ForKeyword, this.UnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
-        public ExtensionDeclarationSyntax WithForKeyword(SyntaxToken forKeyword) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, forKeyword, this.UnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
-        public ExtensionDeclarationSyntax WithUnderlyingType(TypeSyntax underlyingType) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForKeyword, underlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        public new ExtensionDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax? typeParameterList) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, typeParameterList, this.ForUnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        public ExtensionDeclarationSyntax WithForUnderlyingType(ForTypeSyntax? forUnderlyingType) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, forUnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
         internal override BaseTypeDeclarationSyntax WithBaseListCore(BaseListSyntax? baseList) => WithBaseList(baseList);
-        public new ExtensionDeclarationSyntax WithBaseList(BaseListSyntax? baseList) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForKeyword, this.UnderlyingType, baseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        public new ExtensionDeclarationSyntax WithBaseList(BaseListSyntax? baseList) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForUnderlyingType, baseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
         internal override TypeDeclarationSyntax WithConstraintClausesCore(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => WithConstraintClauses(constraintClauses);
-        public new ExtensionDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForKeyword, this.UnderlyingType, this.BaseList, constraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        public new ExtensionDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForUnderlyingType, this.BaseList, constraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
         internal override BaseTypeDeclarationSyntax WithOpenBraceTokenCore(SyntaxToken openBraceToken) => WithOpenBraceToken(openBraceToken);
-        public new ExtensionDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForKeyword, this.UnderlyingType, this.BaseList, this.ConstraintClauses, openBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        public new ExtensionDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForUnderlyingType, this.BaseList, this.ConstraintClauses, openBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
         internal override TypeDeclarationSyntax WithMembersCore(SyntaxList<MemberDeclarationSyntax> members) => WithMembers(members);
-        public new ExtensionDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForKeyword, this.UnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, members, this.CloseBraceToken, this.SemicolonToken);
+        public new ExtensionDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForUnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, members, this.CloseBraceToken, this.SemicolonToken);
         internal override BaseTypeDeclarationSyntax WithCloseBraceTokenCore(SyntaxToken closeBraceToken) => WithCloseBraceToken(closeBraceToken);
-        public new ExtensionDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForKeyword, this.UnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
+        public new ExtensionDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForUnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
         internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
-        public new ExtensionDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForKeyword, this.UnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
+        public new ExtensionDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.Keyword, this.Identifier, this.TypeParameterList, this.ForUnderlyingType, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
 
         internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
         public new ExtensionDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));

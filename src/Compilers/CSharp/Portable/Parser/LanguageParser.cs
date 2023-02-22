@@ -1484,7 +1484,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(mainKeyword is not null);
             SyntaxToken? forKeyword = null;
             TypeSyntax? underlyingType = null;
-            if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword)
+            if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
+                && CurrentToken.Kind == SyntaxKind.ForKeyword)
             {
                 forKeyword = EatToken(SyntaxKind.ForKeyword);
                 underlyingType = ParseType();
@@ -1762,9 +1763,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // implicit extension
                         RoslynDebug.Assert(firstKeyword is null or { Kind: SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword });
                         RoslynDebug.Assert(secondKeyword!.Kind == SyntaxKind.ExtensionKeyword);
-                        RoslynDebug.Assert(forKeyword is not null);
-                        RoslynDebug.Assert(underlyingType is not null);
+                        RoslynDebug.Assert(forKeyword is null == underlyingType is null);
 
+                        var forType = forKeyword == null ? null : syntaxFactory.ForType(forKeyword, underlyingType!);
                         return syntaxFactory.ExtensionDeclaration(
                             attributes,
                             modifiers.ToList(),
@@ -1772,8 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             keyword: secondKeyword,
                             name,
                             typeParameters,
-                            forKeyword,
-                            underlyingType,
+                            forType,
                             baseList,
                             constraints,
                             openBrace,

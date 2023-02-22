@@ -321,7 +321,11 @@ class_declaration
   ;
 
 extension_declaration
-  : attribute_list* modifier* ('implicit' | 'explicit')? syntax_token identifier_token type_parameter_list? 'for' type base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  : attribute_list* modifier* ('implicit' | 'explicit')? syntax_token identifier_token type_parameter_list? for_type? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  ;
+
+for_type
+  : 'for' type
   ;
 
 interface_declaration
