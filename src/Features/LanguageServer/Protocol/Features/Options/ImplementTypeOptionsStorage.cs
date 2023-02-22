@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ImplementType
                 defaultValue: ImplementTypeOptions.Default.InsertionBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypeInsertionBehavior>());
 
         public static readonly PerLanguageOption2<ImplementTypePropertyGenerationBehavior> PropertyGenerationBehavior =
-            new("dotnet_property_generation_behavior_when_implement_type",
+            new("dotnet_implement_type_property_generation_behavior",
                 defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypePropertyGenerationBehavior>());
     }
 }
