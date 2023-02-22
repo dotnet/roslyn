@@ -332,7 +332,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_inline_diagnostics", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics")},
         {"dotnet_inline_diagnostics_location", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics.LocationOption")},
         {"dotnet_inline_hints_colorize", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorHints")},
-        {"dotnet_display_all_inline_hints_while_pressing_alt_f1", new RoamingProfileStorage("TextEditor.Specific.DisplayAllHintsWhilePressingAltF1")},
+        {"dotnet_display_inline_hints_while_pressing_alt_f1", new RoamingProfileStorage("TextEditor.Specific.DisplayAllHintsWhilePressingAltF1")},
         {"dotnet_enable_inline_hints_for_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints")},
         {"csharp_enable_inline_hints_for_types", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints")},
         {"csharp_enable_inline_hints_for_implicit_object_creation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitObjectCreation")},
