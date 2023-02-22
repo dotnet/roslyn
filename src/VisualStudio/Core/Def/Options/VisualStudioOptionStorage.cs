@@ -411,7 +411,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_disable_asynchronous_quick_actions", new FeatureFlagStorage(@"Roslyn.AsynchronousQuickActionsDisable2")},
         {"dotnet_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
         {"dotnet_suggest_for_types_in_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
-        {"dotnet_suggest_for_types_in_reference_assemblies", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies")},
+        {"dotnet_search_reference_assemblies", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"tab_width", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Tab Size", "TextEditor.Basic.Tab Size")},
 #pragma warning restore
