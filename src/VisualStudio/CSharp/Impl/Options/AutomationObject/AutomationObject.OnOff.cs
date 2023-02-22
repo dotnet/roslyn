@@ -45,8 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int EnterOutliningModeOnOpen
         {
-            get { return GetBooleanOption(OutliningOptions.Outlining); }
-            set { SetBooleanOption(OutliningOptions.Outlining, value); }
+            get { return GetBooleanOption(OutliningOptionsStorage.Outlining); }
+            set { SetBooleanOption(OutliningOptionsStorage.Outlining, value); }
         }
 
         public int CollapseImportsWhenFirstOpened
