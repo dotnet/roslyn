@@ -45,9 +45,13 @@ namespace RunTests
             "Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenCapturing.AllCaptureTests",
             "Microsoft.CodeAnalysis.CSharp.UnitTests.OperationAnalyzerTests.LongArithmeticExpressionCSharp",
             "Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.NumericIntPtrTests.BinaryOperators",
+            "Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.NativeIntegerTests.BinaryOperators",
             "Microsoft.CodeAnalysis.CSharp.UnitTests.ConstantTests.TestLargeStringConcatenation",
             "Microsoft.CodeAnalysis.CSharp.UnitTests.SyntaxBinderTests.BinaryIntrinsicSymbols1",
-            "Microsoft.CodeAnalysis.CSharp.UnitTests.SyntaxBinderTests.BinaryIntrinsicSymbols2");
+            "Microsoft.CodeAnalysis.CSharp.UnitTests.SyntaxBinderTests.BinaryIntrinsicSymbols2",
+            "Microsoft.CodeAnalysis.CSharp.UnitTests.VarianceTests.TestInterfaceAssignment",
+            "Microsoft.CodeAnalysis.CSharp.UnitTests.VarianceTests.TestDelegateAssignment",
+            "Microsoft.CodeAnalysis.CSharp.UnitTests.OverloadResolutionPerfTests.AnalyzeMethodsInEnabledContextOnly");
 
         /// <summary>
         /// We attempt to partition our tests into work items that execute in under 2 minutes 30s.  This is a derived limit based on a goal of running all tests
