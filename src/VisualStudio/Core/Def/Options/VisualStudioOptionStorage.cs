@@ -291,8 +291,8 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_fix_string_contents_on_paste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.AutomaticallyFixStringContentsOnPaste")},
         {"visual_basic_insert_abstract_or_interface_members_on_return", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoRequiredMemberInsert")},
         {"visual_basic_generate_end_construct", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoEndInsert")},
-        {"dotnet_inheritance_margin_combined_with_indicator_margin", new RoamingProfileStorage("TextEditor.InheritanceMarginCombinedWithIndicatorMargin")},
-        {"dotnet_inheritance_margin_includes_global_imports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports")},
+        {"dotnet_combine_inheritance_and_indicator_margins", new RoamingProfileStorage("TextEditor.InheritanceMarginCombinedWithIndicatorMargin")},
+        {"dotnet_show_global_imports_in_inheritance_margin", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_keyword_highlighting", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Keyword Highlighting", "TextEditor.VisualBasic.Specific.EnableHighlightRelatedKeywords")},
         {"dotnet_line_separator", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Line Separator", "TextEditor.VisualBasic.Specific.DisplayLineSeparators")},
