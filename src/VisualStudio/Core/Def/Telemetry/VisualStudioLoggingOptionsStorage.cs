@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static class VisualStudioLoggingOptionsMetadata
+    internal static class VisualStudioLoggingOptionsStorage
     {
         public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new("dotnet_enable_file_logging_for_diagnostics", defaultValue: false);
     }
