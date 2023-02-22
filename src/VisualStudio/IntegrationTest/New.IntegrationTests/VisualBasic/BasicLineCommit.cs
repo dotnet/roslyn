@@ -4,8 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.LineCommit;
+using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -146,7 +145,7 @@ End Module", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationTo
         public async Task CommitOnFocusLostDoesNotFormatWithPrettyListingOff()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(LineCommitOptions.PrettyListing, LanguageNames.VisualBasic, false);
+            globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic, false);
 
             await TestServices.Editor.SetTextAsync(@"Module M
     Sub M()

@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.LineCommit
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -122,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
-            If Not _globalOptions.GetOption(LineCommitOptions.PrettyListing, LanguageNames.VisualBasic) Then
+            If Not _globalOptions.GetOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic) Then
                 nextHandler()
                 Return
             End If

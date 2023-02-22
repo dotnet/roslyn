@@ -117,4 +117,7 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="LineCommit\" />
+  </ItemGroup>
 </Project>

@@ -5,8 +5,8 @@
 Imports Microsoft.CodeAnalysis.AddImportOnPaste
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.KeywordHighlighting
-Imports Microsoft.CodeAnalysis.LineCommit
 Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.ReferenceHighlighting
@@ -117,10 +117,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property PrettyListing As Boolean
             Get
-                Return GetBooleanOption(LineCommitOptions.PrettyListing)
+                Return GetBooleanOption(LineCommitOptionsStorage.PrettyListing)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(LineCommitOptions.PrettyListing, value)
+                SetBooleanOption(LineCommitOptionsStorage.PrettyListing, value)
             End Set
         End Property
 
