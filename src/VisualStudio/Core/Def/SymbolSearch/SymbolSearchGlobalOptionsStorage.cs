@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    internal sealed class SymbolSearchGlobalOptions
+    internal sealed class SymbolSearchGlobalOptionsStorage
     {
         public static readonly Option2<bool> Enabled = new("dotnet_enable_symbol_search", defaultValue: true);
     }
