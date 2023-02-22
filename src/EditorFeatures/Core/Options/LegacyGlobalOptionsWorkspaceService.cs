@@ -33,12 +33,8 @@ namespace Microsoft.CodeAnalysis.Options
             "dotnet_generate_iequatable_implementation",
             defaultValue: false);
 
-        private static readonly PerLanguageOption2<bool> s_addNullChecks = new(
+        internal static readonly PerLanguageOption2<bool> s_addNullChecks = new(
             "dotnet_generate_constructor_parameter_null_checks",
-            defaultValue: false);
-
-        internal static readonly PerLanguageOption2<bool> AddNullChecksToConstructorsGeneratedFromMembers = new(
-            "dotnet_add_null_checks_when_generate_constructor_from_members",
             defaultValue: false);
 
         [ImportingConstructor]
