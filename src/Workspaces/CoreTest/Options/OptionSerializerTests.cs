@@ -69,7 +69,7 @@ public class OptionSerializerTests
     {
         var options = new IOption2[]
         {
-            InlineDiagnosticsOptions.Location,
+            InlineDiagnosticsOptionsStorage.Location,
             WorkspaceConfigurationOptionsStorage.Database,
             SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
             SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
-    internal sealed class InlineDiagnosticsOptions
+    internal sealed class InlineDiagnosticsOptionsStorage
     {
         public static readonly PerLanguageOption2<bool> EnableInlineDiagnostics =
             new("dotnet_enable_inline_diagnostics",
