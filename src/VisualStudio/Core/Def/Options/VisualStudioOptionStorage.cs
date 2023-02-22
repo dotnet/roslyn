@@ -311,7 +311,7 @@ internal abstract class VisualStudioOptionStorage
         {"FeatureOnOffOptions_ShowInheritanceMargin", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin")},
         {"FeatureOnOffOptions_SkipAnalyzersForImplicitlyTriggeredBuilds", new RoamingProfileStorage("TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds")},
         {"FeatureOnOffOptions_StringIdentation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.StringIdentation")},
-        {"dotnet_definition_grouping_priority_when_find_usage", new LocalUserProfileStorage(@"Roslyn\Internal\FindUsages", "DefinitionGroupingPriority")},
+        {"dotnet_find_usage_definition_grouping_priority", new LocalUserProfileStorage(@"Roslyn\Internal\FindUsages", "DefinitionGroupingPriority")},
         {"csharp_format_on_return", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return")},
         {"csharp_format_on_semicolon", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon")},
         {"csharp_format_on_typing", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing")},
