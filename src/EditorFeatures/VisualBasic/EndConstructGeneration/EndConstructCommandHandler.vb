@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -69,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         Public Sub ExecuteCommand_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of TypeCharCommandArgs).ExecuteCommand
             nextHandler()
 
-            If Not _editorOptionsService.GlobalOptions.GetOption(EndConstructGenerationOptions.EndConstruct, LanguageNames.VisualBasic) Then
+            If Not _editorOptionsService.GlobalOptions.GetOption(EndConstructGenerationOptionsStorage.EndConstruct, LanguageNames.VisualBasic) Then
                 Return
             End If
 
@@ -100,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         End Sub
 
         Private Sub ExecuteEndConstructOnReturn(textView As ITextView, subjectBuffer As ITextBuffer, nextHandler As Action)
-            If Not _editorOptionsService.GlobalOptions.GetOption(EndConstructGenerationOptions.EndConstruct, LanguageNames.VisualBasic) OrElse
+            If Not _editorOptionsService.GlobalOptions.GetOption(EndConstructGenerationOptionsStorage.EndConstruct, LanguageNames.VisualBasic) OrElse
                Not subjectBuffer.CanApplyChangeDocumentToWorkspace() Then
                 nextHandler()
                 Return
