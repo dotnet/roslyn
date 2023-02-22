@@ -71,7 +71,7 @@ internal static class VisualStudioMacOptionStorage
         {"dotnet_show_completion_item_filters", new PropertyName("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters")},
         {"dotnet_solution_crawler_background_analysis_scope", new PropertyName("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
         {"dotnet_compiler_diagnostics_scope", new PropertyName("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
-        {"dotnet_suggest_for_types_in_nuget_packages", new PropertyName("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
+        {"dotnet_search_nuget_packages", new PropertyName("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
         {"FeatureOnOffOptions_AutomaticallyCompleteStatementOnSemicolon", new PropertyName("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},
     };
 }

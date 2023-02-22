@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             new("dotnet_search_reference_assemblies", SymbolSearchOptions.Default.SearchReferenceAssemblies);
 
         public static PerLanguageOption2<bool> SearchNuGetPackages =
-            new("dotnet_suggest_for_types_in_nuget_packages", SymbolSearchOptions.Default.SearchNuGetPackages);
+            new("dotnet_search_nuget_packages", SymbolSearchOptions.Default.SearchNuGetPackages);
     }
 }
