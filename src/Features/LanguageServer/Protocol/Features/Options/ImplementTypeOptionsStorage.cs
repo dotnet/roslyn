@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ImplementType
                  globalOptions.CreateProvider());
 
         public static readonly PerLanguageOption2<ImplementTypeInsertionBehavior> InsertionBehavior =
-            new("dotnet_insertion_behavior_when_implement_type",
+            new("dotnet_implement_type_insertion_behavior",
                 defaultValue: ImplementTypeOptions.Default.InsertionBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypeInsertionBehavior>());
 
         public static readonly PerLanguageOption2<ImplementTypePropertyGenerationBehavior> PropertyGenerationBehavior =
