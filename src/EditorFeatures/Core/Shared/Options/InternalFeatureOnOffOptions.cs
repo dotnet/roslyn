@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
     internal sealed class InternalFeatureOnOffOptions
     {
-        public static readonly Option2<bool> EventHookup = new("dotnet_event_hook_up", defaultValue: true);
         public static readonly Option2<bool> Snippets = new("dotnet_enable_snippets", defaultValue: true);
         public static readonly Option2<bool> BackgroundAnalysisMemoryMonitor = new("dotnet_enable_full_solution_analysis_memory_monitor", defaultValue: true);
     }
