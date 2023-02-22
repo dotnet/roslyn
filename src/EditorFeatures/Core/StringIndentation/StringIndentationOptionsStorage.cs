@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.StringIndentation
 {
-    internal static class StringIndentationOptions
+    internal static class StringIndentationOptionsStorage
     {
-        public static readonly PerLanguageOption2<bool> StringIdentation = new("dotnet_string_identation", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> StringIdentation = new("dotnet_indent_strings", defaultValue: true);
     }
 }
