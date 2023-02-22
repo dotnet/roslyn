@@ -5684,6 +5684,107 @@ class Program
                 SymbolDisplayPartKind.StructName)
         End Sub
 
+        <Fact>
+        Public Sub UseLongHandValueTuple()
+            Dim source =
+"
+class B
+    shared function F1(t as (integer, integer)()) as (integer, (string, long))
+        return nothing
+    end function
+end class"
+            Dim comp = CreateCompilation(source)
+            Dim formatWithoutLongHandValueTuple = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeModifiers,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            Dim formatWithLongHandValueTuple = formatWithoutLongHandValueTuple.AddMiscellaneousOptions(
+                SymbolDisplayMiscellaneousOptions.ExpandValueTuple)
+
+            Dim method = comp.GetMember(Of MethodSymbol)("B.F1")
+
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutLongHandValueTuple),
+                "Shared F1(t As (Integer, Integer)()) As (Integer, (String, Long))",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation)
+
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithLongHandValueTuple),
+                "Shared F1(t As ValueTuple(Of Integer, Integer)()) As ValueTuple(Of Integer, ValueTuple(Of String, Long))",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation)
+        End Sub
+
 #Region "Helpers"
 
         Private Shared Sub TestSymbolDescription(
@@ -5754,7 +5855,7 @@ class Program
         End Sub
 
         Private Shared Function Verify(parts As ImmutableArray(Of SymbolDisplayPart), expectedText As String, ParamArray kinds As SymbolDisplayPartKind()) As ImmutableArray(Of SymbolDisplayPart)
-            Assert.Equal(expectedText, parts.ToDisplayString())
+            AssertEx.Equal(expectedText, parts.ToDisplayString())
 
             If (kinds.Length > 0) Then
                 AssertEx.Equal(kinds, parts.Select(Function(p) p.Kind), itemInspector:=Function(p) $"                SymbolDisplayPartKind.{p}")
