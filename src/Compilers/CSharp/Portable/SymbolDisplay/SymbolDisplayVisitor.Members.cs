@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (operatorKind == SyntaxKind.None)
                             {
-                                builder.Add(CreatePart(SymbolDisplayPartKind.Operator, symbol, symbol.Name));
+                                builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
                             }
                             else
                             {
