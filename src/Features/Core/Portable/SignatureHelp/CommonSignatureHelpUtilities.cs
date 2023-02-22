@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,14 +31,14 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         {
             if (TryGetCurrentArgumentIndex(argumentList, position, getOpenToken, getCloseToken, getArgumentsWithSeparators, out var argumentIndex))
             {
-                var argumentNames = getArgumentNames(argumentList).ToList();
-                var argumentCount = argumentNames.Count;
+                var argumentNames = getArgumentNames(argumentList).ToImmutableArray();
+                var argumentCount = argumentNames.Length;
 
                 return new SignatureHelpState(
                     argumentIndex,
                     argumentCount,
-                    argumentIndex < argumentNames.Count ? argumentNames[argumentIndex] : null,
-                    argumentNames.Where(s => s != null).ToImmutableArray());
+                    argumentIndex < argumentCount ? argumentNames[argumentIndex] : null,
+                    argumentNames.WhereAsArray(s => s != null));
             }
 
             return null;
@@ -70,9 +68,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             foreach (var element in getArgumentsWithSeparators(argumentList))
             {
                 if (element.IsToken && position >= element.Span.End)
-                {
                     index++;
-                }
             }
 
             return true;
@@ -83,7 +79,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             Func<TArgumentList, SyntaxToken> getCloseToken)
             where TArgumentList : SyntaxNode
         {
-            return GetSignatureHelpSpan(argumentList, argumentList.Parent.SpanStart, getCloseToken);
+            return GetSignatureHelpSpan(argumentList, argumentList.GetRequiredParent().SpanStart, getCloseToken);
         }
 
         internal static TextSpan GetSignatureHelpSpan<TArgumentList>(
@@ -108,8 +104,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
             return TextSpan.FromBounds(start, nextToken.SpanStart);
         }
-
-#nullable enable
 
         internal static bool TryGetSyntax<TSyntax>(
             SyntaxNode root,
@@ -155,36 +149,26 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return false;
         }
 
-#nullable restore
-
         public static async Task<ImmutableArray<IMethodSymbol>> GetCollectionInitializerAddMethodsAsync(
             Document document, SyntaxNode initializer, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
-            if (initializer == null || initializer.Parent == null)
-            {
+            if (initializer is not { Parent: not null })
                 return default;
-            }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
-            var ienumerableType = compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
+            var ienumerableType = compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
             if (ienumerableType == null)
-            {
                 return default;
-            }
 
             // get the regular signature help items
             var parentOperation = semanticModel.GetOperation(initializer.Parent, cancellationToken) as IObjectOrCollectionInitializerOperation;
             var parentType = parentOperation?.Type;
             if (parentType == null)
-            {
                 return default;
-            }
 
             if (!parentType.AllInterfaces.Contains(ienumerableType))
-            {
                 return default;
-            }
 
             var position = initializer.SpanStart;
             var addSymbols = semanticModel.LookupSymbols(
