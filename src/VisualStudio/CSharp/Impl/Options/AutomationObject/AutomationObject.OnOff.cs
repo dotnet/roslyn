@@ -75,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int HighlightReferences
         {
-            get { return GetBooleanOption(ReferenceHighlightingOptions.ReferenceHighlighting); }
-            set { SetBooleanOption(ReferenceHighlightingOptions.ReferenceHighlighting, value); }
+            get { return GetBooleanOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting); }
+            set { SetBooleanOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, value); }
         }
 
         public int Refactoring_Verification_Enabled

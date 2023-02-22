@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ReferenceHighlighting
 {
-    internal static class ReferenceHighlightingOptions
+    internal static class ReferenceHighlightingOptionsStorage
     {
-        public static readonly PerLanguageOption2<bool> ReferenceHighlighting = new("dotnet_reference_highlighting", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> ReferenceHighlighting = new("dotnet_highlight_references", defaultValue: true);
     }
 }

@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
 
-                globalOptions.SetGlobalOption(ReferenceHighlightingOptions.ReferenceHighlighting, hostDocument.Project.Language, optionIsEnabled)
+                globalOptions.SetGlobalOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, hostDocument.Project.Language, optionIsEnabled)
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim context = New TaggerContext(Of NavigableHighlightTag)(

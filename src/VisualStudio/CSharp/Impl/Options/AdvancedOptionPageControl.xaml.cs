@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             });
 
             // Highlighting
-            BindToOption(EnableHighlightReferences, ReferenceHighlightingOptions.ReferenceHighlighting, LanguageNames.CSharp);
+            BindToOption(EnableHighlightReferences, ReferenceHighlightingOptionsStorage.ReferenceHighlighting, LanguageNames.CSharp);
             BindToOption(EnableHighlightKeywords, KeywordHighlightingOptions.KeywordHighlighting, LanguageNames.CSharp);
 
             // Outlining

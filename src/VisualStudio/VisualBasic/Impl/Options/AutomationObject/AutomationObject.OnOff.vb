@@ -54,10 +54,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property EnableHighlightReferences As Boolean
             Get
-                Return GetBooleanOption(ReferenceHighlightingOptions.ReferenceHighlighting)
+                Return GetBooleanOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(ReferenceHighlightingOptions.ReferenceHighlighting, value)
+                SetBooleanOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, value)
             End Set
         End Property
 

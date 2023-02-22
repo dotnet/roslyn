@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
 
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(ReferenceHighlightingOptions.ReferenceHighlighting);
+        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(ReferenceHighlightingOptionsStorage.ReferenceHighlighting);
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
 
             // Don't produce tags if the feature is not enabled.
-            if (!_globalOptions.GetOption(ReferenceHighlightingOptions.ReferenceHighlighting, document.Project.Language))
+            if (!_globalOptions.GetOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, document.Project.Language))
             {
                 return Task.CompletedTask;
             }
