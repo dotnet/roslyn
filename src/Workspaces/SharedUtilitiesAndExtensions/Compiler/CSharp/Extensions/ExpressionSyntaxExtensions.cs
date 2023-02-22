@@ -664,20 +664,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsNameOfArgumentExpression(this ExpressionSyntax expression)
-        {
-            return expression is
-            {
-                Parent:
-                {
-                    RawKind: (int)SyntaxKind.Argument,
-                    Parent:
-                    {
-                        RawKind: (int)SyntaxKind.ArgumentList,
-                        Parent: InvocationExpressionSyntax invocation
-                    }
-                }
-            } && invocation.IsNameOfInvocation();
-        }
+            => expression is { Parent: ArgumentSyntax { Parent: ArgumentListSyntax { Parent: InvocationExpressionSyntax invocation } } } &&
+               invocation.IsNameOfInvocation();
 
         public static bool IsNameOfInvocation(this InvocationExpressionSyntax invocation)
         {
