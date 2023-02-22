@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return;
 
             // If the user has the option off, then don't bother doing anything once we've sent the paste through.
-            if (!_globalOptions.GetOption(StringCopyPasteOptions.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp))
+            if (!_globalOptions.GetOption(StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp))
                 return;
 
             // if we're not even sure where the user caret/selection is on this buffer, we can't proceed.

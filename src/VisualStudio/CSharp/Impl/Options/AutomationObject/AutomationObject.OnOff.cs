@@ -27,8 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int AutomaticallyFixStringContentsOnPaste
         {
-            get { return GetBooleanOption(StringCopyPasteOptions.AutomaticallyFixStringContentsOnPaste); }
-            set { SetBooleanOption(StringCopyPasteOptions.AutomaticallyFixStringContentsOnPaste, value); }
+            get { return GetBooleanOption(StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste); }
+            set { SetBooleanOption(StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, value); }
         }
 
         public int DisplayLineSeparators
