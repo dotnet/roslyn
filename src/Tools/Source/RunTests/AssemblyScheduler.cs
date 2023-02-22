@@ -298,8 +298,8 @@ namespace RunTests
                 {
                     // Log a warning to the console with work item details when we were not able to partition in under our limit.
                     // This can happen when a single specific test exceeds our execution time limit.
-                    ConsoleUtil.Warning($"Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
-                    LogFilters(workItem, Logger.LogAndConsole);
+                    ConsoleUtil.WriteLine(ConsoleColor.Yellow, $"Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
+                    LogFilters(workItem, ConsoleUtil.Warning);
                 }
                 else
                 {
