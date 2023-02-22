@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,21 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (syntaxTree.IsMemberDeclarationContext(position, context.LeftToken))
             {
                 var token = context.TargetToken;
-
                 if (token.GetAncestor<EnumDeclarationSyntax>() == null)
-                {
                     return true;
-                }
             }
 
             return
                 context.IsTypeContext ||
-                UsingKeywordRecommender.IsUsingDirectiveContext(context, forGlobalKeyword: true, cancellationToken) ||
-                context.IsAnyExpressionContext ||
-                syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
-                syntaxTree.IsAfterKeyword(position, SyntaxKind.RefKeyword, cancellationToken) ||
-                syntaxTree.IsAfterKeyword(position, SyntaxKind.ReadOnlyKeyword, cancellationToken) ||
-                syntaxTree.IsUsingAliasContext(position, cancellationToken);
+                UsingKeywordRecommender.IsUsingDirectiveContext(context, forGlobalKeyword: true, cancellationToken);
         }
     }
 }

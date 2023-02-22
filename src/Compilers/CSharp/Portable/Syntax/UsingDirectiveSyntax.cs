@@ -16,16 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// on the right side of the <c>=</c> is not a name.  For example <c>using x = (X.Y.Z, A.B.C);</c>.  Here, as
         /// the type is a tuple-type there is no name to return.
         /// </summary>
-        public NameSyntax? Name => this.Type as NameSyntax;
+        public NameSyntax? Name => this.NamespaceOrType as NameSyntax;
 
         public UsingDirectiveSyntax Update(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
-            => this.Update(this.GlobalKeyword, usingKeyword, staticKeyword, this.UnsafeKeyword, alias, type: name, semicolonToken);
+            => this.Update(this.GlobalKeyword, usingKeyword, staticKeyword, this.UnsafeKeyword, alias, namespaceOrType: name, semicolonToken);
 
         public UsingDirectiveSyntax Update(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
-            => this.Update(globalKeyword, usingKeyword, staticKeyword, this.UnsafeKeyword, alias, type: name, semicolonToken);
+            => this.Update(globalKeyword, usingKeyword, staticKeyword, this.UnsafeKeyword, alias, namespaceOrType: name, semicolonToken);
 
         public UsingDirectiveSyntax WithName(NameSyntax name)
-            => WithType(name);
+            => WithNamespaceOrType(name);
     }
 }
 
@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name)
-            => UsingDirective(globalKeyword: default, usingKeyword: default, staticKeyword, unsafeKeyword: default, alias, type: name, semicolonToken: default);
+            => UsingDirective(globalKeyword: default, usingKeyword: default, staticKeyword, unsafeKeyword: default, alias, namespaceOrType: name, semicolonToken: default);
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
-            => UsingDirective(globalKeyword, usingKeyword, staticKeyword, unsafeKeyword: default, alias, type: name, semicolonToken);
+            => UsingDirective(globalKeyword, usingKeyword, staticKeyword, unsafeKeyword: default, alias, namespaceOrType: name, semicolonToken);
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(NameSyntax name)
-            => UsingDirective(type: name);
+            => UsingDirective(namespaceOrType: name);
     }
 }

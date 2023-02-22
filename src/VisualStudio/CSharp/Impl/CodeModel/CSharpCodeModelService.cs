@@ -1838,7 +1838,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             if (importNode is UsingDirectiveSyntax usingDirective)
             {
-                return usingDirective.Type.ToString();
+                return usingDirective.NamespaceOrType.ToString();
             }
 
             throw new InvalidOperationException();
@@ -1852,7 +1852,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     ? null
                     : usingDirective.Parent;
 
-                name = usingDirective.Type.ToString();
+                name = usingDirective.NamespaceOrType.ToString();
 
                 return;
             }

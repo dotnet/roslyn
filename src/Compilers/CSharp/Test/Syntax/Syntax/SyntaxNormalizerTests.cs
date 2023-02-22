@@ -5882,6 +5882,22 @@ $"  ///  </summary>{Environment.NewLine}" +
                 """);
         }
 
+        [Theory]
+        [InlineData("using X=int ;", "using X = int;")]
+        [InlineData("global   using X=int ;", "global using X = int;")]
+        [InlineData("using X=nint;", "using X = nint;")]
+        [InlineData("using X=dynamic;", "using X = dynamic;")]
+        [InlineData("using X=int [] ;", "using X = int[];")]
+        [InlineData("using X=(int,int) ;", "using X = (int, int);")]
+        [InlineData("using  unsafe  X=int * ;", "using unsafe X = int*;")]
+        [InlineData("global   using  unsafe  X=int * ;", "global using unsafe X = int*;")]
+        [InlineData("using X=int ?;", "using X = int?;")]
+        [InlineData("using X=delegate * <int,int> ;", "using X = delegate*<int, int>;")]
+        public void TestNormalizeUsingAlias(string text, string expected)
+        {
+            TestNormalizeDeclaration(text, expected);
+        }
+
         private static void VerifySingleLineInitializer(string text, string expected)
         {
             TestNormalizeExpression(

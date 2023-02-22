@@ -381,12 +381,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.UnsafeKeyword.GetLocation());
             }
-            else if (usingDirective.Type is not NameSyntax)
+            else if (usingDirective.NamespaceOrType is not NameSyntax)
             {
-                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.Type);
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.NamespaceOrType);
             }
 
-            var syntax = usingDirective.Type;
+            var syntax = usingDirective.NamespaceOrType;
             var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks;
             if (usingDirective.UnsafeKeyword != default)
             {
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var annotatedNamespaceOrType = declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved);
 
             // `using X = RefType?;` is not legal.
-            if (usingDirective.Type is NullableTypeSyntax nullableType &&
+            if (usingDirective.NamespaceOrType is NullableTypeSyntax nullableType &&
                 annotatedNamespaceOrType.TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated &&
                 annotatedNamespaceOrType.TypeWithAnnotations.Type?.IsReferenceType is true)
             {
@@ -411,10 +411,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var namespaceOrType = annotatedNamespaceOrType.NamespaceOrTypeSymbol;
             if (namespaceOrType is TypeSymbol { IsNativeIntegerWrapperType: true } &&
-                (usingDirective.Type.IsNint || usingDirective.Type.IsNuint))
+                (usingDirective.NamespaceOrType.IsNint || usingDirective.NamespaceOrType.IsNuint))
             {
                 // using X = nint;
-                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.Type);
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.NamespaceOrType);
             }
 
             return namespaceOrType;

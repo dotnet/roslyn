@@ -77,8 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<ParameterSymbol>.Empty);
         }
 
-        protected override bool HasPointerTypeSyntactically => false;
-
         protected override void ValidatePropertyType(BindingDiagnosticBag diagnostics)
         {
             base.ValidatePropertyType(diagnostics);
