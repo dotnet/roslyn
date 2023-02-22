@@ -404,7 +404,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_naming_preferences", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NamingPreferences5")},
         {"dotnet_solution_crawler_background_analysis_scope", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
         {"dotnet_compiler_diagnostics_scope", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
-        {"dotnet_split_comment", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SplitComments")},
+        {"dotnet_split_comments", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SplitComments")},
         {"csharp_split_string_literal_on_return", new RoamingProfileStorage("TextEditor.CSharp.Specific.SplitStringLiterals")},
         {"csharp_open_stack_trace_explorer_on_focus", new RoamingProfileStorage("StackTraceExplorer.Options.OpenOnFocus")},
         {"dotnet_asynchronous_suggestions", new RoamingProfileStorage("TextEditor.Specific.Suggestions.Asynchronous4")},
