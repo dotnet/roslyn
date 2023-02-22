@@ -59,12 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         private void AnalyzeVariableDeclaration(
             SyntaxNodeAnalysisContext context, VariableDeclarationSyntax variableDeclaration, ReportDiagnostic severity)
         {
-            if (!TryAnalyzeVariableDeclaration(
-                    context.SemanticModel, variableDeclaration, out _,
-                    out _, context.CancellationToken))
-            {
+            if (!TryAnalyzeVariableDeclaration(context.SemanticModel, variableDeclaration, out _, out _, context.CancellationToken))
                 return;
-            }
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
