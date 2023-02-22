@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Remote
         // use 64bit OOP
         public static readonly Option2<bool> OOP64Bit = new("dotnet_code_analysis_in_separate_process", defaultValue: true);
 
-        public static readonly Option2<bool> OOPServerGCFeatureFlag = new("dotnet_enable_oop_server_gc", defaultValue: false);
+        public static readonly Option2<bool> OOPServerGCFeatureFlag = new("dotnet_enable_server_garbage_collection_in_code_analysis_process", defaultValue: false);
 
         // use coreclr host for OOP
         public static readonly Option2<bool> OOPCoreClrFeatureFlag = new("dotnet_enable_oop_core_clr", defaultValue: false);
