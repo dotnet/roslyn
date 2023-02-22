@@ -238,62 +238,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return (tokenToLeft, tokenToRight);
         }
 
-        //private static async Task<SyntaxToken> GetTokenToRightAsync(
-        //    Document document,
-        //    SyntaxNode root,
-        //    TextSpan selectionTrimmed,
-        //    CancellationToken cancellationToken)
-        //{
-        //    // get Token for current location
-        //    var location = selectionTrimmed.Start;
-        //    var tokenOnLocation = root.FindToken(location);
-
-        //    // Gets a token that is directly to the right of current location or that encompasses current location (`[||]tokenToRightOrIn` or `tok[||]enToRightOrIn`)
-        //    var tokenToRight = tokenOnLocation.Span.Contains(location)
-        //        ? tokenOnLocation
-        //        : default;
-
-        //    // A token can be to the left only when there's either no tokenDirectlyToRightOrIn or there's one  directly starting at current location. 
-        //    // Otherwise (otherwise tokenToRightOrIn is also left from location, e.g: `tok[||]enToRightOrIn`)
-        //    var tokenToLeft = default(SyntaxToken);
-        //    if (tokenToRightOrIn == default || tokenToRightOrIn.FullSpan.Start == location)
-        //    {
-        //        var previousToken = tokenOnLocation.Span.End == location
-        //            ? tokenOnLocation
-        //            : tokenOnLocation.GetPreviousToken(includeZeroWidth: true);
-
-        //        tokenToLeft = previousToken.Span.End == location
-        //            ? previousToken
-        //            : default;
-        //    }
-
-        //    // If both tokens directly to left & right are empty -> we're somewhere in the middle of whitespace.
-        //    // Since there wouldn't be (m)any other refactorings we can try to offer at least the ones for (semantically) 
-        //    // closest token/Node. Thus, we move the location to the token in whose `.FullSpan` the original location was.
-        //    if (tokenToLeft == default && tokenToRightOrIn == default)
-        //    {
-        //        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-        //        if (IsAcceptableLineDistanceAway(sourceText, tokenOnLocation, location))
-        //        {
-        //            // tokenOnLocation: token in whose trivia location is at
-        //            if (tokenOnLocation.Span.Start >= location)
-        //            {
-        //                tokenToRightOrIn = tokenOnLocation;
-        //                location = tokenToRightOrIn.Span.Start;
-        //            }
-        //            else
-        //            {
-        //                tokenToLeft = tokenOnLocation;
-        //                location = tokenToLeft.Span.End;
-        //            }
-        //        }
-        //    }
-
-        //    return (tokenToRightOrIn, tokenToLeft, location);
-
-        //}
-
         private static bool IsAcceptableLineDistanceAway(
             SourceText sourceText, SyntaxToken tokenOnLocation, int location)
         {
