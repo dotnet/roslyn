@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 {
-    internal sealed class KeybindingResetOptions
+    internal sealed class KeybindingResetOptionsStorage
     {
         public static readonly Option2<ReSharperStatus> ReSharperStatus = new("dotnet_resharper_key_binding_status", defaultValue: KeybindingReset.ReSharperStatus.NotInstalledOrDisabled);
         public static readonly Option2<bool> NeedsReset = new("dotnet_key_binding_needs_reset", defaultValue: false);
