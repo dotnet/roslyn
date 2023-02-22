@@ -6,8 +6,10 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static class DiagnosticsClassificationOptionsStorage
+    internal static class DiagnosticsOptionsStorage
     {
         public static readonly Option2<bool> Classification = new("dotnet_classification", defaultValue: true);
+
+        public static readonly Option2<bool> Squiggles = new("dotnet_squiggles", defaultValue: true);
     }
 }
