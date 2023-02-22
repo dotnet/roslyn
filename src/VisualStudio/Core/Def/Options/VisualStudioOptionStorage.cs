@@ -319,7 +319,7 @@ internal abstract class VisualStudioOptionStorage
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_smart_Indent", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Indent Style", vbKey: "TextEditor.Basic.Indent Style")},
 #pragma warning restore
-        {"dotnet_add_null_checks_when_generate_constructor_from_members", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks")},
+        {"dotnet_generate_constructor_parameter_null_checks", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks")},
         {"dotnet_generate_equality_operators", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators")},
         {"dotnet_generate_iequatable_implementation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable")},
         {"dotnet_generate_overrides_for_all_members", new RoamingProfileStorage("TextEditor.Specific.GenerateOverridesOptions.SelectAll")},
