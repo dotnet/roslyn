@@ -33,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int DisplayLineSeparators
         {
-            get { return GetBooleanOption(LineSeparatorsOptions.LineSeparator); }
-            set { SetBooleanOption(LineSeparatorsOptions.LineSeparator, value); }
+            get { return GetBooleanOption(LineSeparatorsOptionsStorage.LineSeparator); }
+            set { SetBooleanOption(LineSeparatorsOptionsStorage.LineSeparator, value); }
         }
 
         public int EnableHighlightRelatedKeywords

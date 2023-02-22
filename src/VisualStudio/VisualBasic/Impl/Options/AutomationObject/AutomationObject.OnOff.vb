@@ -45,10 +45,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property DisplayLineSeparators As Boolean
             Get
-                Return GetBooleanOption(LineSeparatorsOptions.LineSeparator)
+                Return GetBooleanOption(LineSeparatorsOptionsStorage.LineSeparator)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(LineSeparatorsOptions.LineSeparator, value)
+                SetBooleanOption(LineSeparatorsOptionsStorage.LineSeparator, value)
             End Set
         End Property
 
