@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.SmartIndent
+namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
     internal static class SmartIndenterOptionsStorage
     {
