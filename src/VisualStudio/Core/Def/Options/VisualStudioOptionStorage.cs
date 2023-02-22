@@ -237,7 +237,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_provide_date_and_time_completions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions")},
         {"dotnet_log_telemetry_for_background_analyzer_execution", new FeatureFlagStorage(@"Roslyn.LogTelemetryForBackgroundAnalyzerExecution")},
         {"csharp_lsp_pull_diagnostics", new FeatureFlagStorage(@"Lsp.PullDiagnostics")},
-        {"dotnet_tagging_pull_diagnostic", new FeatureFlagStorage(@"Roslyn.PullDiagnosticTagging")},
+        {"dotnet_pull_diagnostic_tagging", new FeatureFlagStorage(@"Roslyn.PullDiagnosticTagging")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_auto_xml_doc_comment_generation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
 #pragma warning restore
