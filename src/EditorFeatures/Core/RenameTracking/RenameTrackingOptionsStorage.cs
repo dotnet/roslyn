@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.RenameTracking
+namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     internal static class RenameTrackingOptionsStorage
     {

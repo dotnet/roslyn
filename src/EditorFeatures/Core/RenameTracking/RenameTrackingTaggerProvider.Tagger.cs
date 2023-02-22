@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.RenameTracking;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;

@@ -5,7 +5,6 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Classification.Syntactic;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;

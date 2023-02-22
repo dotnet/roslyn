@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Classification.Syntactic
+namespace Microsoft.CodeAnalysis.Classification
 {
     internal static class SyntacticColorizerOptionsStorage
     {
