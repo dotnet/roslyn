@@ -115,8 +115,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Collapse_regions_when_collapsing_to_definitions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp);
 
             // Fading
-            BindToOption(Fade_out_unused_usings, FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp);
-            BindToOption(Fade_out_unreachable_code, FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
+            BindToOption(Fade_out_unused_usings, FadingOptionsStorage.FadeOutUnusedImports, LanguageNames.CSharp);
+            BindToOption(Fade_out_unreachable_code, FadingOptionsStorage.FadeOutUnreachableCode, LanguageNames.CSharp);
 
             // Block Structure Guides
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp);

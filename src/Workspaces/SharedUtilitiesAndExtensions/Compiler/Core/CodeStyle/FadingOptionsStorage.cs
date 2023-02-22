@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal static class FadingOptions
+    internal static class FadingOptionsStorage
     {
         public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new("dotnet_fade_out_unused_imports", defaultValue: true);
         public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new("dotnet_fade_out_unreachable_code", defaultValue: true);

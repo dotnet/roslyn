@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         private readonly DiagnosticDescriptor _generatedCodeClassificationIdDescriptor;
 
         protected AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer(LocalizableString titleAndMessage)
-            : base(GetDescriptors(titleAndMessage, out var classificationIdDescriptor, out var generatedCodeClassificationIdDescriptor), FadingOptions.FadeOutUnusedImports)
+            : base(GetDescriptors(titleAndMessage, out var classificationIdDescriptor, out var generatedCodeClassificationIdDescriptor), FadingOptionsStorage.FadeOutUnusedImports)
         {
             _classificationIdDescriptor = classificationIdDescriptor;
             _generatedCodeClassificationIdDescriptor = generatedCodeClassificationIdDescriptor;
