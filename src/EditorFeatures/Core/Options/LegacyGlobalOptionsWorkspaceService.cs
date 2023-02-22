@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Options
             "dotnet_generate_overrides_for_all_members", defaultValue: true);
 
         private static readonly PerLanguageOption2<bool> s_generateOperators = new(
-            "dotnet_generate_equals_and_get_hash_code_from_members_when_generate_operators",
+            "dotnet_generate_equality_operators",
             defaultValue: false);
 
         private static readonly PerLanguageOption2<bool> s_implementIEquatable = new(
