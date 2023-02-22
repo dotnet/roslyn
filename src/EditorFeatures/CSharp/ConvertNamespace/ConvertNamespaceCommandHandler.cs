@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
                 return default;
 
-            if (!_globalOptions.GetOption(CompleteStatementOptions.AutomaticallyCompleteStatementOnSemicolon))
+            if (!_globalOptions.GetOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon))
                 return default;
 
             var subjectBuffer = args.SubjectBuffer;

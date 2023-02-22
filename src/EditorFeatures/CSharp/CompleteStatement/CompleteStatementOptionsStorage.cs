@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 {
-    internal static class CompleteStatementOptions
+    internal static class CompleteStatementOptionsStorage
     {
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new("csharp_complete_statement_on_semicolon", defaultValue: true);
     }

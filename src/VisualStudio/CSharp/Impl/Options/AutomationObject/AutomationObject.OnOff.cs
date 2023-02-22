@@ -135,8 +135,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int AutomaticallyCompleteStatementOnSemicolon
         {
-            get { return GetBooleanOption(CompleteStatementOptions.AutomaticallyCompleteStatementOnSemicolon); }
-            set { SetBooleanOption(CompleteStatementOptions.AutomaticallyCompleteStatementOnSemicolon, value); }
+            get { return GetBooleanOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon); }
+            set { SetBooleanOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon, value); }
         }
 
         public int SkipAnalyzersForImplicitlyTriggeredBuilds

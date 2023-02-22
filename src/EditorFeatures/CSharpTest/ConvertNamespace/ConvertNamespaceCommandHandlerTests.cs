@@ -85,7 +85,7 @@ class C
     }
 }");
 
-            testState.Workspace.GlobalOptions.SetGlobalOption(CompleteStatementOptions.AutomaticallyCompleteStatementOnSemicolon, false);
+            testState.Workspace.GlobalOptions.SetGlobalOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon, false);
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
