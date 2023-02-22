@@ -438,7 +438,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         var parameter = member.Parameters[index];
                         if (parameter.Type.OriginalDefinition.TypeKind != TypeKind.TypeParameter)
                         {
-                            return parameter.Name;
+                            if (SyntaxFacts.GetContextualKeywordKind(parameter.Name) is not SyntaxKind.UnderscoreToken)
+                            {
+                                return parameter.Name;
+                            }
                         }
                     }
                 }

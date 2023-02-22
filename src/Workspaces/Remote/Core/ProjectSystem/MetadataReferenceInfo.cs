@@ -2,6 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.Remote.ProjectSystem;
 
-internal readonly record struct MetadataReferenceInfo(string FilePath, string Aliases, bool EmbedInteropTypes);
+internal readonly record struct MetadataReferenceInfo(string FilePath, string? Aliases, bool EmbedInteropTypes)
+{
+    public MetadataReferenceProperties CreateProperties()
+    {
+        return new MetadataReferenceProperties(aliases: Aliases != null ? ImmutableArray.Create(Aliases) : default, embedInteropTypes: EmbedInteropTypes);
+    }
+}
