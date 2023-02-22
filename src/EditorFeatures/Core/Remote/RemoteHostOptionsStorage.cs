@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteHostOptions
+    internal sealed class RemoteHostOptionsStorage
     {
         // use 64bit OOP
         public static readonly Option2<bool> OOP64Bit = new("dotnet_code_analysis_in_separate_process", defaultValue: true);
