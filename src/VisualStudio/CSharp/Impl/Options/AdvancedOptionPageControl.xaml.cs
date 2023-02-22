@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private void UpdatePullDiagnosticsOptions()
         {
-            var normalPullDiagnosticsOption = OptionStore.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            var normalPullDiagnosticsOption = OptionStore.GetOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode);
             Enable_pull_diagnostics_experimental_requires_restart.IsChecked = GetCheckboxValueForDiagnosticMode(normalPullDiagnosticsOption);
             AddSearchHandler(Enable_pull_diagnostics_experimental_requires_restart);
 
@@ -243,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
 
             // Update the workspace option.
-            this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, newDiagnosticMode);
+            this.OptionStore.SetOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, newDiagnosticMode);
 
             UpdatePullDiagnosticsOptions();
 
@@ -260,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private void Enable_pull_diagnostics_experimental_requires_restart_Indeterminate(object sender, RoutedEventArgs e)
         {
-            this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Default);
+            this.OptionStore.SetOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, DiagnosticMode.Default);
             UpdatePullDiagnosticsOptions();
         }
 

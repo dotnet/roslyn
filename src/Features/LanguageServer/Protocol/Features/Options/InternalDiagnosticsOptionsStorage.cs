@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal static class InternalDiagnosticsOptions
+internal static class InternalDiagnosticsOptionsStorage
 {
     private static readonly EditorConfigValueSerializer<DiagnosticMode> s_editorConfigValueSerializer = EditorConfigValueSerializer.CreateSerializerForEnum<DiagnosticMode>();
     /// <summary>
