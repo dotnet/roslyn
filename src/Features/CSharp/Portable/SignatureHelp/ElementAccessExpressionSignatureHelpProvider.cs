@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             return CreateSignatureHelpItems(accessibleIndexers.Select(p =>
                 Convert(p, openBrace, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null, parameterIndexOverride: -1);
+                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItemIndex: null, parameterIndexOverride: -1);
         }
 
         private static TextSpan GetTextSpan(ExpressionSyntax expression, SyntaxToken openBracket)

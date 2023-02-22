@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -38,34 +37,35 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken);
 
         protected static SignatureHelpItems? CreateSignatureHelpItems(
-            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItem, int parameterIndexOverride)
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItemIndex, int parameterIndexOverride)
         {
-            if (!items.Any() || state == null)
+            if (items is null || items.Count == 0 || state == null)
                 return null;
 
-            if (selectedItem < 0)
-                selectedItem = null;
+            if (selectedItemIndex < 0)
+                selectedItemIndex = null;
 
-            (items, selectedItem) = Filter(items, state.Value.ArgumentNames, selectedItem);
+            (items, selectedItemIndex) = Filter(items, state.Value.ArgumentNames, selectedItemIndex);
 
             // If the caller provided a preferred parameter for us to be on then override whatever we found syntactically.
             var argumentIndex = state.Value.ArgumentIndex;
-            if (parameterIndexOverride >= 0 &&
-                parameterIndexOverride != argumentIndex &&
-                selectedItem != null)
+            if (parameterIndexOverride >= 0)
             {
-                // However, in the case where we'd move the index back, and the item is variadic, do not do this.  The
-                // syntactic index is valid for teh variadic member, and we still want to remember where we are
-                // syntactically so that if the user picks another member that we correctly pick the right parameter for
-                // it.
-                if (!items[selectedItem.Value].IsVariadic ||
-                    items[selectedItem.Value].Parameters.Length != (parameterIndexOverride + 1))
-                {
+                // However, in the case where the overridden index is to a variadic member, and the syntactic index goes
+                // beyond the length of hte normal parameters, do not do this.  The syntactic index is valid for the
+                // variadic member, and we still want to remember where we are syntactically so that if the user picks
+                // another member that we correctly pick the right parameter for it.
+                var keepSyntacticIndex =
+                    argumentIndex > parameterIndexOverride &&
+                    selectedItemIndex != null &&
+                    items[selectedItemIndex.Value].IsVariadic &&
+                    argumentIndex >= items[selectedItemIndex.Value].Parameters.Length;
+
+                if (!keepSyntacticIndex)
                     argumentIndex = parameterIndexOverride;
-                }
             }
 
-            return new SignatureHelpItems(items, applicableSpan, argumentIndex, state.Value.ArgumentCount, state.Value.ArgumentName, selectedItem);
+            return new SignatureHelpItems(items, applicableSpan, argumentIndex, state.Value.ArgumentCount, state.Value.ArgumentName, selectedItemIndex);
         }
 
         protected static SignatureHelpItems? CreateCollectionInitializerSignatureHelpItems(

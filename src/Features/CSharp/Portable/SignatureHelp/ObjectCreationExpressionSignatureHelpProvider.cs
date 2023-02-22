@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
             var argumentState = await GetCurrentArgumentStateAsync(
                 document, position, textSpan, cancellationToken).ConfigureAwait(false);
-            return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem: 0, parameterIndexOverride);
+            return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItemIndex: 0, parameterIndexOverride);
         }
 
         private async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(

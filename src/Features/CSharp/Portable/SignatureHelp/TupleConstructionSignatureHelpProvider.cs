@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 .ToList();
 
             var state = GetCurrentArgumentState(root, position, syntaxFacts, targetExpression.FullSpan, cancellationToken);
-            return CreateSignatureHelpItems(items, targetExpression.Span, state, selectedItem: null, parameterIndexOverride: -1);
+            return CreateSignatureHelpItems(items, targetExpression.Span, state, selectedItemIndex: null, parameterIndexOverride: -1);
         }
 
         private static SignatureHelpItem Convert(INamedTypeSymbol tupleType, ImmutableArray<TaggedText> prefixParts, ImmutableArray<TaggedText> suffixParts,
