@@ -92,10 +92,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(AddUsingsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp);
 
             // Quick Actions
-            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous, () =>
+            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptionsStorage.Asynchronous, () =>
             {
                 // If the option has not been set by the user, check if the option is disabled from experimentation.
-                return !optionStore.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
+                return !optionStore.GetOption(SuggestionsOptionsStorage.AsynchronousQuickActionsDisableFeatureFlag);
             });
 
             // Highlighting

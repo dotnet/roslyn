@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal sealed class SuggestionsOptions
+    internal sealed class SuggestionsOptionsStorage
     {
         public static readonly Option2<bool?> Asynchronous = new("dotnet_asynchronous_suggestions", defaultValue: null);
         public static readonly Option2<bool> AsynchronousQuickActionsDisableFeatureFlag = new("dotnet_disable_asynchronous_quick_actions", defaultValue: false);
