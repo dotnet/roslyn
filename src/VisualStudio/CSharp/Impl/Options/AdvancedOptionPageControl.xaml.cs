@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Comments
             BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
-            BindToOption(InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments, SplitCommentOptions.Enabled, LanguageNames.CSharp);
+            BindToOption(InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments, SplitCommentOptionsStorage.Enabled, LanguageNames.CSharp);
             BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
 
             // Editor Help
