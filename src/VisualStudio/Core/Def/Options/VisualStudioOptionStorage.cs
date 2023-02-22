@@ -362,7 +362,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_event_hook_up", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Event Hookup")},
         {"visual_basic_format_on_save", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "FormatOnSave")},
         {"dotnet_enable_full_solution_analysis_memory_monitor", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Full Solution Analysis Memory Monitor")},
-        {"dotnet_enable_oop_64_bit", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "OOP64Bit")},
+        {"dotnet_code_analysis_in_separate_process", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "OOP64Bit")},
         {"dotnet_enable_oop_core_clr", new FeatureFlagStorage(@"Roslyn.ServiceHubCore")},
         {"dotnet_enable_oop_server_gc", new FeatureFlagStorage(@"Roslyn.OOPServerGC")},
         {"dotnet_remove_recommendation_limit", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "RemoveRecommendationLimit")},
