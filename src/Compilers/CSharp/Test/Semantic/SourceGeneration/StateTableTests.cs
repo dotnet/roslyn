@@ -615,6 +615,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             input = new[] { ("B", EntryState.Cached) };
             dstBuilder = GetBuilder(dstBuilder.ToImmutable());
             table1 = dstBuilder.GetLatestStateTableForNode(inputNode);
+            AssertTableEntries(table1, new[] { ("B", EntryState.Cached, 0) });
+            AssertTableEntries(table1.AsCached(), new[] { ("B", EntryState.Cached, 0) });
 
             // batch => [[B]]
             table2 = dstBuilder.GetLatestStateTableForNode(batchNode);
