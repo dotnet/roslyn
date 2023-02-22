@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineRename
 {
-    internal sealed class InlineRenameUIOptions
+    internal sealed class InlineRenameUIOptionsStorage
     {
         public static readonly Option2<bool> UseInlineAdornment = new("dotnet_rename_use_inline_adornment", defaultValue: true);
         public static readonly Option2<bool> CollapseUI = new("dotnet_collapse_inline_rename_ui", defaultValue: false);

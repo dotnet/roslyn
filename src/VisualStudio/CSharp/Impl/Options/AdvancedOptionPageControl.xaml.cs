@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Rename
             BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.RenameAsynchronously);
-            BindToOption(Rename_UI_setting, InlineRenameUIOptions.UseInlineAdornment, label: Rename_UI_setting_label);
+            BindToOption(Rename_UI_setting, InlineRenameUIOptionsStorage.UseInlineAdornment, label: Rename_UI_setting_label);
 
             // Using Directives
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp);

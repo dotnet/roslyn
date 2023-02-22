@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 WellKnownGlobalOption.WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspace => WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
                 WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption => SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
                 WellKnownGlobalOption.SolutionCrawlerOptions_CompilerDiagnosticsScopeOption => SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
-                WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI => InlineRenameUIOptions.UseInlineAdornment,
+                WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI => InlineRenameUIOptionsStorage.UseInlineAdornment,
                 _ => throw ExceptionUtilities.Unreachable()
             };
 
