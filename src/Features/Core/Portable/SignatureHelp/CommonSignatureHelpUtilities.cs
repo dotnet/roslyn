@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             int position,
             Func<TArgumentList, SyntaxToken> getOpenToken,
             Func<TArgumentList, SyntaxToken> getCloseToken,
-            Func<TArgumentList, IEnumerable<SyntaxNodeOrToken>> getArgumentsWithSeparators,
-            Func<TArgumentList, IEnumerable<string>> getArgumentNames)
+            Func<TArgumentList, SyntaxNodeOrTokenList> getArgumentsWithSeparators,
+            Func<TArgumentList, IEnumerable<string?>> getArgumentNames)
             where TArgumentList : SyntaxNode
         {
             if (TryGetCurrentArgumentIndex(argumentList, position, getOpenToken, getCloseToken, getArgumentsWithSeparators, out var argumentIndex))
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     argumentIndex,
                     argumentCount,
                     argumentIndex < argumentCount ? argumentNames[argumentIndex] : null,
-                    argumentNames.WhereAsArray(s => s != null));
+                    argumentNames.WhereNotNull().ToImmutableArray());
             }
 
             return null;
@@ -49,21 +49,16 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             int position,
             Func<TArgumentList, SyntaxToken> getOpenToken,
             Func<TArgumentList, SyntaxToken> getCloseToken,
-            Func<TArgumentList, IEnumerable<SyntaxNodeOrToken>> getArgumentsWithSeparators,
+            Func<TArgumentList, SyntaxNodeOrTokenList> getArgumentsWithSeparators,
             out int index) where TArgumentList : SyntaxNode
         {
             index = 0;
             if (position < getOpenToken(argumentList).Span.End)
-            {
                 return false;
-            }
 
             var closeToken = getCloseToken(argumentList);
-            if (!closeToken.IsMissing &&
-                position > closeToken.SpanStart)
-            {
+            if (!closeToken.IsMissing && position > closeToken.SpanStart)
                 return false;
-            }
 
             foreach (var element in getArgumentsWithSeparators(argumentList))
             {

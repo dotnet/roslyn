@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private static readonly Func<InitializerExpressionSyntax, SyntaxToken> s_getInitializerExpressionCloseToken = e => e.CloseBraceToken;
         private static readonly Func<AttributeArgumentListSyntax, SyntaxToken> s_getAttributeArgumentListCloseToken = list => list.CloseParenToken;
 
-        private static readonly Func<BaseArgumentListSyntax, IEnumerable<SyntaxNodeOrToken>> s_getBaseArgumentListArgumentsWithSeparators =
+        private static readonly Func<BaseArgumentListSyntax, SyntaxNodeOrTokenList> s_getBaseArgumentListArgumentsWithSeparators =
             list => list.Arguments.GetWithSeparators();
-        private static readonly Func<TypeArgumentListSyntax, IEnumerable<SyntaxNodeOrToken>> s_getTypeArgumentListArgumentsWithSeparators =
+        private static readonly Func<TypeArgumentListSyntax, SyntaxNodeOrTokenList> s_getTypeArgumentListArgumentsWithSeparators =
             list => list.Arguments.GetWithSeparators();
-        private static readonly Func<InitializerExpressionSyntax, IEnumerable<SyntaxNodeOrToken>> s_getInitializerExpressionArgumentsWithSeparators =
+        private static readonly Func<InitializerExpressionSyntax, SyntaxNodeOrTokenList> s_getInitializerExpressionArgumentsWithSeparators =
             e => e.Expressions.GetWithSeparators();
-        private static readonly Func<AttributeArgumentListSyntax, IEnumerable<SyntaxNodeOrToken>> s_getAttributeArgumentListArgumentsWithSeparators =
+        private static readonly Func<AttributeArgumentListSyntax, SyntaxNodeOrTokenList> s_getAttributeArgumentListArgumentsWithSeparators =
             list => list.Arguments.GetWithSeparators();
 
         private static readonly Func<BaseArgumentListSyntax, IEnumerable<string?>> s_getBaseArgumentListNames =
@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             e => e.Expressions.Select(a => (string?)null);
         private static readonly Func<AttributeArgumentListSyntax, IEnumerable<string?>> s_getAttributeArgumentListNames =
             list => list.Arguments.Select(
-                argument => argument.NameColon != null
-                    ? argument.NameColon.Name.Identifier.ValueText
-                    : argument.NameEquals?.Name.Identifier.ValueText);
+                argument => argument.NameColon?.Name.Identifier.ValueText ?? argument.NameEquals?.Name.Identifier.ValueText);
 
         public static SignatureHelpState? GetSignatureHelpState(BaseArgumentListSyntax argumentList, int position)
         {

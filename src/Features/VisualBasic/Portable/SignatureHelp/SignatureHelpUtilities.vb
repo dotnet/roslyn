@@ -32,9 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private ReadOnly s_getTypeArgumentListCloseToken As Func(Of TypeArgumentListSyntax, SyntaxToken) = Function(list) list.CloseParenToken
         Private ReadOnly s_getCollectionInitializerCloseToken As Func(Of CollectionInitializerSyntax, SyntaxToken) = Function(i) i.CloseBraceToken
 
-        Private ReadOnly s_getArgumentListArgumentsWithSeparators As Func(Of ArgumentListSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(list) list.Arguments.GetWithSeparators()
-        Private ReadOnly s_getTypeArgumentListArgumentsWithSeparators As Func(Of TypeArgumentListSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(list) list.Arguments.GetWithSeparators()
-        Private ReadOnly s_getCollectionInitializerArgumentsWithSeparators As Func(Of CollectionInitializerSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(i) i.Initializers.GetWithSeparators()
+        Private ReadOnly s_getArgumentListArgumentsWithSeparators As Func(Of ArgumentListSyntax, SyntaxNodeOrTokenList) = Function(list) list.Arguments.GetWithSeparators()
+        Private ReadOnly s_getTypeArgumentListArgumentsWithSeparators As Func(Of TypeArgumentListSyntax, SyntaxNodeOrTokenList) = Function(list) list.Arguments.GetWithSeparators()
+        Private ReadOnly s_getCollectionInitializerArgumentsWithSeparators As Func(Of CollectionInitializerSyntax, SyntaxNodeOrTokenList) = Function(i) i.Initializers.GetWithSeparators()
 
         Private ReadOnly s_getArgumentListNames As Func(Of ArgumentListSyntax, IEnumerable(Of String)) =
             Function(list) list.Arguments.Select(Function(a)
