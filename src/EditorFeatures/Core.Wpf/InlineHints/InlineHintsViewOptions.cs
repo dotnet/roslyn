@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             "dotnet_display_inline_hints_while_pressing_alt_f1", defaultValue: true);
 
         public static readonly PerLanguageOption2<bool> ColorHints = new(
-            "dotnet_inline_hints_colorize", defaultValue: true);
+            "dotnet_colorize_inline_hints", defaultValue: true);
     }
 }
