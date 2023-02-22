@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal sealed class LspOptions
+    internal sealed class LspOptionsStorage
     {
         /// <summary>
         /// This sets the max list size we will return in response to a completion request.

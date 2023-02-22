@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 return Task.CompletedTask;
 
             // If the LSP semantic tokens feature flag is enabled, return nothing to prevent conflicts.
-            var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokensEnabled)
                 return Task.CompletedTask;
 
