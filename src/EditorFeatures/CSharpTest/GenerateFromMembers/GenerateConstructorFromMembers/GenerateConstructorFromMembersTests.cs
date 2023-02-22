@@ -854,7 +854,7 @@ $@"class Program
         this._field = field;
     }
 }",
-options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
+options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
         }
 
         [Fact, WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
@@ -877,7 +877,7 @@ options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWith
     public string Title { get; }
     public int Number { get; }
 }",
-options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
+options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
         }
 
         [Fact, WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
@@ -889,7 +889,7 @@ options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWith
   [|public abstract string Title { get; }
     public int Number { get; }|]
 }",
-new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
+new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement)));
         }
 
         [Fact]
@@ -1152,7 +1152,7 @@ class Z
 chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
-    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
+    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
         }
 
         [Fact]
@@ -1187,7 +1187,7 @@ class Z
 chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
-    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
+    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
         }
 
         [Fact]
@@ -1228,7 +1228,7 @@ chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
-    options: Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
+    options: Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
         }
 
         [Fact]
@@ -1322,7 +1322,7 @@ class Z
 
     public int Prop { get; set; }
 }",
-options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
+options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
         }
 
         [Fact, WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
