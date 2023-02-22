@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             // Editor Help
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.CSharp);
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
-            BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptions.Enabled);
+            BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptionsStorage.Enabled);
             BindToOption(Fix_text_pasted_into_string_literals_experimental, FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp);
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.CSharp);
