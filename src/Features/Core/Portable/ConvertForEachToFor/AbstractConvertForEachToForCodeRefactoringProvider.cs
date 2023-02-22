@@ -351,10 +351,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             foreach (var current in interfaceType.GetAllInterfacesIncludingThis())
             {
                 var members = current.GetMembers(memberName);
-                if (!members.IsEmpty && members[0] is IMethodSymbol method)
-                {
+                if (members is [IMethodSymbol method, ..])
                     return method;
-                }
             }
 
             return null;

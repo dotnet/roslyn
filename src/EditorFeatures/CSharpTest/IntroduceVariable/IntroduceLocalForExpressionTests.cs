@@ -364,8 +364,8 @@ class C
     }
 }", options: new OptionsCollection(GetLanguage())
     {
-        { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSuggestionEnforcement },
-        { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement },
+        { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOption2.TrueWithSuggestionEnforcement },
+        { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement },
     });
         }
 
