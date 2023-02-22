@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option2<bool> AutomaticLineEnder = new("dotnet_automatic_line_ender", defaultValue: true);
         public static readonly Option2<bool> SmartIndenter = new("dotnet_smart_indenter", defaultValue: true);
         public static readonly Option2<bool> Squiggles = new("dotnet_squiggles", defaultValue: true);
-        public static readonly Option2<bool> FormatOnSave = new("visual_basic_format_on_save", defaultValue: true);
+        public static readonly Option2<bool> FormatOnSave = new("dotnet_format_on_save", defaultValue: true);
         public static readonly Option2<bool> RenameTracking = new("dotnet_rename_tracking", defaultValue: true);
-        public static readonly Option2<bool> EventHookup = new("csharp_event_hook_up", defaultValue: true);
-        public static readonly Option2<bool> Snippets = new("csharp_enable_snippets", defaultValue: true);
+        public static readonly Option2<bool> EventHookup = new("dotnet_event_hook_up", defaultValue: true);
+        public static readonly Option2<bool> Snippets = new("dotnet_enable_snippets", defaultValue: true);
         public static readonly Option2<bool> BackgroundAnalysisMemoryMonitor = new("dotnet_enable_full_solution_analysis_memory_monitor", defaultValue: true);
     }
 }
