@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis
         protected void DisposeServices(IServiceProvider serviceProvider, DiagnosticBag diagnostics)
         {
             // Write all licensing messages that may have been emitted during the compilation.
-            var licenseManager = serviceProvider.GetService<ILicenseConsumptionManager>();
+            var licenseManager = serviceProvider.GetService<ILicenseConsumptionService>();
 
             if (licenseManager != null)
             {
