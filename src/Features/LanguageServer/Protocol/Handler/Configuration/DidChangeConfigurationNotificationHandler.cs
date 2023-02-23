@@ -78,11 +78,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 var options = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JArray>(
                     Methods.WorkspaceConfigurationName, configurationParams, cancellationToken).ConfigureAwait(false);
 
-                if (options == null)
-                {
-                    _lspLogger.LogError($"Failed to get the response of {Methods.WorkspaceConfigurationName}.");
-                    return ImmutableArray<string>.Empty;
-                }
+                // Failed to get result from client.
+                Contract.ThrowIfNull(options);
 
                 // This is ensured by LSP.
                 Contract.ThrowIfTrue(options.Count != configurationItems.Length);
