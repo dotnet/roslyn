@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // disk.
                 try
                 {
-                    await CleanCacheDirectoryAsync(cancellationToken).ConfigureAwait(false);
+                    CleanCacheDirectory(cancellationToken);
 
                     // If we have a local database, then see if it needs to be patched. Otherwise download the full
                     // database.
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            private async Task CleanCacheDirectoryAsync(CancellationToken cancellationToken)
+            private void CleanCacheDirectory(CancellationToken cancellationToken)
             {
                 LogInfo("Cleaning cache directory");
 
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // searching.
                 try
                 {
-                    await CreateAndSetInMemoryDatabaseAsync(bytes, cancellationToken).ConfigureAwait(false);
+                    CreateAndSetInMemoryDatabase(bytes);
                 }
                 catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                 {
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 LogInfo("Writing database file");
 
                 await RepeatIOAsync(
-                    async cancellationToken =>
+                    cancellationToken =>
                     {
                         var guidString = Guid.NewGuid().ToString();
                         var tempFilePath = Path.Combine(_cacheDirectoryInfo.FullName, guidString + ".tmp");
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 AddReferenceDatabase database;
                 try
                 {
-                    database = await CreateAndSetInMemoryDatabaseAsync(databaseBytes, cancellationToken).ConfigureAwait(false);
+                    database = CreateAndSetInMemoryDatabase(databaseBytes);
                 }
                 catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                 {
@@ -397,9 +397,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             /// indicates that our data is corrupt), the exception will bubble up and must be appropriately
             /// dealt with by the caller.
             /// </summary>
-            private async Task<AddReferenceDatabase> CreateAndSetInMemoryDatabaseAsync(byte[] bytes, CancellationToken cancellationToken)
+            private AddReferenceDatabase CreateAndSetInMemoryDatabase(byte[] bytes)
             {
-                var database = await CreateDatabaseFromBytesAsync(bytes, cancellationToken).ConfigureAwait(false);
+                var database = CreateDatabaseFromBytes(bytes);
                 _service._sourceToDatabase[_source] = new AddReferenceDatabaseWrapper(database);
                 return database;
             }
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var finalBytes = _service._patchService.ApplyPatch(databaseBytes, patchBytes);
                 LogInfo($"Applying patch completed. finalBytes.Length={finalBytes.Length}");
 
-                await CreateAndSetInMemoryDatabaseAsync(finalBytes, cancellationToken).ConfigureAwait(false);
+                CreateAndSetInMemoryDatabase(finalBytes);
 
                 await WriteDatabaseFileAsync(databaseFileInfo, finalBytes, cancellationToken).ConfigureAwait(false);
 
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            private async Task<AddReferenceDatabase> CreateDatabaseFromBytesAsync(byte[] bytes, CancellationToken cancellationToken)
+            private AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
             {
                 LogInfo("Creating database from bytes");
                 var result = _service._databaseFactoryService.CreateDatabaseFromBytes(bytes);
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            private async Task RepeatIOAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
+            private async Task RepeatIOAsync(Action<CancellationToken> action, CancellationToken cancellationToken)
             {
                 const int repeat = 6;
                 for (var i = 0; i < repeat; i++)
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     try
                     {
-                        await action(cancellationToken).ConfigureAwait(false);
+                        action(cancellationToken);
                         return;
                     }
                     catch (Exception e) when (IOUtilities.IsNormalIOException(e) || _service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return (succeeded: false, null);
                 }
 
-                var contentBytes = await ConvertContentAttributeAsync(contentsAttribute, cancellationToken).ConfigureAwait(false);
+                var contentBytes = await Updater.ConvertContentAttributeAsync(contentsAttribute, cancellationToken).ConfigureAwait(false);
 
                 var checksumAttribute = element.Attribute(ChecksumAttributeName);
                 if (checksumAttribute != null)
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 return (succeeded: true, contentBytes);
             }
 
-            private async Task<byte[]> ConvertContentAttributeAsync(XAttribute contentsAttribute, CancellationToken cancellationToken)
+            private static async Task<byte[]> ConvertContentAttributeAsync(XAttribute contentsAttribute, CancellationToken cancellationToken)
             {
                 var text = contentsAttribute.Value;
                 var compressedBytes = Convert.FromBase64String(text);
