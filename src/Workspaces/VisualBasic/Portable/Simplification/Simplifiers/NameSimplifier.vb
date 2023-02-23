@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         Public Overrides Function TrySimplify(
                 name As NameSyntax,
                 semanticModel As SemanticModel,
-                options As VisualBasicSimplifierOptions,
+                options As IVisualBasicSimplifierOptions,
                 <Out> ByRef replacementNode As ExpressionSyntax,
                 <Out> ByRef issueSpan As TextSpan,
                 cancellationToken As CancellationToken) As Boolean
@@ -393,11 +393,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Shared Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, options As VisualBasicSimplifierOptions) As Boolean
+        Private Shared Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, options As IVisualBasicSimplifierOptions) As Boolean
             Return (Not IsDirectChildOfMemberAccessExpression(name)) AndAlso
                    (Not InsideCrefReference(name)) AndAlso
                    (Not InsideNameOfExpression(name)) AndAlso
-                   options.PreferPredefinedTypeKeywordInDeclaration.Value
+                   options.PreferPredefinedTypeKeywordInDeclaration
         End Function
 
         Private Shared Function CanSimplifyNullable(type As INamedTypeSymbol, name As NameSyntax) As Boolean

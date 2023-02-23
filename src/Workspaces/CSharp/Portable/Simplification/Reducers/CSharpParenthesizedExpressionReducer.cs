@@ -19,19 +19,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
-        private static readonly Func<ParenthesizedExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyParentheses = SimplifyParentheses;
+        private static readonly Func<ParenthesizedExpressionSyntax, SemanticModel, ISimplifierOptions, CancellationToken, SyntaxNode> s_simplifyParentheses = SimplifyParentheses;
 
         public CSharpParenthesizedExpressionReducer() : base(s_pool)
         {
         }
 
-        protected override bool IsApplicable(CSharpSimplifierOptions options)
+        protected override bool IsApplicable(ICSharpSimplifierOptions options)
            => true;
 
         private static SyntaxNode SimplifyParentheses(
             ParenthesizedExpressionSyntax node,
             SemanticModel semanticModel,
-            SimplifierOptions options,
+            ISimplifierOptions options,
             CancellationToken cancellationToken)
         {
             if (node.CanRemoveParentheses(semanticModel, cancellationToken))

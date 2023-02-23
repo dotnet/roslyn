@@ -15,20 +15,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Private Shared ReadOnly s_pool As ObjectPool(Of IReductionRewriter) =
             New ObjectPool(Of IReductionRewriter)(Function() New Rewriter(s_pool))
 
-        Private Shared ReadOnly s_simplifyParameter As Func(Of ParameterSyntax, SemanticModel, SimplifierOptions, CancellationToken, ParameterSyntax) = AddressOf SimplifyParameter
+        Private Shared ReadOnly s_simplifyParameter As Func(Of ParameterSyntax, SemanticModel, ISimplifierOptions, CancellationToken, ParameterSyntax) = AddressOf SimplifyParameter
 
         Public Sub New()
             MyBase.New(s_pool)
         End Sub
 
-        Public Overrides Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
+        Public Overrides Function IsApplicable(options As IVisualBasicSimplifierOptions) As Boolean
             Return True
         End Function
 
         Private Shared Function SimplifyParameter(
             parameter As ParameterSyntax,
             semanticModel As SemanticModel,
-            options As SimplifierOptions,
+            options As ISimplifierOptions,
             cancellationToken As CancellationToken
         ) As ParameterSyntax
             If parameter.CanRemoveAsClause(semanticModel, cancellationToken) Then
@@ -40,12 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return parameter
         End Function
 
-        Private Shared ReadOnly s_simplifyInvocationExpression As Func(Of InvocationExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyInvocationExpression
+        Private Shared ReadOnly s_simplifyInvocationExpression As Func(Of InvocationExpressionSyntax, SemanticModel, ISimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyInvocationExpression
 
         Private Shared Function SimplifyInvocationExpression(
             invocationExpression As InvocationExpressionSyntax,
             semanticModel As SemanticModel,
-            options As SimplifierOptions,
+            options As ISimplifierOptions,
             cancellationToken As CancellationToken
         ) As InvocationExpressionSyntax
 
@@ -63,12 +63,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return invocationExpression
         End Function
 
-        Private Shared ReadOnly s_simplifyObjectCreationExpression As Func(Of ObjectCreationExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyObjectCreationExpression
+        Private Shared ReadOnly s_simplifyObjectCreationExpression As Func(Of ObjectCreationExpressionSyntax, SemanticModel, ISimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyObjectCreationExpression
 
         Private Shared Function SimplifyObjectCreationExpression(
             objectCreationExpression As ObjectCreationExpressionSyntax,
             semanticModel As SemanticModel,
-            options As SimplifierOptions,
+            options As ISimplifierOptions,
             cancellationToken As CancellationToken
         ) As ObjectCreationExpressionSyntax
 

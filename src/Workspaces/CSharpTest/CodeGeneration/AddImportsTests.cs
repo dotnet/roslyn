@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
             var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 
-            var simplifierOptions = CSharpSimplifierOptions.Default;
+            var simplifierOptions = CSharpSimplifierStyleOptions.Default;
 
             var imported = useSymbolAnnotations
                 ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, addImportOptions, CancellationToken.None)

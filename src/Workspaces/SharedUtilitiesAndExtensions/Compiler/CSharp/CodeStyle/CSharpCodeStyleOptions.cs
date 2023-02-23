@@ -26,15 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option2<CodeStyleOption2<bool>> VarForBuiltInTypes = CreateOption(
             CSharpCodeStyleOptionGroups.VarPreferences, "csharp_style_var_for_built_in_types",
-            CSharpSimplifierOptions.Default.VarForBuiltInTypes);
+            CSharpSimplifierStyleOptions.Default.VarForBuiltInTypes);
 
         public static readonly Option2<CodeStyleOption2<bool>> VarWhenTypeIsApparent = CreateOption(
             CSharpCodeStyleOptionGroups.VarPreferences, "csharp_style_var_when_type_is_apparent",
-            CSharpSimplifierOptions.Default.VarWhenTypeIsApparent);
+            CSharpSimplifierStyleOptions.Default.VarWhenTypeIsApparent);
 
         public static readonly Option2<CodeStyleOption2<bool>> VarElsewhere = CreateOption(
             CSharpCodeStyleOptionGroups.VarPreferences, "csharp_style_var_elsewhere",
-            CSharpSimplifierOptions.Default.VarElsewhere);
+            CSharpSimplifierStyleOptions.Default.VarElsewhere);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferConditionalDelegateCall = CreateOption(
             CSharpCodeStyleOptionGroups.NullCheckingPreferences, "csharp_style_conditional_delegate_call",
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferThrowExpression = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_throw_expression",
-            CSharpSimplifierOptions.Default.PreferThrowExpression);
+            CSharpSimplifierStyleOptions.Default.PreferThrowExpression);
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferInlinedVariableDeclaration = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_inlined_variable_declaration",
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly Option2<CodeStyleOption2<PreferBracesPreference>> PreferBraces = CreateOption(
             CSharpCodeStyleOptionGroups.CodeBlockPreferences,
             "csharp_prefer_braces",
-            CSharpSimplifierOptions.Default.PreferBraces,
+            CSharpSimplifierStyleOptions.Default.PreferBraces,
             defaultValue => new(
                 parseValue: str => ParsePreferBracesPreference(str, defaultValue),
                 serializeValue: value => GetPreferBracesPreferenceEditorConfigString(value, defaultValue)));
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly Option2<CodeStyleOption2<bool>> PreferSimpleDefaultExpression = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
             "csharp_prefer_simple_default_expression",
-            CSharpSimplifierOptions.Default.PreferSimpleDefaultExpression);
+            CSharpSimplifierStyleOptions.Default.PreferSimpleDefaultExpression);
 
         public static readonly Option2<CodeStyleOption2<string>> PreferredModifierOrder = CreateOption(
             CSharpCodeStyleOptionGroups.Modifier,
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static Option2<CodeStyleOption2<bool>> AllowEmbeddedStatementsOnSameLine { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences,
             "csharp_style_allow_embedded_statements_on_same_line_experimental",
-             CSharpSimplifierOptions.Default.AllowEmbeddedStatementsOnSameLine);
+             CSharpSimplifierStyleOptions.Default.AllowEmbeddedStatementsOnSameLine);
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLinesBetweenConsecutiveBraces { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences,

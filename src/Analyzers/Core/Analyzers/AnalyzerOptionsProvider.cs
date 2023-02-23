@@ -45,7 +45,7 @@ internal readonly struct AnalyzerOptionsProvider
     {
     }
 
-    // SimplifierOptions
+    // SimplifierStyleOptions
 
     public CodeStyleOption2<bool> QualifyFieldAccess => GetOption(CodeStyleOptions2.QualifyFieldAccess, FallbackSimplifierOptions.QualifyFieldAccess);
     public CodeStyleOption2<bool> QualifyPropertyAccess => GetOption(CodeStyleOptions2.QualifyPropertyAccess, FallbackSimplifierOptions.QualifyPropertyAccess);
@@ -54,7 +54,7 @@ internal readonly struct AnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess => GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, FallbackSimplifierOptions.PreferPredefinedTypeKeywordInMemberAccess);
     public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration => GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, FallbackSimplifierOptions.PreferPredefinedTypeKeywordInDeclaration);
 
-    public SimplifierOptions GetSimplifierOptions(ISimplification simplification)
+    public SimplifierStyleOptions GetSimplifierOptions(ISimplification simplification)
         => simplification.GetSimplifierOptions(_options, _fallbackOptions.CleanupOptions?.SimplifierOptions);
 
     // SyntaxFormattingOptions
@@ -107,8 +107,8 @@ internal readonly struct AnalyzerOptionsProvider
     private IdeCodeStyleOptions FallbackCodeStyleOptions
         => _fallbackOptions.CodeStyleOptions ?? IdeCodeStyleOptions.CommonDefaults;
 
-    private SimplifierOptions FallbackSimplifierOptions
-        => _fallbackOptions.CleanupOptions?.SimplifierOptions ?? SimplifierOptions.CommonDefaults;
+    private SimplifierStyleOptions FallbackSimplifierOptions
+        => _fallbackOptions.CleanupOptions?.SimplifierOptions ?? SimplifierStyleOptions.CommonDefaults;
 
     internal IOptionsReader GetAnalyzerConfigOptions()
         => _options;

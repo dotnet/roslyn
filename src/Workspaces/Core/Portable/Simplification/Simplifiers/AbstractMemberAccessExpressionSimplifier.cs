@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
         public bool ShouldSimplifyThisMemberAccessExpression(
             TMemberAccessExpressionSyntax? memberAccessExpression,
             SemanticModel semanticModel,
-            SimplifierOptions simplifierOptions,
+            ISimplifierOptions simplifierOptions,
             [NotNullWhen(true)] out TThisExpressionSyntax? thisExpression,
-            out ReportDiagnostic severity,
+            out SymbolKind symbolKind,
             CancellationToken cancellationToken)
         {
-            severity = default;
             thisExpression = null;
+            symbolKind = default;
 
             if (memberAccessExpression is null)
                 return false;
@@ -54,11 +54,8 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
             if (symbolInfo.Symbol == null)
                 return false;
 
-            if (!simplifierOptions.TryGetQualifyMemberAccessOption(symbolInfo.Symbol.Kind, out var optionValue))
-                return false;
-
             // We always simplify a static accesses off of this/me.  Otherwise, we fall back to whatever the user's option is.
-            if (!symbolInfo.Symbol.IsStatic && optionValue.Value)
+            if (!symbolInfo.Symbol.IsStatic && (simplifierOptions.TryGetQualifyMemberAccessOption(symbolInfo.Symbol.Kind) ?? false))
                 return false;
 
             var speculationAnalyzer = GetSpeculationAnalyzer(semanticModel, memberAccessExpression, cancellationToken);
@@ -66,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
             if (!symbolInfo.Symbol.Equals(newSymbolInfo.Symbol, SymbolEqualityComparer.IncludeNullability))
                 return false;
 
-            severity = optionValue.Notification.Severity;
+            symbolKind = symbolInfo.Symbol.Kind;
             return !semanticModel.SyntaxTree.OverlapsHiddenPosition(memberAccessExpression.Span, cancellationToken) &&
                    !MayCauseParseDifference(memberAccessExpression);
         }

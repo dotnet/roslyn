@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
         protected abstract string Title { get; }
         protected abstract Task HandleDeclarationAsync(Document document, SyntaxEditor editor, TypeSyntax type, CancellationToken cancellationToken);
         protected abstract TypeSyntax FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken);
-        protected abstract TypeStyleResult AnalyzeTypeName(TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, CancellationToken cancellationToken);
+        protected abstract TypeStyleResult AnalyzeTypeName(TypeSyntax typeName, SemanticModel semanticModel, ICSharpSimplifierOptions options, CancellationToken cancellationToken);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 return;
             }
 
-            var simplifierOptions = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = (CSharpSimplifierStyleOptions)await document.GetSimplifierOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
             var typeStyle = AnalyzeTypeName(declaredType, semanticModel, simplifierOptions, cancellationToken);
-            if (typeStyle.IsStylePreferred && typeStyle.Severity != ReportDiagnostic.Suppress)
+            if (typeStyle.IsStylePreferred && typeStyle.GetDiagnosticSeverityPreference(simplifierOptions) != ReportDiagnostic.Suppress)
             {
                 // the analyzer would handle this.  So we do not.
                 return;

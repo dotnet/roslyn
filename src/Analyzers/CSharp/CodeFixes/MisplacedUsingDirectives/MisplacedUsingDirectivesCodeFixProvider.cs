@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         internal static async Task<Document> TransformDocumentIfRequiredAsync(
             Document document,
-            SimplifierOptions simplifierOptions,
+            SimplifierStyleOptions simplifierOptions,
             CodeStyleOption2<AddImportPlacement> importPlacementStyleOption,
             CancellationToken cancellationToken)
         {
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             CompilationUnitSyntax compilationUnit,
             ImmutableArray<UsingDirectiveSyntax> allUsingDirectives,
             AddImportPlacement placement,
-            SimplifierOptions simplifierOptions,
+            SimplifierStyleOptions simplifierOptions,
             CancellationToken cancellationToken)
         {
             var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
             // Simplify usings now that they have been moved and are in the proper context.
 #if CODE_STYLE
-#pragma warning disable RS0030 // Do not used banned APIs (ReduceAsync with SimplifierOptions isn't public)
+#pragma warning disable RS0030 // Do not used banned APIs (ReduceAsync with SimplifierStyleOptions isn't public)
             return await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
 #pragma warning restore
 #else

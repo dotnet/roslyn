@@ -18,10 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 MyBase.New(pool)
             End Sub
 
-            Private ReadOnly s_simplifyTupleName As Func(Of SimpleArgumentSyntax, SemanticModel, SimplifierOptions, CancellationToken, SimpleArgumentSyntax) = AddressOf SimplifyTupleName
-            Private ReadOnly s_simplifyNamedFieldInitializer As Func(Of NamedFieldInitializerSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyNamedFieldInitializer
+            Private ReadOnly s_simplifyTupleName As Func(Of SimpleArgumentSyntax, SemanticModel, ISimplifierOptions, CancellationToken, SimpleArgumentSyntax) = AddressOf SimplifyTupleName
+            Private ReadOnly s_simplifyNamedFieldInitializer As Func(Of NamedFieldInitializerSyntax, SemanticModel, ISimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyNamedFieldInitializer
 
-            Private Function SimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax, arg2 As SemanticModel, options As SimplifierOptions, arg4 As CancellationToken) As SyntaxNode
+            Private Function SimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax, arg2 As SemanticModel, options As ISimplifierOptions, arg4 As CancellationToken) As SyntaxNode
                 If CanSimplifyNamedFieldInitializer(node) Then
                     Return SyntaxFactory.InferredFieldInitializer(node.Expression).WithTriviaFrom(node)
                 End If
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Private Function SimplifyTupleName(
                 node As SimpleArgumentSyntax,
                 semanticModel As SemanticModel,
-                options As SimplifierOptions,
+                options As ISimplifierOptions,
                 cancellationToken As CancellationToken
                 ) As SimpleArgumentSyntax
 

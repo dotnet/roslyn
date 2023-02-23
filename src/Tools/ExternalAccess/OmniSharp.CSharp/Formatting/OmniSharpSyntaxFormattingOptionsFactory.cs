@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
                     WrappingKeepStatementsOnSingleLine = wrappingKeepStatementsOnSingleLine,
                     WrappingPreserveSingleLine = wrappingPreserveSingleLine
                 },
-                SimplifierOptions = CSharpSimplifierOptions.Default
+                SimplifierOptions = CSharpSimplifierStyleOptions.Default
             });
     }
 }

@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
-        private static readonly Func<ParameterSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyParameter = SimplifyParameter;
+        private static readonly Func<ParameterSyntax, SemanticModel, ISimplifierOptions, CancellationToken, SyntaxNode> s_simplifyParameter = SimplifyParameter;
 
         public CSharpMiscellaneousReducer() : base(s_pool)
         {
         }
 
-        protected override bool IsApplicable(CSharpSimplifierOptions options)
+        protected override bool IsApplicable(ICSharpSimplifierOptions options)
            => true;
 
         private static bool CanRemoveTypeFromParameter(
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static SyntaxNode SimplifyParameter(
             ParameterSyntax node,
             SemanticModel semanticModel,
-            SimplifierOptions options,
+            ISimplifierOptions options,
             CancellationToken cancellationToken)
         {
             if (CanRemoveTypeFromParameter(node, semanticModel, cancellationToken))
@@ -82,12 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return node;
         }
 
-        private static readonly Func<ParenthesizedLambdaExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyParenthesizedLambdaExpression = SimplifyParenthesizedLambdaExpression;
+        private static readonly Func<ParenthesizedLambdaExpressionSyntax, SemanticModel, ISimplifierOptions, CancellationToken, SyntaxNode> s_simplifyParenthesizedLambdaExpression = SimplifyParenthesizedLambdaExpression;
 
         private static SyntaxNode SimplifyParenthesizedLambdaExpression(
             ParenthesizedLambdaExpressionSyntax parenthesizedLambda,
             SemanticModel semanticModel,
-            SimplifierOptions options,
+            ISimplifierOptions options,
             CancellationToken cancellationToken)
         {
             if (parenthesizedLambda.ParameterList != null &&
@@ -110,12 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return parenthesizedLambda;
         }
 
-        private static readonly Func<BlockSyntax, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> s_simplifyBlock = SimplifyBlock;
+        private static readonly Func<BlockSyntax, SemanticModel, ICSharpSimplifierOptions, CancellationToken, SyntaxNode> s_simplifyBlock = SimplifyBlock;
 
         private static SyntaxNode SimplifyBlock(
             BlockSyntax node,
             SemanticModel semanticModel,
-            CSharpSimplifierOptions options,
+            ICSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             if (node.Statements.Count != 1)
@@ -128,13 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return node;
             }
 
-            switch (options.PreferBraces.Value)
+            switch (options.BracePlacement)
             {
-                case PreferBracesPreference.Always:
+                case BracePlacementPreferences.Always:
                 default:
                     return node;
 
-                case PreferBracesPreference.WhenMultiline:
+                case BracePlacementPreferences.WhenMultiline:
                     // Braces are optional in several scenarios for 'when_multiline', but are only automatically removed
                     // in a subset of cases where all of the following are met:
                     //
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                     break;
 
-                case PreferBracesPreference.None:
+                case BracePlacementPreferences.None:
                     break;
             }
 

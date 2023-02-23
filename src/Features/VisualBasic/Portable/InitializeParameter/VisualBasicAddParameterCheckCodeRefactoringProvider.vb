@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             StatementSyntax,
             ExpressionSyntax,
             BinaryExpressionSyntax,
-            VisualBasicSimplifierOptions)
+            VisualBasicSimplifierStyleOptions)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return True
         End Function
 
-        Protected Overrides Function PrefersThrowExpression(options As VisualBasicSimplifierOptions) As Boolean
+        Protected Overrides Function PrefersThrowExpression(options As VisualBasicSimplifierStyleOptions) As Boolean
             ' No throw expression preference option is defined for VB because it doesn't support throw expressions.
             Return False
         End Function
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return input.Replace("""", """""")
         End Function
 
-        Protected Overrides Function CreateParameterCheckIfStatement(condition As ExpressionSyntax, ifTrueStatement As StatementSyntax, options As VisualBasicSimplifierOptions) As StatementSyntax
+        Protected Overrides Function CreateParameterCheckIfStatement(condition As ExpressionSyntax, ifTrueStatement As StatementSyntax, options As VisualBasicSimplifierStyleOptions) As StatementSyntax
             Return SyntaxFactory.MultiLineIfBlock(
                 ifStatement:=SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), condition, SyntaxFactory.Token(SyntaxKind.ThenKeyword)),
                 statements:=New SyntaxList(Of StatementSyntax)(ifTrueStatement),

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         {
         }
 
-        public override bool OpenFileOnly(SimplifierOptions? options)
+        public override bool OpenFileOnly(SimplifierStyleOptions? options)
         {
             // analyzer is only active in C# and VB projects
             Contract.ThrowIfNull(options);

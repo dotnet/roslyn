@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 {
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var simplifierOptions = context.GetAnalyzerOptions().GetSimplifierOptions(Simplification);
 
             if (!this.Simplifier.ShouldSimplifyThisMemberAccessExpression(
-                    memberAccessExpression, semanticModel, simplifierOptions, out var thisExpression, out var severity, cancellationToken))
+                    memberAccessExpression, semanticModel, simplifierOptions, out var thisExpression, out var symbolKind, cancellationToken))
             {
                 return;
             }
@@ -72,8 +73,10 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration);
             builder["OptionLanguage"] = semanticModel.Language;
 
+            Contract.ThrowIfFalse(simplifierOptions.TryGetQualifyMemberAccessOption(symbolKind, out var style));
+
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor, thisExpression.GetLocation(), severity,
+                Descriptor, thisExpression.GetLocation(), style.Notification.Severity,
                 ImmutableArray.Create(memberAccessExpression.GetLocation()),
                 builder.ToImmutable()));
         }

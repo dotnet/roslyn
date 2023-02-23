@@ -1,1 +1,28 @@
-
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.AllowEmbeddedStatementsOnSameLine.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.AllowEmbeddedStatementsOnSameLine.init -> void
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.BracePlacement.get -> Microsoft.CodeAnalysis.CodeStyle.BracePlacementPreferences
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.BracePlacement.init -> void
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.CSharpSimplifierOptions() -> void
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.PreferParameterNullChecking.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.PreferParameterNullChecking.init -> void
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.PreferSimpleDefaultExpression.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.PreferSimpleDefaultExpression.init -> void
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.PreferThrowExpression.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.PreferThrowExpression.init -> void
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.UseVarElsewhere.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.UseVarElsewhere.init -> void
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.UseVarForBuiltInTypes.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.UseVarForBuiltInTypes.init -> void
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.UseVarWhenTypeIsApparent.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.UseVarWhenTypeIsApparent.init -> void
+Microsoft.CodeAnalysis.CSharp.Simplification.ICSharpSimplifierOptions
+Microsoft.CodeAnalysis.CSharp.Simplification.ICSharpSimplifierOptions.AllowEmbeddedStatementsOnSameLine.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.ICSharpSimplifierOptions.BracePlacement.get -> Microsoft.CodeAnalysis.CodeStyle.BracePlacementPreferences
+Microsoft.CodeAnalysis.CSharp.Simplification.ICSharpSimplifierOptions.PreferParameterNullChecking.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.ICSharpSimplifierOptions.PreferSimpleDefaultExpression.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.ICSharpSimplifierOptions.PreferThrowExpression.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.ICSharpSimplifierOptions.UseVarElsewhere.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.ICSharpSimplifierOptions.UseVarForBuiltInTypes.get -> bool
+Microsoft.CodeAnalysis.CSharp.Simplification.ICSharpSimplifierOptions.UseVarWhenTypeIsApparent.get -> bool
+static readonly Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions.Default -> Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplifierOptions

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicSimplifyTypeNamesDiagnosticAnalyzer
-        Inherits SimplifyTypeNamesDiagnosticAnalyzerBase(Of SyntaxKind, VisualBasicSimplifierOptions)
+        Inherits SimplifyTypeNamesDiagnosticAnalyzerBase(Of SyntaxKind, VisualBasicSimplifierStyleOptions)
 
         Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
             SyntaxKind.QualifiedName,
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Function
 
         Friend Overrides Function CanSimplifyTypeNameExpression(
-                model As SemanticModel, node As SyntaxNode, options As VisualBasicSimplifierOptions,
+                model As SemanticModel, node As SyntaxNode, options As VisualBasicSimplifierStyleOptions,
                 ByRef issueSpan As TextSpan, ByRef diagnosticId As String, ByRef inDeclaration As Boolean,
                 cancellationToken As CancellationToken) As Boolean
             issueSpan = Nothing

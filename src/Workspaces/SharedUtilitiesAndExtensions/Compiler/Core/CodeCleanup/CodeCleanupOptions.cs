@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup;
 internal sealed record class CodeCleanupOptions
 {
     [DataMember] public required SyntaxFormattingOptions FormattingOptions { get; init; }
-    [DataMember] public required SimplifierOptions SimplifierOptions { get; init; }
+    [DataMember] public required SimplifierStyleOptions SimplifierOptions { get; init; }
     [DataMember] public AddImportPlacementOptions AddImportOptions { get; init; } = AddImportPlacementOptions.Default;
     [DataMember] public DocumentFormattingOptions DocumentFormattingOptions { get; init; } = DocumentFormattingOptions.Default;
 
@@ -33,7 +33,7 @@ internal sealed record class CodeCleanupOptions
         => new()
         {
             FormattingOptions = SyntaxFormattingOptions.GetDefault(languageServices),
-            SimplifierOptions = SimplifierOptions.GetDefault(languageServices)
+            SimplifierOptions = SimplifierStyleOptions.GetDefault(languageServices)
         };
 
     public OrganizeImportsOptions GetOrganizeImportsOptions()
@@ -74,7 +74,7 @@ internal abstract class AbstractCodeCleanupOptionsProvider : CodeCleanupOptionsP
     async ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).FormattingOptions;
 
-    async ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+    async ValueTask<SimplifierStyleOptions> OptionsProvider<SimplifierStyleOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).SimplifierOptions;
 
     async ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)

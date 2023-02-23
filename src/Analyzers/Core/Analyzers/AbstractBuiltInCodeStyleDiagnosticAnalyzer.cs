@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
-        public virtual bool OpenFileOnly(SimplifierOptions? options)
+        public virtual bool OpenFileOnly(SimplifierStyleOptions? options)
             => false;
     }
 }

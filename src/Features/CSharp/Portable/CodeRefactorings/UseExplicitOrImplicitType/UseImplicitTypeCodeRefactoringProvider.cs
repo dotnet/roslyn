@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType
         protected override TypeSyntax FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
             => CSharpUseImplicitTypeHelper.Instance.FindAnalyzableType(node, semanticModel, cancellationToken);
 
-        protected override TypeStyleResult AnalyzeTypeName(TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, CancellationToken cancellationToken)
+        protected override TypeStyleResult AnalyzeTypeName(TypeSyntax typeName, SemanticModel semanticModel, ICSharpSimplifierOptions options, CancellationToken cancellationToken)
             => CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(typeName, semanticModel, options, cancellationToken);
 
         protected override Task HandleDeclarationAsync(Document document, SyntaxEditor editor, TypeSyntax type, CancellationToken cancellationToken)

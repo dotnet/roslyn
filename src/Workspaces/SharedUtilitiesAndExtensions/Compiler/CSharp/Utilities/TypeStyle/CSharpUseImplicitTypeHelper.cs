@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public override TypeStyleResult AnalyzeTypeName(
             TypeSyntax typeName, SemanticModel semanticModel,
-            CSharpSimplifierOptions options, CancellationToken cancellationToken)
+            ICSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             if (typeName.StripRefIfNeeded().IsVar)
             {
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         internal override bool TryAnalyzeVariableDeclaration(
             TypeSyntax typeName, SemanticModel semanticModel,
-            CSharpSimplifierOptions options, CancellationToken cancellationToken)
+            ICSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             Debug.Assert(!typeName.StripRefIfNeeded().IsVar, "'var' special case should have prevented analysis of this variable.");
 
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             TypeSyntax typeName,
             ExpressionSyntax initializer,
             SemanticModel semanticModel,
-            CSharpSimplifierOptions options,
+            ICSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             var expression = GetInitializerExpression(initializer);

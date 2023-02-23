@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             CancellationToken cancellationToken)
         {
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-            var simplifierOptions = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = (CSharpSimplifierStyleOptions)await document.GetSimplifierOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var tupleUnderlyingType = tupleType.TupleUnderlyingType ?? tupleType;

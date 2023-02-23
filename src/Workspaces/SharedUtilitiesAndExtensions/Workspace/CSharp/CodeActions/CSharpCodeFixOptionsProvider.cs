@@ -52,13 +52,13 @@ internal readonly struct CSharpCodeFixOptionsProvider
 
     public string NewLine => GetOption(FormattingOptions2.NewLine, FallbackLineFormattingOptions.NewLine);
 
-    // SimplifierOptions
+    // SimplifierStyleOptions
 
     public CodeStyleOption2<bool> VarForBuiltInTypes => GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes, FallbackSimplifierOptions.VarForBuiltInTypes);
     public CodeStyleOption2<bool> VarElsewhere => GetOption(CSharpCodeStyleOptions.VarElsewhere, FallbackSimplifierOptions.VarElsewhere);
 
-    public SimplifierOptions GetSimplifierOptions()
-        => new CSharpSimplifierOptions(_options, FallbackSimplifierOptions);
+    public SimplifierStyleOptions GetSimplifierOptions()
+        => new CSharpSimplifierStyleOptions(_options, FallbackSimplifierOptions);
 
     // FormattingOptions
 
@@ -90,11 +90,11 @@ internal readonly struct CSharpCodeFixOptionsProvider
         => (CSharpIdeCodeStyleOptions)_fallbackOptions.GetOptions(_languageServices.LanguageServices).CodeStyleOptions;
 #endif
 
-    private CSharpSimplifierOptions FallbackSimplifierOptions
+    private CSharpSimplifierStyleOptions FallbackSimplifierOptions
 #if CODE_STYLE
-        => CSharpSimplifierOptions.Default;
+        => CSharpSimplifierStyleOptions.Default;
 #else
-        => (CSharpSimplifierOptions)_fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.SimplifierOptions;
+        => (CSharpSimplifierStyleOptions)_fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.SimplifierOptions;
 #endif
 
     private CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions

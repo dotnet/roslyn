@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// This indicates whether this built-in analyzer will only run on opened files.
         /// </summary>
-        bool OpenFileOnly(SimplifierOptions? options);
+        bool OpenFileOnly(SimplifierStyleOptions? options);
 
         /// <summary>
         /// What priority this provider should run at.  This value is not allowed to be <see cref="CodeActionRequestPriority.None"/>.

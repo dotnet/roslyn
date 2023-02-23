@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         private readonly CSharpSimplifyTypeNamesDiagnosticAnalyzer _analyzer;
         private readonly SemanticModel _semanticModel;
-        private readonly CSharpSimplifierOptions _options;
+        private readonly CSharpSimplifierStyleOptions _options;
         private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? _ignoredSpans;
         private readonly CancellationToken _cancellationToken;
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
         }
 
-        public TypeSyntaxSimplifierWalker(CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel, CSharpSimplifierOptions options, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? ignoredSpans, CancellationToken cancellationToken)
+        public TypeSyntaxSimplifierWalker(CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel, CSharpSimplifierStyleOptions options, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? ignoredSpans, CancellationToken cancellationToken)
             : base(SyntaxWalkerDepth.StructuredTrivia)
         {
             _analyzer = analyzer;

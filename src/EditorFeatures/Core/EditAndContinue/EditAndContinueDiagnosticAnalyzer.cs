@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
-        public bool OpenFileOnly(SimplifierOptions? options)
+        public bool OpenFileOnly(SimplifierStyleOptions? options)
             => false;
 
         // No syntax diagnostics produced by the EnC engine.  

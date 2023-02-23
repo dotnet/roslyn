@@ -71,7 +71,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     CleanupOptions = new()
                     {
                         FormattingOptions = CSharpSyntaxFormattingOptions.Default,
-                        SimplifierOptions = new CSharpSimplifierOptions()
+                        SimplifierOptions = new CSharpSimplifierStyleOptions()
                         {
                             VarWhenTypeIsApparent = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)
                         }

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
-        public bool OpenFileOnly(SimplifierOptions? options)
+        public bool OpenFileOnly(SimplifierStyleOptions? options)
             => false;
 
         protected static DiagnosticDescriptor CreateDescriptor(

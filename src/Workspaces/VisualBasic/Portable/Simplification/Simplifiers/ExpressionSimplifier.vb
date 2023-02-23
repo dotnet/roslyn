@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
         Public Overrides Function TrySimplify(expression As ExpressionSyntax,
                                               semanticModel As SemanticModel,
-                                              options As VisualBasicSimplifierOptions,
+                                              options As IVisualBasicSimplifierOptions,
                                               ByRef replacementNode As ExpressionSyntax,
                                               ByRef issueSpan As TextSpan,
                                               cancellationToken As CancellationToken) As Boolean
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Dim memberAccessExpression = TryCast(expression, MemberAccessExpressionSyntax)
             If memberAccessExpression?.Expression?.Kind() = SyntaxKind.MeExpression Then
                 If Not MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
-                    memberAccessExpression, semanticModel, options, thisExpression:=Nothing, severity:=Nothing, cancellationToken) Then
+                    memberAccessExpression, semanticModel, options, thisExpression:=Nothing, symbolKind:=Nothing, cancellationToken) Then
                     Return False
                 End If
 
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             semanticModel As SemanticModel,
             <Out> ByRef replacementNode As ExpressionSyntax,
             <Out> ByRef issueSpan As TextSpan,
-            options As VisualBasicSimplifierOptions,
+            options As IVisualBasicSimplifierOptions,
             cancellationToken As CancellationToken
         ) As Boolean
             replacementNode = Nothing
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             semanticModel As SemanticModel,
             <Out> ByRef replacementNode As ExpressionSyntax,
             <Out> ByRef issueSpan As TextSpan,
-            options As VisualBasicSimplifierOptions,
+            options As IVisualBasicSimplifierOptions,
             cancellationToken As CancellationToken
         ) As Boolean
             If memberAccess.Expression Is Nothing OrElse memberAccess.Name Is Nothing Then

@@ -84,8 +84,8 @@ public class SimplifierTests
 
         // Validate that options are read from specified OptionSet:
 
-        ValidateCSharpOptions((CSharpSimplifierOptions)await Simplifier.GetOptionsAsync(csDocument, updatedOptions, CancellationToken.None));
-        ValidateVisualBasicOptions((VisualBasicSimplifierOptions)await Simplifier.GetOptionsAsync(vbDocument, updatedOptions, CancellationToken.None));
+        ValidateCSharpOptions((CSharpSimplifierStyleOptions)await Simplifier.GetOptionsAsync(csDocument, updatedOptions, CancellationToken.None));
+        ValidateVisualBasicOptions((VisualBasicSimplifierStyleOptions)await Simplifier.GetOptionsAsync(vbDocument, updatedOptions, CancellationToken.None));
 
         // Validate that options are read from solution snapshot as a fallback (we have no editorconfig file, so all options should fall back):
 
@@ -93,8 +93,8 @@ public class SimplifierTests
         var csDocumentWithUpdatedOptions = solutionWithUpdatedOptions.GetRequiredDocument(csDocument.Id);
         var vbDocumentWithUpdatedOptions = solutionWithUpdatedOptions.GetRequiredDocument(vbDocument.Id);
 
-        ValidateCSharpOptions((CSharpSimplifierOptions)await Simplifier.GetOptionsAsync(csDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None));
-        ValidateVisualBasicOptions((VisualBasicSimplifierOptions)await Simplifier.GetOptionsAsync(vbDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None));
+        ValidateCSharpOptions((CSharpSimplifierStyleOptions)await Simplifier.GetOptionsAsync(csDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None));
+        ValidateVisualBasicOptions((VisualBasicSimplifierStyleOptions)await Simplifier.GetOptionsAsync(vbDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None));
 
         static OptionSet GetOptionSetWithChangedPublicOptions(OptionSet options)
         {
@@ -126,7 +126,7 @@ public class SimplifierTests
             return updatedOptions;
         }
 
-        static void ValidateCommonOptions(SimplifierOptions simplifierOptions)
+        static void ValidateCommonOptions(SimplifierStyleOptions simplifierOptions)
         {
             Assert.False(simplifierOptions.QualifyFieldAccess.Value);
             Assert.False(simplifierOptions.QualifyPropertyAccess.Value);
@@ -136,12 +136,12 @@ public class SimplifierTests
             Assert.False(simplifierOptions.PreferPredefinedTypeKeywordInDeclaration.Value);
         }
 
-        static void ValidateCSharpOptions(CSharpSimplifierOptions simplifierOptions)
+        static void ValidateCSharpOptions(CSharpSimplifierStyleOptions simplifierOptions)
         {
             ValidateCommonOptions(simplifierOptions);
         }
 
-        static void ValidateVisualBasicOptions(VisualBasicSimplifierOptions simplifierOptions)
+        static void ValidateVisualBasicOptions(VisualBasicSimplifierStyleOptions simplifierOptions)
         {
             ValidateCommonOptions(simplifierOptions);
         }

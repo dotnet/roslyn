@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Simplification
         protected abstract SemanticModel GetSpeculativeSemanticModel(ref SyntaxNode nodeToSpeculate, SemanticModel originalSemanticModel, SyntaxNode originalNode);
         protected abstract bool NodeRequiresNonSpeculativeSemanticModel(SyntaxNode node);
 
-        public abstract SimplifierOptions DefaultOptions { get; }
-        public abstract SimplifierOptions GetSimplifierOptions(IOptionsReader options, SimplifierOptions? fallbackOptions);
+        public abstract SimplifierStyleOptions DefaultOptions { get; }
+        public abstract SimplifierStyleOptions GetSimplifierOptions(IOptionsReader options, SimplifierStyleOptions? fallbackOptions);
 
         protected virtual SyntaxNode TransformReducedNode(SyntaxNode reducedNode, SyntaxNode originalNode)
             => reducedNode;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         public async Task<Document> ReduceAsync(
             Document document,
             ImmutableArray<TextSpan> spans,
-            SimplifierOptions options,
+            ISimplifierOptions? options,
             ImmutableArray<AbstractReducer> reducers = default,
             CancellationToken cancellationToken = default)
         {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 var originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
-                var reduced = await this.ReduceCoreAsync(document, spanList, options, reducers, cancellationToken).ConfigureAwait(false);
+                var reduced = await this.ReduceCoreAsync(document, spanList, options ?? DefaultOptions, reducers, cancellationToken).ConfigureAwait(false);
 
                 if (reduced != document)
                 {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         private async Task<Document> ReduceCoreAsync(
             Document document,
             ImmutableArray<TextSpan> spans,
-            SimplifierOptions options,
+            ISimplifierOptions options,
             ImmutableArray<AbstractReducer> reducers,
             CancellationToken cancellationToken)
         {
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             SyntaxNode root,
             ImmutableArray<NodeOrTokenToReduce> nodesAndTokensToReduce,
             ImmutableArray<AbstractReducer> reducers,
-            SimplifierOptions options,
+            ISimplifierOptions options,
             SemanticModel semanticModel,
             ConcurrentDictionary<SyntaxNode, SyntaxNode> reducedNodesMap,
             ConcurrentDictionary<SyntaxToken, SyntaxToken> reducedTokensMap,

@@ -32,8 +32,8 @@ Namespace Microsoft.CodeAnalysis.Diagnostics
             MyClass.New(options, fallbackOptions.GetIdeOptions())
         End Sub
 
-        Public Function GetSimplifierOptions() As VisualBasicSimplifierOptions
-            Return New VisualBasicSimplifierOptions(_options, FallbackSimplifierOptions)
+        Public Function GetSimplifierOptions() As VisualBasicSimplifierStyleOptions
+            Return New VisualBasicSimplifierStyleOptions(_options, FallbackSimplifierOptions)
         End Function
 
         Public ReadOnly Property PreferredModifierOrder As CodeStyleOption2(Of String)
@@ -70,9 +70,9 @@ Namespace Microsoft.CodeAnalysis.Diagnostics
             Return _options.GetOption([option], defaultValue)
         End Function
 
-        Private ReadOnly Property FallbackSimplifierOptions As VisualBasicSimplifierOptions
+        Private ReadOnly Property FallbackSimplifierOptions As VisualBasicSimplifierStyleOptions
             Get
-                Return If(DirectCast(_fallbackOptions.CleanupOptions?.SimplifierOptions, VisualBasicSimplifierOptions), VisualBasicSimplifierOptions.Default)
+                Return If(DirectCast(_fallbackOptions.CleanupOptions?.SimplifierOptions, VisualBasicSimplifierStyleOptions), VisualBasicSimplifierStyleOptions.Default)
             End Get
         End Property
 

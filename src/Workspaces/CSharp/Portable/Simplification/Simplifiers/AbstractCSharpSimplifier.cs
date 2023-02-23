@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
     /// Contains helpers used by several simplifier subclasses.
     /// </summary>
     internal abstract class AbstractCSharpSimplifier<TSyntax, TSimplifiedSyntax>
-        : AbstractSimplifier<TSyntax, TSimplifiedSyntax, CSharpSimplifierOptions>
+        : AbstractSimplifier<TSyntax, TSimplifiedSyntax, ICSharpSimplifierOptions>
         where TSyntax : SyntaxNode
         where TSimplifiedSyntax : SyntaxNode
     {
@@ -396,9 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return nameOfInvocationExpr != null;
         }
 
-        protected static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax expression, CSharpSimplifierOptions options, SemanticModel semanticModel)
+        protected static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax expression, ICSharpSimplifierOptions options, SemanticModel semanticModel)
         {
-            if (!options.PreferPredefinedTypeKeywordInMemberAccess.Value)
+            if (!options.PreferPredefinedTypeKeywordInMemberAccess)
                 return false;
 
             return (expression.IsDirectChildOfMemberAccessExpression() || expression.InsideCrefReference()) &&

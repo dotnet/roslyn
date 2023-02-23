@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
-        where TSimplifierOptions : SimplifierOptions
+        where TSimplifierOptions : SimplifierStyleOptions
     {
         protected abstract bool CanOffer(SyntaxNode body);
         protected abstract bool PrefersThrowExpression(TSimplifierOptions options);

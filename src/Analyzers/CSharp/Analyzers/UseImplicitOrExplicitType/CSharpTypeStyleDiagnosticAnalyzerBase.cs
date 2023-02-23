@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(SimplifierOptions? options)
+        public override bool OpenFileOnly(SimplifierStyleOptions? options)
         {
             // analyzer is only active in C# projects
             Contract.ThrowIfNull(options);
 
-            var csOptions = (CSharpSimplifierOptions)options;
+            var csOptions = (CSharpSimplifierStyleOptions)options;
             return !(csOptions.VarForBuiltInTypes.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
                      csOptions.VarWhenTypeIsApparent.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
                      csOptions.VarElsewhere.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
             var descriptor = Descriptor;
-            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity));
+            var severity = typeStyle.GetDiagnosticSeverityPreference(simplifierOptions);
+            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, severity));
         }
 
         private static Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity)

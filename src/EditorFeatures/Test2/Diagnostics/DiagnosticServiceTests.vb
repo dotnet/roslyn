@@ -2503,7 +2503,7 @@ class MyClass
                 Return _category
             End Function
 
-            Public Function OpenFileOnly(options As SimplifierOptions) As Boolean Implements IBuiltInAnalyzer.OpenFileOnly
+            Public Function OpenFileOnly(options As SimplifierStyleOptions) As Boolean Implements IBuiltInAnalyzer.OpenFileOnly
                 Return False
             End Function
 

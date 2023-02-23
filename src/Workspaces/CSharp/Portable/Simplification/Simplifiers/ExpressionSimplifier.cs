@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         public override bool TrySimplify(
             ExpressionSyntax expression,
             SemanticModel semanticModel,
-            CSharpSimplifierOptions options,
+            ICSharpSimplifierOptions options,
             out ExpressionSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
-            CSharpSimplifierOptions options,
+            ICSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             replacementNode = null;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
-            CSharpSimplifierOptions options,
+            ICSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             replacementNode = null;
