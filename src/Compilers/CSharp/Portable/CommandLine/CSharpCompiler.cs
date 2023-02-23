@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Enforce licensing.
-            var licenseManager = serviceProvider.GetService<ILicenseConsumptionManager>();
+            var licenseManager = serviceProvider.GetService<ILicenseConsumptionService>();
             if (licenseManager != null)
             {
                 if (!licenseManager.CanConsume(LicenseRequirement.Free))
