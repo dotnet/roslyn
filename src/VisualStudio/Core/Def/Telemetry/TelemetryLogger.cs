@@ -95,11 +95,6 @@ namespace Microsoft.CodeAnalysis.Telemetry
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
-            if (IgnoreMessage(logMessage))
-            {
-                return;
-            }
-
             var telemetryEvent = new TelemetryEvent(GetEventName(functionId));
             SetProperties(telemetryEvent, functionId, logMessage);
 
@@ -114,11 +109,6 @@ namespace Microsoft.CodeAnalysis.Telemetry
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
         {
-            if (IgnoreMessage(logMessage))
-            {
-                return;
-            }
-
             var eventName = GetEventName(functionId);
             var kind = GetKind(logMessage);
 
@@ -133,11 +123,6 @@ namespace Microsoft.CodeAnalysis.Telemetry
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int blockId, int delta, CancellationToken cancellationToken)
         {
-            if (IgnoreMessage(logMessage))
-            {
-                return;
-            }
-
             Contract.ThrowIfFalse(_pendingScopes.TryRemove(blockId, out var scope));
 
             var endEvent = GetEndEvent(scope);
@@ -153,9 +138,6 @@ namespace Microsoft.CodeAnalysis.Telemetry
             {
             }
         }
-
-        private static bool IgnoreMessage(LogMessage logMessage)
-            => logMessage.LogLevel < LogLevel.Information;
 
         private static LogType GetKind(LogMessage logMessage)
             => logMessage is KeyValueLogMessage kvLogMessage
@@ -187,6 +169,15 @@ namespace Microsoft.CodeAnalysis.Telemetry
                 var propertyName = GetPropertyName(functionId, "Delta");
                 telemetryEvent.Properties.Add(propertyName, delta.Value);
             }
+
+            // Setting Severity just makes it easier for us to filter data later,
+            // and does not impact if the event gets sent.
+            telemetryEvent.Severity = logMessage.LogLevel switch
+            {
+                LogLevel.None or < LogLevel.Information => TelemetrySeverity.Low,
+                < LogLevel.Error => TelemetrySeverity.Normal,
+                _ => TelemetrySeverity.High
+            };
         }
 
         private static void AppendProperties(TelemetryEvent telemetryEvent, FunctionId functionId, KeyValueLogMessage logMessage)
