@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             }
 
             var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
-            var options = subjectBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
+            var formattingOptions = subjectBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
+            var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
 
             // We now go through the verified string literals and split each of them.
             // The list of spans is traversed in reverse order so we do not have to
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 using var transaction = CaretPreservingEditTransaction.TryCreate(
                     CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-                var splitter = StringSplitter.TryCreate(parsedDocument, span.Start.Position, options, CancellationToken.None);
+                var splitter = StringSplitter.TryCreate(parsedDocument, span.Start.Position, formattingOptions, indentationOptions, CancellationToken.None);
                 if (splitter?.TrySplit(out var newRoot, out var newPosition) != true)
                 {
                     return false;
