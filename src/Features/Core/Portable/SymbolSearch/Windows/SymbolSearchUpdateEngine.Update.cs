@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         private const int AddReferenceDatabaseTextFileFormatVersion = 1;
 
-        private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
-            new();
+        private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel = new();
 
         // Interfaces that abstract out the external functionality we need.  Used so we can easily
         // mock behavior during tests.
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// Currently used only in tests so we can shutdown gracefully.  In normal VS+OOP scenarios
         /// we don't care about this and we just get torn down when the OOP process goes down.
         /// </param>
-        public ValueTask UpdateContinuouslyAsync(string source, string localSettingsDirectory, ISymbolSearchLogService logService, CancellationToken cancellationToken)
+        public ValueTask UpdateContinuouslyAsync(string source, string localSettingsDirectory, CancellationToken cancellationToken)
         {
             // Only the first thread to try to update this source should succeed
             // and cause us to actually begin the update loop. 
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             // We were the first ones to try to update this source.  Spawn off a task to do
             // the updating.
-            return new Updater(this, logService, source, localSettingsDirectory).UpdateInBackgroundAsync(cancellationToken);
+            return new Updater(this, source, localSettingsDirectory).UpdateInBackgroundAsync(cancellationToken);
         }
 
         private sealed class Updater
@@ -83,13 +82,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             private readonly SymbolSearchUpdateEngine _service;
             private readonly string _source;
             private readonly DirectoryInfo _cacheDirectoryInfo;
-            private readonly ISymbolSearchLogService _logService;
+            private readonly ISymbolSearchLogService _logService = SymbolSearchLogService.Instance;
 
-            public Updater(SymbolSearchUpdateEngine service, ISymbolSearchLogService logService, string source, string localSettingsDirectory)
+            public Updater(SymbolSearchUpdateEngine service, string source, string localSettingsDirectory)
             {
                 _service = service;
                 _source = source;
-                _logService = logService;
 
                 _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
                     localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{AddReferenceDatabaseTextFileFormatVersion}"))));
