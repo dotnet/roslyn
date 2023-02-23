@@ -929,7 +929,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeModifiers) &&
                 (containingType == null ||
-                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) && !IsLocalFunction(symbol))))
+                 ((containingType.TypeKind != TypeKind.Interface || !symbol.IsAbstract || symbol.IsStatic) &&
+                  !IsEnumMember(symbol) && !IsLocalFunction(symbol))))
             {
                 var isConst = symbol is IFieldSymbol { IsConst: true };
                 var isRequired = symbol is IFieldSymbol { IsRequired: true } or IPropertySymbol { IsRequired: true };

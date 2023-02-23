@@ -8535,5 +8535,97 @@ class Program
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.LocalName);
         }
+
+        [Fact]
+        public void TestInterfaceAccessibility_ClassicMembers()
+        {
+            var source =
+@"interface I
+{
+    void A();
+    protected abstract void B();
+}";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+            var format = SymbolDisplayFormat.TestFormat
+                .AddMemberOptions(SymbolDisplayMemberOptions.IncludeAccessibility | SymbolDisplayMemberOptions.IncludeModifiers);
+
+            Verify(comp.GetMember("I.A").ToDisplayParts(format), "void I.A()");
+            Verify(comp.GetMember("I.B").ToDisplayParts(format), "protected void I.B()");
+        }
+
+        [Fact]
+        public void TestInterfaceAccessibility_DefaultInterfaceMembers()
+        {
+            var source =
+@"interface I
+{
+    public static void A() { }
+    protected virtual void B() { }
+    private const int C = 1;
+    private string D => """";
+}";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+            var format = SymbolDisplayFormat.TestFormat
+                .AddMemberOptions(SymbolDisplayMemberOptions.IncludeAccessibility | SymbolDisplayMemberOptions.IncludeModifiers);
+
+            Verify(comp.GetMember("I.A").ToDisplayParts(format),
+                "static void I.A()");
+
+            Verify(comp.GetMember("I.B").ToDisplayParts(format),
+                "protected virtual void I.B()");
+
+            Verify(comp.GetMember("I.C").ToDisplayParts(format),
+                "private const System.Int32 I.C");
+
+            Verify(comp.GetMember("I.D").ToDisplayParts(format),
+                "private System.String I.D { get; }");
+        }
+
+        [Fact]
+        public void TestInterfaceAccessibility_StaticAbstractMembers()
+        {
+            var source =
+@"interface I
+{
+    static abstract void A();
+    protected static abstract void B();
+}";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+            var format = SymbolDisplayFormat.TestFormat
+                .AddMemberOptions(SymbolDisplayMemberOptions.IncludeAccessibility | SymbolDisplayMemberOptions.IncludeModifiers);
+
+            Verify(comp.GetMember("I.A").ToDisplayParts(format),
+                "static abstract void I.A()",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation);
+
+            Verify(comp.GetMember("I.B").ToDisplayParts(format),
+                "protected static abstract void I.B()",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation);
+        }
     }
 }
