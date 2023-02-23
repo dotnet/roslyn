@@ -6740,10 +6740,10 @@ class C
 """;
                 var v = CompileAndVerify(src);
 
-                string actualIL = v.VisualizeIL("C.Actual", false, null, src);
-                string expectedIL = v.VisualizeIL("C.Expected", false, null, src);
+                string actualIL = v.VisualizeIL("C.Actual");
+                string expectedIL = v.VisualizeIL("C.Expected");
 
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, message: null);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL);
             }
         }
 
