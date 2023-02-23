@@ -57,6 +57,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\CSharpMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeRefStruct\MakeRefStructCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStatementAsynchronous\CSharpMakeStatementAsynchronousCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeStructMemberReadOnly\CSharpMakeStructMemberReadOnlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructReadOnly\CSharpMakeStructReadOnlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\CSharpMakeTypeAbstractCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypePartial\CSharpMakeTypePartialCodeFixProvider.cs" />
