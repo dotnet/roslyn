@@ -1162,7 +1162,7 @@ public class {|target1:Class1|} : I1<Class1>
 
             var itemForM1InI1 = new TestInheritanceMemberItem(
                 lineNumber: 4,
-                memberName: "void I1<T>.M1()",
+                memberName: "static abstract void I1<T>.M1()",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "Class1.M1",
                         locationTag: "target2",
@@ -1186,7 +1186,7 @@ public class {|target1:Class1|} : I1<Class1>
 
             var itemForP1InI1 = new TestInheritanceMemberItem(
                 lineNumber: 5,
-                memberName: "int I1<T>.P1 { get; set; }",
+                memberName: "static abstract int I1<T>.P1 { get; set; }",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "Class1.P1",
                         locationTag: "target6",
@@ -1202,7 +1202,7 @@ public class {|target1:Class1|} : I1<Class1>
 
             var itemForE1InI1 = new TestInheritanceMemberItem(
                 lineNumber: 6,
-                memberName: "event EventHandler I1<T>.e1",
+                memberName: "static abstract event EventHandler I1<T>.e1",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "Class1.e1",
                         locationTag: "target8",
@@ -1218,7 +1218,7 @@ public class {|target1:Class1|} : I1<Class1>
 
             var itemForPlusOperatorInI1 = new TestInheritanceMemberItem(
                 lineNumber: 7,
-                memberName: "int I1<T>.operator +(T)",
+                memberName: "static abstract int I1<T>.operator +(T)",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "Class1.operator +",
                         locationTag: "target10",
@@ -1234,7 +1234,7 @@ public class {|target1:Class1|} : I1<Class1>
 
             var itemForIntOperatorInI1 = new TestInheritanceMemberItem(
                 lineNumber: 8,
-                memberName: "I1<T>.implicit operator int(T)",
+                memberName: "static abstract I1<T>.implicit operator int(T)",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "Class1.implicit operator int",
                         locationTag: "target13",

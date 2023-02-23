@@ -314,7 +314,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeAccessibility) &&
                 (containingType == null ||
-                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) & !IsLocalFunction(symbol))))
+                 ((containingType.TypeKind != TypeKind.Interface || symbol.DeclaredAccessibility != Accessibility.Public) &&
+                  !IsEnumMember(symbol) && !IsLocalFunction(symbol))))
             {
                 AddAccessibility(symbol);
             }
