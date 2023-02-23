@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,10 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 {
                     if (option is IPerLanguageValuedOption perLanguageValuedOption)
                     {
-                        foreach (var language in s_supportedLanguages)
-                        {
-                            _globalOptionService.SetGlobalOption(new OptionKey2(perLanguageValuedOption, language), result);
-                        }
+                        _globalOptionService.SetGlobalOption(new OptionKey2(perLanguageValuedOption, LanguageNames.CSharp), result);
                     }
                     else
                     {

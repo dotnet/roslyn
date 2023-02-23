@@ -16,7 +16,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             SymbolSearchOptionsStorage.SearchReferenceAssemblies,
             ImplementTypeOptionsStorage.InsertionBehavior,
             ImplementTypeOptionsStorage.PropertyGenerationBehavior);
-
-        private static readonly ImmutableArray<string> s_supportedLanguages = ImmutableArray.Create(LanguageNames.CSharp);
     }
 }
