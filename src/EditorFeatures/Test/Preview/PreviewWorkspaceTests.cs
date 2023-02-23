@@ -125,7 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             using var previewWorkspace = new PreviewWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
             var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            Assert.IsType<PreviewSolutionCrawlerRegistrationServiceFactory.Service>(service);
+            var registrationService = Assert.IsType<SolutionCrawlerRegistrationService>(service);
+            Assert.False(registrationService.Register(previewWorkspace));
 
             var persistentService = previewWorkspace.Services.SolutionServices.GetPersistentStorageService();
 
