@@ -246,6 +246,19 @@ object PublicDeployment : BuildType({
 
     dependencies {
 
+        dependency(AbsoluteId("Metalama_MetalamaBackstage_PublicBuild")) {
+            snapshot {
+                     onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = "+:artifacts/publish/private/**/*=>dependencies/Metalama.Backstage"
+            }
+
+        }
+
         dependency(AbsoluteId("Metalama_MetalamaBackstage_PublicDeployment")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
