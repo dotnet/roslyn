@@ -23,7 +23,7 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
     {
         private static readonly ImmutableArray<(string key, int flag)> s_storages = ImmutableArray.Create(
             ("TextEditor.CSharp.Specific.SpaceWithinExpressionParentheses", (int)SpacePlacementWithinParentheses.Expressions),
-            ("TextEditor.CSharp.Specific.SpaceWithinCastParentheses", (int)SpacePlacementWithinParentheses.Expressions),
+            ("TextEditor.CSharp.Specific.SpaceWithinCastParentheses", (int)SpacePlacementWithinParentheses.TypeCasts),
             ("TextEditor.CSharp.Specific.SpaceWithinOtherParentheses", (int)SpacePlacementWithinParentheses.ControlFlowStatements));
 
         [ImportingConstructor]

@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string MakeStatementAsynchronous = nameof(MakeStatementAsynchronous);
         public const string MakeStructFieldsWritable = nameof(MakeStructFieldsWritable);
         public const string MakeStructReadOnly = nameof(MakeStructReadOnly);
+        public const string MakeStructMemberReadOnly = nameof(MakeStructMemberReadOnly);
         public const string MakeTypeAbstract = nameof(MakeTypeAbstract);
         public const string MoveMisplacedUsingDirectives = nameof(MoveMisplacedUsingDirectives);
         public const string MoveToTopOfFile = nameof(MoveToTopOfFile);
