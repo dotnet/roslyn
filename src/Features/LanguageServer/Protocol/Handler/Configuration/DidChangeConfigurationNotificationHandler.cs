@@ -16,6 +16,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
+    [Method(Methods.WorkspaceDidChangeConfigurationName)]
     internal partial class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>, IOnInitialized
     {
         private readonly ILspLogger _lspLogger;
@@ -31,11 +32,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             _registrationId = Guid.NewGuid();
         }
 
-        public bool MutatesSolutionState => false;
+        public bool MutatesSolutionState => true;
 
-        public bool RequiresLSPSolution => true;
+        public bool RequiresLSPSolution => false;
 
-        [LanguageServerEndpoint(Methods.WorkspaceDidChangeConfigurationName)]
         public Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
             => RefreshOptionsAsync(cancellationToken);
 
