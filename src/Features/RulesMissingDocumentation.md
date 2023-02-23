@@ -14,6 +14,7 @@ IDE0230 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-r
 IDE0240 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0240> | Remove redundant nullable directive |
 IDE0241 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0241> | Remove unnecessary nullable directive |
 IDE0250 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0250> | Make struct 'readonly' |
+IDE0251 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0251> | Make member 'readonly' |
 IDE0260 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0260> | Use pattern matching |
 IDE0270 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0270> | Use coalesce expression |
 IDE0280 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0280> | Use 'nameof' |
