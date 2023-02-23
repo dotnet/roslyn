@@ -8,6 +8,7 @@ steps:
   inputs:
     TargetFolders: |
       $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)/NuGet
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
 - task: MicroBuildCleanup@1
   condition: succeededOrFailed()
@@ -23,7 +24,7 @@ steps:
       /repoName:$(Build.Repository.Name)
       /additionalCodexArguments:-bld
       /additionalCodexArguments:$(Build.ArtifactStagingDirectory)/build_logs
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['Agent.OS'], 'Windows_NT'))
   continueOnError: true
 
 - ${{ if eq(parameters.EnableCompliance, 'true') }}:
