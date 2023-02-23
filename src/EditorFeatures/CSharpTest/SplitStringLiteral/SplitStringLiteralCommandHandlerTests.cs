@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             verifyUndo: false);
         }
 
-        [WpfFact]
+        [WpfFact, WorkItem(41322, "https://github.com/dotnet/roslyn/issues/41322")]
         public void TestInEmptyString_LF()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 }");
         }
 
-        [WpfFact]
+        [WpfFact, WorkItem(41322, "https://github.com/dotnet/roslyn/issues/41322")]
         public void TestInEmptyInterpolatedString_LF()
         {
             TestHandled(
