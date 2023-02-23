@@ -32,9 +32,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         /// convert things quickly, even if it's going against their stated style.</para>
         /// </remarks>
         public readonly bool IsStylePreferred;
-        public readonly ReportDiagnostic Severity;
 
-        public TypeStyleResult(CSharpTypeStyleHelper helper, TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, bool isStylePreferred, ReportDiagnostic severity, CancellationToken cancellationToken) : this()
+        public readonly bool IsInIntrinsicTypeContext;
+        public readonly bool IsTypeApparentInContext;
+
+        public TypeStyleResult(
+            CSharpTypeStyleHelper helper,
+            TypeSyntax typeName,
+            SemanticModel semanticModel,
+            CSharpSimplifierOptions options,
+            bool isStylePreferred,
+            bool isInIntrinsicTypeContext,
+            bool isTypeApparentInContext,
+            CancellationToken cancellationToken) : this()
         {
             _helper = helper;
             _typeName = typeName;
@@ -43,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             _cancellationToken = cancellationToken;
 
             IsStylePreferred = isStylePreferred;
-            Severity = severity;
+            IsInIntrinsicTypeContext = isInIntrinsicTypeContext;
+            IsTypeApparentInContext = isTypeApparentInContext;
         }
 
         public bool CanConvert()
@@ -66,10 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var state = new State(
                 declaration, semanticModel, options, cancellationToken);
             var isStylePreferred = this.IsStylePreferred(in state);
-            var severity = state.GetDiagnosticSeverityPreference();
 
             return new TypeStyleResult(
-                this, typeName, semanticModel, options, isStylePreferred, severity, cancellationToken);
+                this, typeName, semanticModel, options, state.IsInIntrinsicTypeContext, state.IsTypeApparentInContext, isStylePreferred, cancellationToken);
         }
 
         internal abstract bool TryAnalyzeVariableDeclaration(
