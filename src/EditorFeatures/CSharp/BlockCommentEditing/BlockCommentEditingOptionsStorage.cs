@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 {
     internal class BlockCommentEditingOptionsStorage
     {
-        public static readonly PerLanguageOption2<bool> AutoInsertBlockCommentStartString = new("csharp_automatically_insert_block_comment_start_string", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> AutoInsertBlockCommentStartString = new("csharp_insert_block_comment_start_string", defaultValue: true);
     }
 }
