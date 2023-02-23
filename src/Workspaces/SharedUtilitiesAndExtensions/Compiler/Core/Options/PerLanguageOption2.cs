@@ -15,9 +15,6 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal interface IPerLanguageValuedOption : IOption2
     {
-#if !CODE_STYLE
-        public void WriteToGlobalOptionService(IGlobalOptionService globalOptionService, string languageName, string value);
-#endif
     }
 
     /// <inheritdoc cref="IPerLanguageValuedOption"/>
@@ -64,20 +61,6 @@ namespace Microsoft.CodeAnalysis.Options
             Debug.Assert(!Definition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
             Debug.Assert(!Definition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
         }
-
-#if !CODE_STYLE
-        public void WriteToGlobalOptionService(IGlobalOptionService globalOptionService, string languageName, string value)
-        {
-            if (Definition.Serializer.TryParseValue(value, out var result))
-            {
-                globalOptionService.SetGlobalOption(this, languageName, result);
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(value);
-            }
-        }
-#endif
 
         OptionDefinition IOption2.Definition => Definition;
         public T DefaultValue => Definition.DefaultValue;

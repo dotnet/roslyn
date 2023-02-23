@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -41,14 +40,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
         {
-            var globalConfigurationItems = s_supportedGlobalOptions.SelectAsArray(option => new ConfigurationItem() { ScopeUri = null, Section = option.Definition.ConfigName });
+            var globalConfigurationItems = s_supportedSingleValueOptions.SelectAsArray(option => new ConfigurationItem() { ScopeUri = null, Section = option.Definition.ConfigName });
             var perLanguageConfigurationItems = s_supportedPerLanguageOptions.SelectAsArray(option => new ConfigurationItem() { ScopeUri = null, Section = option.Definition.ConfigName });
             var allConfigurationItems = globalConfigurationItems.Concat(perLanguageConfigurationItems);
 
             var configurationsFromClient = await GetConfigurationsAsync(allConfigurationItems, cancellationToken).ConfigureAwait(false);
             for (var i = 0; i < globalConfigurationItems.Length; i++)
             {
-                var globalOptions = s_supportedGlobalOptions[i];
+                var globalOptions = s_supportedSingleValueOptions[i];
                 var configurationValue = configurationsFromClient[i];
                 globalOptions.WriteToGlobalOptionService(_globalOptionService, configurationValue);
             }
