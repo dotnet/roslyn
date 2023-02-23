@@ -92,10 +92,20 @@
         <target state="translated">람다 식을 제거할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_member_readonly">
+        <source>Make member 'readonly'</source>
+        <target state="new">Make member 'readonly'</target>
+        <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_struct_readonly">
         <source>Make struct 'readonly'</source>
         <target state="translated">구조체를 '읽기 전용'으로 만들기</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Member can be made readonly">
+        <source>Member can be made 'readonly'</source>
+        <target state="new">Member can be made 'readonly'</target>
+        <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>

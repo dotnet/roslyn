@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     // methods.
     using MemberImplementationMap = OrderedMultiDictionary<ISymbol, ISymbol>;
 
-    internal abstract class AbstractChangeImplementionCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractChangeImplementationCodeRefactoringProvider : CodeRefactoringProvider
     {
         private static readonly SymbolDisplayFormat NameAndTypeParametersFormat =
             new SymbolDisplayFormat(
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var firstImplName = member.ExplicitOrImplicitInterfaceImplementations().First().Name;
             var codeAction = CodeAction.Create(
                 string.Format(Implement_0, firstImplName),
-                c => ChangeImplementationAsync(project, directlyImplementedMembers, c),
+                cancellationToken => ChangeImplementationAsync(project, directlyImplementedMembers, cancellationToken),
                 nameof(Implement_0) + firstImplName);
 
             var containingType = member.ContainingType;
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // Otherwise, create a top level action to change the implementation, and offer this
             // action, along with either/both of the other two.
 
-            var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
+            using var nestedActions = TemporaryArray<CodeAction>.Empty;
             nestedActions.Add(codeAction);
 
             if (offerForSameInterface)
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 var interfaceNames = interfaceTypes.Select(i => i.ToDisplayString(NameAndTypeParametersFormat));
                 nestedActions.Add(CodeAction.Create(
                     string.Format(Implement_0, string.Join(", ", interfaceNames)),
-                    c => ChangeImplementationAsync(project, implementedMembersFromSameInterfaces, c),
+                    cancellationToken => ChangeImplementationAsync(project, implementedMembersFromSameInterfaces, cancellationToken),
                     nameof(Implement_0) + string.Join(", ", interfaceNames)));
             }
 
@@ -114,12 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             {
                 nestedActions.Add(CodeAction.Create(
                     Implement_all_interfaces,
-                    c => ChangeImplementationAsync(project, implementedMembersFromAllInterfaces, c),
+                    cancellationToken => ChangeImplementationAsync(project, implementedMembersFromAllInterfaces, cancellationToken),
                     nameof(Implement_all_interfaces)));
             }
 
             context.RegisterRefactoring(CodeAction.Create(
-                Implement, nestedActions.ToImmutableAndFree(), isInlinable: true));
+                Implement, nestedActions.ToImmutableAndClear(), isInlinable: true));
         }
 
         private static async Task<(SyntaxNode?, ExplicitInterfaceSpecifierSyntax?, SyntaxToken)> GetContainerAsync(CodeRefactoringContext context)
