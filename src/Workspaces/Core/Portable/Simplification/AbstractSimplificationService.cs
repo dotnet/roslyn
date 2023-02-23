@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         public async Task<Document> ReduceAsync(
             Document document,
             ImmutableArray<TextSpan> spans,
-            ISimplifierOptions options,
+            ISimplifierOptions? options,
             ImmutableArray<AbstractReducer> reducers = default,
             CancellationToken cancellationToken = default)
         {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 var originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
-                var reduced = await this.ReduceCoreAsync(document, spanList, options, reducers, cancellationToken).ConfigureAwait(false);
+                var reduced = await this.ReduceCoreAsync(document, spanList, options ?? DefaultOptions, reducers, cancellationToken).ConfigureAwait(false);
 
                 if (reduced != document)
                 {

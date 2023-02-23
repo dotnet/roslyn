@@ -15,7 +15,12 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
-    public interface ISimplifierOptions
+#if CODE_STYLE
+    internal
+#else
+    public
+#endif
+    interface ISimplifierOptions
     {
         bool QualifyFieldAccess { get; }
         bool QualifyPropertyAccess { get; }
@@ -25,7 +30,12 @@ namespace Microsoft.CodeAnalysis.Simplification
         bool PreferPredefinedTypeKeywordInDeclaration { get; }
     }
 
-    public record class SimplifierOptions : ISimplifierOptions
+#if CODE_STYLE
+    internal
+#else
+    public
+#endif
+    record class SimplifierOptions : ISimplifierOptions
     {
         internal static readonly SimplifierOptions CommonDefaults = new();
 

@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         }
 
         protected override bool IsApplicable(ICSharpSimplifierOptions options)
-            => options.VarForBuiltInTypes ||
-               options.VarWhenTypeIsApparent ||
-               options.VarElsewhere;
+            => options.UseVarForBuiltInTypes ||
+               options.UseVarWhenTypeIsApparent ||
+               options.UseVarElsewhere;
     }
 }

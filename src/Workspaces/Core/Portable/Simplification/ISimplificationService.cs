@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         Task<Document> ReduceAsync(
             Document document,
             ImmutableArray<TextSpan> spans,
-            ISimplifierOptions options,
+            ISimplifierOptions? options,
             ImmutableArray<AbstractReducer> reducers = default,
             CancellationToken cancellationToken = default);
     }

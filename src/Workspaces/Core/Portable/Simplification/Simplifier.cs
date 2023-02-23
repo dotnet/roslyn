@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -149,7 +150,9 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Reduce all sub-trees annotated with <see cref="Annotation" /> found within the document. The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static async Task<Document> ReduceAsync(Document document, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Use overload with ISimplifierOptions parameter")]
+        public static async Task<Document> ReduceAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
         {
             if (document == null)
             {
@@ -162,8 +165,14 @@ namespace Microsoft.CodeAnalysis.Simplification
 #pragma warning restore
         }
 
-        public static async Task<Document> ReduceAsync(Document document, ISimplifierOptions options, CancellationToken cancellationToken)
+        /// <summary>
+        /// Reduce all sub-trees annotated with <see cref="Annotation" /> found within the document. The annotated node and all child nodes will be reduced.
+        /// </summary>
+        public static async Task<Document> ReduceAsync(Document document, ISimplifierOptions? options = null, CancellationToken cancellationToken = default)
         {
+            if (document == null)
+                throw new ArgumentNullException(nameof(document));
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await ReduceAsync(document, root.FullSpan, options, cancellationToken).ConfigureAwait(false);
         }
@@ -172,17 +181,15 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the subtrees identified with the specified <paramref name="annotation"/>.
         /// The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Use overload with ISimplifierOptions parameter")]
+        public static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, OptionSet? optionSet, CancellationToken cancellationToken)
         {
             if (document == null)
-            {
                 throw new ArgumentNullException(nameof(document));
-            }
 
             if (annotation == null)
-            {
                 throw new ArgumentNullException(nameof(annotation));
-            }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 #pragma warning disable RS0030 // Do not used banned APIs
@@ -190,8 +197,18 @@ namespace Microsoft.CodeAnalysis.Simplification
 #pragma warning restore
         }
 
-        public static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, ISimplifierOptions options, CancellationToken cancellationToken)
+        /// <summary>
+        /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the subtrees identified with the specified <paramref name="annotation"/>.
+        /// The annotated node and all child nodes will be reduced.
+        /// </summary>
+        public static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, ISimplifierOptions? options = null, CancellationToken cancellationToken = default)
         {
+            if (document == null)
+                throw new ArgumentNullException(nameof(document));
+
+            if (annotation == null)
+                throw new ArgumentNullException(nameof(annotation));
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await ReduceAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), options, cancellationToken).ConfigureAwait(false);
         }
@@ -200,36 +217,43 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified span.
         /// The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static Task<Document> ReduceAsync(Document document, TextSpan span, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Use overload with ISimplifierOptions parameter")]
+        public static Task<Document> ReduceAsync(Document document, TextSpan span, OptionSet? optionSet, CancellationToken cancellationToken)
         {
             if (document == null)
-            {
                 throw new ArgumentNullException(nameof(document));
-            }
 
 #pragma warning disable RS0030 // Do not used banned APIs
             return ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), optionSet, cancellationToken);
         }
 #pragma warning restore
 
-        public static Task<Document> ReduceAsync(Document document, TextSpan span, ISimplifierOptions options, CancellationToken cancellationToken)
-            => ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
+        /// <summary>
+        /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified span.
+        /// The annotated node and all child nodes will be reduced.
+        /// </summary>
+        public static Task<Document> ReduceAsync(Document document, TextSpan span, ISimplifierOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            if (document == null)
+                throw new ArgumentNullException(nameof(document));
+
+            return ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
+        }
 
         /// <summary>
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified spans.
         /// The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static async Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Use overload with ISimplifierOptions parameter")]
+        public static async Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet? optionSet, CancellationToken cancellationToken)
         {
             if (document == null)
-            {
                 throw new ArgumentNullException(nameof(document));
-            }
 
             if (spans == null)
-            {
                 throw new ArgumentNullException(nameof(spans));
-            }
 
             var options = await GetOptionsAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
 
@@ -237,9 +261,21 @@ namespace Microsoft.CodeAnalysis.Simplification
                 document, spans.ToImmutableArrayOrEmpty(), options, reducers: default, cancellationToken).ConfigureAwait(false);
         }
 
-        public static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, ISimplifierOptions options, CancellationToken cancellationToken)
-            => document.GetRequiredLanguageService<ISimplificationService>().ReduceAsync(
+        /// <summary>
+        /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified spans.
+        /// The annotated node and all child nodes will be reduced.
+        /// </summary>
+        public static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, ISimplifierOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            if (document == null)
+                throw new ArgumentNullException(nameof(document));
+
+            if (spans == null)
+                throw new ArgumentNullException(nameof(spans));
+
+            return document.GetRequiredLanguageService<ISimplificationService>().ReduceAsync(
                 document, spans.ToImmutableArrayOrEmpty(), options, reducers: default, cancellationToken);
+        }
 
         internal static async Task<Document> ReduceAsync(
             Document document, ImmutableArray<AbstractReducer> reducers, ISimplifierOptions options, CancellationToken cancellationToken)

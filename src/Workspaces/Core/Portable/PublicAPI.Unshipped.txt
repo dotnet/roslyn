@@ -32,6 +32,41 @@ Microsoft.CodeAnalysis.LoadTextOptions.ChecksumAlgorithm.get -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.LoadTextOptions.Equals(Microsoft.CodeAnalysis.LoadTextOptions other) -> bool
 Microsoft.CodeAnalysis.LoadTextOptions.LoadTextOptions() -> void
 Microsoft.CodeAnalysis.LoadTextOptions.LoadTextOptions(Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm) -> void
+Microsoft.CodeAnalysis.Simplification.ISimplifierOptions
+Microsoft.CodeAnalysis.Simplification.ISimplifierOptions.PreferPredefinedTypeKeywordInDeclaration.get -> bool
+Microsoft.CodeAnalysis.Simplification.ISimplifierOptions.PreferPredefinedTypeKeywordInMemberAccess.get -> bool
+Microsoft.CodeAnalysis.Simplification.ISimplifierOptions.QualifyEventAccess.get -> bool
+Microsoft.CodeAnalysis.Simplification.ISimplifierOptions.QualifyFieldAccess.get -> bool
+Microsoft.CodeAnalysis.Simplification.ISimplifierOptions.QualifyMethodAccess.get -> bool
+Microsoft.CodeAnalysis.Simplification.ISimplifierOptions.QualifyPropertyAccess.get -> bool
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.PreferPredefinedTypeKeywordInDeclaration.get -> bool
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.PreferPredefinedTypeKeywordInDeclaration.init -> void
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.PreferPredefinedTypeKeywordInMemberAccess.get -> bool
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.PreferPredefinedTypeKeywordInMemberAccess.init -> void
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.QualifyEventAccess.get -> bool
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.QualifyEventAccess.init -> void
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.QualifyFieldAccess.get -> bool
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.QualifyFieldAccess.init -> void
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.QualifyMethodAccess.get -> bool
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.QualifyMethodAccess.init -> void
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.QualifyPropertyAccess.get -> bool
+Microsoft.CodeAnalysis.Simplification.SimplifierOptions.QualifyPropertyAccess.init -> void
+Microsoft.CodeAnalysis.VisualBasic.Simplification.VisualBasicSimplifierOptions
+Microsoft.CodeAnalysis.VisualBasic.Simplification.IVisualBasicSimplifierOptions
+static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Options.OptionSet optionSet, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Simplification.ISimplifierOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.SyntaxAnnotation annotation, Microsoft.CodeAnalysis.Options.OptionSet optionSet, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.SyntaxAnnotation annotation, Microsoft.CodeAnalysis.Simplification.ISimplifierOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Options.OptionSet optionSet, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Simplification.ISimplifierOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan> spans, Microsoft.CodeAnalysis.Options.OptionSet optionSet, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan> spans, Microsoft.CodeAnalysis.Simplification.ISimplifierOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+*REMOVED*static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Options.OptionSet optionSet = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+*REMOVED*static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.SyntaxAnnotation annotation, Microsoft.CodeAnalysis.Options.OptionSet optionSet = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+*REMOVED*static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Options.OptionSet optionSet = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+*REMOVED*static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan> spans, Microsoft.CodeAnalysis.Options.OptionSet optionSet = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+static readonly Microsoft.CodeAnalysis.VisualBasic.Simplification.VisualBasicSimplifierOptions.Default -> Microsoft.CodeAnalysis.VisualBasic.Simplification.VisualBasicSimplifierOptions
 override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.LoadTextOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 override Microsoft.CodeAnalysis.LoadTextOptions.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.LoadTextOptions.GetHashCode() -> int

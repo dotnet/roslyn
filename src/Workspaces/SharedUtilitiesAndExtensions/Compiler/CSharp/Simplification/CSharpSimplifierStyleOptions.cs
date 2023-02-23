@@ -12,11 +12,16 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-public interface ICSharpSimplifierOptions : ISimplifierOptions
+#if CODE_STYLE
+internal
+#else
+public
+#endif
+interface ICSharpSimplifierOptions : ISimplifierOptions
 {
-    bool VarForBuiltInTypes { get; }
-    bool VarWhenTypeIsApparent { get; }
-    bool VarElsewhere { get; }
+    bool UseVarForBuiltInTypes { get; }
+    bool UseVarWhenTypeIsApparent { get; }
+    bool UseVarElsewhere { get; }
     bool PreferSimpleDefaultExpression { get; }
     bool PreferParameterNullChecking { get; }
     bool AllowEmbeddedStatementsOnSameLine { get; }
@@ -25,13 +30,18 @@ public interface ICSharpSimplifierOptions : ISimplifierOptions
 }
 
 [DataContract]
-public record class CSharpSimplifierOptions : SimplifierOptions, ICSharpSimplifierOptions
+#if CODE_STYLE
+internal
+#else
+public
+#endif
+record class CSharpSimplifierOptions : SimplifierOptions, ICSharpSimplifierOptions
 {
     public static readonly CSharpSimplifierOptions Default = new();
 
-    [DataMember] public bool VarForBuiltInTypes { get; init; } = CSharpSimplifierStyleOptions.Default.VarForBuiltInTypes.Value;
-    [DataMember] public bool VarWhenTypeIsApparent { get; init; } = CSharpSimplifierStyleOptions.Default.VarWhenTypeIsApparent.Value;
-    [DataMember] public bool VarElsewhere { get; init; } = CSharpSimplifierStyleOptions.Default.VarElsewhere.Value;
+    [DataMember] public bool UseVarForBuiltInTypes { get; init; } = CSharpSimplifierStyleOptions.Default.VarForBuiltInTypes.Value;
+    [DataMember] public bool UseVarWhenTypeIsApparent { get; init; } = CSharpSimplifierStyleOptions.Default.VarWhenTypeIsApparent.Value;
+    [DataMember] public bool UseVarElsewhere { get; init; } = CSharpSimplifierStyleOptions.Default.VarElsewhere.Value;
     [DataMember] public bool PreferSimpleDefaultExpression { get; init; } = CSharpSimplifierStyleOptions.Default.PreferSimpleDefaultExpression.Value;
     [DataMember] public bool PreferParameterNullChecking { get; init; } = CSharpSimplifierStyleOptions.Default.PreferParameterNullChecking.Value;
     [DataMember] public bool AllowEmbeddedStatementsOnSameLine { get; init; } = CSharpSimplifierStyleOptions.Default.AllowEmbeddedStatementsOnSameLine.Value;
@@ -60,9 +70,9 @@ internal sealed record class CSharpSimplifierStyleOptions : SimplifierStyleOptio
     [DataMember] public CodeStyleOption2<PreferBracesPreference> PreferBraces { get; init; } = s_defaultPreferBraces;
     [DataMember] public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
 
-    bool ICSharpSimplifierOptions.VarForBuiltInTypes => VarForBuiltInTypes.Value;
-    bool ICSharpSimplifierOptions.VarWhenTypeIsApparent => VarWhenTypeIsApparent.Value;
-    bool ICSharpSimplifierOptions.VarElsewhere => VarElsewhere.Value;
+    bool ICSharpSimplifierOptions.UseVarForBuiltInTypes => VarForBuiltInTypes.Value;
+    bool ICSharpSimplifierOptions.UseVarWhenTypeIsApparent => VarWhenTypeIsApparent.Value;
+    bool ICSharpSimplifierOptions.UseVarElsewhere => VarElsewhere.Value;
     bool ICSharpSimplifierOptions.PreferSimpleDefaultExpression => PreferSimpleDefaultExpression.Value;
     bool ICSharpSimplifierOptions.PreferParameterNullChecking => PreferParameterNullChecking.Value;
     bool ICSharpSimplifierOptions.AllowEmbeddedStatementsOnSameLine => AllowEmbeddedStatementsOnSameLine.Value;
@@ -92,13 +102,13 @@ internal static partial class Extensions
     {
         var result = UseVarPreference.None;
 
-        if (options.VarForBuiltInTypes)
+        if (options.UseVarForBuiltInTypes)
             result |= UseVarPreference.ForBuiltInTypes;
 
-        if (options.VarWhenTypeIsApparent)
+        if (options.UseVarWhenTypeIsApparent)
             result |= UseVarPreference.WhenTypeIsApparent;
 
-        if (options.VarElsewhere)
+        if (options.UseVarElsewhere)
             result |= UseVarPreference.Elsewhere;
 
         return result;

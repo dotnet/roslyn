@@ -8,11 +8,21 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.VisualBasic.Simplification;
 
-public interface IVisualBasicSimplifierOptions : ISimplifierOptions
+#if CODE_STYLE
+internal
+#else
+public
+#endif
+interface IVisualBasicSimplifierOptions : ISimplifierOptions
 {
 }
 
-public record class VisualBasicSimplifierOptions : SimplifierOptions, IVisualBasicSimplifierOptions
+#if CODE_STYLE
+internal
+#else
+public
+#endif
+record class VisualBasicSimplifierOptions : SimplifierOptions, IVisualBasicSimplifierOptions
 {
     public static readonly VisualBasicSimplifierOptions Default = new();
 
