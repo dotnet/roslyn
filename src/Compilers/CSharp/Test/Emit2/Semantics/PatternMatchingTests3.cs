@@ -6711,6 +6711,43 @@ class C
         }
 
         [Fact]
+        public void LinearSequence()
+        {
+            foreach (var (pattern, expression) in new[]
+                     {
+                         ("obj is 1 or C(1)",
+                             "obj is int ? (int)obj is 1 : obj is C(1)"),
+                         ("data is null or { X: null, Y: null, Z: null }",
+                             "data is null || data.X is null && data.Y is null && data.Z is null"),
+                     })
+            {
+                var src = $$"""
+class C
+{
+    static string Actual(object obj, C data)
+    {
+        return ({{pattern}}) ? "true" : "false";
+    }
+    static string Expected(object obj, C data)
+    {
+        return ({{expression}}) ? "true" : "false";
+    }
+    void Deconstruct(out int i) => throw null;
+    public object X;
+    public object Y;
+    public object Z;
+}
+""";
+                var v = CompileAndVerify(src);
+
+                string actualIL = v.VisualizeIL("C.Actual", false, null, src);
+                string expectedIL = v.VisualizeIL("C.Expected", false, null, src);
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, message: null);
+            }
+        }
+
+        [Fact]
         public void NonexhaustiveEnumDiagnostic_10()
         {
             var source =

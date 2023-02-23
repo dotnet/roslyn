@@ -15,72 +15,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             BoundDecisionDag decisionDag = node.GetDecisionDagForLowering(_factory.Compilation);
-            bool negated = node.IsNegated;
             BoundExpression result;
-            if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
+            if (canProduceLinearSequence(decisionDag))
             {
                 // If we can build a linear test sequence `(e1 && e2 && e3)` for the dag, do so.
                 var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
-                isPatternRewriter.Free();
-            }
-            else if (IsFailureNode(decisionDag.RootNode, node.WhenFalseLabel))
-            {
-                // If the given pattern always fails due to a constant input (see comments on BoundDecisionDag.SimplifyDecisionDagIfConstantInput),
-                // we build a linear test sequence with the whenTrue and whenFalse labels swapped and then negate the result, to keep the result a constant.
-                // Note that the positive case will be handled by canProduceLinearSequence above, however, we avoid to produce a full inverted linear sequence here
-                // because we may be able to generate better code for a sequence of `or` patterns, using a switch dispatch, for example, which is done in the general rewriter.
-                negated = !negated;
-                var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
+                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag);
                 isPatternRewriter.Free();
             }
             else
             {
                 // We need to lower a generalized dag, so we produce a label for the true and false branches and assign to a temporary containing the result.
-                var isPatternRewriter = new IsPatternExpressionGeneralLocalRewriter(node.Syntax, this);
+                var isPatternRewriter = new IsPatternExpressionGeneralLocalRewriter(node, this);
                 result = isPatternRewriter.LowerGeneralIsPattern(node, decisionDag);
                 isPatternRewriter.Free();
             }
 
-            if (negated)
+            if (node.IsNegated)
             {
                 result = this._factory.Not(result);
             }
             return result;
 
-            // Can the given decision dag node, and its successors, be generated as a sequence of
-            // linear tests with a single "golden" path to the true label and all other paths leading
-            // to the false label?  This occurs with an is-pattern expression that uses no "or" or "not"
-            // pattern forms.
-            static bool canProduceLinearSequence(
-                BoundDecisionDagNode node,
-                LabelSymbol whenTrueLabel,
-                LabelSymbol whenFalseLabel)
+            static bool canProduceLinearSequence(BoundDecisionDag decisionDag)
             {
-                while (true)
+                foreach (BoundDecisionDagNode node in decisionDag.TopologicallySortedNodes)
                 {
-                    switch (node)
+                    if (DecisionDagRewriter.CanGenerateSwitchDispatch(node))
                     {
-                        case BoundWhenDecisionDagNode w:
-                            Debug.Assert(w.WhenFalse is null);
-                            node = w.WhenTrue;
-                            break;
-                        case BoundLeafDecisionDagNode n:
-                            return n.Label == whenTrueLabel;
-                        case BoundEvaluationDecisionDagNode e:
-                            node = e.Next;
-                            break;
-                        case BoundTestDecisionDagNode t:
-                            bool falseFail = IsFailureNode(t.WhenFalse, whenFalseLabel);
-                            if (falseFail == IsFailureNode(t.WhenTrue, whenFalseLabel))
-                                return false;
-                            node = falseFail ? t.WhenTrue : t.WhenFalse;
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(node);
+                        return false;
                     }
                 }
+
+                return true;
             }
         }
 
@@ -93,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly ArrayBuilder<BoundStatement> _statements = ArrayBuilder<BoundStatement>.GetInstance();
 
             public IsPatternExpressionGeneralLocalRewriter(
-                SyntaxNode node,
-                LocalRewriter localRewriter) : base(node, localRewriter, generateInstrumentation: false)
+                BoundIsPatternExpression node,
+                LocalRewriter localRewriter) : base(node.Syntax, localRewriter, generateInstrumentation: false)
             {
             }
 
@@ -134,101 +101,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsFailureNode(BoundDecisionDagNode node, LabelSymbol whenFalseLabel)
-        {
-            if (node is BoundWhenDecisionDagNode w)
-                node = w.WhenTrue;
-            return node is BoundLeafDecisionDagNode l && l.Label == whenFalseLabel;
-        }
-
         private sealed class IsPatternExpressionLinearLocalRewriter : PatternLocalRewriter
         {
             /// <summary>
-            /// Accumulates side-effects that come before the next conjunct.
+            /// Accumulates side-effects that come before every leaf or test node.
             /// </summary>
             private readonly ArrayBuilder<BoundExpression> _sideEffectBuilder;
-
-            /// <summary>
-            /// Accumulates conjuncts (conditions that must all be true) for the translation. When a conjunct is added,
-            /// elements of the _sideEffectBuilder, if any, should be added as part of a sequence expression for
-            /// the conjunct being added.
-            /// </summary>
-            private readonly ArrayBuilder<BoundExpression> _conjunctBuilder;
 
             public IsPatternExpressionLinearLocalRewriter(BoundIsPatternExpression node, LocalRewriter localRewriter)
                 : base(node.Syntax, localRewriter, generateInstrumentation: false)
             {
-                _conjunctBuilder = ArrayBuilder<BoundExpression>.GetInstance();
                 _sideEffectBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             }
 
             public new void Free()
             {
-                _conjunctBuilder.Free();
                 _sideEffectBuilder.Free();
                 base.Free();
             }
 
-            private void AddConjunct(BoundExpression test)
-            {
-                // When in error recovery, the generated code doesn't matter.
-                if (test.Type?.IsErrorType() != false)
-                    return;
-
-                Debug.Assert(test.Type.SpecialType == SpecialType.System_Boolean);
-                if (_sideEffectBuilder.Count != 0)
-                {
-                    test = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, _sideEffectBuilder.ToImmutable(), test);
-                    _sideEffectBuilder.Clear();
-                }
-
-                _conjunctBuilder.Add(test);
-            }
-
-            /// <summary>
-            /// Translate the single test into _sideEffectBuilder and _conjunctBuilder.
-            /// </summary>
-            private void LowerOneTest(BoundDagTest test, bool invert = false)
-            {
-                _factory.Syntax = test.Syntax;
-                switch (test)
-                {
-                    case BoundDagEvaluation eval:
-                        {
-                            var sideEffect = LowerEvaluation(eval);
-                            _sideEffectBuilder.Add(sideEffect);
-                            return;
-                        }
-                    case var _:
-                        {
-                            var testExpression = LowerTest(test);
-                            if (testExpression != null)
-                            {
-                                if (invert)
-                                    testExpression = _factory.Not(testExpression);
-
-                                AddConjunct(testExpression);
-                            }
-
-                            return;
-                        }
-                }
-            }
-
             public BoundExpression LowerIsPatternAsLinearTestSequence(
-                BoundIsPatternExpression isPatternExpression,
-                BoundDecisionDag decisionDag,
-                LabelSymbol whenTrueLabel,
-                LabelSymbol whenFalseLabel)
+                BoundIsPatternExpression node,
+                BoundDecisionDag decisionDag)
             {
-                BoundExpression loweredInput = _localRewriter.VisitExpression(isPatternExpression.Expression);
+                BoundExpression loweredInput = _localRewriter.VisitExpression(node.Expression);
 
                 // The optimization of sharing pattern-matching temps with user variables can always apply to
                 // an is-pattern expression because there is no when clause that could possibly intervene during
                 // the execution of the pattern-matching automaton and change one of those variables.
                 decisionDag = ShareTempsAndEvaluateInput(loweredInput, decisionDag, expr => _sideEffectBuilder.Add(expr), out _);
-                var node = decisionDag.RootNode;
-                return ProduceLinearTestSequence(node, whenTrueLabel, whenFalseLabel);
+                BoundExpression result = ProduceLinearTestSequence(decisionDag.RootNode, node.WhenTrueLabel, node.WhenFalseLabel);
+                return _factory.Sequence(_tempAllocator.AllTemps(), ImmutableArray<BoundExpression>.Empty, result);
             }
 
             /// <summary>
@@ -239,87 +142,164 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LabelSymbol whenTrueLabel,
                 LabelSymbol whenFalseLabel)
             {
-                // We follow the "good" path in the decision dag. We depend on it being nicely linear in structure.
-                // If we add "or" patterns that assumption breaks down.
-                while (node.Kind != BoundKind.LeafDecisionDagNode && node.Kind != BoundKind.WhenDecisionDagNode)
+                return lowerNode(node);
+
+                BoundExpression lowerNode(BoundDecisionDagNode node)
                 {
-                    switch (node)
+                    return node switch
                     {
-                        case BoundEvaluationDecisionDagNode evalNode:
-                            {
-                                LowerOneTest(evalNode.Evaluation);
-                                node = evalNode.Next;
-                            }
-                            break;
-                        case BoundTestDecisionDagNode testNode:
-                            {
-                                if (testNode.WhenTrue is BoundEvaluationDecisionDagNode e &&
-                                    TryLowerTypeTestAndCast(testNode.Test, e.Evaluation, out BoundExpression? sideEffect, out BoundExpression? testExpression))
-                                {
-                                    _sideEffectBuilder.Add(sideEffect);
-                                    AddConjunct(testExpression);
-                                    node = e.Next;
-                                }
-                                else
-                                {
-                                    bool invertTest = IsFailureNode(testNode.WhenTrue, whenFalseLabel);
-                                    LowerOneTest(testNode.Test, invertTest);
-                                    node = invertTest ? testNode.WhenFalse : testNode.WhenTrue;
-                                }
-                            }
-                            break;
-                    }
+                        BoundEvaluationDecisionDagNode evalNode => lowerEvaluationNode(evalNode),
+                        BoundTestDecisionDagNode testNode => lowerTestNode(testNode),
+                        BoundWhenDecisionDagNode whenNode => lowerWhenNode(whenNode),
+                        BoundLeafDecisionDagNode leafNode => MakeSequence(_factory.Literal(isSuccessNode(leafNode))),
+                        _ => throw ExceptionUtilities.UnexpectedValue(node)
+                    };
                 }
 
-                // When we get to "the end", it is a success node.
-                switch (node)
+                BoundExpression lowerEvaluationNode(BoundEvaluationDecisionDagNode evalNode)
                 {
-                    case BoundLeafDecisionDagNode leafNode:
-                        Debug.Assert(leafNode.Label == whenTrueLabel);
-                        break;
-
-                    case BoundWhenDecisionDagNode whenNode:
+                    while (true)
+                    {
+                        _sideEffectBuilder.Add(LowerEvaluation(evalNode.Evaluation));
+                        if (evalNode.Next is BoundEvaluationDecisionDagNode nextNode)
                         {
-                            Debug.Assert(whenNode.WhenExpression == null);
-                            Debug.Assert(whenNode.WhenTrue is BoundLeafDecisionDagNode d && d.Label == whenTrueLabel);
-                            foreach (BoundPatternBinding binding in whenNode.Bindings)
-                            {
-                                BoundExpression left = _localRewriter.VisitExpression(binding.VariableAccess);
-                                BoundExpression right = _tempAllocator.GetTemp(binding.TempContainingValue);
-                                if (left != right)
-                                {
-                                    _sideEffectBuilder.Add(_factory.AssignmentExpression(left, right));
-                                }
-                            }
+                            evalNode = nextNode;
+                            continue;
                         }
 
                         break;
+                    }
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(node.Kind);
+                    return lowerNode(evalNode.Next);
                 }
 
-                if (_sideEffectBuilder.Count > 0 || _conjunctBuilder.Count == 0)
+                BoundExpression lowerWhenNode(BoundWhenDecisionDagNode whenNode)
                 {
-                    AddConjunct(_factory.Literal(true));
+                    Debug.Assert(whenNode.WhenTrue is BoundLeafDecisionDagNode leafNode && isSuccessNode(leafNode));
+                    Debug.Assert(whenNode.WhenFalse is null);
+                    Debug.Assert(whenNode.WhenExpression is null);
+                    foreach (BoundPatternBinding binding in whenNode.Bindings)
+                    {
+                        BoundExpression left = _localRewriter.VisitExpression(binding.VariableAccess);
+                        BoundExpression right = _tempAllocator.GetTemp(binding.TempContainingValue);
+                        if (left != right)
+                        {
+                            _sideEffectBuilder.Add(_factory.AssignmentExpression(left, right));
+                        }
+                    }
+
+                    return lowerNode(whenNode.WhenTrue);
                 }
 
-                Debug.Assert(_sideEffectBuilder.Count == 0);
-                BoundExpression? result = null;
-                foreach (BoundExpression conjunct in _conjunctBuilder)
+                BoundExpression lowerTestNode(BoundTestDecisionDagNode testNode)
                 {
-                    result = (result == null) ? conjunct : _factory.LogicalAnd(result, conjunct);
+                    BoundDecisionDagNode whenTrue, whenFalse = testNode.WhenFalse;
+                    BoundExpression result = MakeSequence(LowerTestAndSimplify(testNode, out whenTrue));
+                    while (true)
+                    {
+                        switch (whenTrue, whenFalse)
+                        {
+                            case (BoundTestDecisionDagNode t2, _) when t2.WhenFalse == whenFalse:
+                                result = _factory.LogicalAnd(result, MakeSequence(LowerTestAndSimplify(t2, whenTrue: out whenTrue)));
+                                continue;
+
+                            case (_, BoundTestDecisionDagNode t2) when t2.WhenTrue == whenTrue:
+                                result = _factory.LogicalOr(result, MakeSequence(LowerTest(t2.Test)));
+                                whenFalse = t2.WhenFalse;
+                                continue;
+
+                            case (BoundTestDecisionDagNode t2, _) when t2.WhenTrue == whenFalse:
+                                result = _factory.LogicalAnd(result, MakeSequence(_factory.Not(LowerTest(t2.Test))));
+                                whenTrue = t2.WhenFalse;
+                                continue;
+
+                            case (_, BoundTestDecisionDagNode t2) when t2.WhenFalse == whenTrue:
+                                result = _factory.LogicalOr(result, MakeSequence(_factory.Not(LowerTestAndSimplify(t2, whenTrue: out whenFalse))));
+                                continue;
+
+                            case (BoundLeafDecisionDagNode, BoundEvaluationDecisionDagNode e):
+                                _sideEffectBuilder.Add(LowerEvaluation(e.Evaluation));
+                                whenFalse = e.Next;
+                                continue;
+
+                            case (BoundEvaluationDecisionDagNode e, BoundLeafDecisionDagNode):
+                                _sideEffectBuilder.Add(LowerEvaluation(e.Evaluation));
+                                whenTrue = e.Next;
+                                continue;
+
+                            case (BoundLeafDecisionDagNode leafTrue, BoundLeafDecisionDagNode leafFalse):
+                                return (isSuccessNode(leafTrue), isSuccessNode(leafFalse)) switch
+                                {
+                                    (true, true) => MakeSequence(_factory.Literal(true)),
+                                    (false, false) => MakeSequence(_factory.Literal(false)),
+                                    (false, true) => makeSequenceAfter(_factory.Not(result)),
+                                    (true, false) => makeSequenceAfter(result),
+                                };
+
+                                BoundExpression makeSequenceAfter(BoundExpression result)
+                                    => _sideEffectBuilder.IsEmpty() ? result :
+                                        _factory.LogicalAnd(result, MakeSequence(_factory.Literal(true)));
+
+                            case (BoundLeafDecisionDagNode leafNode, _):
+                                return isSuccessNode(leafNode)
+                                    ? _factory.LogicalOr(result, lowerNode(whenFalse))
+                                    : _factory.LogicalAnd(_factory.Not(result), lowerNode(whenFalse));
+
+                            case (_, BoundLeafDecisionDagNode leafNode):
+                                return isSuccessNode(leafNode)
+                                    ? _factory.LogicalOr(_factory.Not(result), lowerNode(whenTrue))
+                                    : _factory.LogicalAnd(result, lowerNode(whenTrue));
+
+                            default:
+                                Debug.Assert(_sideEffectBuilder.IsEmpty());
+                                return _factory.Conditional(
+                                    condition: result,
+                                    consequence: lowerNode(whenTrue),
+                                    alternative: lowerNode(whenFalse),
+                                    _factory.SpecialType(SpecialType.System_Boolean));
+                        }
+                    }
                 }
 
-                _conjunctBuilder.Clear();
-                Debug.Assert(result != null);
-                var allTemps = _tempAllocator.AllTemps();
-                if (allTemps.Length > 0)
+                bool isSuccessNode(BoundLeafDecisionDagNode leafNode)
                 {
-                    result = _factory.Sequence(allTemps, ImmutableArray<BoundExpression>.Empty, result);
+                    Debug.Assert(
+                        ReferenceEquals(leafNode.Label, whenTrueLabel) ||
+                        ReferenceEquals(leafNode.Label, whenFalseLabel));
+                    return ReferenceEquals(leafNode.Label, whenTrueLabel);
+                }
+            }
+
+            private new BoundExpression LowerTest(BoundDagTest test)
+            {
+                var result = base.LowerTest(test);
+                // When in error recovery, the generated code doesn't matter.
+                if (result.Type?.IsErrorType() != false)
+                    return _factory.Literal(true);
+                return result;
+            }
+
+            private BoundExpression LowerTestAndSimplify(BoundTestDecisionDagNode testNode, out BoundDecisionDagNode whenTrue)
+            {
+                if (testNode.WhenTrue is BoundEvaluationDecisionDagNode evalNode &&
+                    TryLowerTypeTestAndCast(testNode.Test, evalNode.Evaluation,
+                        out BoundExpression sideEffect, out BoundExpression? result))
+                {
+                    _sideEffectBuilder.Add(sideEffect);
+                    whenTrue = evalNode.Next;
+                }
+                else
+                {
+                    result = LowerTest(testNode.Test);
+                    whenTrue = testNode.WhenTrue;
                 }
 
                 return result;
+            }
+
+            private BoundExpression MakeSequence(BoundExpression test)
+            {
+                return _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, _sideEffectBuilder.ToImmutableAndClear(), test);
             }
         }
     }

@@ -499,51 +499,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             private bool GenerateSwitchDispatch(BoundDecisionDagNode node, HashSet<BoundDecisionDagNode> loweredNodes)
             {
                 Debug.Assert(!loweredNodes.Contains(node));
-                if (!canGenerateSwitchDispatch(node))
+                if (!CanGenerateSwitchDispatch(node, loweredNodes, _dagNodeLabels))
                     return false;
 
                 var input = ((BoundTestDecisionDagNode)node).Test.Input;
                 ValueDispatchNode n = GatherValueDispatchNodes(node, loweredNodes, input);
                 LowerValueDispatchNode(n, _tempAllocator.GetTemp(input));
                 return true;
+            }
 
-                bool canGenerateSwitchDispatch(BoundDecisionDagNode node)
+            internal static bool CanGenerateSwitchDispatch(BoundDecisionDagNode node, HashSet<BoundDecisionDagNode> loweredNodes = null, PooledDictionary<BoundDecisionDagNode, LabelSymbol> dagNodeLabels = null)
+            {
+                switch (node)
                 {
-                    switch (node)
-                    {
-                        // These are the forms worth optimizing.
-                        case BoundTestDecisionDagNode { WhenFalse: BoundTestDecisionDagNode test2 } test1:
-                            return canDispatch(test1, test2);
-                        case BoundTestDecisionDagNode { WhenTrue: BoundTestDecisionDagNode test2 } test1:
-                            return canDispatch(test1, test2);
-                        default:
-                            // Other cases are just as well done with a single test.
-                            return false;
-                    }
+                    // These are the forms worth optimizing.
+                    case BoundTestDecisionDagNode { WhenFalse: BoundTestDecisionDagNode test2 } test1:
+                        return canDispatch(test1, test2);
+                    case BoundTestDecisionDagNode { WhenTrue: BoundTestDecisionDagNode test2 } test1:
+                        return canDispatch(test1, test2);
+                    default:
+                        // Other cases are just as well done with a single test.
+                        return false;
+                }
 
-                    bool canDispatch(BoundTestDecisionDagNode test1, BoundTestDecisionDagNode test2)
-                    {
-                        if (this._dagNodeLabels.ContainsKey(test2))
-                            return false;
+                bool canDispatch(BoundTestDecisionDagNode test1, BoundTestDecisionDagNode test2)
+                {
+                    if (dagNodeLabels?.ContainsKey(test2) == true)
+                        return false;
 
-                        Debug.Assert(!loweredNodes.Contains(test2));
-                        var t1 = test1.Test;
-                        var t2 = test2.Test;
-                        if (!(t1 is BoundDagValueTest || t1 is BoundDagRelationalTest))
-                            return false;
-                        if (!(t2 is BoundDagValueTest || t2 is BoundDagRelationalTest))
-                            return false;
-                        if (!t1.Input.Equals(t2.Input))
-                            return false;
-
-                        if (t1.Input.Type.SpecialType is SpecialType.System_Double or SpecialType.System_Single)
-                        {
-                            // The optimization (using balanced switch dispatch) breaks the semantics of NaN
-                            return false;
-                        }
-
-                        return true;
-                    }
+                    Debug.Assert(loweredNodes?.Contains(test2) != true);
+                    BoundDagTest t1 = test1.Test;
+                    BoundDagTest t2 = test2.Test;
+                    return t1.Kind is BoundKind.DagValueTest or BoundKind.DagRelationalTest &&
+                           t2.Kind is BoundKind.DagValueTest or BoundKind.DagRelationalTest &&
+                           t1.Input.Equals(t2.Input) &&
+                           // The optimization (using balanced switch dispatch) breaks the semantics of NaN
+                           t1.Input.Type.SpecialType is not (SpecialType.System_Double or SpecialType.System_Single);
                 }
             }
 

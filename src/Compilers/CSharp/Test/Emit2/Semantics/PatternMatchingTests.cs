@@ -8884,55 +8884,51 @@ class C
 2.False
 3.False
 4.True")
-                .VerifyIL("C.Test", @"
+                .VerifyIL("C.Test", """
 {
-  // Code size      159 (0x9f)
+  // Code size      142 (0x8e)
   .maxstack  3
   .locals init (bool V_0)
-  IL_0000:  ldstr      ""1.""
+  IL_0000:  ldstr      "1."
   IL_0005:  ldarg.0
-  IL_0006:  ldstr      """"
-  IL_000b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0010:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0006:  ldstr      ""
+  IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0010:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
   IL_0015:  stloc.0
   IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""string bool.ToString()""
-  IL_001d:  call       ""string string.Concat(string, string)""
-  IL_0022:  call       ""void System.Console.WriteLine(string)""
-  IL_0027:  ldstr      ""2.""
+  IL_0018:  call       "string bool.ToString()"
+  IL_001d:  call       "string string.Concat(string, string)"
+  IL_0022:  call       "void System.Console.WriteLine(string)"
+  IL_0027:  ldstr      "2."
   IL_002c:  ldarg.0
-  IL_002d:  ldstr      """"
-  IL_0032:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0037:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_002d:  ldstr      ""
+  IL_0032:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0037:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
   IL_003c:  stloc.0
   IL_003d:  ldloca.s   V_0
-  IL_003f:  call       ""string bool.ToString()""
-  IL_0044:  call       ""string string.Concat(string, string)""
-  IL_0049:  call       ""void System.Console.WriteLine(string)""
-  IL_004e:  ldstr      ""3.""
+  IL_003f:  call       "string bool.ToString()"
+  IL_0044:  call       "string string.Concat(string, string)"
+  IL_0049:  call       "void System.Console.WriteLine(string)"
+  IL_004e:  ldstr      "3."
   IL_0053:  ldarg.0
-  IL_0054:  ldstr      """"
-  IL_0059:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_005e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0054:  ldstr      ""
+  IL_0059:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_005e:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
   IL_0063:  stloc.0
   IL_0064:  ldloca.s   V_0
-  IL_0066:  call       ""string bool.ToString()""
-  IL_006b:  call       ""string string.Concat(string, string)""
-  IL_0070:  call       ""void System.Console.WriteLine(string)""
-  IL_0075:  ldarg.0
-  IL_0076:  ldstr      """"
-  IL_007b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0080:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0085:  pop
-  IL_0086:  ldc.i4.1
-  IL_0087:  stloc.0
-  IL_0088:  ldstr      ""4.""
-  IL_008d:  ldloca.s   V_0
-  IL_008f:  call       ""string bool.ToString()""
-  IL_0094:  call       ""string string.Concat(string, string)""
-  IL_0099:  call       ""void System.Console.WriteLine(string)""
-  IL_009e:  ret
-}");
+  IL_0066:  call       "string bool.ToString()"
+  IL_006b:  call       "string string.Concat(string, string)"
+  IL_0070:  call       "void System.Console.WriteLine(string)"
+  IL_0075:  ldstr      "4."
+  IL_007a:  ldc.i4.1
+  IL_007b:  stloc.0
+  IL_007c:  ldloca.s   V_0
+  IL_007e:  call       "string bool.ToString()"
+  IL_0083:  call       "string string.Concat(string, string)"
+  IL_0088:  call       "void System.Console.WriteLine(string)"
+  IL_008d:  ret
+}
+""");
         }
 
         [Fact]
@@ -10486,55 +10482,51 @@ class C
 2.False
 3.False
 4.True")
-                .VerifyIL("C.Test", @"
+                .VerifyIL("C.Test", """
 {
-  // Code size      159 (0x9f)
+  // Code size      142 (0x8e)
   .maxstack  3
   .locals init (bool V_0)
-  IL_0000:  ldstr      ""1.""
+  IL_0000:  ldstr      "1."
   IL_0005:  ldarg.0
-  IL_0006:  ldstr      """"
-  IL_000b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0010:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0006:  ldstr      ""
+  IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0010:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
   IL_0015:  stloc.0
   IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""string bool.ToString()""
-  IL_001d:  call       ""string string.Concat(string, string)""
-  IL_0022:  call       ""void System.Console.WriteLine(string)""
-  IL_0027:  ldstr      ""2.""
+  IL_0018:  call       "string bool.ToString()"
+  IL_001d:  call       "string string.Concat(string, string)"
+  IL_0022:  call       "void System.Console.WriteLine(string)"
+  IL_0027:  ldstr      "2."
   IL_002c:  ldarg.0
-  IL_002d:  ldstr      """"
-  IL_0032:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0037:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_002d:  ldstr      ""
+  IL_0032:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0037:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
   IL_003c:  stloc.0
   IL_003d:  ldloca.s   V_0
-  IL_003f:  call       ""string bool.ToString()""
-  IL_0044:  call       ""string string.Concat(string, string)""
-  IL_0049:  call       ""void System.Console.WriteLine(string)""
-  IL_004e:  ldstr      ""3.""
+  IL_003f:  call       "string bool.ToString()"
+  IL_0044:  call       "string string.Concat(string, string)"
+  IL_0049:  call       "void System.Console.WriteLine(string)"
+  IL_004e:  ldstr      "3."
   IL_0053:  ldarg.0
-  IL_0054:  ldstr      """"
-  IL_0059:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_005e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0054:  ldstr      ""
+  IL_0059:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_005e:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
   IL_0063:  stloc.0
   IL_0064:  ldloca.s   V_0
-  IL_0066:  call       ""string bool.ToString()""
-  IL_006b:  call       ""string string.Concat(string, string)""
-  IL_0070:  call       ""void System.Console.WriteLine(string)""
-  IL_0075:  ldarg.0
-  IL_0076:  ldstr      """"
-  IL_007b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0080:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0085:  pop
-  IL_0086:  ldc.i4.1
-  IL_0087:  stloc.0
-  IL_0088:  ldstr      ""4.""
-  IL_008d:  ldloca.s   V_0
-  IL_008f:  call       ""string bool.ToString()""
-  IL_0094:  call       ""string string.Concat(string, string)""
-  IL_0099:  call       ""void System.Console.WriteLine(string)""
-  IL_009e:  ret
-}");
+  IL_0066:  call       "string bool.ToString()"
+  IL_006b:  call       "string string.Concat(string, string)"
+  IL_0070:  call       "void System.Console.WriteLine(string)"
+  IL_0075:  ldstr      "4."
+  IL_007a:  ldc.i4.1
+  IL_007b:  stloc.0
+  IL_007c:  ldloca.s   V_0
+  IL_007e:  call       "string bool.ToString()"
+  IL_0083:  call       "string string.Concat(string, string)"
+  IL_0088:  call       "void System.Console.WriteLine(string)"
+  IL_008d:  ret
+}
+""");
         }
 
         [Fact]
