@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -25,7 +26,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
@@ -132,44 +132,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);
             Assert.IsType<NoOpPersistentStorage>(storage);
-        }
-
-        [WorkItem(923196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923196")]
-        [WpfFact]
-        public async Task TestPreviewDiagnostic()
-        {
-            var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
-            var exportProvider = (IMefHostExportProvider)hostServices;
-
-            var diagnosticService = (IDiagnosticUpdateSource)exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-            RoslynDebug.AssertNotNull(diagnosticService);
-            var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
-
-            var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();
-            diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
-
-            using var previewWorkspace = new PreviewWorkspace(hostServices);
-
-            var solution = previewWorkspace.CurrentSolution
-                .WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) })
-                .AddProject("project", "project.dll", LanguageNames.CSharp)
-                .AddDocument("document", "class { }")
-                .Project
-                .Solution;
-
-            Assert.True(previewWorkspace.TryApplyChanges(solution));
-
-            var document = previewWorkspace.CurrentSolution.Projects.First().Documents.Single();
-
-            previewWorkspace.OpenDocument(document.Id, (await document.GetTextAsync()).Container);
-            previewWorkspace.EnableSolutionCrawler();
-
-            // wait 20 seconds
-            taskSource.Task.Wait(20000);
-            Assert.True(taskSource.Task.IsCompleted);
-
-            var args = taskSource.Task.Result;
-            Assert.True(args.Diagnostics.Length > 0);
         }
 
         [WpfFact]
