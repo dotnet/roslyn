@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     nonEmptyNodes.Add(node);
             }
 
-            return nonEmptyNodes.ToImmutable();
+            nonEmptyNodes.RemoveDuplicates();
+            return nonEmptyNodes.ToImmutableAndClear();
         }
 
         private async Task AddRelevantNodesAsync<TSyntaxNode>(
@@ -127,8 +128,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     document, root, location, cancellationToken).ConfigureAwait(false);
 
                 // Add Nodes for touching tokens as described above.
-                AddNodesForTokenToLeft(syntaxFacts, relevantNodes, tokenToLeft, cancellationToken);
                 AddNodesForTokenToRight(syntaxFacts, root, relevantNodes, tokenToRight, cancellationToken);
+                AddNodesForTokenToLeft(syntaxFacts, relevantNodes, tokenToLeft, cancellationToken);
 
                 // If the wanted node is an expression syntax -> traverse upwards even if location is deep within a SyntaxNode.
                 // We want to treat more types like expressions, e.g.: ArgumentSyntax should still trigger even if deep-in.
