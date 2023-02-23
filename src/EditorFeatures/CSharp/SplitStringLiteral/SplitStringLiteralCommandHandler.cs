@@ -9,17 +9,13 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -54,14 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             => CommandState.Unspecified;
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
-            => ExecuteCommandWorker(args);
+            => ExecuteCommandWorker(args, context.OperationContext.UserCancellationToken);
 
-        public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
+        public bool ExecuteCommandWorker(ReturnKeyCommandArgs args, CancellationToken cancellationToken)
         {
             if (!_editorOptionsService.GlobalOptions.GetOption(SplitStringLiteralOptions.Enabled))
-            {
                 return false;
-            }
 
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
@@ -70,15 +64,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             // Don't split strings if there is any actual selection.
             // We must check all spans to account for multi-carets.
             if (spans.IsEmpty() || !spans.All(s => s.IsEmpty))
-            {
                 return false;
-            }
 
             var caret = textView.GetCaretPoint(subjectBuffer);
             if (caret == null)
-            {
                 return false;
-            }
 
             // First, we need to verify that we are only working with string literals.
             // Otherwise, let the editor handle all carets.
@@ -87,19 +77,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 var spanStart = span.Start;
                 var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(span.Start);
                 if (!LineContainsQuote(line, span.Start))
-                {
                     return false;
-                }
             }
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-            {
                 return false;
-            }
 
             var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
-            var formattingOptions = subjectBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
             var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
 
             // We now go through the verified string literals and split each of them.
@@ -111,14 +96,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 using var transaction = CaretPreservingEditTransaction.TryCreate(
                     CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-                var splitter = StringSplitter.TryCreate(parsedDocument, span.Start.Position, formattingOptions, indentationOptions, CancellationToken.None);
-                if (splitter?.TrySplit(out var newRoot, out var newPosition) != true)
+                var splitter = StringSplitter.TryCreate(parsedDocument, span.Start.Position, indentationOptions, cancellationToken);
+                if (splitter is null ||
+                    !splitter.TrySplit(out var newRoot, out var newPosition))
                 {
                     return false;
                 }
 
                 // apply the change:
-                var newDocument = parsedDocument.WithChangedRoot(newRoot!, CancellationToken.None);
+                var newDocument = parsedDocument.WithChangedRoot(newRoot, cancellationToken);
                 var newSnapshot = subjectBuffer.ApplyChanges(newDocument.GetChanges(parsedDocument));
                 parsedDocument = newDocument;
 
@@ -133,29 +119,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                         textView.TextBuffer);
 
                     if (newCaretPoint != null)
-                    {
                         textView.Caret.MoveTo(newCaretPoint.Value);
-                    }
                 }
 
                 transaction?.Complete();
             }
 
             return true;
-        }
 
-        private static bool LineContainsQuote(ITextSnapshotLine line, int caretPosition)
-        {
-            var snapshot = line.Snapshot;
-            for (int i = line.Start; i < caretPosition; i++)
+            static bool LineContainsQuote(ITextSnapshotLine line, int caretPosition)
             {
-                if (snapshot[i] == '"')
+                var snapshot = line.Snapshot;
+                for (int i = line.Start; i < caretPosition; i++)
                 {
-                    return true;
+                    if (snapshot[i] == '"')
+                        return true;
                 }
-            }
 
-            return false;
+                return false;
+            }
         }
     }
 }

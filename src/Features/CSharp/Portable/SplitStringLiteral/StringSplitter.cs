@@ -18,27 +18,25 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
         protected readonly ParsedDocument Document;
         protected readonly int CursorPosition;
-        protected readonly LineFormattingOptions LineFormattingOptions;
         protected readonly IndentationOptions IndentationOptions;
         protected readonly CancellationToken CancellationToken;
         protected readonly SyntaxToken PlusNewLineToken;
 
         public StringSplitter(
             ParsedDocument document, int position,
-            in LineFormattingOptions lineFormattingOptions,
             in IndentationOptions indentationOptions,
             CancellationToken cancellationToken)
         {
             Document = document;
             CursorPosition = position;
-            LineFormattingOptions = lineFormattingOptions;
             IndentationOptions = indentationOptions;
             CancellationToken = cancellationToken;
 
             PlusNewLineToken = SyntaxFactory.Token(
                 leading: default,
                 SyntaxKind.PlusToken,
-                SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(lineFormattingOptions.NewLine)));
+                SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(
+                    indentationOptions.FormattingOptions.NewLine)));
         }
 
         protected int TabSize => IndentationOptions.FormattingOptions.TabSize;
@@ -46,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
         public static StringSplitter? TryCreate(
             ParsedDocument document, int position,
-            in LineFormattingOptions formattingOptions,
             in IndentationOptions indentationOptions,
             CancellationToken cancellationToken)
         {
@@ -56,14 +53,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
                 token.IsKind(SyntaxKind.Utf8StringLiteralToken))
             {
                 return new SimpleStringSplitter(
-                    document, position, token, formattingOptions, indentationOptions, cancellationToken);
+                    document, position, token, indentationOptions, cancellationToken);
             }
 
             var interpolatedStringExpression = TryGetInterpolatedStringExpression(token, position);
             if (interpolatedStringExpression != null)
             {
                 return new InterpolatedStringSplitter(
-                    document, position, interpolatedStringExpression, formattingOptions, indentationOptions, cancellationToken);
+                    document, position, interpolatedStringExpression, indentationOptions, cancellationToken);
             }
 
             return null;

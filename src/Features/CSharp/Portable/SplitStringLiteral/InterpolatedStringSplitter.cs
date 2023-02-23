@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
                 ParsedDocument document,
                 int position,
                 InterpolatedStringExpressionSyntax interpolatedStringExpression,
-                LineFormattingOptions lineFormattingOptions,
                 IndentationOptions indentationOptions,
                 CancellationToken cancellationToken)
-                : base(document, position, lineFormattingOptions, indentationOptions, cancellationToken)
+                : base(document, position, indentationOptions, cancellationToken)
             {
                 _interpolatedStringExpression = interpolatedStringExpression;
             }
