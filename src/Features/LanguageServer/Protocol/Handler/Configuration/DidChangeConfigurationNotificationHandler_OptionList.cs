@@ -11,13 +11,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
     internal partial class DidChangeConfigurationNotificationHandler
     {
-        // TODO: all the supported options here
-        private static readonly ImmutableArray<ISingleValuedOption> s_supportedSingleValueOptions = ImmutableArray.Create<ISingleValuedOption>();
-
-        private static readonly ImmutableArray<IPerLanguageValuedOption> s_supportedPerLanguageOptions = ImmutableArray.Create<IPerLanguageValuedOption>(
+        private static readonly ImmutableArray<IOption2> s_supportedOptions = ImmutableArray.Create<IOption2>(
             // Code Action options
             SymbolSearchOptionsStorage.SearchReferenceAssemblies,
             ImplementTypeOptionsStorage.InsertionBehavior,
             ImplementTypeOptionsStorage.PropertyGenerationBehavior);
+
+        private static readonly ImmutableArray<string> s_supportedLanguages = ImmutableArray.Create(LanguageNames.CSharp);
     }
 }

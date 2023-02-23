@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,23 +41,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
         {
-            var globalConfigurationItems = s_supportedSingleValueOptions.SelectAsArray(option => new ConfigurationItem() { ScopeUri = null, Section = option.Definition.ConfigName });
-            var perLanguageConfigurationItems = s_supportedPerLanguageOptions.SelectAsArray(option => new ConfigurationItem() { ScopeUri = null, Section = option.Definition.ConfigName });
-            var allConfigurationItems = globalConfigurationItems.Concat(perLanguageConfigurationItems);
+            var configurationItems = s_supportedOptions.SelectAsArray(
+                option => new ConfigurationItem() { ScopeUri = null, Section = GenerateSection(option) });
+            var configurationsFromClient = await GetConfigurationsAsync(configurationItems, cancellationToken).ConfigureAwait(false);
 
-            var configurationsFromClient = await GetConfigurationsAsync(allConfigurationItems, cancellationToken).ConfigureAwait(false);
-            for (var i = 0; i < globalConfigurationItems.Length; i++)
+            for (var i = 0; i < configurationsFromClient.Length; i++)
             {
-                var globalOptions = s_supportedSingleValueOptions[i];
+                var option = s_supportedOptions[i];
                 var configurationValue = configurationsFromClient[i];
-                globalOptions.WriteToGlobalOptionService(_globalOptionService, configurationValue);
-            }
-
-            for (var i = 0; i < perLanguageConfigurationItems.Length; i++)
-            {
-                var perLanguageOptions = s_supportedPerLanguageOptions[i];
-                var configurationValue = configurationsFromClient[i + globalConfigurationItems.Length];
-                perLanguageOptions.WriteToGlobalOptionService(_globalOptionService, LanguageNames.CSharp, configurationValue);
+                if (option.Definition.Serializer.TryParse(configurationValue, out var result))
+                {
+                    if (option is IPerLanguageValuedOption perLanguageValuedOption)
+                    {
+                        foreach (var language in s_supportedLanguages)
+                        {
+                            _globalOptionService.SetGlobalOption(new OptionKey2(perLanguageValuedOption, language), result);
+                        }
+                    }
+                    else
+                    {
+                        _globalOptionService.SetGlobalOption(new OptionKey2(option, language: null), result);
+                    }
+                }
+                else
+                {
+                    _lspLogger.LogError($"Failed to parse client value: {configurationsFromClient} to type: {option.Definition.Type}.");
+                }
             }
         }
 
@@ -74,20 +84,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                     return ImmutableArray<string>.Empty;
                 }
 
-                if (options.Count != configurationItems.Length)
-                {
-                    _lspLogger.LogError($"Unexpected configuration number from the response of {Methods.WorkspaceConfigurationName}, expected: {configurationItems.Length}, actual: {options.Count}.");
-                    return ImmutableArray<string>.Empty;
-                }
-
-                var optionStrings = options.SelectAsArray(token => token.Value<string>());
-                if (optionStrings.Contains(null))
-                {
-                    _lspLogger.LogError($"Configuration from client is null. The request is {configurationItems[optionStrings.IndexOf(null)]}.");
-                    return ImmutableArray<string>.Empty;
-                }
-
-                return optionStrings;
+                // This is ensured by LSP.
+                Contract.ThrowIfTrue(options.Count != configurationItems.Length);
+                return options.SelectAsArray(token => token.ToString());
             }
             catch (Exception e)
             {
@@ -96,5 +95,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
             return ImmutableArray<string>.Empty;
         }
+
+        private static string GenerateSection(IOption2 option)
+            // TODO: Description is localized, we should introduce a non-loc description
+            => string.Concat(option.Definition.Group.Description, '.', option.Definition.ConfigName);
     }
 }
