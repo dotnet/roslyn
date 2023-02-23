@@ -18,12 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(pool)
         End Sub
 
-        Protected Shared ReadOnly s_reduceParentheses As Func(Of ParenthesizedExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf ReduceParentheses
+        Protected Shared ReadOnly s_reduceParentheses As Func(Of ParenthesizedExpressionSyntax, SemanticModel, ISimplifierOptions, CancellationToken, SyntaxNode) = AddressOf ReduceParentheses
 
         Protected Shared Function ReduceParentheses(
             node As ParenthesizedExpressionSyntax,
             semanticModel As SemanticModel,
-            options As SimplifierOptions,
+            options As ISimplifierOptions,
             cancellationToken As CancellationToken
         ) As SyntaxNode
 
@@ -43,10 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return node
         End Function
 
-        Public NotOverridable Overrides Function IsApplicable(options As SimplifierOptions) As Boolean
-            Return IsApplicable(CType(options, VisualBasicSimplifierOptions))
+        Public NotOverridable Overrides Function IsApplicable(options As ISimplifierOptions) As Boolean
+            Return IsApplicable(CType(options, IVisualBasicSimplifierOptions))
         End Function
 
-        Public MustOverride Overloads Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
+        Public MustOverride Overloads Function IsApplicable(options As IVisualBasicSimplifierOptions) As Boolean
     End Class
 End Namespace

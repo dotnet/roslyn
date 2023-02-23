@@ -21,19 +21,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
-        private static readonly Func<SyntaxToken, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxToken> s_simplifyIdentifierToken = SimplifyIdentifierToken;
+        private static readonly Func<SyntaxToken, SemanticModel, ICSharpSimplifierOptions, CancellationToken, SyntaxToken> s_simplifyIdentifierToken = SimplifyIdentifierToken;
 
         public CSharpEscapingReducer() : base(s_pool)
         {
         }
 
-        protected override bool IsApplicable(CSharpSimplifierOptions options)
+        protected override bool IsApplicable(ICSharpSimplifierOptions options)
            => true;
 
         private static SyntaxToken SimplifyIdentifierToken(
             SyntaxToken token,
             SemanticModel semanticModel,
-            CSharpSimplifierOptions options,
+            ICSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             var unescapedIdentifier = token.ValueText;

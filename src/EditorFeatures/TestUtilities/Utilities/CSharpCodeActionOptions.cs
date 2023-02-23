@@ -25,7 +25,7 @@ internal static class CSharpCodeActionOptions
         CleanupOptions = new()
         {
             FormattingOptions = CSharpSyntaxFormattingOptions.Default,
-            SimplifierOptions = CSharpSimplifierOptions.Default
+            SimplifierOptions = CSharpSimplifierStyleOptions.Default
         },
         CodeGenerationOptions = CSharpCodeGenerationOptions.Default,
         CodeStyleOptions = CSharpIdeCodeStyleOptions.Default

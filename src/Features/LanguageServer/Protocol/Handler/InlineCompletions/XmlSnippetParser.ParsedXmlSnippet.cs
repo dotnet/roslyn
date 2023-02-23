@@ -41,7 +41,7 @@ internal partial class XmlSnippetParser
     internal record SnippetFunctionPart(string FieldName, string DefaultText, int? EditIndex, string FunctionName, string? FunctionParam)
         : SnippetFieldPart(FieldName, DefaultText, EditIndex)
     {
-        public async Task<SnippetFunctionPart> WithSnippetFunctionResultAsync(Document documentWithSnippet, TextSpan fieldSpan, SimplifierOptions simplifierOptions, CancellationToken cancellationToken)
+        public async Task<SnippetFunctionPart> WithSnippetFunctionResultAsync(Document documentWithSnippet, TextSpan fieldSpan, SimplifierStyleOptions simplifierOptions, CancellationToken cancellationToken)
         {
             var snippetFunctionService = documentWithSnippet.Project.GetRequiredLanguageService<SnippetFunctionService>();
             switch (FunctionName)

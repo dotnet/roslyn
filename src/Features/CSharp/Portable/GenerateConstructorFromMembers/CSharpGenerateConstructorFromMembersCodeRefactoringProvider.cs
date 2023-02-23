@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers
 
         protected override async ValueTask<bool> PrefersThrowExpressionAsync(Document document, SimplifierOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = (CSharpSimplifierStyleOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             return options.PreferThrowExpression.Value;
         }
 

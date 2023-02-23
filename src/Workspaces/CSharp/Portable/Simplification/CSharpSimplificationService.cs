@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        public override SimplifierOptions DefaultOptions
-            => CSharpSimplifierOptions.Default;
+        public override SimplifierStyleOptions DefaultOptions
+            => CSharpSimplifierStyleOptions.Default;
 
-        public override SimplifierOptions GetSimplifierOptions(IOptionsReader options, SimplifierOptions? fallbackOptions)
-            => new CSharpSimplifierOptions(options, (CSharpSimplifierOptions?)fallbackOptions);
+        public override SimplifierStyleOptions GetSimplifierOptions(IOptionsReader options, SimplifierStyleOptions? fallbackOptions)
+            => new CSharpSimplifierStyleOptions(options, (CSharpSimplifierStyleOptions?)fallbackOptions);
 
         public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation? annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool>? expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
         {

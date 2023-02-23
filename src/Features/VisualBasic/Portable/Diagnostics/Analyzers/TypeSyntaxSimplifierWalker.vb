@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
         Private ReadOnly _analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer
         Private ReadOnly _semanticModel As SemanticModel
-        Private ReadOnly _options As VisualBasicSimplifierOptions
+        Private ReadOnly _options As VisualBasicSimplifierStyleOptions
         Private ReadOnly _ignoredSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
         Private ReadOnly _cancellationToken As CancellationToken
 
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             End Get
         End Property
 
-        Public Sub New(analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer, semanticModel As SemanticModel, options As VisualBasicSimplifierOptions, ignoredSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector), cancellationToken As CancellationToken)
+        Public Sub New(analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer, semanticModel As SemanticModel, options As VisualBasicSimplifierStyleOptions, ignoredSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector), cancellationToken As CancellationToken)
             MyBase.New(SyntaxWalkerDepth.StructuredTrivia)
 
             _analyzer = analyzer

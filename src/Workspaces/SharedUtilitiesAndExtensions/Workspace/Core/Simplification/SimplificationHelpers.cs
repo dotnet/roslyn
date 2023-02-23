@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             return false;
         }
 
-        internal static bool ShouldSimplifyThisOrMeMemberAccessExpression(SimplifierOptions options, ISymbol symbol)
+        internal static bool ShouldSimplifyThisOrMeMemberAccessExpression(SimplifierStyleOptions options, ISymbol symbol)
         {
             // If we're accessing a static member off of this/me then we should always consider this
             // simplifiable.  Note: in C# this isn't even legal to access a static off of `this`,

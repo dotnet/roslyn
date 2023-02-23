@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        public sealed override bool IsApplicable(SimplifierOptions options)
-            => IsApplicable((CSharpSimplifierOptions)options);
+        public sealed override bool IsApplicable(ISimplifierOptions options)
+            => IsApplicable((ICSharpSimplifierOptions)options);
 
-        protected abstract bool IsApplicable(CSharpSimplifierOptions options);
+        protected abstract bool IsApplicable(ICSharpSimplifierOptions options);
     }
 }

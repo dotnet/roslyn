@@ -41,7 +41,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     {
     }
 
-    // SimplifierOptions
+    // SimplifierStyleOptions
 
     public CodeStyleOption2<bool> VarForBuiltInTypes => GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes, FallbackSimplifierOptions.VarForBuiltInTypes);
     public CodeStyleOption2<bool> VarWhenTypeIsApparent => GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, FallbackSimplifierOptions.VarWhenTypeIsApparent);
@@ -51,8 +51,8 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferThrowExpression => GetOption(CSharpCodeStyleOptions.PreferThrowExpression, FallbackSimplifierOptions.PreferThrowExpression);
     public CodeStyleOption2<PreferBracesPreference> PreferBraces => GetOption(CSharpCodeStyleOptions.PreferBraces, FallbackSimplifierOptions.PreferBraces);
 
-    internal CSharpSimplifierOptions GetSimplifierOptions()
-        => new CSharpSimplifierOptions(_options, FallbackSimplifierOptions);
+    internal CSharpSimplifierStyleOptions GetSimplifierOptions()
+        => new CSharpSimplifierStyleOptions(_options, FallbackSimplifierOptions);
 
     // SyntaxFormattingOptions
 
@@ -106,8 +106,8 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     private CSharpIdeCodeStyleOptions FallbackCodeStyleOptions
         => (CSharpIdeCodeStyleOptions?)_fallbackOptions.CodeStyleOptions ?? CSharpIdeCodeStyleOptions.Default;
 
-    private CSharpSimplifierOptions FallbackSimplifierOptions
-        => (CSharpSimplifierOptions?)_fallbackOptions.CleanupOptions?.SimplifierOptions ?? CSharpSimplifierOptions.Default;
+    private CSharpSimplifierStyleOptions FallbackSimplifierOptions
+        => (CSharpSimplifierStyleOptions?)_fallbackOptions.CleanupOptions?.SimplifierOptions ?? CSharpSimplifierStyleOptions.Default;
 
     private CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions
         => (CSharpSyntaxFormattingOptions?)_fallbackOptions.CleanupOptions?.FormattingOptions ?? CSharpSyntaxFormattingOptions.Default;

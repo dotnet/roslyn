@@ -19,19 +19,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
-        private static readonly Func<NullableTypeSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyNullableType = SimplifyNullableType;
+        private static readonly Func<NullableTypeSyntax, SemanticModel, ISimplifierOptions, CancellationToken, SyntaxNode> s_simplifyNullableType = SimplifyNullableType;
 
         public CSharpNullableAnnotationReducer() : base(s_pool)
         {
         }
 
-        protected override bool IsApplicable(CSharpSimplifierOptions options)
+        protected override bool IsApplicable(ICSharpSimplifierOptions options)
            => true;
 
         private static SyntaxNode SimplifyNullableType(
             NullableTypeSyntax node,
             SemanticModel semanticModel,
-            SimplifierOptions options,
+            ISimplifierOptions options,
             CancellationToken cancellationToken)
         {
             // If annotations are enabled, there's no further simplification to do

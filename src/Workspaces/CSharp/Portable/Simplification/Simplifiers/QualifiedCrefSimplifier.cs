@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         public override bool TrySimplify(
             QualifiedCrefSyntax crefSyntax,
             SemanticModel semanticModel,
-            CSharpSimplifierOptions options,
+            ICSharpSimplifierOptions options,
             out CrefSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var memberCref = crefSyntax.Member;
 
             // Currently we are dealing with only the NameMemberCrefs
-            if (options.PreferPredefinedTypeKeywordInMemberAccess.Value &&
+            if (options.PreferPredefinedTypeKeywordInMemberAccess &&
                 memberCref is NameMemberCrefSyntax nameMemberCref)
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(nameMemberCref.Name, cancellationToken);

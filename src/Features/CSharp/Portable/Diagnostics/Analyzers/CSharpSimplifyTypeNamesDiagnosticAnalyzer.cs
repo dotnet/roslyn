@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
-        : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind, CSharpSimplifierOptions>
+        : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind, CSharpSimplifierStyleOptions>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
             ImmutableArray.Create(
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             => node != null && s_kindsOfInterest.Contains(node.Kind());
 
         internal override bool CanSimplifyTypeNameExpression(
-            SemanticModel model, SyntaxNode node, CSharpSimplifierOptions options,
+            SemanticModel model, SyntaxNode node, CSharpSimplifierStyleOptions options,
             out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
             CancellationToken cancellationToken)
         {

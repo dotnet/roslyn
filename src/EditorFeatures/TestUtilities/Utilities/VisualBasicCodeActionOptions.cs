@@ -26,7 +26,7 @@ internal static class VisualBasicCodeActionOptions
         CleanupOptions = new()
         {
             FormattingOptions = VisualBasicSyntaxFormattingOptions.Default,
-            SimplifierOptions = VisualBasicSimplifierOptions.Default,
+            SimplifierOptions = VisualBasicSimplifierStyleOptions.Default,
         },
         CodeGenerationOptions = VisualBasicCodeGenerationOptions.Default,
         CodeStyleOptions = VisualBasicIdeCodeStyleOptions.Default

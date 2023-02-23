@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             private readonly ObjectPool<IReductionRewriter> _pool;
 
             protected CSharpParseOptions? ParseOptions { get; private set; }
-            protected CSharpSimplifierOptions? Options { get; private set; }
+            protected ICSharpSimplifierOptions? Options { get; private set; }
             protected CancellationToken CancellationToken { get; private set; }
             protected SemanticModel? SemanticModel { get; private set; }
 
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             protected AbstractReductionRewriter(ObjectPool<IReductionRewriter> pool)
                 => _pool = pool;
 
-            public void Initialize(ParseOptions parseOptions, SimplifierOptions options, CancellationToken cancellationToken)
+            public void Initialize(ParseOptions parseOptions, ISimplifierOptions options, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(options);
 
                 ParseOptions = (CSharpParseOptions)parseOptions;
-                Options = (CSharpSimplifierOptions)options;
+                Options = (ICSharpSimplifierOptions)options;
                 CancellationToken = cancellationToken;
             }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 TNode node,
                 SyntaxNode newNode,
                 SyntaxNode parentNode,
-                Func<TNode, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> simplifier)
+                Func<TNode, SemanticModel, ICSharpSimplifierOptions, CancellationToken, SyntaxNode> simplifier)
                 where TNode : SyntaxNode
             {
                 RequireInitialized();
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             protected SyntaxNode SimplifyExpression<TExpression>(
                 TExpression expression,
                 SyntaxNode newNode,
-                Func<TExpression, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> simplifier)
+                Func<TExpression, SemanticModel, ICSharpSimplifierOptions, CancellationToken, SyntaxNode> simplifier)
                 where TExpression : SyntaxNode
             {
                 var parentNode = GetParentNode(expression);
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return SimplifyNode(expression, newNode, parentNode, simplifier);
             }
 
-            protected SyntaxToken SimplifyToken(SyntaxToken token, Func<SyntaxToken, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxToken> simplifier)
+            protected SyntaxToken SimplifyToken(SyntaxToken token, Func<SyntaxToken, SemanticModel, ICSharpSimplifierOptions, CancellationToken, SyntaxToken> simplifier)
             {
                 RequireInitialized();
 

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private readonly CSharpTypeStyleHelper _helper;
         private readonly TypeSyntax _typeName;
         private readonly SemanticModel _semanticModel;
-        private readonly CSharpSimplifierOptions _options;
+        private readonly ICSharpSimplifierOptions _options;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             CSharpTypeStyleHelper helper,
             TypeSyntax typeName,
             SemanticModel semanticModel,
-            CSharpSimplifierOptions options,
+            ICSharpSimplifierOptions options,
             bool isStylePreferred,
             bool isInIntrinsicTypeContext,
             bool isTypeApparentInContext,
@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public bool CanConvert()
             => _helper.TryAnalyzeVariableDeclaration(_typeName, _semanticModel, _options, _cancellationToken);
+
+        public ReportDiagnostic GetDiagnosticSeverityPreference(CSharpSimplifierStyleOptions options)
+            => IsInIntrinsicTypeContext ? options.VarForBuiltInTypes.Notification.Severity :
+               IsTypeApparentInContext ? options.VarWhenTypeIsApparent.Notification.Severity :
+               options.VarElsewhere.Notification.Severity;
     }
 
     internal abstract partial class CSharpTypeStyleHelper
@@ -67,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public virtual TypeStyleResult AnalyzeTypeName(
             TypeSyntax typeName, SemanticModel semanticModel,
-            CSharpSimplifierOptions options, CancellationToken cancellationToken)
+            ICSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             if (typeName?.FirstAncestorOrSelf<SyntaxNode>(a => a.Kind() is SyntaxKind.DeclarationExpression or SyntaxKind.VariableDeclaration or SyntaxKind.ForEachStatement) is not { } declaration)
             {
@@ -83,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         internal abstract bool TryAnalyzeVariableDeclaration(
-            TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, CancellationToken cancellationToken);
+            TypeSyntax typeName, SemanticModel semanticModel, ICSharpSimplifierOptions options, CancellationToken cancellationToken);
 
         protected abstract bool AssignmentSupportsStylePreference(
-            SyntaxToken identifier, TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel, CSharpSimplifierOptions options, CancellationToken cancellationToken);
+            SyntaxToken identifier, TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel, ICSharpSimplifierOptions options, CancellationToken cancellationToken);
 
         internal TypeSyntax? FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
         {

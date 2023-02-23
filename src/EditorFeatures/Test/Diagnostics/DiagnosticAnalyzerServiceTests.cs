@@ -1364,7 +1364,7 @@ class A
 
             public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
-            public bool OpenFileOnly(SimplifierOptions options)
+            public bool OpenFileOnly(SimplifierStyleOptions options)
                 => true;
         }
 

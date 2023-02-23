@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
     internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions>
         : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
-        where TSimplifierOptions : SimplifierOptions
+        where TSimplifierOptions : SimplifierStyleOptions
     {
 #if LOG
         private static string _logFile = @"c:\temp\simplifytypenames.txt";
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
             CancellationToken cancellationToken);
 
-        public override bool OpenFileOnly(SimplifierOptions? options)
+        public override bool OpenFileOnly(SimplifierStyleOptions? options)
         {
             // analyzer is only active in C# and VB projects
             Contract.ThrowIfNull(options);

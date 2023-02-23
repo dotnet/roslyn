@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
     internal abstract class AbstractSimplifier<TSyntax, TSimplifiedSyntax, TSimplifierOptions>
         where TSyntax : SyntaxNode
         where TSimplifiedSyntax : SyntaxNode
-        where TSimplifierOptions : SimplifierOptions
+        where TSimplifierOptions : ISimplifierOptions
     {
         public abstract bool TrySimplify(
             TSyntax syntax,

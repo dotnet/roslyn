@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             StatementSyntax,
             ExpressionSyntax,
             BinaryExpressionSyntax,
-            CSharpSimplifierOptions>
+            CSharpSimplifierStyleOptions>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -58,13 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             return true;
         }
 
-        protected override bool PrefersThrowExpression(CSharpSimplifierOptions options)
+        protected override bool PrefersThrowExpression(CSharpSimplifierStyleOptions options)
             => options.PreferThrowExpression.Value;
 
         protected override string EscapeResourceString(string input)
             => input.Replace("\\", "\\\\").Replace("\"", "\\\"");
 
-        protected override StatementSyntax CreateParameterCheckIfStatement(ExpressionSyntax condition, StatementSyntax ifTrueStatement, CSharpSimplifierOptions options)
+        protected override StatementSyntax CreateParameterCheckIfStatement(ExpressionSyntax condition, StatementSyntax ifTrueStatement, CSharpSimplifierStyleOptions options)
         {
             var withBlock = options.PreferBraces.Value == CodeAnalysis.CodeStyle.PreferBracesPreference.Always;
             var singleLine = options.AllowEmbeddedStatementsOnSameLine.Value;

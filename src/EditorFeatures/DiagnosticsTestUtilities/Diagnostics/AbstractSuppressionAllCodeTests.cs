@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
-            public bool OpenFileOnly(SimplifierOptions options) => false;
+            public bool OpenFileOnly(SimplifierStyleOptions options) => false;
 
             public ImmutableArray<SyntaxNode> AllNodes { get; set; }
 

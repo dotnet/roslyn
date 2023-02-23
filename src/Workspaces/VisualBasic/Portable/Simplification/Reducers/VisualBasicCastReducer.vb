@@ -15,20 +15,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Private Shared ReadOnly s_pool As ObjectPool(Of IReductionRewriter) =
             New ObjectPool(Of IReductionRewriter)(Function() New Rewriter(s_pool))
 
-        Private Shared ReadOnly s_simplifyCast As Func(Of CastExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyCast
+        Private Shared ReadOnly s_simplifyCast As Func(Of CastExpressionSyntax, SemanticModel, ISimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyCast
 
         Public Sub New()
             MyBase.New(s_pool)
         End Sub
 
-        Public Overrides Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
+        Public Overrides Function IsApplicable(options As IVisualBasicSimplifierOptions) As Boolean
             Return True
         End Function
 
         Private Overloads Shared Function SimplifyCast(
             node As CastExpressionSyntax,
             semanticModel As SemanticModel,
-            options As SimplifierOptions,
+            options As ISimplifierOptions,
             cancellationToken As CancellationToken
         ) As ExpressionSyntax
 
@@ -39,12 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return node.Uncast()
         End Function
 
-        Private Shared ReadOnly s_simplifyPredefinedCast As Func(Of PredefinedCastExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyPredefinedCast
+        Private Shared ReadOnly s_simplifyPredefinedCast As Func(Of PredefinedCastExpressionSyntax, SemanticModel, ISimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyPredefinedCast
 
         Private Overloads Shared Function SimplifyPredefinedCast(
             node As PredefinedCastExpressionSyntax,
             semanticModel As SemanticModel,
-            options As SimplifierOptions,
+            options As ISimplifierOptions,
             cancellationToken As CancellationToken
         ) As ExpressionSyntax
 

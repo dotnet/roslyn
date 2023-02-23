@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
             EncodingFormatter.Instance,
             // ForceTypelessFormatter<T> needs to be listed here for each Roslyn abstract type T that is being serialized OOP.
             // TODO: add a resolver that provides these https://github.com/dotnet/roslyn/issues/60724
-            new ForceTypelessFormatter<SimplifierOptions>(),
+            new ForceTypelessFormatter<SimplifierStyleOptions>(),
             new ForceTypelessFormatter<SyntaxFormattingOptions>(),
             new ForceTypelessFormatter<CodeGenerationOptions>(),
             new ForceTypelessFormatter<IdeCodeStyleOptions>());

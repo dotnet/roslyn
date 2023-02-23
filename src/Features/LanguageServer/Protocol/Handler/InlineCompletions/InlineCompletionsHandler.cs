@@ -131,7 +131,7 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
         Document originalDocument,
         SourceText originalSourceText,
         SyntaxFormattingOptions formattingOptions,
-        SimplifierOptions simplifierOptions,
+        SimplifierStyleOptions simplifierOptions,
         CancellationToken cancellationToken)
     {
         // Calculate the snippet text with defaults + snippet function results.
@@ -210,7 +210,7 @@ internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHand
         SourceText originalSourceText,
         TextSpan snippetSpan,
         ParsedXmlSnippet parsedSnippet,
-        SimplifierOptions simplifierOptions,
+        SimplifierStyleOptions simplifierOptions,
         CancellationToken cancellationToken)
     {
         var documentWithDefaultSnippet = originalDocument.WithText(

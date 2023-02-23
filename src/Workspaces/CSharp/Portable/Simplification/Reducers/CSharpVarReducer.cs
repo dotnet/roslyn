@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        protected override bool IsApplicable(CSharpSimplifierOptions options)
-            => options.VarForBuiltInTypes.Value ||
-               options.VarWhenTypeIsApparent.Value ||
-               options.VarElsewhere.Value;
+        protected override bool IsApplicable(ICSharpSimplifierOptions options)
+            => options.VarForBuiltInTypes ||
+               options.VarWhenTypeIsApparent ||
+               options.VarElsewhere;
     }
 }

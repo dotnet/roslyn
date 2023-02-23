@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 #pragma warning restore
         }
 
-        internal static async Task<Document> ReduceAsync(Document document, SimplifierOptions options, CancellationToken cancellationToken)
+        public static async Task<Document> ReduceAsync(Document document, ISimplifierOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await ReduceAsync(document, root.FullSpan, options, cancellationToken).ConfigureAwait(false);
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 #pragma warning restore
         }
 
-        internal static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, SimplifierOptions options, CancellationToken cancellationToken)
+        public static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, ISimplifierOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await ReduceAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), options, cancellationToken).ConfigureAwait(false);
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 #pragma warning restore
 
-        internal static Task<Document> ReduceAsync(Document document, TextSpan span, SimplifierOptions options, CancellationToken cancellationToken)
+        public static Task<Document> ReduceAsync(Document document, TextSpan span, ISimplifierOptions options, CancellationToken cancellationToken)
             => ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
 
         /// <summary>
@@ -237,12 +237,12 @@ namespace Microsoft.CodeAnalysis.Simplification
                 document, spans.ToImmutableArrayOrEmpty(), options, reducers: default, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, SimplifierOptions options, CancellationToken cancellationToken)
+        public static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, ISimplifierOptions options, CancellationToken cancellationToken)
             => document.GetRequiredLanguageService<ISimplificationService>().ReduceAsync(
                 document, spans.ToImmutableArrayOrEmpty(), options, reducers: default, cancellationToken);
 
         internal static async Task<Document> ReduceAsync(
-            Document document, ImmutableArray<AbstractReducer> reducers, SimplifierOptions options, CancellationToken cancellationToken)
+            Document document, ImmutableArray<AbstractReducer> reducers, ISimplifierOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await document.GetRequiredLanguageService<ISimplificationService>()
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
 #pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
-        internal static async Task<SimplifierOptions> GetOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
+        internal static async Task<ISimplifierOptions> GetOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
         {
             optionSet ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var simplificationService = document.Project.Solution.Services.GetRequiredLanguageService<ISimplificationService>(document.Project.Language);

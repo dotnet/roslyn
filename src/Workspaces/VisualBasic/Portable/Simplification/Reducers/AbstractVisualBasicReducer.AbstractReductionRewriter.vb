@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Protected CancellationToken As CancellationToken
             Protected Property ParseOptions As VisualBasicParseOptions
-            Private _simplificationOptions As VisualBasicSimplifierOptions
+            Private _simplificationOptions As IVisualBasicSimplifierOptions
 
             Private ReadOnly _processedParentNodes As HashSet(Of SyntaxNode) = New HashSet(Of SyntaxNode)()
             Private _semanticModel As SemanticModel
@@ -30,9 +30,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 _pool = pool
             End Sub
 
-            Public Sub Initialize(parseOptions As ParseOptions, options As SimplifierOptions, cancellationToken As CancellationToken) Implements IReductionRewriter.Initialize
+            Public Sub Initialize(parseOptions As ParseOptions, options As ISimplifierOptions, cancellationToken As CancellationToken) Implements IReductionRewriter.Initialize
                 Me.ParseOptions = DirectCast(parseOptions, VisualBasicParseOptions)
-                _simplificationOptions = DirectCast(options, VisualBasicSimplifierOptions)
+                _simplificationOptions = DirectCast(options, IVisualBasicSimplifierOptions)
                 Me.CancellationToken = cancellationToken
             End Sub
 
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 node As TNode,
                 newNode As SyntaxNode,
                 parentNode As SyntaxNode,
-                simplifyFunc As Func(Of TNode, SemanticModel, VisualBasicSimplifierOptions, CancellationToken, SyntaxNode)
+                simplifyFunc As Func(Of TNode, SemanticModel, IVisualBasicSimplifierOptions, CancellationToken, SyntaxNode)
             ) As SyntaxNode
 
                 RequireInitialized()
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Protected Function SimplifyToken(
                 token As SyntaxToken,
                 newToken As SyntaxToken,
-                simplifyFunc As Func(Of SyntaxToken, SemanticModel, VisualBasicSimplifierOptions, CancellationToken, SyntaxToken)
+                simplifyFunc As Func(Of SyntaxToken, SemanticModel, IVisualBasicSimplifierOptions, CancellationToken, SyntaxToken)
             ) As SyntaxToken
 
                 If token.Kind = SyntaxKind.None Then
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Protected Function SimplifyExpression(Of TExpression As ExpressionSyntax)(
                 expression As TExpression,
                 newNode As SyntaxNode,
-                simplifier As Func(Of TExpression, SemanticModel, VisualBasicSimplifierOptions, CancellationToken, SyntaxNode)
+                simplifier As Func(Of TExpression, SemanticModel, IVisualBasicSimplifierOptions, CancellationToken, SyntaxNode)
             ) As SyntaxNode
 
                 Return SimplifyNode(expression, newNode, GetParentNode(expression), simplifier)
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Protected Function SimplifyStatement(Of TStatement As StatementSyntax)(
                 statement As TStatement,
                 newNode As SyntaxNode,
-                simplifier As Func(Of TStatement, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode)
+                simplifier As Func(Of TStatement, SemanticModel, ISimplifierOptions, CancellationToken, SyntaxNode)
             ) As SyntaxNode
 
                 Return SimplifyNode(statement, newNode, GetParentNode(statement), simplifier)

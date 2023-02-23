@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
     internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntaxKind, TSimplifierOptions>
         : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
-        where TSimplifierOptions : SimplifierOptions
+        where TSimplifierOptions : SimplifierStyleOptions
     {
         private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind, TSimplifierOptions> _analyzer;
 

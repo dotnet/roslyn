@@ -12,14 +12,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
         Public Shared ReadOnly Instance As New VisualBasicSimplification()
 
-        Public Overrides ReadOnly Property DefaultOptions As SimplifierOptions
+        Public Overrides ReadOnly Property DefaultOptions As SimplifierStyleOptions
             Get
-                Return VisualBasicSimplifierOptions.Default
+                Return VisualBasicSimplifierStyleOptions.Default
             End Get
         End Property
 
-        Public Overrides Function GetSimplifierOptions(options As IOptionsReader, fallbackOptions As SimplifierOptions) As SimplifierOptions
-            Return New VisualBasicSimplifierOptions(options, If(DirectCast(fallbackOptions, VisualBasicSimplifierOptions), VisualBasicSimplifierOptions.Default))
+        Public Overrides Function GetSimplifierOptions(options As IOptionsReader, fallbackOptions As SimplifierStyleOptions) As SimplifierStyleOptions
+            Return New VisualBasicSimplifierStyleOptions(options, If(DirectCast(fallbackOptions, VisualBasicSimplifierStyleOptions), VisualBasicSimplifierStyleOptions.Default))
         End Function
     End Class
 End Namespace

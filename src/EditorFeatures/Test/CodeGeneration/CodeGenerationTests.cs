@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         this.Document = this.Result;
 
                         var formattingOptions = IsVisualBasic ? (SyntaxFormattingOptions)VisualBasicSyntaxFormattingOptions.Default : CSharpSyntaxFormattingOptions.Default;
-                        var simplifierOptions = IsVisualBasic ? (SimplifierOptions)VisualBasicSimplifierOptions.Default : CSharpSimplifierOptions.Default;
+                        var simplifierOptions = IsVisualBasic ? (SimplifierStyleOptions)VisualBasicSimplifierStyleOptions.Default : CSharpSimplifierStyleOptions.Default;
 
                         var simplified = Simplifier.ReduceAsync(this.Document, Simplifier.Annotation, simplifierOptions, CancellationToken.None).Result;
                         var actual = Formatter.FormatAsync(simplified, Formatter.Annotation, formattingOptions, CancellationToken.None).Result.GetSyntaxRootAsync().Result.ToFullString();

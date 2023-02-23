@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.SimplifyNames), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.SpellCheck)>
     Partial Friend Class SimplifyTypeNamesCodeFixProvider
-        Inherits AbstractSimplifyTypeNamesCodeFixProvider(Of SyntaxKind, VisualBasicSimplifierOptions)
+        Inherits AbstractSimplifyTypeNamesCodeFixProvider(Of SyntaxKind, VisualBasicSimplifierStyleOptions)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>

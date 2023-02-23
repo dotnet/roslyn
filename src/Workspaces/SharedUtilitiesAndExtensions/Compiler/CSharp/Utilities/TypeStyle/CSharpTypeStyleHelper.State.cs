@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             public State(
                 SyntaxNode declaration, SemanticModel semanticModel,
-                CSharpSimplifierOptions options, CancellationToken cancellationToken)
+                ICSharpSimplifierOptions options, CancellationToken cancellationToken)
             {
                 TypeStylePreference = options.GetUseVarPreference();
 

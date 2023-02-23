@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis.Simplification
         public IReductionRewriter GetOrCreateRewriter()
             => _pool.Allocate();
 
-        public abstract bool IsApplicable(SimplifierOptions options);
+        public abstract bool IsApplicable(ISimplifierOptions options);
     }
 }

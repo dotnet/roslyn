@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var options = new object[]
             {
-                SimplifierOptions.GetDefault(languageServices),
+                SimplifierStyleOptions.GetDefault(languageServices),
                 SyntaxFormattingOptions.GetDefault(languageServices),
                 CodeCleanupOptions.GetDefault(languageServices),
                 CodeGenerationOptions.GetDefault(languageServices),
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                     Indentation = IndentationPlacement.SwitchSection
                 },
 
-                new CSharpSimplifierOptions()
+                new CSharpSimplifierStyleOptions()
                 {
                     QualifyFieldAccess = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
                 },
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                     AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
                 },
 
-                new VisualBasicSimplifierOptions()
+                new VisualBasicSimplifierStyleOptions()
                 {
                     QualifyFieldAccess = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
                 },

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         public override bool TrySimplify(
             NameSyntax name,
             SemanticModel semanticModel,
-            CSharpSimplifierOptions options,
+            ICSharpSimplifierOptions options,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
@@ -708,12 +708,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, CSharpSimplifierOptions options, SemanticModel semanticModel)
+        private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, ICSharpSimplifierOptions options, SemanticModel semanticModel)
         {
             return !name.IsDirectChildOfMemberAccessExpression() &&
                    !name.InsideCrefReference() &&
                    !InsideNameOfExpression(name, semanticModel) &&
-                   options.PreferPredefinedTypeKeywordInDeclaration.Value;
+                   options.PreferPredefinedTypeKeywordInDeclaration;
         }
     }
 }

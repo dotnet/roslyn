@@ -38,14 +38,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(s_reducers)
         End Sub
 
-        Public Overrides ReadOnly Property DefaultOptions As SimplifierOptions
+        Public Overrides ReadOnly Property DefaultOptions As SimplifierStyleOptions
             Get
-                Return VisualBasicSimplifierOptions.Default
+                Return VisualBasicSimplifierStyleOptions.Default
             End Get
         End Property
 
-        Public Overrides Function GetSimplifierOptions(options As IOptionsReader, fallbackOptions As SimplifierOptions) As SimplifierOptions
-            Return New VisualBasicSimplifierOptions(options, If(DirectCast(fallbackOptions, VisualBasicSimplifierOptions), VisualBasicSimplifierOptions.Default))
+        Public Overrides Function GetSimplifierOptions(options As IOptionsReader, fallbackOptions As SimplifierStyleOptions) As SimplifierStyleOptions
+            Return New VisualBasicSimplifierStyleOptions(options, If(DirectCast(fallbackOptions, VisualBasicSimplifierStyleOptions), VisualBasicSimplifierStyleOptions.Default))
         End Function
 
         Public Overrides Function Expand(node As SyntaxNode, semanticModel As SemanticModel, aliasReplacementAnnotation As SyntaxAnnotation, expandInsideNode As Func(Of SyntaxNode, Boolean), expandParameter As Boolean, cancellationToken As CancellationToken) As SyntaxNode

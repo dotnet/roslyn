@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
             => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
 
-        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, SimplifierOptions? options)
+        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, SimplifierStyleOptions? options)
             => analyzer is IBuiltInAnalyzer builtInAnalyzer && builtInAnalyzer.OpenFileOnly(options);
 
         public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)

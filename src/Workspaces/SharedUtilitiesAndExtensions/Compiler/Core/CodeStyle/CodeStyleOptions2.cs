@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             => s_allOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, serializer);
 
         private static PerLanguageOption2<CodeStyleOption2<bool>> CreateQualifyAccessOption(string name)
-            => CreatePerLanguageOption(CodeStyleOptionGroups.ThisOrMe, name, defaultValue: SimplifierOptions.DefaultQualifyAccess);
+            => CreatePerLanguageOption(CodeStyleOptionGroups.ThisOrMe, name, defaultValue: SimplifierStyleOptions.DefaultQualifyAccess);
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in field access expressions.
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration = CreatePerLanguageOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage,
-            defaultValue: SimplifierOptions.CommonDefaults.PreferPredefinedTypeKeywordInDeclaration,
+            defaultValue: SimplifierStyleOptions.CommonDefaults.PreferPredefinedTypeKeywordInDeclaration,
             name: "dotnet_style_predefined_type_for_locals_parameters_members")
             .WithPublicOption(PublicFeatureName, "PreferIntrinsicPredefinedTypeKeywordInDeclaration");
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = CreatePerLanguageOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage,
-            defaultValue: SimplifierOptions.CommonDefaults.PreferPredefinedTypeKeywordInMemberAccess,
+            defaultValue: SimplifierStyleOptions.CommonDefaults.PreferPredefinedTypeKeywordInMemberAccess,
             name: "dotnet_style_predefined_type_for_member_access")
             .WithPublicOption(PublicFeatureName, "PreferIntrinsicPredefinedTypeKeywordInMemberAccess");
 

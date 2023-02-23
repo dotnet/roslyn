@@ -90,7 +90,7 @@ End NameSpace"
             }
 
             Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
-            Dim simplifierOptions = VisualBasicSimplifierOptions.Default
+            Dim simplifierOptions = VisualBasicSimplifierStyleOptions.Default
 
             Dim imported = If(
                     useSymbolAnnotations,
