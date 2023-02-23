@@ -182,6 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string RemoveUnnecessaryNullableDirectiveDiagnosticId = "IDE0241";
 
         public const string MakeStructReadOnlyDiagnosticId = "IDE0250";
+        public const string MakeStructMemberReadOnlyDiagnosticId = "IDE0251";
 
         public const string UsePatternMatchingAsAndMemberAccessDiagnosticId = "IDE0260";
 
