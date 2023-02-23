@@ -6,9 +6,9 @@
       <Sha>7e80445ee82adbf9a8e6ae601ac5e239d982afaa</Sha>
       <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="8.0.0-alpha.1.23121.1">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="8.0.0-alpha.1.23122.1">
       <Uri>https://github.com/dotnet/source-build-externals</Uri>
-      <Sha>616f121630a3c46bff2cd7f50640f051f446070d</Sha>
+      <Sha>54b1cf7905203a71e6883d2a3b8ea61d487cefdb</Sha>
       <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
     </Dependency>
   </ProductDependencies>
