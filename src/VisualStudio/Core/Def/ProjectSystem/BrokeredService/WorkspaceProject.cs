@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService
             {
                 _project.AddMetadataReference(
                     metadataReference.FilePath,
-                    new MetadataReferenceProperties(MetadataImageKind.Assembly, default, metadataReference.EmbedInteropTypes));
+                    metadataReference.CreateProperties());
             }
         }
 

@@ -19,6 +19,7 @@ pr:
     exclude:
       - docs/*
       - eng/config/PublishData.json
+      - src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
       - .vscode/*
       - .github/*
       - .devcontainer/*
@@ -216,7 +217,11 @@ stages:
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     variables:
-      compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      - template: eng/pipelines/variables-build.yml
+        parameters:
+          configuration: Release
+      - name: compilerChange
+        value: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
@@ -261,6 +266,10 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
+    variables:
+      - template: eng/pipelines/variables-build.yml
+        parameters:
+          configuration: Debug
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
@@ -279,6 +288,10 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
+    variables:
+      - template: eng/pipelines/variables-build.yml
+        parameters:
+          configuration: Release
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
@@ -321,6 +334,10 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
+    variables:
+      - template: eng/pipelines/variables-build.yml
+        parameters:
+          configuration: Release
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
@@ -346,6 +363,11 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
     timeoutInMinutes: 35
+    variables:
+      - template: eng/pipelines/variables-build.yml
+        parameters:
+          configuration: Debug
+
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 

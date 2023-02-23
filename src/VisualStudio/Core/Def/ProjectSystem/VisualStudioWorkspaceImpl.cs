@@ -52,6 +52,7 @@ using Solution = Microsoft.CodeAnalysis.Solution;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.TaskList;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -128,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
 
-            ProjectSystemProjectFactory = new ProjectSystemProjectFactory(this, FileChangeWatcher, QueueCheckForFilesBeingOpen, RemoveProjectFromMaps);
+            ProjectSystemProjectFactory = new ProjectSystemProjectFactory(this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps);
 
             _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
@@ -214,7 +215,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
-            openFileTracker.ProcessQueuedWorkOnUIThread();
+            // This must be called after the _openFileTracker was assigned; this way we know that a file added from the project system either got checked
+            // in CheckForAddedFileBeingOpenMaybeAsync, or we catch it here.
+            openFileTracker.CheckForOpenFilesThatWeMissed();
 
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;
@@ -225,13 +228,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             Logger.Log(FunctionId.Run_Environment,
                 KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
+
+            // Initialize task-list in BG.
+            var taskListService = this.Services.SolutionServices.ExportProvider.GetExports<VisualStudioTaskListService>().Single().Value;
+            taskListService.Start(this);
         }
 
-        public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
-            => _openFileTracker?.QueueCheckForFilesBeingOpen(newFileNames);
-
-        public void ProcessQueuedWorkOnUIThread()
-            => _openFileTracker?.ProcessQueuedWorkOnUIThread();
+        public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
+            => _openFileTracker?.CheckForAddedFileBeingOpenMaybeAsync(useAsync, newFileNames) ?? Task.CompletedTask;
 
         internal void AddProjectToInternalMaps(ProjectSystemProject project, IVsHierarchy? hierarchy, Guid guid, string projectSystemName)
         {

@@ -4,7 +4,6 @@
     <TargetFramework>net6.0</TargetFramework>
     <NonShipping>true</NonShipping>
     <UseAppHost>false</UseAppHost>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IsShipping>false</IsShipping>
   </PropertyGroup>  
   <ItemGroup>

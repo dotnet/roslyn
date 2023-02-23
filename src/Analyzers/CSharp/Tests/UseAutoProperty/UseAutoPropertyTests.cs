@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -2543,6 +2541,97 @@ class Class
         fixed (int** ii = &i)
         {
         }
+    }
+}");
+        }
+
+        [Fact, WorkItem(25408, "https://github.com/dotnet/roslyn/issues/25408")]
+        public async Task TestLinkedFile()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>class C
+{
+    private readonly [|int _value|];
+
+    public C(int value)
+    {
+        _value = value;
+    }
+
+    public int Value
+    {
+        get { return _value; }
+    }
+}</Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>",
+@"class C
+{
+    public C(int value)
+    {
+        Value = value;
+    }
+
+    public int Value { get; }
+}");
+        }
+
+        [Fact, WorkItem(32597, "https://github.com/dotnet/roslyn/issues/32597")]
+        public async Task TestUnassignedVariable1()
+        {
+            await TestMissingAsync(
+@"public struct UInt128
+{
+    [|private ulong s0;|]
+    private ulong s1;
+
+    public ulong S0 { get { return s0; } }
+    public ulong S1 { get { return s1; } }
+
+    public static void Create(out UInt128 c, uint r0, uint r1, uint r2, uint r3)
+    {
+        c.s0 = (ulong)r1 << 32 | r0;
+        c.s1 = (ulong)r3 << 32 | r2;
+    }
+}");
+        }
+
+        [Fact, WorkItem(32597, "https://github.com/dotnet/roslyn/issues/32597")]
+        public async Task TestAssignedVariable1()
+        {
+            await TestInRegularAndScript1Async(
+@"public struct UInt128
+{
+    [|private ulong s0;|]
+    private ulong s1;
+
+    public ulong S0 { get { return s0; } }
+    public ulong S1 { get { return s1; } }
+
+    public static void Create(out UInt128 c, uint r0, uint r1, uint r2, uint r3)
+    {
+        c = default;
+        c.s0 = (ulong)r1 << 32 | r0;
+        c.s1 = (ulong)r3 << 32 | r2;
+    }
+}",
+@"public struct UInt128
+{
+    private ulong s1;
+
+    public ulong S0 { get; private set; }
+    public ulong S1 { get { return s1; } }
+
+    public static void Create(out UInt128 c, uint r0, uint r1, uint r2, uint r3)
+    {
+        c = default;
+        c.S0 = (ulong)r1 << 32 | r0;
+        c.s1 = (ulong)r3 << 32 | r2;
     }
 }");
         }

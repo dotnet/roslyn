@@ -3133,7 +3133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     (ExpressionSyntax)condition,
                     CreateBlock(trueStatements),
                     SyntaxFactory.ElseClause(
-                        falseArray.Count == 1 && falseArray[0] is IfStatementSyntax ? (StatementSyntax)falseArray[0] : CreateBlock(falseArray)));
+                        falseArray is [IfStatementSyntax ifStatement] ? ifStatement : CreateBlock(falseArray)));
             }
         }
 
@@ -3376,10 +3376,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.BaseExpression();
 
         public override SyntaxNode TypedConstantExpression(TypedConstant value)
-            => ExpressionGenerator.GenerateExpression(value);
+            => ExpressionGenerator.GenerateExpression(this, value);
 
         private protected override SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
-            => ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference);
+            => ExpressionGenerator.GenerateExpression(this, type, value, canUseFieldReference);
 
         public override SyntaxNode IdentifierName(string identifier)
             => identifier.ToIdentifierName();
