@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         protected override void Dispose(bool finalize)
         {
             // workspace is going away. unregister this workspace from work coordinator
-            DiagnosticProvider.Disable(this);
+            DiagnosticProvider.Disable(this, blockingShutdown: true);
 
             base.Dispose(finalize);
         }
