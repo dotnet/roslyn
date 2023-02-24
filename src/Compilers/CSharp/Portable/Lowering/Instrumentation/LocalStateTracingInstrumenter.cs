@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
 
             static bool hasOverriddenToString(TypeSymbol variableType)
-                => variableType.GetMembers("ToString").Any(m => m.GetOverriddenMember() is not null);
+                => variableType.GetMembers(WellKnownMemberNames.ObjectToString).Any(m => m.GetOverriddenMember() is not null);
 
             if (!overloadOpt.HasValue)
             {
