@@ -260,25 +260,40 @@ while :; do
             ;;
         jessie) # Debian 8
             __CodeName=jessie
-            __UbuntuRepo="http://ftp.debian.org/debian/"
+
+            if [[ -z "$__UbuntuRepo" ]]; then
+                __UbuntuRepo="http://ftp.debian.org/debian/"
+            fi
             ;;
         stretch) # Debian 9
             __CodeName=stretch
-            __UbuntuRepo="http://ftp.debian.org/debian/"
             __LLDB_Package="liblldb-6.0-dev"
+
+            if [[ -z "$__UbuntuRepo" ]]; then
+                __UbuntuRepo="http://ftp.debian.org/debian/"
+            fi
             ;;
         buster) # Debian 10
             __CodeName=buster
-            __UbuntuRepo="http://ftp.debian.org/debian/"
             __LLDB_Package="liblldb-6.0-dev"
+
+            if [[ -z "$__UbuntuRepo" ]]; then
+                __UbuntuRepo="http://ftp.debian.org/debian/"
+            fi
             ;;
         bullseye) # Debian 11
             __CodeName=bullseye
-            __UbuntuRepo="http://ftp.debian.org/debian/"
+
+            if [[ -z "$__UbuntuRepo" ]]; then
+                __UbuntuRepo="http://ftp.debian.org/debian/"
+            fi
             ;;
         sid) # Debian sid
             __CodeName=sid
-            __UbuntuRepo="http://ftp.debian.org/debian/"
+
+            if [[ -z "$__UbuntuRepo" ]]; then
+                __UbuntuRepo="http://ftp.debian.org/debian/"
+            fi
             ;;
         tizen)
             __CodeName=
