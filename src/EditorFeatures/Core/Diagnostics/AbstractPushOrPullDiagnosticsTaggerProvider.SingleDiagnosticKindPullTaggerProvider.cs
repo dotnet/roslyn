@@ -95,9 +95,6 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
             if (document == null)
                 return;
 
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.Preview)
-                return;
-
             var snapshot = documentSpanToTag.SnapshotSpan.Snapshot;
 
             var project = document.Project;
