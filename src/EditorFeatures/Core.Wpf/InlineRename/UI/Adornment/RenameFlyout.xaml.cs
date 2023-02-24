@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 IdentifierTextBox.Focus();
                 IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
+                IdentifierTextBox.SelectionChanged += IdentifierTextBox_SelectionChanged;
             };
 
             InitializeComponent();
@@ -211,9 +212,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var start = IdentifierTextBox.SelectionStart;
             var length = IdentifierTextBox.SelectionLength;
 
-            var textStartPoint = _viewModel.InitialTrackingSpan.GetStartPoint(_textView.TextSnapshot);
-            var startPoint = textStartPoint.Add(start);
-            _textView.SetSelection(new SnapshotSpan(startPoint, length));
+            var buffer = _viewModel.InitialTrackingSpan.TextBuffer;
+            var startPoint = _viewModel.InitialTrackingSpan.GetStartPoint(buffer.CurrentSnapshot);
+            _textView.SetSelection(new SnapshotSpan(startPoint + start, length));
         }
     }
 }
