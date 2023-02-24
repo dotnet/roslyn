@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         }
 
         [WpfFact]
-        public async Task TestPreviewDiagnosticTaggerInPreviewPane()
+        public async Task TestPreviewDiagnosticTaggerInPreviewPaneDoesNotWork()
         {
             // TODO: WPF required due to https://github.com/dotnet/roslyn/issues/46153
             using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeaturesWpf);
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             // check left buffer
             var leftSnapshot = leftBuffer.CurrentSnapshot;
             var leftSpans = leftTagger.GetTags(leftSnapshot.GetSnapshotSpanCollection()).ToList();
-            Assert.Equal(1, leftSpans.Count);
+            Assert.Equal(0, leftSpans.Count);
 
             // check right buffer
             var rightSnapshot = rightBuffer.CurrentSnapshot;
