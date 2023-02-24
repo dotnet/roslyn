@@ -184,18 +184,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
+            var provider = workspace.ExportProvider.GetExportedValues<ITaggerProvider>().OfType<DiagnosticsSquiggleTaggerProvider>().Single();
+
             // set up tagger for both buffers
             var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-            var provider = workspace.ExportProvider.GetExportedValues<ITaggerProvider>().OfType<DiagnosticsSquiggleTaggerProvider>().Single();
-            var leftTagger = provider.CreateTagger<IErrorTag>(leftBuffer);
-            Contract.ThrowIfNull(leftTagger);
-
-            using var leftDisposable = leftTagger as IDisposable;
             var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
+
+            var leftDocument = leftBuffer.GetRelatedDocuments().Single();
+            var rightDocument = rightBuffer.GetRelatedDocuments().Single();
+
+            // Diagnostic analyzer service, which provides pull capabilities (and not to be confused with
+            // IDiagnosticService, which is push), doesn't normally register for test workspace.  So do it explicitly.
+            var diagnosticAnalyzer = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
+            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticAnalyzer;
+            incrementalAnalyzer.CreateIncrementalAnalyzer(leftDocument.Project.Solution.Workspace);
+            incrementalAnalyzer.CreateIncrementalAnalyzer(rightDocument.Project.Solution.Workspace);
+
+            var leftTagger = provider.CreateTagger<IErrorTag>(leftBuffer);
             var rightTagger = provider.CreateTagger<IErrorTag>(rightBuffer);
+            Contract.ThrowIfNull(leftTagger);
             Contract.ThrowIfNull(rightTagger);
 
+            using var leftDisposable = leftTagger as IDisposable;
             using var rightDisposable = rightTagger as IDisposable;
+
             // wait for diagnostics and taggers
             await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(workspace, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles);
 
