@@ -1102,7 +1102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected bool IsFeatureEnabled(MessageID feature)
         {
-            // TODO2 remove?
             return this.Options.IsFeatureEnabled(feature);
         }
 
