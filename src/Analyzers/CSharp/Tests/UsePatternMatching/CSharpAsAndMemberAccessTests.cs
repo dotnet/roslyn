@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
@@ -944,6 +946,239 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                         }
                     }
                     """,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        public async Task TestIsTypePattern()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (([|o as Type|])?.Name is string s)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (o is Type { Name: string s })
+                            {
+                            }
+                        }
+                    }
+                    """,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        public async Task TestIsNotTypePattern()
+        {
+            var code = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if ((o as Type)?.Name is not string s)
+                            {
+                            }
+                        }
+                    }
+                    """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        public async Task TestIsVarPattern()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (([|o as Type|])?.Name is var s)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (o is Type { Name: var s })
+                            {
+                            }
+                        }
+                    }
+                    """,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        public async Task TestIsNotVarPattern()
+        {
+            var code = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if ({|CS8518:(o as Type)?.Name is not var s|})
+                            {
+                            }
+                        }
+                    }
+                    """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        public async Task TestIsRecursivePattern1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (([|o as Type|])?.Name is { })
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (o is Type { Name: { } })
+                            {
+                            }
+                        }
+                    }
+                    """,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        public async Task TestIsRecursivePattern2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (([|o as Type|])?.Name is { } s)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (o is Type { Name: { } s })
+                            {
+                            }
+                        }
+                    }
+                    """,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        public async Task TestIsNotRecursivePattern1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (([|o as Type|])?.Name is not { })
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if (o is Type { Name: not { } })
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
+        public async Task TestIsNotRecursivePattern2()
+        {
+            var code = """
+                    using System;
+                    class C
+                    {
+                        void M(object o)
+                        {
+                            if ((o as Type)?.Name is not { } s)
+                            {
+                            }
+                        }
+                    }
+                    """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
     }
