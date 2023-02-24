@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         }
 
         [WpfFact]
-        public async Task TestPreviewDiagnosticTaggerInPreviewPaneDoesNotWork()
+        public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
             // TODO: WPF required due to https://github.com/dotnet/roslyn/issues/46153
             using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeaturesWpf);
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var newDocument = oldDocument.WithText(oldText.WithChanges(new TextChange(new TextSpan(0, oldText.Length), "class C { }")));
 
             // create a diff view
-            WpfTestRunner.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPaneDoesNotWork)} creates a {nameof(DifferenceViewerPreview)}");
+            WpfTestRunner.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(DifferenceViewerPreview)}");
 
             var previewFactoryService = (PreviewFactoryService)workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
             using var diffView = await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None);
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             // check left buffer
             var leftSnapshot = leftBuffer.CurrentSnapshot;
             var leftSpans = leftTagger.GetTags(leftSnapshot.GetSnapshotSpanCollection()).ToList();
-            Assert.Equal(0, leftSpans.Count);
+            Assert.Equal(1, leftSpans.Count);
 
             // check right buffer
             var rightSnapshot = rightBuffer.CurrentSnapshot;
