@@ -164,9 +164,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 
-            // set up listener to wait until diagnostic finish running
-            _ = workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
-
             var hostDocument = workspace.Projects.First().Documents.First();
 
             // make a change to remove squiggle
