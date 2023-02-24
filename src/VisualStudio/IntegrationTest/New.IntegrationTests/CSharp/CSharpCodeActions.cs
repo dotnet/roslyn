@@ -705,11 +705,11 @@ public class Program
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var expectedItems = new[]
             {
-                "Use discard '__'",  // IDE0059
                 "Use explicit type instead of 'var'",   // IDE0008
                 "Introduce local",
                     "Introduce local for 'new Program()'",
                     "Introduce local for all occurrences of 'new Program()'",
+                "Use discard '__'",  // IDE0059
                 "Suppress or configure issues",
                     "Configure IDE0008 code style",
                         "csharp__style__var__elsewhere",
