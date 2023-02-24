@@ -67,6 +67,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             Assert.Equal(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
         }
 
+        public async Task TextEqualsAsync(
+            string expectedText,
+            CancellationToken cancellationToken)
+        {
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var editorText = view.TextSnapshot.GetText();
+            var caretPosition = await TestServices.Editor.GetCaretPositionAsync(cancellationToken);
+            editorText = editorText.Insert(caretPosition, "$$");
+            AssertEx.EqualOrDiff(expectedText, editorText);
+        }
+
         public async Task TextContainsAsync(
             string expectedText,
             bool assertCaretPosition = false,

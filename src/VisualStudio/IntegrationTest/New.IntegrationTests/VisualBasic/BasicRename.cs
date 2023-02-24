@@ -69,21 +69,21 @@ End Module";
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.EditorVerifier.TextEqualsAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        Dim y As Integer = 0
+        Dim y$$ As Integer = 0
         y = 5
         TestMethod(y)
     End Sub
     Sub TestMethod(y As Integer)
 
     End Sub
-End Module", cancellationToken: HangMitigatingCancellationToken);
+End Module", HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -119,7 +119,7 @@ End Module";
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.EditorVerifier.TextEqualsAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -131,10 +131,10 @@ Module Program
     ''' <param name=""args""></param>
     Sub Main(args As String())
         ' thix varixable is named y xx
-        Dim y As Integer = 0
+        Dim y$$ As Integer = 0
         y = 5
         TestMethod(y)
-End Module", cancellationToken: HangMitigatingCancellationToken);
+End Module", HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -164,18 +164,18 @@ End Module";
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.EditorVerifier.TextEqualsAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        Dim y As Integer = 0
+        Dim y$$ As Integer = 0
         y = 5
         Dim s = ""y xx y""
     End Sub
-End Module", cancellationToken: HangMitigatingCancellationToken);
+End Module", HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -204,9 +204,9 @@ End Class";
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.EditorVerifier.TextEqualsAsync(@"
 Interface I
-    Sub y(y As Integer)
+    Sub y$$(y As Integer)
     Sub y(y As String)
 End Interface
 
@@ -214,7 +214,7 @@ Public MustInherit Class A
     Implements I
     Public MustOverride Sub y(y As Integer) Implements I.y
     Public MustOverride Sub y(y As String) Implements I.y
-End Class", cancellationToken: HangMitigatingCancellationToken);
+End Class", HangMitigatingCancellationToken);
         }
 
         [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
@@ -236,12 +236,12 @@ End Class";
 
             await TestServices.Input.SendAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.EditorVerifier.TextEqualsAsync(@"
 Import System;
 
-Public Class CustomAttribute
+Public Class Custom$$Attribute
     Inherits Attribute
-End Class", cancellationToken: HangMitigatingCancellationToken);
+End Class", HangMitigatingCancellationToken);
         }
 
         [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
@@ -264,12 +264,12 @@ End Class";
 
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.EditorVerifier.TextEqualsAsync(@"
 Import System;
 
 Public Class Custom$$Attribute 
         Inherits Attribute
-End Class", true, HangMitigatingCancellationToken);
+End Class", HangMitigatingCancellationToken);
         }
 
         [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
@@ -282,18 +282,20 @@ Import System;
 Class Bar
 End Class
 
-Public Class ustomAttribute 
+Public Class [|ustom|]Attribute 
         Inherits Attribute
 End Class";
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
-            _ = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> renameSpans);
+            var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
+            var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
+            AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.EditorVerifier.TextEqualsAsync(@"
 Import System;
 
 <Custom$$>
@@ -302,7 +304,7 @@ End Class
 
 Public Class CustomAttribute 
         Inherits Attribute
-End Class", true, HangMitigatingCancellationToken);
+End Class", HangMitigatingCancellationToken);
         }
 
         [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
@@ -311,7 +313,7 @@ End Class", true, HangMitigatingCancellationToken);
             var markup = @"
 Import System;
 
-<ustom>
+<[|ustom|]>
 Class Bar
 End Class
 
@@ -321,12 +323,14 @@ End Class";
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
-            _ = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> renameSpans);
+            var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
+            var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
+            AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.EditorVerifier.TextEqualsAsync(@"
 Import System;
 
 <Custom>
@@ -335,7 +339,7 @@ End Class
 
 Public Class Custom$$Attribute 
         Inherits Attribute
-End Class", true, HangMitigatingCancellationToken);
+End Class", HangMitigatingCancellationToken);
         }
 
         [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
@@ -357,12 +361,12 @@ End Class";
 
             await TestServices.Input.SendAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.EditorVerifier.TextEqualsAsync(@"
 Import System;
 
-Public Class CustomAttribute
+Public Class CustomAttribute$$
     Inherits Attribute
-End Class", cancellationToken: HangMitigatingCancellationToken);
+End Class", HangMitigatingCancellationToken);
         }
 
         [IdeFact, WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
@@ -384,12 +388,12 @@ End Class";
 
             await TestServices.Input.SendAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.EditorVerifier.TextEqualsAsync(@"
 Import System;
 
-Public Class CustomAttribute
+Public Class CustomAttribute$$
     Inherits Attribute
-End Class", cancellationToken: HangMitigatingCancellationToken);
+End Class", HangMitigatingCancellationToken);
         }
     }
 }
