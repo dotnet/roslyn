@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis
             service.Register(workspace);
         }
 
-        public static void Disable(Workspace workspace)
+        public static void Disable(Workspace workspace, bool blockingShutdown = false)
         {
             var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            service.Unregister(workspace);
+            service.Unregister(workspace, blockingShutdown);
         }
     }
 }

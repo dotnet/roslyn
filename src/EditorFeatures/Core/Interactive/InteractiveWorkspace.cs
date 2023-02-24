@@ -16,17 +16,17 @@ namespace Microsoft.CodeAnalysis.Interactive
         private SourceTextContainer? _openTextContainer;
         private DocumentId? _openDocumentId;
 
-        internal InteractiveWorkspace(HostServices hostServices, IGlobalOptionService globalOptions)
+        internal InteractiveWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Interactive)
         {
             // register work coordinator for this workspace
-            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(this);
+            DiagnosticProvider.Enable(this);
         }
 
         protected override void Dispose(bool finalize)
         {
             // workspace is going away. unregister this workspace from work coordinator
-            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this, blockingShutdown: true);
+            DiagnosticProvider.Disable(this);
 
             base.Dispose(finalize);
         }

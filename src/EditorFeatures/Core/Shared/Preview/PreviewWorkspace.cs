@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
         public void EnableSolutionCrawler()
         {
-            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(this);
+            DiagnosticProvider.Enable(this);
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
             base.Dispose(finalize);
 
-            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this);
+            DiagnosticProvider.Disable(this);
             ClearSolution();
         }
     }
