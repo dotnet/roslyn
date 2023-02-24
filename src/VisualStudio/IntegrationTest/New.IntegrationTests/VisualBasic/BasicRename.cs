@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -67,6 +68,7 @@ End Module";
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 Imports System
 Imports System.Collections.Generic
@@ -116,6 +118,7 @@ End Module";
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 Imports System
 Imports System.Collections.Generic
@@ -160,6 +163,7 @@ End Module";
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 Imports System
 Imports System.Collections.Generic
@@ -199,6 +203,7 @@ End Class";
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 Interface I
     Sub y(y As Integer)
@@ -230,6 +235,7 @@ End Class";
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 Import System;
 
@@ -257,6 +263,7 @@ End Class";
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 Import System;
 
@@ -285,6 +292,7 @@ End Class";
             _ = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 Import System;
 
@@ -317,6 +325,7 @@ End Class";
             _ = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 Import System;
 
@@ -347,6 +356,7 @@ End Class";
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 Import System;
 
@@ -373,6 +383,7 @@ End Class";
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 Import System;
 

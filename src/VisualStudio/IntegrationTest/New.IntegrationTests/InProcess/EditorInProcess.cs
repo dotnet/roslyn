@@ -420,7 +420,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task<ImmutableArray<TagSpan<ITextMarkerTag>>> GetRenameTagsAsync(CancellationToken cancellationToken)
         {
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Rename, cancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
             var tags = await GetTagsAsync<ITextMarkerTag>(cancellationToken);
             return tags.WhereAsArray(tag => tag.Tag.Type == RenameFieldBackgroundAndBorderTag.TagId);
         }

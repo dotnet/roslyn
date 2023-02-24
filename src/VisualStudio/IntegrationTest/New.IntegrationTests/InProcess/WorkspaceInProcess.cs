@@ -144,6 +144,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await listenerProvider.WaitAllAsync(workspace, featureNames).WithCancellation(cancellationToken);
         }
 
+        public async Task WaitForRenameAsync(CancellationToken cancellationToken)
+        {
+            await WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Rename,
+                    FeatureAttribute.RenameTracking,
+                    FeatureAttribute.InlineRenameFlyout,
+                },
+                cancellationToken);
+        }
+
         /// <summary>
         /// This event listener is an adapter to expose asynchronous file save operations to Roslyn via its standard
         /// workspace event waiters.

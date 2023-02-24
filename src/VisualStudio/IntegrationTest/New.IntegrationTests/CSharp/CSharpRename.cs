@@ -75,6 +75,7 @@ class Program
                 AssertEx.SetEqual(renameSpans, tagSpans);
 
                 await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+                await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
                 await TestServices.EditorVerifier.TextContainsAsync(@"
 using System;
 using System.Collections.Generic;
@@ -117,6 +118,7 @@ class [|$$ustom|]Attribute : Attribute
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 using System;
 
@@ -144,6 +146,7 @@ class [|$$stom|]Attribute : Attribute
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 using System;
 
@@ -175,6 +178,7 @@ class stomAttribute : Attribute
             _ = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 using System;
 
@@ -211,6 +215,7 @@ class [|$$stom|]Attribute : Attribute
             _ = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 using System;
 
@@ -268,6 +273,7 @@ class Program
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 using System;
 using System.Collections.Generic;
@@ -297,11 +303,9 @@ class Program
 }", cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeTheory]
-        [CombinatorialData]
-        public async Task VerifyLocalVariableRenameWithStringsUpdated([CombinatorialRange(0, 10)] int iteration)
+        [IdeFact]
+        public async Task VerifyLocalVariableRenameWithStringsUpdated()
         {
-            _ = iteration;
             var markup = @"
 class Program
 {
@@ -331,6 +335,7 @@ class Program
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 class Program
 {
@@ -380,6 +385,7 @@ class B : I
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 interface I
 {
@@ -427,6 +433,7 @@ class SomeOtherClass
             AssertEx.SetEqual(renameSpans, tagSpans);
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 class SomeOtherClass
 {
@@ -466,6 +473,7 @@ class SomeOtherClass
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKeyCode.VK_Y, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"class SomeOtherClass
 {
     void M()
@@ -481,8 +489,7 @@ class y
 }");
 
             await TestServices.Input.SendAsync(VirtualKeyCode.ESCAPE, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Rename, HangMitigatingCancellationToken);
-
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 class Program
 {
@@ -528,7 +535,7 @@ public class Class2 { static void Main(string [] args) { } }", HangMitigatingCan
 
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
-
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 class RenameRocks 
 {
@@ -550,7 +557,7 @@ public class y { static void Main(string [] args) { } }", cancellationToken: Han
             await VerifyCrossProjectRename();
 
             await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
-
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 public class Class2 { static void Main(string [] args) { } }");
 
@@ -585,7 +592,7 @@ class Program
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
-
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 class Program
 {
@@ -615,6 +622,7 @@ class Program
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.HOME, VirtualKeyCode.DELETE, VirtualKeyCode.VK_P, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
 
             AssertEx.EqualOrDiff(
                 @"

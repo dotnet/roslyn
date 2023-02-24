@@ -17,25 +17,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public async Task InvokeAsync(CancellationToken cancellationToken)
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.RENAME, cancellationToken);
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Rename, cancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
         }
 
         public async Task ToggleIncludeCommentsAsync(CancellationToken cancellationToken)
         {
             await TestServices.Input.SendAsync(new InputKey[] { (VirtualKeyCode.VK_C, VirtualKeyCode.MENU) }, cancellationToken);
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Rename, cancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
         }
 
         public async Task ToggleIncludeStringsAsync(CancellationToken cancellationToken)
         {
             await TestServices.Input.SendAsync(new InputKey[] { (VirtualKeyCode.VK_S, VirtualKeyCode.MENU) }, cancellationToken);
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Rename, cancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
         }
 
         public async Task ToggleIncludeOverloadsAsync(CancellationToken cancellationToken)
         {
             await TestServices.Input.SendAsync(new InputKey[] { (VirtualKeyCode.VK_O, VirtualKeyCode.MENU) }, cancellationToken);
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Rename, cancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
         }
     }
 }
