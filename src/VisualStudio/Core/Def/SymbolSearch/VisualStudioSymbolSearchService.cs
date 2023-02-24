@@ -52,7 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly IPackageInstallerService _installerService;
 
         private string _localSettingsDirectory;
-        private LogService _logService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -78,8 +77,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _localSettingsDirectory = new ShellSettingsManager(_serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
-            _logService = new LogService(this.ThreadingContext, (IVsActivityLog)_serviceProvider.GetService(typeof(SVsActivityLog)));
-
             // When our service is enabled hook up to package source changes.
             // We need to know when the list of sources have changed so we can
             // kick off the work to process them.
@@ -96,7 +93,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             // Always pull down the nuget.org index.  It contains the MS reference assembly index
             // inside of it.
-            Task.Run(() => UpdateSourceInBackgroundAsync(PackageSourceHelper.NugetOrgSourceName, ThreadingContext.DisposalToken));
+            var cancellationToken = ThreadingContext.DisposalToken;
+            Task.Run(() => UpdateSourceInBackgroundAsync(PackageSourceHelper.NugetOrgSourceName, cancellationToken), cancellationToken);
         }
 
         private async Task<ISymbolSearchUpdateEngine> GetEngineAsync(CancellationToken cancellationToken)
@@ -104,14 +102,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 return _lazyUpdateEngine ??= await SymbolSearchUpdateEngineFactory.CreateEngineAsync(
-                    Workspace, _logService, FileDownloader.Factory.Instance, cancellationToken).ConfigureAwait(false);
+                    Workspace, FileDownloader.Factory.Instance, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task UpdateSourceInBackgroundAsync(string sourceName, CancellationToken cancellationToken)
         {
             var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
-            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, _logService, cancellationToken).ConfigureAwait(false);
+            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(

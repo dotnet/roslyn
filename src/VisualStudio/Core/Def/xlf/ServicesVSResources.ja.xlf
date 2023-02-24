@@ -1152,6 +1152,11 @@
         <target state="translated">読み取り専用の構造体を優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="new">Prefer read-only struct member</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">readonly フィールドを優先する</target>

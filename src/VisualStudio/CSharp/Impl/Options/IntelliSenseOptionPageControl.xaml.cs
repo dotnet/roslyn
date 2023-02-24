@@ -7,6 +7,7 @@
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -18,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             InitializeComponent();
 
-            BindToOption(Automatically_complete_statement_on_semicolon, FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
+            BindToOption(Automatically_complete_statement_on_semicolon, CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon);
 
             BindToOption(Show_completion_item_filters, CompletionViewOptionsStorage.ShowCompletionItemFilters, LanguageNames.CSharp);
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);

@@ -64,7 +64,7 @@ internal static class VisualStudioMacOptionStorage
         {"dotnet_sort_system_directives_first", new PropertyName("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst")},
         {"dotnet_separate_import_directive_groups", new PropertyName("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},
         {"dotnet_show_remarks_in_quick_info", new PropertyName("TextEditor.%LANGUAGE%.Specific.ShowRemarks")},
-        {"FeatureOnOffOptions_AddImportsOnPaste", new PropertyName("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2")},
+        {"dotnet_add_imports_on_paste", new PropertyName("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2")},
         {"dotnet_show_completion_items_from_unimported_namespaces", new PropertyName("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces")},
         {"dotnet_trigger_completion_on_deletion", new PropertyName("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion")},
         {"dotnet_trigger_completion_on_typing_letters", new PropertyName("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters")},
@@ -72,6 +72,6 @@ internal static class VisualStudioMacOptionStorage
         {"dotnet_solution_crawler_background_analysis_scope", new PropertyName("TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption")},
         {"dotnet_compiler_diagnostics_scope", new PropertyName("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
         {"dotnet_search_nuget_packages", new PropertyName("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
-        {"FeatureOnOffOptions_AutomaticallyCompleteStatementOnSemicolon", new PropertyName("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},
+        {"csharp_complete_statement_on_semicolon", new PropertyName("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},
     };
 }

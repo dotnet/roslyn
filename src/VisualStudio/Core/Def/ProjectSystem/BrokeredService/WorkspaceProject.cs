@@ -24,10 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService
             _project = project;
         }
 
-        public ValueTask DisposeAsync()
+        public void Dispose()
         {
             _project.Dispose();
-            return ValueTaskFactory.CompletedTask;
         }
 
         public async Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
@@ -85,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService
             {
                 _project.AddMetadataReference(
                     metadataReference.FilePath,
-                    new MetadataReferenceProperties(MetadataImageKind.Assembly, default, metadataReference.EmbedInteropTypes));
+                    metadataReference.CreateProperties());
             }
         }
 

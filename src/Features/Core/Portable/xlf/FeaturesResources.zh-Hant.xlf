@@ -610,6 +610,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">已反向組譯</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deconstruct_locals_for_0">
+        <source>Deconstruct locals for '{0}'</source>
+        <target state="new">Deconstruct locals for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">刪除作用中陳述式前後的 {0} 需要重新啟動應用程式。</target>
@@ -2488,11 +2493,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Removal_of_document_not_supported">
         <source>Removal of document not supported</source>
         <target state="translated">不支援移除文件</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">移除 'async' 修飾元</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
@@ -4478,11 +4478,6 @@ If the "K" format specifier is used without other custom format specifiers, it's
         <target state="translated">無法載入分析器組件 {0}: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">讓方法同步</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">來自 {0}</target>
@@ -4645,16 +4640,6 @@ This version used in: {2}</source>
         <target state="translated">將類型重新命名為 {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">移除標記</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">新增遺失的參數節點</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(未知)</target>
@@ -4708,26 +4693,6 @@ This version used in: {2}</source>
       <trans-unit id="Add_argument_name_0">
         <source>Add argument name '{0}'</source>
         <target state="translated">新增引數名稱 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_0">
-        <source>Take '{0}'</source>
-        <target state="translated">接受 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_both">
-        <source>Take both</source>
-        <target state="translated">接受兩者</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_bottom">
-        <source>Take bottom</source>
-        <target state="translated">接受底端</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_top">
-        <source>Take top</source>
-        <target state="translated">接受頂端</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variable">

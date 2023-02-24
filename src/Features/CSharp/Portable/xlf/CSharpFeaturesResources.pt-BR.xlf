@@ -22,11 +22,6 @@
         <target state="translated">Adicionar as chaves necessárias para as instruções de controle de linha única</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Permitir código não seguro neste projeto</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Aplicar uma linha em branco após dois pontos nas preferências do inicializador do construtor (experimental)</target>
@@ -152,11 +147,6 @@
         <target state="translated">Converter em método</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_positional_record">
-        <source>Convert to positional record</source>
-        <target state="translated">Converter em record posicional</target>
-        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">Converter em cadeia de caracteres bruta</target>
@@ -205,21 +195,6 @@
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">Tornar os campos privados somente leitura quando possível</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_ref_struct">
-        <source>Make 'ref struct'</source>
-        <target state="translated">Alterar 'ref struct'</target>
-        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">Remover palavra-chave 'in'</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">Remover modificador 'novo'</target>
         <note />
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
@@ -415,11 +390,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">Organizar Usos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_0_return_Task_instead_of_void">
-        <source>Make {0} return Task instead of void.</source>
-        <target state="translated">Fazer com que {0} retorne Tarefa em vez de nulo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -682,16 +652,6 @@
         <target state="translated">Seleção automática desabilitada devido a uma possível declaração de deconstrução.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Atualizar este projeto para versão de linguagem C# '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Atualizar todos os projetos C# para a versão de linguagem '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;nome da classe&gt;</target>
@@ -712,16 +672,6 @@
         <target state="translated">&lt;nome do struct&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">Tornar método assíncrono</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">Tornar o método assíncrono (permanecer nulo)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;Nome&gt;</target>
@@ -737,11 +687,6 @@
         <target state="translated">(Nome sugerido)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">Remover função não utilizada</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">Converter em 'foreach'</target>
@@ -755,11 +700,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">Inverter If</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">Usar '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">

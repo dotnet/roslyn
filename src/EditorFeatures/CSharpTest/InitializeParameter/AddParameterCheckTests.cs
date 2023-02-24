@@ -16,8 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 {
-    using VerifyCS = CSharpCodeRefactoringVerifier<
-        CSharpAddParameterCheckCodeRefactoringProvider>;
+    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpAddParameterCheckCodeRefactoringProvider>;
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
     public class AddParameterCheckTests
@@ -1874,7 +1873,7 @@ class Program
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check),
                 Options =
                 {
-                    { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOptions2.FalseWithSuggestionEnforcement }
+                    { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOption2.FalseWithSuggestionEnforcement }
                 }
             }.RunAsync();
         }
@@ -2731,6 +2730,45 @@ record C([||]string s) { public string s; }";
                 TestCode = code,
                 FixedCode = code,
             }.RunAsync();
+        }
+
+        [Fact, WorkItem(38093, "https://github.com/dotnet/roslyn/issues/38093")]
+        public async Task TestReadBeforeAssignment()
+        {
+            await VerifyCS.VerifyRefactoringAsync("""
+                using System;
+                using System.IO;
+
+                class Program
+                {
+                    public Program([||]Stream output)
+                    {
+                        if (!output.CanWrite) throw new ArgumentException();
+                        OutStream = output;
+                    }
+
+                    public Stream OutStream { get; }
+                }
+                """, """
+                using System;
+                using System.IO;
+
+                class Program
+                {
+                    public Program([||]Stream output)
+                    {
+                        if (output is null)
+                        {
+                            throw new ArgumentNullException(nameof(output));
+                        }
+
+                        if (!output.CanWrite) throw new ArgumentException();
+                        OutStream = output;
+                    }
+
+                    public Stream OutStream { get; }
+                }
+                """);
         }
     }
 }

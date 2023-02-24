@@ -610,6 +610,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">zdekompilowane</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deconstruct_locals_for_0">
+        <source>Deconstruct locals for '{0}'</source>
+        <target state="new">Deconstruct locals for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">Usuwanie elementu {0} wokół aktywnej instrukcji wymaga ponownego uruchomienia aplikacji.</target>
@@ -2488,11 +2493,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Removal_of_document_not_supported">
         <source>Removal of document not supported</source>
         <target state="translated">Usunięcie dokumentu nie jest obsługiwane</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_async_modifier">
-        <source>Remove 'async' modifier</source>
-        <target state="translated">Usuń modyfikator „async”</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
@@ -4478,11 +4478,6 @@ Jeśli specyfikator formatu „K” jest używany bez innych niestandardowych sp
         <target state="translated">Nie można załadować zestawu analizatora {0}: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Ustaw metodę jako synchroniczną</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">z {0}</target>
@@ -4645,16 +4640,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Zmień nazwę typu na {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">Usuń tag</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">Dodaj brakujące węzły parametrów</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Nieznany)</target>
@@ -4708,26 +4693,6 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="Add_argument_name_0">
         <source>Add argument name '{0}'</source>
         <target state="translated">Dodaj nazwę argumentu „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_0">
-        <source>Take '{0}'</source>
-        <target state="translated">Przyjmij „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_both">
-        <source>Take both</source>
-        <target state="translated">Przyjmij oba</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_bottom">
-        <source>Take bottom</source>
-        <target state="translated">Przyjmij dół</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Take_top">
-        <source>Take top</source>
-        <target state="translated">Przyjmij górę</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variable">

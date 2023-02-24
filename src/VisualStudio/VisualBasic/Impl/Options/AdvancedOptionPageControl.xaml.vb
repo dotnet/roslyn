@@ -4,6 +4,7 @@
 
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AddImportOnPaste
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.ColorSchemes
@@ -12,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.DocumentHighlighting
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 Imports Microsoft.CodeAnalysis.Editor.InlineDiagnostics
@@ -19,16 +21,23 @@ Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.ImplementType
+Imports Microsoft.CodeAnalysis.InheritanceMargin
 Imports Microsoft.CodeAnalysis.InlineHints
 Imports Microsoft.CodeAnalysis.InlineRename
+Imports Microsoft.CodeAnalysis.KeywordHighlighting
+Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.QuickInfo
+Imports Microsoft.CodeAnalysis.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
+Imports Microsoft.CodeAnalysis.VisualBasic.AutomaticInsertionOfAbstractOrInterfaceMembers
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
@@ -81,7 +90,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic)
             BindToOption(SuggestForTypesInReferenceAssemblies, SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.VisualBasic)
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.VisualBasic)
-            BindToOption(AddMissingImportsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.VisualBasic)
+            BindToOption(AddMissingImportsOnPaste, AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.VisualBasic)
 
             ' Quick Actions
             BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptionsStorage.Asynchronous,
@@ -91,16 +100,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                          End Function)
 
             ' Highlighting
-            BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.VisualBasic)
-            BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.VisualBasic)
+            BindToOption(EnableHighlightReferences, ReferenceHighlightingOptionsStorage.ReferenceHighlighting, LanguageNames.VisualBasic)
+            BindToOption(EnableHighlightKeywords, KeywordHighlightingOptionsStorage.KeywordHighlighting, LanguageNames.VisualBasic)
 
             ' Outlining
-            BindToOption(EnableOutlining, FeatureOnOffOptions.Outlining, LanguageNames.VisualBasic)
+            BindToOption(EnableOutlining, OutliningOptionsStorage.Outlining, LanguageNames.VisualBasic)
             BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, LanguageNames.VisualBasic)
             BindToOption(Collapse_imports_on_file_open, BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, LanguageNames.VisualBasic)
             BindToOption(Collapse_sourcelink_embedded_decompiled_files_on_open, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, LanguageNames.VisualBasic)
             BindToOption(Collapse_metadata_signature_files_on_open, BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, LanguageNames.VisualBasic)
-            BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.VisualBasic)
+            BindToOption(DisplayLineSeparators, LineSeparatorsOptionsStorage.LineSeparator, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_comments_and_preprocessor_regions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions, LanguageNames.VisualBasic)
@@ -118,10 +127,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments, SplitCommentOptionsStorage.Enabled, LanguageNames.VisualBasic)
 
             ' Editor help
-            BindToOption(EnableEndConstruct, FeatureOnOffOptions.EndConstruct, LanguageNames.VisualBasic)
-            BindToOption(EnableLineCommit, FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)
-            BindToOption(AutomaticInsertionOfInterfaceAndMustOverrideMembers, FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic)
-            BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.VisualBasic)
+            BindToOption(EnableEndConstruct, EndConstructGenerationOptionsStorage.EndConstruct, LanguageNames.VisualBasic)
+            BindToOption(EnableLineCommit, LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic)
+            BindToOption(AutomaticInsertionOfInterfaceAndMustOverrideMembers, AutomaticInsertionOfAbstractOrInterfaceMembersOptionsStorage.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic)
+            BindToOption(RenameTrackingPreview, RenameTrackingOptionsStorage.RenameTrackingPreview, LanguageNames.VisualBasic)
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic)
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.VisualBasic)
@@ -171,9 +180,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(SuppressHintsWhenParameterNamesMatchArgumentNames, InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName, LanguageNames.VisualBasic)
 
             ' Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
-            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic, Function() True)
-            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin)
-            BindToOption(IncludeGlobalImports, FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, LanguageNames.VisualBasic)
+            BindToOption(ShowInheritanceMargin, InheritanceMarginOptionsStorage.ShowInheritanceMargin, LanguageNames.VisualBasic, Function() True)
+            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin)
+            BindToOption(IncludeGlobalImports, InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, LanguageNames.VisualBasic)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,

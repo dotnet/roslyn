@@ -24,26 +24,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (!(x [|is|] string))
-        {
-        }
-    }
-}",
-                FixedCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (x is not string)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x [|is|] string))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (x is not string)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -53,26 +55,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (!(x [|is|] null))
-        {
-        }
-    }
-}",
-                FixedCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (x is not null)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x [|is|] null))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (x is not null)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -82,26 +86,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(bool x)
-    {
-        if (!(x [|is|] true))
-        {
-        }
-    }
-}",
-                FixedCode =
-@"class C
-{
-    void M(bool x)
-    {
-        if (x is false)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(bool x)
+                        {
+                            if (!(x [|is|] true))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(bool x)
+                        {
+                            if (x is false)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -111,26 +117,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (!(x [|is|] true))
-        {
-        }
-    }
-}",
-                FixedCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (x is not true)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x [|is|] true))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (x is not true)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -140,26 +148,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (!(x [|is|] string s))
-        {
-        }
-    }
-}",
-                FixedCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (x is not string s)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x [|is|] string s))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (x is not string s)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -169,16 +179,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (!(x is string s))
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x is string s))
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
         }
@@ -188,26 +199,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (!(x [|is|] object))
-        {
-        }
-    }
-}",
-                FixedCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (x is null)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x [|is|] object))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (x is null)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
