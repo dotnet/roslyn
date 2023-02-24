@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (args.Kind != WorkspaceChangeKind.DocumentChanged)
             {
-                Logger.Log(FunctionId.Rename_InlineSession_Cancel_WorkspaceChanged, KeyValueLogMessage.Create(m =>
+                Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(m =>
                 {
                     m["Kind"] = Enum.GetName(args.Kind);
                 }));
