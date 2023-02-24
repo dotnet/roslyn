@@ -221,7 +221,7 @@ End Class", HangMitigatingCancellationToken);
         public async Task VerifyAttributeRename()
         {
             var markup = @"
-Import System;
+Imports System
 
 Public Class [|$$ustom|]Attribute 
         Inherits Attribute
@@ -237,7 +237,7 @@ End Class";
             await TestServices.Input.SendAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
-Import System;
+Imports System
 
 Public Class Custom$$Attribute
     Inherits Attribute
@@ -248,7 +248,7 @@ End Class", HangMitigatingCancellationToken);
         public async Task VerifyAttributeRenameWhileRenameClasss()
         {
             var markup = @"
-Import System;
+Imports System
 
 Public Class [|$$ustom|]Attribute 
         Inherits Attribute
@@ -265,7 +265,7 @@ End Class";
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
-Import System;
+Imports System
 
 Public Class Custom$$Attribute 
         Inherits Attribute
@@ -276,7 +276,7 @@ End Class", HangMitigatingCancellationToken);
         public async Task VerifyAttributeRenameWhileRenameAttribute()
         {
             var markup = @"
-Import System;
+Imports System
 
 <[|$$ustom|]>
 Class Bar
@@ -296,7 +296,7 @@ End Class";
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
-Import System;
+Imports System
 
 <Custom$$>
 Class Bar
@@ -311,7 +311,7 @@ End Class", HangMitigatingCancellationToken);
         public async Task VerifyAttributeRenameWhileRenameAttributeClass()
         {
             var markup = @"
-Import System;
+Imports System
 
 <[|ustom|]>
 Class Bar
@@ -331,7 +331,7 @@ End Class";
             await TestServices.Input.SendAsync("Custom", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
-Import System;
+Imports System
 
 <Custom>
 Class Bar
@@ -346,7 +346,7 @@ End Class", HangMitigatingCancellationToken);
         public async Task VerifyAttributeCapitalizedRename()
         {
             var markup = @"
-Import System;
+Imports System
 
 Public Class [|$$ustom|]ATTRIBUTE
         Inherits Attribute
@@ -362,7 +362,7 @@ End Class";
             await TestServices.Input.SendAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
-Import System;
+Imports System
 
 Public Class CustomAttribute$$
     Inherits Attribute
@@ -373,7 +373,7 @@ End Class", HangMitigatingCancellationToken);
         public async Task VerifyAttributeNotCapitalizedRename()
         {
             var markup = @"
-Import System;
+Imports System
 
 Public Class [|$$ustom|]attribute
         Inherits Attribute
@@ -389,7 +389,7 @@ End Class";
             await TestServices.Input.SendAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
-Import System;
+Imports System
 
 Public Class CustomAttribute$$
     Inherits Attribute
