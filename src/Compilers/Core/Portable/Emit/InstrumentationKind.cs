@@ -18,18 +18,15 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Instruments the code to add test coverage.
         /// </summary>
         TestCoverage = 1,
-
-        /// <summary>
-        /// Instruments the code to trace local variable writes.
-        /// </summary>
-        LocalStateTracing = 2,
     }
 
     internal static class InstrumentationKindExtensions
     {
+        internal const InstrumentationKind LocalStateTracing = (InstrumentationKind)(-1);
+
         internal static bool IsValid(this InstrumentationKind value)
         {
-            return value >= InstrumentationKind.None && value <= InstrumentationKind.LocalStateTracing;
+            return value >= InstrumentationKind.None && value <= InstrumentationKind.TestCoverage;
         }
     }
 }

@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis
         SwitchCasePatternMatching = 35,
 
         /// <summary>
-        /// Variable that stores the context object used to track local variable and parameter stores in method bodies instrumented with <see cref="InstrumentationKind.LocalStateTracing"/>.
+        /// Variable that stores the context object used to track local variable and parameter stores in method bodies instrumented with <see cref="InstrumentationKindExtensions.LocalStateTracing"/>.
         /// Associated with the method body syntax.
         /// </summary>
         LocalStoreTracker = 36,

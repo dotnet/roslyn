@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _builderField = F.StateMachineField(_asyncMethodBuilderMemberCollection.BuilderType, GeneratedNames.AsyncBuilderFieldName(), isPublic: true);
 
             var instrumentations = F.ModuleBuilderOpt.GetMethodBodyInstrumentations(method);
-            if (instrumentations.Kinds.Contains(InstrumentationKind.LocalStateTracing))
+            if (instrumentations.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing))
             {
                 instanceIdField = F.StateMachineField(F.SpecialType(SpecialType.System_UInt64), GeneratedNames.MakeStateMachineStateIdFieldName(), isPublic: true);
             }

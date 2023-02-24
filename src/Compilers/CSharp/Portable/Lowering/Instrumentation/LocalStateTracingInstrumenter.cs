@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Implements instrumentation for <see cref="CodeAnalysis.Emit.InstrumentationKind.LocalStateTracing"/>.
+    /// Implements instrumentation for <see cref="CodeAnalysis.Emit.InstrumentationKindExtensions.LocalStateTracing"/>.
     /// </summary>
     /// <remarks>
     /// Adds calls to well-known instrumentation helpers defined by <see cref="WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker"/> to the bodies of instrumented methods.

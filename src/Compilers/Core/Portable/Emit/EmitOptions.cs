@@ -115,6 +115,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public Encoding? FallbackSourceFileEncoding { get; private set; }
 
+        /// <summary>
+        /// Test only - allows us to test <see cref="InstrumentationKindExtensions.LocalStateTracing"/>.
+        /// </summary>
+        private bool _testOnly_AllowLocalStateTracing;
+
         // 1.2 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public EmitOptions(
             bool metadataOnly,
@@ -262,6 +267,9 @@ namespace Microsoft.CodeAnalysis.Emit
         {
         }
 
+        internal void TestOnly_AllowLocalStateTracing()
+            => _testOnly_AllowLocalStateTracing = true;
+
         public override bool Equals(object? obj)
         {
             return Equals(obj as EmitOptions);
@@ -330,6 +338,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var instrumentationKind in InstrumentationKinds)
             {
+                if (instrumentationKind == InstrumentationKindExtensions.LocalStateTracing && _testOnly_AllowLocalStateTracing)
+                {
+                    continue;
+                }
+
                 if (!instrumentationKind.IsValid())
                 {
                     diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidInstrumentationKind, Location.None, (int)instrumentationKind));

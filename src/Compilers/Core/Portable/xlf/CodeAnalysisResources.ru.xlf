@@ -104,6 +104,11 @@
         <target state="translated">Подавленный идентификатор диагностики "{0}" не соответствует подавленному идентификатору "{1}" для заданного дескриптора подавления.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidInstrumentationKind">
+        <source>Invalid instrumentation kind: {0}</source>
+        <target state="new">Invalid instrumentation kind: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">Заданный блок операции не принадлежит текущему контексту анализа.</target>

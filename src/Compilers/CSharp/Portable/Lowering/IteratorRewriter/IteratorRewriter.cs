@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName());
 
             var instrumentations = F.ModuleBuilderOpt.GetMethodBodyInstrumentations(method);
-            if (instrumentations.Kinds.Contains(InstrumentationKind.LocalStateTracing))
+            if (instrumentations.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing))
             {
                 instanceIdField = F.StateMachineField(F.SpecialType(SpecialType.System_UInt64), GeneratedNames.MakeStateMachineStateIdFieldName());
             }

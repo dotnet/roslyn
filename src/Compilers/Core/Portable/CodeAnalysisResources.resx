@@ -753,4 +753,7 @@
   <data name="MethodSymbolExpected" xml:space="preserve">
     <value>Method symbol expected</value>
   </data>
+  <data name="InvalidInstrumentationKind" xml:space="preserve">
+    <value>Invalid instrumentation kind: {0}</value>
+  </data>
 </root>

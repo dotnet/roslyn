@@ -104,6 +104,11 @@
         <target state="translated">'{0}' gizlenmiş tanılama kimliği, belirtilen gizleme tanımlayıcısı için gizlenebilir '{1}' kimliği ile eşleşmiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidInstrumentationKind">
+        <source>Invalid instrumentation kind: {0}</source>
+        <target state="new">Invalid instrumentation kind: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">Belirtilen işlem bloğu geçerli analiz bağlamına ait değil.</target>

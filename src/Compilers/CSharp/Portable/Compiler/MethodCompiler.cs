@@ -1075,10 +1075,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) ||
                             methodSymbol is SynthesizedRecordConstructor ||
                             instrumentation.Kinds.Contains(InstrumentationKind.TestCoverage) ||
-                            instrumentation.Kinds.Contains(InstrumentationKind.LocalStateTracing)))
+                            instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing)))
                         {
                             if (methodSymbol.IsImplicitConstructor &&
-                                (instrumentation.Kinds.Contains(InstrumentationKind.TestCoverage) || instrumentation.Kinds.Contains(InstrumentationKind.LocalStateTracing)))
+                                (instrumentation.Kinds.Contains(InstrumentationKind.TestCoverage) || instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing)))
                             {
                                 // Flow analysis over the initializers is necessary in order to find assignments to fields.
                                 // Bodies of implicit constructors do not get flow analysis later, so the initializers

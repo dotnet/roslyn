@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var instrumenter = Instrumenter.NoOp;
 
-                if (instrumentation.Kinds.Contains(InstrumentationKind.LocalStateTracing) &&
+                if (instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing) &&
                     LocalStateTracingInstrumenter.TryCreate(method, statement, factory, diagnostics, instrumenter, out var localStateTracingInstrumenter))
                 {
                     instrumenter = localStateTracingInstrumenter;

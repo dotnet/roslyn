@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -92,6 +93,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </exception>
         public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false, MethodInstrumentation instrumentation = default)
         {
+            if (kind <= SemanticEditKind.None || kind > SemanticEditKind.Replace)
+            {
+                throw new ArgumentOutOfRangeException(nameof(kind));
+            }
+
             if (oldSymbol == null && kind is not (SemanticEditKind.Insert or SemanticEditKind.Replace))
             {
                 throw new ArgumentNullException(nameof(oldSymbol));
@@ -100,11 +106,6 @@ namespace Microsoft.CodeAnalysis.Emit
             if (newSymbol == null && kind != SemanticEditKind.Delete)
             {
                 throw new ArgumentNullException(nameof(newSymbol));
-            }
-
-            if (kind <= SemanticEditKind.None || kind > SemanticEditKind.Replace)
-            {
-                throw new ArgumentOutOfRangeException(nameof(kind));
             }
 
             if (instrumentation.IsDefault)
@@ -128,6 +129,14 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     throw new ArgumentException(CodeAnalysisResources.MethodSymbolExpected, nameof(newSymbol));
                 }
+
+                foreach (var instrumentationKind in instrumentation.Kinds)
+                {
+                    if (!instrumentationKind.IsValid())
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(MethodInstrumentation.Kinds), string.Format(CodeAnalysisResources.InvalidInstrumentationKind, instrumentationKind));
+                    }
+                }
             }
 
             Kind = kind;
@@ -138,6 +147,16 @@ namespace Microsoft.CodeAnalysis.Emit
             Instrumentation = instrumentation;
         }
 
+        // for testing non-public instrumentation kinds
+        internal SemanticEdit(IMethodSymbol oldSymbol, IMethodSymbol newSymbol, ImmutableArray<InstrumentationKind> instrumentationKinds)
+        {
+            Kind = SemanticEditKind.Update;
+            OldSymbol = oldSymbol;
+            NewSymbol = newSymbol;
+            Instrumentation = new MethodInstrumentation() { Kinds = instrumentationKinds };
+        }
+
+        // for testing:
         internal static SemanticEdit Create(SemanticEditKind kind, ISymbolInternal oldSymbol, ISymbolInternal newSymbol, Func<SyntaxNode, SyntaxNode>? syntaxMap = null, bool preserveLocalVariables = false)
             => new SemanticEdit(kind, oldSymbol?.GetISymbol(), newSymbol?.GetISymbol(), syntaxMap, preserveLocalVariables, instrumentation: default);
 

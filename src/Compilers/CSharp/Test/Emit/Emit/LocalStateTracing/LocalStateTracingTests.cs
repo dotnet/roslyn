@@ -26,8 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // collections, anonymous types, tuples
         // LogLocalStoreUnmanaged with local/parameter typed to a generic parameter
 
-        private static readonly EmitOptions s_emitOptions = EmitOptions.Default
-            .WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.LocalStateTracing));
+        private static readonly EmitOptions s_emitOptions = GetEmitOptions(InstrumentationKindExtensions.LocalStateTracing);
+
+        private static EmitOptions GetEmitOptions(params InstrumentationKind[] kinds)
+        {
+            var options = EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.CreateRange(kinds));
+            options.TestOnly_AllowLocalStateTracing();
+            return options;
+        }
 
         private const string TrackerTypeName = "Microsoft.CodeAnalysis.Runtime.LocalStoreTracker";
 
@@ -213,8 +219,7 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.UnsafeDebugExe,
-                emitOptions: EmitOptions.Default
-                    .WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.LocalStateTracing, InstrumentationKind.TestCoverage)),
+                emitOptions: GetEmitOptions(InstrumentationKindExtensions.LocalStateTracing, InstrumentationKind.TestCoverage),
                 verify: s_verification with
                 {
                     ILVerifyMessage = s_verification.ILVerifyMessage + Environment.NewLine + """
@@ -329,8 +334,7 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.UnsafeDebugExe,
-                emitOptions: EmitOptions.Default
-                    .WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.LocalStateTracing, InstrumentationKind.TestCoverage)),
+                emitOptions: GetEmitOptions(InstrumentationKindExtensions.LocalStateTracing, InstrumentationKind.TestCoverage),
                 verify: s_verification with
                 {
                     ILVerifyMessage = s_verification.ILVerifyMessage + Environment.NewLine + """
@@ -400,8 +404,8 @@ class C
             var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, targetFramework: s_targetFramework);
             var compilation1 = compilation0.WithSource(source);
 
-            var f0 = compilation0.GetMember("C.F").GetPublicSymbol();
-            var f1 = compilation1.GetMember("C.F").GetPublicSymbol();
+            var f0 = (IMethodSymbol)compilation0.GetMember("C.F").GetPublicSymbol();
+            var f1 = (IMethodSymbol)compilation1.GetMember("C.F").GetPublicSymbol();
 
             using var md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray());
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInformationProvider: _ => default);
@@ -409,7 +413,7 @@ class C
             var diff = compilation1.EmitDifference(
                 generation0,
                 edits: ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f0, f1, instrumentation: new MethodInstrumentation() { Kinds = ImmutableArray.Create(InstrumentationKind.LocalStateTracing) })));
+                    new SemanticEdit(f0, f1, ImmutableArray.Create(InstrumentationKindExtensions.LocalStateTracing))));
 
             diff.VerifyIL(@"
 {
