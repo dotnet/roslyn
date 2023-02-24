@@ -467,7 +467,7 @@ oneMoreTime:
                                     stack.Push((binary.Left, top.destBox, top.sense));
                                 }
                             }
-                            else if (stack.Count == 0 && ReferenceEquals(destBox.Value, top.destBox.Value))
+                            else if (stack.Count == 0 && ReferenceEquals(destBox, top.destBox))
                             {
                                 // Instead of recursion we can restart from the top with new condition
                                 condition = top.condition;
