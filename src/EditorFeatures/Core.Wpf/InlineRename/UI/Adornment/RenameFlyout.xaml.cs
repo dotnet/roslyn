@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -199,6 +200,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void ToggleExpand(object sender, RoutedEventArgs e)
         {
             _viewModel.IsExpanded = !_viewModel.IsExpanded;
+        }
+
+        private void IdentifierTextBox_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            var start = IdentifierTextBox.SelectionStart;
+            var length = IdentifierTextBox.SelectionLength;
+
+            var textStartPoint = _viewModel.InitialTrackingSpan.GetStartPoint(_textView.TextSnapshot);
+            var startPoint = textStartPoint.Add(start);
+            _textView.SetSelection(new SnapshotSpan(startPoint, length));
         }
     }
 }
