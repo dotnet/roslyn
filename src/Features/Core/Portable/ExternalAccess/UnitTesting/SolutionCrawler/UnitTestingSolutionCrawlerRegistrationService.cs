@@ -13,7 +13,9 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LegacySolutionEvents;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         private readonly IAsynchronousOperationListener _listener;
         private readonly Dictionary<(string workspaceKind, SolutionServices services), UnitTestingWorkCoordinator> _documentWorkCoordinatorMap = new();
-
+        private readonly IGlobalOptionService _globalOptionService;
         private ImmutableDictionary<string, ImmutableArray<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>>> _analyzerProviders;
 
         /// <summary>
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UnitTestingSolutionCrawlerRegistrationService(
+            IGlobalOptionService globalOptionService,
             [ImportMany] IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
@@ -48,13 +51,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             AssertAnalyzerProviders(_analyzerProviders);
 
             _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerUnitTesting);
+            _globalOptionService = globalOptionService;
         }
 
         /// <summary>
         /// make sure solution cralwer is registered for the given workspace.
         /// </summary>
-        public IUnitTestingWorkCoordinator Register(Solution solution)
+        public IUnitTestingWorkCoordinator? Register(Solution solution)
         {
+            if (!_globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+                return null;
+
             var workspaceKind = solution.WorkspaceKind;
             var solutionServices = solution.Services;
             Contract.ThrowIfNull(workspaceKind);
@@ -117,6 +124,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         public void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, UnitTestingIncrementalAnalyzerProviderMetadata metadata)
         {
+            if (!_globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+                return;
+
             // now update all existing work coordinator
             lock (_gate)
             {
@@ -153,7 +163,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }
         }
 
-        public void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
+        private void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
         {
             Contract.ThrowIfNull(workspaceKind);
 

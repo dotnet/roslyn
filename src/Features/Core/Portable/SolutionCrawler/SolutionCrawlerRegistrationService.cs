@@ -12,6 +12,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
@@ -23,17 +24,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         private const string Default = "*";
 
+        internal static readonly Option2<bool> EnableSolutionCrawler = new("InternalSolutionCrawlerOptions_Solution Crawler", defaultValue: true);
+
         private readonly object _gate = new();
         private readonly SolutionCrawlerProgressReporter _progressReporter = new();
 
         private readonly IAsynchronousOperationListener _listener;
         private readonly Dictionary<Workspace, WorkCoordinator> _documentWorkCoordinatorMap;
+        private readonly IGlobalOptionService _globalOptionService;
 
         private ImmutableDictionary<string, ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> _analyzerProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SolutionCrawlerRegistrationService(
+            IGlobalOptionService globalOptionService,
             [ImportMany] IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
@@ -42,6 +47,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
             _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy);
+            _globalOptionService = globalOptionService;
         }
 
         void ISolutionCrawlerRegistrationService.Register(Workspace workspace)
@@ -61,7 +67,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         /// <summary>
-        /// make sure solution cralwer is registered for the given workspace.
+        /// make sure solution crawler is registered for the given workspace.
         /// </summary>
         /// <param name="workspace"><see cref="Workspace"/> this solution crawler runs for</param>
         /// <param name="initializeLazily">
@@ -75,6 +81,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public void EnsureRegistration(Workspace workspace, bool initializeLazily)
         {
             Contract.ThrowIfNull(workspace.Kind);
+
+            if (!_globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+                return;
 
             var correlationId = CorrelationIdFactory.GetNextId();
 
@@ -100,6 +109,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public void Unregister(Workspace workspace, bool blockingShutdown = false)
         {
+            if (!_globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+                return;
+
             WorkCoordinator? coordinator;
 
             lock (_gate)
@@ -119,6 +131,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
         {
+            if (!_globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+                return;
+
             // now update all existing work coordinator
             lock (_gate)
             {
@@ -151,7 +166,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
+        private void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
         {
             lock (_gate)
             {
@@ -302,6 +317,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     coordinator.GetTestAccessor().WaitUntilCompletion();
                 }
             }
+
+            public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
+                => _solutionCrawlerRegistrationService.Reanalyze(workspace, analyzer, projectIds, documentIds, highPriority);
         }
 
         internal sealed class Registration

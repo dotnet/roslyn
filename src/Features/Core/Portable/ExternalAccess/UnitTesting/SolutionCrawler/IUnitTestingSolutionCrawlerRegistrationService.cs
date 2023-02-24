@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     /// </summary>
     internal interface IUnitTestingSolutionCrawlerRegistrationService : IWorkspaceService
     {
-        IUnitTestingWorkCoordinator Register(Solution solution);
+        IUnitTestingWorkCoordinator? Register(Solution solution);
 
 #if false // Not used in unit testing crawling
         void Unregister(Workspace workspace, bool blockingShutdown = false);

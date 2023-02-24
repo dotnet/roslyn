@@ -30,10 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
         private static IUnitTestingWorkCoordinator? GetCoordinator(Solution solution)
         {
             var service = solution.Services.GetService<IUnitTestingSolutionCrawlerRegistrationService>();
-            if (service == null)
-                return null;
-
-            return service.Register(solution);
+            return service?.Register(solution);
         }
 
         public bool ShouldReportChanges(SolutionServices services)

@@ -670,7 +670,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             // don't rely on background parser to have tree. explicitly do it here.
             await TouchEverything(workspace.CurrentSolution);
 
-            service.Reanalyze(workspace, worker, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(info.Id), highPriority: false);
+            var testAccessor = service.GetTestAccessor();
+            testAccessor.Reanalyze(workspace, worker, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(info.Id), highPriority: false);
 
             await TouchEverything(workspace.CurrentSolution);
 

@@ -24,10 +24,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public void StartListening(Workspace workspace, object? serviceOpt)
         {
-            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            {
-                workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(workspace);
-            }
+            workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(workspace);
         }
 
         public void StopListening(Workspace workspace)

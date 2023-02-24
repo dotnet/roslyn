@@ -678,11 +678,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 rightWorkspace = null;
             };
 
-            if (_editorOptionsService.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            {
-                leftWorkspace?.EnableSolutionCrawler();
-                rightWorkspace?.EnableSolutionCrawler();
-            }
+            leftWorkspace?.EnableSolutionCrawler();
+            rightWorkspace?.EnableSolutionCrawler();
 
             return new DifferenceViewerPreview(diffViewer);
         }

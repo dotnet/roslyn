@@ -23,10 +23,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public void StartListening(Workspace workspace, object serviceOpt)
-        {
-            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-                DiagnosticProvider.Enable(workspace);
-        }
+            => DiagnosticProvider.Enable(workspace);
 
         public void StopListening(Workspace workspace)
             => DiagnosticProvider.Disable(workspace);

@@ -317,11 +317,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // user might have built solution before workspace fires its first event yet (which is when solution crawler is initialized)
                     // here we give initializeLazily: false so that solution crawler is fully initialized when we do de-dup live and build errors,
                     // otherwise, we will think none of error we have here belong to live errors since diagnostic service is not initialized yet.
-                    if (_diagnosticService.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-                    {
-                        var registrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                        registrationService.EnsureRegistration(_workspace, initializeLazily: false);
-                    }
+                    var registrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+                    registrationService.EnsureRegistration(_workspace, initializeLazily: false);
 
                     // Mark the status as updated to refresh error list before we invoke 'SyncBuildErrorsAndReportAsync', which can take some time to complete.
                     OnBuildProgressChanged(inProgressState, BuildProgress.Updated);
