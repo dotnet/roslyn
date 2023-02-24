@@ -202,6 +202,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _viewModel.IsExpanded = !_viewModel.IsExpanded;
         }
 
+        /// <summary>
+        /// Respond to selection/cursor changes in the textbox the user is editing by
+        /// applying the same selection to the textview that initiated the command
+        /// </summary>
         private void IdentifierTextBox_SelectionChanged(object sender, RoutedEventArgs e)
         {
             var start = IdentifierTextBox.SelectionStart;
