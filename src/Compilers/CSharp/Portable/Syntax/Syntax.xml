@@ -3489,7 +3489,7 @@
     <Kind Name="ExtensionDeclaration" />
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
-    <Field Name="ImplicitOrExplicitKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="ImplicitOrExplicitKeyword" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the "implicit" or "explicit" token.</summary>
       </PropertyComment>

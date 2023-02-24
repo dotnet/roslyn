@@ -10778,14 +10778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the "implicit" or "explicit" token.</summary>
-        public SyntaxToken ImplicitOrExplicitKeyword
-        {
-            get
-            {
-                var slot = ((Syntax.InternalSyntax.ExtensionDeclarationSyntax)this.Green).implicitOrExplicitKeyword;
-                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
-            }
-        }
+        public SyntaxToken ImplicitOrExplicitKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ExtensionDeclarationSyntax)this.Green).implicitOrExplicitKeyword, GetChildPosition(2), GetChildIndex(2));
 
         public override SyntaxToken Keyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ExtensionDeclarationSyntax)this.Green).keyword, GetChildPosition(3), GetChildIndex(3));
 

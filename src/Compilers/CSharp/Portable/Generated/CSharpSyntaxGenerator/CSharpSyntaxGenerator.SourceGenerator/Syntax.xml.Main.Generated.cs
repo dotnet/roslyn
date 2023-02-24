@@ -5016,8 +5016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (implicitOrExplicitKeyword.Kind())
             {
                 case SyntaxKind.ImplicitKeyword:
-                case SyntaxKind.ExplicitKeyword:
-                case SyntaxKind.None: break;
+                case SyntaxKind.ExplicitKeyword: break;
                 default: throw new ArgumentException(nameof(implicitOrExplicitKeyword));
             }
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
@@ -5039,7 +5038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            return (ExtensionDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ExtensionDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken?)implicitOrExplicitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, forUnderlyingType == null ? null : (Syntax.InternalSyntax.ForTypeSyntax)forUnderlyingType.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
+            return (ExtensionDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ExtensionDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)implicitOrExplicitKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, forUnderlyingType == null ? null : (Syntax.InternalSyntax.ForTypeSyntax)forUnderlyingType.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
         /// <summary>Creates a new EnumDeclarationSyntax instance.</summary>

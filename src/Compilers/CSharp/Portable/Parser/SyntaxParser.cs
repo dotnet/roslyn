@@ -1102,7 +1102,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected bool IsFeatureEnabled(MessageID feature)
         {
+            // TODO2 remove?
             return this.Options.IsFeatureEnabled(feature);
+        }
+
+        /// <summary>
+        /// This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+        /// does not support a feature, but this is used to make a language breaking change.
+        /// To avoid breaking older code that is not using the new langver
+        /// we conditionally parse based on langversion
+        /// </summary>
+        protected bool IsCompatBreakingFeatureEnabled(MessageID feature)
+        {
+            return IsFeatureEnabled(feature);
         }
 
         /// <summary>

@@ -1193,11 +1193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (token.ContextualKind == SyntaxKind.RecordKeyword)
                 {
-                    // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                    // does not support a feature, but in this case we are effectively making a language breaking
-                    // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                    // older code that is not using C# 9 we conditionally parse based on langversion
-                    return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureRecords);
                 }
 
                 return false;
@@ -1337,22 +1333,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (nextToken.ContextualKind == SyntaxKind.RecordKeyword)
             {
-                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                // does not support a feature, but in this case we are effectively making a language breaking
-                // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                // older code that is not using C# 9 we conditionally parse based on langversion
-                return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureRecords);
             }
 
-            if (nextToken.ContextualKind is SyntaxKind.ExtensionKeyword ||
-                (nextToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword &&
-                    this.PeekToken(2).ContextualKind is SyntaxKind.ExtensionKeyword))
+            if (nextToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword &&
+                this.PeekToken(2).ContextualKind is SyntaxKind.ExtensionKeyword)
             {
-                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                // does not support a feature, but in this case we are effectively making a language breaking
-                // change to consider "extension" a type declaration in all ambiguous cases.
-                // To avoid breaking older code that is not using C# 12 we conditionally parse based on langversion
-                return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
+                return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureExtensions);
             }
 
             return false;
@@ -1431,12 +1418,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.ParseEnumDeclaration(attributes, modifiers);
 
                 case SyntaxKind.IdentifierToken:
-                    Debug.Assert(CurrentToken.ContextualKind is SyntaxKind.RecordKeyword
-                        or SyntaxKind.ExtensionKeyword);
+                    Debug.Assert(CurrentToken.ContextualKind is SyntaxKind.RecordKeyword);
                     // record
                     // record class
                     // record struct
-                    // extension
                     return ParseClassOrStructOrInterfaceOrExtensionDeclaration(attributes, modifiers);
 
                 default:
@@ -1449,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private TypeDeclarationSyntax ParseClassOrStructOrInterfaceOrExtensionDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
-                this.CurrentToken.ContextualKind is SyntaxKind.RecordKeyword or SyntaxKind.ExtensionKeyword ||
+                this.CurrentToken.ContextualKind is SyntaxKind.RecordKeyword ||
                 (this.CurrentToken.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword && this.PeekToken(1).ContextualKind == SyntaxKind.ExtensionKeyword));
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
@@ -1481,7 +1466,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            Debug.Assert(mainKeyword is not null);
             SyntaxToken? forKeyword = null;
             TypeSyntax? underlyingType = null;
             if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
@@ -1636,15 +1620,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            bool tryScanExtensionStart(out SyntaxToken? implicitOrExplicitKeyword, [NotNullWhen(true)] out SyntaxToken? extensionKeyword)
+            bool tryScanExtensionStart([NotNullWhen(true)] out SyntaxToken? implicitOrExplicitKeyword, [NotNullWhen(true)] out SyntaxToken? extensionKeyword)
             {
-                if (this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword)
-                {
-                    implicitOrExplicitKeyword = null;
-                    extensionKeyword = ConvertToKeyword(this.EatToken());
-                    return true;
-                }
-
+                // PROTOTYPE consider improving error recovery for `extension explicit` and `extension implicit`
                 if (this.CurrentToken.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword &&
                     this.PeekToken(1).ContextualKind == SyntaxKind.ExtensionKeyword)
                 {
@@ -1758,10 +1736,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.ExtensionKeyword:
-                        // extension
                         // explicit extension
                         // implicit extension
-                        RoslynDebug.Assert(firstKeyword is null or { Kind: SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword });
+                        RoslynDebug.Assert(firstKeyword!.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword);
                         RoslynDebug.Assert(secondKeyword!.Kind == SyntaxKind.ExtensionKeyword);
                         RoslynDebug.Assert(forKeyword is null == underlyingType is null);
 
@@ -2146,30 +2123,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword
                     when this.PeekToken(1).ContextualKind is SyntaxKind.ExtensionKeyword:
 
-                    // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                    // does not support a feature, but in this case we are effectively making a language breaking
-                    // change to consider "extension" a type declaration in all ambiguous cases.
-                    // To avoid breaking older code that is not using C# 12 we conditionally parse based on langversion
-                    return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
+                    return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureExtensions);
 
                 case SyntaxKind.IdentifierToken:
                     if (CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
                     {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 9 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                        return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureRecords);
                     }
 
-                    if (CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword)
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "extension" a type declaration in all ambiguous cases.
-                        // To avoid breaking older code that is not using C# 12 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
-                    }
                     return false;
 
                 default:

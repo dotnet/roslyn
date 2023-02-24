@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.ForType(InternalSyntaxFactory.Token(SyntaxKind.ForKeyword), GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.ExtensionDeclarationSyntax GenerateExtensionDeclaration()
-            => InternalSyntaxFactory.ExtensionDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), null, InternalSyntaxFactory.Identifier("Keyword"), InternalSyntaxFactory.Identifier("Identifier"), null, null, null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), null, null);
+            => InternalSyntaxFactory.ExtensionDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.ImplicitKeyword), InternalSyntaxFactory.Identifier("Keyword"), InternalSyntaxFactory.Identifier("Identifier"), null, null, null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), null, null);
 
         private static Syntax.InternalSyntax.EnumDeclarationSyntax GenerateEnumDeclaration()
             => InternalSyntaxFactory.EnumDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.EnumKeyword), InternalSyntaxFactory.Identifier("Identifier"), null, InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.EnumMemberDeclarationSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken), null);
@@ -2801,7 +2801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
-            Assert.Null(node.ImplicitOrExplicitKeyword);
+            Assert.Equal(SyntaxKind.ImplicitKeyword, node.ImplicitOrExplicitKeyword.Kind);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Keyword.Kind);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.TypeParameterList);
@@ -10566,7 +10566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.ForType(SyntaxFactory.Token(SyntaxKind.ForKeyword), GenerateIdentifierName());
 
         private static ExtensionDeclarationSyntax GenerateExtensionDeclaration()
-            => SyntaxFactory.ExtensionDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), default(SyntaxToken), SyntaxFactory.Identifier("Keyword"), SyntaxFactory.Identifier("Identifier"), default(TypeParameterListSyntax), default(ForTypeSyntax), default(BaseListSyntax), new SyntaxList<TypeParameterConstraintClauseSyntax>(), default(SyntaxToken), new SyntaxList<MemberDeclarationSyntax>(), default(SyntaxToken), default(SyntaxToken));
+            => SyntaxFactory.ExtensionDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.ImplicitKeyword), SyntaxFactory.Identifier("Keyword"), SyntaxFactory.Identifier("Identifier"), default(TypeParameterListSyntax), default(ForTypeSyntax), default(BaseListSyntax), new SyntaxList<TypeParameterConstraintClauseSyntax>(), default(SyntaxToken), new SyntaxList<MemberDeclarationSyntax>(), default(SyntaxToken), default(SyntaxToken));
 
         private static EnumDeclarationSyntax GenerateEnumDeclaration()
             => SyntaxFactory.EnumDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.EnumKeyword), SyntaxFactory.Identifier("Identifier"), default(BaseListSyntax), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<EnumMemberDeclarationSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default(SyntaxToken));
@@ -12864,7 +12864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
-            Assert.Equal(SyntaxKind.None, node.ImplicitOrExplicitKeyword.Kind());
+            Assert.Equal(SyntaxKind.ImplicitKeyword, node.ImplicitOrExplicitKeyword.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, node.Keyword.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.TypeParameterList);

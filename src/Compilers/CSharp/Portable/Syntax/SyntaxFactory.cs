@@ -2839,17 +2839,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, keyword, identifier, typeParameterList,
                 forUnderlyingType, baseList, constraintClauses,
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), semicolonToken: default);
-
-        /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxToken keyword, SyntaxToken identifier)
-            => SyntaxFactory.ExtensionDeclaration(attributeLists: default, modifiers: default, implicitOrExplicitKeyword: SyntaxFactory.Token(SyntaxKind.ExplicitKeyword), keyword, identifier,
-                typeParameterList: null, forUnderlyingType: null, baseList: null, constraintClauses: default,
-                SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members: default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), semicolonToken: default);
-
-        /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-        public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxToken keyword, string identifier)
-            => SyntaxFactory.ExtensionDeclaration(attributeLists: default, modifiers: default, implicitOrExplicitKeyword: SyntaxFactory.Token(SyntaxKind.ExplicitKeyword), keyword, SyntaxFactory.Identifier(identifier),
-                typeParameterList: null, forUnderlyingType: null, baseList: null, constraintClauses: default,
-                SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members: default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), semicolonToken: default);
     }
 }

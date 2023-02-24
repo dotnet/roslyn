@@ -22879,7 +22879,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal readonly GreenNode? attributeLists;
         internal readonly GreenNode? modifiers;
-        internal readonly SyntaxToken? implicitOrExplicitKeyword;
+        internal readonly SyntaxToken implicitOrExplicitKeyword;
         internal readonly SyntaxToken keyword;
         internal readonly SyntaxToken identifier;
         internal readonly TypeParameterListSyntax? typeParameterList;
@@ -22891,7 +22891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly SyntaxToken? closeBraceToken;
         internal readonly SyntaxToken? semicolonToken;
 
-        internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken? implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 13;
@@ -22905,11 +22905,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
             }
-            if (implicitOrExplicitKeyword != null)
-            {
-                this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-                this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-            }
+            this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+            this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
             this.AdjustFlagsAndWidth(keyword);
             this.keyword = keyword;
             this.AdjustFlagsAndWidth(identifier);
@@ -22956,7 +22953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken? implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
+        internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
@@ -22971,11 +22968,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
             }
-            if (implicitOrExplicitKeyword != null)
-            {
-                this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-                this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-            }
+            this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+            this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
             this.AdjustFlagsAndWidth(keyword);
             this.keyword = keyword;
             this.AdjustFlagsAndWidth(identifier);
@@ -23022,7 +23016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken? implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+        internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
           : base(kind)
         {
             this.SlotCount = 13;
@@ -23036,11 +23030,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
             }
-            if (implicitOrExplicitKeyword != null)
-            {
-                this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-                this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-            }
+            this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+            this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
             this.AdjustFlagsAndWidth(keyword);
             this.keyword = keyword;
             this.AdjustFlagsAndWidth(identifier);
@@ -23090,7 +23081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
         /// <summary>Gets the "implicit" or "explicit" token.</summary>
-        public SyntaxToken? ImplicitOrExplicitKeyword => this.implicitOrExplicitKeyword;
+        public SyntaxToken ImplicitOrExplicitKeyword => this.implicitOrExplicitKeyword;
         public override SyntaxToken Keyword => this.keyword;
         public override SyntaxToken Identifier => this.identifier;
         public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
@@ -23165,12 +23156,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
             }
-            var implicitOrExplicitKeyword = (SyntaxToken?)reader.ReadValue();
-            if (implicitOrExplicitKeyword != null)
-            {
-                AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-                this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-            }
+            var implicitOrExplicitKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+            this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
             var keyword = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(keyword);
             this.keyword = keyword;
@@ -39561,18 +39549,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public ExtensionDeclarationSyntax ExtensionDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken? implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+        public ExtensionDeclarationSyntax ExtensionDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
         {
 #if DEBUG
-            if (implicitOrExplicitKeyword != null)
+            if (implicitOrExplicitKeyword == null) throw new ArgumentNullException(nameof(implicitOrExplicitKeyword));
+            switch (implicitOrExplicitKeyword.Kind)
             {
-                switch (implicitOrExplicitKeyword.Kind)
-                {
-                    case SyntaxKind.ImplicitKeyword:
-                    case SyntaxKind.ExplicitKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(implicitOrExplicitKeyword));
-                }
+                case SyntaxKind.ImplicitKeyword:
+                case SyntaxKind.ExplicitKeyword: break;
+                default: throw new ArgumentException(nameof(implicitOrExplicitKeyword));
             }
             if (keyword == null) throw new ArgumentNullException(nameof(keyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
@@ -44701,18 +44686,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static ExtensionDeclarationSyntax ExtensionDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken? implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+        public static ExtensionDeclarationSyntax ExtensionDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
         {
 #if DEBUG
-            if (implicitOrExplicitKeyword != null)
+            if (implicitOrExplicitKeyword == null) throw new ArgumentNullException(nameof(implicitOrExplicitKeyword));
+            switch (implicitOrExplicitKeyword.Kind)
             {
-                switch (implicitOrExplicitKeyword.Kind)
-                {
-                    case SyntaxKind.ImplicitKeyword:
-                    case SyntaxKind.ExplicitKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(implicitOrExplicitKeyword));
-                }
+                case SyntaxKind.ImplicitKeyword:
+                case SyntaxKind.ExplicitKeyword: break;
+                default: throw new ArgumentException(nameof(implicitOrExplicitKeyword));
             }
             if (keyword == null) throw new ArgumentNullException(nameof(keyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
