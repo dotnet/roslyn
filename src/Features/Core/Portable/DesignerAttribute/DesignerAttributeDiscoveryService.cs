@@ -6,11 +6,14 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Composition;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -173,7 +176,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 // We either haven't computed the designer info, or our data was out of date.  We need
                 // So recompute here.  Figure out what the current category is, and if that's different
                 // from what we previously stored.
-                var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
+                var category = await ComputeDesignerAttributeCategoryAsync(
                     lazyHasDesignerCategoryType, document, cancellationToken).ConfigureAwait(false);
 
                 return new DesignerAttributeData
@@ -182,6 +185,72 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                     DocumentId = document.Id,
                     FilePath = document.FilePath,
                 };
+            }
+        }
+
+        public static async Task<string?> ComputeDesignerAttributeCategoryAsync(
+    AsyncLazy<bool> lazyHasDesignerCategoryType,
+    Document document,
+    CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            // Legacy behavior.  We only register the designer info for the first non-nested class
+            // in the file.
+            var firstClass = FindFirstNonNestedClass(syntaxFacts.GetMembersOfCompilationUnit(root));
+            if (firstClass == null)
+                return null;
+
+            // simple case.  If there's no DesignerCategory type in this compilation, then there's
+            // definitely no designable types.
+            var hasDesignerCategoryType = await lazyHasDesignerCategoryType.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (!hasDesignerCategoryType)
+                return null;
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var firstClassType = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(firstClass, cancellationToken);
+
+            foreach (var type in firstClassType.GetBaseTypesAndThis())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // See if it has the designer attribute on it. Use symbol-equivalence instead of direct equality
+                // as the symbol we have 
+                var attribute = type.GetAttributes().FirstOrDefault(d => IsDesignerAttribute(d.AttributeClass));
+                if (attribute is { ConstructorArguments: [{ Type.SpecialType: SpecialType.System_String, Value: string stringValue }] })
+                    return stringValue.Trim();
+            }
+
+            return null;
+
+            static bool IsDesignerAttribute(INamedTypeSymbol? attributeClass)
+                => attributeClass is
+                {
+                    Name: nameof(DesignerCategoryAttribute),
+                    ContainingNamespace.Name: nameof(System.ComponentModel),
+                    ContainingNamespace.ContainingNamespace.Name: nameof(System),
+                    ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
+                };
+
+            SyntaxNode? FindFirstNonNestedClass(SyntaxList<SyntaxNode> members)
+            {
+                foreach (var member in members)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (syntaxFacts.IsBaseNamespaceDeclaration(member))
+                    {
+                        var firstClass = FindFirstNonNestedClass(syntaxFacts.GetMembersOfBaseNamespaceDeclaration(member));
+                        if (firstClass != null)
+                            return firstClass;
+                    }
+                    else if (syntaxFacts.IsClassDeclaration(member))
+                    {
+                        return member;
+                    }
+                }
+
+                return null;
             }
         }
     }

@@ -87,7 +87,7 @@ class Test { }", "Form");
             var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
 
             var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
-            var actual = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
+            var actual = await DesignerAttributeDiscoveryService.ComputeDesignerAttributeCategoryAsync(
                 AsyncLazy.Create(compilation.DesignerCategoryAttributeType() != null), document, CancellationToken.None);
 
             Assert.Equal(category, actual);
