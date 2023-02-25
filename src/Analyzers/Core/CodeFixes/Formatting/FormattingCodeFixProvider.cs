@@ -23,6 +23,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
+        /// <summary>
+        /// Fixing formatting is high priority.  It's something the user wants to be able to fix quickly, is driven by
+        /// them acting on an error reported in code, and can be computed fast as it only uses syntax not semantics.
+        /// It's also the 8th most common fix that people use, and is picked almost all the times it is shown.
+        /// </summary>
+        private protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
@@ -31,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     CodeAction.Create(
                         AnalyzersResources.Fix_formatting,
                         c => FixOneAsync(context, diagnostic, c),
-                        nameof(AbstractFormattingCodeFixProvider)),
+                        nameof(AbstractFormattingCodeFixProvider),
+                        CodeActionPriority.High),
                     diagnostic);
             }
 
