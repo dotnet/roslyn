@@ -204,6 +204,10 @@ function Process-Arguments() {
     $script:restore = $true
   }
 
+  if ($sourceBuild) {
+    $script:msbuildEngine = "dotnet"
+  }
+
   foreach ($property in $properties) {
     if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase")) {
       Write-Host "Invalid argument: $property"
