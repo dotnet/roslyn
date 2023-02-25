@@ -78,7 +78,7 @@ class Test { }", "Form");
 class Test { }", "Form");
         }
 
-        private static async Task TestAsync(string codeWithMarker, string category)
+        private static async Task TestAsync(string codeWithMarker, string? category)
         {
             using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false);
 
