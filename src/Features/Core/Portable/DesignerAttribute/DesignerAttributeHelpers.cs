@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     internal static class DesignerAttributeHelpers
     {
         public static async Task<string?> ComputeDesignerAttributeCategoryAsync(
-            AsyncLazy<INamedTypeSymbol?> lazyDesignerCategoryType,
+            AsyncLazy<bool> lazyHasDesignerCategoryType,
             Document document,
             CancellationToken cancellationToken)
         {
@@ -31,42 +32,34 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
             // simple case.  If there's no DesignerCategory type in this compilation, then there's
             // definitely no designable types.
-            var designerCategoryType = await lazyDesignerCategoryType.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            if (designerCategoryType == null)
+            var hasDesignerCategoryType = await lazyHasDesignerCategoryType.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (!hasDesignerCategoryType)
                 return null;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var firstClassType = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(firstClass, cancellationToken);
-            return TryGetDesignerCategory(firstClassType, designerCategoryType, cancellationToken);
-        }
 
-        private static string? TryGetDesignerCategory(
-            INamedTypeSymbol classType,
-            INamedTypeSymbol designerCategoryType,
-            CancellationToken cancellationToken)
-        {
-            foreach (var type in classType.GetBaseTypesAndThis())
+            foreach (var type in firstClassType.GetBaseTypesAndThis())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // if it has designer attribute, set it
-                var attribute = type.GetAttributes().FirstOrDefault(d => designerCategoryType.Equals(d.AttributeClass));
-                if (attribute is
-                    {
-                        ConstructorArguments:
-                        [
-                            {
-                                Type.SpecialType: SpecialType.System_String,
-                                Value: string stringValue,
-                            }
-                        ]
-                    })
-                {
+                // See if it has the designer attribute on it. Use symbol-equivalence instead of direct equality
+                // as the symbol we have 
+                var attribute = type.GetAttributes().FirstOrDefault(d => IsDesignerAttribute(d.AttributeClass));
+                if (attribute is { ConstructorArguments: [{ Type.SpecialType: SpecialType.System_String, Value: string stringValue }] })
                     return stringValue.Trim();
-                }
             }
 
             return null;
+
+            static bool IsDesignerAttribute(INamedTypeSymbol? attributeClass)
+                => attributeClass is
+                {
+                    Name: nameof(DesignerCategoryAttribute),
+                    ContainingNamespace.Name: nameof(System.ComponentModel),
+                    ContainingNamespace.ContainingNamespace.Name: nameof(System),
+                    ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
+                };
         }
 
         private static SyntaxNode? FindFirstNonNestedClass(

@@ -4,9 +4,10 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -20,9 +21,16 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     internal sealed partial class DesignerAttributeDiscoveryService : IDesignerAttributeDiscoveryService
     {
         /// <summary>
+        /// Cache from the set of references a project has to a boolean specifying if that project knows about the
+        /// System.ComponentModel.DesignerCategoryAttribute attribute.  Keyed by the metadata-references for a project
+        /// so that we don't have to recompute it in the common case where a project's references are not changing.
+        /// </summary>
+        private static readonly ConditionalWeakTable<IReadOnlyList<MetadataReference>, AsyncLazy<bool>> s_metadataReferencesToDesignerAttributeInfo = new();
+
+        /// <summary>
         /// Protects mutable state in this type.
         /// </summary>
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         /// <summary>
         /// Keep track of the last information we reported.  We will avoid notifying the host if we recompute and these
@@ -81,28 +89,21 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
             // Defer expensive work until it's actually needed.
             var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync, cacheResult: true);
-            var lazyDesignerCategoryType = AsyncLazy.Create(
-                async cancellationToken =>
-                {
-                    var firstDocument = project.Documents.FirstOrDefault();
-                    if (firstDocument is null)
-                        return null;
-
-                    // we don't want to run source generators just to find out if the project has the designer category
-                    // attribute.  So freeze the project and try to get the type off of that.
-                    var frozenProject = firstDocument.WithFrozenPartialSemantics(cancellationToken).Project;
-
-                    var compilation = await frozenProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    return compilation.DesignerCategoryAttributeType();
-                },
-                cacheResult: true);
+            var lazyHasDesignerCategoryType = s_metadataReferencesToDesignerAttributeInfo.GetValue(
+                project.MetadataReferences,
+                _ => AsyncLazy.Create(
+                    async cancellationToken =>
+                    {
+                        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                        return compilation.DesignerCategoryAttributeType() != null;
+                    }, cacheResult: true));
 
             await ScanForDesignerCategoryUsageAsync(
-                project, specificDocument, callback, lazyProjectVersion, lazyDesignerCategoryType, cancellationToken).ConfigureAwait(false);
+                project, specificDocument, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
 
             // If we scanned just a specific document in the project, now scan the rest of the files.
             if (specificDocument != null)
-                await ScanForDesignerCategoryUsageAsync(project, specificDocument: null, callback, lazyProjectVersion, lazyDesignerCategoryType, cancellationToken).ConfigureAwait(false);
+                await ScanForDesignerCategoryUsageAsync(project, specificDocument: null, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task ScanForDesignerCategoryUsageAsync(
@@ -110,14 +111,14 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             Document? specificDocument,
             IDesignerAttributeDiscoveryService.ICallback callback,
             AsyncLazy<VersionStamp> lazyProjectVersion,
-            AsyncLazy<INamedTypeSymbol?> lazyDesignerCategoryType,
+            AsyncLazy<bool> lazyHasDesignerCategoryType,
             CancellationToken cancellationToken)
         {
             // Now get all the values that actually changed and notify VS about them. We don't need
             // to tell it about the ones that didn't change since that will have no effect on the
             // user experience.
             var changedData = await ComputeChangedDataAsync(
-                project, specificDocument, lazyProjectVersion, lazyDesignerCategoryType, cancellationToken).ConfigureAwait(false);
+                project, specificDocument, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
 
             // Only bother reporting non-empty information to save an unnecessary RPC.
             if (!changedData.IsEmpty)
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             Project project,
             Document? specificDocument,
             AsyncLazy<VersionStamp> lazyProjectVersion,
-            AsyncLazy<INamedTypeSymbol?> lazyDesignerCategoryType,
+            AsyncLazy<bool> lazyHasDesignerCategoryType,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<(DesignerAttributeData data, VersionStamp version)>.GetInstance(out var results);
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 // So recompute here.  Figure out what the current category is, and if that's different
                 // from what we previously stored.
                 var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
-                    lazyDesignerCategoryType, document, cancellationToken).ConfigureAwait(false);
+                    lazyHasDesignerCategoryType, document, cancellationToken).ConfigureAwait(false);
 
                 return new DesignerAttributeData
                 {

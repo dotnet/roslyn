@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -86,11 +84,11 @@ class Test { }", "Form");
 
             var hostDocument = workspace.Documents.First();
             var documentId = hostDocument.Id;
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
 
-            var compilation = await document.Project.GetCompilationAsync();
+            var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
             var actual = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
-                AsyncLazy.Create(compilation.DesignerCategoryAttributeType()), document, CancellationToken.None);
+                AsyncLazy.Create(compilation.DesignerCategoryAttributeType() != null), document, CancellationToken.None);
 
             Assert.Equal(category, actual);
         }
