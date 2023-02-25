@@ -5019,6 +5019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExplicitKeyword: break;
                 default: throw new ArgumentException(nameof(implicitOrExplicitKeyword));
             }
+            if (keyword.Kind() != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(keyword));
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             switch (openBraceToken.Kind())
             {

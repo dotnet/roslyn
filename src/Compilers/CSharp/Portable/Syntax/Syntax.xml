@@ -3497,7 +3497,7 @@
       <Kind Name="ExplicitKeyword"/>
     </Field>
     <Field Name="Keyword" Type="SyntaxToken" Override="true">
-      <ContextualKind Name="ExtensionKeyword"/>
+      <Kind Name="ExtensionKeyword"/>
     </Field>
     <Field Name="Identifier" Type="SyntaxToken" Override="true">
       <Kind Name="IdentifierToken"/>

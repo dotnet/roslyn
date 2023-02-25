@@ -1339,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (nextToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword &&
                 this.PeekToken(2).ContextualKind is SyntaxKind.ExtensionKeyword)
             {
-                return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureExtensions);
+                return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
             }
 
             return false;
@@ -1442,9 +1442,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var outerSaveTerm = _termState;
 
-            SyntaxToken? firstKeyword;
-            SyntaxToken? secondKeyword;
-            SyntaxToken mainKeyword;
+            SyntaxToken? firstKeyword; // class, struct, interface, record, implicit, explicit
+            SyntaxToken? secondKeyword; // class (for record class), struct (for record struct), extension
+            SyntaxToken mainKeyword; // class, struct, interface, record, extension
             if (tryScanRecordStart(out firstKeyword, out secondKeyword))
             {
                 _termState |= TerminatorState.IsEndOfRecordSignature;
@@ -1467,12 +1467,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var typeParameters = this.ParseTypeParameterList();
 
             SyntaxToken? forKeyword = null;
-            TypeSyntax? underlyingType = null;
+            TypeSyntax? forType = null;
             if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
                 && CurrentToken.Kind == SyntaxKind.ForKeyword)
             {
+                // PROTOTYPE consider error recovery for `class X for type`
                 forKeyword = EatToken(SyntaxKind.ForKeyword);
-                underlyingType = ParseType();
+                forType = ParseType();
             }
 
             var paramList = mainKeyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
@@ -1571,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 return constructTypeDeclaration(_syntaxFactory, attributes, modifiers, firstKeyword, secondKeyword, mainKeyword, name, typeParameters, paramList,
-                    forKeyword, underlyingType, baseList, constraints, openBrace, members, closeBrace, semicolon);
+                    forKeyword, forType, baseList, constraints, openBrace, members, closeBrace, semicolon);
             }
             finally
             {
@@ -1626,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword &&
                     this.PeekToken(1).ContextualKind == SyntaxKind.ExtensionKeyword)
                 {
-                    implicitOrExplicitKeyword = ConvertToKeyword(EatToken());
+                    implicitOrExplicitKeyword = EatToken();
                     extensionKeyword = ConvertToKeyword(EatToken());
                     return true;
                 }
@@ -1638,7 +1639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers,
                 SyntaxToken? firstKeyword, SyntaxToken? secondKeyword, SyntaxToken mainKeyword,
-                SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, SyntaxToken? forKeyword, TypeSyntax? underlyingType,
+                SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, SyntaxToken? forKeyword, TypeSyntax? forType,
                 BaseListSyntax baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
                 SyntaxToken? openBrace, SyntaxListBuilder<MemberDeclarationSyntax> members, SyntaxToken? closeBrace, SyntaxToken semicolon)
             {
@@ -1651,7 +1652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         RoslynDebug.Assert(firstKeyword is not null);
                         RoslynDebug.Assert(secondKeyword is null);
                         RoslynDebug.Assert(forKeyword is null);
-                        RoslynDebug.Assert(underlyingType is null);
+                        RoslynDebug.Assert(forType is null);
                         RoslynDebug.Assert(paramList is null);
                         RoslynDebug.Assert(openBrace != null);
                         RoslynDebug.Assert(closeBrace != null);
@@ -1672,7 +1673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         RoslynDebug.Assert(firstKeyword is not null);
                         RoslynDebug.Assert(secondKeyword is null);
                         RoslynDebug.Assert(forKeyword is null);
-                        RoslynDebug.Assert(underlyingType is null);
+                        RoslynDebug.Assert(forType is null);
                         RoslynDebug.Assert(paramList is null);
                         RoslynDebug.Assert(openBrace != null);
                         RoslynDebug.Assert(closeBrace != null);
@@ -1693,7 +1694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         RoslynDebug.Assert(firstKeyword is not null);
                         RoslynDebug.Assert(secondKeyword is null);
                         RoslynDebug.Assert(forKeyword is null);
-                        RoslynDebug.Assert(underlyingType is null);
+                        RoslynDebug.Assert(forType is null);
                         RoslynDebug.Assert(paramList is null);
                         RoslynDebug.Assert(openBrace != null);
                         RoslynDebug.Assert(closeBrace != null);
@@ -1717,7 +1718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         RoslynDebug.Assert(firstKeyword is not null);
                         RoslynDebug.Assert(secondKeyword is null or { Kind: SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword });
                         RoslynDebug.Assert(forKeyword is null);
-                        RoslynDebug.Assert(underlyingType is null);
+                        RoslynDebug.Assert(forType is null);
                         SyntaxKind declarationKind = secondKeyword?.Kind == SyntaxKind.StructKeyword ? SyntaxKind.RecordStructDeclaration : SyntaxKind.RecordDeclaration;
                         return syntaxFactory.RecordDeclaration(
                             declarationKind,
@@ -1740,9 +1741,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // implicit extension
                         RoslynDebug.Assert(firstKeyword!.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword);
                         RoslynDebug.Assert(secondKeyword!.Kind == SyntaxKind.ExtensionKeyword);
-                        RoslynDebug.Assert(forKeyword is null == underlyingType is null);
+                        RoslynDebug.Assert(forKeyword is null == forType is null);
 
-                        var forType = forKeyword == null ? null : syntaxFactory.ForType(forKeyword, underlyingType!);
+                        ForTypeSyntax? forUnderlyingType = forKeyword == null ? null : syntaxFactory.ForType(forKeyword, forType!);
                         return syntaxFactory.ExtensionDeclaration(
                             attributes,
                             modifiers.ToList(),
@@ -1750,7 +1751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             keyword: secondKeyword,
                             name,
                             typeParameters,
-                            forType,
+                            forUnderlyingType,
                             baseList,
                             constraints,
                             openBrace,
@@ -2123,7 +2124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword
                     when this.PeekToken(1).ContextualKind is SyntaxKind.ExtensionKeyword:
 
-                    return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureExtensions);
+                    return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
 
                 case SyntaxKind.IdentifierToken:
                     if (CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)

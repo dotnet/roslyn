@@ -39560,6 +39560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default: throw new ArgumentException(nameof(implicitOrExplicitKeyword));
             }
             if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+            if (keyword.Kind != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(keyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (openBraceToken != null)
@@ -44697,6 +44698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default: throw new ArgumentException(nameof(implicitOrExplicitKeyword));
             }
             if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+            if (keyword.Kind != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(keyword));
             if (identifier == null) throw new ArgumentNullException(nameof(identifier));
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (openBraceToken != null)
