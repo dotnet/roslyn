@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSpace();
                     }
 
-                    builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
+                    builder.Add(CreatePart(SymbolDisplayPartKind.Operator, symbol,
                         SyntaxFacts.GetText(operatorKind)));
                 }
             }

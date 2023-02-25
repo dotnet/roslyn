@@ -769,7 +769,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
-            var markupCode = documentElement.NormalizedValue();
+            var markupCode = (bool?)documentElement.Attribute(NormalizeAttributeName) is false
+                ? documentElement.Value
+                : documentElement.NormalizedValue();
+
             var fileName = GetFileName(workspace, documentElement, ref documentId);
 
             var folders = GetFolders(documentElement);

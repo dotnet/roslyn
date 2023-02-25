@@ -5286,9 +5286,9 @@ class Test
             }
 
             diagnostics.Verify(
-    // (10,16): error CS8078: An expression is too long or complex to compile
-    //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
-    Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
+                // (10,16): error CS8078: An expression is too long or complex to compile
+                //         return a[0] & f[0] | a[1] & f[1] | a[2] & f[2] | ...
+                Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
                 );
         }
 
@@ -5301,10 +5301,10 @@ class Test
                 builder.Append("a[");
                 builder.Append(i);
                 builder.Append("]");
-                builder.Append(" && ");
+                builder.Append(" & ");
                 builder.Append("f[");
                 builder.Append(i);
-                builder.Append("] || ");
+                builder.Append("] | ");
             }
 
             builder.Append("a[");
@@ -5415,7 +5415,7 @@ class Test
 
     public static bool Calculate(S1[] a, S1[] f)
     {
-" + $"        return {BuildSequenceOfBinaryExpressions_03()};" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_06()};" + @"
     }
 }
 
@@ -5456,6 +5456,28 @@ struct S1
                 );
         }
 
+        private static string BuildSequenceOfBinaryExpressions_06(int count = 8192)
+        {
+            var builder = new System.Text.StringBuilder();
+            int i;
+            for (i = 0; i < count; i++)
+            {
+                builder.Append("a[");
+                builder.Append(i);
+                builder.Append("]");
+                builder.Append(" && ");
+                builder.Append("f[");
+                builder.Append(i);
+                builder.Append("] || ");
+            }
+
+            builder.Append("a[");
+            builder.Append(i);
+            builder.Append("]");
+
+            return builder.ToString();
+        }
+
         [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
         public void EmitSequenceOfBinaryExpressions_07()
@@ -5478,7 +5500,7 @@ class Test
 
     public static bool Calculate(S1[] a, S1[] f)
     {
-" + $"        return {BuildSequenceOfBinaryExpressions_03(count)};" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_06(count)};" + @"
     }
 }
 
@@ -5544,7 +5566,7 @@ class Test
 
     public static bool Calculate(bool[] a, bool[] f)
     {
-" + $"        return {BuildSequenceOfBinaryExpressions_03(2048)};" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_06(2048)};" + @"
     }
 }
 ";

@@ -9665,6 +9665,9 @@ public class C
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars("..")
+                Await state.AssertNoCompletionSession()
+
+                state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="async", isHardSelected:=False)
 
                 state.SendTypeChars("{ ")
@@ -9730,6 +9733,9 @@ public class C
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars("..")
+                Await state.AssertNoCompletionSession()
+
+                state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="async", isHardSelected:=False)
 
                 state.SendTypeChars("nu")
