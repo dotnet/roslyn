@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                         [
                             {
                                 Type.SpecialType: SpecialType.System_String,
-                                IsNull: false,
                                 Value: string stringValue,
                             }
                         ]
