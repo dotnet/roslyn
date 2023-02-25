@@ -11,7 +11,9 @@ Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
-    Public Class ExpTreeTestResources
+    Public NotInheritable Class ExpTreeTestResources
+        Private Sub New()
+        End Sub
 
         ' ExpressionTrees\Results\CheckedArithmeticBinaryOperators.txt
         Private Shared _checkedArithmeticBinaryOperators As String

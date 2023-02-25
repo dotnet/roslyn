@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public static void CodeStyleSettingBoolFactory(bool defaultValue)
+        public void CodeStyleSettingBoolFactory(bool defaultValue)
         {
             using var workspace = new AdhocWorkspace();
             var globalOptions = GetGlobalOptions(workspace);
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
         [Theory]
         [InlineData(DayOfWeek.Monday)]
         [InlineData(DayOfWeek.Friday)]
-        public static void CodeStyleSettingEnumFactory(DayOfWeek defaultValue)
+        public void CodeStyleSettingEnumFactory(DayOfWeek defaultValue)
         {
             using var workspace = new AdhocWorkspace();
             var globalOptions = GetGlobalOptions(workspace);

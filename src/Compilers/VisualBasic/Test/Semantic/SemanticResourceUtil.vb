@@ -11,7 +11,9 @@ Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
-    Public Class SemanticResourceUtil
+    Public NotInheritable Class SemanticResourceUtil
+        Private Sub New()
+        End Sub
 
         ' Semantics\Async_Overload_Change_3.vb.txt
         Private Shared _async_Overload_Change_3_vb As String

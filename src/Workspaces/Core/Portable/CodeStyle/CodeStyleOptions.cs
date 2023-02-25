@@ -9,7 +9,9 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     /// <inheritdoc cref="CodeStyleOptions2"/>
+#pragma warning disable CA1052 // Static holder types should be Static or NotInheritable - Public API
     public class CodeStyleOptions
+#pragma warning restore CA1052 // Static holder types should be Static or NotInheritable
     {
         /// <inheritdoc cref="CodeStyleOptions2.QualifyFieldAccess"/>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyFieldAccess =

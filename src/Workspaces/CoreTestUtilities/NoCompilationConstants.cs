@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class NoCompilationConstants
+    public static class NoCompilationConstants
     {
         public const string LanguageName = "NoCompilation";
     }

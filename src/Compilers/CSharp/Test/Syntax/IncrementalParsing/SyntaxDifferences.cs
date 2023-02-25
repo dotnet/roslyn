@@ -14,7 +14,7 @@ using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    public class SyntaxDifferences
+    public static class SyntaxDifferences
     {
         /// <summary>
         /// Returns the nodes in the new tree that do not share the same underlying 

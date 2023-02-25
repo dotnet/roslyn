@@ -25,7 +25,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
+#pragma warning disable CA1052 // Static holder types should be Static or NotInheritable - This class is inherited.
     public class IntentTestsBase
+#pragma warning restore CA1052 // Static holder types should be Static or NotInheritable
     {
         internal static async Task VerifyIntentMissingAsync(
             string intentName,

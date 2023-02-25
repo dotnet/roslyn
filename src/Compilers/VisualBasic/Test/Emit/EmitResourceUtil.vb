@@ -11,7 +11,9 @@ Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
-    Public Class EmitResourceUtil
+    Public NotInheritable Class EmitResourceUtil
+        Private Sub New()
+        End Sub
 
         ' CodeGen\ConversionsILGenTestBaseline.txt
         Private Shared _conversionsILGenTestBaseline As String

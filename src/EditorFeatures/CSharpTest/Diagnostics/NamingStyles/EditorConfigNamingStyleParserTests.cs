@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             => EditorConfigNamingStyleParser.ParseDictionary(new DictionaryAnalyzerConfigOptions(options.ToImmutableDictionary()));
 
         [Fact]
-        public static void TestPascalCaseRule()
+        public void TestPascalCaseRule()
         {
             var dictionary = new Dictionary<string, string>()
             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact, WorkItem(40705, "https://github.com/dotnet/roslyn/issues/40705")]
-        public static void TestPascalCaseRuleWithKeyCapitalization()
+        public void TestPascalCaseRuleWithKeyCapitalization()
         {
             var dictionary = new Dictionary<string, string>()
             {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestAsyncMethodsAndLocalFunctionsRule()
+        public void TestAsyncMethodsAndLocalFunctionsRule()
         {
             var dictionary = new Dictionary<string, string>()
             {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestRuleWithoutCapitalization()
+        public void TestRuleWithoutCapitalization()
         {
             var dictionary = new Dictionary<string, string>()
             {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestPublicMembersCapitalizedRule()
+        public void TestPublicMembersCapitalizedRule()
         {
             var dictionary = new Dictionary<string, string>()
             {
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestNonPublicMembersLowerCaseRule()
+        public void TestNonPublicMembersLowerCaseRule()
         {
             var dictionary = new Dictionary<string, string>()
             {
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestParametersAndLocalsAreCamelCaseRule()
+        public void TestParametersAndLocalsAreCamelCaseRule()
         {
             var dictionary = new Dictionary<string, string>()
             {
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestLocalFunctionsAreCamelCaseRule()
+        public void TestLocalFunctionsAreCamelCaseRule()
         {
             var dictionary = new Dictionary<string, string>()
             {
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestNoRulesAreReturned()
+        public void TestNoRulesAreReturned()
         {
             var dictionary = new Dictionary<string, string>()
             {
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [InlineData("invalid", new object[] { })]
         [InlineData("", new object[] { })]
         [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
-        public static void TestApplicableKindsParse(string specification, object[] typeOrSymbolKinds)
+        public void TestApplicableKindsParse(string specification, object[] typeOrSymbolKinds)
         {
             var rule = new Dictionary<string, string>()
             {
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [InlineData("invalid", new Accessibility[] { })]
         [InlineData("", new Accessibility[] { })]
         [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
-        public static void TestApplicableAccessibilitiesParse(string specification, Accessibility[] accessibilities)
+        public void TestApplicableAccessibilitiesParse(string specification, Accessibility[] accessibilities)
         {
             var rule = new Dictionary<string, string>()
             {
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestRequiredModifiersParse()
+        public void TestRequiredModifiersParse()
         {
             var charpRule = new Dictionary<string, string>()
             {
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact, WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
-        public static void TestPrefixParse()
+        public void TestPrefixParse()
         {
             var rule = new Dictionary<string, string>()
             {
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestEditorConfigParseForApplicableSymbolKinds()
+        public void TestEditorConfigParseForApplicableSymbolKinds()
         {
             var symbolSpecifications = CreateDefaultSymbolSpecification();
             foreach (var applicableSymbolKind in symbolSpecifications.ApplicableSymbolKindList)
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [InlineData("B", "a", "a", "*", "*")]
         [InlineData("A", "B", "A", "*", "*")]
         [InlineData("B", "A", "A", "*", "*")]
-        public static void TestOrderedByAccessibilityBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstAccessibility, string secondAccessibility)
+        public void TestOrderedByAccessibilityBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstAccessibility, string secondAccessibility)
         {
             var namingStylePreferences = ParseDictionary(new Dictionary<string, string>()
             {
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [InlineData("B", "a", "a", "", "")]
         [InlineData("A", "B", "A", "", "")]
         [InlineData("B", "A", "A", "", "")]
-        public static void TestOrderedByModifiersBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstModifiers, string secondModifiers)
+        public void TestOrderedByModifiersBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstModifiers, string secondModifiers)
         {
             var namingStylePreferences = ParseDictionary(new Dictionary<string, string>()
             {
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [InlineData("B", "a", "a", "*", "*")]
         [InlineData("A", "B", "A", "*", "*")]
         [InlineData("B", "A", "A", "*", "*")]
-        public static void TestOrderedBySymbolsBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstSymbols, string secondSymbols)
+        public void TestOrderedBySymbolsBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstSymbols, string secondSymbols)
         {
             var namingStylePreferences = ParseDictionary(new Dictionary<string, string>()
             {

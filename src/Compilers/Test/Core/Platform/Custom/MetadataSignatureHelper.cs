@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
-    public class MetadataSignatureHelper
+    public static class MetadataSignatureHelper
     {
         #region Helpers
         private const BindingFlags BINDING_FLAGS =

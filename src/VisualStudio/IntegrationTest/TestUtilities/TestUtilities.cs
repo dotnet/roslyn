@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
-    public class TestUtilities
+    public static class TestUtilities
     {
         public static void CompareAndThrowIfNotEqual<TItem>(TItem expected, TItem actual) where TItem : IEquatable<TItem>
         {

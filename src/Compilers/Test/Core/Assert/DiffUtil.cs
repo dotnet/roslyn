@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public class DiffUtil
+    public static class DiffUtil
     {
         private enum EditKind
         {

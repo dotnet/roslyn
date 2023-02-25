@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// in some implementation.
         /// </summary>
         [Fact]
-        public static void TestTroublesomeDoubles()
+        public void TestTroublesomeDoubles()
         {
             //// https://msdn.microsoft.com/en-us/library/kfsatb94(v=vs.110).aspx
             CheckOneDouble("0.6822871999174", 0x3FE5D54BF743FD1Bul);
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// Test round tripping for some specific floating-point values constructed to test the edge cases of conversion implementations.
         /// </summary>
         [Fact]
-        public static void TestSpecificDoubles()
+        public void TestSpecificDoubles()
         {
             CheckOneDouble("0.0", 0x0000000000000000ul);
 
@@ -417,7 +417,7 @@ Error for double input ""{s}""
         // ============ test some floats ============
 
         [Fact]
-        public static void TestSpecificFloats()
+        public void TestSpecificFloats()
         {
             CheckOneFloat(" 0.0", 0x00000000);
 

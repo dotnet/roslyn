@@ -9,7 +9,10 @@ Imports System.Text
 
 Namespace Global
 
-    Public Class ExprLambdaTest
+    Public NotInheritable Class ExprLambdaTest
+        Private Sub New()
+        End Sub
+
         Public Shared Sub DCheck(Of T)(e As Expression(Of T), expected As String)
             Check(e.Dump(), expected)
         End Sub

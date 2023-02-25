@@ -12,7 +12,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
+#Disable Warning CA1052 ' Static holder types should be Static or NotInheritable - Public API
     Public Class SyntaxNodeRemover
+#Enable Warning CA1052 ' Static holder types should be Static or NotInheritable
         Friend Shared Function RemoveNodes(Of TRoot As SyntaxNode)(root As TRoot, nodes As IEnumerable(Of SyntaxNode), options As SyntaxRemoveOptions) As TRoot
             Dim nodesToRemove As SyntaxNode() = nodes.ToArray()
 

@@ -16,7 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Provides members for determining Syntax facts about characters and Unicode conversions.
     ''' </summary>
+#Disable Warning CA1052 ' Static holder types should be Static or NotInheritable - Public API
     Partial Public Class SyntaxFacts
+#Enable Warning CA1052 ' Static holder types should be Static or NotInheritable
 
         '/*****************************************************************************/
         '// MakeFullWidth - Converts a half-width to full-width character

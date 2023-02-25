@@ -15,7 +15,7 @@ using System.Xml.Linq;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public class Win32Res
+    public static class Win32Res
     {
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern IntPtr FindResource(IntPtr hModule, string lpName, string lpType);
