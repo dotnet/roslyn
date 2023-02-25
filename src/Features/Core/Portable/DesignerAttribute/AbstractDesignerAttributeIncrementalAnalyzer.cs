@@ -4,14 +4,11 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -82,60 +79,65 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (!project.SupportsCompilation)
                 return;
 
-            var designerCategoryType = AsyncLazy.Create(
+            // Defer expensive work until it's actually needed.
+            var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync, cacheResult: true);
+            var lazyDesignerCategoryType = AsyncLazy.Create(
                 async cancellationToken =>
                 {
-                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var firstDocument = project.Documents.FirstOrDefault();
+                    if (firstDocument is null)
+                        return null;
+
+                    // we don't want to run source generators just to find out if the project has the designer category
+                    // attribute.  So freeze the project and try to get the type off of that.
+                    var frozenProject = firstDocument.WithFrozenPartialSemantics(cancellationToken).Project;
+
+                    var compilation = await frozenProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                     return compilation.DesignerCategoryAttributeType();
                 },
                 cacheResult: true);
 
             await ScanForDesignerCategoryUsageAsync(
-                project, specificDocument, callback, designerCategoryType, cancellationToken).ConfigureAwait(false);
+                project, specificDocument, callback, lazyProjectVersion, lazyDesignerCategoryType, cancellationToken).ConfigureAwait(false);
 
             // If we scanned just a specific document in the project, now scan the rest of the files.
             if (specificDocument != null)
-                await ScanForDesignerCategoryUsageAsync(project, specificDocument: null, callback, designerCategoryType, cancellationToken).ConfigureAwait(false);
+                await ScanForDesignerCategoryUsageAsync(project, specificDocument: null, callback, lazyProjectVersion, lazyDesignerCategoryType, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task ScanForDesignerCategoryUsageAsync(
             Project project,
             Document? specificDocument,
             IDesignerAttributeDiscoveryService.ICallback callback,
-            AsyncLazy<INamedTypeSymbol?> designerCategoryType,
+            AsyncLazy<VersionStamp> lazyProjectVersion,
+            AsyncLazy<INamedTypeSymbol?> lazyDesignerCategoryType,
             CancellationToken cancellationToken)
         {
-            // We need to reanalyze the project whenever it (or any of its dependencies) have
-            // changed.  We need to know about dependencies since if a downstream project adds the
-            // DesignerCategory attribute to a class, that can affect us when we examine the classes
-            // in this project.
-            var projectVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
             // Now get all the values that actually changed and notify VS about them. We don't need
             // to tell it about the ones that didn't change since that will have no effect on the
             // user experience.
             var changedData = await ComputeChangedDataAsync(
-                project, specificDocument, projectVersion, designerCategoryType, cancellationToken).ConfigureAwait(false);
+                project, specificDocument, lazyProjectVersion, lazyDesignerCategoryType, cancellationToken).ConfigureAwait(false);
 
             // Only bother reporting non-empty information to save an unnecessary RPC.
             if (!changedData.IsEmpty)
-                await callback.ReportDesignerAttributeDataAsync(changedData, cancellationToken).ConfigureAwait(false);
+                await callback.ReportDesignerAttributeDataAsync(changedData.SelectAsArray(d => d.data), cancellationToken).ConfigureAwait(false);
 
             // Now, keep track of what we've reported to the host so we won't report unchanged files in the future. We
             // do this after the report has gone through as we want to make sure that if it cancels for any reason we
             // don't hold onto values that may not have made it all the way to the project system.
-            foreach (var data in changedData)
+            foreach (var (data, projectVersion) in changedData)
                 _documentToLastReportedInformation[data.DocumentId] = (data.Category, projectVersion);
         }
 
-        private async Task<ImmutableArray<DesignerAttributeData>> ComputeChangedDataAsync(
+        private async Task<ImmutableArray<(DesignerAttributeData data, VersionStamp version)>> ComputeChangedDataAsync(
             Project project,
             Document? specificDocument,
-            VersionStamp projectVersion,
-            AsyncLazy<INamedTypeSymbol?> designerCategoryType,
+            AsyncLazy<VersionStamp> lazyProjectVersion,
+            AsyncLazy<INamedTypeSymbol?> lazyDesignerCategoryType,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<DesignerAttributeData>.GetInstance(out var results);
+            using var _ = ArrayBuilder<(DesignerAttributeData data, VersionStamp version)>.GetInstance(out var results);
             foreach (var document in project.Documents)
             {
                 // If we're only analyzing a specific document, then skip the rest.
@@ -149,6 +151,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
                 // If nothing has changed at the top level between the last time we analyzed this document and now, then
                 // no need to analyze again.
+                var projectVersion = await lazyProjectVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 if (_documentToLastReportedInformation.TryGetValue(document.Id, out var existingInfo) &&
                     existingInfo.projectVersion == projectVersion)
                 {
@@ -157,7 +160,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
                 var data = await ComputeDesignerAttributeDataAsync(document).ConfigureAwait(false);
                 if (data.Category != existingInfo.category)
-                    results.Add(data);
+                    results.Add((data, projectVersion));
             }
 
             return results.ToImmutable();
@@ -170,7 +173,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 // So recompute here.  Figure out what the current category is, and if that's different
                 // from what we previously stored.
                 var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
-                    designerCategoryType, document, cancellationToken).ConfigureAwait(false);
+                    lazyDesignerCategoryType, document, cancellationToken).ConfigureAwait(false);
 
                 return new DesignerAttributeData
                 {
