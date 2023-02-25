@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                     await ProcessProjectAsync(priorityDocument.Project, priorityDocument, callback, cancellationToken).ConfigureAwait(false);
 
                 // Wait a little after the priority document and process the rest at a lower priority.
-                await Task.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false); 
+                await Task.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false);
 
                 // Process the rest of the projects in dependency order so that their data is ready when we hit the 
                 // projects that depend on them.
@@ -155,22 +155,14 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                     continue;
                 }
 
-                var data = await ComputeDesignerAttributeDataAsync(
-                    designerCategoryType, document, cancellationToken).ConfigureAwait(false);
-                if (data is null)
-                    continue;
-
-                if (data?.Category != existingInfo.category)
-                    results.Add(data.Value);
+                var data = await ComputeDesignerAttributeDataAsync(document).ConfigureAwait(false);
+                if (data.Category != existingInfo.category)
+                    results.Add(data);
             }
 
             return results.ToImmutable();
-        }
 
-        private static async Task<DesignerAttributeData?> ComputeDesignerAttributeDataAsync(
-            AsyncLazy<INamedTypeSymbol?> designerCategoryType, Document document, CancellationToken cancellationToken)
-        {
-            try
+            async Task<DesignerAttributeData> ComputeDesignerAttributeDataAsync(Document document)
             {
                 Contract.ThrowIfNull(document.FilePath);
 
@@ -186,10 +178,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                     DocumentId = document.Id,
                     FilePath = document.FilePath,
                 };
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return null;
             }
         }
     }
