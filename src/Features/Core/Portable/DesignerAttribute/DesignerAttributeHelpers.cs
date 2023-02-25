@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
             // Legacy behavior.  We only register the designer info for the first non-nested class
             // in the file.
-            var firstClass = FindFirstNonNestedClass(
-                syntaxFacts, syntaxFacts.GetMembersOfCompilationUnit(root), cancellationToken);
+            var firstClass = FindFirstNonNestedClass(syntaxFacts.GetMembersOfCompilationUnit(root));
             if (firstClass == null)
                 return null;
 
@@ -60,28 +59,26 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                     ContainingNamespace.ContainingNamespace.Name: nameof(System),
                     ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
                 };
-        }
 
-        private static SyntaxNode? FindFirstNonNestedClass(
-            ISyntaxFactsService syntaxFacts, SyntaxList<SyntaxNode> members, CancellationToken cancellationToken)
-        {
-            foreach (var member in members)
+            SyntaxNode? FindFirstNonNestedClass(SyntaxList<SyntaxNode> members)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (syntaxFacts.IsBaseNamespaceDeclaration(member))
+                foreach (var member in members)
                 {
-                    var firstClass = FindFirstNonNestedClass(
-                        syntaxFacts, syntaxFacts.GetMembersOfBaseNamespaceDeclaration(member), cancellationToken);
-                    if (firstClass != null)
-                        return firstClass;
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (syntaxFacts.IsBaseNamespaceDeclaration(member))
+                    {
+                        var firstClass = FindFirstNonNestedClass(syntaxFacts.GetMembersOfBaseNamespaceDeclaration(member));
+                        if (firstClass != null)
+                            return firstClass;
+                    }
+                    else if (syntaxFacts.IsClassDeclaration(member))
+                    {
+                        return member;
+                    }
                 }
-                else if (syntaxFacts.IsClassDeclaration(member))
-                {
-                    return member;
-                }
-            }
 
-            return null;
+                return null;
+            }
         }
     }
 }
