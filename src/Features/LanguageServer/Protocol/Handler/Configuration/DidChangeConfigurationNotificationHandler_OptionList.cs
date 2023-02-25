@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
     internal partial class DidChangeConfigurationNotificationHandler
     {
-        private static readonly ImmutableArray<IOption2> s_supportedOptions = ImmutableArray.Create<IOption2>(
+        public static readonly ImmutableArray<IOption2> SupportedOptions = ImmutableArray.Create<IOption2>(
             // Code Action options
             SymbolSearchOptionsStorage.SearchReferenceAssemblies,
             ImplementTypeOptionsStorage.InsertionBehavior,

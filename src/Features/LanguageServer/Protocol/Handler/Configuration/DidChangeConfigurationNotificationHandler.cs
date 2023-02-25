@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
@@ -21,32 +22,41 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         private readonly ILspLogger _lspLogger;
         private readonly IGlobalOptionService _globalOptionService;
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
+        private readonly IAsynchronousOperationListener _asynchronousOperationListener;
         private readonly Guid _registrationId;
 
-        public DidChangeConfigurationNotificationHandler(ILspLogger logger, IGlobalOptionService globalOptionService, IClientLanguageServerManager clientLanguageServerManager)
+        public DidChangeConfigurationNotificationHandler(
+            ILspLogger logger,
+            IGlobalOptionService globalOptionService,
+            IClientLanguageServerManager clientLanguageServerManager,
+            IAsynchronousOperationListener asynchronousOperationListener)
         {
             _lspLogger = logger;
             _globalOptionService = globalOptionService;
             _clientLanguageServerManager = clientLanguageServerManager;
             _registrationId = Guid.NewGuid();
+            _asynchronousOperationListener = asynchronousOperationListener;
         }
 
         public bool MutatesSolutionState => true;
 
         public bool RequiresLSPSolution => false;
 
-        public Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
-            => RefreshOptionsAsync(cancellationToken);
+        public async Task HandleNotificationAsync(DidChangeConfigurationParams request, RequestContext requestContext, CancellationToken cancellationToken)
+        {
+            using var _ = _asynchronousOperationListener.BeginAsyncOperation(Methods.WorkspaceDidChangeConfigurationName);
+            await RefreshOptionsAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
         {
-            var configurationItems = s_supportedOptions.SelectAsArray(
+            var configurationItems = SupportedOptions.SelectAsArray(
                 option => new ConfigurationItem() { ScopeUri = null, Section = GenerateSection(option) });
             var configurationsFromClient = await GetConfigurationsAsync(configurationItems, cancellationToken).ConfigureAwait(false);
 
             for (var i = 0; i < configurationsFromClient.Length; i++)
             {
-                var option = s_supportedOptions[i];
+                var option = SupportedOptions[i];
                 var configurationValue = configurationsFromClient[i];
                 if (option.Definition.Serializer.TryParse(configurationValue, out var result))
                 {

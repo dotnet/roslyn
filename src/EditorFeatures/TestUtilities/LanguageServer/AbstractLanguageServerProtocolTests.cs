@@ -36,8 +36,6 @@ using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo.AbstractNavigateToTests;
-using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Roslyn.Test.Utilities
@@ -292,19 +290,19 @@ namespace Roslyn.Test.Utilities
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, IEnumerable<string>? customTags = null)
             => new CodeActionResolveData(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri));
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true, object? clientTarget = null)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized }, clientTarget);
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, initializationOptions);
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null, object? clientTarget = null)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, initializationOptions, clientTarget);
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, InitializationOptions? initializationOptions = null)
-            => CreateTestLspServerAsync(markups, LanguageNames.CSharp, initializationOptions);
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, InitializationOptions? initializationOptions = null, object? clientTarget = null)
+            => CreateTestLspServerAsync(markups, LanguageNames.CSharp, initializationOptions, clientTarget);
 
-        private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, initializationOptions);
+        private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null, object? clientTarget = null)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, initializationOptions, clientTarget);
 
-        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName, InitializationOptions? initializationOptions)
+        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName, InitializationOptions? initializationOptions, object? clientTarget = null)
         {
             var lspOptions = initializationOptions ?? new InitializationOptions();
 
@@ -312,10 +310,10 @@ namespace Roslyn.Test.Utilities
 
             workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(languageName, files: markups, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups), openDocuments: false);
 
-            return CreateTestLspServerAsync(workspace, lspOptions);
+            return CreateTestLspServerAsync(workspace, lspOptions, clientTarget);
         }
 
-        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions)
+        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions, object? clientTarget)
         {
             var solution = workspace.CurrentSolution;
 
@@ -344,7 +342,7 @@ namespace Roslyn.Test.Utilities
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
 
-            return await TestLspServer.CreateAsync(workspace, initializationOptions, TestOutputLspLogger);
+            return await TestLspServer.CreateAsync(workspace, initializationOptions, TestOutputLspLogger, clientTarget);
         }
 
         private protected async Task<TestLspServer> CreateXmlTestLspServerAsync(
@@ -502,7 +500,8 @@ namespace Roslyn.Test.Utilities
                 Dictionary<string, IList<LSP.Location>> locations,
                 LSP.ClientCapabilities clientCapabilities,
                 RoslynLanguageServer target,
-                Stream clientStream)
+                Stream clientStream,
+                object? clientTarget = null)
             {
                 TestWorkspace = testWorkspace;
                 ClientCapabilities = clientCapabilities;
@@ -510,7 +509,7 @@ namespace Roslyn.Test.Utilities
 
                 LanguageServer = target;
 
-                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()))
+                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()), clientTarget)
                 {
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
@@ -537,14 +536,14 @@ namespace Roslyn.Test.Utilities
                 return messageFormatter;
             }
 
-            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, InitializationOptions initializationOptions, ILspServiceLogger logger)
+            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, InitializationOptions initializationOptions, ILspServiceLogger logger, object? clientTarget = null)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
 
                 var (clientStream, serverStream) = FullDuplexStream.CreatePair();
                 var languageServer = CreateLanguageServer(serverStream, serverStream, testWorkspace, initializationOptions.ServerKind, logger);
 
-                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, languageServer, clientStream);
+                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, languageServer, clientStream, clientTarget);
 
                 await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {

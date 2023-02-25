@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
     {
         public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
+            using var _ = _asynchronousOperationListener.BeginAsyncOperation(Methods.InitializedName);
             if (clientCapabilities?.Workspace?.DidChangeConfiguration?.DynamicRegistration is true)
             {
                 await _clientLanguageServerManager.SendRequestAsync<RegistrationParams, JObject>(
