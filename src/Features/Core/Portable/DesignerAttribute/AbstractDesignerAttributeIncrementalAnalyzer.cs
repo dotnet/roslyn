@@ -59,6 +59,9 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 if (priorityDocument != null)
                     await ProcessProjectAsync(priorityDocument.Project, priorityDocument, callback, cancellationToken).ConfigureAwait(false);
 
+                // Wait a little after the priority document and process the rest at a lower priority.
+                await Task.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false); 
+
                 // Process the rest of the projects in dependency order so that their data is ready when we hit the 
                 // projects that depend on them.
                 var dependencyGraph = solution.GetProjectDependencyGraph();
@@ -79,10 +82,13 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (!project.SupportsCompilation)
                 return;
 
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var designerCategoryType = compilation.DesignerCategoryAttributeType();
-            if (designerCategoryType == null)
-                return;
+            var designerCategoryType = AsyncLazy.Create(
+                async cancellationToken =>
+                {
+                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    return compilation.DesignerCategoryAttributeType();
+                },
+                cacheResult: true);
 
             await ScanForDesignerCategoryUsageAsync(
                 project, specificDocument, callback, designerCategoryType, cancellationToken).ConfigureAwait(false);
@@ -96,7 +102,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             Project project,
             Document? specificDocument,
             IDesignerAttributeDiscoveryService.ICallback callback,
-            INamedTypeSymbol designerCategoryType,
+            AsyncLazy<INamedTypeSymbol?> designerCategoryType,
             CancellationToken cancellationToken)
         {
             // We need to reanalyze the project whenever it (or any of its dependencies) have
@@ -126,10 +132,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             Project project,
             Document? specificDocument,
             VersionStamp projectVersion,
-            INamedTypeSymbol designerCategoryType,
+            AsyncLazy<INamedTypeSymbol?> designerCategoryType,
             CancellationToken cancellationToken)
         {
-            using var _1 = ArrayBuilder<Task<DesignerAttributeData?>>.GetInstance(out var tasks);
+            using var _ = ArrayBuilder<DesignerAttributeData>.GetInstance(out var results);
             foreach (var document in project.Documents)
             {
                 // If we're only analyzing a specific document, then skip the rest.
@@ -149,31 +155,20 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                     continue;
                 }
 
-                tasks.Add(ComputeDesignerAttributeDataAsync(designerCategoryType, document, cancellationToken));
-            }
-
-            using var _2 = ArrayBuilder<DesignerAttributeData>.GetInstance(tasks.Count, out var results);
-
-            // Avoid unnecessary allocation of result array.
-            await Task.WhenAll((IEnumerable<Task>)tasks).ConfigureAwait(false);
-
-            foreach (var task in tasks)
-            {
-                var dataOpt = await task.ConfigureAwait(false);
-                if (dataOpt == null)
+                var data = await ComputeDesignerAttributeDataAsync(
+                    designerCategoryType, document, cancellationToken).ConfigureAwait(false);
+                if (data is null)
                     continue;
 
-                var data = dataOpt.Value;
-                _documentToLastReportedInformation.TryGetValue(data.DocumentId, out var existingInfo);
-                if (existingInfo.category != data.Category)
-                    results.Add(data);
+                if (data?.Category != existingInfo.category)
+                    results.Add(data.Value);
             }
 
-            return results.ToImmutableAndClear();
+            return results.ToImmutable();
         }
 
         private static async Task<DesignerAttributeData?> ComputeDesignerAttributeDataAsync(
-            INamedTypeSymbol? designerCategoryType, Document document, CancellationToken cancellationToken)
+            AsyncLazy<INamedTypeSymbol?> designerCategoryType, Document document, CancellationToken cancellationToken)
         {
             try
             {

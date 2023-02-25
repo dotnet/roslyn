@@ -8,21 +8,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
     internal static class DesignerAttributeHelpers
     {
         public static async Task<string?> ComputeDesignerAttributeCategoryAsync(
-            INamedTypeSymbol? designerCategoryType,
+            AsyncLazy<INamedTypeSymbol?> lazyDesignerCategoryType,
             Document document,
             CancellationToken cancellationToken)
         {
-            // simple case.  If there's no DesignerCategory type in this compilation, then there's
-            // definitely no designable types.  Just immediately bail out.
-            if (designerCategoryType == null)
-                return null;
-
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -31,6 +27,12 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             var firstClass = FindFirstNonNestedClass(
                 syntaxFacts, syntaxFacts.GetMembersOfCompilationUnit(root), cancellationToken);
             if (firstClass == null)
+                return null;
+
+            // simple case.  If there's no DesignerCategory type in this compilation, then there's
+            // definitely no designable types.
+            var designerCategoryType = await lazyDesignerCategoryType.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (designerCategoryType == null)
                 return null;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
