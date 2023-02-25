@@ -189,9 +189,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         }
 
         public static async Task<string?> ComputeDesignerAttributeCategoryAsync(
-    AsyncLazy<bool> lazyHasDesignerCategoryType,
-    Document document,
-    CancellationToken cancellationToken)
+            AsyncLazy<bool> lazyHasDesignerCategoryType, Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
