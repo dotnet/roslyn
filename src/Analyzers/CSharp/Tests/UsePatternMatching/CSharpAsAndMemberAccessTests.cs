@@ -984,7 +984,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
         public async Task TestIsNotTypePattern()
         {
-            var code = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                     using System;
                     class C
                     {
@@ -995,12 +997,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                             }
                         }
                     }
-                    """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -1040,7 +1037,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
         public async Task TestIsNotVarPattern()
         {
-            var code = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                     using System;
                     class C
                     {
@@ -1051,12 +1050,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                             }
                         }
                     }
-                    """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -1161,7 +1155,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [Fact, WorkItem(67010, "https://github.com/dotnet/roslyn/issues/67010")]
         public async Task TestIsNotRecursivePattern2()
         {
-            var code = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                     using System;
                     class C
                     {
@@ -1172,12 +1168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                             }
                         }
                     }
-                    """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
