@@ -51,8 +51,20 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
                 // if it has designer attribute, set it
                 var attribute = type.GetAttributes().FirstOrDefault(d => designerCategoryType.Equals(d.AttributeClass));
-                if (attribute?.ConstructorArguments.Length == 1)
-                    return GetArgumentString(attribute.ConstructorArguments[0]);
+                if (attribute is
+                    {
+                        ConstructorArguments:
+                        [
+                            {
+                                Type.SpecialType: SpecialType.System_String,
+                                IsNull: false,
+                                Value: string stringValue,
+                            }
+                        ]
+                    })
+                {
+                    return stringValue.Trim();
+                }
             }
 
             return null;
@@ -78,19 +90,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             }
 
             return null;
-        }
-
-        private static string? GetArgumentString(TypedConstant argument)
-        {
-            if (argument.Type == null ||
-                argument.Type.SpecialType != SpecialType.System_String ||
-                argument.IsNull ||
-                argument.Value is not string stringValue)
-            {
-                return null;
-            }
-
-            return stringValue.Trim();
         }
     }
 }

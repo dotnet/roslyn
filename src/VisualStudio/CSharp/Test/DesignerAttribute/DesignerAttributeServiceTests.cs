@@ -90,7 +90,7 @@ class Test { }", "Form");
 
             var compilation = await document.Project.GetCompilationAsync();
             var actual = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
-                compilation.DesignerCategoryAttributeType(), document, CancellationToken.None);
+                AsyncLazy.Create(compilation.DesignerCategoryAttributeType()), document, CancellationToken.None);
 
             Assert.Equal(category, actual);
         }
