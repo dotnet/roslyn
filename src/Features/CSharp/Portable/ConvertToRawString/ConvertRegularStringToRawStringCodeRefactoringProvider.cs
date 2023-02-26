@@ -232,7 +232,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     {
                         ConvertToRawKind.SingleLine => canConvertParams.CanBeSingleLine,
                         ConvertToRawKind.MultiLineIndented => !canConvertParams.CanBeSingleLine,
-                        ConvertToRawKind.MultiLineWithoutLeadingWhitespace => canConvertParams.CanBeMultiLineWithoutLeadingWhiteSpaces,
+                        // If we started with a multi-line string that we're changing semantics for.  Then any
+                        // multi-line matches are something we can proceed with.  After all, we're updating all other
+                        // ones that might change semantics, so we can def update the ones that won't change semantics.
+                        ConvertToRawKind.MultiLineWithoutLeadingWhitespace =>
+                            !canConvertParams.CanBeSingleLine || canConvertParams.CanBeMultiLineWithoutLeadingWhiteSpaces,
                         _ => throw ExceptionUtilities.UnexpectedValue(kind),
                     };
 

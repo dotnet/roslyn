@@ -271,9 +271,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                     var singleLine1 = "a";
                     var singleLine2 = @"goo""bar";
 
-                    var multiLine1 = "goo\r\nbar";
-                    var multiLine2 = @"goo
-            bar";
+                    var multiLine1 = """
+                        goo
+                        bar
+                        """;
+                    var multiLine2 = """
+                        goo
+                        bar
+                        """;
 
                     var multiLineWithoutLeadingWhitespace1 = """
                         from x in y
@@ -292,9 +297,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                     var singleLine1 = "a";
                     var singleLine2 = @"goo""bar";
 
-                    var multiLine1 = "goo\r\nbar";
-                    var multiLine2 = @"goo
-            bar";
+                    var multiLine1 = """
+                        goo
+                        bar
+                        """;
+                    var multiLine2 = """
+                        goo
+                        bar
+                        """;
 
                     var multiLineWithoutLeadingWhitespace1 = """
                         from x in y
