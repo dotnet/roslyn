@@ -38,5 +38,5 @@ internal interface IWorkspaceProject : IDisposable
 
     Task SetProjectHasAllInformationAsync(bool hasAllInformation, CancellationToken cancellationToken);
 
-    Task<IAsyncDisposable> StartBatchAsync(CancellationToken cancellationToken);
+    Task<IWorkspaceProjectBatch> StartBatchAsync(CancellationToken cancellationToken);
 }
