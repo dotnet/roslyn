@@ -47,6 +47,16 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         {
         }
 
+        private static AsyncLazy<bool> GetLazyHasDesignerCategoryType(Project project)
+            => s_metadataReferencesToDesignerAttributeInfo.GetValue(
+                   project.MetadataReferences,
+                   _ => AsyncLazy.Create(
+                       async cancellationToken =>
+                       {
+                           var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                           return compilation.DesignerCategoryAttributeType() != null;
+                       }, cacheResult: true));
+
         public async ValueTask ProcessSolutionAsync(
             Solution solution,
             DocumentId? priorityDocumentId,
@@ -113,6 +123,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 specificDocument = specificDocument is null ? null : project.GetRequiredDocument(specificDocument.Id);
             }
 
+            // Note: it's fine to pass a frozen project into this helper.  The purpose of it is to see if we know about
+            // the System.ComponentModel.DesignerCategoryAttribute in that project.  And that question depends only on
+            // metadata-references.  We don't need/want things like skeletons/source-generators involved when answering
+            // that question.
             var lazyHasDesignerCategoryType = GetLazyHasDesignerCategoryType(project);
 
             await ScanForDesignerCategoryUsageAsync(
@@ -122,16 +136,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (specificDocument != null)
                 await ScanForDesignerCategoryUsageAsync(project, specificDocument: null, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
         }
-
-        private static AsyncLazy<bool> GetLazyHasDesignerCategoryType(Project project)
-            => s_metadataReferencesToDesignerAttributeInfo.GetValue(
-                   project.MetadataReferences,
-                   _ => AsyncLazy.Create(
-                       async cancellationToken =>
-                       {
-                           var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                           return compilation.DesignerCategoryAttributeType() != null;
-                       }, cacheResult: true));
 
         private async Task ScanForDesignerCategoryUsageAsync(
             Project project,
