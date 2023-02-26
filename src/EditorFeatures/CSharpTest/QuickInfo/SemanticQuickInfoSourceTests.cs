@@ -8654,9 +8654,14 @@ class Program
                 {
                     void M()
                     {
-                        object? o = null;
-                        $$var s = (string?)o;
+                        $$var s = GetNullableString();
                     }
+
+                    #nullable enable
+
+                    string? GetNullableString() => null;
+
+                    #nullable restore
                 }
                 """;
             await TestAsync(source,
