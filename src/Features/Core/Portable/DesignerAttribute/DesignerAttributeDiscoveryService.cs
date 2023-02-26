@@ -91,7 +91,12 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 return;
 
             // Defer expensive work until it's actually needed.
+
+            // The top level project version for this project.  We only care if anything top level changes here.
+            // Downstream impact will already happen due to us keying off of the references a project has (which will
+            // change if anything it depends on changes).
             var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync, cacheResult: true);
+
             var lazyHasDesignerCategoryType = s_metadataReferencesToDesignerAttributeInfo.GetValue(
                 project.MetadataReferences,
                 _ => AsyncLazy.Create(
@@ -141,6 +146,12 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             AsyncLazy<bool> lazyHasDesignerCategoryType,
             CancellationToken cancellationToken)
         {
+            // NOTE: While we could potentially process the documents in a project in parallel, we intentionally do not.
+            // That's because this runs automatically in the BG in response to *any* change in the workspace.  So it's
+            // very often going to be running, and it will be potentially competing against explicitly invoked actions
+            // by the user.  Processing only one doc at a time, means we're not saturating the TPL with this work at the
+            // expense of other features.
+
             using var _ = ArrayBuilder<(DesignerAttributeData data, VersionStamp version)>.GetInstance(out var results);
             foreach (var document in project.Documents)
             {
