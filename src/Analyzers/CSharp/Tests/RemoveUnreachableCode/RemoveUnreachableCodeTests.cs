@@ -906,6 +906,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
                 """;
             var fixedCode = """
                 throw new System.Exception();
+
                 """;
             await new VerifyCS.Test
             {
@@ -928,6 +929,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
                 """;
             var fixedCode = """
                 throw new System.Exception();
+
                 """;
             await new VerifyCS.Test
             {
@@ -952,6 +954,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
                 """;
             var fixedCode = """
                 throw new System.Exception();
+
                 """;
             await new VerifyCS.Test
             {
@@ -982,6 +985,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
 
 
                 public class C { }
+
                 """;
             await new VerifyCS.Test
             {
@@ -1009,6 +1013,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
                 throw new System.Exception();
 
                 public class C { }
+
                 """;
             await new VerifyCS.Test
             {
@@ -1035,6 +1040,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
                 public class C { }
 
                 {|CS8803:throw new System.Exception();|}
+
                 """;
             await new VerifyCS.Test
             {
