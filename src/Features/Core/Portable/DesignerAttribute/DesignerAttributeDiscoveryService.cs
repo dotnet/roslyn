@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         public async ValueTask ProcessSolutionAsync(
             Solution solution,
             DocumentId? priorityDocumentId,
+            bool useFrozenSnapshots,
             IDesignerAttributeDiscoveryService.ICallback callback,
             CancellationToken cancellationToken)
         {
@@ -65,10 +66,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 // Handle the priority doc first.
                 var priorityDocument = solution.GetDocument(priorityDocumentId);
                 if (priorityDocument != null)
-                    await ProcessProjectAsync(priorityDocument.Project, priorityDocument, callback, cancellationToken).ConfigureAwait(false);
+                    await ProcessProjectAsync(priorityDocument.Project, priorityDocument, useFrozenSnapshots, callback, cancellationToken).ConfigureAwait(false);
 
                 // Wait a little after the priority document and process the rest at a lower priority.
-                await Task.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
 
                 // Process the rest of the projects in dependency order so that their data is ready when we hit the 
                 // projects that depend on them.
@@ -76,19 +77,20 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
                 {
                     if (projectId != priorityDocumentId?.ProjectId)
-                        await ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, callback, cancellationToken).ConfigureAwait(false);
+                        await ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, useFrozenSnapshots, callback, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
 
-        private async Task ProcessProjectAsync(
+        private Task ProcessProjectAsync(
             Project project,
             Document? specificDocument,
+            bool useFrozenSnapshots,
             IDesignerAttributeDiscoveryService.ICallback callback,
             CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
-                return;
+                return Task.CompletedTask;
 
             // Defer expensive work until it's actually needed.
 
@@ -105,6 +107,33 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                         var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                         return compilation.DesignerCategoryAttributeType() != null;
                     }, cacheResult: true));
+
+            return ScanForDesignerCategoryUsageAsync(
+                project, specificDocument, useFrozenSnapshots, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken);
+        }
+
+        private async Task ScanForDesignerCategoryUsageAsync(
+            Project project,
+            Document? specificDocument,
+            bool useFrozenSnapshots,
+            IDesignerAttributeDiscoveryService.ICallback callback,
+            AsyncLazy<VersionStamp> lazyProjectVersion,
+            AsyncLazy<bool> lazyHasDesignerCategoryType,
+            CancellationToken cancellationToken)
+        {
+            // Switch to frozen semantics if requested.  We don't need to wait on generators to run here as we want to
+            // be lightweight.  We'll also continue running in the future.  So if any changes to happen that are
+            // important to pickup, then we'll see it in the future.  But this avoids constant churn here trying to do
+            // things like building skeletons.
+            if (useFrozenSnapshots)
+            {
+                var document = specificDocument ?? project.Documents.FirstOrDefault();
+                if (document is null)
+                    return;
+
+                project = document.WithFrozenPartialSemantics(cancellationToken).Project;
+                specificDocument = specificDocument is null ? null : project.GetRequiredDocument(specificDocument.Id);
+            }
 
             await ScanForDesignerCategoryUsageAsync(
                 project, specificDocument, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
