@@ -273,8 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             var tokenLine = parsedDocument.Text.Lines.GetLineFromPosition(token.SpanStart);
 
-            string indentation;
-            bool addIndentationToStart;
             if (token.SpanStart == tokenLine.Start)
             {
                 // Special case.  string token starting at the start of the line.  This is a common pattern used for
@@ -282,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 // level (like unit tests).
                 //
                 // In this case, figure out what indentation we're normally like to put this string.  Update *both* the
-                // contents 
+                // contents *and* the starting quotes of the raw string.
                 var indenter = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
                 var indentationVal = indenter.GetIndentation(parsedDocument, tokenLine.LineNumber, indentationOptions, cancellationToken);
 
@@ -427,6 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
         private static SyntaxToken ConvertToMultiLineRawIndentedString(
             string indentation,
+            bool addIndentationToStart,
             SyntaxToken token,
             SyntaxFormattingOptions formattingOptions,
             VirtualCharSequence characters)
