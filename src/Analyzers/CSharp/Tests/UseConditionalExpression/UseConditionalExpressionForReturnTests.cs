@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 {
                     string M()
                     {
-                        return true ? throw new System.Exception() :
+                        return true ? throw new System.Exception() : 
                 """ + expectedFalseExpression + """
                 ;
                     }
@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 {
                     string M()
                     {
-                        return true ? null :
+                        return true ? null : 
                 """ + expectedFalseExpression + """
                 ;
                     }
@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 {
                     string M()
                     {
-                        return true ? throw new System.Exception() :
+                        return true ? throw new System.Exception() : 
                 """ + expectedFalseExpression + """
                 ;
                     }
@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 {
                     string M()
                     {
-                        return true ?
+                        return true ? 
                 """ + expectedTrue + """
                  : throw new System.Exception();
                     }

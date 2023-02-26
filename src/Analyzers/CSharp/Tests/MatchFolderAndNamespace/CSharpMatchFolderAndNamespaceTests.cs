@@ -247,8 +247,7 @@ namespace {DefaultNamespace}.a.b
 
 class Class1
 {{
-}}
-";
+}}";
             await RunTestAsync(
                 fileName: "Class1.cs",
                 fileContents: code,
@@ -311,12 +310,13 @@ build_property.ProjectDir = {Directory}
                 """;
 
             var fixedCode =
-@$"namespace B.C;
+                """
+                namespace B.C;
 
-class Class1
-{{
-}}
-";
+                class Class1
+                {
+                }
+                """;
             await RunTestAsync(
                 fileName: "Class1.cs",
                 fileContents: code,

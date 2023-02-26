@@ -1170,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveAsyncModifier
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.cs(7,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(7, 33, 7, 34),
+                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(6, 33, 6, 34),
                 },
                 FixedCode = source,
             }.RunAsync();
@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveAsyncModifier
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.cs(6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(6, 16, 6, 17),
+                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(5, 16, 5, 17),
                 },
                 FixedCode = source,
             }.RunAsync();
@@ -1226,8 +1226,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveAsyncModifier
                 TestCode = source,
                 ExpectedDiagnostics =
                 {
-                     // /0/Test0.cs(9,29): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(9, 29, 9, 31),
+                    // /0/Test0.cs(9,29): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(8, 29, 8, 31),
                 },
                 FixedCode = source,
             }.RunAsync();
@@ -1256,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveAsyncModifier
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.cs(9,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(9, 33, 9, 35),
+                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(8, 33, 8, 35),
                 },
                 FixedCode = source,
             }.RunAsync();
