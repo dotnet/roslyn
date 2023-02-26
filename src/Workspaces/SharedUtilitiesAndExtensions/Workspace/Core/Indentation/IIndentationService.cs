@@ -78,3 +78,4 @@ namespace Microsoft.CodeAnalysis.Indentation
         public static string GetIndentationString(this IndentationResult indentationResult, SourceText sourceText, IndentationOptions options)
             => GetIndentationString(indentationResult, sourceText, options.FormattingOptions);
     }
+}
