@@ -716,5 +716,251 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             </Workspace>
             """");
         }
+
+        [Fact]
+        public async Task FixAllCommonRoslynTestPattern1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                {|FixAllInDocument:|}@"class X
+                {
+                }",
+                @"class Y
+                {
+                }");
+                    }
+                }
+                """,
+                """"
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                            """
+                            class X
+                            {
+                            }
+                            """,
+                            """
+                            class Y
+                            {
+                            }
+                            """);
+                    }
+                }
+                """");
+        }
+
+        [Fact]
+        public async Task FixAllCommonRoslynTestPattern1_B()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                {|FixAllInDocument:|}@"class X
+                {
+                }", @"class Y
+                {
+                }");
+                    }
+                }
+                """,
+                """"
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                            """
+                            class X
+                            {
+                            }
+                            """, """
+                            class Y
+                            {
+                            }
+                            """);
+                    }
+                }
+                """");
+        }
+
+        [Fact]
+        public async Task FixAllCommonRoslynTestPattern2()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                {|FixAllInDocument:|}@"
+                class X
+                {
+                }",
+                @"
+                class Y
+                {
+                }");
+                    }
+                }
+                """,
+                """"
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                            """
+                            class X
+                            {
+                            }
+                            """,
+                            """
+                            class Y
+                            {
+                            }
+                            """);
+                    }
+                }
+                """", index: 1);
+        }
+
+        [Fact]
+        public async Task FixAllCommonRoslynTestPattern2_B()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                {|FixAllInDocument:|}@"
+                class X
+                {
+                }", @"
+                class Y
+                {
+                }");
+                    }
+                }
+                """,
+                """"
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                            """
+                            class X
+                            {
+                            }
+                            """, """
+                            class Y
+                            {
+                            }
+                            """);
+                    }
+                }
+                """", index: 1);
+        }
+
+        [Fact]
+        public async Task FixAllCommonRoslynTestPattern3()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                {|FixAllInDocument:|}@"
+                class X
+                {
+                }
+                ",
+                @"
+                class Y
+                {
+                }
+                ");
+                    }
+                }
+                """,
+                """"
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                            """
+                            class X
+                            {
+                            }
+                            """,
+                            """
+                            class Y
+                            {
+                            }
+                            """);
+                    }
+                }
+                """", index: 1);
+        }
+
+        [Fact]
+        public async Task FixAllCommonRoslynTestPattern3_B()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                {|FixAllInDocument:|}@"
+                class X
+                {
+                }
+                ", @"
+                class Y
+                {
+                }
+                ");
+                    }
+                }
+                """,
+                """"
+                class C
+                {
+                    void M()
+                    {
+                        await TestAsync(
+                            """
+                            class X
+                            {
+                            }
+                            """, """
+                            class Y
+                            {
+                            }
+                            """);
+                    }
+                }
+                """", index: 1);
+        }
     }
 }
