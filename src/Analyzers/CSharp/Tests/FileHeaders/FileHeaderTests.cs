@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FileHeaders
         public async Task TestNoFileHeaderWithWhitespaceLineAsync()
         {
             var testCode = "[||]    " + """
+
                 using System;
 
                 namespace N
@@ -335,8 +336,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FileHeaders
 
 namespace Bar
 {{
-}}
-";
+}}";
             var fixedCode = """
                 // Copyright (c) SomeCorp. All rights reserved.
                 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
@@ -550,8 +550,7 @@ namespace Bar
 
 namespace Bar
 {{
-}}
-";
+}}";
             var fixedCode = """
                 // Copyright (c) SomeCorp. All rights reserved.
                 // Licensed under the ??? license. See LICENSE file in the project root for full license information.

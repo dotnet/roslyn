@@ -934,10 +934,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                     Sources =
                     {
                         """
-                        int Bar(int x)
-                        {
-                            return x;
-                        }
+                        int Bar(int x) { return x; }
                         """
                     },
                 },
