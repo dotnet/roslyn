@@ -372,17 +372,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
         [SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "Preserving existing public API")]
         public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
-            => Create(title, createChangedDocument, equivalenceKey, CodeActionPriority.Default);
-
-        internal static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey, CodeActionPriority priority)
         {
             if (title == null)
+            {
                 throw new ArgumentNullException(nameof(title));
+            }
 
             if (createChangedDocument == null)
+            {
                 throw new ArgumentNullException(nameof(createChangedDocument));
+            }
 
-            return DocumentChangeAction.Create(title, createChangedDocument, equivalenceKey, priority);
+            return DocumentChangeAction.Create(title, createChangedDocument, equivalenceKey);
         }
 
         /// <summary>

@@ -39,16 +39,22 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             foreach (var diagnostic in context.Diagnostics)
             {
+#if CODE_STYLE
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         AnalyzersResources.Fix_formatting,
                         c => FixOneAsync(context, diagnostic, c),
-                        nameof(AbstractFormattingCodeFixProvider)
-#if !CODE_STYLE
-                        , CodeActionPriority.High
-#endif
-                        ),
+                        nameof(AbstractFormattingCodeFixProvider)),
                     diagnostic);
+#else
+                context.RegisterCodeFix(
+                    CodeAction.DocumentChangeAction.Create(
+                        AnalyzersResources.Fix_formatting,
+                        c => FixOneAsync(context, diagnostic, c),
+                        nameof(AbstractFormattingCodeFixProvider),
+                        CodeActionPriority.High),
+                    diagnostic);
+#endif
             }
 
             return Task.CompletedTask;
