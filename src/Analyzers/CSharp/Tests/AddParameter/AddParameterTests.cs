@@ -1839,18 +1839,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <MetadataReferenceFromSource Language="C#" CommonReferences="true">
-                            <Document FilePath="ReferencedDocument">
-                namespace N
+                            <Document FilePath="ReferencedDocument">namespace N
                 {
                     public class BaseClass
                     {
                         public virtual void M() { }
                     }
-                }
-                            </Document>
+                }</Document>
                         </MetadataReferenceFromSource>
-                        <Document FilePath="TestDocument">
-                namespace N
+                        <Document FilePath="TestDocument">namespace N
                 {
                     public class Derived: BaseClass
                     {
@@ -1863,8 +1860,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
                             [|M|](1);
                         }
                     }
-                }
-                        </Document>
+                }</Document>
                     </Project>
                 </Workspace>
                 """;
