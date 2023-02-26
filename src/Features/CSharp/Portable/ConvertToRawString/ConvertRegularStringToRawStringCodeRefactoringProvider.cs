@@ -260,19 +260,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
 
-            // If the user asked to remove whitespace then do so now.
-            if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
-                characters = CleanupWhitespace(characters);
-
             if (kind == ConvertToRawKind.SingleLine)
-            {
                 return ConvertToSingleLineRawString(token, characters);
-            }
 
             var indentationOptions = new IndentationOptions(formattingOptions);
 
             var tokenLine = parsedDocument.Text.Lines.GetLineFromPosition(token.SpanStart);
-
             if (token.SpanStart == tokenLine.Start)
             {
                 // Special case.  string token starting at the start of the line.  This is a common pattern used for
@@ -288,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     parsedDocument.Text,
                     indentationOptions.FormattingOptions.UseTabs,
                     indentationOptions.FormattingOptions.TabSize);
-                return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: true, token, formattingOptions, characters)
+                return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: true);
             }
             else
             {
@@ -296,7 +289,60 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 // literal on its own line, but indented some amount.  Figure out the indentation of the contents from
                 // this, but leave the string literal starting at whatever position it's at.
                 var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
-                return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: false, token, formattingOptions, characters)
+                return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: false);
+            }
+
+            SyntaxToken ConvertToMultiLineRawIndentedString(
+                string indentation,
+                bool addIndentationToStart)
+            {
+                // If the user asked to remove whitespace then do so now.
+                if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
+                    characters = CleanupWhitespace(characters);
+
+                // Have to make sure we have a delimiter longer than any quote sequence in the string.
+                var longestQuoteSequence = GetLongestQuoteSequence(characters);
+                var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
+
+                using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+                builder.Append('"', quoteDelimeterCount);
+                builder.Append(formattingOptions.NewLine);
+
+                var atStartOfLine = true;
+                for (int i = 0, n = characters.Length; i < n; i++)
+                {
+                    var ch = characters[i];
+                    if (IsCSharpNewLine(ch))
+                    {
+                        ch.AppendTo(builder);
+                        atStartOfLine = true;
+                        continue;
+                    }
+
+                    if (atStartOfLine)
+                    {
+                        builder.Append(indentation);
+                        atStartOfLine = false;
+                    }
+
+                    ch.AppendTo(builder);
+                }
+
+                builder.Append(formattingOptions.NewLine);
+                builder.Append(indentation);
+                builder.Append('"', quoteDelimeterCount);
+
+                var leadingTrivia = token.LeadingTrivia;
+                if (addIndentationToStart)
+                    leadingTrivia = leadingTrivia.Add(SyntaxFactory.Whitespace(indentation));
+
+                return SyntaxFactory.Token(
+                    leadingTrivia,
+                    SyntaxKind.MultiLineRawStringLiteralToken,
+                    builder.ToString(),
+                    characters.CreateString(),
+                    token.TrailingTrivia);
             }
         }
 
@@ -421,58 +467,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 index++;
 
             return index == line.Length || IsCSharpNewLine(line[index]);
-        }
-
-        private static SyntaxToken ConvertToMultiLineRawIndentedString(
-            string indentation,
-            bool addIndentationToStart,
-            SyntaxToken token,
-            SyntaxFormattingOptions formattingOptions,
-            VirtualCharSequence characters)
-        {
-            // Have to make sure we have a delimiter longer than any quote sequence in the string.
-            var longestQuoteSequence = GetLongestQuoteSequence(characters);
-            var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
-
-            using var _ = PooledStringBuilder.GetInstance(out var builder);
-
-            builder.Append('"', quoteDelimeterCount);
-            builder.Append(formattingOptions.NewLine);
-
-            var atStartOfLine = true;
-            for (int i = 0, n = characters.Length; i < n; i++)
-            {
-                var ch = characters[i];
-                if (IsCSharpNewLine(ch))
-                {
-                    ch.AppendTo(builder);
-                    atStartOfLine = true;
-                    continue;
-                }
-
-                if (atStartOfLine)
-                {
-                    builder.Append(indentation);
-                    atStartOfLine = false;
-                }
-
-                ch.AppendTo(builder);
-            }
-
-            builder.Append(formattingOptions.NewLine);
-            builder.Append(indentation);
-            builder.Append('"', quoteDelimeterCount);
-
-            var leadingTrivia = token.LeadingTrivia;
-            if (addIndentationToStart)
-                leadingTrivia = leadingTrivia.Add(SyntaxFactory.Whitespace(indentation));
-
-            return SyntaxFactory.Token(
-                leadingTrivia,
-                SyntaxKind.MultiLineRawStringLiteralToken,
-                builder.ToString(),
-                characters.CreateString(),
-                token.TrailingTrivia);
         }
 
         private static SyntaxToken ConvertToSingleLineRawString(
