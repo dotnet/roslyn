@@ -187,9 +187,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.cs(6,1): error CS8803: Top-level statements must precede namespace and type declarations.
-                    DiagnosticResult.CompilerError("CS8803").WithSpan(6, 1, 6, 11),
+                    DiagnosticResult.CompilerError("CS8803").WithSpan(5, 1, 5, 11),
                     // /0/Test0.cs(6,1): error CS8805: Program using top-level statements must be an executable.
-                    DiagnosticResult.CompilerError("CS8805").WithSpan(6, 1, 6, 11),
+                    DiagnosticResult.CompilerError("CS8805").WithSpan(5, 1, 5, 11),
                 },
                 Options =
                 {
@@ -453,6 +453,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                 {
                 }
                 #endif
+
                 """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
@@ -786,7 +787,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                 [|namespace N|] { class C { } }
                 """,
                 FixedCode = """
-                namespace $$N; class C { }
+                namespace $$N; class C { } 
                 """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
@@ -807,7 +808,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                 """,
                 FixedCode = """
                 namespace $$N;
-                class C { }
+                class C { } 
                 """,
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
