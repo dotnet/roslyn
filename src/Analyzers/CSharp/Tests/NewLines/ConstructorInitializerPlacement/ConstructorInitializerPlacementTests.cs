@@ -21,14 +21,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.ConstructorIni
         public async Task TestNotWithOptionOff()
         {
             var code =
-@"
-class C
-{
-    public C() :
-        base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C() :
+                        base()
+                    {
+                    }
+                }
+                """;
 
             await new Verify.Test
             {
@@ -42,24 +43,26 @@ class C
         public async Task TestSimpleCase()
         {
             var code =
-@"
-class C
-{
-    public C() [|:|]
-        base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C() [|:|]
+                        base()
+                    {
+                    }
+                }
+                """;
 
             var fixedCode =
-@"
-class C
-{
-    public C()
-        : base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C()
+                        : base()
+                    {
+                    }
+                }
+                """;
 
             await new Verify.Test
             {
@@ -73,13 +76,14 @@ class C
         public async Task TestNotOnSameLine1()
         {
             var code =
-@"
-class C
-{
-    public C() : base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C() : base()
+                    {
+                    }
+                }
+                """;
 
             await new Verify.Test
             {
@@ -93,14 +97,15 @@ class C
         public async Task TestNotOnSameLine2()
         {
             var code =
-@"
-class C
-{
-    public C()
-        : base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C()
+                        : base()
+                    {
+                    }
+                }
+                """;
 
             await new Verify.Test
             {
@@ -114,14 +119,15 @@ class C
         public async Task TestNotWithColonTrailingComment()
         {
             var code =
-@"
-class C
-{
-    public C() : //comment
-        base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C() : //comment
+                        base()
+                    {
+                    }
+                }
+                """;
 
             await new Verify.Test
             {
@@ -135,23 +141,25 @@ class C
         public async Task TestWithCloseParenTrailingComment1()
         {
             var code =
-@"
-class C
-{
-    public C() /*comment*/ [|:|]
-        base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C() /*comment*/ [|:|]
+                        base()
+                    {
+                    }
+                }
+                """;
             var fixedCode =
-@"
-class C
-{
-    public C() /*comment*/ 
-        : base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C() /*comment*/ 
+                        : base()
+                    {
+                    }
+                }
+                """;
 
             await new Verify.Test
             {
@@ -165,27 +173,29 @@ class C
         public async Task TestWithColonLeadingComment1()
         {
             var code =
-@"
-class C
-{
-    public C()
-        // comment
-        [|:|]
-        base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C()
+                        // comment
+                        [|:|]
+                        base()
+                    {
+                    }
+                }
+                """;
             var fixedCode =
-@"
-class C
-{
-    public C()
-        // comment
-        
-        : base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C()
+                        // comment
+
+                        : base()
+                    {
+                    }
+                }
+                """;
 
             await new Verify.Test
             {
@@ -199,25 +209,27 @@ class C
         public async Task TestWithLeadingComment()
         {
             var code =
-@"
-class C
-{
-    public C() [|:|]
-        // comment
-        base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C() [|:|]
+                        // comment
+                        base()
+                    {
+                    }
+                }
+                """;
             var fixedCode =
-@"
-class C
-{
-    public C()
-        // comment
-        : base()
-    {
-    }
-}";
+                """
+                class C
+                {
+                    public C()
+                        // comment
+                        : base()
+                    {
+                    }
+                }
+                """;
 
             await new Verify.Test
             {
@@ -231,16 +243,17 @@ class C
         public async Task TestWithLeadingDirective()
         {
             var code =
-@"
-class C
-{
-    public C() :
-#if true
-        base()
-    {
-    }
-#endif
-}";
+                """
+                class C
+                {
+                    public C() :
+                #if true
+                        base()
+                    {
+                    }
+                #endif
+                }
+                """;
 
             await new Verify.Test
             {
