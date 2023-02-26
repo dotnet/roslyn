@@ -163,21 +163,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 // This changes the contents of the literal, but that can be fine for the domain the user is working in.
                 // Offer this, but let the user know that this will change runtime semantics.
                 canBeMultiLineWithoutLeadingWhiteSpaces = token.IsVerbatimStringLiteral() &&
-                    HasLeadingWhitespace(characters) &&
+                    (HasLeadingWhitespace(characters) || HasTrailingWhitespace(characters)) &&
                     CleanupWhitespace(characters).Length > 0;
             }
 
             convertParams = new CanConvertParams(characters, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces);
             return true;
-        }
 
-        private static bool HasLeadingWhitespace(VirtualCharSequence characters)
-        {
-            var index = 0;
-            while (index < characters.Length && IsCSharpWhitespace(characters[index]))
-                index++;
+            static bool HasLeadingWhitespace(VirtualCharSequence characters)
+            {
+                var index = 0;
+                while (index < characters.Length && IsCSharpWhitespace(characters[index]))
+                    index++;
 
-            return index < characters.Length && IsCSharpNewLine(characters[index]);
+                return index < characters.Length && IsCSharpNewLine(characters[index]);
+            }
+
+            static bool HasTrailingWhitespace(VirtualCharSequence characters)
+            {
+                var index = characters.Length - 1;
+                while (index >= 0 && IsCSharpWhitespace(characters[index]))
+                    index--;
+
+                return index >= 0 && IsCSharpNewLine(characters[index]);
+            }
         }
 
         private static async Task<Document> UpdateDocumentAsync(
