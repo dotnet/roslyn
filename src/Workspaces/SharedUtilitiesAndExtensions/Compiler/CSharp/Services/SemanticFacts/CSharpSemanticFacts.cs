@@ -289,9 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns the best symbols found that the provided token binds to.  This is similar to <see
-        /// cref="SemanticModel.GetSymbolInfo(SyntaxNode, CancellationToken)"/>, but sometimes employs heuristics to
-        /// provide a better result for tokens that users conceptually think bind to things, but which the compiler
-        /// does not necessarily return results for.
+        /// cref="ModelExtensions.GetSymbolInfo(SemanticModel, SyntaxNode, CancellationToken)"/>, but sometimes employs
+        /// heuristics to provide a better result for tokens that users conceptually think bind to things, but which the
+        /// compiler does not necessarily return results for.
         /// </summary>
         private static ImmutableArray<ISymbol> GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
