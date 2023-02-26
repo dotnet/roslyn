@@ -846,7 +846,7 @@ using System.Threading.Tasks;
 class C
 {{
     // Leading trivia
-    {modifiers}/*1*/ {expectedReturn} /*2*/ M2/*3*/() /*4*/
+    {modifiers}/*1*/{expectedReturn} /*2*/ M2/*3*/() /*4*/
     {{
         throw new NotImplementedException();
     }}
