@@ -41,12 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
         private static readonly BidirectionalMap<ConvertToRawKind, string> s_kindToEquivalenceKeyMap =
             new(new[]
             {
-                KeyValuePairUtil.Create(ConvertToRawKind.SingleLine,
-                                        nameof(CSharpFeaturesResources.Convert_to_raw_string) + "-" + ConvertToRawKind.SingleLine),
-                KeyValuePairUtil.Create(ConvertToRawKind.MultiLineIndented,
-                                        nameof(CSharpFeaturesResources.Convert_to_raw_string)),
-                KeyValuePairUtil.Create(ConvertToRawKind.MultiLineWithoutLeadingWhitespace,
-                                        nameof(CSharpFeaturesResources.without_leading_whitespace_may_change_semantics)),
+                KeyValuePairUtil.Create(ConvertToRawKind.SingleLine, nameof(ConvertToRawKind.SingleLine)),
+                KeyValuePairUtil.Create(ConvertToRawKind.MultiLineIndented, nameof(ConvertToRawKind.MultiLineIndented)),
+                KeyValuePairUtil.Create(ConvertToRawKind.MultiLineWithoutLeadingWhitespace, nameof(ConvertToRawKind.MultiLineWithoutLeadingWhitespace)),
             });
 
         [ImportingConstructor]
