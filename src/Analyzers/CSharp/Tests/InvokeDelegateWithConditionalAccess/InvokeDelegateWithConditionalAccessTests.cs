@@ -967,7 +967,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     }
                 }
                 """,
-
                 """
                 using System;
 
