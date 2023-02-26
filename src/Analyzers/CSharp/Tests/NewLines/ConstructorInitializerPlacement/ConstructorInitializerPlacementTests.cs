@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.ConstructorIni
                 {
                     public C()
                         // comment
-
+                        
                         : base()
                     {
                     }
