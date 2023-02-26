@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeRefStruct
                     unsafe public Span(void* pointer, int length) { }
                 }
             }
+
+
             """;
 
         internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
