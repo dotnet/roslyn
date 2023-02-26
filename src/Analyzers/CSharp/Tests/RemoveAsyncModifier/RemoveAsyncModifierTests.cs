@@ -1227,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveAsyncModifier
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.cs(9,29): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(9, 29, 9, 31),
+                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(8, 29, 8, 31),
                 },
                 FixedCode = source,
             }.RunAsync();
