@@ -33,7 +33,7 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
         }
 
         public Optional<object?> TryRead(string? language, TryReadValueDelegate readValue)
-            => TryReadFlags(s_storages, readValue, out var intValue) ? (SpacePlacementWithinParentheses)intValue : default(Optional<object?>);
+            => TryReadFlags(s_storages, (int)CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue, readValue, out var intValue) ? (SpacePlacementWithinParentheses)intValue : default(Optional<object?>);
     }
 
     [ExportVisualStudioStorageReadFallback("csharp_new_line_before_open_brace"), Shared]
@@ -57,16 +57,25 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
         }
 
         public Optional<object?> TryRead(string? language, TryReadValueDelegate readValue)
-            => TryReadFlags(s_storages, readValue, out var intValue) ? (NewLineBeforeOpenBracePlacement)intValue : default(Optional<object?>);
+            => TryReadFlags(s_storages, (int)CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue, readValue, out var intValue) ? (NewLineBeforeOpenBracePlacement)intValue : default(Optional<object?>);
     }
 
-    private static bool TryReadFlags(ImmutableArray<(string key, int flag)> storages, TryReadValueDelegate read, out int result)
+    private static readonly object s_true = true;
+    private static readonly object s_false = false;
+
+    /// <summary>
+    /// Returns true if an option for any flag is present in the storage. Each flag in the result will be either read from the storage 
+    /// (if present) or from <paramref name="defaultValue"/> otherwise.
+    /// Returns false if none of the flags are present in the storage.
+    /// </summary>
+    private static bool TryReadFlags(ImmutableArray<(string key, int flag)> storages, int defaultValue, TryReadValueDelegate read, out int result)
     {
         var hasAnyFlag = false;
         result = 0;
         foreach (var (key, flag) in storages)
         {
-            var value = read(key, typeof(bool));
+            var defaultFlagValue = defaultValue & flag;
+            var value = read(key, typeof(bool), (defaultFlagValue != 0) ? s_true : s_false);
             if (value.HasValue)
             {
                 if ((bool)value.Value!)
@@ -75,6 +84,10 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
                 }
 
                 hasAnyFlag = true;
+            }
+            else
+            {
+                result |= defaultFlagValue;
             }
         }
 
