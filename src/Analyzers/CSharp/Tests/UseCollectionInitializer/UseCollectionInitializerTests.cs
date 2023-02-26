@@ -1438,6 +1438,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 using System.Collections.Generic;
 
                 var list = new List<int> { 1 };
+
                 """, OutputKind.ConsoleApplication);
         }
     }
