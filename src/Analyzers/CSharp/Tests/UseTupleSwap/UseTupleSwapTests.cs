@@ -466,8 +466,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
                     OutputKind = OutputKind.ConsoleApplication,
                 },
                 FixedCode = """
-                (args[1], args[0]) = (args[0], args[1]);
-                """,
+                    (args[1], args[0]) = (args[0], args[1]);
+
+                    """,
             }.RunAsync();
         }
 
