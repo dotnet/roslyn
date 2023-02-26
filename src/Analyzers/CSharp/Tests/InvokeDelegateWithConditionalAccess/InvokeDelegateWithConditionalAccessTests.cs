@@ -29,228 +29,258 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         public async Task Test1()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        [||]var v = a;
-        if (v != null)
-        {
-            v();
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
+                    void Goo()
+                    {
+                        [||]var v = a;
+                        if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        a?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        a?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOnIf()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a;
-        [||]if (v != null)
-        {
-            v();
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
+                    void Goo()
+                    {
+                        var v = a;
+                        [||]if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        a?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        a?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOnInvoke()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a;
-        if (v != null)
-        {
-            [||]v();
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
+                    void Goo()
+                    {
+                        var v = a;
+                        if (v != null)
+                        {
+                            [||]v();
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        a?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        a?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestMissingBeforeCSharp6()
         {
             await TestMissingAsync(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        [||]var v = a;
-        if (v != null)
-        {
-            v();
-        }
-    }
-}", new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
+                    void Goo()
+                    {
+                        [||]var v = a;
+                        if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """, new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
         }
 
         [Fact]
         public async Task TestInvertedIf()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        [||]var v = a;
-        if (null != v)
-        {
-            v();
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
+                    void Goo()
+                    {
+                        [||]var v = a;
+                        if (null != v)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        a?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        a?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestIfWithNoBraces()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        [||]var v = a;
-        if (null != v)
-            v();
-    }
-}",
-@"class C
-{
-    System.Action a;
+                    void Goo()
+                    {
+                        [||]var v = a;
+                        if (null != v)
+                            v();
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        a?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        a?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestWithComplexExpression()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        bool b = true;
-        [||]var v = b ? a : null;
-        if (v != null)
-        {
-            v();
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
+                    void Goo()
+                    {
+                        bool b = true;
+                        [||]var v = b ? a : null;
+                        if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        bool b = true;
-        (b ? a : null)?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        bool b = true;
+                        (b ? a : null)?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingWithElseClause()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        [||]var v = a;
-        if (v != null)
-        {
-            v();
-        }
-        else
-        {
-        }
-    }
-}");
+                    void Goo()
+                    {
+                        [||]var v = a;
+                        if (v != null)
+                        {
+                            v();
+                        }
+                        else
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingOnDeclarationWithMultipleVariables()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        [||]var v = a, x = a;
-        if (v != null)
-        {
-            v();
-        }
-    }
-}");
+                    void Goo()
+                    {
+                        [||]var v = a, x = a;
+                        if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """);
         }
 
         /// <remarks>
@@ -261,29 +291,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         public async Task TestLocationWhereOfferedWithMultipleVariables()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a, x = a;
-        [||]if (v != null)
-        {
-            v();
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
+                    void Goo()
+                    {
+                        var v = a, x = a;
+                        [||]if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a, x = a;
-        v?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        var v = a, x = a;
+                        v?.Invoke();
+                    }
+                }
+                """);
         }
 
         /// <remarks>
@@ -294,21 +328,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         public async Task TestMissingOnDeclarationIfUsedOutside()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        [||]var v = a;
-        if (v != null)
-        {
-            v();
-        }
+                    void Goo()
+                    {
+                        [||]var v = a;
+                        if (v != null)
+                        {
+                            v();
+                        }
 
-        v = null;
-    }
-}");
+                        v = null;
+                    }
+                }
+                """);
         }
 
         /// <remarks>
@@ -320,276 +356,312 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         public async Task TestLocationWhereOfferedIfUsedOutside()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a;
-        [||]if (v != null)
-        {
-            v();
-        }
+                    void Goo()
+                    {
+                        var v = a;
+                        [||]if (v != null)
+                        {
+                            v();
+                        }
 
-        v = null;
-    }
-}",
-@"class C
-{
-    System.Action a;
+                        v = null;
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a;
-        v?.Invoke();
+                    void Goo()
+                    {
+                        var v = a;
+                        v?.Invoke();
 
-        v = null;
-    }
-}");
+                        v = null;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestSimpleForm1()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    public event EventHandler E;
+                class C
+                {
+                    public event EventHandler E;
 
-    void M()
-    {
-        [||]if (this.E != null)
-        {
-            this.E(this, EventArgs.Empty);
-        }
-    }
-}",
-@"using System;
+                    void M()
+                    {
+                        [||]if (this.E != null)
+                        {
+                            this.E(this, EventArgs.Empty);
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public event EventHandler E;
+                class C
+                {
+                    public event EventHandler E;
 
-    void M()
-    {
-        this.E?.Invoke(this, EventArgs.Empty);
-    }
-}");
+                    void M()
+                    {
+                        this.E?.Invoke(this, EventArgs.Empty);
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestSimpleForm2()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    public event EventHandler E;
+                class C
+                {
+                    public event EventHandler E;
 
-    void M()
-    {
-        if (this.E != null)
-        {
-            [||]this.E(this, EventArgs.Empty);
-        }
-    }
-}",
-@"using System;
+                    void M()
+                    {
+                        if (this.E != null)
+                        {
+                            [||]this.E(this, EventArgs.Empty);
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public event EventHandler E;
+                class C
+                {
+                    public event EventHandler E;
 
-    void M()
-    {
-        this.E?.Invoke(this, EventArgs.Empty);
-    }
-}");
+                    void M()
+                    {
+                        this.E?.Invoke(this, EventArgs.Empty);
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInElseClause1()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    public event EventHandler E;
+                class C
+                {
+                    public event EventHandler E;
 
-    void M()
-    {
-        if (true != true)
-        {
-        }
-        else [||]if (this.E != null)
-        {
-            this.E(this, EventArgs.Empty);
-        }
-    }
-}",
-@"using System;
+                    void M()
+                    {
+                        if (true != true)
+                        {
+                        }
+                        else [||]if (this.E != null)
+                        {
+                            this.E(this, EventArgs.Empty);
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public event EventHandler E;
+                class C
+                {
+                    public event EventHandler E;
 
-    void M()
-    {
-        if (true != true)
-        {
-        }
-        else
-        {
-            this.E?.Invoke(this, EventArgs.Empty);
-        }
-    }
-}");
+                    void M()
+                    {
+                        if (true != true)
+                        {
+                        }
+                        else
+                        {
+                            this.E?.Invoke(this, EventArgs.Empty);
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInElseClause2()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    public event EventHandler E;
+                class C
+                {
+                    public event EventHandler E;
 
-    void M()
-    {
-        if (true != true)
-        {
-        }
-        else [||]if (this.E != null)
-            this.E(this, EventArgs.Empty);
-    }
-}",
-@"using System;
+                    void M()
+                    {
+                        if (true != true)
+                        {
+                        }
+                        else [||]if (this.E != null)
+                            this.E(this, EventArgs.Empty);
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public event EventHandler E;
+                class C
+                {
+                    public event EventHandler E;
 
-    void M()
-    {
-        if (true != true)
-        {
-        }
-        else this.E?.Invoke(this, EventArgs.Empty);
-    }
-}");
+                    void M()
+                    {
+                        if (true != true)
+                        {
+                        }
+                        else this.E?.Invoke(this, EventArgs.Empty);
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
-    void Goo()
-    {
-        // Comment
-        [||]var v = a;
-        if (v != null)
-        {
-            v(); // Comment2
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
-    void Goo()
-    {
-        // Comment
-        a?.Invoke(); // Comment2
-    }
-}");
+                """
+                class C
+                {
+                    System.Action a;
+                    void Goo()
+                    {
+                        // Comment
+                        [||]var v = a;
+                        if (v != null)
+                        {
+                            v(); // Comment2
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
+                    void Goo()
+                    {
+                        // Comment
+                        a?.Invoke(); // Comment2
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTrivia2()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
-    void Goo()
-    {
-        // Comment
-        [||]if (a != null)
-        {
-            a(); // Comment2
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
-    void Goo()
-    {
-        // Comment
-        a?.Invoke(); // Comment2
-    }
-}");
+                """
+                class C
+                {
+                    System.Action a;
+                    void Goo()
+                    {
+                        // Comment
+                        [||]if (a != null)
+                        {
+                            a(); // Comment2
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
+                    void Goo()
+                    {
+                        // Comment
+                        a?.Invoke(); // Comment2
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(51563, "https://github.com/dotnet/roslyn/issues/51563")]
         public async Task TestTrivia3()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
-    void Goo()
-    {
-        // Comment
-        [||]var v = a;
-        if (v != null) { v(); /* 123 */ } // trails
-        System.Console.WriteLine();
-    }
-}",
-@"class C
-{
-    System.Action a;
-    void Goo()
-    {
-        // Comment
-        a?.Invoke(); /* 123 */  // trails
-        System.Console.WriteLine();
-    }
-}");
+                """
+                class C
+                {
+                    System.Action a;
+                    void Goo()
+                    {
+                        // Comment
+                        [||]var v = a;
+                        if (v != null) { v(); /* 123 */ } // trails
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
+                    void Goo()
+                    {
+                        // Comment
+                        a?.Invoke(); /* 123 */  // trails
+                        System.Console.WriteLine();
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(51563, "https://github.com/dotnet/roslyn/issues/51563")]
         public async Task TestTrivia4()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
-    void Goo()
-    {
-        [||]if (a != null) { a(); /* 123 */ } // trails
-        System.Console.WriteLine();
-    }
-}",
-@"class C
-{
-    System.Action a;
-    void Goo()
-    {
-        a?.Invoke(); /* 123 */  // trails
-        System.Console.WriteLine();
-    }
-}");
+                """
+                class C
+                {
+                    System.Action a;
+                    void Goo()
+                    {
+                        [||]if (a != null) { a(); /* 123 */ } // trails
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
+                    void Goo()
+                    {
+                        a?.Invoke(); /* 123 */  // trails
+                        System.Console.WriteLine();
+                    }
+                }
+                """);
         }
 
         /// <remarks>
@@ -599,28 +671,32 @@ class C
         public async Task TestFixOfferedOnIf()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a;
-        [||]if (v != null)
-        {
-            v();
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
+                    void Goo()
+                    {
+                        var v = a;
+                        [||]if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        a?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        a?.Invoke();
+                    }
+                }
+                """);
         }
 
         /// <remarks>
@@ -630,113 +706,127 @@ class C
         public async Task TestFixOfferedInsideIf()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a;
-        if (v != null)
-        {
-            [||]v();
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
+                    void Goo()
+                    {
+                        var v = a;
+                        if (v != null)
+                        {
+                            [||]v();
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        a?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        a?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingOnConditionalInvocation()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        [||]var v = a;
-        v?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        [||]var v = a;
+                        v?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingOnConditionalInvocation2()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a;
-        [||]v?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        var v = a;
+                        [||]v?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingOnConditionalInvocation3()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        [||]a?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        [||]a?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingOnNonNullCheckExpressions()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a;
-        if (v == a)
-        {
-            [||]v();
-        }
-    }
-}");
+                    void Goo()
+                    {
+                        var v = a;
+                        if (v == a)
+                        {
+                            [||]v();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingOnNonNullCheckExpressions2()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a;
-        if (v == null)
-        {
-            [||]v();
-        }
-    }
-}");
+                    void Goo()
+                    {
+                        var v = a;
+                        if (v == null)
+                        {
+                            [||]v();
+                        }
+                    }
+                }
+                """);
         }
 
         /// <remarks>
@@ -747,20 +837,22 @@ class C
         public async Task TestLocalNotImmediatelyPrecedingNullCheckAndInvokePattern()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        [||]var v = a;
-        int x;
-        if (v != null)
-        {
-            v();
-        }
-    }
-}");
+                    void Goo()
+                    {
+                        [||]var v = a;
+                        int x;
+                        if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """);
         }
 
         /// <remarks>
@@ -771,252 +863,272 @@ class C
         public async Task TestLocalDNotImmediatelyPrecedingNullCheckAndInvokePattern2()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a;
-        int x;
-        [||]if (v != null)
-        {
-            v();
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
+                    void Goo()
+                    {
+                        var v = a;
+                        int x;
+                        [||]if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        var v = a;
-        int x;
-        v?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        var v = a;
+                        int x;
+                        v?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingOnFunc()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    System.Func<int> a;
+                """
+                class C
+                {
+                    System.Func<int> a;
 
-    int Goo()
-    {
-        var v = a;
-        [||]if (v != null)
-        {
-            return v();
-        }
-    }
-}");
+                    int Goo()
+                    {
+                        var v = a;
+                        [||]if (v != null)
+                        {
+                            return v();
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestWithLambdaInitializer()
         {
             await TestInRegularAndScript1Async(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Action v = () => {};
-        [||]if (v != null)
-        {
-            v();
-        }
-    }
-}",
+                class C
+                {
+                    void Goo()
+                    {
+                        Action v = () => {};
+                        [||]if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
 
-@"
-using System;
-
-class C
-{
-    void Goo()
-    {
-        Action v = () => {};
-        v?.Invoke();
-    }
-}");
+                class C
+                {
+                    void Goo()
+                    {
+                        Action v = () => {};
+                        v?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestWithLambdaInitializer2()
         {
             await TestInRegularAndScript1Async(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Action v = (() => {});
-        [||]if (v != null)
-        {
-            v();
-        }
-    }
-}",
+                class C
+                {
+                    void Goo()
+                    {
+                        Action v = (() => {});
+                        [||]if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """,
 
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Action v = (() => {});
-        v?.Invoke();
-    }
-}");
+                class C
+                {
+                    void Goo()
+                    {
+                        Action v = (() => {});
+                        v?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestForWithAnonymousMethod()
         {
             await TestInRegularAndScript1Async(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Action v = delegate {};
-        [||]if (v != null)
-        {
-            v();
-        }
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    void Goo()
+                    {
+                        Action v = delegate {};
+                        [||]if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Action v = delegate {};
-        v?.Invoke();
-    }
-}");
+                class C
+                {
+                    void Goo()
+                    {
+                        Action v = delegate {};
+                        v?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
         public async Task TestWithMethodReference()
         {
             await TestInRegularAndScript1Async(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Action v = Console.WriteLine;
-        [||]if (v != null)
-        {
-            v();
-        }
-    }
-}",
-@"
-using System;
+                class C
+                {
+                    void Goo()
+                    {
+                        Action v = Console.WriteLine;
+                        [||]if (v != null)
+                        {
+                            v();
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Action v = Console.WriteLine;
-        v?.Invoke();
-    }
-}");
+                class C
+                {
+                    void Goo()
+                    {
+                        Action v = Console.WriteLine;
+                        v?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(31827, "https://github.com/dotnet/roslyn/issues/31827")]
         public async Task TestWithExplicitInvokeCall1()
         {
             await TestInRegularAndScript1Async(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void M()
-    {
-        [||]if (Event != null)
-            Event.Invoke(this, EventArgs.Empty);
-    }
+                class C
+                {
+                    void M()
+                    {
+                        [||]if (Event != null)
+                            Event.Invoke(this, EventArgs.Empty);
+                    }
 
-    event EventHandler Event;
-}",
-@"
-using System;
+                    event EventHandler Event;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M()
-    {
-        Event?.Invoke(this, EventArgs.Empty);
-    }
+                class C
+                {
+                    void M()
+                    {
+                        Event?.Invoke(this, EventArgs.Empty);
+                    }
 
-    event EventHandler Event;
-}");
+                    event EventHandler Event;
+                }
+                """);
         }
 
         [Fact, WorkItem(31827, "https://github.com/dotnet/roslyn/issues/31827")]
         public async Task TestWithExplicitInvokeCall2()
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    System.Action a;
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        [||]var v = a;
-        if (v != null)
-        {
-            v.Invoke();
-        }
-    }
-}",
-@"class C
-{
-    System.Action a;
+                    void Goo()
+                    {
+                        [||]var v = a;
+                        if (v != null)
+                        {
+                            v.Invoke();
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    System.Action a;
 
-    void Goo()
-    {
-        a?.Invoke();
-    }
-}");
+                    void Goo()
+                    {
+                        a?.Invoke();
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(50976, "https://github.com/dotnet/roslyn/issues/50976")]
         public async Task TestMissingOnFunctionPointer()
         {
             await TestMissingInRegularAndScriptAsync(
-@"
-class C
-{
-    unsafe void M(delegate* managed<void> func)
-    {
-        if (func != null)
-        {
-            [||]func();
-        }
-    }
-}");
+                """
+                class C
+                {
+                    unsafe void M(delegate* managed<void> func)
+                    {
+                        if (func != null)
+                        {
+                            [||]func();
+                        }
+                    }
+                }
+                """);
         }
     }
 }
