@@ -73,13 +73,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
 
             _workQueue = new AsyncBatchingWorkQueue(
-                TimeSpan.FromSeconds(1),
+                DelayTimeSpan.Idle,
                 this.ProcessWorkspaceChangeAsync,
                 listener,
                 ThreadingContext.DisposalToken);
 
             _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
-                TimeSpan.FromSeconds(1),
+                DelayTimeSpan.Idle,
                 this.NotifyProjectSystemAsync,
                 listener,
                 ThreadingContext.DisposalToken);
@@ -137,19 +137,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var filteredInfos);
+            using var _ = ArrayBuilder<DesignerAttributeData>.GetInstance(out var filteredInfos);
             AddFilteredInfos(data, filteredInfos);
 
-            // Now, group all the notifications by project and update all the projects in parallel.
-            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            // Now, group all the notifications by project and update that project at once.
             foreach (var group in filteredInfos.GroupBy(a => a.DocumentId.ProjectId))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyProjectSystemAsync(group.Key, group, cancellationToken));
+                await NotifyProjectSystemAsync(group.Key, group, cancellationToken).ConfigureAwait(false);
             }
-
-            // Wait until all project updates have happened before processing the next batch.
-            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static void AddFilteredInfos(ImmutableSegmentedList<DesignerAttributeData> data, ArrayBuilder<DesignerAttributeData> filteredData)
@@ -255,17 +251,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (!_workspace.IsPrimaryProject(projectId))
                 return;
 
-            // Broadcast all the information about all the documents in parallel to CPS.
-
-            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
             foreach (var info in data)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyCpsProjectSystemAsync(updateService, info, cancellationToken));
+                await NotifyCpsProjectSystemAsync(updateService, info, cancellationToken).ConfigureAwait(false);
             }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static async Task NotifyCpsProjectSystemAsync(
