@@ -2150,18 +2150,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                     1 => 4,
                     _ => 7,
                 };
+
                 """;
 
             var test = new VerifyCS.Test
             {
-                TestCode = source,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                    Sources = { source },
+                },
                 FixedCode = fixedSource,
                 LanguageVersion = LanguageVersion.CSharp9,
             };
-
-            test.ExpectedDiagnostics.Add(
-                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11));
 
             await test.RunAsync();
         }
@@ -2194,18 +2195,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                     2 => 5,
                     _ => throw null,
                 };
+
                 """;
 
             var test = new VerifyCS.Test
             {
-                TestCode = source,
+                TestState = {
+                    Sources = { source },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
                 FixedCode = fixedSource,
                 LanguageVersion = LanguageVersion.CSharp9,
             };
-
-            test.ExpectedDiagnostics.Add(
-                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11));
 
             await test.RunAsync();
         }
