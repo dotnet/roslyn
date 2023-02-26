@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
@@ -119,6 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             if (IsInDirective(token.Parent))
                 return false;
 
+            if (token.Parent is not LiteralExpressionSyntax)
+                return false;
+
             var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
 
             // TODO(cyrusn): Should we offer this on empty strings... seems undesirable as you'd end with a gigantic 
@@ -185,7 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             Contract.ThrowIfFalse(span.IntersectsWith(token.Span));
             Contract.ThrowIfFalse(token.Kind() == SyntaxKind.StringLiteralToken);
 
-            var replacement = await GetReplacementTokenAsync(document, token, kind, options, cancellationToken).ConfigureAwait(false);
+            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var replacement = GetReplacementToken(parsedDocument, token, kind, options, cancellationToken);
             return document.WithSyntaxRoot(root.ReplaceToken(token, replacement));
         }
 
@@ -202,7 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             var kind = s_kindToEquivalenceKeyMap[equivalenceKey];
 
             var options = await document.GetSyntaxFormattingOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
-            using var _ = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance(out var tokenReplacementMap);
+            //var annotation = new SyntaxAnnotation();
+
+            //using var _1 = ArrayBuilder<SyntaxToken>.GetInstance(out var initialStringLiteralTokens);
+            //using var _ = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance(out var tokenReplacementMap);
+
+            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             foreach (var fixSpan in fixAllSpans)
             {
@@ -225,17 +235,38 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     if (!hasMatchingKind)
                         continue;
 
-                    var replacement = await GetReplacementTokenAsync(document, stringLiteral, kind, options, cancellationToken).ConfigureAwait(false);
-                    tokenReplacementMap.Add(stringLiteral, replacement);
+                    if (stringLiteral.Parent is not LiteralExpressionSyntax literalExpression)
+                        continue;
+
+                    editor.ReplaceNode(
+                        literalExpression,
+                        (current, _) =>
+                        {
+                            if (current is not LiteralExpressionSyntax currentLiteralExpression)
+                                return current;
+
+                            var currentParsedDocument = parsedDocument.WithChangedRoot(
+                                current.SyntaxTree.GetRoot(cancellationToken), cancellationToken);
+                            var replacementToken = GetReplacementToken(
+                                currentParsedDocument, currentLiteralExpression.Token, kind, options, cancellationToken);
+                            return currentLiteralExpression.WithToken(replacementToken);
+                        });
                 }
             }
 
-            var newRoot = editor.OriginalRoot.ReplaceTokens(tokenReplacementMap.Keys, (token, _) => tokenReplacementMap[token]);
-            editor.ReplaceNode(editor.OriginalRoot, newRoot);
+            //var newRoot = editor.OriginalRoot.ReplaceTokens(
+            //    initialStringLiteralTokens,
+            //    (t, _) => t.WithAdditionalAnnotations(annotation));
+
+            //var replacement = await GetReplacementTokenAsync(document, stringLiteral, kind, options, cancellationToken).ConfigureAwait(false);
+            //tokenReplacementMap.Add(stringLiteral, replacement);
+
+            //var newRoot = editor.OriginalRoot.ReplaceTokens(tokenReplacementMap.Keys, (token, _) => tokenReplacementMap[token]);
+            //editor.ReplaceNode(editor.OriginalRoot, newRoot);
         }
 
-        private static async ValueTask<SyntaxToken> GetReplacementTokenAsync(
-            Document document,
+        private static SyntaxToken GetReplacementToken(
+            ParsedDocument parsedDocument,
             SyntaxToken token,
             ConvertToRawKind kind,
             SyntaxFormattingOptions formattingOptions,
@@ -254,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             }
 
             var indentationOptions = new IndentationOptions(formattingOptions);
-            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            // var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             var tokenLine = parsedDocument.Text.Lines.GetLineFromPosition(token.SpanStart);
             //var firstNonWhitespacePos = tokenLine.GetFirstNonWhitespacePosition();
