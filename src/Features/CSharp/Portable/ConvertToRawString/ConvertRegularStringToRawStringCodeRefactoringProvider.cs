@@ -207,11 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             var kind = s_kindToEquivalenceKeyMap[equivalenceKey];
 
             var options = await document.GetSyntaxFormattingOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
-            //var annotation = new SyntaxAnnotation();
-
-            //using var _1 = ArrayBuilder<SyntaxToken>.GetInstance(out var initialStringLiteralTokens);
-            //using var _ = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance(out var tokenReplacementMap);
-
             var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             foreach (var fixSpan in fixAllSpans)
@@ -253,16 +248,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                         });
                 }
             }
-
-            //var newRoot = editor.OriginalRoot.ReplaceTokens(
-            //    initialStringLiteralTokens,
-            //    (t, _) => t.WithAdditionalAnnotations(annotation));
-
-            //var replacement = await GetReplacementTokenAsync(document, stringLiteral, kind, options, cancellationToken).ConfigureAwait(false);
-            //tokenReplacementMap.Add(stringLiteral, replacement);
-
-            //var newRoot = editor.OriginalRoot.ReplaceTokens(tokenReplacementMap.Keys, (token, _) => tokenReplacementMap[token]);
-            //editor.ReplaceNode(editor.OriginalRoot, newRoot);
         }
 
         private static SyntaxToken GetReplacementToken(
@@ -285,34 +270,36 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             }
 
             var indentationOptions = new IndentationOptions(formattingOptions);
-            // var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             var tokenLine = parsedDocument.Text.Lines.GetLineFromPosition(token.SpanStart);
-            //var firstNonWhitespacePos = tokenLine.GetFirstNonWhitespacePosition();
-            //Contract.ThrowIfNull(firstNonWhitespacePos);
+
             string indentation;
             bool addIndentationToStart;
             if (token.SpanStart == tokenLine.Start)
             {
-                // special case.  string token starting at the start of the line.  A pattern used for multiline strings
-                // that don't want any indentation and have the start/end of the string at the same level (like unit
-                // tests).
+                // Special case.  string token starting at the start of the line.  This is a common pattern used for
+                // multi-line strings that don't want any indentation and have the start/end of the string at the same
+                // level (like unit tests).
+                //
+                // In this case, figure out what indentation we're normally like to put this string.  Update *both* the
+                // contents 
                 var indenter = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
                 var indentationVal = indenter.GetIndentation(parsedDocument, tokenLine.LineNumber, indentationOptions, cancellationToken);
 
-                indentation = indentationVal.GetIndentationString(
+                var indentation = indentationVal.GetIndentationString(
                     parsedDocument.Text,
                     indentationOptions.FormattingOptions.UseTabs,
                     indentationOptions.FormattingOptions.TabSize);
-                addIndentationToStart = true;
+                return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: true, token, formattingOptions, characters)
             }
             else
             {
-                indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
-                addIndentationToStart = false;
+                // otherwise this was a string literal on a line that already contains contents.  Or it's a string
+                // literal on its own line, but indented some amount.  Figure out the indentation of the contents from
+                // this, but leave the string literal starting at whatever position it's at.
+                var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
+                return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: false, token, formattingOptions, characters)
             }
-
-            return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart, token, formattingOptions, characters);
         }
 
         private static VirtualCharSequence CleanupWhitespace(VirtualCharSequence characters)
@@ -440,7 +427,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
         private static SyntaxToken ConvertToMultiLineRawIndentedString(
             string indentation,
-            bool addIndentationToStart,
             SyntaxToken token,
             SyntaxFormattingOptions formattingOptions,
             VirtualCharSequence characters)
