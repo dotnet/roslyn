@@ -1025,24 +1025,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                 {
                     static void Goo()
                     {
-                        string x = ";
+                        string x = "";
                         var s = new object[] { [|(object)|]x };
                     }
                 }
                 """,
-                new[]
-                {
-                    // /0/Test0.cs(6,20): error CS1010: Newline in constant
-                    DiagnosticResult.CompilerError("CS1010").WithSpan(6, 20, 6, 20),
-                    // /0/Test0.cs(6,22): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(6, 22, 6, 22),
-                },
                 """
                 class X
                 {
                     static void Goo()
                     {
-                        string x = ";
+                        string x = "";
                         var s = new object[] { x };
                     }
                 }
@@ -1425,17 +1418,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
                     public override string ToString()
                     {
-                        return ";
+                        return "";
                     }
                 }
                 """,
-                new[]
-                {
-                    // /0/Test0.cs(11,16): error CS1010: Newline in constant
-                    DiagnosticResult.CompilerError("CS1010").WithSpan(11, 16, 11, 16),
-                    // /0/Test0.cs(11,18): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(11, 18, 11, 18),
-                },
                 """
                 class X
                 {
@@ -1446,7 +1432,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
                     public override string ToString()
                     {
-                        return ";
+                        return "";
                     }
                 }
                 """);
@@ -4814,9 +4800,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                     ExpectedDiagnostics =
                     {
                         // /0/Test0.cs(9,10): error CS0118: 'x' is a variable but is used like a type
-                        DiagnosticResult.CompilerError("CS0118").WithSpan(9, 10, 9, 11),
+                        DiagnosticResult.CompilerError("CS0118").WithSpan(8, 10, 8, 11).WithArguments("x", "variable", "type"),
                         // /0/Test0.cs(9,20): error CS1525: Invalid expression term ')'
-                        DiagnosticResult.CompilerError("CS1525").WithSpan(9, 20, 9, 21).WithArguments(")"),
+                        DiagnosticResult.CompilerError("CS1525").WithSpan(8, 20, 8, 21).WithArguments(")"),
                     },
                 },
                 // The code fix in this case does not produce valid code or a valid syntax tree
@@ -5173,7 +5159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
             await VerifyCS.VerifyCodeFixAsync(
                 source,
                 // /0/Test0.cs(13,21): error CS0246: The type or namespace name 'InvalidOperationException' could not be found (are you missing a using directive or an assembly reference?)
-                DiagnosticResult.CompilerError("CS0246").WithSpan(13, 21, 13, 46).WithArguments("InvalidOperationException"),
+                DiagnosticResult.CompilerError("CS0246").WithSpan(12, 21, 12, 46).WithArguments("InvalidOperationException"),
                 source);
         }
 
@@ -5201,7 +5187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
             await VerifyCS.VerifyCodeFixAsync(
                 source,
                 // /0/Test0.cs(13,21): error CS0246: The type or namespace name 'InvalidOperationException' could not be found (are you missing a using directive or an assembly reference?)
-                DiagnosticResult.CompilerError("CS0246").WithSpan(13, 21, 13, 46).WithArguments("InvalidOperationException"),
+                DiagnosticResult.CompilerError("CS0246").WithSpan(12, 21, 12, 46).WithArguments("InvalidOperationException"),
                 source);
         }
 
@@ -5228,7 +5214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
             await VerifyCS.VerifyCodeFixAsync(
                 source,
                 // /0/Test0.cs(12,9): error CS0103: The name 'Console' does not exist in the current context
-                DiagnosticResult.CompilerError("CS0103").WithSpan(12, 9, 12, 16).WithArguments("Console"),
+                DiagnosticResult.CompilerError("CS0103").WithSpan(11, 9, 11, 16).WithArguments("Console"),
                 source);
         }
 
@@ -5555,7 +5541,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                     ExpectedDiagnostics =
                     {
                         // /0/Test0.cs(11,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                        DiagnosticResult.CompilerError("CS0182").WithSpan(11, 2, 11, 75),
+                        DiagnosticResult.CompilerError("CS0182").WithSpan(10, 2, 10, 75),
                     },
                 },
                 FixedState =
@@ -5564,7 +5550,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                     ExpectedDiagnostics =
                     {
                         // /0/Test0.cs(11,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                        DiagnosticResult.CompilerError("CS0182").WithSpan(11, 2, 11, 67),
+                        DiagnosticResult.CompilerError("CS0182").WithSpan(10, 2, 10, 67),
                     },
                 },
             }.RunAsync();
@@ -6322,7 +6308,7 @@ enum Sign
             await VerifyCS.VerifyCodeFixAsync(
                 source,
                 // /0/Test0.cs(10,19): error CS0122: 'B.B(int)' is inaccessible due to its protection level
-                DiagnosticResult.CompilerError("CS0122").WithSpan(10, 19, 10, 23).WithArguments("B.B(int)"),
+                DiagnosticResult.CompilerError("CS0122").WithSpan(9, 19, 9, 23).WithArguments("B.B(int)"),
                 source);
         }
 
@@ -6827,7 +6813,7 @@ enum Sign
 
                 class C
                 {
-                    private readonly DbContext _dbContext = new MyContext();
+                    private static readonly DbContext _dbContext = new MyContext();
 
                     static void Main()
                     {
@@ -6838,8 +6824,6 @@ enum Sign
 
             await VerifyCS.VerifyCodeFixAsync(
                 source,
-                // /0/Test0.cs(26,23): error CS0120: An object reference is required for the non-static field, method, or property 'C._dbContext'
-                DiagnosticResult.CompilerError("CS0120").WithSpan(26, 23, 26, 33).WithArguments("C._dbContext"),
                 source);
         }
 
@@ -6855,13 +6839,13 @@ enum Sign
                     public int DisposeCount;
                     public void Dispose()
                     {
-                        DisposeCount++'
+                        DisposeCount++;
                     }
                 }
 
                 class C
                 {
-                    private DbContext _dbContext = new MyContext();
+                    private static DbContext _dbContext = default;
 
                     static void Main()
                     {
@@ -6872,21 +6856,6 @@ enum Sign
 
             await VerifyCS.VerifyCodeFixAsync(
                 source,
-                new[]
-                {
-                    // /0/Test0.cs(9,23): error CS1010: Newline in constant
-                    DiagnosticResult.CompilerError("CS1010").WithSpan(9, 23, 9, 23),
-                    // /0/Test0.cs(9,23): error CS1011: Empty character literal
-                    DiagnosticResult.CompilerError("CS1011").WithSpan(9, 23, 9, 23),
-                    // /0/Test0.cs(9,23): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(9, 23, 9, 24),
-                    // /0/Test0.cs(9,24): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(9, 24, 9, 24),
-                    // /0/Test0.cs(15,40): error CS0246: The type or namespace name 'MyContext' could not be found (are you missing a using directive or an assembly reference?)
-                    DiagnosticResult.CompilerError("CS0246").WithSpan(15, 40, 15, 49).WithArguments("MyContext"),
-                    // /0/Test0.cs(19,23): error CS0120: An object reference is required for the non-static field, method, or property 'C._dbContext'
-                    DiagnosticResult.CompilerError("CS0120").WithSpan(19, 23, 19, 33).WithArguments("C._dbContext"),
-                },
                 source);
         }
 
@@ -6905,13 +6874,13 @@ enum Sign
                     public int DisposeCount;
                     public void Dispose()
                     {
-                        DisposeCount++'
+                        DisposeCount++;
                     }
                 }
 
                 class C
                 {
-                    private readonly DbContext _dbContext = new MyContext();
+                    private static readonly DbContext _dbContext = default;
 
                     static void Main()
                     {
@@ -6922,21 +6891,6 @@ enum Sign
 
             await VerifyCS.VerifyCodeFixAsync(
                 source,
-                new[]
-                {
-                    // /0/Test0.cs(9,23): error CS1010: Newline in constant
-                    DiagnosticResult.CompilerError("CS1010").WithSpan(9, 23, 9, 23),
-                    // /0/Test0.cs(9,23): error CS1011: Empty character literal
-                    DiagnosticResult.CompilerError("CS1011").WithSpan(9, 23, 9, 23),
-                    // /0/Test0.cs(9,23): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(9, 23, 9, 24),
-                    // /0/Test0.cs(9,24): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(9, 24, 9, 24),
-                    // /0/Test0.cs(15,49): error CS0246: The type or namespace name 'MyContext' could not be found (are you missing a using directive or an assembly reference?)
-                    DiagnosticResult.CompilerError("CS0246").WithSpan(15, 49, 15, 58).WithArguments("MyContext"),
-                    // /0/Test0.cs(19,23): error CS0120: An object reference is required for the non-static field, method, or property 'C._dbContext'
-                    DiagnosticResult.CompilerError("CS0120").WithSpan(19, 23, 19, 33).WithArguments("C._dbContext"),
-                },
                 source);
         }
 
