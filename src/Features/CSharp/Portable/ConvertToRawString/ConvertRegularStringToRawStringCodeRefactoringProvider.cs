@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
 
             if (kind == ConvertToRawKind.SingleLine)
-                return ConvertToSingleLineRawString(token, characters);
+                return ConvertToSingleLineRawString();
 
             var indentationOptions = new IndentationOptions(formattingOptions);
 
@@ -277,10 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 var indenter = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
                 var indentationVal = indenter.GetIndentation(parsedDocument, tokenLine.LineNumber, indentationOptions, cancellationToken);
 
-                var indentation = indentationVal.GetIndentationString(
-                    parsedDocument.Text,
-                    indentationOptions.FormattingOptions.UseTabs,
-                    indentationOptions.FormattingOptions.TabSize);
+                var indentation = indentationVal.GetIndentationString(parsedDocument.Text, indentationOptions);
                 return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: true);
             }
             else
@@ -290,6 +287,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 // this, but leave the string literal starting at whatever position it's at.
                 var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
                 return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart: false);
+            }
+
+            SyntaxToken ConvertToSingleLineRawString()
+            {
+                // Have to make sure we have a delimiter longer than any quote sequence in the string.
+                var longestQuoteSequence = GetLongestQuoteSequence(characters);
+                var quoteDelimiterCount = Math.Max(3, longestQuoteSequence + 1);
+
+                using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+                builder.Append('"', quoteDelimiterCount);
+
+                foreach (var ch in characters)
+                    ch.AppendTo(builder);
+
+                builder.Append('"', quoteDelimiterCount);
+
+                return SyntaxFactory.Token(
+                    token.LeadingTrivia,
+                    SyntaxKind.SingleLineRawStringLiteralToken,
+                    builder.ToString(),
+                    characters.CreateString(),
+                    token.TrailingTrivia);
             }
 
             SyntaxToken ConvertToMultiLineRawIndentedString(
@@ -302,11 +322,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
                 // Have to make sure we have a delimiter longer than any quote sequence in the string.
                 var longestQuoteSequence = GetLongestQuoteSequence(characters);
-                var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
+                var quoteDelimiterCount = Math.Max(3, longestQuoteSequence + 1);
 
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
 
-                builder.Append('"', quoteDelimeterCount);
+                builder.Append('"', quoteDelimiterCount);
                 builder.Append(formattingOptions.NewLine);
 
                 var atStartOfLine = true;
@@ -331,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
                 builder.Append(formattingOptions.NewLine);
                 builder.Append(indentation);
-                builder.Append('"', quoteDelimeterCount);
+                builder.Append('"', quoteDelimiterCount);
 
                 var leadingTrivia = token.LeadingTrivia;
                 if (addIndentationToStart)
@@ -467,30 +487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 index++;
 
             return index == line.Length || IsCSharpNewLine(line[index]);
-        }
-
-        private static SyntaxToken ConvertToSingleLineRawString(
-            SyntaxToken token, VirtualCharSequence characters)
-        {
-            // Have to make sure we have a delimiter longer than any quote sequence in the string.
-            var longestQuoteSequence = GetLongestQuoteSequence(characters);
-            var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
-
-            using var _ = PooledStringBuilder.GetInstance(out var builder);
-
-            builder.Append('"', quoteDelimeterCount);
-
-            foreach (var ch in characters)
-                ch.AppendTo(builder);
-
-            builder.Append('"', quoteDelimeterCount);
-
-            return SyntaxFactory.Token(
-                token.LeadingTrivia,
-                SyntaxKind.SingleLineRawStringLiteralToken,
-                builder.ToString(),
-                characters.CreateString(),
-                token.TrailingTrivia);
         }
     }
 }

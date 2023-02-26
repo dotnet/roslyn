@@ -55,10 +55,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             var indenter = document.LanguageServices.GetRequiredService<IIndentationService>();
             var indentation = indenter.GetIndentation(newDocument, newTokenLine.LineNumber, options, cancellationToken);
 
-            return indentation.GetIndentationString(
-                newDocument.Text,
-                options.FormattingOptions.UseTabs,
-                options.FormattingOptions.TabSize);
+            return indentation.GetIndentationString(newDocument.Text, options);
         }
     }
 
@@ -74,5 +71,10 @@ namespace Microsoft.CodeAnalysis.Indentation
             var indentString = indent.CreateIndentationString(useTabs, tabSize);
             return indentString;
         }
+
+        public static string GetIndentationString(this IndentationResult indentationResult, SourceText sourceText, SyntaxFormattingOptions options)
+            => GetIndentationString(indentationResult, sourceText, options.UseTabs, options.TabSize);
+
+        public static string GetIndentationString(this IndentationResult indentationResult, SourceText sourceText, IndentationOptions options)
+            => GetIndentationString(indentationResult, sourceText, options.FormattingOptions);
     }
-}
