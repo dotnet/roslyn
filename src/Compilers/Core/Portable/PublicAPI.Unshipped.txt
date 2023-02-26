@@ -1,5 +1,4 @@
 Microsoft.CodeAnalysis.Compilation.SupportsRuntimeCapability(Microsoft.CodeAnalysis.RuntimeCapability capability) -> bool
-Microsoft.CodeAnalysis.Emit.InstrumentationKind.LocalStateTracing = 2 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
 Microsoft.CodeAnalysis.Emit.MethodInstrumentation
 Microsoft.CodeAnalysis.Emit.MethodInstrumentation.Kinds.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind>
 Microsoft.CodeAnalysis.Emit.MethodInstrumentation.Kinds.init -> void
