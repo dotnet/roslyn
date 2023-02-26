@@ -225,6 +225,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         public static async Task<string?> ComputeDesignerAttributeCategoryAsync(
             AsyncLazy<bool> lazyHasDesignerCategoryType, Document document, CancellationToken cancellationToken)
         {
+            // If we have computed the hasDesignerCategoryType value for a prior document, and it turned out to be
+            // false, then we can skip any further steps (like parsing the file).
+            if (lazyHasDesignerCategoryType.TryGetValue(out var hasDesignerCategoryType) && !hasDesignerCategoryType)
+                return null;
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -236,7 +241,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
             // simple case.  If there's no DesignerCategory type in this compilation, then there's
             // definitely no designable types.
-            var hasDesignerCategoryType = await lazyHasDesignerCategoryType.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            hasDesignerCategoryType = await lazyHasDesignerCategoryType.GetValueAsync(cancellationToken).ConfigureAwait(false);
             if (!hasDesignerCategoryType)
                 return null;
 
