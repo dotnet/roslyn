@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             }
         }
 
-        private Task ProcessProjectAsync(
+        private async Task ProcessProjectAsync(
             Project project,
             Document? specificDocument,
             bool useFrozenSnapshots,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
-                return Task.CompletedTask;
+                return;
 
             // Defer expensive work until it's actually needed.
 
@@ -99,28 +99,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // change if anything it depends on changes).
             var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync, cacheResult: true);
 
-            var lazyHasDesignerCategoryType = s_metadataReferencesToDesignerAttributeInfo.GetValue(
-                project.MetadataReferences,
-                _ => AsyncLazy.Create(
-                    async cancellationToken =>
-                    {
-                        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                        return compilation.DesignerCategoryAttributeType() != null;
-                    }, cacheResult: true));
-
-            return ScanForDesignerCategoryUsageAsync(
-                project, specificDocument, useFrozenSnapshots, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken);
-        }
-
-        private async Task ScanForDesignerCategoryUsageAsync(
-            Project project,
-            Document? specificDocument,
-            bool useFrozenSnapshots,
-            IDesignerAttributeDiscoveryService.ICallback callback,
-            AsyncLazy<VersionStamp> lazyProjectVersion,
-            AsyncLazy<bool> lazyHasDesignerCategoryType,
-            CancellationToken cancellationToken)
-        {
             // Switch to frozen semantics if requested.  We don't need to wait on generators to run here as we want to
             // be lightweight.  We'll also continue running in the future.  So if any changes to happen that are
             // important to pickup, then we'll see it in the future.  But this avoids constant churn here trying to do
@@ -134,6 +112,15 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 project = document.WithFrozenPartialSemantics(cancellationToken).Project;
                 specificDocument = specificDocument is null ? null : project.GetRequiredDocument(specificDocument.Id);
             }
+
+            var lazyHasDesignerCategoryType = s_metadataReferencesToDesignerAttributeInfo.GetValue(
+                project.MetadataReferences,
+                _ => AsyncLazy.Create(
+                    async cancellationToken =>
+                    {
+                        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                        return compilation.DesignerCategoryAttributeType() != null;
+                    }, cacheResult: true));
 
             await ScanForDesignerCategoryUsageAsync(
                 project, specificDocument, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
