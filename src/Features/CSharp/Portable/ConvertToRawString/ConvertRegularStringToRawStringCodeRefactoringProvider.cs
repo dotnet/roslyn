@@ -255,8 +255,33 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             var indentationOptions = new IndentationOptions(formattingOptions);
             var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
-            return ConvertToMultiLineRawIndentedString(indentation, token, formattingOptions, characters);
+
+            var tokenLine = parsedDocument.Text.Lines.GetLineFromPosition(token.SpanStart);
+            //var firstNonWhitespacePos = tokenLine.GetFirstNonWhitespacePosition();
+            //Contract.ThrowIfNull(firstNonWhitespacePos);
+            string indentation;
+            bool addIndentationToStart;
+            if (token.SpanStart == tokenLine.Start)
+            {
+                // special case.  string token starting at the start of the line.  A pattern used for multiline strings
+                // that don't want any indentation and have the start/end of the string at the same level (like unit
+                // tests).
+                var indenter = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
+                var indentationVal = indenter.GetIndentation(parsedDocument, tokenLine.LineNumber, indentationOptions, cancellationToken);
+
+                indentation = indentationVal.GetIndentationString(
+                    parsedDocument.Text,
+                    indentationOptions.FormattingOptions.UseTabs,
+                    indentationOptions.FormattingOptions.TabSize);
+                addIndentationToStart = true;
+            }
+            else
+            {
+                indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
+                addIndentationToStart = false;
+            }
+
+            return ConvertToMultiLineRawIndentedString(indentation, addIndentationToStart, token, formattingOptions, characters);
         }
 
         private static VirtualCharSequence CleanupWhitespace(VirtualCharSequence characters)
@@ -384,6 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
         private static SyntaxToken ConvertToMultiLineRawIndentedString(
             string indentation,
+            bool addIndentationToStart,
             SyntaxToken token,
             SyntaxFormattingOptions formattingOptions,
             VirtualCharSequence characters)
@@ -421,8 +447,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             builder.Append(indentation);
             builder.Append('"', quoteDelimeterCount);
 
+            var leadingTrivia = token.LeadingTrivia;
+            if (addIndentationToStart)
+                leadingTrivia = leadingTrivia.Add(SyntaxFactory.Whitespace(indentation));
+
             return SyntaxFactory.Token(
-                token.LeadingTrivia,
+                leadingTrivia,
                 SyntaxKind.MultiLineRawStringLiteralToken,
                 builder.ToString(),
                 characters.CreateString(),
