@@ -81,13 +81,14 @@ build_property.RootNamespace = {DefaultNamespace}
             // No change namespace action because the folder name is not valid identifier
             var folder = CreateFolderPath(new[] { "3B", "C" });
             var code =
-@"
-namespace A.B
-{
-    class Class1
-    {
-    }
-}";
+                """
+                namespace A.B
+                {
+                    class Class1
+                    {
+                    }
+                }
+                """;
 
             return RunTestAsync(
                 "File1.cs",
@@ -101,13 +102,13 @@ namespace A.B
             // No change namespace action because the folder name is not valid identifier
             var folder = CreateFolderPath(new[] { "3B", "C" });
             var code =
-@"
-namespace A.B;
+                """
+                namespace A.B;
 
-class Class1
-{
-}
-";
+                class Class1
+                {
+                }
+                """;
 
             return RunTestAsync(
                 "File1.cs",
@@ -121,13 +122,14 @@ class Class1
             // No change namespace action because the folder name is not valid identifier
             var folder = CreateFolderPath(new[] { "B.3C", "D" });
             var code =
-@"
-namespace A.B
-{
-    class Class1
-    {
-    }
-}";
+                """
+                namespace A.B
+                {
+                    class Class1
+                    {
+                    }
+                }
+                """;
 
             return RunTestAsync(
                 "File1.cs",
@@ -141,13 +143,14 @@ namespace A.B
             // No change namespace action because the folder name is not valid identifier
             var folder = CreateFolderPath(new[] { ".folder", "..subfolder", "name" });
             var code =
-@"
-namespace A.B
-{
-    class Class1
-    {
-    }
-}";
+                """
+                namespace A.B
+                {
+                    class Class1
+                    {
+                    }
+                }
+                """;
 
             return RunTestAsync(
                 "File1.cs",
@@ -179,19 +182,22 @@ namespace {DefaultNamespace}.a.b
         {
             var folder = CreateFolderPath("B", "C");
             var code =
-@"namespace A.B
-{
-    class Class1
-    {
-    }
-}";
+                """
+                namespace A.B
+                {
+                    class Class1
+                    {
+                    }
+                }
+                """;
 
             await RunTestAsync(
                 fileName: "Class1.cs",
                 fileContents: code,
                 directory: folder,
-                editorConfig: EditorConfig + @"
-dotnet_style_namespace_match_folder = false"
+                editorConfig: EditorConfig + """
+                dotnet_style_namespace_match_folder = false
+                """
 );
         }
 
@@ -200,12 +206,14 @@ dotnet_style_namespace_match_folder = false"
         {
             var folder = CreateFolderPath("B", "C");
             var code =
-@"namespace [|A.B|]
-{
-    class Class1
-    {
-    }
-}";
+                """
+                namespace [|A.B|]
+                {
+                    class Class1
+                    {
+                    }
+                }
+                """;
 
             var fixedCode =
 @$"namespace {DefaultNamespace}.B.C
@@ -226,12 +234,13 @@ dotnet_style_namespace_match_folder = false"
         {
             var folder = CreateFolderPath("B", "C");
             var code =
-@"namespace [|A.B|];
+                """
+                namespace [|A.B|];
 
-class Class1
-{
-}
-";
+                class Class1
+                {
+                }
+                """;
 
             var fixedCode =
 @$"namespace {DefaultNamespace}.B.C;
@@ -257,12 +266,14 @@ build_property.ProjectDir = {Directory}
 
             var folder = CreateFolderPath("B", "C");
             var code =
-@"namespace [|A.B|]
-{
-    class Class1
-    {
-    }
-}";
+                """
+                namespace [|A.B|]
+                {
+                    class Class1
+                    {
+                    }
+                }
+                """;
 
             var fixedCode =
 @$"namespace B.C
@@ -291,12 +302,13 @@ build_property.ProjectDir = {Directory}
 
             var folder = CreateFolderPath("B", "C");
             var code =
-@"namespace [|A.B|];
+                """
+                namespace [|A.B|];
 
-class Class1
-{
-}
-";
+                class Class1
+                {
+                }
+                """;
 
             var fixedCode =
 @$"namespace B.C;
@@ -341,19 +353,21 @@ class Class1
 
             var folder = CreateFolderPath("B", "C");
             var code =
-@"namespace A.B
-{
-    namespace C.D
-    {
-        class CDClass
-        {
-        }
-    }
+                """
+                namespace A.B
+                {
+                    namespace C.D
+                    {
+                        class CDClass
+                        {
+                        }
+                    }
 
-    class ABClass
-    {
-    }
-}";
+                    class ABClass
+                    {
+                    }
+                }
+                """;
 
             await RunTestAsync(
                 fileName: "Class1.cs",
@@ -369,22 +383,26 @@ class Class1
 
             var folder = CreateFolderPath("B", "C");
             var code1 =
-@"namespace A.B
-{
-    partial class ABClass
-    {
-        void M1() {}
-    }
-}";
+                """
+                namespace A.B
+                {
+                    partial class ABClass
+                    {
+                        void M1() {}
+                    }
+                }
+                """;
 
             var code2 =
-@"namespace A.B
-{
-    partial class ABClass
-    {
-        void M2() {}
-    }
-}";
+                """
+                namespace A.B
+                {
+                    partial class ABClass
+                    {
+                        void M2() {}
+                    }
+                }
+                """;
 
             var sources = new[]
             {
@@ -927,13 +945,14 @@ build_property.RootNamespace = {defaultNamespace}
 
             var folder = CreateFolderPath(new[] { "B", "C" });
             var code =
-@"
-namespace [|A.B|]
-{
-    class Class1
-    {
-    }
-}";
+                """
+                namespace [|A.B|]
+                {
+                    class Class1
+                    {
+                    }
+                }
+                """;
 
             // The project name is invalid so the default namespace is not prepended
             var fixedCode =
