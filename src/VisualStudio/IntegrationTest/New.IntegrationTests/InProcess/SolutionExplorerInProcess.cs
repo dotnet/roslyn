@@ -435,18 +435,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task RenameFileAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            var project = await GetProjectAsync(projectName, cancellationToken);
-            var projectDirectory = Path.GetDirectoryName(project.FullName);
-
-            VsShellUtilities.RenameDocument(
-                ServiceProvider.GlobalProvider,
-                Path.Combine(projectDirectory, oldFileName),
-                Path.Combine(projectDirectory, newFileName));
-        }
-
-        public async Task RenameFileViaDTEAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var projectItem = await GetProjectItemAsync(projectName, oldFileName, cancellationToken);
 
             projectItem.Name = newFileName;

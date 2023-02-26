@@ -147,11 +147,6 @@
         <target state="translated">Convertir al método</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_positional_record">
-        <source>Convert to positional record</source>
-        <target state="translated">Convertir a positional record</target>
-        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">Convertir en cadena sin formato</target>
@@ -200,16 +195,6 @@
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">Cuando sea posible, hacer que los cambios privados sean solo de lectura</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">Quitar la palabra clave "in"</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">Quitar el modificador "new"</target>
         <note />
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
@@ -685,16 +670,6 @@
       <trans-unit id="struct_name">
         <source>&lt;struct name&gt;</source>
         <target state="translated">&lt;nombre de estructura&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">Convertir el método en asincrónico</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">Convertir método en asincónico (permanecer nulo)</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">

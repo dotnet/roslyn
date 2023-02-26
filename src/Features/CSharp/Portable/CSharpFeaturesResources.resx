@@ -389,9 +389,6 @@
   <data name="The_name_0_does_not_exist_in_the_current_context" xml:space="preserve">
     <value>The name '{0}' does not exist in the current context.</value>
   </data>
-  <data name="Remove_new_modifier" xml:space="preserve">
-    <value>Remove 'new' modifier</value>
-  </data>
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
@@ -418,12 +415,6 @@
   </data>
   <data name="struct_name" xml:space="preserve">
     <value>&lt;struct name&gt;</value>
-  </data>
-  <data name="Make_method_async" xml:space="preserve">
-    <value>Make method async</value>
-  </data>
-  <data name="Make_method_async_remain_void" xml:space="preserve">
-    <value>Make method async (stay void)</value>
   </data>
   <data name="Convert_to_switch_statement" xml:space="preserve">
     <value>Convert to 'switch' statement</value>
@@ -494,10 +485,6 @@
   </data>
   <data name="Convert_to_verbatim_string" xml:space="preserve">
     <value>Convert to verbatim string</value>
-  </data>
-  <data name="Remove_in_keyword" xml:space="preserve">
-    <value>Remove 'in' keyword</value>
-    <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Change_to_as_expression" xml:space="preserve">
     <value>Change to 'as' expression</value>
@@ -593,10 +580,6 @@
   </data>
   <data name="Convert_0_to_record" xml:space="preserve">
     <value>Convert '{0}' to record</value>
-    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Convert_to_positional_record" xml:space="preserve">
-    <value>Convert to positional record</value>
     <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Apply_readonly_struct_preferences" xml:space="preserve">

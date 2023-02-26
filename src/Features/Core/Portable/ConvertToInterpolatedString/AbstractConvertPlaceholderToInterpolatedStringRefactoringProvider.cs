@@ -341,8 +341,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         {
             if (expression != null)
             {
-                var formatMethodsAcceptingParamsArray = formatMethods
-                        .Where(x => x.Parameters.Length > 1 && x.Parameters[1].Type.Kind == SymbolKind.ArrayType);
+                var formatMethodsAcceptingParamsArray = formatMethods.Where(
+                    x => x.Parameters is [_, { Type.Kind: SymbolKind.ArrayType }, ..]);
                 if (formatMethodsAcceptingParamsArray.Contains(invocationSymbol))
                 {
                     return semanticModel.GetTypeInfo(expression, cancellationToken).Type?.Kind != SymbolKind.ArrayType;

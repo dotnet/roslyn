@@ -147,11 +147,6 @@
         <target state="translated">Converter em método</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_positional_record">
-        <source>Convert to positional record</source>
-        <target state="translated">Converter em record posicional</target>
-        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">Converter em cadeia de caracteres bruta</target>
@@ -200,16 +195,6 @@
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">Tornar os campos privados somente leitura quando possível</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">Remover palavra-chave 'in'</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">Remover modificador 'novo'</target>
         <note />
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
@@ -685,16 +670,6 @@
       <trans-unit id="struct_name">
         <source>&lt;struct name&gt;</source>
         <target state="translated">&lt;nome do struct&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">Tornar método assíncrono</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">Tornar o método assíncrono (permanecer nulo)</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">

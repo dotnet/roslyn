@@ -610,6 +610,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">反编译</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deconstruct_locals_for_0">
+        <source>Deconstruct locals for '{0}'</source>
+        <target state="new">Deconstruct locals for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">删除活动语句周围的 {0} 需要重新启动应用程序。</target>
@@ -4473,11 +4478,6 @@ If the "K" format specifier is used without other custom format specifiers, it's
         <target state="translated">无法加载分析器程序集 {0}: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">使方法同步</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">自 {0}</target>
@@ -4638,16 +4638,6 @@ This version used in: {2}</source>
       <trans-unit id="Rename_type_to_0">
         <source>Rename type to {0}</source>
         <target state="translated">将类型重命名为 {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">删除标记</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">添加缺少的参数节点</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">

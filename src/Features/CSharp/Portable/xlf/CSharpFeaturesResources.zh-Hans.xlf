@@ -147,11 +147,6 @@
         <target state="translated">转换为方法</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_positional_record">
-        <source>Convert to positional record</source>
-        <target state="translated">转换为位置 record</target>
-        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">转换为原始字符串</target>
@@ -200,16 +195,6 @@
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">尽可能将私有字段设置为“只读”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">删除 "in" 关键字</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">删除 "new" 修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
@@ -685,16 +670,6 @@
       <trans-unit id="struct_name">
         <source>&lt;struct name&gt;</source>
         <target state="translated">&lt;结构名称&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">使方法异步</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">使方法异步(保持 void)</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">

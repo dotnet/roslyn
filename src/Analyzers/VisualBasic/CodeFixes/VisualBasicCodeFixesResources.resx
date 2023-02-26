@@ -144,4 +144,10 @@
   <data name="Make_0_an_Async_Function" xml:space="preserve">
     <value>Make {0} an Async Function.</value>
   </data>
+  <data name="Make_Async_Function" xml:space="preserve">
+    <value>Make Async Function</value>
+  </data>
+  <data name="Make_Async_Sub" xml:space="preserve">
+    <value>Make Async Sub</value>
+  </data>
 </root>

@@ -348,8 +348,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If tokenKind = SyntaxKind.None OrElse format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
                         builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name, visitedParents))
-                    Else
+                    ElseIf SyntaxFacts.IsKeywordKind(tokenKind) Then
+                        ' Prefer to add the operator token as a keyword if it considered both a keyword and an operator.
+                        ' For example 'And' is both a keyword and operator, but we prefer 'keyword' here to match VB
+                        ' classification behavior since inception.
                         AddKeyword(tokenKind)
+                    Else
+                        ' Otherwise, if it's an operator and not a keyword (like '+'), then add it as an operator.
+                        AddOperator(tokenKind)
                     End If
 
                 Case MethodKind.Conversion
