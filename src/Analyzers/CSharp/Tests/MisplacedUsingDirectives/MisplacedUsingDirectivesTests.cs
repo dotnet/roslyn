@@ -289,10 +289,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
                 using System.Threading;|]
                 """;
             var fixedTestCode = """
+
                 {|Warning:using System;|}
                 {|Warning:using System.Threading;|}
-
                 namespace TestNamespace;
+
                 """;
 
             return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
@@ -1081,6 +1082,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
         public Task WhenInsidePreferred_UsingsInCompilationUnitWithCommentTrivia_TriviaMoved()
         {
             var testCode = """
+
                 // Some comment
                 [|using System;
                 using System.Threading;|]
