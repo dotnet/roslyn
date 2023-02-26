@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement
         public async Task TestAboveCSharp8()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+@"
+using System;
 
 class C
 {
