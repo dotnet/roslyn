@@ -113,14 +113,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 specificDocument = specificDocument is null ? null : project.GetRequiredDocument(specificDocument.Id);
             }
 
-            var lazyHasDesignerCategoryType = s_metadataReferencesToDesignerAttributeInfo.GetValue(
-                project.MetadataReferences,
-                _ => AsyncLazy.Create(
-                    async cancellationToken =>
-                    {
-                        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                        return compilation.DesignerCategoryAttributeType() != null;
-                    }, cacheResult: true));
+            var lazyHasDesignerCategoryType = GetLazyHasDesignerCategoryType(project);
 
             await ScanForDesignerCategoryUsageAsync(
                 project, specificDocument, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
@@ -129,6 +122,16 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (specificDocument != null)
                 await ScanForDesignerCategoryUsageAsync(project, specificDocument: null, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
         }
+
+        private static AsyncLazy<bool> GetLazyHasDesignerCategoryType(Project project)
+            => s_metadataReferencesToDesignerAttributeInfo.GetValue(
+                   project.MetadataReferences,
+                   _ => AsyncLazy.Create(
+                       async cancellationToken =>
+                       {
+                           var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                           return compilation.DesignerCategoryAttributeType() != null;
+                       }, cacheResult: true));
 
         private async Task ScanForDesignerCategoryUsageAsync(
             Project project,
