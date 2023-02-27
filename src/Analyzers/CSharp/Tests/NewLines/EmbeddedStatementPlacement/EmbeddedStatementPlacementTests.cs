@@ -341,7 +341,7 @@ class C
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false } }
             }.RunAsync();
         }
     }
