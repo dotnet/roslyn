@@ -34,21 +34,6 @@ namespace Microsoft.CodeAnalysis.Remote
             => new ClientCodeCleanupOptionsProvider(
                 (callbackId, language, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
 
-        public ValueTask KeepAliveAsync(
-            Checksum solutionChecksum,
-            CancellationToken cancellationToken)
-        {
-            // First get the solution, ensuring that it is currently pinned.
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                // Wait for our caller to tell us to cancel.  That way we can release this solution and allow it
-                // to be collected if not needed anymore.
-                //
-                // This was provided by stoub as an idiomatic way to wait indefinitely until a cancellation token triggers.
-                await Task.Delay(-1, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
         public ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
             Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
