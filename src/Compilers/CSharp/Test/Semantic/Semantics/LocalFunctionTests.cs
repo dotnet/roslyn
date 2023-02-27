@@ -9039,9 +9039,6 @@ public class MyAttribute : System.Attribute
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,35): error CS7036: There is no argument given that corresponds to the required parameter 'object' of 'Func<int, int>.Func(object, IntPtr)'
-                //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[My(nameof(parameter))]").WithArguments("object", "System.Func<int, int>.Func(object, System.IntPtr)").WithLocation(6, 35),
                 // (6,36): error CS0103: The name 'My' does not exist in the current context
                 //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "My").WithArguments("My").WithLocation(6, 36),
