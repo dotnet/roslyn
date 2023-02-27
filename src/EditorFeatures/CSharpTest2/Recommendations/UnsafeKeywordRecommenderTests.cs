@@ -111,6 +111,25 @@ $$");
 $$");
         }
 
+        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+}");
+        }
+
+        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespaceBeforeClass()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+class C {}
+}");
+        }
+
         [Fact]
         public async Task TestAfterTypeDeclaration()
         {
@@ -162,7 +181,7 @@ $$");
 using Goo;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -178,7 +197,7 @@ using Goo;");
 global using Goo;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeGlobalUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -271,6 +290,13 @@ $$");
         {
             await VerifyKeywordAsync(
 @"private $$");
+        }
+
+        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestAfterFile()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"file $$");
         }
 
         [Fact]

@@ -2,14 +2,44 @@
 
 ## Summary
 
-> **Note**: The design for the source generator proposal is still under review. This document uses only one possible syntax, and
-> it is expected to change without notice as the feature evolves.
+> **Warning**: Source generators implementing `ISourceGenerator` have been deprecated
+> in favor of [incremental generators](incremental-generators.md).
+> This document has not been fully updated to reflect that.
+> You should implement `IIncrementalGenerator` instead of `ISourceGenerator`.
 
 This document aims to be a guide to help the creation of source generators by providing a series of guidelines for common patterns.
 It also aims to set out what types of generators are possible under the current design, and what is expected to be explicitly out 
 of scope in the final design of the shipping feature.
 
 **This document expands on the details in the [full design document](source-generators.md), please ensure you have read that first.**
+
+## Table of content
+
+- [Source Generators Cookbook](#source-generators-cookbook)
+  - [Table of content](#table-of-content)
+  - [Summary](#summary)
+  - [Proposal](#proposal)
+  - [Out of scope designs](#out-of-scope-designs)
+    - [Language features](#language-features)
+    - [Code rewriting](#code-rewriting)
+  - [Conventions](#conventions)
+  - [Designs](#designs)
+    - [Generated class](#generated-class)
+    - [Additional file transformation](#additional-file-transformation)
+    - [Augment user code](#augment-user-code)
+    - [Issue Diagnostics](#issue-diagnostics)
+    - [INotifyPropertyChanged](#inotifypropertychanged)
+    - [Package a generator as a NuGet package](#package-a-generator-as-a-nuget-package)
+    - [Use functionality from NuGet packages](#use-functionality-from-nuget-packages)
+    - [Access Analyzer Config properties](#access-analyzer-config-properties)
+    - [Consume MSBuild properties and metadata](#consume-msbuild-properties-and-metadata)
+    - [Unit Testing of Generators](#unit-testing-of-generators)
+    - [Participate in the IDE experience](#participate-in-the-ide-experience)
+    - [Serialization](#serialization)
+    - [Auto interface implementation](#auto-interface-implementation)
+  - [Breaking Changes:](#breaking-changes)
+  - [Open Issues](#open-issues)
+
 
 ## Proposal
 

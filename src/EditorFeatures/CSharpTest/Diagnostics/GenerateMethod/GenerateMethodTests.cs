@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateMethodCodeFixProvider());
 
         [Fact]
@@ -9087,8 +9085,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        [WorkItem(63883, "https://github.com/dotnet/roslyn/issues/63883")]
+        [Fact, WorkItem(63883, "https://github.com/dotnet/roslyn/issues/63883")]
         public async Task TestNullableCoalesce()
         {
             await TestInRegularAndScriptAsync(
@@ -9115,6 +9112,435 @@ class Example
 
     int? C() => null;
 }");
+        }
+
+        [Fact, WorkItem(28996, "https://github.com/dotnet/roslyn/issues/28996")]
+        public async Task TestPreferOverloadWithMatchingParameterCount()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+abstract class Barry
+{
+    public void Method()
+    {
+        Goo([|Baz|], null);
+    }
+
+    protected abstract void Goo(Action action);
+    protected abstract void Goo(Action<object> action, object arg);
+}",
+@"using System;
+
+abstract class Barry
+{
+    public void Method()
+    {
+        Goo([|Baz|], null);
+    }
+
+    private void Baz(object obj)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected abstract void Goo(Action action);
+    protected abstract void Goo(Action<object> action, object arg);
+}");
+        }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        return v;
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        return v;
+    }
+
+    private int NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        if (v)
+        {
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        if (v)
+        {
+        }
+    }
+
+    private bool NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        var x = v;
+        return x;
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        var x = v;
+        return x;
+    }
+
+    private int NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem(44861, "https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var (x, y) = [|NewExpr()|];
+        Goo(x, y);
+    }
+
+    void Goo(string x, int y) { }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var (x, y) = [|NewExpr()|];
+        Goo(x, y);
+    }
+
+    private (string x, int y) NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+
+    void Goo(string x, int y) { }
+}");
+        }
+
+        [Fact, WorkItem(12708, "https://github.com/dotnet/roslyn/issues/12708")]
+        public async Task GenerateEventHookupWithExistingMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Specialized;
+
+class Program
+{
+    void Main(string[] args)
+    {
+        INotifyCollectionChanged collection = null;
+        collection.CollectionChanged += [|OnChanged|];
+    }
+
+    private void OnChanged() { }
+}",
+@"using System;
+using System.Collections.Specialized;
+
+class Program
+{
+    void Main(string[] args)
+    {
+        INotifyCollectionChanged collection = null;
+        collection.CollectionChanged += OnChanged;
+    }
+
+    private void OnChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnChanged() { }
+}");
+        }
+
+        [Fact, WorkItem(29761, "https://github.com/dotnet/roslyn/issues/29761")]
+        public async Task GenerateAlternativeNamesForFuncActionDelegates1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction([|Analyze|]);
+    }
+
+    private void RegisterOperationAction(Action<Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction(Analyze);
+    }
+
+    private void Analyze(Context context)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void RegisterOperationAction(Action<Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}");
+        }
+
+        [Fact, WorkItem(29761, "https://github.com/dotnet/roslyn/issues/29761")]
+        public async Task GenerateAlternativeNamesForFuncActionDelegates2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction([|Analyze|]);
+    }
+
+    private void RegisterOperationAction(Action<Context, Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction(Analyze);
+    }
+
+    private void Analyze(Context context1, Context context2)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void RegisterOperationAction(Action<Context, Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}");
+        }
+
+        [Fact, WorkItem(37825, "https://github.com/dotnet/roslyn/issues/37825")]
+        public async Task InferTypeFromNextSwitchArm1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => [|Goo()|],
+                            "a" => Bar(),
+                        };
+                    }
+
+                    private int Bar()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => Goo(),
+                            "a" => Bar(),
+                        };
+                    }
+
+                    private int Goo()
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    private int Bar()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37825, "https://github.com/dotnet/roslyn/issues/37825")]
+        public async Task InferTypeFromNextSwitchArm2()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => [|Goo()|],
+                            "a" => Bar(),
+                        };
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => Goo(),
+                            "a" => Bar(),
+                        };
+                    }
+
+                    private object Goo()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37825, "https://github.com/dotnet/roslyn/issues/37825")]
+        public async Task InferTypeFromNextSwitchArm3()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => Goo(),
+                            "a" => [|Bar()|],
+                        };
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => Goo(),
+                            "a" => Bar(),
+                        };
+                    }
+
+                    private object Bar()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
         }
     }
 }

@@ -45,48 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
 
         [Fact]
-        public void TestOptionSerialization1()
-        {
-            // Verify that bool-options can migrate to ExpressionBodyPreference-options.
-            var option = new CodeStyleOption2<bool>(false, NotificationOption2.Silent);
-            var serialized = option.ToXElement();
-            var deserialized = CodeStyleOption2<ExpressionBodyPreference>.FromXElement(serialized);
-
-            Assert.Equal(ExpressionBodyPreference.Never, deserialized.Value);
-
-            option = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
-            serialized = option.ToXElement();
-            deserialized = CodeStyleOption2<ExpressionBodyPreference>.FromXElement(serialized);
-
-            Assert.Equal(ExpressionBodyPreference.WhenPossible, deserialized.Value);
-        }
-
-        [Fact]
-        public void TestOptionSerialization2()
-        {
-            // Verify that ExpressionBodyPreference-options can migrate to bool-options.
-            var option = new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.Silent);
-            var serialized = option.ToXElement();
-            var deserialized = CodeStyleOption2<bool>.FromXElement(serialized);
-
-            Assert.False(deserialized.Value);
-
-            option = new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent);
-            serialized = option.ToXElement();
-            deserialized = CodeStyleOption2<bool>.FromXElement(serialized);
-
-            Assert.True(deserialized.Value);
-
-            // This new values can't actually translate back to a bool.  So we'll just get the default
-            // value for this option.
-            option = new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.Silent);
-            serialized = option.ToXElement();
-            deserialized = CodeStyleOption2<bool>.FromXElement(serialized);
-
-            Assert.Equal(default, deserialized.Value);
-        }
-
-        [Fact]
         public void TestOptionEditorConfig1()
         {
             var option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
@@ -534,7 +492,7 @@ class Program
 using System;
 class C
 {
-    {|IDE0022:void M() {|CS8026:=> {|CS8026:throw new NotImplementedException()|}|};|}
+    {|IDE0022:void M() {|CS8026:=>|} {|CS8026:throw|} new NotImplementedException();|}
 }";
             var fixedCode = @"
 using System;
@@ -598,8 +556,8 @@ class C
 using System;
 class C
 {
-    {|IDE0022:void M() => {|CS8059:throw new NotImplementedException()|};|}
-    {|IDE0022:void M(int i) => {|CS8059:throw new NotImplementedException()|};|}
+    {|IDE0022:void M() => {|CS8059:throw|} new NotImplementedException();|}
+    {|IDE0022:void M(int i) => {|CS8059:throw|} new NotImplementedException();|}
     int M(bool b) => 0;
 }";
             var fixedCode = @"

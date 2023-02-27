@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -77,7 +76,7 @@ class C
 }",
 new TestParameters(
     parseOptions: CSharp8ParseOptions,
-    options: Option(CSharpCodeStyleOptions.PreferSimpleUsingStatement, CodeStyleOptions2.FalseWithSilentEnforcement)));
+    options: Option(CSharpCodeStyleOptions.PreferSimpleUsingStatement, CodeStyleOption2.FalseWithSilentEnforcement)));
         }
 
         [Fact]
@@ -1658,6 +1657,234 @@ parseOptions: CSharp8ParseOptions);
 }
 ",
 parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithConstantReturn1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        return true;
+    }
+}
+",
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        using var foo = new MemoryStream();
+
+        return true;
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithNonConstantReturn1()
+        {
+            await TestMissingAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        return a > b;
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithLocalFunctions1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        void Inner1() { }
+        void Inner2() { }
+    }
+}
+",
+@"
+using System.IO;
+
+class C
+{
+    bool M()
+    {
+        using var foo = new MemoryStream();
+
+        void Inner1() { }
+        void Inner2() { }
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithLocalFunctions2()
+        {
+            await TestMissingAsync(
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        void Inner1() { }
+        void Inner2() { }
+
+        return a > b;
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(42194, "https://github.com/dotnet/roslyn/issues/42194")]
+        public async Task TestWithLocalFunctionsAndConstantReturn()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        [||]using (var foo = new MemoryStream())
+        {
+        }
+
+        void Inner1() { }
+        void Inner2() { }
+
+        return true;
+    }
+}
+",
+@"
+using System.IO;
+
+class C
+{
+    bool M(int a, int b)
+    {
+        using var foo = new MemoryStream();
+
+        void Inner1() { }
+        void Inner2() { }
+
+        return true;
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(58897, "https://github.com/dotnet/roslyn/issues/58897")]
+        public async Task TestOpenBraceTrivia1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Security.Cryptography;
+
+class C
+{
+    public static byte[] ComputeMD5Hash(byte[] source)
+    {
+#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+        [||]using (var md5 = MD5.Create())
+#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+        {
+            return md5.ComputeHash(source);
+        }
+    }
+}
+",
+@"
+using System.Security.Cryptography;
+
+class C
+{
+    public static byte[] ComputeMD5Hash(byte[] source)
+    {
+#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+        using var md5 = MD5.Create();
+#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+        return md5.ComputeHash(source);
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(58897, "https://github.com/dotnet/roslyn/issues/58897")]
+        public async Task TestOpenBraceTrivia2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Security.Cryptography;
+
+class C
+{
+    public static byte[] ComputeMD5Hash(byte[] source)
+    {
+#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+        [||]using (var md5 = MD5.Create())
+#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+        { // comment
+            return md5.ComputeHash(source);
+        }
+    }
+}
+",
+@"
+using System.Security.Cryptography;
+
+class C
+{
+    public static byte[] ComputeMD5Hash(byte[] source)
+    {
+#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+        using var md5 = MD5.Create();
+#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+        // comment
+        return md5.ComputeHash(source);
+    }
+}
+");
         }
     }
 }

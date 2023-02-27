@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected int GetExistingIndentation(SyntaxTrivia trivia)
         {
             var offset = trivia.FullSpan.Start - this.StartPosition;
-            var originalText = this.OriginalString.Substring(0, offset);
+            var originalText = this.OriginalString[..offset];
             var delta = GetLineColumnDelta(this.InitialLineColumn.Column, originalText);
 
             return this.InitialLineColumn.With(delta).Column;

@@ -2,19 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch.CSharpConvertIfToSwitchCodeRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfToSwitch
 {
+    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertIfToSwitchCodeRefactoringProvider>;
+
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
     public class ConvertIfToSwitchTests
     {
@@ -2736,6 +2737,124 @@ class C
                 TestCode = source,
                 FixedCode = fixedSource,
                 LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(41131, "https://github.com/dotnet/roslyn/issues/41131")]
+        public async Task MoveTriviaFromElse1()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    void M()
+    {
+        bool? abc = true;
+        $$if (abc == true)
+        {
+            Console.WriteLine(3);
+        }
+        // some comment here
+        else if (abc == false)
+        {
+            Console.WriteLine(4);
+        }
+        else if (abc is null)
+        {
+            Console.WriteLine(14);
+        }
+    }
+}";
+            var fixedSource =
+@"using System;
+
+class C
+{
+    void M()
+    {
+        bool? abc = true;
+        switch (abc)
+        {
+            case true:
+                Console.WriteLine(3);
+                break;
+            // some comment here
+            case false:
+                Console.WriteLine(4);
+                break;
+            case null:
+                Console.WriteLine(14);
+                break;
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(41131, "https://github.com/dotnet/roslyn/issues/41131")]
+        public async Task MoveTriviaFromElse2()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    void M()
+    {
+        bool? abc = true;
+        $$if (abc == true)
+        {
+            Console.WriteLine(3);
+        }
+        // some comment here
+        else if (abc == false)
+        {
+            Console.WriteLine(4);
+        }
+        // other comment
+        else
+        {
+            Console.WriteLine(14);
+        }
+    }
+}";
+            var fixedSource =
+@"using System;
+
+class C
+{
+    void M()
+    {
+        bool? abc = true;
+        switch (abc)
+        {
+            case true:
+                Console.WriteLine(3);
+                break;
+            // some comment here
+            case false:
+                Console.WriteLine(4);
+                break;
+            // other comment
+            default:
+                Console.WriteLine(14);
+                break;
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }

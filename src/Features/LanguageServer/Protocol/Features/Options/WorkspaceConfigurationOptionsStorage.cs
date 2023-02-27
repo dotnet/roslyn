@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -14,29 +15,32 @@ internal static class WorkspaceConfigurationOptionsStorage
             CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
-            DisableCloneWhenProducingSkeletonReferences: globalOptions.GetOption(DisableCloneWhenProducingSkeletonReferences));
+            DisableReferenceManagerRecoverableMetadata: globalOptions.GetOption(DisableReferenceManagerRecoverableMetadata),
+            DisableBackgroundCompilation: globalOptions.GetOption(DisableBackgroundCompilation),
+            DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees));
 
     public static readonly Option2<StorageDatabase> Database = new(
-        "FeatureManager/Storage", nameof(Database), WorkspaceConfigurationOptions.Default.CacheStorage,
-        new LocalUserProfileStorageLocation(@"Roslyn\Internal\OnOff\Features\Database"));
+        "Storage_Database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
 
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
-        "FeatureManager/Storage", "CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache,
-        new FeatureFlagStorageLocation("Roslyn.CloudCache3"));
+        "Storage_CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
 
-    public static readonly Option2<bool> DisableCloneWhenProducingSkeletonReferences = new(
-        "WorkspaceConfigurationOptions", "DisableCloneWhenProducingSkeletonReferences", WorkspaceConfigurationOptions.Default.DisableCloneWhenProducingSkeletonReferences,
-        new FeatureFlagStorageLocation("Roslyn.DisableCloneWhenProducingSkeletonReferences"));
+    public static readonly Option2<bool> DisableReferenceManagerRecoverableMetadata = new(
+        "WorkspaceConfigurationOptions_DisableReferenceManagerRecoverableMetadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata);
+
+    public static readonly Option2<bool> DisableBackgroundCompilation = new(
+        "WorkspaceConfigurationOptions_DisableBackgroundCompilation", WorkspaceConfigurationOptions.Default.DisableBackgroundCompilation);
+
+    public static readonly Option2<bool> DisableSharedSyntaxTrees = new(
+        "WorkspaceConfigurationOptions_DisableSharedSyntaxTrees", WorkspaceConfigurationOptions.Default.DisableSharedSyntaxTrees);
 
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
     /// surprised by this and we want some time to work through those issues.
     /// </summary>
     public static readonly Option2<bool?> EnableOpeningSourceGeneratedFilesInWorkspace = new(
-        "WorkspaceConfigurationOptions", "EnableOpeningSourceGeneratedFilesInWorkspace", defaultValue: null,
-        new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
+        "WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspace", defaultValue: null);
 
     public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
-        "WorkspaceConfigurationOptions", "EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles,
-        new FeatureFlagStorageLocation("Roslyn.SourceGeneratorsEnableOpeningInWorkspace"));
+        "WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles);
 }

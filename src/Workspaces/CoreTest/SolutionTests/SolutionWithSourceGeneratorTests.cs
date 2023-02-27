@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -61,7 +63,56 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task WithReferencesMethodCorrectlyUpdatesRunningGenerators()
+        [WorkItem(1655835, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655835")]
+        public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences()
+        {
+            using var workspace = CreateWorkspace();
+
+            // AnalyzerReferences may implement equality (AnalyezrFileReference does), and we want to make sure if we substitute out one
+            // reference with another reference that's equal, we correctly update generators. We'll have the underlying generators
+            // be different since two AnalyzerFileReferences that are value equal but different instances would have their own generators as well.
+            const string SharedPath = "Z:\\Generator.dll";
+            ISourceGenerator CreateGenerator() => new SingleFileTestGenerator("// StaticContent", hintName: "generated");
+
+            var analyzerReference1 = new TestGeneratorReferenceWithFilePathEquality(CreateGenerator(), SharedPath);
+            var analyzerReference2 = new TestGeneratorReferenceWithFilePathEquality(CreateGenerator(), SharedPath);
+
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference1);
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+
+            // Go from one analyzer reference to the other
+            project = project.WithAnalyzerReferences(new[] { analyzerReference2 });
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+
+            // Now remove and confirm that we don't have any files
+            project = project.WithAnalyzerReferences(SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
+
+            Assert.Empty((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+        }
+
+        private class TestGeneratorReferenceWithFilePathEquality : TestGeneratorReference, IEquatable<AnalyzerReference>
+        {
+            public TestGeneratorReferenceWithFilePathEquality(ISourceGenerator generator, string analyzerFilePath)
+                : base(generator, analyzerFilePath)
+            {
+            }
+
+            public override bool Equals(object? obj) => Equals(obj as AnalyzerReference);
+            public override string FullPath => base.FullPath!; // This derived class always has this non-null
+            public override int GetHashCode() => this.FullPath.GetHashCode();
+
+            public bool Equals(AnalyzerReference? other)
+            {
+                return other is TestGeneratorReferenceWithFilePathEquality otherReference &&
+                    this.FullPath == otherReference.FullPath;
+            }
+        }
+
+        [Fact]
+        public async Task WithReferencesMethodCorrectlyAddsAndRemovesRunningGenerators()
         {
             using var workspace = CreateWorkspace();
 
@@ -155,16 +206,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     return step.Inputs.Length == 1
                     && step.Inputs[0].Source.Outputs[step.Inputs[0].OutputIndex].Reason == IncrementalStepRunReason.Modified
-                    && step.Outputs.Length == 1
-                    && step.Outputs[0].Reason == IncrementalStepRunReason.Modified;
+                    && step.Outputs is [{ Reason: IncrementalStepRunReason.Modified }];
                 });
             Assert.Contains(runResult.TrackedSteps[GenerateFileForEachAdditionalFileWithContentsCommented.StepName],
                 step =>
                 {
                     return step.Inputs.Length == 1
                     && step.Inputs[0].Source.Outputs[step.Inputs[0].OutputIndex].Reason == IncrementalStepRunReason.Cached
-                    && step.Outputs.Length == 1
-                    && step.Outputs[0].Reason == IncrementalStepRunReason.Cached;
+                    && step.Outputs is [{ Reason: IncrementalStepRunReason.Cached }];
                 });
 
             // Change one of the source documents, and rerun; we should again only reprocess that one change.
@@ -699,6 +748,37 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
 
             Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
+        }
+
+        [Fact]
+        public async Task LinkedDocumentOfFrozenShouldNotRunSourceGenerator()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var generatorRan = false;
+            var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+
+            var originalDocument1 = AddEmptyProject(workspace.CurrentSolution, name: "Project1")
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs");
+
+            // this is a linked document of document1 above
+            var originalDocument2 = AddEmptyProject(originalDocument1.Project.Solution, name: "Project2")
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument(originalDocument1.Name, await originalDocument1.GetTextAsync().ConfigureAwait(false), filePath: originalDocument1.FilePath);
+
+            var frozenSolution = originalDocument2.WithFrozenPartialSemantics(CancellationToken.None).Project.Solution;
+            var documentIdsToTest = new[] { originalDocument1.Id, originalDocument2.Id };
+
+            foreach (var documentIdToTest in documentIdsToTest)
+            {
+                var document = frozenSolution.GetRequiredDocument(documentIdToTest);
+                Assert.Equal(document.GetLinkedDocumentIds().Single(), documentIdsToTest.Except(new[] { documentIdToTest }).Single());
+                document = document.WithText(SourceText.From("// Something else"));
+
+                var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
+                Assert.Single(compilation.SyntaxTrees);
+                Assert.False(generatorRan);
+            }
         }
 
         [Fact]

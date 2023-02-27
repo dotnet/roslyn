@@ -276,9 +276,7 @@ namespace Microsoft.Cci
         /// </summary>
         IFieldDefinition? GetResolvedField(EmitContext context);
 
-
         ISpecializedFieldReference? AsSpecializedFieldReference { get; }
-
 
         /// <summary>
         /// True, if field is an IContextualNamedEntity, even if field reference implements the interface,

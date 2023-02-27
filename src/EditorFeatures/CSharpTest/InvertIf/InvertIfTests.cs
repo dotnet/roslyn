@@ -1460,5 +1460,144 @@ class C
                 }
                 """);
         }
+
+        [Fact, WorkItem(40585, "https://github.com/dotnet/roslyn/issues/40585")]
+        public async Task TestYieldBreak()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections;
+
+class Program
+{
+    public static IEnumerable Method(bool condition)
+    {
+        [||]if (condition)
+        {
+            yield return 1;
+        }
+    }
+}",
+@"using System.Collections;
+
+class Program
+{
+    public static IEnumerable Method(bool condition)
+    {
+        if (!condition)
+        {
+            yield break;
+        }
+        yield return 1;
+    }
+}");
+        }
+
+        [Fact, WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")]
+        public async Task PreserveSpacing()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    string? M(string s)
+                    {
+                        var l = s.ToLowerCase();
+
+                        [||]if (l == "hello")
+                        {
+                            return null;
+                        }
+
+                        return l;
+
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    string? M(string s)
+                    {
+                        var l = s.ToLowerCase();
+
+                        if (l != "hello")
+                        {
+                            return l;
+                        }
+
+                        return null;
+
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")]
+        public async Task PreserveSpacing_WithComments()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    string? M(string s)
+                    {
+                        var l = s.ToLowerCase();
+
+                        [||]if (l == "hello")
+                        {
+                            // null 1
+                            return null; // null 2
+                            // null 3
+                        }
+
+                        // l 1
+                        return l; // l 2
+                        // l 3
+
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    string? M(string s)
+                    {
+                        var l = s.ToLowerCase();
+
+                        if (l != "hello")
+                        {
+                            // l 1
+                            return l; // l 2
+                            // null 3
+                        }
+
+                        // null 1
+                        return null; // null 2
+                        // l 3
+
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")]
+        public async Task PreserveSpacing_NoTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    string? M(bool b)
+                    {[||]if(b){return(true);}return(false);}
+                }
+                """,
+                """
+                class C
+                {
+                    string? M(bool b)
+                    { if (!b) { return (false); } return (true); }
+                }
+                """);
+        }
     }
 }

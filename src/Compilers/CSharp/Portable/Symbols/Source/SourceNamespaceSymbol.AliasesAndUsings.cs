@@ -1056,7 +1056,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-
         private class MergedGlobalAliasesAndUsings
         {
             private Imports? _lazyImports;

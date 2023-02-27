@@ -1971,5 +1971,196 @@ class C
 
             await TestExtractMethodAsync(code, expected);
         }
+
+        [Fact, WorkItem(61555, "https://github.com/dotnet/roslyn/issues/61555")]
+        public async Task Nullable_FlowAnalysisNotNull()
+        {
+            var code = """
+                class C
+                {
+                    public void M(C? c)
+                    {
+                        if (c == null)
+                        {
+                            return;
+                        }
+
+                        [|c.ToString();|]
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    public void M(C? c)
+                    {
+                        if (c == null)
+                        {
+                            return;
+                        }
+
+                        NewMethod(c);
+                    }
+
+                    private static void NewMethod(C c)
+                    {
+                        c.ToString();
+                    }
+                }
+                """;
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, WorkItem(39329, "https://github.com/dotnet/roslyn/issues/39329")]
+        public Task SimpleUsingStatement()
+        {
+            var code = """
+                public class Goo : IDisposable
+                {
+                    void M2() { }
+                    void M3() { }
+                    string S => "S";
+
+                    void M()
+                    {
+                        using Goo g = [|new Goo();
+                        var s = g.S;
+                        g.M2();
+                        g.M3();|]
+                    }
+
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """;
+
+            var expected = """
+                public class Goo : IDisposable
+                {
+                    void M2() { }
+                    void M3() { }
+                    string S => "S";
+                
+                    void M()
+                    {
+                        using Goo g = NewMethod();
+                    }
+
+                    private static Goo NewMethod()
+                    {
+                        Goo g = new Goo();
+                        var s = g.S;
+                        g.M2();
+                        g.M3();
+                        return g;
+                    }
+                
+                    public void Dispose()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """;
+
+            return TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, WorkItem(24136, "https://github.com/dotnet/roslyn/issues/24136")]
+        public async Task WhenClause_SwitchStatement()
+        {
+            var code = """
+                class C
+                {
+                    void DisplayMeasurements(int a, int b)
+                    {
+                        switch ((a, b))
+                        {
+                            case ( > 0, > 0) when [|a == b|]:
+                                Console.WriteLine($"Both measurements are valid and equal to {a}.");
+                                break;
+
+                            case ( > 0, > 0):
+                                Console.WriteLine($"First measurement is {a}, second measurement is {b}.");
+                                break;
+
+                            default:
+                                Console.WriteLine("One or both measurements are not valid.");
+                                break;
+                        }
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    void DisplayMeasurements(int a, int b)
+                    {
+                        switch ((a, b))
+                        {
+                            case ( > 0, > 0) when NewMethod(a, b):
+                                Console.WriteLine($"Both measurements are valid and equal to {a}.");
+                                break;
+
+                            case ( > 0, > 0):
+                                Console.WriteLine($"First measurement is {a}, second measurement is {b}.");
+                                break;
+
+                            default:
+                                Console.WriteLine("One or both measurements are not valid.");
+                                break;
+                        }
+                    }
+
+                    private static bool NewMethod(int a, int b)
+                    {
+                        return a == b;
+                    }
+                }
+                """;
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, WorkItem(24136, "https://github.com/dotnet/roslyn/issues/24136")]
+        public async Task WhenClause_SwitchExpression()
+        {
+            var code = """
+                class C
+                {
+                    string GetMeasurements(int a, int b)
+                        => (a, b) switch
+                        {
+                            ( > 0, > 0) when [|a == b|] => $"Both measurements are valid and equal to {a}.",
+                            ( > 0, > 0) => $"First measurement is {a}, second measurement is {b}.",
+                            _ => "One or both measurements are not valid."
+                        };
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    string GetMeasurements(int a, int b)
+                        => (a, b) switch
+                        {
+                            ( > 0, > 0) when NewMethod(a, b) => $"Both measurements are valid and equal to {a}.",
+                            ( > 0, > 0) => $"First measurement is {a}, second measurement is {b}.",
+                            _ => "One or both measurements are not valid."
+                        };
+
+                    private static bool NewMethod(int a, int b)
+                    {
+                        return a == b;
+                    }
+                }
+                """;
+
+            await TestExtractMethodAsync(code, expected);
+        }
     }
 }

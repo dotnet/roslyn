@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -28,29 +30,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <param name="debugFriendly">
         /// When set, do not perform aggressive optimizations that degrade debugging experience.
         /// In particular we do not do the following:
-        /// 
-        /// 1) Do not elide any user defined locals, even if never read from. 
+        ///
+        /// 1) Do not elide any user defined locals, even if never read from.
         ///    Example:
         ///      {
         ///        var dummy = Goo();    // should not become just "Goo"
         ///      }
-        ///        
+        ///
         ///    User might want to examine dummy in the debugger.
-        /// 
+        ///
         /// 2) Do not carry values on the stack between statements
         ///    Example:
         ///      {
         ///        var temp = Goo();
         ///        temp.ToString();       // should not become   Goo().ToString();
         ///      }
-        ///       
+        ///
         ///    User might want to examine temp in the debugger.
-        ///        
+        ///
         /// </param>
         /// <param name="stackLocals">
         /// Produced list of "ephemeral" locals.
         /// Essentially, these locals do not need to leave the evaluation stack.
-        /// As such they do not require an allocation of a local slot and 
+        /// As such they do not require an allocation of a local slot and
         /// their load/store operations are implemented trivially.
         /// </param>
         /// <returns></returns>
@@ -123,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private static void RemoveIntersectingLocals(Dictionary<LocalSymbol, LocalDefUseInfo> info, ArrayBuilder<LocalDefUseInfo> dummies)
         {
-            // Add dummy definitions. 
-            // Although we do not schedule dummies we intend to guarantee that no 
+            // Add dummy definitions.
+            // Although we do not schedule dummies we intend to guarantee that no
             // local definition span intersects with definition spans of a dummy
             // that will ensure that at any access to dummy is done on same stack state.
             var defs = ArrayBuilder<LocalDefUseSpan>.GetInstance(dummies.Count);
@@ -144,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             //TODO: perf. This can be simplified to not use a query.
 
-            // order definitions by increasing size 
+            // order definitions by increasing size
             // this will give preference to shorter def-use spans when they intersect
             //
             // also order by usage, giving preference to spans at the beginning of the method
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                           orderby d.End - d.Start, d.End ascending
                           select new { i = i.Key, d = d };
 
-            // collect non-intersecting def-use spans. 
+            // collect non-intersecting def-use spans.
             // if span intersects with something already stored, reject corresponding variable.
             //
             // CONSIDER: do we want to remove already added spans of rejected variables?
@@ -176,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // in practice cnt rarely exceeds 200
                 if (cnt > 5000)
                 {
-                    // too many locals/spans. 
+                    // too many locals/spans.
                     // This is an n^2 check and optimizing further may become costly.
                     // reject all following definition spans
                     intersects = true;
@@ -228,11 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     // represents a local and its Def-Use-Use chain
     //
     // NOTE: stack local reads are destructive to the locals so
-    //      if the read is not the last one, it must be immediately followed by 
+    //      if the read is not the last one, it must be immediately followed by
     //      another definition.
     //      For the rewriting purposes it is irrelevant if definition was created by
-    //      a write or a subsequent read. These cases are not ambiguous because 
-    //      when rewriting, definition will match to a single node and 
+    //      a write or a subsequent read. These cases are not ambiguous because
+    //      when rewriting, definition will match to a single node and
     //      we always know if given node is reading or writing.
     internal class LocalDefUseInfo
     {
@@ -302,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     }
 
     // represents a span of a value between definition and use.
-    // start/end positions are specified in terms of global node count as visited by 
+    // start/end positions are specified in terms of global node count as visited by
     // StackOptimizer visitors. (i.e. recursive walk not looking into constants)
     internal readonly struct LocalDefUseSpan
     {
@@ -331,10 +333,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// when current and other use spans are regular spans we can have only 2 conflict cases:
         /// [1, 3) conflicts with [0, 2)
         /// [1, 3) conflicts with [2, 4)
-        /// 
-        /// NOTE: with regular spans, it is not possible for two spans to share an edge point 
+        ///
+        /// NOTE: with regular spans, it is not possible for two spans to share an edge point
         /// unless they belong to the same local. (because we cannot access two real locals at the same time)
-        /// 
+        ///
         /// specifically:
         /// [1, 3) does not conflict with [0, 1)   since such spans would need to belong to the same local
         /// </summary>
@@ -350,12 +352,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// Dummy locals represent implicit control flow
-        /// It is not allowed for a regular local span to cross into or 
+        /// It is not allowed for a regular local span to cross into or
         /// be immediately adjacent to a dummy span.
-        /// 
+        ///
         /// specifically:
         /// [1, 3) does conflict with [0, 1)   since that would imply a value flowing into or out of a span surrounded by a branch/label
-        /// 
+        ///
         /// </summary>
         public bool ConflictsWithDummy(LocalDefUseSpan dummy)
         {
@@ -368,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
     }
 
-    // context of expression evaluation. 
+    // context of expression evaluation.
     // it will affect inference of stack behavior
     // it will also affect when locals can be scheduled to the stack
     // Example:
@@ -399,15 +401,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
-        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals =
-            new Dictionary<LocalSymbol, LocalDefUseInfo>();
+        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals;
 
         // we need to guarantee same stack patterns at branches and labels.
         // we do that by placing a fake dummy local at one end of a branch and force that it is accessible at another.
         // if any stack local tries to intervene and misbalance the stack, it will clash with the dummy and will be rejected.
         private readonly SmallDictionary<object, DummyLocal> _dummyVariables =
             new SmallDictionary<object, DummyLocal>(ReferenceEqualityComparer.Instance);
-
 
         // fake local that represents the eval stack.
         // when we need to ensure that eval stack is not blocked by stack Locals, we record an access to empty.
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _context = context;
 
             // Do not recurse into constant expressions. Their children do not push any values.
-            var result = node.ConstantValue == null ?
+            var result = node.ConstantValueOpt == null ?
                 node = (BoundExpression)base.Visit(node) :
                 node;
 
@@ -636,9 +636,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         //  *t1 = t2
         //
         //  in these cases, we could keep t2 on stack (dev10 does).
-        //  we are dealing with exactly 2 locals and access them in strict order 
+        //  we are dealing with exactly 2 locals and access them in strict order
         //  t1, t2, t1, t2  and we are not using t2 after that.
-        //  We may consider detecting exactly these cases and pretend that we do not need 
+        //  We may consider detecting exactly these cases and pretend that we do not need
         //  to push either t1 or t2 in this case.
         //
         public override BoundNode VisitSequence(BoundSequence node)
@@ -649,23 +649,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Ex:
             //      a.b = Seq{var y, y = 1, y}  // a is on the stack for the duration of the sequence.
             //
-            // However evaluation stack at the entry cannot be used inside the sequence, so such stack 
+            // However evaluation stack at the entry cannot be used inside the sequence, so such stack
             // works as effective "empty" for locals declared in sequence.
             // Therefore sequence locals can be stack scheduled at same stack as at the entry to the sequence.
 
-            // it may seem attractive to relax the stack requirement to be: 
+            // it may seem attractive to relax the stack requirement to be:
             // "all uses must agree on stack depth".
-            // The following example illustrates a case where x is safely used at "declarationStack + 1" 
-            // Ex: 
+            // The following example illustrates a case where x is safely used at "declarationStack + 1"
+            // Ex:
             //      Seq{var x; y.a = Seq{x = 1; x}; y}  // x is used while y is on the eval stack
             //
             // It is, however not safe assumption in general since eval stack may be accessed between usages.
             // Ex:
             //      Seq{var x; y.a = Seq{x = 1; x}; y.z = x; y} // x blocks access to y
-            // 
+            //
 
-            // There is one case where we want to tweak the "use at declaration stack" rule - in the case of 
-            // compound assignment that involves ByRef operand captures (like:   x[y]++ ) . 
+            // There is one case where we want to tweak the "use at declaration stack" rule - in the case of
+            // compound assignment that involves ByRef operand captures (like:   x[y]++ ) .
             //
             // Those cases produce specific sequences of the shapes:
             //
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //  1) temp is used as the result of the sequence (and that is the only reason why it is declared in the outer sequence).
             //  2) all side-effects except the last one do not use the temp.
             //  3) last side-effect is an indirect assignment of a sequence (and target does not involve the temp).
-            //            
+            //
             //  Note that in a case of side-effects context, the result value will be ignored and therefore
             //  all usages of the nested temp will be confined to the nested sequence that is executed at +1 stack.
             //
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         // detect a pattern used in compound operators
         // where a temp is declared in the outer sequence
-        // only because it must be returned, otherwise all uses are 
+        // only because it must be returned, otherwise all uses are
         // confined to the nested sequence that is assigned indirectly of to an instance field (and therefore has +1 stack)
         // in such case the desired stack for this local is +1
         private bool IsNestedLocalOfCompoundOperator(LocalSymbol local, BoundSequence node)
@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                                 }
                             }
 
-                            // and local is not used on the left of the assignment 
+                            // and local is not used on the left of the assignment
                             // (extra check, but better be safe)
                             if (localUsedWalker.IsLocalUsedIn(assignment.Left))
                             {
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 // assigning to a sequence is uncommon, but could happen in a
                 // case if LHS was a declaration expression.
-                // 
+                //
                 // Just rewrite {se1, se2, se3, val} = something
                 // into ==>     {se1, se2, se3, val = something}
                 BoundExpression rewritten = sequence.Update(sequence.Locals,
@@ -909,7 +909,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 return rewritten;
             }
-
 
             var isIndirectAssignment = IsIndirectAssignment(node);
 
@@ -962,13 +961,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // if assigning to a local, now it is the time to record the Write
             if (assignmentLocal != null)
             {
-                // This assert will fire if code relies on implicit CLR coercions 
+                // This assert will fire if code relies on implicit CLR coercions
                 // - i.e assigns int value to a short local.
                 // in that case we should force lhs to be a real local.
                 Debug.Assert(
                     node.Left.Type.Equals(node.Right.Type, TypeCompareKind.AllIgnoreOptions) ||
                     IsFixedBufferAssignmentToRefLocal(node.Left, node.Right, node.IsRef),
-                    @"type of the assignment value is not the same as the type of assignment target. 
+                    @"type of the assignment value is not the same as the type of assignment target.
                 This is not expected by the optimizer and is typically a result of a bug somewhere else.");
 
                 Debug.Assert(!isIndirectAssignment, "indirect assignment is a read, not a write");
@@ -1015,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType, TypeCompareKind.AllIgnoreOptions);
 
         // indirect assignment is assignment to a value referenced indirectly
-        // it may only happen if 
+        // it may only happen if
         //      1) lhs is a reference (must be a parameter or a local)
         //      2) it is not a ref/out assignment where the reference itself would be assigned
         private static bool IsIndirectAssignment(BoundAssignmentOperator node)
@@ -1106,11 +1105,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             MethodSymbol method = node.Method;
 
             // matches or a bit stronger than EmitReceiverRef
-            // if there are any doubts that receiver is a ref type, 
+            // if there are any doubts that receiver is a ref type,
             // assume we will need an address (that will prevent scheduling of receiver).
             if (method.RequiresInstanceReceiver)
             {
-                receiver = VisitCallReceiver(receiver);
+                receiver = VisitCallOrConditionalAccessReceiver(receiver, node);
             }
             else
             {
@@ -1134,9 +1133,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(receiver, method, rewrittenArguments);
         }
 
-        private BoundExpression VisitCallReceiver(BoundExpression receiver)
+        private BoundExpression VisitCallOrConditionalAccessReceiver(BoundExpression receiver, BoundCall callOpt)
         {
             var receiverType = receiver.Type;
+
+            if (callOpt is { } call &&
+                CodeGenerator.IsRef(receiver) &&
+                CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiver) &&
+                !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))
+            {
+                var unwrappedSequence = receiver;
+
+                while (unwrappedSequence is BoundSequence sequence)
+                {
+                    unwrappedSequence = sequence.Value;
+                }
+
+                if (unwrappedSequence is BoundLocal { LocalSymbol: { RefKind: not RefKind.None } localSymbol })
+                {
+                    ShouldNotSchedule(localSymbol); // Otherwise CodeGenerator is unable to apply proper fixups
+                }
+            }
+
             ExprContext context;
 
             if (receiverType.IsReferenceType)
@@ -1216,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitMakeRefOperator(BoundMakeRefOperator node)
         {
-            // The __makeref(x) operator is logically like calling a method 
+            // The __makeref(x) operator is logically like calling a method
             // static TypedReference MakeReference(ref T x)
 
             var rewrittenOperand = VisitExpression(node.Operand, ExprContext.Address);
@@ -1230,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(node.InitializerExpressionOpt == null);
 
             return node.Update(constructor, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt,
-                node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ConstantValue, initializerExpressionOpt: null, node.Type);
+                node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ConstantValueOpt, initializerExpressionOpt: null, node.Type);
         }
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
@@ -1251,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var field = node.FieldSymbol;
             var receiver = node.ReceiverOpt;
 
-            // if there are any doubts that receiver is a ref type, 
+            // if there are any doubts that receiver is a ref type,
             // assume we will need an address. (that will prevent scheduling of receiver).
             if (!field.IsStatic)
             {
@@ -1355,7 +1373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 RecordBranch(label);
             }
 
-            return node.Update(boundExpression, node.Cases, node.DefaultLabel);
+            return node.Update(boundExpression, node.Cases, node.DefaultLabel, node.LengthBasedStringSwitchDataOpt);
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
@@ -1384,7 +1402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             BoundExpression child = node.Left;
 
-            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
             {
                 return VisitBinaryOperatorSimple(node);
             }
@@ -1400,7 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack.Push(binary);
                 child = binary.Left;
 
-                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
                 {
                     break;
                 }
@@ -1434,7 +1452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValue, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -1468,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 EnsureStackState(cookie);   // implicit label here
 
-                return node.Update(node.OperatorKind, node.ConstantValue, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type);
+                return node.Update(node.OperatorKind, node.ConstantValueOpt, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type);
             }
 
             return base.VisitBinaryOperator(node);
@@ -1483,7 +1501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var cookie = GetStackStateCookie();     // implicit branch here
 
-            // right is evaluated with original stack 
+            // right is evaluated with original stack
             // (this is not entirely true, codegen may keep left on the stack as an ephemeral temp, but that is irrelevant here)
             SetStackDepth(origStack);
             BoundExpression right = (BoundExpression)this.Visit(node.RightOperand);
@@ -1496,11 +1514,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
             var origStack = StackDepth();
-            BoundExpression receiver = VisitCallReceiver(node.Receiver);
+            BoundExpression receiver = VisitCallOrConditionalAccessReceiver(node.Receiver, callOpt: null);
 
             var cookie = GetStackStateCookie();     // implicit branch here
 
-            // right is evaluated with original stack 
+            // right is evaluated with original stack
             // (this is not entirely true, codegen will keep receiver on the stack, but that is irrelevant here)
             SetStackDepth(origStack);
             BoundExpression whenNotNull = (BoundExpression)this.Visit(node.WhenNotNull);
@@ -1520,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _counter += 1;
             }
 
-            return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNull, node.Id, node.Type);
+            return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNull, node.Id, node.ForceCopyOfNullableValueType, node.Type);
         }
 
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
@@ -1531,17 +1549,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             PushEvalStack(null, ExprContext.None);
 
-            var cookie = GetStackStateCookie(); // implicit goto here 
+            var cookie = GetStackStateCookie(); // implicit goto here
 
-            SetStackDepth(origStack); // consequence is evaluated with original stack 
+            SetStackDepth(origStack); // consequence is evaluated with original stack
             var valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
 
-            EnsureStackState(cookie); // implicit label here 
+            EnsureStackState(cookie); // implicit label here
 
             SetStackDepth(origStack); // alternative is evaluated with original stack 
+
+            var unwrappedSequence = node.ReferenceTypeReceiver;
+
+            while (unwrappedSequence is BoundSequence sequence)
+            {
+                unwrappedSequence = sequence.Value;
+            }
+
+            if (unwrappedSequence is BoundLocal { LocalSymbol: { } localSymbol })
+            {
+                ShouldNotSchedule(localSymbol);
+            }
+
             var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
 
-            EnsureStackState(cookie); // implicit label here 
+            EnsureStackState(cookie); // implicit label here
 
             return node.Update(valueTypeReceiver, referenceTypeReceiver, node.Type);
         }
@@ -1627,7 +1658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 PopEvalStack();
                 _counter++;
 
-                // variables allocated on stack in a filter can't be used in the catch handler 
+                // variables allocated on stack in a filter can't be used in the catch handler
                 EnsureOnlyEvalStack();
             }
             else
@@ -1944,10 +1975,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             BoundNode result;
 
             // rewriting constants may undo constant folding and make thing worse.
-            // so we will not go into constant nodes. 
+            // so we will not go into constant nodes.
             // CodeGen will not do that either.
             var asExpression = node as BoundExpression;
-            if (asExpression != null && asExpression.ConstantValue != null)
+            if (asExpression != null && asExpression.ConstantValueOpt != null)
             {
                 result = node;
             }
@@ -1965,7 +1996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             BoundExpression child = node.Left;
 
-            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
             {
                 return base.VisitBinaryOperator(node);
             }
@@ -1981,7 +2012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack.Push(binary);
                 child = binary.Left;
 
-                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
                 {
                     break;
                 }
@@ -1996,7 +2027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 binary = stack.Pop();
                 var right = (BoundExpression)this.Visit(binary.Right);
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValue, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.Method, binary.ConstrainedToType, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -2048,13 +2079,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             LocalDefUseInfo locInfo;
             var left = node.Left as BoundLocal;
 
-            // store to something that is not special. (operands still could be rewritten) 
+            // store to something that is not special. (operands still could be rewritten)
             if (left == null || !_info.TryGetValue(left.LocalSymbol, out locInfo))
             {
                 return base.VisitAssignmentOperator(node);
             }
 
-            // indirect local store is not special. (operands still could be rewritten) 
+            // indirect local store is not special. (operands still could be rewritten)
             // NOTE: if lhs is a stack local, it will be handled as a read and possibly duped.
             var isIndirectLocalStore = left.LocalSymbol.RefKind != RefKind.None && !node.IsRef;
             if (isIndirectLocalStore)
@@ -2083,12 +2114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (isLast)
             {
-                // assigned local is not used later => just emit the Right 
+                // assigned local is not used later => just emit the Right
                 return right;
             }
             else
             {
-                // assigned local used later - keep assignment. 
+                // assigned local used later - keep assignment.
                 // codegen will keep value on stack when sees assignment "stackLocal = expr"
                 return node.Update(left, right, node.IsRef, node.Type);
             }
@@ -2197,7 +2228,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return null; }
         }
 
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            )
         {
             throw new NotImplementedException();
         }
@@ -2208,6 +2246,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         internal override bool IsPinned
+        {
+            get { return false; }
+        }
+
+        internal override bool IsKnownToReferToTempIfReferenceType
         {
             get { return false; }
         }
@@ -2257,18 +2300,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return RefKind.None; }
         }
 
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable();
-
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable();
-
-        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+        internal override ScopedKind Scope => ScopedKind.None;
     }
 }

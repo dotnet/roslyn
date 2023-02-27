@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -17,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_CallerInfoAttributes : WellKnownAttributesTestBase
     {
+        public static IEnumerable<MetadataReference> GetReferencesWithoutInteropServices() =>
+            TargetFrameworkUtil.GetReferencesWithout(TargetFramework.Net50, "System.Runtime.InteropServices.dll");
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestBeginInvoke()
         {
@@ -64,7 +69,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             // Begin/EndInvoke are not currently supported.
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
@@ -130,7 +135,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             // Begin/EndInvoke are not currently supported.
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
@@ -195,7 +200,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
                 // (29,22): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //     delegate void D([CallerArgumentExpression(s5)] [Optional] [DefaultParameterValue("default")] ref string s1, string s2, string s3, string s4, string s5);
@@ -310,7 +315,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
                 // (29,33): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //     delegate void D(string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue("default")] ref string s2);
@@ -367,7 +372,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics(
                 // (29,33): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 's2' will have no effect. It is applied with an invalid parameter name.
                 //     delegate void D(string s1, [CallerArgumentExpression(callback)] [Optional] [DefaultParameterValue("default")] string s2);
@@ -2404,8 +2409,6 @@ s3:
 s4: _").VerifyDiagnostics();
         }
 
-
-
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestDelegate3()
         {
@@ -4321,7 +4324,6 @@ member:
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-
         [Fact]
         public void TestCallerMemberNameConversion()
         {
@@ -4425,7 +4427,6 @@ class Test
             Assert.Equal(1, attr.CommonConstructorArguments[0].Value);
         }
 
-
         [Fact]
         public void TestRecursiveAttributeMetadata()
         {
@@ -4471,7 +4472,6 @@ class Driver {
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-
         [Fact]
         public void TestMemberNameLookup()
         {
@@ -4506,7 +4506,6 @@ class Driver
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-
 
         [Fact]
         public void TestDuplicateCallerInfoMetadata()
@@ -4812,7 +4811,6 @@ class Program
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-
         [Fact, WorkItem(531040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531040")]
         public void TestBadAttributeParameterTypeWithCallerLineNumber()
         {
@@ -4856,7 +4854,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2ValueType").WithArguments("lineNumber", "System.ValueType"));
         }
 
-
         [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
         public void Repro_17457()
         {
@@ -4896,7 +4893,6 @@ class Test
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-
 
         [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
         public void InvalidDecimalInCustomAttributeParameterWithCallerLineNumber()

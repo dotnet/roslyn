@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.Text
         public static Document? GetOpenDocumentInCurrentContextWithChanges(this ITextSnapshot text)
             => text.AsText().GetOpenDocumentInCurrentContextWithChanges();
 
+        internal static TextDocument? GetOpenTextDocumentInCurrentContextWithChanges(this ITextSnapshot text)
+            => text.AsText().GetOpenTextDocumentInCurrentContextWithChanges();
+
         /// <summary>
         /// Gets the <see cref="Document"/>s from the corresponding <see cref="Workspace.CurrentSolution"/> that are associated with the <see cref="ITextBuffer"/>.
         /// There may be multiple <see cref="Document"/>s associated with the buffer if it is linked into multiple projects or is part of a Shared Project. 

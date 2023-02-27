@@ -1253,7 +1253,7 @@ new C()
             lib.Emit(file.Path);
 
             string root = Path.GetPathRoot(file.Path);
-            string unrooted = file.Path.Substring(root.Length);
+            string unrooted = file.Path[root.Length..];
 
             string dir = Path.Combine(root, "goo", "bar", "baz");
             string scriptPath = Path.Combine(dir, "a.csx");

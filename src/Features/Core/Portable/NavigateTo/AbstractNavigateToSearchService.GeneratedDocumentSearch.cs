@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
@@ -16,42 +14,41 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        public async IAsyncEnumerable<INavigateToSearchResult> SearchGeneratedDocumentsAsync(
+        public async Task SearchGeneratedDocumentsAsync(
             Project project,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             var solution = project.Solution;
+            var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
 
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = client.TryInvokeStreamAsync<IRemoteNavigateToSearchService, RoslynNavigateToItem>(
+                var callback = new NavigateToSearchServiceCallback(onItemFound);
+
+                await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     solution,
-                    (service, solutionInfo, cancellationToken) =>
-                        service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
-                    cancellationToken);
+                    (service, solutionInfo, callbackId, cancellationToken) =>
+                        service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                    callback, cancellationToken).ConfigureAwait(false);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
-                    yield return item;
+                return;
             }
-            else
-            {
-                var result = SearchGeneratedDocumentsInCurrentProcessAsync(
-                    project, searchPattern, kinds, cancellationToken);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
-                    yield return item;
-            }
+            await SearchGeneratedDocumentsInCurrentProcessAsync(
+                project, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsInCurrentProcessAsync(
+        public static async Task SearchGeneratedDocumentsInCurrentProcessAsync(
             Project project,
             string pattern,
             IImmutableSet<string> kinds,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            Func<RoslynNavigateToItem, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
@@ -60,8 +57,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
             var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            await foreach (var item in ProcessDocumentsAsync(searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false))
-                yield return item;
+            await ProcessDocumentsAsync(searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false);
         }
     }
 }

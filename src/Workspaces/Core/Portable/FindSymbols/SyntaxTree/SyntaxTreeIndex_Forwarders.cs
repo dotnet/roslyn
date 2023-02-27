@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsBaseConstructorInitializer => _contextInfo.ContainsBaseConstructorInitializer;
         public bool ContainsConversion => _contextInfo.ContainsConversion;
         public bool ContainsDeconstruction => _contextInfo.ContainsDeconstruction;
-        public bool ContainsElementAccessExpression => _contextInfo.ContainsElementAccessExpression;
+        public bool ContainsExplicitOrImplicitElementAccessExpression => _contextInfo.ContainsExplicitOrImplicitElementAccessExpression;
         public bool ContainsForEachStatement => _contextInfo.ContainsForEachStatement;
         public bool ContainsGlobalKeyword => _contextInfo.ContainsGlobalKeyword;
         public bool ContainsGlobalSuppressMessageAttribute => _contextInfo.ContainsGlobalSuppressMessageAttribute;
@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsThisConstructorInitializer => _contextInfo.ContainsThisConstructorInitializer;
         public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
         public bool ContainsUsingStatement => _contextInfo.ContainsUsingStatement;
+        public bool ContainsCollectionInitializer => _contextInfo.ContainsCollectionInitializer;
 
         /// <summary>
         /// Gets the set of global aliases that point to something with the provided name and arity.

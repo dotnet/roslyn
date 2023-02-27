@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -3661,6 +3659,62 @@ class Program
     static void Main(string[] args)
     {
         static long f(int _, string _, int a) => 1;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestWithOptionalParameter()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Func<int, int> [||]fibonacci = (int n = 1) =>
+        {
+            return n <= 1 ? 1 : fibonacci(n - 1) + fibonacci(n - 2);
+        };
+    }
+}",
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        static int fibonacci(int n = 1)
+        {
+            return n <= 1 ? 1 : fibonacci(n - 1) + fibonacci(n - 2);
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestWithParamsArray()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Func<int[], int> [||]last = (params int[] xs) =>
+        {
+            return x.Length == 1 ? xs[0] : last(xs[1..]);
+        };
+    }
+}",
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        static int last(params int[] xs)
+        {
+            return x.Length == 1 ? xs[0] : last(xs[1..]);
+        }
     }
 }");
         }

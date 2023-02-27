@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netcore30).HasValue &&
                 ((bool?)netcore30).Value)
             {
-                references = NetCoreApp.StandardReferences.ToList();
+                references = NetCoreApp.References.ToList();
             }
 
             var netstandard20 = element.Attribute(CommonReferencesNetStandard20Name);
@@ -1115,6 +1115,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)net6).Value)
             {
                 references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
+            }
+
+            var net7 = element.Attribute(CommonReferencesNet7Name);
+            if (net7 != null &&
+                ((bool?)net7).HasValue &&
+                ((bool?)net7).Value)
+            {
+                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net70).ToList();
+            }
+
+            var mincorlib = element.Attribute(CommonReferencesMinCorlibName);
+            if (mincorlib != null &&
+                ((bool?)mincorlib).HasValue &&
+                ((bool?)mincorlib).Value)
+            {
+                references = new List<MetadataReference> { TestBase.MinCorlibRef };
             }
 
             return references;

@@ -103,6 +103,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
             var fullTypeName = new FullTypeName(fullName);
 
+            // ILSpy only allows decompiling a type that comes from the 'Main Module'.  They will throw on anything
+            // else.  Prevent this by doing this quick check corresponding to:
+            // https://github.com/icsharpcode/ILSpy/blob/4ebe075e5859939463ae420446f024f10c3bf077/ICSharpCode.Decompiler/CSharp/CSharpDecompiler.cs#L978
+            var type = decompiler.TypeSystem.MainModule.GetTypeDefinition(fullTypeName);
+            if (type is null)
+                return null;
+
             // Try to decompile; if an exception is thrown the caller will handle it
             var text = decompiler.DecompileTypeAsString(fullTypeName);
 

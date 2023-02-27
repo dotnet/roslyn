@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -39,14 +39,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<CancellationToken>())).Returns(GetEnumerable(result));
+                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
+                    It.IsAny<CancellationToken>())).Callback(
+                    (Project project,
+                     ImmutableArray<Document> priorityDocuments,
+                     string pattern,
+                     IImmutableSet<string> kinds,
+                     Document? activeDocument,
+                     Func<INavigateToSearchResult, Task> onResultFound,
+                     CancellationToken cancellationToken) =>
+                    {
+                        if (result != null)
+                            onResultFound(result);
+                    }).Returns(Task.CompletedTask);
 
                 searchService.Setup(ss => ss.SearchGeneratedDocumentsAsync(
                     It.IsAny<Project>(),
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<CancellationToken>())).Returns(GetEnumerable(result));
+                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
+                    It.IsAny<CancellationToken>())).Callback(
+                    (Project project,
+                     string pattern,
+                     IImmutableSet<string> kinds,
+                     Document? activeDocument,
+                     Func<INavigateToSearchResult, Task> onResultFound,
+                     CancellationToken cancellationToken) =>
+                    {
+                        if (result != null)
+                            onResultFound(result);
+                    }).Returns(Task.CompletedTask);
 
                 // Followed by a generated doc search.
             }
@@ -58,16 +81,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<CancellationToken>())).Returns(GetEnumerable(result));
+                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
+                    It.IsAny<CancellationToken>())).Callback(
+                    (Project project,
+                     ImmutableArray<Document> priorityDocuments,
+                     string pattern2,
+                     IImmutableSet<string> kinds,
+                     Document? activeDocument,
+                     Func<INavigateToSearchResult, Task> onResultFound2,
+                     CancellationToken cancellationToken) =>
+                    {
+                        if (result != null)
+                            onResultFound2(result);
+                    }).Returns(Task.CompletedTask);
             }
-        }
-
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        private static async IAsyncEnumerable<INavigateToSearchResult> GetEnumerable(INavigateToSearchResult? result)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-        {
-            if (result != null)
-                yield return result;
         }
 
         private static ValueTask<bool> IsFullyLoadedAsync(bool projectSystem, bool remoteHost)
@@ -91,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(searchService.Object);
 
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
+            callbackMock.Setup(c => c.ReportIncomplete());
             callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
             callbackMock.Setup(c => c.AddItemAsync(It.IsAny<Project>(), result, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
@@ -132,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(searchService.Object);
 
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
+            callbackMock.Setup(c => c.ReportIncomplete());
             callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
             callbackMock.Setup(c => c.AddItemAsync(It.IsAny<Project>(), result, It.IsAny<CancellationToken>()))
                         .Returns(Task.CompletedTask);
@@ -173,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(searchService.Object);
 
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
+            callbackMock.Setup(c => c.ReportIncomplete());
             callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
 
             // Because the remote host wasn't fully loaded, we still notify that our results may be incomplete.
@@ -258,6 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             public bool IsImplicitlyDeclared => throw new NotImplementedException();
             public bool IsStale => throw new NotImplementedException();
             public ImmutableArray<INavigableItem> ChildItems => throw new NotImplementedException();
+            public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
         }
     }
 }

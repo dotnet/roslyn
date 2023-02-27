@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Publicly available options do not affect this API.
             var completionOptions = CompletionOptions.Default;
-            var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionValueSet.Empty;
+            var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionSet.Empty;
 
             return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
         }
@@ -335,8 +335,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Don't call. Used for pre-populating MEF providers only.
         /// </summary>
-        internal IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
-            => _providerManager.GetLazyImportedProviders();
+        internal void LoadImportedProviders()
+            => _providerManager.LoadProviders();
 
         /// <summary>
         /// Don't call. Used for pre-load project providers only.

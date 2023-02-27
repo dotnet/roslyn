@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
+
             comp.VerifyDiagnostics(
                 // (3,5): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     nint Add(nint x, nuint y);
@@ -82,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
         }
 
@@ -171,22 +174,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 }";
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 
             comp = CreateEmptyCompilation(sourceA, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
             comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 
             comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -14830,7 +14837,6 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             verify(sourceType: "nuint", destType: "nuint");
             verify(sourceType: "nuint", destType: "System.IntPtr", noConversion: true);
             verify(sourceType: "nuint", destType: "System.UIntPtr");
-
 
             // type to System.IntPtr
             verify(sourceType: "object", destType: "System.IntPtr", isExplicit: true);

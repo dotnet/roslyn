@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 
@@ -34,8 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Get
         End Property
 
-        Public Overrides Function GetFormattingOptions(options As AnalyzerConfigOptions, fallbackOptions As SyntaxFormattingOptions) As SyntaxFormattingOptions
-            Return VisualBasicSyntaxFormattingOptions.Create(options, DirectCast(fallbackOptions, VisualBasicSyntaxFormattingOptions))
+        Public Overrides Function GetFormattingOptions(options As IOptionsReader, fallbackOptions As SyntaxFormattingOptions) As SyntaxFormattingOptions
+            Return New VisualBasicSyntaxFormattingOptions(options, DirectCast(fallbackOptions, VisualBasicSyntaxFormattingOptions))
         End Function
 
         Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector) = Nothing) As IFormattingResult

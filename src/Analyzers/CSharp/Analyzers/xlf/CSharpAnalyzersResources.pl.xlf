@@ -12,6 +12,16 @@
         <target state="translated">Dodaj nawiasy klamrowe do instrukcji „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
+        <source>Blank line not allowed after arrow expression clause token</source>
+        <target state="translated">Pusty wiersz jest niedozwolony po tokenie klauzuli wyrażenia strzałki</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_conditional_expression_token">
+        <source>Blank line not allowed after conditional expression token</source>
+        <target state="translated">Pusty wiersz jest niedozwolony po tokenie wyrażenia warunkowego</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
         <source>Blank line not allowed after constructor initializer colon</source>
         <target state="translated">Pusty wiersz jest niedozwolony po dwukropku inicjatora konstruktora</target>
@@ -82,10 +92,20 @@
         <target state="translated">Wyrażenie lambda można usunąć</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_member_readonly">
+        <source>Make member 'readonly'</source>
+        <target state="new">Make member 'readonly'</target>
+        <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_struct_readonly">
         <source>Make struct 'readonly'</source>
         <target state="translated">Ustaw strukturę jako „tylko do odczytu”</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Member can be made readonly">
+        <source>Member can be made 'readonly'</source>
+        <target state="new">Member can be made 'readonly'</target>
+        <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
@@ -217,48 +237,48 @@
         <target state="translated">Użyj literału ciągu UTF-8</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_accessors">
-        <source>Use block body for accessors</source>
-        <target state="translated">Użyj treści bloku dla metod dostępu</target>
+      <trans-unit id="Use_block_body_for_accessor">
+        <source>Use block body for accessor</source>
+        <target state="translated">Użyj treści bloku dla metody dostępu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_constructors">
-        <source>Use block body for constructors</source>
-        <target state="translated">Użyj treści bloku dla konstruktorów</target>
+      <trans-unit id="Use_block_body_for_constructor">
+        <source>Use block body for constructor</source>
+        <target state="translated">Użyj treści bloku dla konstruktora</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_conversion_operators">
-        <source>Use block body for conversion operators</source>
-        <target state="translated">Użyj treści bloku dla operatorów</target>
+      <trans-unit id="Use_block_body_for_conversion_operator">
+        <source>Use block body for conversion operator</source>
+        <target state="translated">Użyj treści bloku dla operatora konwersacji</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_indexers">
-        <source>Use block body for indexers</source>
-        <target state="translated">Użyj treści bloku dla indeksatorów</target>
+      <trans-unit id="Use_block_body_for_indexer">
+        <source>Use block body for indexer</source>
+        <target state="translated">Użyj treści bloku dla indeksatora</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_lambda_expressions">
-        <source>Use block body for lambda expressions</source>
-        <target state="translated">Użyj treści bloku dla wyrażeń lambda</target>
+      <trans-unit id="Use_block_body_for_lambda_expression">
+        <source>Use block body for lambda expression</source>
+        <target state="translated">Użyj treści bloku dla wyrażenia lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_local_functions">
-        <source>Use block body for local functions</source>
-        <target state="translated">Użyj treści bloku dla funkcji lokalnych</target>
+      <trans-unit id="Use_block_body_for_local_function">
+        <source>Use block body for local function</source>
+        <target state="translated">Użyj treści bloku dla funkcji lokalnej</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_methods">
-        <source>Use block body for methods</source>
-        <target state="translated">Użyj treści bloku dla metod</target>
+      <trans-unit id="Use_block_body_for_method">
+        <source>Use block body for method</source>
+        <target state="translated">Użyj treści bloku dla metody</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_operators">
-        <source>Use block body for operators</source>
-        <target state="translated">Użyj treści bloku dla operatorów</target>
+      <trans-unit id="Use_block_body_for_operator">
+        <source>Use block body for operator</source>
+        <target state="translated">Użyj treści bloku dla operatora</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_properties">
-        <source>Use block body for properties</source>
+      <trans-unit id="Use_block_body_for_property">
+        <source>Use block body for property</source>
         <target state="translated">Użyj treści bloku dla właściwości</target>
         <note />
       </trans-unit>
@@ -272,48 +292,48 @@
         <target state="translated">Użyj jawnego typu zamiast deklaracji „var”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_accessors">
-        <source>Use expression body for accessors</source>
-        <target state="translated">Użyj treści wyrażenia dla metod dostępu</target>
+      <trans-unit id="Use_expression_body_for_accessor">
+        <source>Use expression body for accessor</source>
+        <target state="translated">Użyj treści wyrażenia dla metody dostępu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_constructors">
-        <source>Use expression body for constructors</source>
-        <target state="translated">Użyj treści wyrażenia dla konstruktorów</target>
+      <trans-unit id="Use_expression_body_for_constructor">
+        <source>Use expression body for constructor</source>
+        <target state="translated">Użyj treści wyrażenia dla konstruktora</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_conversion_operators">
-        <source>Use expression body for conversion operators</source>
-        <target state="translated">Użyj treści wyrażenia dla operatorów konwersji</target>
+      <trans-unit id="Use_expression_body_for_conversion_operator">
+        <source>Use expression body for conversion operator</source>
+        <target state="translated">Użyj treści wyrażenia dla operatora konwersji</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_indexers">
-        <source>Use expression body for indexers</source>
-        <target state="translated">Użyj treści wyrażenia dla indeksatorów</target>
+      <trans-unit id="Use_expression_body_for_indexer">
+        <source>Use expression body for indexer</source>
+        <target state="translated">Użyj treści wyrażenia dla indeksatora</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambda_expressions">
-        <source>Use expression body for lambda expressions</source>
-        <target state="translated">Użyj treści wyrażenia dla wyrażeń lambda</target>
+      <trans-unit id="Use_expression_body_for_lambda_expression">
+        <source>Use expression body for lambda expression</source>
+        <target state="translated">Użyj treści wyrażenia dla wyrażenia lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_local_functions">
-        <source>Use expression body for local functions</source>
-        <target state="translated">Użyj treści wyrażenia dla funkcji lokalnych</target>
+      <trans-unit id="Use_expression_body_for_local_function">
+        <source>Use expression body for local function</source>
+        <target state="translated">Użyj treści wyrażenia dla funkcji lokalnej</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_methods">
-        <source>Use expression body for methods</source>
+      <trans-unit id="Use_expression_body_for_method">
+        <source>Use expression body for method</source>
         <target state="translated">Użyj treści wyrażenia dla metod</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_operators">
-        <source>Use expression body for operators</source>
-        <target state="translated">Użyj treści wyrażenia dla operatorów</target>
+      <trans-unit id="Use_expression_body_for_operator">
+        <source>Use expression body for operator</source>
+        <target state="translated">Użyj treści wyrażenia dla operatora</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_properties">
-        <source>Use expression body for properties</source>
+      <trans-unit id="Use_expression_body_for_property">
+        <source>Use expression body for property</source>
         <target state="translated">Użyj treści wyrażenia dla właściwości</target>
         <note />
       </trans-unit>
@@ -345,6 +365,11 @@
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">Użyj funkcji lokalnej</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_nameof">
+        <source>Use 'nameof'</source>
+        <target state="translated">Użyj wyrażenia „nameof”</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_new">

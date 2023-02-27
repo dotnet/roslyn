@@ -67,11 +67,6 @@
         <target state="translated">插入遺漏的 '{0}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">內嵌暫存變數</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">偵測到衝突。</target>
@@ -1457,11 +1452,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">啟用目前這一行下方原始程式檔部分中，指定之警告的回報功能。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">讓 {0} 成為非同步函式。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">使用正確的控制變數</target>
@@ -1741,16 +1731,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <source>{0}.set</source>
         <target state="translated">{0}.set</target>
         <note>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</note>
-      </trans-unit>
-      <trans-unit id="Make_Async_Function">
-        <source>Make Async Function</source>
-        <target state="translated">讓非同步函式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_Async_Sub">
-        <source>Make Async Sub</source>
-        <target state="translated">轉換為非同步 Sub</target>
-        <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>

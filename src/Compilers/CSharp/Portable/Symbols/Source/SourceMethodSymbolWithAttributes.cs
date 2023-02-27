@@ -362,6 +362,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
+
+        /// <summary>
+        /// Binds attributes applied to this method.
+        /// </summary>
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindMethodAttributes()
+        {
+            return BindAttributes(GetAttributeDeclarations(), OuterBinder);
+        }
 #nullable disable
 
         public override bool AreLocalsZeroed
@@ -578,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
             }
             else
@@ -1094,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.HasAsyncMethodBuilderAttribute(out _))
                 {
-                    hasErrors |= MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
+                    MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
                 }
 
                 // Avoid checking attributes on containing types to avoid a potential cycle when a lambda

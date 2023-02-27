@@ -207,6 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
         /// <summary>
+        /// True when the "disable-length-based-switch" feature flag is set.
+        /// When this flag is set, the compiler will not emit length-based switch for string dispatches.
+        /// </summary>
+        internal bool FeatureDisableLengthBasedSwitch => Feature("disable-length-based-switch") != null;
+
+        /// <summary>
         /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
         /// </summary>
         /// <remarks>
@@ -1574,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal TypeSymbol GetTypeByReflectionType(Type type, BindingDiagnosticBag diagnostics)
         {
-            var result = Assembly.GetTypeByReflectionType(type, includeReferences: true);
+            var result = Assembly.GetTypeByReflectionType(type);
             if (result is null)
             {
                 var errorType = new ExtendedErrorTypeSymbol(this, type.Name, 0, CreateReflectionTypeNotFoundError(type));
@@ -1603,7 +1609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (HostObjectType != null && _lazyHostObjectTypeSymbol is null)
             {
-                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
+                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType);
 
                 if (symbol is null)
                 {
@@ -1637,7 +1643,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
+            var result = this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
+            Debug.Assert(result?.IsErrorType() != true);
+            return result;
         }
 
         /// <summary>
@@ -3174,8 +3182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // testData is only passed when running tests.
             if (testData != null)
             {
-                moduleBeingBuilt.SetMethodTestData(testData.Methods);
-                testData.Module = moduleBeingBuilt;
+                moduleBeingBuilt.SetTestData(testData);
             }
 
             return moduleBeingBuilt;
@@ -3895,7 +3902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
                 var nullableAnnotation = memberNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : memberNullableAnnotations[i].ToInternalAnnotation();
-                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None, DeclarationScope.Unscoped));
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None, ScopedKind.None));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
@@ -4509,6 +4516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == Assembly.CorLibrary;
             }
         }
+
+        private protected override bool SupportsRuntimeCapabilityCore(RuntimeCapability capability)
+            => this.Assembly.SupportsRuntimeCapability(capability);
 
         private abstract class AbstractSymbolSearcher
         {

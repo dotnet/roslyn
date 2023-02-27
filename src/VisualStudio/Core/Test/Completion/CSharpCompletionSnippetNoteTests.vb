@@ -119,7 +119,7 @@ class C
                 Dim testSnippetInfoService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService(Of ISnippetInfoService)(), TestCSharpSnippetInfoService)
                 testSnippetInfoService.SetSnippetShortcuts({"for"})
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(InternalFeatureOnOffOptions.Snippets), False)
+                state.Workspace.GlobalOptions.SetGlobalOption(InternalFeatureOnOffOptions.Snippets, False)
 
                 state.SendTypeChars("for")
                 Await state.AssertCompletionSession()
@@ -136,7 +136,7 @@ class C
 
             Dim testSnippetInfoService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService(Of ISnippetInfoService)(), TestCSharpSnippetInfoService)
             testSnippetInfoService.SetSnippetShortcuts(snippetShortcuts)
-            state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp), False)
+            state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp, False)
             Return state
         End Function
     End Class

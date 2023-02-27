@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -58,8 +59,6 @@ public class TestClass
         protected readonly string TargetFramework;
         protected readonly string DotNetPath;
         protected readonly IReadOnlyDictionary<string, string> EnvironmentVariables;
-
-        private int _logIndex;
 
         private static string GetSdkPath(string dotnetInstallDir, string version)
             => Path.Combine(dotnetInstallDir, "sdk", version);
@@ -159,9 +158,7 @@ $@"<Project>
             Configuration = "Debug";
             TargetFramework = "netstandard2.0";
 
-            using var uploadUtil = new ArtifactUploadUtil(testOutputHelper);
             ProjectDir = Temp.CreateDirectory();
-            uploadUtil.AddDirectory(ProjectDir.Path);
 
             ObjDir = ProjectDir.CreateDirectory("obj");
             OutDir = ProjectDir.CreateDirectory("bin").CreateDirectory(Configuration).CreateDirectory(TargetFramework);
@@ -185,16 +182,36 @@ $@"<Project>
                 { "CSharpCoreTargetsPath", csharpCoreTargets },
                 { "VisualBasicCoreTargetsPath", visualBasicCoreTargets },
                 { "MSBuildSDKsPath", sdksDir },
-                { "DOTNET_MSBUILD_SDK_RESOLVER_SDKS_DIR", sdksDir }
+                { "DOTNET_MSBUILD_SDK_RESOLVER_SDKS_DIR", sdksDir },
+                // Disable the server until it's production ready so it doesn't cause CI flakiness
+                { "DOTNET_CLI_DO_NOT_USE_MSBUILD_SERVER", "1" }
             };
 
-            var restoreResult = ProcessUtilities.Run(DotNetPath, $@"msbuild ""{Project.Path}"" /t:restore /bl:{Path.Combine(ProjectDir.Path, "restore.binlog")}",
+            RunMSBuild(
+                Project.Path,
+                "/t:restore",
+                binlogName: "restore.binlog",
                 additionalEnvironmentVars: EnvironmentVariables);
-            Assert.True(restoreResult.ExitCode == 0, $"Failed with exit code {restoreResult.ExitCode}: {restoreResult.Output}");
 
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, "project.assets.json")));
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, ProjectFileName + ".nuget.g.props")));
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, ProjectFileName + ".nuget.g.targets")));
+        }
+
+        protected void RunMSBuild(
+            string projectFilePath,
+            string arguments,
+            string? binlogName = null,
+            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
+        {
+            var workingDirectory = Path.GetDirectoryName(projectFilePath)!;
+            using var uploadUtil = new ArtifactUploadUtil(TestOutputHelper);
+            uploadUtil.AddDirectory(workingDirectory);
+            var projectFileName = Path.GetFileName(projectFilePath);
+            binlogName ??= $"{Guid.NewGuid()}.binlog";
+            arguments = $@"msbuild /bl:{binlogName} ""{projectFileName}"" {arguments}";
+            var result = ProcessUtilities.Run(DotNetPath, arguments, workingDirectory, additionalEnvironmentVars);
+            Assert.True(result.ExitCode == 0, $"MSBuild failed with exit code {result.ExitCode}: {result.Output}");
             uploadUtil.SetSucceeded();
         }
 
@@ -208,15 +225,14 @@ $@"<Project>
 
             var targetsArg = string.Join(";", targets.Concat(new[] { "Test_EvaluateExpressions" }));
             var testBinDirectory = Path.GetDirectoryName(typeof(DotNetSdkTests).Assembly.Location);
-            var binLog = Path.Combine(ProjectDir.Path, $"build{_logIndex++}.binlog");
-            uploadUtil.AddFile(binLog);
 
             // RoslynTargetsPath is a path to the built-in Roslyn compilers in the .NET SDK.
             // For testing we are using compilers from custom location (this emulates usage of Microsoft.Net.Compilers package.
             // The core targets should be imported from CSharpCoreTargetsPath and VisualBasicCoreTargetsPath and the compiler tasks from the same location.
-            var buildResult = ProcessUtilities.Run(DotNetPath, $@"msbuild ""{Project.Path}"" /t:{targetsArg} /p:RoslynTargetsPath=""<nonexistent directory>"" /p:Configuration={Configuration} /bl:""{binLog}""",
+            RunMSBuild(
+                Project.Path,
+                arguments: $@"/t:{targetsArg} /p:RoslynTargetsPath=""<nonexistent directory>"" /p:Configuration={Configuration}",
                 additionalEnvironmentVars: EnvironmentVariables);
-            Assert.True(buildResult.ExitCode == 0, $"Failed with exit code {buildResult.ExitCode}: {buildResult.Output}");
 
             var evaluationResult = File.ReadAllLines(evaluationResultsFile).Select(l => (l != EmptyValueMarker) ? l : "");
             AssertEx.Equal(expectedResults, evaluationResult);

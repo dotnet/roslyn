@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSpace();
                     }
 
-                    builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
+                    builder.Add(CreatePart(SymbolDisplayPartKind.Operator, symbol,
                         SyntaxFacts.GetText(operatorKind)));
                 }
             }
@@ -797,8 +797,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // used on their own or in the context of methods.
 
             var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
-            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
-                symbol.Name.Length != 0;
+            var includeName = symbol.Name.Length != 0 && (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) ||
+                (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone) && builder.Count == 0));
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
             var includeDefaultValue = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
                 format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&

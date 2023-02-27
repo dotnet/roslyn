@@ -540,6 +540,10 @@ $$");
         public async Task TestAfterPublic()
             => await VerifyKeywordAsync(@"public $$");
 
+        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestAfterFile()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"file $$");
+
         [Fact]
         public async Task TestAfterNestedPublic()
         {
@@ -970,6 +974,25 @@ $$");
 $$");
         }
 
+        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+}");
+        }
+
+        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespaceBeforeClass()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+class C {}
+}");
+        }
+
         [Fact, WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
         public async Task TestInPotentialLambdaParamListParsedAsCastOnDifferentLines()
         {
@@ -995,6 +1018,55 @@ $$");
         var f = ($$)Main(null);
     }
 }");
+        }
+
+        [Fact]
+        public async Task TestAfterScoped()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    void M()
+    {
+        scoped $$
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestInParameterAfterScoped()
+        {
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    void M(scoped $$)
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestInParameterAfterThisScoped()
+        {
+            await VerifyKeywordAsync("""
+                static class C
+                {
+                    static void M(this scoped $$)
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestInAnonymousMethodParameterAfterScoped()
+        {
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        var x = delegate (scoped $$) { };
+                    }
+                }
+                """);
         }
     }
 }

@@ -72,8 +72,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Declaration and Initializers are mutually exclusive.
             if (_syntax.Declaration != null)
             {
-                ImmutableArray<BoundLocalDeclaration> unused;
-                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.RegularVariable, diagnostics, out unused);
+                var type = _syntax.Declaration.Type.SkipScoped(out _);
+
+                if (type is RefTypeSyntax)
+                {
+                    // Checking for 'ref for' (7.3) automatically checks for 'ref' (7.0), so no need for an explicit
+                    // check feature as well here.
+                    MessageID.IDS_FeatureRefFor.CheckFeatureAvailability(diagnostics, type);
+                }
+
+                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.RegularVariable, diagnostics, out _);
             }
             else
             {

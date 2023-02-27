@@ -1388,6 +1388,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var diagnosticInfo = result.DiagnosticInfo;
                 MergeUseSiteDiagnostics(ref diagnosticInfo, DeriveCompilerFeatureRequiredDiagnostic());
                 EnsureTypeParametersAreLoaded(ref diagnosticInfo);
+
+                if (diagnosticInfo == null &&
+                    _containingType.ContainingPEModule.RefSafetyRulesVersion == PEModuleSymbol.RefSafetyRulesAttributeVersion.UnrecognizedAttribute)
+                {
+                    diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, this);
+                }
+
                 if (diagnosticInfo == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)
                 {
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));

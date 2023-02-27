@@ -332,7 +332,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-
         /// <summary>
         /// Read in a byte array in reverse order.
         /// Copied from https://github.com/dotnet/corefx/blob/5fe5f9aae7b2987adc7082f90712b265bee5eefc/src/System.Security.Cryptography.Csp/src/System/Security/Cryptography/CapiHelper.Shared.cs

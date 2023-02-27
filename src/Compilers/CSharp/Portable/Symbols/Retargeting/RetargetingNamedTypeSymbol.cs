@@ -250,10 +250,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override NamedTypeSymbol LookupMetadataType(ref MetadataTypeName typeName)
+#nullable enable
+
+        internal override NamedTypeSymbol? LookupMetadataType(ref MetadataTypeName typeName)
         {
-            return this.RetargetingTranslator.Retarget(_underlyingType.LookupMetadataType(ref typeName), RetargetOptions.RetargetPrimitiveTypesByName);
+            NamedTypeSymbol? underlyingResult = _underlyingType.LookupMetadataType(ref typeName);
+
+            if (underlyingResult is null)
+            {
+                return null;
+            }
+
+            Debug.Assert(!underlyingResult.IsErrorType());
+            Debug.Assert((object)_underlyingType == underlyingResult.ContainingSymbol);
+
+            return this.RetargetingTranslator.Retarget(underlyingResult, RetargetOptions.RetargetPrimitiveTypesByName);
         }
+
+#nullable disable
 
         private static ExtendedErrorTypeSymbol CyclicInheritanceError(TypeSymbol declaredBase)
         {

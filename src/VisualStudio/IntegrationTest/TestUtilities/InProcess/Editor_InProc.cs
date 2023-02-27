@@ -232,7 +232,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var line = bufferPosition.GetContainingLine();
                 var text = line.GetText();
 
-                return text.Substring(0, bufferPosition.Position - line.Start);
+                return text[..(bufferPosition.Position - line.Start)];
             });
 
         public string GetLineTextAfterCaret()
@@ -243,7 +243,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var line = bufferPosition.GetContainingLine();
                 var text = line.GetText();
 
-                return text.Substring(bufferPosition.Position - line.Start);
+                return text[(bufferPosition.Position - line.Start)..];
             });
 
         public string GetSelectedText()

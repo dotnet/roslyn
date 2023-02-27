@@ -1251,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (boundExpr == null) return default(Optional<object>);
 
-            ConstantValue constantValue = boundExpr.ConstantValue;
+            ConstantValue constantValue = boundExpr.ConstantValueOpt;
             return constantValue == null || constantValue.IsBad
                 ? default(Optional<object>)
                 : new Optional<object>(constantValue.Value);

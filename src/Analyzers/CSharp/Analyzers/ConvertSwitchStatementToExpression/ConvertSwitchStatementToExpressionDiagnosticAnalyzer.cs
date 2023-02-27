@@ -53,11 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return;
             }
 
-            var (nodeToGenerate, declaratorToRemoveOpt) =
-                Analyzer.Analyze(
-                    (SwitchStatementSyntax)switchStatement,
-                    context.SemanticModel,
-                    out var shouldRemoveNextStatement);
+            var (nodeToGenerate, declaratorToRemoveOpt) = Analyzer.Analyze(
+                (SwitchStatementSyntax)switchStatement,
+                context.SemanticModel,
+                out var shouldRemoveNextStatement);
             if (nodeToGenerate == default)
             {
                 return;

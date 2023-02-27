@@ -81,7 +81,7 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <TextBlock Grid.Row="0" Visibility="{Binding IsInstructionTextVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Text="{Binding InstructionText}" Margin="5" Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}">
+        <TextBlock Grid.Row="0" Visibility="{Binding IsInstructionTextVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Text="{Binding InstructionText}" Margin="5" Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}" AutomationProperties.LiveSetting="Polite" IsVisibleChanged="TextBlock_IsVisibleChanged">
             <TextBlock.CommandBindings>
                 <CommandBinding Command="{x:Static ApplicationCommands.Paste}" Executed="CommandBinding_Executed" />
             </TextBlock.CommandBindings>

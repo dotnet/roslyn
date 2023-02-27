@@ -82,6 +82,11 @@
         <target state="translated">Sempre usar servidores de símbolo padrão para navegação</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">Analisar arquivos gerados pela origem</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Padrões do Analisador</target>
@@ -1145,6 +1150,11 @@
       <trans-unit id="Prefer_read_only_struct">
         <source>Prefer read-only struct</source>
         <target state="translated">Preferir o struct somente leitura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="new">Prefer read-only struct member</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">

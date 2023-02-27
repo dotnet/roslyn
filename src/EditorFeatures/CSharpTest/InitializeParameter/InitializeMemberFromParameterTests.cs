@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -1556,7 +1554,7 @@ class C
     }
 
     public string S { get; }
-}", options: this.Option(CSharpFormattingOptions2.NewLinesForBracesInMethods, false));
+}", options: this.Option(CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Methods));
         }
 
         [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
@@ -1611,6 +1609,228 @@ class C
     {
         this.i = i;
         this.s = s;
+    }
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C(string s, string t, [||]int i)
+    {
+        (this.s, this.t) = (s, t);
+    }
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+    private readonly int i;
+
+    public C(string s, string t, int i)
+    {
+        (this.s, this.t, this.i) = (s, t, i);
+    }
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C(string s, string t, [||]int i) =>
+        (this.s, this.t) = (s, t);
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+    private readonly int i;
+
+    public C(string s, string t, int i) =>
+        (this.s, this.t, this.i) = (s, t, i);
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C(string s, string t, [||]int i)
+    {
+        if (s is null) throw new ArgumentNullException();
+        (this.s, this.t) = (s, t);
+    }
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+    private readonly int i;
+
+    public C(string s, string t, int i)
+    {
+        if (s is null) throw new ArgumentNullException();
+        (this.s, this.t, this.i) = (s, t, i);
+    }
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C([||]int i, string s, string t)
+    {
+        (this.s, this.t) = (s, t);
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly string s;
+    private readonly string t;
+
+    public C(int i, string s, string t)
+    {
+        (this.i, this.s, this.t) = (i, s, t);
+    }
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C([||]int i, string s, string t) =>
+        (this.s, this.t) = (s, t);
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly string s;
+    private readonly string t;
+
+    public C(int i, string s, string t) =>
+        (this.i, this.s, this.t) = (i, s, t);
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C(string s, [||]int i, string t)
+    {
+        (this.s, this.t) = (s, t);
+    }
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly int i;
+    private readonly string t;
+
+    public C(string s, int i, string t)
+    {
+        (this.s, this.i, this.t) = (s, i, t);
+    }
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+    private readonly string t;
+
+    public C(string s, [||]int i, string t) =>
+        (this.s, this.t) = (s, t);
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly int i;
+    private readonly string t;
+
+    public C(string s, int i, string t) =>
+        (this.s, this.i, this.t) = (s, i, t);
+}");
+        }
+
+        [Fact, WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        public async Task TestGeneratePropertyIfParameterFollowsExistingPropertyAssignment_TupleAssignment1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public string S { get; }
+    public string T { get; }
+
+    public C(string s, string t, [||]int i)
+    {
+        (S, T) = (s, t);
+    }
+}",
+@"
+class C
+{
+    public string S { get; }
+    public string T { get; }
+    public int I { get; }
+
+    public C(string s, string t, int i)
+    {
+        (S, T, I) = (s, t, i);
     }
 }");
         }
@@ -1878,9 +2098,9 @@ class C
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"">
         <Document>
-public class Foo
+public class Goo
 {
-    public Foo(int prop1)
+    public Goo(int prop1)
     {
         Prop1 = prop1;
     }
@@ -1888,9 +2108,260 @@ public class Foo
     public int Prop1 { get; }
 }
 
-public class Bar : Foo
+public class Bar : Goo
 {
     public Bar(int prop1, int [||]prop2) : base(prop1) { }
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeThrowingProperty1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S => throw new NotImplementedException();
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S { get; }
+
+    public C(string s)
+    {
+        S = s;
+    }
+}");
+        }
+
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeThrowingProperty2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get => throw new NotImplementedException();
+    }
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get;
+    }
+
+    public C(string s)
+    {
+        S = s;
+    }
+}");
+        }
+
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeThrowingProperty3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get { throw new NotImplementedException(); }
+    }
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get;
+    }
+
+    public C(string s)
+    {
+        S = s;
+    }
+}");
+        }
+
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeThrowingProperty4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get;
+        set;
+    }
+
+    public C(string s)
+    {
+        S = s;
+    }
+}");
+        }
+
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeThrowingProperty5()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get { throw new NotImplementedException(); }
+        set { throw new NotImplementedException(); }
+    }
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S
+    {
+        get;
+        set;
+    }
+
+    public C(string s)
+    {
+        S = s;
+    }
+}");
+        }
+
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeThrowingProperty6()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S => throw new InvalidOperationException();
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S => throw new InvalidOperationException();
+
+    public string S1 { get; }
+
+    public C(string s)
+    {
+        S1 = s;
+    }
+}");
+        }
+
+        [Fact, WorkItem(36998, "https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeThrowingProperty_DifferentFile1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public partial class Goo
+{
+    public Goo(string [||]name)
+    {
+    }
+}
+        </Document>
+        <Document>
+using System;
+public partial class Goo
+{
+    public string Name => throw new NotImplementedException();
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public partial class Goo
+{
+    public Goo(string name)
+    {
+        Name = name;
+    }
+}
+        </Document>
+        <Document>
+using System;
+public partial class Goo
+{
+    public string Name { get; }
 }
         </Document>
     </Project>
