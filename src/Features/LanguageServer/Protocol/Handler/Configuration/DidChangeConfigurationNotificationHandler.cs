@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                     if (option is IPerLanguageValuedOption perLanguageValuedOption)
                     {
                         _globalOptionService.SetGlobalOption(new OptionKey2(perLanguageValuedOption, LanguageNames.CSharp), result);
+                        _globalOptionService.SetGlobalOption(new OptionKey2(perLanguageValuedOption, LanguageNames.VisualBasic), result);
                     }
                     else
                     {
