@@ -15078,6 +15078,88 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 28));
         }
 
+        [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_18()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R();
+                        r
+                           .Append($"[{42}]")
+                           .Append($"[{"str".AsSpan()}]");
+                    }
+                }
+                readonly ref struct R
+                {
+                    public R Append([InterpolatedStringHandlerArgument("")] CustomHandler handler)
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                    public void AppendFormatted(ReadOnlySpan<char> value)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_19()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R();
+                        r
+                           .Append($"[{42}]")
+                           .Append($"[{"str".ToLower()}]");
+                    }
+                }
+                readonly ref struct R
+                {
+                    public R Append([InterpolatedStringHandlerArgument("")] CustomHandler handler)
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         [InlineData(@"$""{{ {i} }}""")]
         [InlineData(@"$""{{ "" + $""{i}"" + $"" }}""")]
