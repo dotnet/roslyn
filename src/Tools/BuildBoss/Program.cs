@@ -1,4 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿using System.Net;
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -138,7 +139,7 @@ namespace BuildBoss
 
         private static bool ProcessTargets(string repositoryDirectory)
         {
-            var targetsDirectory = Path.Combine(repositoryDirectory, @"eng\targets");
+            var targetsDirectory = Path.Combine(repositoryDirectory, PathList.Combine(@"eng", "targets"));
             var checker = new TargetsCheckerUtil(targetsDirectory);
             return CheckCore(checker, $"Targets {targetsDirectory}");
         }
