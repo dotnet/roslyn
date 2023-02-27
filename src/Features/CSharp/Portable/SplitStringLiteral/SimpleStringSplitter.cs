@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
                 ParsedDocument document,
                 int position,
                 SyntaxToken token,
-                in IndentationOptions options,
+                in IndentationOptions indentationOptions,
                 CancellationToken cancellationToken)
-                : base(document, position, options, cancellationToken)
+                : base(document, position, indentationOptions, cancellationToken)
             {
                 _token = token;
             }

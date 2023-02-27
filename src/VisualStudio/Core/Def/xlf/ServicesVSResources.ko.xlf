@@ -82,6 +82,11 @@
         <target state="translated">탐색에 항상 기본 기호 서버 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">소스에서 생성된 파일 분석</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">분석기 기본값</target>
@@ -1145,6 +1150,11 @@
       <trans-unit id="Prefer_read_only_struct">
         <source>Prefer read-only struct</source>
         <target state="translated">읽기 전용 구조체 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="new">Prefer read-only struct member</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">

@@ -10,12 +10,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -78,9 +76,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IDiagnosticUpdateSourceRegistrationService registrationService,
+            IGlobalOperationNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext)
-            : this(workspace, diagnosticService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
+            : this(workspace, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
         {
             registrationService.Register(this);
         }
@@ -91,6 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         internal ExternalErrorDiagnosticUpdateSource(
             Workspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
+            IGlobalOperationNotificationService notificationService,
             IAsynchronousOperationListener listener,
             CancellationToken disposalToken)
         {
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _diagnosticService = diagnosticService;
             _buildOnlyDiagnosticsService = _workspace.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
 
-            _notificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+            _notificationService = notificationService;
         }
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _diagnosticService.AnalyzerInfoCache;
@@ -234,7 +234,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        // internal for testing purposes only.
+        internal void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
             // Clear relevant build-only errors on workspace events such as solution added/removed/reloaded,
             // project added/removed/reloaded, etc.
@@ -257,22 +258,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 case WorkspaceChangeKind.DocumentRemoved:
                 case WorkspaceChangeKind.DocumentReloaded:
+                case WorkspaceChangeKind.AdditionalDocumentRemoved:
+                case WorkspaceChangeKind.AdditionalDocumentReloaded:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     _taskQueue.ScheduleTask("OnDocumentRemoved", () => ClearBuildOnlyDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId), _disposalToken);
+                    break;
+
+                case WorkspaceChangeKind.DocumentChanged:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                case WorkspaceChangeKind.AdditionalDocumentChanged:
+                    // We clear build-only errors for the document on document edits.
+                    // This is done to address multiple customer reports of stale build-only diagnostics
+                    // after they fix/remove the code flagged from build-only diagnostics, but the diagnostics
+                    // do not get automatically removed/refreshed while typing.
+                    // See https://github.com/dotnet/docs/issues/26708 and https://github.com/dotnet/roslyn/issues/64659
+                    // for additional details.
+                    _taskQueue.ScheduleTask("OnDocumentChanged", () => ClearBuildOnlyDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId), _disposalToken);
                     break;
 
                 case WorkspaceChangeKind.ProjectAdded:
                 case WorkspaceChangeKind.DocumentAdded:
-                case WorkspaceChangeKind.DocumentChanged:
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.SolutionChanged:
                 case WorkspaceChangeKind.AdditionalDocumentAdded:
-                case WorkspaceChangeKind.AdditionalDocumentRemoved:
-                case WorkspaceChangeKind.AdditionalDocumentReloaded:
-                case WorkspaceChangeKind.AdditionalDocumentChanged:
                 case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     break;
 
                 default:
@@ -403,6 +413,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void AddNewErrors(ProjectId projectId, DiagnosticData diagnostic)
         {
+            Debug.Assert(diagnostic.IsBuildDiagnostic());
+
             // Capture state that will be processed in background thread.
             var state = GetOrCreateInProgressState();
 
@@ -415,6 +427,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
         {
+            Debug.Assert(diagnostic.IsBuildDiagnostic());
+
             // Capture state that will be processed in background thread.
             var state = GetOrCreateInProgressState();
 
@@ -428,6 +442,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public void AddNewErrors(
             ProjectId projectId, HashSet<DiagnosticData> projectErrors, Dictionary<DocumentId, HashSet<DiagnosticData>> documentErrorMap)
         {
+            Debug.Assert(projectErrors.All(d => d.IsBuildDiagnostic()));
+            Debug.Assert(documentErrorMap.SelectMany(kvp => kvp.Value).All(d => d.IsBuildDiagnostic()));
+
             // Capture state that will be processed in background thread
             var state = GetOrCreateInProgressState();
 
@@ -780,6 +797,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return false;
                 }
 
+                // Compiler diagnostics reported on additional documents indicate mapped diagnostics, such as compiler diagnostics
+                // in razor files which are actually reported on generated source files but mapped to razor files during build.
+                // These are not reported on additional files during live analysis, and can be considered to be build-only diagnostics.
+                if (IsAdditionalDocumentDiagnostic(project, diagnosticData) &&
+                    diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
+                {
+                    return false;
+                }
+
                 if (IsSupportedLiveDiagnosticId(project, diagnosticData.Id))
                 {
                     return true;
@@ -817,6 +843,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         (diagnosticData.DataLocation.UnmappedFileSpan.StartLinePosition.Line > 0 ||
                          diagnosticData.DataLocation.UnmappedFileSpan.StartLinePosition.Character > 0);
                 }
+
+                static bool IsAdditionalDocumentDiagnostic(Project project, DiagnosticData diagnosticData)
+                    => diagnosticData.DocumentId != null && project.ContainsAdditionalDocument(diagnosticData.DocumentId);
             }
 
             private bool IsSupportedLiveDiagnosticId(Project project, string id)

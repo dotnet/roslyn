@@ -147,13 +147,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             // In order to avoid allocating each time we hit a reference, we just
             // create these statically and pass them in.
 
-            private static readonly GetWriteValue getWriteValueForLeftSideOfAssignment =
+            private static readonly GetWriteValue s_getWriteValueForLeftSideOfAssignment =
                 (replacer, parent) =>
                 {
                     return (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent)!;
                 };
 
-            private static readonly GetWriteValue getWriteValueForIncrementOrDecrement =
+            private static readonly GetWriteValue s_getWriteValueForIncrementOrDecrement =
                 (replacer, parent) =>
                 {
                     // We're being read from and written to (i.e. Prop++), we need to replace with a
@@ -179,8 +179,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         keepTrivia: false, conflictMessage: null);
 
                     // Convert "Prop *= X" into "Prop * X".
-                    return replacer._service.UnwrapCompoundAssignment(
-                        parent, readExpression);
+                    return replacer._service.UnwrapCompoundAssignment(parent, readExpression);
                 };
 
             private static readonly Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> replaceParentCallback =
@@ -231,7 +230,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     // We're only being written to here.  This is safe to replace with a call to the 
                     // setter.
                     ReplaceWrite(
-                        getWriteValueForLeftSideOfAssignment,
+                        s_getWriteValueForLeftSideOfAssignment,
                         keepTrivia: true,
                         conflictMessage: null);
                 }
@@ -245,7 +244,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 else if (_syntaxFacts.IsOperandOfIncrementOrDecrementExpression(_expression))
                 {
                     ReplaceWrite(
-                        getWriteValueForIncrementOrDecrement,
+                        s_getWriteValueForIncrementOrDecrement,
                         keepTrivia: true,
                         conflictMessage: null);
                 }

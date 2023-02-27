@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (originalOpt.Syntax.Kind() == SyntaxKind.LocalDeclarationStatement &&
                         ((LocalDeclarationStatementSyntax)originalOpt.Syntax).Declaration.Variables.Count == 1)))
             {
-                rewrittenLocalDeclaration = _instrumenter.InstrumentLocalInitialization(originalOpt, rewrittenLocalDeclaration);
+                rewrittenLocalDeclaration = Instrumenter.InstrumentLocalInitialization(originalOpt, rewrittenLocalDeclaration);
             }
 
             return rewrittenLocalDeclaration;

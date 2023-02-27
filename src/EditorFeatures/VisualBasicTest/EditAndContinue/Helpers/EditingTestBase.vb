@@ -202,26 +202,5 @@ End Namespace
         Friend Shared Function GetSyntaxMap(oldSource As String, newSource As String) As SyntaxMapDescription
             Return New SyntaxMapDescription(oldSource, newSource)
         End Function
-
-        Friend Shared Function GetActiveStatementDebugInfos(
-            markedSources As String(),
-            Optional filePaths As String() = Nothing,
-            Optional methodRowIds As Integer() = Nothing,
-            Optional modules As Guid() = Nothing,
-            Optional methodVersions As Integer() = Nothing,
-            Optional ilOffsets As Integer() = Nothing,
-            Optional flags As ActiveStatementFlags() = Nothing) As ImmutableArray(Of ManagedActiveStatementDebugInfo)
-
-            Return ActiveStatementsDescription.GetActiveStatementDebugInfos(
-                Function(source, path) SyntaxFactory.ParseSyntaxTree(source, path:=path),
-                markedSources,
-                filePaths,
-                extension:=".vb",
-                methodRowIds,
-                modules,
-                methodVersions,
-                ilOffsets,
-                flags)
-        End Function
     End Class
 End Namespace

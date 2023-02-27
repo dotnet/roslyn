@@ -17,6 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
+    [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
     public class InvocationExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
         internal override Type GetSignatureHelpProviderType()
@@ -2026,7 +2027,6 @@ class Program
         [InlineData("i2: 1, $$,", 0)]
         [InlineData("i2: 1, i1: $$,", 0)]
         [InlineData("i2: 1, $$, i1: 2", 2)]
-        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_NamesAndEmptyPositions_Delegate(string arguments, int expectedParameterIndex)
         {
@@ -2062,7 +2062,6 @@ class Program
         [InlineData("$$, ", 0, 0)]
         [InlineData(",$$", 1, 0)]
         [InlineData("$$, s: string.Empty", 0, 0)]
-        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_Incomplete(string arguments, int expectedParameterIndex, int expecteSelectedIndex)
         {
@@ -2092,7 +2091,6 @@ class Program
         [InlineData("s2: string.Empty$$", 1)]
         [InlineData("s2: string.Empty$$,", 1)]
         [InlineData("s2: string.Empty,$$", 0)]
-        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_Incomplete_WithNames(string arguments, int expectedParameterIndex)
         {
@@ -2131,7 +2129,6 @@ class Program
         [InlineData("i2: new int[] { }$$, i1: 1", 1)]
         [InlineData("i1: 1, i2: new int[] { }$$", 1)]
         [InlineData("i2: new int[] { }, i1: 1$$", 0)]
-        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_Params(string arguments, int expectedParameterIndex)
         {
@@ -2175,7 +2172,6 @@ class Program
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_Incomplete_OutOfPositionArgument()
         {
@@ -2200,7 +2196,6 @@ class Program
         [Theory]
         [InlineData("i: 1", 0)]
         [InlineData("i: 1, ", 1)]
-        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_IncompleteWithNameI(string arguments, int expectedParameterIndex)
         {

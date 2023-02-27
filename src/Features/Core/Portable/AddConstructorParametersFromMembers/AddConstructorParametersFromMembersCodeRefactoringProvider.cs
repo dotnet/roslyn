@@ -70,9 +70,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     var state = await State.GenerateAsync(info.SelectedMembers, document, fallbackOptions, cancellationToken).ConfigureAwait(false);
                     if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
                     {
-                        var codeGenOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-                        var contextInfo = codeGenOptions.GetInfo(CodeGenerationContext.Default, document.Project);
-
+                        var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
                         return CreateCodeActions(document, contextInfo, state);
                     }
                 }
@@ -88,13 +86,13 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 if (!result.RequiredParameterActions.IsDefaultOrEmpty)
                 {
-                    actions.Add(CodeAction.CodeActionWithNestedActions.Create(
+                    actions.Add(CodeAction.Create(
                         FeaturesResources.Add_parameter_to_constructor,
                         result.RequiredParameterActions.Cast<AddConstructorParametersCodeAction, CodeAction>(),
                         isInlinable: false));
                 }
 
-                actions.Add(CodeAction.CodeActionWithNestedActions.Create(
+                actions.Add(CodeAction.Create(
                     FeaturesResources.Add_optional_parameter_to_constructor,
                     result.OptionalParameterActions.Cast<AddConstructorParametersCodeAction, CodeAction>(),
                     isInlinable: false));

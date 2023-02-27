@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                          this._module.Compilation.IsReadOnlySpanType(typeTo),
                          "only special kinds of conversions involving ReadOnlySpan may be handled in emit");
 
-            if (!TryEmitReadonlySpanAsBlobWrapper(typeTo, operand, used, inPlace: false))
+            if (!TryEmitReadonlySpanAsBlobWrapper(typeTo, operand, used, inPlaceTarget: null, avoidInPlace: out _))
             {
                 // there are several reasons that could prevent us from emitting a wrapper
                 // in such case we just emit the operand and then invoke the conversion method 
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // doing this or marking somewhere else that this is necessary.
 
                         // Don't need to do this for constants, however.
-                        if (conversion.Operand.ConstantValue == null)
+                        if (conversion.Operand.ConstantValueOpt == null)
                         {
                             EmitNumericConversion(conversion);
                         }

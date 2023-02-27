@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static Workspace CreateWorkspaceWithRecoverableSyntaxTrees()
             => CreateWorkspace(new[]
             {
-                typeof(TestProjectCacheService),
                 typeof(TestTemporaryStorageServiceFactory)
             });
 

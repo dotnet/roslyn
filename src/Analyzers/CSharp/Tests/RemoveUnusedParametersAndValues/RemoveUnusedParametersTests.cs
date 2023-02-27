@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedValuesCodeFixProvider());
 
-        private OptionsCollection NonPublicMethodsOnly =>
-            Option(CodeStyleOptions2.UnusedParameters,
+        private OptionsCollection NonPublicMethodsOnly
+            => Option(CodeStyleOptions2.UnusedParameters,
                 new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.Suggestion));
 
         // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
@@ -1646,6 +1646,65 @@ public class C : ICustomMarshaler
         => null;
 }
 ");
+        }
+
+        [Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")]
+        public async Task TestMethodWithUnusedParameterThrowsExpressionBody()
+        {
+            await TestDiagnosticMissingAsync(
+@"public class Class
+{
+    public void Method(int [|x|]) => throw new System.Exception();
+}");
+        }
+
+        [Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")]
+        public async Task TestMethodWithUnusedParameterThrowsMethodBody()
+        {
+            await TestDiagnosticMissingAsync(
+@"public class Class
+{
+    public void Method(int [|x|])
+    {
+        throw new System.Exception();
+    }
+}");
+        }
+
+        [Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")]
+        public async Task TestMethodWithUnusedParameterThrowsConstructorBody()
+        {
+            await TestDiagnosticMissingAsync(
+@"public class Class
+{
+    public Class(int [|x|])
+    {
+        throw new System.Exception();
+    }
+}");
+        }
+
+        [Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")]
+        public async Task TestMethodWithUnusedParameterThrowsConstructorExpressionBody()
+        {
+            await TestDiagnosticMissingAsync(
+@"public class Class
+{
+    public Class(int [|x|]) => throw new System.Exception();
+}");
+        }
+
+        [Fact, WorkItem(65275, "https://github.com/dotnet/roslyn/issues/65275")]
+        public async Task TestMethodWithUnusedParameterThrowsLocalFunctionExpressionBody()
+        {
+            await TestDiagnosticMissingAsync(
+@"public class Class
+{
+    public void Method()
+    {
+        void LocalMethod(int [|x|]) => throw new System.Exception();
+    }
+}");
         }
     }
 }

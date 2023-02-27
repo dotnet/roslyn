@@ -1702,7 +1702,7 @@ class C
 
         return v;
     }
-}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOption2.TrueWithSuggestionEnforcement)));
         }
 
         [Fact, WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
@@ -1749,7 +1749,7 @@ class C
 
         return v;
     }
-}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement)));
         }
 
         [Fact, WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
@@ -3375,6 +3375,47 @@ class C
     }
 }");
 
+        [Fact, WorkItem(38127, "https://github.com/dotnet/roslyn/issues/38127")]
+        public Task TestNestedNullability_Async()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    private Task<string> DoSomethingAsync() => Task.FromResult("""");
+
+    public Task<string?> async M()
+    {
+        [|string? x = await DoSomethingAsync();|]
+        x = null;
+        return x;
+    }
+}",
+@"#nullable enable
+
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    private Task<string> DoSomethingAsync() => Task.FromResult("""");
+
+    public Task<string?> async M()
+    {
+        string? x = await {|Rename:NewMethod|}();
+        x = null;
+        return x;
+    }
+
+    private async Task<string?> NewMethod()
+    {
+        return await DoSomethingAsync();
+    }
+}");
+
         [Fact]
         public async Task EnsureStaticLocalFunctionOptionHasNoEffect()
         {
@@ -3399,7 +3440,7 @@ class C
     {
         return b != true;
     }
-}", new TestParameters(options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.FalseWithSuggestionEnforcement)));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOption2.FalseWithSuggestionEnforcement)));
         }
 
         [Fact, WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
@@ -4677,5 +4718,85 @@ class Program
     }
 }");
         }
+
+        [Fact]
+        public Task ExtractMethod_InsideBaseInitializer()
+        => TestInRegularAndScript1Async(
+            """
+            class Base
+            {
+                private readonly int _x;
+                public Base(int x)
+                {
+                    _x = x;
+                }
+            }
+
+            class C : Base
+            {
+                public C(int y)
+                    : base([|y + 1|])
+                {
+                }
+            }
+            """,
+            """
+            class Base
+            {
+                private readonly int _x;
+                public Base(int x)
+                {
+                    _x = x;
+                }
+            }
+
+            class C : Base
+            {
+                public C(int y)
+                    : base({|Rename:NewMethod|}(y))
+                {
+                }
+
+                private static int NewMethod(int y)
+                {
+                    return y + 1;
+                }
+            }
+            """);
+
+        [Fact]
+        public Task ExtractMethod_InsideThisInitializer()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public C(int y)
+                    : this(y, [|y + 1|])
+                {
+                }
+
+                public C(int x, int y)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C(int y)
+                    : this(y, {|Rename:NewMethod|}(y))
+                {
+                }
+
+                private static int NewMethod(int y)
+                {
+                    return y + 1;
+                }
+            
+                public C(int x, int y)
+                {
+                }
+            }
+            """);
     }
 }

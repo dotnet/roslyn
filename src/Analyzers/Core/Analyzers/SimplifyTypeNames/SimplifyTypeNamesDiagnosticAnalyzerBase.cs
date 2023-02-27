@@ -29,7 +29,7 @@ using System.Text.RegularExpressions;
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
     internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions>
-        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TSimplifierOptions : SimplifierOptions
     {
@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             : base(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>>.Empty
                   .Add(s_descriptorSimplifyNames, ImmutableHashSet<IOption2>.Empty)
                   .Add(s_descriptorSimplifyMemberAccess, ImmutableHashSet<IOption2>.Empty)
-                  .Add(s_descriptorPreferBuiltinOrFrameworkType, ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
+                  .Add(s_descriptorPreferBuiltinOrFrameworkType, ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)),
+                  fadingOption: null)
         {
         }
 

@@ -556,5 +556,38 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <Fact, WorkItem(36305, "https://github.com/dotnet/roslyn/issues/36305")>
+        Public Async Function TestOnElementAt1() As Task
+            Await TestInRegularAndScript1Async(
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+class V
+    sub M(collection as ICollection(of V))
+        [||]for i = 0 to collection.Count - 1
+            collection.ElementAt(i).M()
+        next
+    end sub
+
+    private sub M()
+    end sub
+end class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+class V
+    sub M(collection as ICollection(of V))
+        for Each {|Rename:v1|} In collection
+            v1.M()
+        next
+    end sub
+
+    private sub M()
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

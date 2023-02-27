@@ -564,7 +564,6 @@ End Module]]>
 
 #Region "TryGetSpeculativeSemanticModel"
 
-
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForExpression_ConstantInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -2443,7 +2442,6 @@ End Enum
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim cunit = tree.GetCompilationUnitRoot()
             Dim v1 = TryCast(cunit.Members(0), TypeBlockSyntax)
             Dim v2 = TryCast(v1.Members(0), MethodBlockSyntax)
@@ -2571,7 +2569,6 @@ End Enum
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim cunit = tree.GetCompilationUnitRoot()
             Dim v1 = TryCast(cunit.Members(0), TypeBlockSyntax)
             Dim v2 = TryCast(v1.Members(0), MethodBlockSyntax)
@@ -2657,7 +2654,6 @@ End Enum
             CompilationUtils.AssertNoErrors(compilation)
 
         End Sub
-
 
         <WorkItem(541564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541564")>
         <Fact()>

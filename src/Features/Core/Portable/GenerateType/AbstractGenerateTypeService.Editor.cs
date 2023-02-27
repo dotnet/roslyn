@@ -544,9 +544,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         includeUsingsOrImports = string.Join(".", containerList.ToArray());
                         if (!string.IsNullOrWhiteSpace(rootNamespaceOfTheProjectGeneratedInto))
                         {
-                            includeUsingsOrImports = string.IsNullOrEmpty(includeUsingsOrImports) ?
-                                                     rootNamespaceOfTheProjectGeneratedInto :
-                                                     rootNamespaceOfTheProjectGeneratedInto + "." + includeUsingsOrImports;
+                            includeUsingsOrImports = string.IsNullOrEmpty(includeUsingsOrImports)
+                                                     ? rootNamespaceOfTheProjectGeneratedInto
+                                                     : rootNamespaceOfTheProjectGeneratedInto + "." + includeUsingsOrImports;
                         }
                     }
 

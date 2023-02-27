@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     {
                         // Gets the associated span from the snapshot span and creates the IntraTextAdornmentTag from the data
                         // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
-                        // occuring
+                        // occurring
                         var dataTagSpans = tag.Span.GetSpans(snapshot);
                         if (dataTagSpans.Count == 1)
                         {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 }
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                var classify = document != null && _taggerProvider.GlobalOptions.GetOption(InlineHintsViewOptions.ColorHints, document.Project.Language);
+                var classify = document != null && _taggerProvider.EditorOptionsService.GlobalOptions.GetOption(InlineHintsViewOptions.ColorHints, document.Project.Language);
 
                 var selectedSpans = new List<ITagSpan<IntraTextAdornmentTag>>();
                 for (var i = 0; i < _cache.Count; i++)

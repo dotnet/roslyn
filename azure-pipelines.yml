@@ -19,6 +19,7 @@ pr:
     exclude:
       - docs/*
       - eng/config/PublishData.json
+      - src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
       - .vscode/*
       - .github/*
       - .devcontainer/*
@@ -206,6 +207,8 @@ stages:
           include:
           - src/Compilers/*
           - src/Dependencies/*
+          - eng/*
+          - src/Tools/Source/CompilerGeneratorTools/*
 
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
@@ -214,7 +217,11 @@ stages:
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     variables:
-      compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      - template: eng/pipelines/variables-build.yml
+        parameters:
+          configuration: Release
+      - name: compilerChange
+        value: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
@@ -222,16 +229,19 @@ stages:
         displayName: Restore
         inputs:
           filePath: eng/build.ps1
-          arguments: -configuration Release -prepareMachine -ci -restore -binaryLog
+          arguments: -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
 
       - task: PowerShell@2
         displayName: Build
         inputs:
           filePath: eng/build.ps1
-          arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLog
+          arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog
 
       - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
         displayName: Validate Build Artifacts
+
+      - script: eng/validate-rules-missing-documentation.cmd -ci
+        displayName: Validate rules missing documentation
 
       - task: PowerShell@2
         displayName: Generate Syntax Files
@@ -256,6 +266,10 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
+    variables:
+      - template: eng/pipelines/variables-build.yml
+        parameters:
+          configuration: Debug
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
@@ -274,6 +288,10 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
+    variables:
+      - template: eng/pipelines/variables-build.yml
+        parameters:
+          configuration: Release
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
@@ -316,14 +334,12 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
+    variables:
+      - template: eng/pipelines/variables-build.yml
+        parameters:
+          configuration: Release
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
-
-      - task: PowerShell@2
-        displayName: Restore
-        inputs:
-          filePath: eng/build.ps1
-          arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
 
       - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
         displayName: Run BuildValidator
@@ -347,6 +363,11 @@ stages:
       name: NetCore-Public
       demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
     timeoutInMinutes: 35
+    variables:
+      - template: eng/pipelines/variables-build.yml
+        parameters:
+          configuration: Debug
+
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 

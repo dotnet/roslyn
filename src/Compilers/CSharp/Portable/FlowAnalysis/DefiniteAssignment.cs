@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type.SpecialType != SpecialType.System_String &&
                 type is not ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte })
             {
-                return value.ConstantValue != ConstantValue.Null;
+                return value.ConstantValueOpt != ConstantValue.Null;
             }
 
             if ((object)type != null && type.IsPointerOrFunctionPointer())
@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that used them were always considered used. We now consider interpolated strings that are
             // made up of only constant expressions to be constant values, but for backcompat we consider
             // the writes to be uses anyway.
-            if (value is { ConstantValue: not null, Kind: not BoundKind.InterpolatedString }) return false;
+            if (value is { ConstantValueOpt: not null, Kind: not BoundKind.InterpolatedString }) return false;
 
             switch (value.Kind)
             {
@@ -1686,20 +1686,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NoteWrite(parameter, value: null, read: true);
             }
 
-            if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam &&
-                sourceComplexParam.BindParameterAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
+            if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam)
             {
                 // Mark attribute arguments as used.
-                foreach (var boundAttribute in boundAttributes)
+                VisitAttributes(sourceComplexParam.BindParameterAttributes());
+
+                // Mark default parameter values as used.
+                if (sourceComplexParam.BindParameterEqualsValue() is { } boundValue)
                 {
-                    foreach (var attributeArgument in boundAttribute.ConstructorArguments)
-                    {
-                        VisitRvalue(attributeArgument);
-                    }
-                    foreach (var attributeNamedArgumentAssignment in boundAttribute.NamedArguments)
-                    {
-                        VisitRvalue(attributeNamedArgumentAssignment.Right);
-                    }
+                    VisitRvalue(boundValue.Value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Marks attribute arguments as used.
+        /// </summary>
+        private void VisitAttributes(ImmutableArray<(CSharpAttributeData, BoundAttribute)> boundAttributes)
+        {
+            if (boundAttributes.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
+            foreach (var (attributeData, boundAttribute) in boundAttributes)
+            {
+                // Skip invalid attributes (e.g., with a non-constant argument) to avoid superfluous diagnostics.
+                if (attributeData.HasErrors)
+                {
+                    continue;
+                }
+
+                foreach (var attributeArgument in boundAttribute.ConstructorArguments)
+                {
+                    VisitRvalue(attributeArgument);
+                }
+                foreach (var attributeNamedArgumentAssignment in boundAttribute.NamedArguments)
+                {
+                    VisitRvalue(attributeNamedArgumentAssignment.Right);
                 }
             }
         }
@@ -1900,8 +1924,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // First phase
                 foreach (var stmt in block.Statements)
                 {
-                    if (stmt.Kind == BoundKind.LocalFunctionStatement)
+                    if (stmt is BoundLocalFunctionStatement localFunctionStatement)
                     {
+                        // Mark attribute arguments as used.
+                        VisitAttributes(localFunctionStatement.Symbol.BindMethodAttributes());
+
                         VisitAlways(stmt);
                     }
                 }
@@ -2125,6 +2152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldSymbol = this.CurrentSymbol;
             this.CurrentSymbol = node.Symbol;
+
+            // Mark attribute arguments as used.
+            VisitAttributes(node.Symbol.BindMethodAttributes());
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 

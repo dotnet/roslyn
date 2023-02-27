@@ -1227,7 +1227,6 @@ public static class Program2
   }
 }");
 
-
             var code = @"
 public static class Program
 {

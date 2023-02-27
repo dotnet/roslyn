@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1622,6 +1620,325 @@ class Program
         }
     }
 }");
+        }
+
+        [Fact, WorkItem(37398, "https://github.com/dotnet/roslyn/issues/37398")]
+        public async Task TestPrecedingDirectiveTrivia()
+        {
+            await TestInRegularAndScript1Async(
+                @"
+class C
+{
+    public static void M(object o)
+    {
+#if DEBUG
+        Console.WriteLine(""in debug"");
+#endif
+
+        [|string|] s = o as string;
+        if (s != null)
+        {
+
+        }
+    }
+}",
+                @"
+class C
+{
+    public static void M(object o)
+    {
+#if DEBUG
+        Console.WriteLine(""in debug"");
+#endif
+
+        if (o is string s)
+        {
+
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(40006, "https://github.com/dotnet/roslyn/issues/40006")]
+        public async Task TestArrayOfNullables()
+        {
+            await TestInRegularAndScript1Async(
+                @"
+#nullable enable
+
+class Program
+{
+    static void Set(object obj, object? item)
+    {
+        [|object?[]?|] arr = obj as object[];
+        if (arr != null)
+        {
+            arr[0] = item;
+        }
+    }
+}
+",
+                @"
+#nullable enable
+
+class Program
+{
+    static void Set(object obj, object? item)
+    {
+        if (obj is object?[] arr)
+        {
+            arr[0] = item;
+        }
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(55782, "https://github.com/dotnet/roslyn/issues/55782")]
+        public async Task TestLocalReferencedAcrossScopes1()
+        {
+            var code = """
+                using System.Transactions;
+
+                class BaseObject { }
+                class ObjectFactory
+                {
+                    internal static BaseObject CreateObject(int x)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                struct Repro
+                {
+                    static int Main(string[] args)
+                    {
+                        int x = 0;
+                        [|BaseObject|] obj;
+
+                        var tso = new TransactionOptions { IsolationLevel = IsolationLevel.RepeatableRead };
+                        using (var trans = new TransactionScope(TransactionScopeOption.Required, tso))
+                        {
+                            try
+                            {
+                                if ((obj = ObjectFactory.CreateObject(x) as BaseObject) == null)
+                                {
+                                    return -1;
+                                }
+                                // uses of obj in the transaction
+                            }
+                            catch (TransactionAbortedException)
+                            {
+                                return -1;
+                            }
+                        }
+
+                        // local used here.
+                        Console.WriteLine(obj);
+                        return 0;
+                    }
+                }
+                """;
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, WorkItem(55782, "https://github.com/dotnet/roslyn/issues/55782")]
+        public async Task TestLocalReferencedAcrossScopes2()
+        {
+            await TestInRegularAndScript1Async("""
+                using System.Transactions;
+
+                class BaseObject { }
+                class ObjectFactory
+                {
+                    internal static BaseObject CreateObject(int x)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                struct Repro
+                {
+                    static int Main(string[] args)
+                    {
+                        int x = 0;
+                        [|BaseObject|] obj;
+
+                        var tso = new TransactionOptions { IsolationLevel = IsolationLevel.RepeatableRead };
+                        using (var trans = new TransactionScope(TransactionScopeOption.Required, tso))
+                        {
+                            try
+                            {
+                                if ((obj = ObjectFactory.CreateObject(x) as BaseObject) == null)
+                                {
+                                    return -1;
+                                }
+                                // uses of obj in the transaction
+                            }
+                            catch (TransactionAbortedException)
+                            {
+                                return -1;
+                            }
+                        }
+
+                        // not used
+                        return 0;
+                    }
+                }
+                """,
+                """
+                using System.Transactions;
+
+                class BaseObject { }
+                class ObjectFactory
+                {
+                    internal static BaseObject CreateObject(int x)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                struct Repro
+                {
+                    static int Main(string[] args)
+                    {
+                        int x = 0;
+
+                        var tso = new TransactionOptions { IsolationLevel = IsolationLevel.RepeatableRead };
+                        using (var trans = new TransactionScope(TransactionScopeOption.Required, tso))
+                        {
+                            try
+                            {
+                                if (ObjectFactory.CreateObject(x) is not BaseObject obj)
+                                {
+                                    return -1;
+                                }
+                                // uses of obj in the transaction
+                            }
+                            catch (TransactionAbortedException)
+                            {
+                                return -1;
+                            }
+                        }
+
+                        // not used
+                        return 0;
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo1()
+        {
+            await TestInRegularAndScript1Async("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                        }
+                    }
+                }
+                """,
+                """
+                #nullable enable
+                using System;
+                
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        if (o1 is not string s)
+                        {
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo2()
+        {
+            await TestInRegularAndScript1Async("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                            s = "";
+                        }
+                    }
+                }
+                """,
+                """
+                #nullable enable
+                using System;
+                
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        if (o1 is not string s)
+                        {
+                            s = "";
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo3()
+        {
+            await TestMissingInRegularAndScriptAsync("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                            s = o2 as string;
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(37875, "https://github.com/dotnet/roslyn/issues/37875")]
+        public async Task TestNullableWhenWrittenTo4()
+        {
+            await TestMissingInRegularAndScriptAsync("""
+                #nullable enable
+                using System;
+
+                class Program
+                {
+                    static void Goo(object o1, object o2)
+                    {
+                        [|string?|] s = o1 as string;
+                        if (s == null)
+                        {
+                            s = null;
+                        }
+                    }
+                }
+                """);
         }
     }
 }

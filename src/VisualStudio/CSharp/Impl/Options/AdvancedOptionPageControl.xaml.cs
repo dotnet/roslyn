@@ -6,6 +6,7 @@
 
 using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.ColorSchemes;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
@@ -25,13 +27,19 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.KeywordHighlighting;
+using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.RenameTracking;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
+using Microsoft.CodeAnalysis.StringCopyPaste;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -59,6 +67,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);
 
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptions.OOP64Bit);
+            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
+            {
+                // If the option has not been set by the user, check if the option is enabled from experimentation. If so, default to that.
+                return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag);
+            });
+
             BindToOption(Enable_file_logging_for_diagnostics, VisualStudioLoggingOptionsMetadata.EnableFileLoggingForDiagnostics);
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds);
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences, () =>
@@ -83,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp);
             BindToOption(SuggestForTypesInReferenceAssemblies, SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.CSharp);
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.CSharp);
-            BindToOption(AddUsingsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp);
+            BindToOption(AddUsingsOnPaste, AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.CSharp);
 
             // Quick Actions
             BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous, () =>
@@ -93,16 +107,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             });
 
             // Highlighting
-            BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.CSharp);
-            BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.CSharp);
+            BindToOption(EnableHighlightReferences, ReferenceHighlightingOptionsStorage.ReferenceHighlighting, LanguageNames.CSharp);
+            BindToOption(EnableHighlightKeywords, KeywordHighlightingOptionsStorage.KeywordHighlighting, LanguageNames.CSharp);
 
             // Outlining
-            BindToOption(EnterOutliningMode, FeatureOnOffOptions.Outlining, LanguageNames.CSharp);
+            BindToOption(EnterOutliningMode, OutliningOptionsStorage.Outlining, LanguageNames.CSharp);
             BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, LanguageNames.CSharp);
             BindToOption(Collapse_usings_on_file_open, BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, LanguageNames.CSharp);
             BindToOption(Collapse_sourcelink_embedded_decompiled_files_on_open, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, LanguageNames.CSharp);
             BindToOption(Collapse_metadata_signature_files_on_open, BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, LanguageNames.CSharp);
-            BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.CSharp);
+            BindToOption(DisplayLineSeparators, LineSeparatorsOptionsStorage.LineSeparator, LanguageNames.CSharp);
             BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_outlining_for_comments_and_preprocessor_regions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions, LanguageNames.CSharp);
@@ -119,13 +133,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             // Comments
             BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
             BindToOption(InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments, SplitCommentOptions.Enabled, LanguageNames.CSharp);
-            BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
+            BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
 
             // Editor Help
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.CSharp);
-            BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
-            BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
-            BindToOption(Fix_text_pasted_into_string_literals_experimental, FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp);
+            BindToOption(RenameTrackingPreview, RenameTrackingOptionsStorage.RenameTrackingPreview, LanguageNames.CSharp);
+            BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptions.Enabled);
+            BindToOption(Fix_text_pasted_into_string_literals_experimental, StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp);
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.CSharp);
             BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, () =>
@@ -178,9 +192,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Inheritance Margin
             // Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
-            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp, () => true);
-            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
-            BindToOption(IncludeGlobalImports, FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, LanguageNames.CSharp);
+            BindToOption(ShowInheritanceMargin, InheritanceMarginOptionsStorage.ShowInheritanceMargin, LanguageNames.CSharp, () => true);
+            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin);
+            BindToOption(IncludeGlobalImports, InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, LanguageNames.CSharp);
 
             // Stack Trace Explorer
             BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsMetadata.OpenOnFocus);
@@ -215,8 +229,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 return mode switch
                 {
-                    DiagnosticMode.Push => false,
-                    DiagnosticMode.Pull => true,
+                    DiagnosticMode.SolutionCrawlerPush => false,
+                    DiagnosticMode.LspPull => true,
                     DiagnosticMode.Default => null,
                     _ => throw new System.ArgumentException("unknown diagnostic mode"),
                 };
@@ -245,8 +259,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 return checkboxValue switch
                 {
-                    true => DiagnosticMode.Pull,
-                    false => DiagnosticMode.Push,
+                    true => DiagnosticMode.LspPull,
+                    false => DiagnosticMode.SolutionCrawlerPush,
                     null => DiagnosticMode.Default
                 };
             }

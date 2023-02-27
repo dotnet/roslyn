@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
-                        IGlobalOperationNotificationService globalOperationNotificationService,
+                        IGlobalOperationNotificationService? globalOperationNotificationService,
                         TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
                         : base(listener, globalOperationNotificationService, backOffTimeSpan, shutdownToken)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,12 +15,13 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers.CSharpRemoveUnusedMembersDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers.CSharpRemoveUnusedMembersCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpRemoveUnusedMembersDiagnosticAnalyzer,
+        CSharpRemoveUnusedMembersCodeFixProvider>;
+
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
     public class RemoveUnusedMembersTests
     {
@@ -1216,6 +1215,23 @@ class C
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
+        [Fact, WorkItem(48247, "https://github.com/dotnet/roslyn/issues/48247")]
+        public async Task GenericMethodInDocComment()
+        {
+            var code = @"
+class C<T>
+{
+    /// <summary>
+    /// <see cref=""C{Int32}.M2()""/>
+    /// </summary>
+    public void M1() { }
+
+    private void {|IDE0052:M2|}() { }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
         [Fact]
         public async Task FieldIsOnlyWritten()
         {
@@ -1547,7 +1563,7 @@ class MyClass
             await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
                 CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
                 .WithSpan(3, 17, 3, 21)
-                .WithArguments("MyClass.this[]"));
+                .WithArguments("MyClass.this"));
         }
 
         [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
@@ -1699,7 +1715,7 @@ class MyClass
             await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
                 CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
                 .WithSpan(3, 17, 3, 21)
-                .WithArguments("MyClass.this[]"));
+                .WithArguments("MyClass.this"));
         }
 
         [Fact, WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
@@ -2721,6 +2737,18 @@ public class MyClass
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact, WorkItem(30884, "https://github.com/dotnet/roslyn/issues/30884")]
+        public async Task TestMessageForConstructor()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(
+@"class C
+{
+    private C(int i) { }
+}",
+    // /0/Test0.cs(3,13): info IDE0051: Private member 'C.C' is unused
+    VerifyCS.Diagnostic("IDE0051").WithSpan(3, 13, 3, 14).WithArguments("C.C"));
         }
     }
 }

@@ -1227,7 +1227,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We are explicitly ignoring scenario where the type might be defined in an added module.
             For Each reference As AssemblySymbol In sourceAssembly.SourceModule.GetReferencedAssemblySymbols()
                 Debug.Assert(Not reference.IsMissing)
-                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                Dim candidate As NamedTypeSymbol = reference.LookupDeclaredTopLevelMetadataType(metadataName)
+                Debug.Assert(If(Not candidate?.IsErrorType(), True))
 
                 If sourceAssembly.IsValidWellKnownType(candidate) AndAlso AssemblySymbol.IsAcceptableMatchForGetTypeByNameAndArity(candidate) Then
                     Return True
@@ -2429,8 +2430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If testData IsNot Nothing Then
-                moduleBeingBuilt.SetMethodTestData(testData.Methods)
-                testData.Module = moduleBeingBuilt
+                moduleBeingBuilt.SetTestData(testData)
             End If
 
             Return moduleBeingBuilt
@@ -3137,6 +3137,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Return False
             End Select
+        End Function
+
+        Private Protected Overrides Function SupportsRuntimeCapabilityCore(capability As RuntimeCapability) As Boolean
+            Return Me.Assembly.SupportsRuntimeCapability(capability)
         End Function
 
 #End Region

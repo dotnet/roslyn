@@ -1534,17 +1534,83 @@ class CL<T> where T : A, $$", @"Test");
             => await VerifyItemExistsAsync(@"class c { void M() { string goo; $$", "goo");
 
         [Fact]
-        public async Task Parameters()
+        public async Task Parameters_01()
             => await VerifyItemExistsAsync(@"class c { void M(string args) { $$", "args");
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_02(string prefix)
+        {
+            await VerifyItemExistsAsync(prefix + "$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_03(string prefix)
+        {
+            await VerifyItemIsAbsentAsync(prefix + "$$", "args", sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_04(string prefix)
+        {
+            await VerifyItemExistsAsync(prefix + @"$$
+Systen.Console.WriteLine();
+", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_05(string prefix)
+        {
+            await VerifyItemExistsAsync(@"
+Systen.Console.WriteLine();
+" + prefix + "$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_06(string prefix)
+        {
+            await VerifyItemExistsAsync(@"
+Systen.Console.WriteLine();
+" + prefix + @"$$
+Systen.Console.WriteLine();
+", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("ar")]
+        [InlineData("arg")]
+        [InlineData("args")]
+        public async Task Parameters_07(string prefix)
+        {
+            await VerifyItemExistsAsync("call(" + prefix + "$$)", "args", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Fact]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_1()
-            => await VerifyItemExistsAsync(@"$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+            => await VerifyItemIsAbsentAsync(@"$$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_2()
             => await VerifyItemExistsAsync(
@@ -1552,11 +1618,10 @@ class CL<T> where T : A, $$", @"Test");
 Console.WriteLine();
 $$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_3()
-            => await VerifyItemExistsAsync(
+            => await VerifyItemIsAbsentAsync(
                 @"using System;
 $$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
@@ -2919,7 +2984,6 @@ class C { }";
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace()
         {
             var markup = @"
@@ -2934,7 +2998,6 @@ namespace Test
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace2()
         {
             var markup = @"
@@ -2952,7 +3015,6 @@ namespace Test
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameWhenSuffixlessFormIsKeyword()
         {
             var markup = @"
@@ -2968,7 +3030,6 @@ namespace Test
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespaceWhenSuffixlessFormIsKeyword()
         {
             var markup = @"
@@ -2984,7 +3045,6 @@ namespace Test
         }
 
         [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task KeywordsUsedAsLocals()
         {
             var markup = @"
@@ -3013,7 +3073,6 @@ class C
         }
 
         [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords1()
         {
             var markup = @"
@@ -3031,7 +3090,6 @@ class C
         }
 
         [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords2()
         {
             var markup = @"
@@ -3053,7 +3111,6 @@ class C
         }
 
         [Fact, WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords3()
         {
             var markup = @"
@@ -3075,7 +3132,6 @@ class C
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAlias()
         {
             var markup = @"
@@ -3087,7 +3143,6 @@ class Program { }";
         }
 
         [Fact, WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAliasWhenSuffixlessFormIsKeyword()
         {
             var markup = @"
@@ -9730,7 +9785,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task NoCompletionInLocalFuncGenericParamList()
@@ -9746,7 +9800,6 @@ class C
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public async Task CompletionForAwaitWithoutAsync()
@@ -9840,7 +9893,6 @@ class C
         }
 
         [Fact, WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription()
         {
@@ -9857,7 +9909,6 @@ class C
         }
 
         [Fact, WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionDescription2()
         {
@@ -10842,7 +10893,6 @@ public class C
         }
 
         [Fact, WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionInStaticMethod()
         {
@@ -11896,11 +11946,138 @@ class C
             await VerifyAnyItemExistsAsync(source);
         }
 
+        [Fact]
+        public async Task AfterScopedInsideMethod()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        scoped $$
+    }
+}
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        public async Task AfterScopedGlobalStatement_FollowedByType()
+        {
+            var source = @"
+scoped $$
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact]
+        public async Task AfterScopedGlobalStatement_NotFollowedByType()
+        {
+            var source = """
+                using System;
+
+                scoped $$
+                """;
+
+            await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
+        }
+
+        [Fact]
+        public async Task AfterScopedInParameter()
+        {
+            var source = @"
+class C
+{
+    void M(scoped $$)
+    {
+    }
+}
+
+ref struct MyRefStruct { }
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+        }
+
+        [Fact, WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")]
+        public async Task DoNotProvideMemberOnSystemVoid()
+        {
+            var source = @"
+class C
+{
+    void M1(){}
+    void M2()
+    {
+        this.M1().$$
+    }
+}
+
+public static class Extension
+{
+    public static bool ExtMethod(this object x) => false;
+}
+";
+            await VerifyItemIsAbsentAsync(MakeMarkup(source), "ExtMethod");
+        }
+
+        [Fact]
+        public async Task NoSymbolCompletionsInEnumBaseList()
+        {
+            var source = "enum E : $$";
+
+            await VerifyNoItemsExistAsync(source);
+        }
+
+        [Fact, WorkItem(66903, "https://github.com/dotnet/roslyn/issues/66903")]
+        public async Task InRangeExpression()
+        {
+            var source = """
+                class C
+                {
+                    const int Test = 1;
+
+                    void M(string s)
+                    {
+                        var endIndex = 1;
+                        var substr = s[1..$$];
+                    }
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "endIndex");
+            await VerifyItemExistsAsync(source, "Test");
+            await VerifyItemExistsAsync(source, "C");
+        }
+
+        [Fact, WorkItem(66903, "https://github.com/dotnet/roslyn/issues/66903")]
+        public async Task InRangeExpression_WhitespaceAfterDotDotToken()
+        {
+            var source = """
+                class C
+                {
+                    const int Test = 1;
+
+                    void M(string s)
+                    {
+                        var endIndex = 1;
+                        var substr = s[1.. $$];
+                    }
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "endIndex");
+            await VerifyItemExistsAsync(source, "Test");
+            await VerifyItemExistsAsync(source, "C");
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""
 <Workspace>
-    <Project Language="C#" AssemblyName="Assembly" CommonReferences="true" LanguageVersion="{{languageVersion}}">
+    <Project Language="C#" AssemblyName="Assembly" CommonReferencesNet6="true" LanguageVersion="{{languageVersion}}">
         <Document FilePath="Test.cs">
 {{source}}
         </Document>

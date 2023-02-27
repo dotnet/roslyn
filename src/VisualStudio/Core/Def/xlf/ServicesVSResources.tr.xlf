@@ -82,6 +82,11 @@
         <target state="translated">Gezinti için her zaman varsayılan sembol sunucularını kullan</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">Kaynak tarafından oluşturulan dosyaları analiz et</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Çözümleyici Varsayılanları</target>
@@ -1145,6 +1150,11 @@
       <trans-unit id="Prefer_read_only_struct">
         <source>Prefer read-only struct</source>
         <target state="translated">Salt okunur yapıyı tercih et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="new">Prefer read-only struct member</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">

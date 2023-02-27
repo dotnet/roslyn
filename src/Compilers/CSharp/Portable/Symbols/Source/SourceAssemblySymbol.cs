@@ -71,7 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private CustomAttributesBag<CSharpAttributeData> _lazyNetModuleAttributesBag;
 
+#nullable enable 
+
         private IDictionary<string, NamedTypeSymbol> _lazyForwardedTypesFromSource;
+
+#nullable disable
 
         /// <summary>
         /// Indices of attributes that will not be emitted for one of two reasons:
@@ -692,7 +696,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // UnverifiableCodeAttribute is found.
             Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(compilation,
                 WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor, diagnostics, NoLocation.Singleton);
-
 
             TypeSymbol securityPermissionAttribute = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityPermissionAttribute);
             Debug.Assert((object)securityPermissionAttribute != null, "GetWellKnownType unexpectedly returned null");
@@ -2752,7 +2755,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
+#nullable enable
+
+        internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {
             int forcedArity = emittedName.ForcedArity;
 
@@ -2800,7 +2805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lazyForwardedTypesFromSource = forwardedTypesFromSource;
             }
 
-            NamedTypeSymbol result;
+            NamedTypeSymbol? result;
 
             if (_lazyForwardedTypesFromSource.TryGetValue(emittedName.FullName, out result))
             {
@@ -2836,7 +2841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
-                            return firstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
+                            return firstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies);
                         }
                     }
                 }
@@ -2844,6 +2849,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return null;
         }
+
+#nullable disable
 
         internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
         {

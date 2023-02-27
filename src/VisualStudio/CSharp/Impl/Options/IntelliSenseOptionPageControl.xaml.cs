@@ -7,6 +7,7 @@
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -18,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             InitializeComponent();
 
-            BindToOption(Automatically_complete_statement_on_semicolon, FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
+            BindToOption(Automatically_complete_statement_on_semicolon, CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon);
 
             BindToOption(Show_completion_item_filters, CompletionViewOptions.ShowCompletionItemFilters, LanguageNames.CSharp);
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);
@@ -45,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Tab_twice_to_insert_arguments.IsChecked = this.OptionStore.GetOption(CompletionViewOptions.EnableArgumentCompletionSnippets, LanguageNames.CSharp);
             AddSearchHandler(Tab_twice_to_insert_arguments);
 
-            Show_new_snippet_experience.IsChecked = this.OptionStore.GetOption(CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp);
+            Show_new_snippet_experience.IsChecked = this.OptionStore.GetOption(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp);
             AddSearchHandler(Show_new_snippet_experience);
         }
 
@@ -80,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private void Show_new_snippet_experience_CheckedChanged(object sender, RoutedEventArgs e)
         {
             Show_new_snippet_experience.IsThreeState = false;
-            this.OptionStore.SetOption(CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp, value: Show_new_snippet_experience.IsChecked);
+            this.OptionStore.SetOption(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp, value: Show_new_snippet_experience.IsChecked);
         }
     }
 }

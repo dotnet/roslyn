@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Security;
@@ -16,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -43,10 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         {
             var testDocument = workspace.DocumentWithCursor;
             var position = testDocument.CursorPosition.GetValueOrDefault();
-            var documentId = workspace.GetDocumentId(testDocument);
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var documentId = testDocument.Id;
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
 
             var service = QuickInfoService.GetService(document);
+            Contract.ThrowIfNull(service);
 
             await TestWithOptionsAsync(document, service, position, expectedResults);
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
             else
             {
-                Assert.NotNull(info);
+                AssertEx.NotNull(info);
 
                 foreach (var expected in expectedResults)
                 {
@@ -96,11 +96,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 </Workspace>", SecurityElement.Escape(markup));
 
             using var workspace = TestWorkspace.Create(xmlString);
-            var position = workspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
-            var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var sourceDocument = workspace.Documents.Single(d => d.Name == "SourceDocument");
+            var position = sourceDocument.CursorPosition!.Value;
+            var documentId = sourceDocument.Id;
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
 
             var service = QuickInfoService.GetService(document);
+            Contract.ThrowIfNull(service);
 
             var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
 
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
             else
             {
-                Assert.NotNull(info);
+                AssertEx.NotNull(info);
 
                 foreach (var expected in expectedResults)
                 {
@@ -246,11 +248,13 @@ using System.Linq;
         private static async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<QuickInfoItem>[] expectedResults)
         {
             using var workspace = TestWorkspace.Create(xmlString);
-            var position = workspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
-            var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var sourceDocument = workspace.Documents.First(d => d.Name == "SourceDocument");
+            var position = sourceDocument.CursorPosition!.Value;
+            var documentId = sourceDocument.Id;
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
 
             var service = QuickInfoService.GetService(document);
+            Contract.ThrowIfNull(service);
 
             var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
 
@@ -260,7 +264,7 @@ using System.Linq;
             }
             else
             {
-                Assert.NotNull(info);
+                AssertEx.NotNull(info);
 
                 foreach (var expected in expectedResults)
                 {
@@ -2322,6 +2326,46 @@ class C
     para$$m.ToString();
 }",
                 MainDescription($"({FeaturesResources.parameter}) int param = 42"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Lambda_Parameter_DefaultValue_01()
+        {
+            await TestInMethodAsync(
+@"(int param = 42) => {
+    return para$$m + 1;
+}",
+    MainDescription($"({FeaturesResources.parameter}) int param = 42"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Lambda_Parameter_DefaultValue_02()
+        {
+            await TestInMethodAsync(
+@"(int param = $$int.MaxValue) => {
+    return param + 1;
+}",
+    MainDescription($"{FeaturesResources.struct_} System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Lambda_Parameter_DefaultValue_03()
+        {
+            await TestInMethodAsync(
+@"(int param = int.$$MaxValue) => {
+    return param + 1;
+}",
+    MainDescription($"({FeaturesResources.constant}) const int int.MaxValue = 2147483647"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Lambda_Parameter_ParamsArray()
+        {
+            await TestInMethodAsync(
+@"(params int[] xs) => {
+    return x$$s.Length;
+}",
+    MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
         }
 
         [Fact]
@@ -8127,6 +8171,153 @@ $@"
     'a {FeaturesResources.is_} delegate string (ref int arg)"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType4()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (int param = 42) => param + 1;
+        $$lam();
+    }
+}
+",
+    MainDescription($"({FeaturesResources.local_variable}) 'a lam"),
+    AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} delegate int (int arg = 42)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType5()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        $$var lam = (int param = 42) => param;
+    }
+}
+", MainDescription("delegate int <anonymous delegate>(int arg = 42)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType6()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (i$$nt param = 42) => param;
+    }
+}
+", MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType7()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (int pa$$ram = 42) => param;
+    }
+}
+", MainDescription($"({FeaturesResources.parameter}) int param = 42"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType8()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (int param = 4$$2) => param;
+    }
+}
+", MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType9()
+        {
+            await TestAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        var lam = (params int[] xs) => xs.Length;
+                        $$lam();
+                    }
+                }
+                """,
+                MainDescription($"({FeaturesResources.local_variable}) 'a lam"),
+                AnonymousTypes($"""
+
+                {FeaturesResources.Types_colon}
+                    'a {FeaturesResources.is_} delegate int (params int[] arg)
+                """));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType10()
+        {
+            await TestAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        $$var lam = (params int[] xs) => xs.Length;
+                    }
+                }
+                """,
+                MainDescription("delegate int <anonymous delegate>(params int[] arg)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType11()
+        {
+            await TestAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        var lam = (params i$$nt[] xs) => xs.Length;
+                    }
+                }
+                """,
+                MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType12()
+        {
+            await TestAsync("""
+            class C
+            {
+                void M()
+                {
+                    var lam = (params int[] x$$s) => xs.Length;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
+        }
+
         [Fact, WorkItem(61320, "https://github.com/dotnet/roslyn/issues/61320")]
         public async Task TestSingleTupleType()
         {
@@ -8432,6 +8623,49 @@ class Program
 }";
             await TestAsync(source,
                 MainDescription($"({FeaturesResources.local_variable}) scoped ref int r"));
+        }
+
+        [Fact, WorkItem(66854, "https://github.com/dotnet/roslyn/issues/66854")]
+        public async Task TestNullableRefTypeVar1()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    void M()
+                    {
+                        object? o = null;
+                        $$var s = (string?)o;
+                    }
+                }
+                """;
+            await TestAsync(source,
+                MainDescription($"class System.String?"));
+        }
+
+        [Fact, WorkItem(66854, "https://github.com/dotnet/roslyn/issues/66854")]
+        public async Task TestNullableRefTypeVar2()
+        {
+            var source = """
+                #nullable disable
+
+                class C
+                {
+                    void M()
+                    {
+                        $$var s = GetNullableString();
+                    }
+
+                    #nullable enable
+
+                    string? GetNullableString() => null;
+
+                    #nullable restore
+                }
+                """;
+            await TestAsync(source,
+                MainDescription($"class System.String"));
         }
     }
 }

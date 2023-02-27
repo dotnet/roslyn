@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var options = targetDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
 
-            var info = options.GenerationOptions.GetInfo(new CodeGenerationContext(autoInsertionLocation: false), targetDocument.Project);
+            var info = codeGenerationService.GetInfo(new CodeGenerationContext(autoInsertionLocation: false), options.GenerationOptions, destinationType.SyntaxTree.Options);
             var newType = codeGenerationService.AddMethod(destinationType, newMethod, info, cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
@@ -302,9 +302,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
-            var allMembers = codeMemberType == CODEMEMBERTYPE.CODEMEMBERTYPE_EVENTS ?
-                semanticModel.LookupSymbols(position: type.Locations[0].SourceSpan.Start, container: type, name: null) :
-                type.GetMembers();
+            var allMembers = codeMemberType == CODEMEMBERTYPE.CODEMEMBERTYPE_EVENTS
+                ? semanticModel.LookupSymbols(position: type.Locations[0].SourceSpan.Start, container: type, name: null)
+                : type.GetMembers();
 
             var members = allMembers.Where(m => IncludeMember(m, codeMemberType, compilation));
             return members.Select(m => Tuple.Create(m.Name, ConstructMemberId(m)));
@@ -331,7 +331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             if (CodeAnalysis.Workspace.TryGetWorkspace(document.GetTextSynchronously(cancellationToken).Container, out var workspace))
             {
-                var newName = newFullyQualifiedName.Substring(newFullyQualifiedName.LastIndexOf('.') + 1);
+                var newName = newFullyQualifiedName[(newFullyQualifiedName.LastIndexOf('.') + 1)..];
                 var options = new SymbolRenameOptions();
                 var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, options, newName, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
                 var changedDocuments = newSolution.GetChangedDocuments(document.Project.Solution);
@@ -424,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
                 case ContainedLanguageRenameType.CLRT_CLASSMEMBER:
                     var lastDot = fullyQualifiedName.LastIndexOf('.');
-                    var typeName = fullyQualifiedName.Substring(0, lastDot);
+                    var typeName = fullyQualifiedName[..lastDot];
                     var memberName = fullyQualifiedName.Substring(lastDot + 1, fullyQualifiedName.Length - lastDot - 1);
                     var type = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetTypeByMetadataName(typeName);
                     var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
@@ -467,7 +467,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         internal static ISymbol LookupMemberId(INamedTypeSymbol type, string uniqueMemberID)
         {
-            var memberName = uniqueMemberID.Substring(0, uniqueMemberID.IndexOf('('));
+            var memberName = uniqueMemberID[..uniqueMemberID.IndexOf('(')];
             var members = type.GetMembers(memberName).Where(m => m.Kind == SymbolKind.Method);
 
             foreach (var m in members)

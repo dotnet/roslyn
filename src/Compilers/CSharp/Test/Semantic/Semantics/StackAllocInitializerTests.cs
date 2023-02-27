@@ -31,7 +31,7 @@ class C
         var x1 = stackalloc RefS[10];
         var x2 = stackalloc RefG<string>[10];
         var x3 = stackalloc RefG<int>[10];
-        var x4 = stackalloc System.TypedReference[10]; // Note: this should be disallowed by adding a dummy field to the ref assembly for TypedReference
+        var x4 = stackalloc System.TypedReference[10];
         var x5 = stackalloc System.ArgIterator[10];
         var x6 = stackalloc System.RuntimeArgumentHandle[10];
 
@@ -62,6 +62,9 @@ class C
                 // (10,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('RefG<string>')
                 //         var x2 = stackalloc RefG<string>[10];
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "RefG<string>").WithArguments("RefG<string>").WithLocation(10, 29),
+                // (12,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('TypedReference')
+                //         var x4 = stackalloc System.TypedReference[10];
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(12, 29),
                 // (16,22): error CS0611: Array elements cannot be of type 'RefS'
                 //         var y1 = new RefS[10];
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefS").WithArguments("RefS").WithLocation(16, 22),
@@ -657,12 +660,21 @@ class Test
                 // (7,37): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "select stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 37),
+                // (7,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 44),
                 // (8,37): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "select stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 37),
+                // (8,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 44),
                 // (9,37): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "select stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 37)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "select stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 37),
+                // (9,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 44)
                 );
         }
 
@@ -1443,16 +1455,24 @@ class Test
         Span<int> x3 = stackalloc     [ ] { 1, 2, 3 };
     }
 }", options: TestOptions.UnsafeReleaseDll, parseOptions: parseOptions).VerifyDiagnostics(
-                // (7,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
-                //         Span<int> x1 = stackalloc int [3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(7, 24),
-                // (8,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
-                //         Span<int> x2 = stackalloc int [ ] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(8, 24),
-                // (9,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
-                //         Span<int> x3 = stackalloc     [ ] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(9, 24)
-                );
+            // (7,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+            //         Span<int> x1 = stackalloc int [3] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(7, 24),
+            // (7,24): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+            //         Span<int> x1 = stackalloc int [3] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc int [3] { 1, 2, 3 }").WithArguments("ref structs", "7.2").WithLocation(7, 24),
+            // (8,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+            //         Span<int> x2 = stackalloc int [ ] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(8, 24),
+            // (8,24): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+            //         Span<int> x2 = stackalloc int [ ] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc int [ ] { 1, 2, 3 }").WithArguments("ref structs", "7.2").WithLocation(8, 24),
+            // (9,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+            //         Span<int> x3 = stackalloc     [ ] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(9, 24),
+            // (9,24): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+            //         Span<int> x3 = stackalloc     [ ] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc     [ ] { 1, 2, 3 }").WithArguments("ref structs", "7.2").WithLocation(9, 24));
         }
 
         [Fact]

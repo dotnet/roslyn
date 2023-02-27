@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -22,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractSnippetProvider : ISnippetProvider
     {
-        public abstract string SnippetIdentifier { get; }
-        public abstract string SnippetDescription { get; }
+        public abstract string Identifier { get; }
+        public abstract string Description { get; }
 
         public virtual ImmutableArray<string> AdditionalFilterTexts => ImmutableArray<string>.Empty;
 
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
-            return new SnippetData(SnippetDescription, SnippetIdentifier, AdditionalFilterTexts);
+            return new SnippetData(Description, Identifier, AdditionalFilterTexts);
         }
 
         /// <summary>
@@ -102,12 +103,15 @@ namespace Microsoft.CodeAnalysis.Snippets
             // Goes through and calls upon the formatting engines that the previous step annotated.
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
 
-            // Finds the added snippet and adds identation where necessary (braces).
+            // Finds the added snippet and adds indentation where necessary (braces).
             var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, position, syntaxFacts, cancellationToken).ConfigureAwait(false);
 
             var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
             var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+
+            Contract.ThrowIfNull(caretTarget);
+            Contract.ThrowIfNull(mainChangeNode);
 
             var annotatedReformattedDocument = documentWithIndentation.WithSyntaxRoot(reformattedRoot);
 
@@ -120,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             var placeholders = GetPlaceHolderLocationsList(mainChangeNode, syntaxFacts, cancellationToken);
 
             // All the changes from the original document to the most updated. Will later be
-            // collpased into one collapsed TextChange.
+            // collapsed into one collapsed TextChange.
             var changesArray = changes.ToImmutableArray();
             var sourceText = await annotatedReformattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -140,7 +144,11 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
-            var nodeWithTrivia = node.ReplaceTokens(node.DescendantTokens(descendIntoTrivia: true),
+            var allTokens = node.DescendantTokens(descendIntoTrivia: true).ToList();
+
+            // Skips the first and last token since
+            // those do not need elastic trivia added to them.
+            var nodeWithTrivia = node.ReplaceTokens(allTokens.Skip(1).Take(allTokens.Count - 2),
                 (oldtoken, _) => oldtoken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
                 .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
                 .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker));

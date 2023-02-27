@@ -38,8 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly Workspace _workspace;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly ITextBufferCloneService _textBufferCloneService;
+
         private readonly IFeatureService _featureService;
         private readonly IFeatureDisableToken _completionDisabledToken;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
@@ -134,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
+            ITextBufferCloneService textBufferCloneService,
             IFeatureServiceFactory featureServiceFactory,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListener asyncListener)
@@ -155,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _textBufferFactoryService = textBufferFactoryService;
+            _textBufferCloneService = textBufferCloneService;
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferAssociatedViewService.SubjectBuffersConnected += OnSubjectBuffersConnected;
 
@@ -273,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (!_openTextBuffers.ContainsKey(buffer) && buffer.SupportsRename())
             {
-                _openTextBuffers[buffer] = new OpenTextBufferManager(this, buffer, _workspace, _textBufferFactoryService);
+                _openTextBuffers[buffer] = new OpenTextBufferManager(this, _workspace, _textBufferFactoryService, _textBufferCloneService, buffer);
                 return true;
             }
 
@@ -384,6 +389,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (args.Kind != WorkspaceChangeKind.DocumentChanged)
             {
+                Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(m =>
+                {
+                    m["Kind"] = Enum.GetName(typeof(WorkspaceChangeEventArgs), args.Kind);
+                }));
+
                 Cancel();
             }
         }
@@ -859,31 +869,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var changes = _baseSolution.GetChanges(newSolution);
             var changedDocumentIDs = changes.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()).ToList();
 
+            // Go to the background thread for initial calculation of the final solution
             await TaskScheduler.Default;
-            var finalSolution = newSolution.Workspace.CurrentSolution;
-            foreach (var id in changedDocumentIDs)
-            {
-                // If the document supports syntax tree, then create the new solution from the
-                // updated syntax root.  This should ensure that annotations are preserved, and
-                // prevents the solution from having to reparse documents when we already have
-                // the trees for them.  If we don't support syntax, then just use the text of
-                // the document.
-                var newDocument = newSolution.GetDocument(id);
-
-                if (newDocument.SupportsSyntaxTree)
-                {
-                    var root = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    finalSolution = finalSolution.WithDocumentSyntaxRoot(id, root);
-                }
-                else
-                {
-                    var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    finalSolution = finalSolution.WithDocumentText(id, newText);
-                }
-
-                // Make sure to include any document rename as well
-                finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
-            }
+            var finalSolution = CalculateFinalSolutionSynchronously(newSolution, newSolution.Workspace, changedDocumentIDs, cancellationToken);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -893,7 +881,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
 
             if (!_workspace.TryApplyChanges(finalSolution))
-                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+            {
+                // If the workspace changed in TryOnBeforeGlobalSymbolRenamed retry, this prevents rename from failing for cases
+                // where text changes to other files or workspace state change doesn't impact the text changes being applied. 
+                Logger.Log(FunctionId.Rename_TryApplyRename_WorkspaceChanged, message: null, LogLevel.Information);
+                finalSolution = CalculateFinalSolutionSynchronously(newSolution, _workspace, changedDocumentIDs, cancellationToken);
+
+                if (!_workspace.TryApplyChanges(finalSolution))
+                    return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+            }
 
             try
             {
@@ -918,6 +914,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // If we successfully updated the workspace then make sure the undo transaction is committed and is
                 // always able to undo anything any other external listener did.
                 undoTransaction.Commit();
+            }
+
+            static Solution CalculateFinalSolutionSynchronously(Solution newSolution, Workspace workspace, List<DocumentId> changedDocumentIDs, CancellationToken cancellationToken)
+            {
+                var finalSolution = workspace.CurrentSolution;
+                foreach (var id in changedDocumentIDs)
+                {
+                    // If the document supports syntax tree, then create the new solution from the
+                    // updated syntax root.  This should ensure that annotations are preserved, and
+                    // prevents the solution from having to reparse documents when we already have
+                    // the trees for them.  If we don't support syntax, then just use the text of
+                    // the document.
+                    var newDocument = newSolution.GetDocument(id);
+
+                    if (newDocument.SupportsSyntaxTree)
+                    {
+                        var root = newDocument.GetRequiredSyntaxRootSynchronously(cancellationToken);
+                        finalSolution = finalSolution.WithDocumentSyntaxRoot(id, root);
+                    }
+                    else
+                    {
+                        var newText = newDocument.GetTextSynchronously(cancellationToken);
+                        finalSolution = finalSolution.WithDocumentText(id, newText);
+                    }
+
+                    // Make sure to include any document rename as well
+                    finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
+                }
+
+                return finalSolution;
             }
         }
 

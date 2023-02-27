@@ -46,7 +46,11 @@ internal static class Program
             return ExitFailure;
         }
 
-        TestDiscovery.RunDiscovery(source, dotnetPath, isUnix);
+        var success = TestDiscovery.RunDiscovery(source, dotnetPath, isUnix);
+        if (!success)
+        {
+            return ExitFailure;
+        }
 
         MinimizeUtil.Run(source, destination, isUnix);
         return ExitSuccess;

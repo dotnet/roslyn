@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -108,12 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (typeInferenceInfo.InferredType == null)
                         {
                             var allSymbols = symbolInfo.GetAllSymbols();
-                            if (allSymbols.Length == 1 &&
-                                allSymbols[0].Kind == SymbolKind.Method)
-                            {
-                                var method = allSymbols[0];
+                            if (allSymbols is [IMethodSymbol method])
                                 typeInferenceInfo = new TypeInferenceInfo(method.ConvertToType(this.Compilation));
-                            }
                         }
 
                         if (IsUsableTypeFunc(typeInferenceInfo))
@@ -246,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReturnStatementSyntax returnStatement => InferTypeForReturnStatement(returnStatement, token),
                     SingleVariableDesignationSyntax singleVariableDesignationSyntax => InferTypeForSingleVariableDesignation(singleVariableDesignationSyntax),
                     SwitchLabelSyntax switchLabel => InferTypeInSwitchLabel(switchLabel, token),
+                    SwitchExpressionSyntax switchExpression => InferTypeInSwitchExpression(switchExpression, token),
                     SwitchStatementSyntax switchStatement => InferTypeInSwitchStatement(switchStatement, token),
                     ThrowStatementSyntax throwStatement => InferTypeInThrowStatement(throwStatement, token),
                     TupleExpressionSyntax tupleExpression => InferTypeInTupleExpression(tupleExpression, token),
@@ -570,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (indexers.Any())
                     {
                         return indexers.SelectMany(i =>
-                            InferTypeInArgument(index, SpecializedCollections.SingletonEnumerable(i.Parameters), argumentOpt));
+                            InferTypeInArgument(index, ImmutableArray.Create(i.Parameters), argumentOpt));
                     }
                 }
 
@@ -584,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(int index, IEnumerable<IMethodSymbol> methods, AttributeArgumentSyntax argumentOpt = null)
-                => InferTypeInAttributeArgument(index, methods.Select(m => m.Parameters), argumentOpt);
+                => InferTypeInAttributeArgument(index, methods.SelectAsArray(m => m.Parameters), argumentOpt);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgument(int index, IEnumerable<IMethodSymbol> methods, ArgumentSyntax argumentOpt, InvocationExpressionSyntax parentInvocationExpressionToTypeInfer)
             {
@@ -608,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methods = filteredMethods.Any() ? filteredMethods : instantiatedMethods;
                 }
 
-                return InferTypeInArgument(index, methods.Select(m => m.Parameters), argumentOpt);
+                return InferTypeInArgument(index, methods.SelectAsArray(m => m.Parameters), argumentOpt);
             }
 
             private IMethodSymbol Instantiate(IMethodSymbol method, IList<ITypeSymbol> invocationTypes)
@@ -715,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(
                 int index,
-                IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
+                ImmutableArray<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 AttributeArgumentSyntax argumentOpt = null)
             {
                 if (argumentOpt != null && argumentOpt.NameEquals != null)
@@ -731,17 +729,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 int index,
-                IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
+                ImmutableArray<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 ArgumentSyntax argumentOpt)
             {
+                // Prefer parameter lists that match the original number of arguments passed.
+                using var _1 = ArrayBuilder<ImmutableArray<IParameterSymbol>>.GetInstance(out var parameterListsWithMatchingCount);
+                using var _2 = ArrayBuilder<ImmutableArray<IParameterSymbol>>.GetInstance(out var parameterListsWithoutMatchingCount);
+
+                var argumentCount = argumentOpt?.Parent is BaseArgumentListSyntax baseArgumentList ? baseArgumentList.Arguments.Count : -1;
+                foreach (var parameterList in parameterizedSymbols)
+                {
+                    if (argumentCount == -1)
+                    {
+                        // don't have a known argument count.  Just add this all to one of the lists.
+                        parameterListsWithMatchingCount.Add(parameterList);
+                    }
+                    else
+                    {
+                        var minParameterCount = parameterList.Count(p => !p.IsParams && !p.IsOptional);
+                        var maxParameterCount = parameterList.Any(p => p.IsParams) ? int.MaxValue : parameterList.Length;
+                        var list = argumentCount >= minParameterCount && argumentCount <= maxParameterCount
+                            ? parameterListsWithMatchingCount
+                            : parameterListsWithoutMatchingCount;
+
+                        list.Add(parameterList);
+                    }
+                }
+
                 var name = argumentOpt != null && argumentOpt.NameColon != null ? argumentOpt.NameColon.Name.Identifier.ValueText : null;
                 var refKind = argumentOpt.GetRefKind();
-                return InferTypeInArgument(index, parameterizedSymbols, name, refKind);
+                return InferTypeInArgument(index, parameterListsWithMatchingCount.ToImmutable(), name, refKind).Concat(
+                    InferTypeInArgument(index, parameterListsWithoutMatchingCount.ToImmutable(), name, refKind));
             }
 
             private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 int index,
-                IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
+                ImmutableArray<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 string name,
                 RefKind refKind)
             {
@@ -2001,13 +2024,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (isAsync)
                 {
-                    if (type.OriginalDefinition.Equals(this.Compilation.TaskOfTType()))
+                    if (type.OriginalDefinition.Equals(this.Compilation.TaskOfTType()) || type.OriginalDefinition.Equals(this.Compilation.ValueTaskOfTType()))
                     {
                         var namedTypeSymbol = (INamedTypeSymbol)type;
                         return namedTypeSymbol.TypeArguments[0];
                     }
 
-                    if (type.OriginalDefinition.Equals(this.Compilation.TaskType()))
+                    if (type.OriginalDefinition.Equals(this.Compilation.TaskType()) || type.OriginalDefinition.Equals(this.Compilation.ValueTaskType()))
                     {
                         return this.Compilation.GetSpecialType(SpecialType.System_Void);
                     }
@@ -2071,7 +2094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (arm.Parent is SwitchExpressionSyntax switchExpression)
                 {
-                    // see if we can figure out an appropriate type from a prior arm.
+                    // see if we can figure out an appropriate type from a prior/next arm.
                     var armIndex = switchExpression.Arms.IndexOf(arm);
                     if (armIndex > 0)
                     {
@@ -2081,10 +2104,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return priorArmTypes;
                     }
 
+                    if (armIndex < switchExpression.Arms.Count - 1)
+                    {
+                        var nextArm = switchExpression.Arms[armIndex + 1];
+                        var priorArmTypes = GetTypes(nextArm.Expression, objectAsDefault: false);
+                        if (priorArmTypes.Any())
+                            return priorArmTypes;
+                    }
+
                     // if a prior arm gave us nothing useful, or we're the first arm, then try to infer looking at
                     // what type gets inferred for the switch expression itself.
                     return InferTypes(switchExpression);
                 }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInSwitchExpression(SwitchExpressionSyntax switchExpression, SyntaxToken token)
+            {
+                if (token.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken)
+                    return GetTypes(switchExpression.GoverningExpression);
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
@@ -2165,47 +2204,95 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var variableType = variableDeclarator.GetVariableType();
                 if (variableType == null)
-                {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
 
                 var symbol = SemanticModel.GetDeclaredSymbol(variableDeclarator);
                 if (symbol == null)
-                {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
 
                 var type = symbol.GetSymbolType();
                 var types = CreateResult(type).Where(IsUsableTypeFunc);
 
-                if (variableType.IsVar)
+                if (!variableType.IsVar ||
+                    variableDeclarator.Parent is not VariableDeclarationSyntax variableDeclaration)
                 {
-                    if (variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration)
+                    return types;
+                }
+
+                // using (var v = Goo())
+                if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
+                    return CreateResult(SpecialType.System_IDisposable);
+
+                // for (var v = Goo(); ..
+                if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
+                    return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+
+                var laterUsageInference = InferTypeBasedOnLaterUsage(symbol, variableDeclaration);
+                if (laterUsageInference is not [] and not [{ InferredType.SpecialType: SpecialType.System_Object }])
+                    return laterUsageInference;
+
+                // Return the types here if they actually bound to a type called 'var'.
+                return types.Where(t => t.InferredType.Name == "var");
+            }
+
+            private ImmutableArray<TypeInferenceInfo> InferTypeBasedOnLaterUsage(ISymbol symbol, SyntaxNode afterNode)
+            {
+                // var v = expr.
+                // Attempt to see how 'v' is used later in the current scope to determine what to do.
+                var container = afterNode.AncestorsAndSelf().FirstOrDefault(a => a is BlockSyntax or SwitchSectionSyntax);
+                if (container != null)
+                {
+                    foreach (var descendant in container.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
                     {
-                        if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
-                        {
-                            // using (var v = Goo())
-                            return CreateResult(SpecialType.System_IDisposable);
-                        }
+                        // only look after the variable we're declaring.
+                        if (descendant.SpanStart <= afterNode.Span.End)
+                            continue;
 
-                        if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
-                        {
-                            // for (var v = Goo(); ..
-                            return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
-                        }
+                        if (descendant.Identifier.ValueText != symbol.Name)
+                            continue;
 
-                        // Return the types here if they actually bound to a type called 'var'.
-                        return types.Where(t => t.InferredType.Name == "var");
+                        // Make sure it's actually a match for this variable.
+                        var descendantSymbol = SemanticModel.GetSymbolInfo(descendant, CancellationToken).GetAnySymbol();
+                        if (symbol.Equals(descendantSymbol))
+                        {
+                            // See if we can infer something interesting about this location.
+                            var inferredDescendantTypes = InferTypes(descendant, filterUnusable: true);
+                            if (inferredDescendantTypes is not [] and not [{ InferredType.SpecialType: SpecialType.System_Object }])
+                                return inferredDescendantTypes;
+                        }
                     }
                 }
 
-                return types;
+                return ImmutableArray<TypeInferenceInfo>.Empty;
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(ExpressionSyntax left)
             {
                 if (left is DeclarationExpressionSyntax declExpr)
                 {
+                    // var (x, y) = Expr();
+                    // Attempt to determine what x and y are based on their future usage.
+                    if (declExpr.Type.IsVar &&
+                        declExpr.Designation is ParenthesizedVariableDesignationSyntax parenthesizedVariableDesignation &&
+                        parenthesizedVariableDesignation.Variables.All(v => v is SingleVariableDesignationSyntax))
+                    {
+                        using var _1 = ArrayBuilder<ITypeSymbol>.GetInstance(out var tupleTypes);
+                        using var _2 = ArrayBuilder<string>.GetInstance(out var names);
+
+                        foreach (var variable in parenthesizedVariableDesignation.Variables.Cast<SingleVariableDesignationSyntax>())
+                        {
+                            var symbol = SemanticModel.GetRequiredDeclaredSymbol(variable, CancellationToken);
+                            var inferredFutureUsage = InferTypeBasedOnLaterUsage(symbol, afterNode: left.Parent);
+                            tupleTypes.Add(inferredFutureUsage.Length > 0 ? inferredFutureUsage[0].InferredType : Compilation.ObjectType);
+                            names.Add(variable.Identifier.ValueText);
+                        }
+
+                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(
+                            Compilation.CreateTupleTypeSymbol(
+                                tupleTypes.ToImmutable(),
+                                names.ToImmutable())));
+                    }
+
                     return GetTypes(declExpr.Type);
                 }
                 else if (left is TupleExpressionSyntax tupleExpression)

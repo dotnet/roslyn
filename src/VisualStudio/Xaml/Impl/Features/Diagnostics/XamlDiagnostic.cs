@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics
         public string[]? CustomTags { get; set; }
 
         // TODO: the value stored in HelpLink should already be valid URI (https://github.com/dotnet/roslyn/issues/59205)
-        public Uri? GetHelpLinkUri() =>
-            Uri.TryCreate(HelpLink, UriKind.Absolute, out var uri) ? uri : null;
+        public Uri? GetHelpLinkUri()
+            => Uri.TryCreate(HelpLink, UriKind.Absolute, out var uri) ? uri : null;
     }
 }

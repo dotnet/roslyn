@@ -12,14 +12,10 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Export(GetType(ICommitFormatter))>
@@ -64,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                If Not (isExplicitFormat OrElse _editorOptionsService.GlobalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
+                If Not (isExplicitFormat OrElse _editorOptionsService.GlobalOptions.GetOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic)) Then
                     Return
                 End If
 
@@ -76,11 +72,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim formattingOptions = buffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.Services, isExplicitFormat)
+                Dim cleanupOptions = buffer.GetCodeCleanupOptions(_editorOptionsService, document.Project.Services, isExplicitFormat, allowImportsInHiddenRegions:=document.AllowImportsInHiddenRegions())
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document.Id,
                     document.Project.Services,
-                    formattingOptions,
+                    cleanupOptions.FormattingOptions,
                     spanToFormat,
                     baseSnapshot,
                     baseTree,
@@ -93,7 +89,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                Concat(commitFormattingCleanup)
 
                 Dim cleanupService = document.GetRequiredLanguageService(Of ICodeCleanerService)
-                Dim cleanupOptions = document.GetCodeCleanupOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then
@@ -109,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Dim newRoot = cleanupService.CleanupAsync(
                         root,
                         ImmutableArray.Create(textSpanToFormat),
-                        formattingOptions,
+                        cleanupOptions.FormattingOptions,
                         document.Project.Solution.Services,
                         codeCleanups,
                         cancellationToken).WaitAndGetResult(cancellationToken)

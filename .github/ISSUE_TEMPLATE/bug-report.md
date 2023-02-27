@@ -11,7 +11,11 @@ about: Report a bug in Roslyn
 2. 
 3. 
 
-(A [sharplab](https://sharplab.io/) repro is ideal for compiler/language issues whenever possible)
+A minimal repro, with source-code provided, is ideal.  Using [sharplab](https://sharplab.io/) is preferred for compiler/language issues whenever possible.
+
+**Diagnostic Id**:
+
+If this is a report about a bug in an analyzer, please include the diagnostic if possible (e.g. `"IDE0030"`).
 
 **Expected Behavior**:
 

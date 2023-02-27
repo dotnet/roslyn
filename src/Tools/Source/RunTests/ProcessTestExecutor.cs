@@ -19,7 +19,7 @@ namespace RunTests
 {
     internal sealed class ProcessTestExecutor
     {
-        public static string BuildRspFileContents(WorkItemInfo workItem, Options options)
+        public static string BuildRspFileContents(WorkItemInfo workItem, Options options, string xmlResultsFilePath, string? htmlResultsFilePath)
         {
             var fileContentsBuilder = new StringBuilder();
 
@@ -31,10 +31,10 @@ namespace RunTests
             }
 
             fileContentsBuilder.AppendLine($@"/Platform:{options.Architecture}");
-            fileContentsBuilder.AppendLine($@"/Logger:xunit;LogFilePath={GetResultsFilePath(workItem, options, "xml")}");
-            if (options.IncludeHtml)
+            fileContentsBuilder.AppendLine($@"/Logger:xunit;LogFilePath={xmlResultsFilePath}");
+            if (htmlResultsFilePath != null)
             {
-                fileContentsBuilder.AppendLine($@"/Logger:html;LogFileName={GetResultsFilePath(workItem, options, "html")}");
+                fileContentsBuilder.AppendLine($@"/Logger:html;LogFileName={htmlResultsFilePath}");
             }
 
             var blameOption = "CollectHangDump";
@@ -104,7 +104,7 @@ namespace RunTests
             return vsTestConsolePath;
         }
 
-        private static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
+        public static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
         {
             var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
             return Path.Combine(options.TestResultsDirectory, fileName);
@@ -133,7 +133,9 @@ namespace RunTests
         {
             try
             {
-                var rspFileContents = BuildRspFileContents(workItemInfo, options);
+                var resultsFilePath = GetResultsFilePath(workItemInfo, options);
+                var htmlResultsFilePath = options.IncludeHtml ? GetResultsFilePath(workItemInfo, options, "html") : null;
+                var rspFileContents = BuildRspFileContents(workItemInfo, options, resultsFilePath, htmlResultsFilePath);
                 var rspFilePath = Path.Combine(getRspDirectory(), $"vstest_{workItemInfo.PartitionIndex}.rsp");
                 File.WriteAllText(rspFilePath, rspFileContents);
 
@@ -141,9 +143,7 @@ namespace RunTests
 
                 var commandLineArguments = $"exec \"{vsTestConsolePath}\" @\"{rspFilePath}\"";
 
-                var resultsFilePath = GetResultsFilePath(workItemInfo, options);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
-                var htmlResultsFilePath = options.IncludeHtml ? GetResultsFilePath(workItemInfo, options, "html") : null;
                 var processResultList = new List<ProcessResult>();
 
                 // NOTE: xUnit doesn't always create the log directory

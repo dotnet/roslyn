@@ -13,7 +13,7 @@ namespace Roslyn.Test.Utilities
     /// A simple deriviation of <see cref="AnalyzerReference"/> that returns the source generator
     /// passed, for ease in unit tests.
     /// </summary>
-    public sealed class TestGeneratorReference : AnalyzerReference, IChecksummedObject
+    public class TestGeneratorReference : AnalyzerReference, IChecksummedObject
     {
         private readonly ISourceGenerator _generator;
         private readonly Checksum _checksum;

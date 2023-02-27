@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
@@ -21,11 +22,11 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.TaskList;
@@ -63,10 +64,11 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteConvertTupleToStructCodeRefactoringService), typeof(IRemoteConvertTupleToStructCodeRefactoringService.ICallback)),
             (typeof(IRemoteSymbolFinderService), typeof(IRemoteSymbolFinderService.ICallback)),
             (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
+            (typeof(IRemoteFullyQualifyService), null),
             (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),
             (typeof(IRemoteNavigationBarItemService), null),
             (typeof(IRemoteMissingImportDiscoveryService), typeof(IRemoteMissingImportDiscoveryService.ICallback)),
-            (typeof(IRemoteSymbolSearchUpdateService), typeof(IRemoteSymbolSearchUpdateService.ICallback)),
+            (typeof(IRemoteSymbolSearchUpdateService), null),
             (typeof(IRemoteExtensionMethodImportCompletionService), null),
             (typeof(IRemoteDependentTypeFinderService), null),
             (typeof(IRemoteGlobalNotificationDeliveryService), null),

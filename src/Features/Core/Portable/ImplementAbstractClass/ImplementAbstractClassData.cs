@@ -110,13 +110,12 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 autoInsertionLocation: groupMembers,
                 sortMembers: groupMembers);
 
-            var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-            var codeGenOptions = await _document.GetCodeGenerationOptionsAsync(_options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await _document.GetCodeGenerationInfoAsync(context, _options.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
-            var updatedClassNode = codeGenerator.AddMembers(
+            var updatedClassNode = info.Service.AddMembers(
                 classNodeToAddMembersTo,
                 memberDefinitions,
-                codeGenOptions.GetInfo(context, _document.Project),
+                info,
                 cancellationToken);
 
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

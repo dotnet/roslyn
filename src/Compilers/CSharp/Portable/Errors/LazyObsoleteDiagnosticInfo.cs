@@ -23,6 +23,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             _binderFlags = binderFlags;
         }
 
+        private LazyObsoleteDiagnosticInfo(LazyObsoleteDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            _symbolOrSymbolWithAnnotations = original._symbolOrSymbolWithAnnotations;
+            _containingSymbol = original._containingSymbol;
+            _binderFlags = original._binderFlags;
+        }
+
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new LazyObsoleteDiagnosticInfo(this, severity);
+        }
+
         protected override DiagnosticInfo ResolveInfo()
         {
             // A symbol's Obsoleteness may not have been calculated yet if the symbol is coming

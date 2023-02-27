@@ -28,11 +28,11 @@ class C
     int Y { get; }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -47,11 +47,11 @@ class C
     void Y() { }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -68,11 +68,11 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -89,11 +89,11 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -113,11 +113,11 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -137,11 +137,11 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -162,11 +162,11 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -187,11 +187,11 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -212,11 +212,11 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -237,11 +237,11 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -263,11 +263,11 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -288,11 +288,11 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -317,18 +317,18 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
         [Fact]
         public async Task TestBetweenBlockAndStatement1()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -353,7 +353,7 @@ class C
         return;
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -372,18 +372,18 @@ class C
     }
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.TrueWithSilentEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
 
         [Fact]
         public async Task TestBetweenSwitchAndStatement1()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -408,14 +408,14 @@ class C
         return;
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
         [Fact]
         public async Task TestBetweenBlockAndStatement2()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -440,14 +440,14 @@ class C
         return;
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
         [Fact]
         public async Task TestBetweenBlockAndStatement3()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -468,14 +468,14 @@ class C
         return;
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
         [Fact]
         public async Task TestBetweenBlockAndStatement4()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -504,14 +504,14 @@ class C
         }
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
         [Fact]
         public async Task TestFixAll1()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"
 class C
@@ -545,7 +545,7 @@ class C
         return;
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -911,18 +911,18 @@ public class Foo
 }
 ";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
         [Fact]
         public async Task TestSA1513PositiveCases()
         {
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = @"using System;
 using System.Collections.Generic;
@@ -1102,7 +1102,7 @@ public class Goo
     }
 }
 ",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
     }

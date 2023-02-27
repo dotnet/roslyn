@@ -1547,42 +1547,56 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(5,16): error CS1513: } expected
+                // (5,16): error CS1003: Syntax error, 'switch' expected
                 //     /*<bind>*/{
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 16),
-                // file.cs(6,19): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("switch").WithLocation(5, 16),
+                // (6,13): error CS8070: Control cannot fall out of switch from final case label ('case 1:')
                 //             case 1:
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(6, 19),
-                // file.cs(6,19): error CS1513: } expected
-                //             case 1:
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(6, 19),
-                // file.cs(10,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1)
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 1:").WithArguments("case 1:").WithLocation(6, 13)
             };
 
             string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (2)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '1')
-          Expression: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
-              Left: 
-                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
-
-    Next (Regular) Block[B2]
-Block[B2] - Exit
-    Predecessors: [B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '')
+              Value:
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: '')
+                  Children(1):
+                      IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+                        Children(0)
+        Jump if False (Regular) to Block[B3]
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1')
+              Value:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: '')
+              Pattern:
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: '1') (InputType: ?, NarrowedType: System.Int32)
+                  Value:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            Leaving: {R1}
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
+                  Left:
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                  Right:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+        Next (Regular) Block[B3]
+            Leaving: {R1}
+}
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
@@ -3312,7 +3326,6 @@ Block[B7] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
-
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns, CompilerFeature.Dataflow)]
         [Fact]

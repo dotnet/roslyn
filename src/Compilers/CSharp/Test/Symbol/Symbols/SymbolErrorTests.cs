@@ -1464,9 +1464,9 @@ class C : I
     // (10,77): error CS0100: The parameter name 'p' is a duplicate
     //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
     Diagnostic(ErrorCode.ERR_DuplicateParamName, "p").WithArguments("p").WithLocation(10, 77),
-    // (10,82): error CS0229: Ambiguity between 'object' and 'ref string'
+    // (10,82): error CS0229: Ambiguity between 'object p' and 'ref string p'
     //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
-    Diagnostic(ErrorCode.ERR_AmbigMember, "p").WithArguments("object", "ref string").WithLocation(10, 82)
+    Diagnostic(ErrorCode.ERR_AmbigMember, "p").WithArguments("object p", "ref string p").WithLocation(10, 82)
                 );
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -7781,7 +7781,7 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
@@ -13407,7 +13407,7 @@ class C
         }
 
         [WorkItem(61831, "https://github.com/dotnet/roslyn/issues/61831")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61831#issuecomment-1249148459")]
+        [Fact]
         public void CS0721ERR_ParameterIsStaticClass_Lambdas()
         {
             var source =
@@ -15263,7 +15263,6 @@ class AAttribute : Attribute { }
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ab[10]");
         }
 
-
         [Fact]
         public void CS1642ERR_FixedNotInStruct()
         {
@@ -15361,19 +15360,19 @@ class AAttribute : Attribute { }
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,33): error CS1002: ; expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "["),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "[").WithLocation(4, 33),
                 // (4,34): error CS1001: Identifier expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "2"),
-                // (4,34): error CS1001: Identifier expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "2").WithLocation(4, 34),
+                // (4,34): error CS1003: Syntax error, ',' expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "2"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(4, 34),
                 // (4,36): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 36),
                 // (3,30): error CS7092: A fixed buffer may only have one dimension.
                 //     public unsafe fixed int A[2,2];   // CS1003,CS1001
-                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[2,2]"));
+                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[2,2]").WithLocation(3, 30));
         }
 
         [Fact]
@@ -15498,7 +15497,6 @@ class AAttribute : Attribute { }
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ABC").WithArguments("goo.ABC", "0"));
         }
 
-
         [Fact]
         public void C1666ERR_InvalidFixedBufferInUnfixedContext()
         {
@@ -15556,8 +15554,6 @@ unsafe struct @s
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "_buffer[2]"));
         }
-
-
 
         [Fact()]
         public void CS1667ERR_AttributeNotOnAccessor()
@@ -17415,12 +17411,12 @@ namespace SA
 
             var comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
-                // (11,16): warning CS0435: The namespace 'CSFields' in '' conflicts with the imported type 'CSFields' in 'CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in ''.
+                // (11,16): warning CS0435: The namespace 'CSFields' in '0.cs' conflicts with the imported type 'CSFields' in 'CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in ''.
                 //         void M(CSFields.FFF p) { }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("0.cs", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields"),
                 // (10,9): warning CS0435: The namespace 'CSFields' in '' conflicts with the imported type 'CSFields' in 'CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in ''.
                 //         CSFields.FFF var = null;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("0.cs", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields"),
                 // (10,22): warning CS0414: The field 'SA.Test.var' is assigned but its value is never used
                 //         CSFields.FFF var = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "var").WithArguments("SA.Test.var")
@@ -17453,16 +17449,15 @@ namespace SA
             // Roslyn gives CS1542 or CS0104
             var comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
-                // (8,16): warning CS0436: The type 'Class1' in '' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+                // (8,16): warning CS0436: The type 'Class1' in '0.cs' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         void M(Class1 p) { }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
-                // (7,9): warning CS0436: The type 'Class1' in '' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("0.cs", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
+                // (7,9): warning CS0436: The type 'Class1' in '0.cs' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         Class1 cls;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("0.cs", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
                 // (7,16): warning CS0169: The field 'SA.Test.cls' is never used
                 //         Class1 cls;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "cls").WithArguments("SA.Test.cls"));
-
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("SA").Single() as NamespaceSymbol;
             // TODO...
@@ -17697,12 +17692,12 @@ namespace SA
             // Roslyn CS1542
             var comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
-                // (11,16): warning CS0437: The type 'AppCS' in '' conflicts with the imported namespace 'AppCS' in 'AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+                // (11,16): warning CS0437: The type 'AppCS' in '0.cs' conflicts with the imported namespace 'AppCS' in 'AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         void M(AppCS.App p) { }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("0.cs", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS"),
                 // (10,9): warning CS0437: The type 'AppCS' in '' conflicts with the imported namespace 'AppCS' in 'AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         AppCS.App app = null;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("0.cs", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS"),
                 // (10,19): warning CS0414: The field 'SA.Test.app' is assigned but its value is never used
                 //         AppCS.App app = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "app").WithArguments("SA.Test.app"));
@@ -18590,7 +18585,7 @@ class Derived : Base<string>
 }
 ";
             // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
-            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
@@ -19229,7 +19224,6 @@ namespace NS
                 //         public int MyMeth;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "MyMeth").WithArguments("NS.MyType.MyMeth", "0")
                 );
-
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("MyType").Single() as NamedTypeSymbol;

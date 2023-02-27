@@ -4408,7 +4408,7 @@ End Namespace")
         Public Async Function TestAcrossFiles() As Task
             Await TestInRegularAndScriptAsync(
 "<Workspace>
-    <Project Language=""Visual Basic"">
+    <Project Language=""Visual Basic"" CommonReferences=""true"">
         <Document>
 Public Class DataContainer
     Property PossibleInProcessTests As string
@@ -4462,6 +4462,7 @@ Public Class DataContainer
     End Sub
 
     Friend Sub ArbitraryPositionMethod()
+        Throw New NotImplementedException()
     End Sub
 
     Function Bazz() As Object
@@ -4614,6 +4615,35 @@ Class C
         Throw New NotImplementedException()
     End Sub
 End Class")
+        End Function
+
+        <Fact, WorkItem(47153, "https://github.com/dotnet/roslyn/issues/47153")>
+        Public Async Function TestSingleLineIf() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub X()
+        If [|Goo()|] Then Bar()
+    End Sub
+
+    Sub Bar()
+    End Sub
+End Module
+",
+"Imports System
+
+Module Program
+    Sub X()
+        If Goo() Then Bar()
+    End Sub
+
+    Private Function Goo() As Boolean
+        Throw New NotImplementedException()
+    End Function
+
+    Sub Bar()
+    End Sub
+End Module
+")
         End Function
     End Class
 End Namespace

@@ -176,16 +176,25 @@ using System;
 using System.Collections;
 class C
 {
-    IEnumerable Gen()
+    IEnumerable F1()
     {
-        Span<int> s = stackalloc int[10];
-        yield return s;
+        Span<int> s1 = stackalloc int[10];
+        yield return s1;
+    }
+    IEnumerable F2()
+    {
+        Span<int> s2 = default;
+        yield return s2;
     }
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            // Note: an escape analysis error is not given here because we already gave a conversion error.
             comp.VerifyDiagnostics(
-                // (9,22): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
-                //         yield return s;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(9, 22));
+                // (9,22): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                //         yield return s1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("System.Span<int>", "object").WithLocation(9, 22),
+                // (14,22): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                //         yield return s2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s2").WithArguments("System.Span<int>", "object").WithLocation(14, 22));
         }
 
         [Theory]
@@ -888,8 +897,8 @@ class Program
                 );
         }
 
-        [Fact()]
-        public void DiscardExpressionSpan()
+        [Fact]
+        public void DiscardExpressionSpan_01()
         {
             var text = @"
 using System;
@@ -913,7 +922,7 @@ class Program
         ref var s = ref ReturnsSpan(out var _);
 
         // error
-        s = stackalloc int[1];
+        s = stackalloc int[1]; // 1
 
         // ok
         return s;
@@ -922,33 +931,33 @@ class Program
     static void Test3()
     {
         // error
-        ReturnsSpan(out var _ ) = stackalloc int[1];
+        ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
     }
 
     static ref Span<int> ReturnsSpan(out Span<int> x)
     {
         x = default;
-        return ref x;
+        return ref x; // 3
     }
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (23,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
-                //         s = stackalloc int[1];
+                //         s = stackalloc int[1]; // 1
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(23, 13),
                 // (32,35): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
-                //         ReturnsSpan(out var _ ) = stackalloc int[1];
+                //         ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(32, 35)
                 );
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
                 // (23,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
-                //         s = stackalloc int[1];
+                //         s = stackalloc int[1]; // 1
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(23, 13),
                 // (32,35): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
-                //         ReturnsSpan(out var _ ) = stackalloc int[1];
+                //         ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(32, 35),
                 // (38,20): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
-                //         return ref x;
+                //         return ref x; // 3
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(38, 20)
                 );
         }
@@ -1065,6 +1074,575 @@ unsafe class Program
   IL_001b:  ret
 }
 ");
+        }
+
+        // As above with 'out _' instead of 'out var _'.
+        [WorkItem(65651, "https://github.com/dotnet/roslyn/issues/65651")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_02(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static Span<int> Test2A()
+                    {
+                        ref var s2A = ref ReturnsSpan(out _);
+                        s2A = stackalloc int[1]; // 1
+                        return s2A;
+                    }
+                    static Span<int> Test2B()
+                    {
+                        Span<int> _;
+                        ref var s2B = ref ReturnsSpan(out _);
+                        s2B = stackalloc int[1]; // 2
+                        return s2B;
+                    }
+                    static void Test3A()
+                    {
+                        ReturnsSpan(out _ ) = stackalloc int[1]; // 3
+                    }
+                    static void Test3B()
+                    {
+                        Span<int> _;
+                        ReturnsSpan(out _ ) = stackalloc int[1]; // 4
+                    }
+                    static ref Span<int> ReturnsSpan(out Span<int> x)
+                    {
+                        throw null;
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (7,15): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         s2A = stackalloc int[1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(7, 15),
+                // (14,15): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         s2B = stackalloc int[1]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(14, 15),
+                // (19,31): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         ReturnsSpan(out _ ) = stackalloc int[1]; // 3
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(19, 31),
+                // (24,31): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         ReturnsSpan(out _ ) = stackalloc int[1]; // 4
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(24, 31));
+        }
+
+        // ReturnsSpan() returns ref Span<int>, callers return Span<int> by value.
+        [WorkItem(65651, "https://github.com/dotnet/roslyn/issues/65651")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_03(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static Span<int> Test1()
+                    {
+                        var s1 = ReturnsSpan(out _);
+                        return s1;
+                    }
+                    static Span<int> Test2()
+                    {
+                        var s2 = ReturnsSpan(out var _);
+                        return s2;
+                    }
+                    static Span<int> Test3()
+                    {
+                        var s3 = ReturnsSpan(out Span<int> _);
+                        return s3;
+                    }
+                    static Span<int> Test4()
+                    {
+                        var s4 = ReturnsSpan(out var unused);
+                        return s4;
+                    }
+                    static Span<int> Test5()
+                    {
+                        Span<int> _;
+                        var s5 = ReturnsSpan(out _);
+                        return s5;
+                    }
+                    static Span<int> Test6(out Span<int> _)
+                    {
+                        var s6 = ReturnsSpan(out _);
+                        return s6;
+                    }
+                    static ref Span<int> ReturnsSpan(out Span<int> x)
+                    {
+                        throw null;
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics();
+        }
+
+        // ReturnsSpan() and callers return Span<int> by value.
+        [WorkItem(65651, "https://github.com/dotnet/roslyn/issues/65651")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_04(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static Span<int> Test1()
+                    {
+                        var s1 = ReturnsSpan(out _);
+                        return s1;
+                    }
+                    static Span<int> Test2()
+                    {
+                        var s2 = ReturnsSpan(out var _);
+                        return s2;
+                    }
+                    static Span<int> Test3()
+                    {
+                        var s3 = ReturnsSpan(out Span<int> _);
+                        return s3;
+                    }
+                    static Span<int> Test4()
+                    {
+                        var s4 = ReturnsSpan(out var unused);
+                        return s4;
+                    }
+                    static Span<int> Test5()
+                    {
+                        Span<int> _;
+                        var s5 = ReturnsSpan(out _);
+                        return s5;
+                    }
+                    static Span<int> Test6(out Span<int> _)
+                    {
+                        var s6 = ReturnsSpan(out _);
+                        return s6;
+                    }
+                    static Span<int> ReturnsSpan(out Span<int> x)
+                    {
+                        x = default;
+                        return x;
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics();
+        }
+
+        // ReturnsSpan() and callers return ref Span<int>.
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_05(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static ref Span<int> Test1()
+                    {
+                        var s1 = ReturnsSpan(out _);
+                        return ref s1; // 1
+                    }
+                    static ref Span<int> Test2()
+                    {
+                        var s2 = ReturnsSpan(out var _);
+                        return ref s2; // 2
+                    }
+                    static ref Span<int> Test3()
+                    {
+                        var s3 = ReturnsSpan(out Span<int> _);
+                        return ref s3; // 3
+                    }
+                    static ref Span<int> Test4()
+                    {
+                        var s4 = ReturnsSpan(out var unused);
+                        return ref s4; // 4
+                    }
+                    static ref Span<int> Test5()
+                    {
+                        Span<int> _;
+                        var s5 = ReturnsSpan(out _);
+                        return ref s5; // 5
+                    }
+                    static ref Span<int> Test6(out Span<int> _)
+                    {
+                        var s6 = ReturnsSpan(out _);
+                        return ref s6; // 6
+                    }
+                    static ref Span<int> ReturnsSpan(out Span<int> x)
+                    {
+                        throw null;
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8168: Cannot return local 's1' by reference because it is not a ref local
+                //         return ref s1; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s1").WithArguments("s1").WithLocation(7, 20),
+                // (12,20): error CS8168: Cannot return local 's2' by reference because it is not a ref local
+                //         return ref s2; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s2").WithArguments("s2").WithLocation(12, 20),
+                // (17,20): error CS8168: Cannot return local 's3' by reference because it is not a ref local
+                //         return ref s3; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s3").WithArguments("s3").WithLocation(17, 20),
+                // (22,20): error CS8168: Cannot return local 's4' by reference because it is not a ref local
+                //         return ref s4; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s4").WithArguments("s4").WithLocation(22, 20),
+                // (28,20): error CS8168: Cannot return local 's5' by reference because it is not a ref local
+                //         return ref s5; // 5
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s5").WithArguments("s5").WithLocation(28, 20),
+                // (33,20): error CS8168: Cannot return local 's6' by reference because it is not a ref local
+                //         return ref s6; // 6
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s6").WithArguments("s6").WithLocation(33, 20));
+        }
+
+        // ReturnsSpan() and callers return ref int.
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_06(LanguageVersion languageVersion)
+        {
+            string source = """
+                class Program
+                {
+                    static ref int Test1()
+                    {
+                        var s1 = ReturnsSpan(out _);
+                        return ref s1; // 1
+                    }
+                    static ref int Test2()
+                    {
+                        var s2 = ReturnsSpan(out var _);
+                        return ref s2; // 2
+                    }
+                    static ref int Test3()
+                    {
+                        var s3 = ReturnsSpan(out int _);
+                        return ref s3; // 3
+                    }
+                    static ref int Test4()
+                    {
+                        var s4 = ReturnsSpan(out var unused);
+                        return ref s4; // 4
+                    }
+                    static ref int Test5()
+                    {
+                        int _;
+                        var s5 = ReturnsSpan(out _);
+                        return ref s5; // 5
+                    }
+                    static ref int Test6(out int _)
+                    {
+                        var s6 = ReturnsSpan(out _);
+                        return ref s6; // 6
+                    }
+                    static ref int ReturnsSpan(out int x)
+                    {
+                        throw null;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (6,20): error CS8168: Cannot return local 's1' by reference because it is not a ref local
+                //         return ref s1; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s1").WithArguments("s1").WithLocation(6, 20),
+                // (11,20): error CS8168: Cannot return local 's2' by reference because it is not a ref local
+                //         return ref s2; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s2").WithArguments("s2").WithLocation(11, 20),
+                // (16,20): error CS8168: Cannot return local 's3' by reference because it is not a ref local
+                //         return ref s3; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s3").WithArguments("s3").WithLocation(16, 20),
+                // (21,20): error CS8168: Cannot return local 's4' by reference because it is not a ref local
+                //         return ref s4; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s4").WithArguments("s4").WithLocation(21, 20),
+                // (27,20): error CS8168: Cannot return local 's5' by reference because it is not a ref local
+                //         return ref s5; // 5
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s5").WithArguments("s5").WithLocation(27, 20),
+                // (32,20): error CS8168: Cannot return local 's6' by reference because it is not a ref local
+                //         return ref s6; // 6
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s6").WithArguments("s6").WithLocation(32, 20));
+        }
+
+        [Theory]
+        [InlineData("out var _")]
+        [InlineData("out _")]
+        [InlineData("out Span<int> _")]
+        [InlineData("out var unused")]
+        [InlineData("out Span<int> unused")]
+        public void DiscardExpressionSpan_07(string outVarDeclaration)
+        {
+            string source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                class Program
+                {
+                    static Span<int> Test1()
+                    {
+                        var s1 = ReturnsSpan({{outVarDeclaration}});
+                        return s1;
+                    }
+                    static Span<int> Test2()
+                    {
+                        ref var s2 = ref ReturnsSpan({{outVarDeclaration}});
+                        s2 = stackalloc int[1]; // 1
+                        return s2;
+                    }
+                    static void Test3()
+                    {
+                        ReturnsSpan({{outVarDeclaration}}) =
+                            stackalloc int[1]; // 2
+                    }
+                    static ref Span<int> ReturnsSpan([UnscopedRef] out Span<int> x)
+                    {
+                        x = default;
+                        return ref x;
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (13,14): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         s2 = stackalloc int[1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(13, 14),
+                // (19,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //             stackalloc int[1]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(19, 13));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Discard_01(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void F1()
+                    {
+                        Span<int> s1 = stackalloc int[1];
+                        _ = s1;
+                    }
+                    static void F2()
+                    {
+                        Span<int> s2 = stackalloc int[1];
+                        Span<int> _;
+                        _ = s2; // 1
+                    }
+                }
+                """;
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (13,13): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = s2; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(13, 13));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Discard_02(LanguageVersion languageVersion)
+        {
+            string source = """
+                class Program
+                {
+                    static void F1(ref int x1)
+                    {
+                        int y1 = 1;
+                        _ = ref y1;
+                        _ = ref x1;
+                    }
+                    static void F2(ref int x2)
+                    {
+                        int y2 = 2;
+                        _ = ref x2;
+                        _ = ref y2;
+                    }
+                    static void F3()
+                    {
+                        int y3 = 3;
+                        ref int _ = ref y3;
+                        _ = ref y3;
+                    }
+                    static void F4(ref int x4)
+                    {
+                        int y4 = 4;
+                        ref int _ = ref x4;
+                        _ = ref y4; // 1
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (25,9): error CS8374: Cannot ref-assign 'y4' to '_' because 'y4' has a narrower escape scope than '_'.
+                //         _ = ref y4; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "_ = ref y4").WithArguments("_", "y4").WithLocation(25, 9));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Discard_03(LanguageVersion languageVersion)
+        {
+            var source =
+@"class Program
+{
+    static void F1()
+    {
+        (var x1, _) = F();
+        (var x2, var _) = F();
+        (var x3, R _) = F();
+        var (x4, _) = F();
+    }
+    static void F2()
+    {
+        R _;
+        (var x5, _) = F();
+    }
+    static R F() => default;
+}
+ref struct R 
+{
+    public void Deconstruct(out R x, out R y) => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Discard_04(LanguageVersion languageVersion)
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1()
+    {
+        Span<int> s1 = default;
+        s1.Deconstruct(out s1, out _);
+    }
+    static void F2()
+    {
+        Span<int> s2 = default;
+        (s2, _) = s2;
+    }
+    static void F3()
+    {
+        Span<int> s3 = default;
+        s3.Deconstruct(out s3, out var _);
+    }
+    static void F4()
+    {
+        Span<int> s4 = default;
+        (s4, var _) = s4;
+    }
+    static void F5()
+    {
+        Span<int> s5 = default;
+        s5.Deconstruct(out s5, out Span<int> _);
+    }
+    static void F6()
+    {
+        Span<int> s6 = default;
+        (s6, Span<int> _) = s6;
+    }
+    static void F7()
+    {
+        Span<int> s7 = default;
+        s7.Deconstruct(out s7, out var unused);
+    }
+    static void F8()
+    {
+        Span<int> s8 = default;
+        (s8, var unused) = s8;
+    }
+}
+static class Extensions
+{
+    public static void Deconstruct(this Span<int> self, out Span<int> x, out Span<int> y)
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(65522, "https://github.com/dotnet/roslyn/issues/65522")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Discard_05(LanguageVersion languageVersion)
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1()
+    {
+        Span<int> s1 = stackalloc int[10];
+        s1.Deconstruct(out s1, out _);
+    }
+    static void F2()
+    {
+        Span<int> s2 = stackalloc int[10];
+        (s2, _) = s2;
+    }
+    static void F3()
+    {
+        Span<int> s3 = stackalloc int[10];
+        s3.Deconstruct(out s3, out var _);
+    }
+    static void F4()
+    {
+        Span<int> s4 = stackalloc int[10];
+        (s4, var _) = s4;
+    }
+    static void F5()
+    {
+        Span<int> s5 = stackalloc int[10];
+        s5.Deconstruct(out s5, out Span<int> _);
+    }
+    static void F6()
+    {
+        Span<int> s6 = stackalloc int[10];
+        (s6, Span<int> _) = s6;
+    }
+    static void F7()
+    {
+        Span<int> s7 = stackalloc int[10];
+        s7.Deconstruct(out s7, out var unused);
+    }
+    static void F8()
+    {
+        Span<int> s8 = stackalloc int[10];
+        (s8, var unused) = s8;
+    }
+}
+static class Extensions
+{
+    public static void Deconstruct(this Span<int> self, out Span<int> x, out Span<int> y)
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact()]
@@ -3458,6 +4036,7 @@ public ref struct S<T>
 ");
         }
 
+        [WorkItem(65522, "https://github.com/dotnet/roslyn/issues/65522")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -3509,13 +4088,7 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "(global, _) = local").WithArguments("(global, _) = local").WithLocation(13, 9),
                 // (13,23): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
                 //         (global, _) = local; // error 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(13, 23),
-                // (14,9): error CS8352: Cannot use variable '(local, _) = local' in this context because it may expose referenced variables outside of their declaration scope
-                //         (local, _) = local;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(local, _) = local").WithArguments("(local, _) = local").WithLocation(14, 9),
-                // (14,22): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
-                //         (local, _) = local;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(14, 22));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(13, 23));
         }
 
         [Theory]
@@ -4847,6 +5420,1176 @@ class Program
         }
 
         [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_01()
+        {
+            var source =
+@"
+using System;
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    static void Main()
+    {
+        // This refers to stack memory that has already been left out.
+        ref Vec4 local = ref Test1();
+        Console.WriteLine(local);
+    }
+
+    private static ref Vec4 Test1()
+    {
+        // Defensive copy occurs and it is placed in stack memory implicitly.
+        // The method returns a reference to the copy, which happens invalid memory access.
+        ref Vec4 xyzw1 = ref ReadOnlyVec.Self;
+        return ref xyzw1;
+    }
+
+    private static ref Vec4 Test2()
+    {
+        var copy = ReadOnlyVec;
+        ref Vec4 xyzw2 = ref copy.Self;
+        return ref xyzw2;
+    }
+
+    private static ref Vec4 Test3()
+    {
+        ref Vec4 xyzw3 = ref ReadOnlyVec.Self2();
+        return ref xyzw3;
+    }
+
+    private static ref Vec4 Test4()
+    {
+        var copy = ReadOnlyVec;
+        ref Vec4 xyzw4 = ref copy.Self2();
+        return ref xyzw4;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public ref Vec4 Self => ref this;
+
+    [UnscopedRef]
+    public ref Vec4 Self2() => ref this;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (22,20): error CS8157: Cannot return 'xyzw1' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref xyzw1;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "xyzw1").WithArguments("xyzw1").WithLocation(22, 20),
+                // (29,20): error CS8157: Cannot return 'xyzw2' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref xyzw2;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "xyzw2").WithArguments("xyzw2").WithLocation(29, 20),
+                // (35,20): error CS8157: Cannot return 'xyzw3' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref xyzw3;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "xyzw3").WithArguments("xyzw3").WithLocation(35, 20),
+                // (42,20): error CS8157: Cannot return 'xyzw4' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref xyzw4;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "xyzw4").WithArguments("xyzw4").WithLocation(42, 20)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_02()
+        {
+            var source =
+@"#pragma warning disable CS8321 // The local function is declared but never used
+using System.Diagnostics.CodeAnalysis;
+
+var x = new Wrap { X = 1 };
+
+ref var r = ref m1(x);
+System.Console.WriteLine(r.X); // undefined value
+
+static ref Wrap m1(in Wrap i)
+{
+    ref Wrap r1 = ref i.Self; // defensive copy
+    return ref r1; // ref to the local copy
+}
+
+static ref Wrap m2(in Wrap i)
+{
+    var copy = i;
+    ref Wrap r2 = ref copy.Self;
+    return ref r2; // ref to the local copy
+}
+
+static ref Wrap m3(in Wrap i)
+{
+    ref Wrap r3 = ref i.Self2();
+    return ref r3;
+}
+
+static ref Wrap m4(in Wrap i)
+{
+    var copy = i;
+    ref Wrap r4 = ref copy.Self2();
+    return ref r4; // ref to the local copy
+}
+
+struct Wrap
+{
+    public float X;
+
+    [UnscopedRef]
+    public ref Wrap Self => ref this;
+
+    [UnscopedRef]
+    public ref Wrap Self2() => ref this;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (12,16): error CS8157: Cannot return 'r1' by reference because it was initialized to a value that cannot be returned by reference
+                //     return ref r1; // ref to the local copy
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r1").WithArguments("r1").WithLocation(12, 16),
+                // (19,16): error CS8157: Cannot return 'r2' by reference because it was initialized to a value that cannot be returned by reference
+                //     return ref r2; // ref to the local copy
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r2").WithArguments("r2").WithLocation(19, 16),
+                // (25,16): error CS8157: Cannot return 'r3' by reference because it was initialized to a value that cannot be returned by reference
+                //     return ref r3;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r3").WithArguments("r3").WithLocation(25, 16),
+                // (32,16): error CS8157: Cannot return 'r4' by reference because it was initialized to a value that cannot be returned by reference
+                //     return ref r4; // ref to the local copy
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r4").WithArguments("r4").WithLocation(32, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_03()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    static void Main()
+    {
+    }
+
+    private static ref Vec4 Test3()
+    {
+        ref Vec4 xyzw3 = ref ReadOnlyVec.Self2();
+        return ref xyzw3;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    readonly public ref Vec4 Self2() => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("Program.Test3",
+@"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldsflda    ""Vec4 Program.ReadOnlyVec""
+  IL_0005:  call       ""readonly ref Vec4 Vec4.Self2()""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_04()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    static void Main()
+    {
+    }
+
+    private static ref Vec4 Test1()
+    {
+        ref Vec4 xyzw1 = ref ReadOnlyVec.Self;
+        return ref xyzw1;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    readonly public ref Vec4 Self => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("Program.Test1",
+@"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldsflda    ""Vec4 Program.ReadOnlyVec""
+  IL_0005:  call       ""readonly ref Vec4 Vec4.Self.get""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_05()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    static void Main()
+    {
+    }
+
+    private static Span<float> Test1()
+    {
+        var xyzw1 = ReadOnlyVec.Self;
+        return xyzw1;
+    }
+
+    private static Span<float> Test2()
+    {
+        var r2 = ReadOnlyVec;
+        var xyzw2 = r2.Self;
+        return xyzw2;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self
+    {  get => throw null; set {}}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (16,16): error CS8352: Cannot use variable 'xyzw1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw1").WithArguments("xyzw1").WithLocation(16, 16),
+                // (23,16): error CS8352: Cannot use variable 'xyzw2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw2").WithArguments("xyzw2").WithLocation(23, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_06()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    static void Main()
+    {
+    }
+
+    private static Span<float> Test1()
+    {
+        var xyzw1 = ReadOnlyVec.Self;
+        return xyzw1;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    readonly public Span<float> Self
+    {  get => throw null; set {}}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("Program.Test1",
+@"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldsflda    ""Vec4 Program.ReadOnlyVec""
+  IL_0005:  call       ""readonly System.Span<float> Vec4.Self.get""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_07()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    static void Main()
+    {
+    }
+
+    private static Span<float> Test1()
+    {
+        var xyzw1 = ReadOnlyVec.Self;
+        return xyzw1;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self
+    { readonly get => throw null; set {}}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("Program.Test1",
+@"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldsflda    ""Vec4 Program.ReadOnlyVec""
+  IL_0005:  call       ""readonly System.Span<float> Vec4.Self.get""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_08()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    static void Main()
+    {
+    }
+
+    private static Span<float> Test1()
+    {
+        var xyzw1 = ReadOnlyVec.Self;
+        return xyzw1;
+    }
+
+    private static Span<float> Test2()
+    {
+        var r2 = ReadOnlyVec;
+        var xyzw2 = r2.Self;
+        return xyzw2;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self
+    {  get => throw null; readonly set {}}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (16,16): error CS8352: Cannot use variable 'xyzw1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw1").WithArguments("xyzw1").WithLocation(16, 16),
+                // (23,16): error CS8352: Cannot use variable 'xyzw2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw2").WithArguments("xyzw2").WithLocation(23, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_09()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    static void Main()
+    {
+    }
+
+    private static void Test1()
+    {
+        ReadOnlyVec.Self = default;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self
+    {  readonly get => throw null; set {}}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (15,9): error CS1650: Fields of static readonly field 'Program.ReadOnlyVec' cannot be assigned to (except in a static constructor or a variable initializer)
+                //         ReadOnlyVec.Self = default;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "ReadOnlyVec.Self").WithArguments("Program.ReadOnlyVec").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_10()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    static void Main()
+    {
+    }
+
+    private static void Test1()
+    {
+        ReadOnlyVec.Self = default;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self
+    {  get => throw null; readonly set {}}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("Program.Test1",
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (System.Span<float> V_0)
+  IL_0000:  ldsflda    ""Vec4 Program.ReadOnlyVec""
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  initobj    ""System.Span<float>""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""readonly void Vec4.Self.set""
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_11()
+        {
+            var source =
+@"
+
+using System.Diagnostics.CodeAnalysis;
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public ref Vec4 Self2() => ref this;
+
+    [UnscopedRef]
+    readonly public ref Vec4 Test3()
+    {
+        ref Vec4 xyzw3 = ref this.Self2();
+        return ref xyzw3;
+    }
+
+    [UnscopedRef]
+    readonly public ref Vec4 Test4()
+    {
+        var r = this;
+        ref Vec4 xyzw4 = ref r.Self2();
+        return ref xyzw4;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (16,30): warning CS8656: Call to non-readonly member 'Vec4.Self2()' from a 'readonly' member results in an implicit copy of 'this'.
+                //         ref Vec4 xyzw3 = ref this.Self2();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("Vec4.Self2()", "this").WithLocation(16, 30),
+                // (17,20): error CS8157: Cannot return 'xyzw3' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref xyzw3;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "xyzw3").WithArguments("xyzw3").WithLocation(17, 20),
+                // (25,20): error CS8157: Cannot return 'xyzw4' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref xyzw4;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "xyzw4").WithArguments("xyzw4").WithLocation(25, 20)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_12()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public ref Vec4 Self2() => ref this;
+
+    [UnscopedRef]
+    public ref Vec4 Test3()
+    {
+        ref Vec4 xyzw3 = ref this.Self2();
+        return ref xyzw3;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.Skipped).
+                VerifyDiagnostics().
+                VerifyIL("Vec4.Test3",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref Vec4 Vec4.Self2()""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_13()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    private Program(out Span<float> x)
+    {
+        var xyzw3 = ReadOnlyVec.Self2();
+        x = xyzw3;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self2() => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, verify: Verification.Skipped).
+                VerifyDiagnostics().
+                VerifyIL("Program..ctor",
+@"
+{
+  // Code size       57 (0x39)
+  .maxstack  5
+  .locals init (System.Span<float> V_0) //xyzw3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.r4     1
+  IL_0006:  ldc.r4     2
+  IL_000b:  ldc.r4     3
+  IL_0010:  ldc.r4     4
+  IL_0015:  newobj     ""Vec4..ctor(float, float, float, float)""
+  IL_001a:  stfld      ""Vec4 Program.ReadOnlyVec""
+  IL_001f:  ldarg.0
+  IL_0020:  call       ""object..ctor()""
+  IL_0025:  ldarg.0
+  IL_0026:  ldflda     ""Vec4 Program.ReadOnlyVec""
+  IL_002b:  call       ""System.Span<float> Vec4.Self2()""
+  IL_0030:  stloc.0
+  IL_0031:  ldarg.1
+  IL_0032:  ldloc.0
+  IL_0033:  stobj      ""System.Span<float>""
+  IL_0038:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_14()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    private Program()
+    {
+        var d = (out Span<float> x) =>
+                {
+                    var xyzw1 = ReadOnlyVec.Self2();
+                    x = xyzw1;
+                };
+
+        d = local;
+
+        void local(out Span<float> x)
+        {
+            var xyzw2 = ReadOnlyVec.Self2();
+            x = xyzw2;
+        }
+    }
+
+    private void Test3(out Span<float> x)
+    {
+        var xyzw3 = ReadOnlyVec.Self2();
+        x = xyzw3;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self2() => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (14,25): error CS8352: Cannot use variable 'xyzw1' in this context because it may expose referenced variables outside of their declaration scope
+                //                     x = xyzw1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw1").WithArguments("xyzw1").WithLocation(14, 25),
+                // (22,17): error CS8352: Cannot use variable 'xyzw2' in this context because it may expose referenced variables outside of their declaration scope
+                //             x = xyzw2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw2").WithArguments("xyzw2").WithLocation(22, 17),
+                // (29,13): error CS8352: Cannot use variable 'xyzw3' in this context because it may expose referenced variables outside of their declaration scope
+                //         x = xyzw3;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw3").WithArguments("xyzw3").WithLocation(29, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_15()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+    private static S s;
+
+    int F1 = GetInt(s = new S(ReadOnlyVec.Self2()));
+    int F2 = GetInt(() => s = new S(ReadOnlyVec.Self2()));
+    static int F3 = GetInt(s = new S(ReadOnlyVec.Self2()));
+
+    static int GetInt(S s) => 0;
+    static int GetInt(System.Action a) => 0;
+}
+
+ref struct S
+{
+    public S (Span<float> x) {}
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self2() => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (8,20): error CS8345: Field or auto-implemented property cannot be of type 'S' unless it is an instance member of a ref struct.
+                //     private static S s;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(8, 20),
+                // (10,31): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Program.ReadOnlyVec'
+                //     int F1 = GetInt(s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "ReadOnlyVec").WithArguments("Program.ReadOnlyVec").WithLocation(10, 31),
+                // (11,37): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Program.ReadOnlyVec'
+                //     int F2 = GetInt(() => s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "ReadOnlyVec").WithArguments("Program.ReadOnlyVec").WithLocation(11, 37),
+                // (12,38): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Program.ReadOnlyVec'
+                //     static int F3 = GetInt(s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "ReadOnlyVec").WithArguments("Program.ReadOnlyVec").WithLocation(12, 38)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_16()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+    private static S s;
+
+    int P1 {get;} = GetInt(s = new S(ReadOnlyVec.Self2()));
+    int P2 {get;} = GetInt(() => s = new S(ReadOnlyVec.Self2()));
+    static int P3 {get;} = GetInt(s = new S(ReadOnlyVec.Self2()));
+
+    static int GetInt(S s) => 0;
+    static int GetInt(System.Action a) => 0;
+}
+
+ref struct S
+{
+    public S (Span<float> x) {}
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self2() => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (8,20): error CS8345: Field or auto-implemented property cannot be of type 'S' unless it is an instance member of a ref struct.
+                //     private static S s;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(8, 20),
+                // (10,38): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Program.ReadOnlyVec'
+                //     int P1 {get;} = GetInt(s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "ReadOnlyVec").WithArguments("Program.ReadOnlyVec").WithLocation(10, 38),
+                // (11,44): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Program.ReadOnlyVec'
+                //     int P2 {get;} = GetInt(() => s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "ReadOnlyVec").WithArguments("Program.ReadOnlyVec").WithLocation(11, 44),
+                // (12,45): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Program.ReadOnlyVec'
+                //     static int P3 {get;} = GetInt(s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "ReadOnlyVec").WithArguments("Program.ReadOnlyVec").WithLocation(12, 45)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_17()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+    private static S s;
+
+    static Program()
+    {
+        var xyzw1 = ReadOnlyVec.Self2();
+        s = new S(xyzw1);
+
+        var d = static () =>
+                {
+                    var xyzw2 = ReadOnlyVec.Self2();
+                    s = new S(xyzw2);
+                };
+
+        d = local;
+
+        static void local()
+        {
+            var xyzw3 = ReadOnlyVec.Self2();
+            s = new S(xyzw3);
+        }
+    }
+
+    static void Test4()
+    {
+        var xyzw4 = ReadOnlyVec.Self2();
+        s = new S(xyzw4);
+    }
+}
+
+ref struct S
+{
+    public S (Span<float> x) {}
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self2() => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (8,20): error CS8345: Field or auto-implemented property cannot be of type 'S' unless it is an instance member of a ref struct.
+                //     private static S s;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(8, 20),
+                // (18,25): error CS8347: Cannot use a result of 'S.S(Span<float>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //                     s = new S(xyzw2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(xyzw2)").WithArguments("S.S(System.Span<float>)", "x").WithLocation(18, 25),
+                // (18,31): error CS8352: Cannot use variable 'xyzw2' in this context because it may expose referenced variables outside of their declaration scope
+                //                     s = new S(xyzw2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw2").WithArguments("xyzw2").WithLocation(18, 31),
+                // (26,17): error CS8347: Cannot use a result of 'S.S(Span<float>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //             s = new S(xyzw3);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(xyzw3)").WithArguments("S.S(System.Span<float>)", "x").WithLocation(26, 17),
+                // (26,23): error CS8352: Cannot use variable 'xyzw3' in this context because it may expose referenced variables outside of their declaration scope
+                //             s = new S(xyzw3);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw3").WithArguments("xyzw3").WithLocation(26, 23),
+                // (33,13): error CS8347: Cannot use a result of 'S.S(Span<float>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = new S(xyzw4);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(xyzw4)").WithArguments("S.S(System.Span<float>)", "x").WithLocation(33, 13),
+                // (33,19): error CS8352: Cannot use variable 'xyzw4' in this context because it may expose referenced variables outside of their declaration scope
+                //         s = new S(xyzw4);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw4").WithArguments("xyzw4").WithLocation(33, 19)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_18()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+    private static S s;
+
+    static int F1 = GetInt(s = new S(ReadOnlyVec.Self2()));
+    static int F2 = GetInt(static () => s = new S(ReadOnlyVec.Self2()));
+    int F3 = GetInt(s = new S(ReadOnlyVec.Self2()));
+
+    static int GetInt(S s) => 0;
+    static int GetInt(System.Action a) => 0;
+}
+
+ref struct S
+{
+    public S (Span<float> x) {}
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self2() => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (8,20): error CS8345: Field or auto-implemented property cannot be of type 'S' unless it is an instance member of a ref struct.
+                //     private static S s;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(8, 20),
+                // (11,45): error CS8347: Cannot use a result of 'S.S(Span<float>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //     static int F2 = GetInt(static () => s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(ReadOnlyVec.Self2())").WithArguments("S.S(System.Span<float>)", "x").WithLocation(11, 45),
+                // (11,51): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     static int F2 = GetInt(static () => s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "ReadOnlyVec").WithLocation(11, 51),
+                // (12,25): error CS8347: Cannot use a result of 'S.S(Span<float>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //     int F3 = GetInt(s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(ReadOnlyVec.Self2())").WithArguments("S.S(System.Span<float>)", "x").WithLocation(12, 25),
+                // (12,31): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     int F3 = GetInt(s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "ReadOnlyVec").WithLocation(12, 31)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_19()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+    private static S s;
+
+    static int P1 {get;} = GetInt(s = new S(ReadOnlyVec.Self2()));
+    static int P2 {get;} = GetInt(static () => s = new S(ReadOnlyVec.Self2()));
+    int P3 {get;} = GetInt(s = new S(ReadOnlyVec.Self2()));
+
+    static int GetInt(S s) => 0;
+    static int GetInt(System.Action a) => 0;
+}
+
+ref struct S
+{
+    public S (Span<float> x) {}
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self2() => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (8,20): error CS8345: Field or auto-implemented property cannot be of type 'S' unless it is an instance member of a ref struct.
+                //     private static S s;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(8, 20),
+                // (11,52): error CS8347: Cannot use a result of 'S.S(Span<float>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //     static int P2 {get;} = GetInt(static () => s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(ReadOnlyVec.Self2())").WithArguments("S.S(System.Span<float>)", "x").WithLocation(11, 52),
+                // (11,58): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     static int P2 {get;} = GetInt(static () => s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "ReadOnlyVec").WithLocation(11, 58),
+                // (12,32): error CS8347: Cannot use a result of 'S.S(Span<float>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //     int P3 {get;} = GetInt(s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(ReadOnlyVec.Self2())").WithArguments("S.S(System.Span<float>)", "x").WithLocation(12, 32),
+                // (12,38): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     int P3 {get;} = GetInt(s = new S(ReadOnlyVec.Self2()));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "ReadOnlyVec").WithLocation(12, 38)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_20()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+    private static S s;
+
+    int P
+    {
+        get => 0;
+        init
+        {
+            var xyz1 = ReadOnlyVec.Self2(); 
+            s = new S(xyz1);
+
+            var d = () =>
+                    {
+                        var xyz2 = ReadOnlyVec.Self2(); 
+                        s = new S(xyz2);
+                    };
+
+            d = local;
+
+            void local()
+            {
+                var xyz3 = ReadOnlyVec.Self2(); 
+                s = new S(xyz3);
+            }
+        }
+    }
+}
+
+ref struct S
+{
+    public S (Span<float> x) {}
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public Span<float> Self2() => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (8,20): error CS8345: Field or auto-implemented property cannot be of type 'S' unless it is an instance member of a ref struct.
+                //     private static S s;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(8, 20),
+                // (21,29): error CS8347: Cannot use a result of 'S.S(Span<float>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //                         s = new S(xyz2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(xyz2)").WithArguments("S.S(System.Span<float>)", "x").WithLocation(21, 29),
+                // (21,35): error CS8352: Cannot use variable 'xyz2' in this context because it may expose referenced variables outside of their declaration scope
+                //                         s = new S(xyz2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyz2").WithArguments("xyz2").WithLocation(21, 35),
+                // (29,21): error CS8347: Cannot use a result of 'S.S(Span<float>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //                 s = new S(xyz3);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(xyz3)").WithArguments("S.S(System.Span<float>)", "x").WithLocation(29, 21),
+                // (29,27): error CS8352: Cannot use variable 'xyz3' in this context because it may expose referenced variables outside of their declaration scope
+                //                 s = new S(xyz3);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyz3").WithArguments("xyz3").WithLocation(29, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64776, "https://github.com/dotnet/roslyn/issues/64776")]
+        public void DefensiveCopy_21()
+        {
+            var source =
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+internal class Program
+{
+    private static readonly Vec4 ReadOnlyVec = new Vec4(1, 2, 3, 4);
+
+    static void Main()
+    {
+    }
+
+    private static Span<float> Test1()
+    {
+        var (xyzw1, _) = ReadOnlyVec;
+        return xyzw1;
+    }
+
+    private static Span<float> Test2()
+    {
+        var r2 = ReadOnlyVec;
+        var (xyzw2, _) = r2;
+        return xyzw2;
+    }
+
+    private static Span<float> Test3()
+    {
+        ReadOnlyVec.Deconstruct(out var xyzw3, out _);
+        return xyzw3;
+    }
+
+    private static Span<float> Test4()
+    {
+        var r4 = ReadOnlyVec;
+        r4.Deconstruct(out var xyzw4, out _);
+        return xyzw4;
+    }
+}
+
+public struct Vec4
+{
+    public float X, Y, Z, W;
+    public Vec4(float x, float y, float z, float w) => (X, Y, Z, W) = (x, y, z, w);
+
+    [UnscopedRef]
+    public void Deconstruct(out Span<float> x, out int i) => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (16,16): error CS8352: Cannot use variable 'xyzw1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw1").WithArguments("xyzw1").WithLocation(16, 16),
+                // (23,16): error CS8352: Cannot use variable 'xyzw2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw2").WithArguments("xyzw2").WithLocation(23, 16),
+                // (29,16): error CS8352: Cannot use variable 'xyzw3' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw3;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw3").WithArguments("xyzw3").WithLocation(29, 16),
+                // (36,16): error CS8352: Cannot use variable 'xyzw4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return xyzw4;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw4").WithArguments("xyzw4").WithLocation(36, 16)
+                );
+        }
+
+        [Fact]
         public void LocalScope_DeclarationExpression_01()
         {
             var source = """
@@ -4950,9 +6693,9 @@ class Program
                 // (28,9): error CS8350: This combination of arguments to 'Program.M0(RS, out RS)' is disallowed because it may expose variables referenced by parameter 'rs1' outside of their declaration scope
                 //         M0(rs3, out rs4); // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(rs3, out rs4)").WithArguments("Program.M0(RS, out RS)", "rs1").WithLocation(28, 9),
-                // (28,12): error CS8352: Cannot use variable 'scoped RS' in this context because it may expose referenced variables outside of their declaration scope
+                // (28,12): error CS8352: Cannot use variable 'scoped RS rs3' in this context because it may expose referenced variables outside of their declaration scope
                 //         M0(rs3, out rs4); // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS").WithLocation(28, 12));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS rs3").WithLocation(28, 12));
         }
 
         [Fact]
@@ -5244,6 +6987,78 @@ class Program
                 //         return rs6; // 4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "rs6").WithArguments("rs6").WithLocation(45, 16)
                 );
+        }
+
+        [Fact, WorkItem(64783, "https://github.com/dotnet/roslyn/issues/64783")]
+        public void OutArgumentsDoNotContributeValEscape_01()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static Span<byte> M1()
+                    {
+                        Span<byte> a = stackalloc byte[42];
+                        var ret = OneOutSpanReturnsSpan(out a);
+                        return ret;
+                    }
+
+                    static Span<byte> M2()
+                    {
+                        Span<byte> a = stackalloc byte[42];
+                        TwoOutSpans(out a, out Span<byte> b);
+                        return b;
+                    }
+
+                    static Span<byte> OneOutSpanReturnsSpan(out Span<byte> a)
+                    {
+                        // 'return a' is illegal until it is overwritten
+                        a = default;
+                        return default;
+                    }
+
+                    static void TwoOutSpans(out Span<byte> a, out Span<byte> b)
+                    {
+                        // 'a = b' and 'b = a' are illegal until one has already been written
+                        a = b = default;
+                    }
+                }
+
+                """;
+
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(56587, "https://github.com/dotnet/roslyn/issues/56587")]
+        public void OutArgumentsDoNotContributeValEscape_02()
+        {
+            // Test that out discard arguments are not treated as inputs.
+            // This means we don't need to take special care to zero-out the variable used for a discard argument between uses.
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static Span<byte> M1()
+                    {
+                        Span<byte> a = stackalloc byte[42];
+                        TwoOutSpans(out a, out _);
+                        TwoOutSpans(out _, out Span<byte> c);
+                        return c;
+                    }
+
+                    static void TwoOutSpans(out Span<byte> a, out Span<byte> b)
+                    {
+                        // 'a = b' and 'b = a' are illegal until one has already been written
+                        a = b = default;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
         }
     }
 }

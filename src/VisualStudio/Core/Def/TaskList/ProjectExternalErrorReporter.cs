@@ -233,6 +233,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 documentId = TryGetDocumentId(bstrFileName);
             }
 
+            if (iEndLine < 0)
+                iEndLine = iStartLine;
+            if (iEndColumn < 0)
+                iEndColumn = iStartColumn;
+
             var diagnostic = GetDiagnosticData(
                 documentId,
                 _projectId,
@@ -315,8 +320,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 projectId: projectId,
                 location: new DiagnosticDataLocation(
                     unmappedSpan,
-                    documentId,
-                    mappedFileSpan: null),
+                    documentId),
                 language: language,
                 helpLink: helpLink);
 
@@ -337,10 +341,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             if (!string.IsNullOrEmpty(errorId) && errorId.Length > 2)
             {
-                var prefix = errorId.Substring(0, 2);
+                var prefix = errorId[..2];
                 if (prefix.Equals("CS", StringComparison.OrdinalIgnoreCase) || prefix.Equals("BC", StringComparison.OrdinalIgnoreCase))
                 {
-                    var suffix = errorId.Substring(2);
+                    var suffix = errorId[2..];
                     return int.TryParse(suffix, out _);
                 }
             }

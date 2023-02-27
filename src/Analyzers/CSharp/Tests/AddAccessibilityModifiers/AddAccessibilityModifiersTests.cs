@@ -193,7 +193,7 @@ namespace System.Runtime.CompilerServices
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             };
 
             await test.RunAsync();
@@ -219,7 +219,7 @@ internal record struct Record
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.Preview,
             };
 
             await test.RunAsync();
@@ -574,7 +574,7 @@ public partial class C
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.Preview,
             };
 
             await test.RunAsync();
@@ -602,7 +602,7 @@ internal class C : I<C>
             {
                 TestCode = source,
                 FixedCode = source,
-                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.Preview,
                 ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60
             };
 
@@ -672,6 +672,64 @@ internal class C : I<C>
                 FixedCode = fixedSource,
                 LanguageVersion = LanguageVersion.Preview,
             }.RunAsync();
+        }
+
+        [Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")]
+        public async Task TestTitle1()
+        {
+            var source = @"
+internal class C
+{
+    int [|field|];
+}
+";
+            var fixedSource = @"
+internal class C
+{
+    private int field;
+}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.Preview,
+                CodeActionEquivalenceKey = nameof(AnalyzersResources.Add_accessibility_modifiers),
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")]
+        public async Task TestTitle2()
+        {
+            var source = @"
+class C
+{
+    private int [|field|];
+}
+";
+            var fixedSource = @"
+class C
+{
+    int field;
+}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.Preview,
+                CodeActionEquivalenceKey = nameof(AnalyzersResources.Remove_accessibility_modifiers),
+                Options =
+                {
+                    { CodeStyleOptions2.AccessibilityModifiersRequired,AccessibilityModifiersRequired.OmitIfDefault }
+                }
+            };
+
+            await test.RunAsync();
         }
     }
 }

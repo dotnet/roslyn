@@ -312,5 +312,41 @@ class C
     }
 }");
         }
+
+        [Fact]
+        public async Task TestAfterLambdaOpenParen()
+        {
+            await VerifyKeywordAsync(
+@"var lam = ($$");
+        }
+
+        [Fact]
+        public async Task TestAfterLambdaComma()
+        {
+            await VerifyKeywordAsync(
+@"var lam = (int i, $$");
+        }
+
+        [Fact]
+        public async Task TestLambdaDefaultParameterValue()
+        {
+            await VerifyKeywordAsync(
+@"var lam = (int i = $$");
+        }
+
+        [Fact, WorkItem(36472, "https://github.com/dotnet/roslyn/issues/36472")]
+        public async Task InAmbiguousCast1()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    static void Main(string[] args)
+    {
+        (int i, string s) tuple;
+        tuple = ($$)
+        Main(args);
+    }
+}");
+        }
     }
 }

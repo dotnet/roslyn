@@ -102,7 +102,6 @@ Public Class ParseXmlDocComments
                 End Module
             ]]>)
 
-
         Dim tk = node.GetRoot().FindToken(25)
 
         Dim docComment = DirectCast(tk.LeadingTrivia(2).GetStructure, DocumentationCommentTriviaSyntax)

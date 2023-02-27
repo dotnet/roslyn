@@ -98,11 +98,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 Contract.ThrowIfNull(_workspace);
                 var tempPath = GetRootPathWithGuid_NoLock();
 
+                // We don't want to track telemetry for signatures only requests, only where we try to show source
+                using var telemetryMessage = signaturesOnly ? null : new TelemetryMessage(cancellationToken);
+
                 foreach (var lazyProvider in _providers)
                 {
                     var provider = lazyProvider.Value;
                     var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
-                    var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, providerTempPath, cancellationToken).ConfigureAwait(false);
+                    var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, providerTempPath, telemetryMessage, cancellationToken).ConfigureAwait(false);
                     if (result is not null)
                     {
                         return result;

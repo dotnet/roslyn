@@ -24,6 +24,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         where TDocumentationCommentTriviaSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
+        /// <summary>
+        /// Produces names like TypeName.MemberName
+        /// </summary>
+        private static readonly SymbolDisplayFormat ContainingTypeAndNameOnlyFormat = new(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
         private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
@@ -509,8 +516,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     }
                 }
 
-                var memberName = $"{member.ContainingType.Name}.{member.Name}";
-                return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, memberName);
+                return new DiagnosticHelper.LocalizableStringWithArguments(
+                    messageFormat, member.ToDisplayString(ContainingTypeAndNameOnlyFormat));
             }
 
             private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
@@ -537,7 +544,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                              .SelectMany(n => n.DescendantNodes().OfType<TIdentifierNameSyntax>()))
                     {
                         lazyModel ??= compilation.GetSemanticModel(root.SyntaxTree);
-                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol;
+                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol?.OriginalDefinition;
                         if (symbol != null && IsCandidateSymbol(symbol))
                         {
                             builder.Add(symbol);
@@ -580,15 +587,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 foreach (var attribute in symbol.GetAttributes())
                 {
                     if (attribute.AttributeClass == _debuggerDisplayAttributeType &&
-                        attribute.ConstructorArguments.Length == 1 &&
-                        attribute.ConstructorArguments[0] is var arg &&
-                        arg.Kind == TypedConstantKind.Primitive &&
-                        arg.Type.SpecialType == SpecialType.System_String)
+                        attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
                     {
-                        if (arg.Value is string value)
-                        {
-                            builder.Add(value);
-                        }
+                        builder.Add(value);
                     }
                 }
             }

@@ -223,7 +223,7 @@ class C
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.FalseWithSuggestionEnforcement },
+                    { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.FalseWithSuggestionEnforcement },
                 }
             }.RunAsync();
         }
@@ -244,7 +244,7 @@ class C
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement },
+                    { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement },
                 }
             }.RunAsync();
         }

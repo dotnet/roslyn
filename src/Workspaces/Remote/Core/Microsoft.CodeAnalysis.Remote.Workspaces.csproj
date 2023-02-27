@@ -45,6 +45,8 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" Key="$(MicrosoftCodeAnalysisLanguageServerKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" Key="$(MicrosoftCodeAnalysisLanguageServerKey)" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
@@ -73,5 +75,13 @@
     <InternalsVisibleTo Include="MonoDevelop.Ide.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="MonoDevelop.Refactoring.Tests" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
     <!-- END MONODEVELOP -->
+    
+    <!-- BEGIN PROJECT SYSTEM FOR VS CODE -->
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VSCode" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VSCode.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <!-- END PROJECT SYSTEM FOR VS CODE -->
+
   </ItemGroup>
 </Project>

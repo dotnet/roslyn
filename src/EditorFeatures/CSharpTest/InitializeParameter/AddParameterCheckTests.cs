@@ -16,8 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 {
-    using VerifyCS = CSharpCodeRefactoringVerifier<
-        CSharpAddParameterCheckCodeRefactoringProvider>;
+    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpAddParameterCheckCodeRefactoringProvider>;
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
     public class AddParameterCheckTests
@@ -1686,6 +1685,31 @@ class C
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
+
+        [Fact]
+        [WorkItem(63307, "https://github.com/dotnet/roslyn/issues/63307")]
+        public async Task TestNotOnIndexerParameterInRecordWithParameter()
+        {
+            var code = @"
+record R(string S)
+{
+    int this[[||]string s]
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
         [Fact]
         public async Task TestNotOnIndexerParameters()
         {
@@ -1849,7 +1873,7 @@ class Program
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check),
                 Options =
                 {
-                    { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOptions2.FalseWithSuggestionEnforcement }
+                    { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOption2.FalseWithSuggestionEnforcement }
                 }
             }.RunAsync();
         }
@@ -2692,17 +2716,59 @@ class C
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [Fact, WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
-        public async Task TestNotInRecord()
+        [Theory]
+        [WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public async Task TestNotInRecord(LanguageVersion version)
         {
             var code = @"
 record C([||]string s) { public string s; }";
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersion.CSharp10,
+                LanguageVersion = version,
                 TestCode = code,
                 FixedCode = code,
             }.RunAsync();
+        }
+
+        [Fact, WorkItem(38093, "https://github.com/dotnet/roslyn/issues/38093")]
+        public async Task TestReadBeforeAssignment()
+        {
+            await VerifyCS.VerifyRefactoringAsync("""
+                using System;
+                using System.IO;
+
+                class Program
+                {
+                    public Program([||]Stream output)
+                    {
+                        if (!output.CanWrite) throw new ArgumentException();
+                        OutStream = output;
+                    }
+
+                    public Stream OutStream { get; }
+                }
+                """, """
+                using System;
+                using System.IO;
+
+                class Program
+                {
+                    public Program([||]Stream output)
+                    {
+                        if (output is null)
+                        {
+                            throw new ArgumentNullException(nameof(output));
+                        }
+
+                        if (!output.CanWrite) throw new ArgumentException();
+                        OutStream = output;
+                    }
+
+                    public Stream OutStream { get; }
+                }
+                """);
         }
     }
 }
