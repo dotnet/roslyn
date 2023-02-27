@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
         /// document for classification.
         /// </summary>
         private static VirtualCharSequence StripMarkupCharacters(
-            VirtualCharSequence virtualChars, ArrayBuilder<TextSpan>? markdownSpans)
+            VirtualCharSequence virtualChars, ArrayBuilder<TextSpan> markdownSpans)
         {
             var builder = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
 
@@ -216,7 +216,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                 }
 
                 context.AddClassification(
-                    classificationType == ClassificationTypeNames.NamespaceName ? ClassificationTypeNames.Punctuation : classificationType,
+                    classificationType,
+                    //ClassificationTypeNames.Keyword,
+                    //classificationType == ClassificationTypeNames.NamespaceName ? ClassificationTypeNames.Punctuation : classificationType,
                     FromBounds(virtualChars[currentStartIndexInclusive], virtualChars[currentEndIndexExclusive - 1]));
                 currentStartIndexInclusive = currentEndIndexExclusive;
             }
