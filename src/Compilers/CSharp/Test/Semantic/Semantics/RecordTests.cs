@@ -10784,6 +10784,7 @@ record C(object P)
                 Diagnostic(ErrorCode.ERR_MemberReserved, "P").WithArguments("get_P", "C").WithLocation(9, 17));
 
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
 
             var expectedClone = comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses
                 ? "B B." + WellKnownMemberNames.CloneMethodName + "()"
@@ -15864,6 +15865,8 @@ record B(int X, int Y) : A
                 );
 
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             string expectedClone = comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses
                 ? "B B." + WellKnownMemberNames.CloneMethodName + "()"
                 : "A B." + WellKnownMemberNames.CloneMethodName + "()";
@@ -23641,6 +23644,7 @@ record C : B;
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C").WithArguments("C.EqualityContract", "B.EqualityContract").WithLocation(6, 8));
 
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
 
             string expectedClone = comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses
                 ? "B B." + WellKnownMemberNames.CloneMethodName + "()"
@@ -25690,6 +25694,8 @@ record B
 }
 ", targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, c.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, c.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             if (c.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 c.VerifyDiagnostics(
@@ -25999,6 +26005,8 @@ public partial record C1
 ";
             var comp = CreateCompilation(text, targetFramework: TargetFramework.NetLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             if (comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 comp.VerifyDiagnostics(
@@ -30174,6 +30182,8 @@ public record C(int I) : B(I);";
             var compA = CreateEmptyCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, references: TargetFrameworkUtil.GetReferences(TargetFramework.NetStandard20));
             compA.VerifyEmitDiagnostics();
             Assert.False(compA.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.False(compA.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
+
             var actualMembers = compA.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -30202,6 +30212,7 @@ public record C(int I) : B(I);";
             var compB = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
             compB.VerifyEmitDiagnostics();
             Assert.True(compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.True(compB.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
 
             actualMembers = compB.GetMember<NamedTypeSymbol>("D").GetMembers().ToTestDisplayStrings();
             expectedMembers = new[]
@@ -30407,6 +30418,50 @@ record R1(int x);
             Assert.Contains("System.Int32 y", model.LookupSymbols(mCall.SpanStart).Select(s => s.ToTestDisplayString()));
             Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(attrApplication.ArgumentList!.OpenParenToken.SpanStart + 1).Select(s => s.ToTestDisplayString()));
             Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(mDefinition.SpanStart).Select(s => s.ToTestDisplayString()));
+        }
+
+        [Fact]
+        [WorkItem(66900, "https://github.com/dotnet/roslyn/issues/66900")]
+        public void Issue66900()
+        {
+            // public record ClassWithManyConstructorParameters(int P0, int P1, int P2, ...)
+            // {
+            //     public static ClassWithManyConstructorParameters Create()
+            //     {
+            //         return new ClassWithManyConstructorParameters(P0: 0, P1: 1, P2: 2, ...);
+            //     }
+            // }
+
+            var src = @"
+public record ClassWithManyConstructorParameters(int P0";
+
+            const int count = 2000;
+
+            for (int i = 1; i < count; i++)
+            {
+                src += ", int P" + i;
+            }
+
+            src += @")
+{
+    public static ClassWithManyConstructorParameters Create()
+    {
+        return new ClassWithManyConstructorParameters(P0: 0";
+
+            for (int i = 1; i < count; i++)
+            {
+                src += ", P" + i + ": " + i;
+            }
+
+            src += @");
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.DesktopLatestExtended);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
         }
     }
 }

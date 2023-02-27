@@ -238,6 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (!hasBody)
                 modifiers -= DeclarationModifiers.Async;
 
+            name = StripExplicitInterfaceName(name);
+
             return SyntaxFactory.MethodDeclaration(
                 attributeLists: default,
                 modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
@@ -250,6 +252,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasBody ? CreateBlock(statements) : null,
                 expressionBody: null,
                 semicolonToken: !hasBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
+        }
+
+        private static string StripExplicitInterfaceName(string name)
+        {
+            // Only keep what's after the dot (if this is an explicit impl).  The explicit impl part will be added by
+            // the caller.
+            return name.LastIndexOf('.') is var index && index >= 0 ? name[(index + 1)..] : name;
         }
 
         public override SyntaxNode OperatorDeclaration(OperatorKind kind, IEnumerable<SyntaxNode>? parameters = null, SyntaxNode? returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode>? statements = null)
@@ -373,6 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             accessors.AddIfNotNull((AccessorDeclarationSyntax?)setAccessor);
 
             var actualModifiers = modifiers - (DeclarationModifiers.ReadOnly | DeclarationModifiers.WriteOnly);
+
+            name = StripExplicitInterfaceName(name);
 
             return SyntaxFactory.PropertyDeclaration(
                 attributeLists: default,
@@ -1511,7 +1522,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.File;
 
         private static readonly DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.File;
-        private static readonly DeclarationModifiers s_accessorModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual;
+        private static readonly DeclarationModifiers s_eventAccessorModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual;
+        private static readonly DeclarationModifiers s_propertyAccessorModifiers = s_eventAccessorModifiers | DeclarationModifiers.ReadOnly;
 
         private static readonly DeclarationModifiers s_localFunctionModifiers =
             DeclarationModifiers.Async |
@@ -1573,9 +1585,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                    return s_propertyAccessorModifiers;
+
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    return s_accessorModifiers;
+                    return s_eventAccessorModifiers;
 
                 case SyntaxKind.LocalFunctionStatement:
                     return s_localFunctionModifiers;
@@ -1779,16 +1793,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => WithAccessibility(declaration switch
             {
                 MethodDeclarationSyntax method
-                    => WithoutContraints(method.ReplaceNodes(method.ParameterList.Parameters, (_, p) => RemoveDefaultValue(p, removeDefaults))
-                                               .WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations))),
-                PropertyDeclarationSyntax member
-                    => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
-                EventDeclarationSyntax member
+                    => WithoutConstraints(
+                        method.ReplaceNodes(method.ParameterList.Parameters, (_, p) => RemoveDefaultValue(p, removeDefaults))
+                              .WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations))),
+                BasePropertyDeclarationSyntax member
                     => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
                 _ => declaration,
             }, Accessibility.NotApplicable);
 
-        private static MethodDeclarationSyntax WithoutContraints(MethodDeclarationSyntax method)
+        private static MethodDeclarationSyntax WithoutConstraints(MethodDeclarationSyntax method)
         {
             if (method.ConstraintClauses.Count == 0)
                 return method;
@@ -1824,6 +1837,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 DelegateDeclarationSyntax @delegate => @delegate.WithConstraintClauses(WithTypeConstraints(@delegate.ConstraintClauses, typeParameterName, kinds, types)),
                 _ => declaration,
             };
+
+        private protected override SyntaxNode WithDefaultConstraint(SyntaxNode declaration, string typeParameterName)
+        {
+            var method = (MethodDeclarationSyntax)declaration;
+            return method.AddConstraintClauses(SyntaxFactory.TypeParameterConstraintClause(
+                typeParameterName).AddConstraints(SyntaxFactory.DefaultConstraint()));
+        }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> WithTypeConstraints(
             SyntaxList<TypeParameterConstraintClauseSyntax> clauses, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types)
@@ -3116,7 +3136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     (ExpressionSyntax)condition,
                     CreateBlock(trueStatements),
                     SyntaxFactory.ElseClause(
-                        falseArray.Count == 1 && falseArray[0] is IfStatementSyntax ? (StatementSyntax)falseArray[0] : CreateBlock(falseArray)));
+                        falseArray is [IfStatementSyntax ifStatement] ? ifStatement : CreateBlock(falseArray)));
             }
         }
 
@@ -3359,10 +3379,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.BaseExpression();
 
         public override SyntaxNode TypedConstantExpression(TypedConstant value)
-            => ExpressionGenerator.GenerateExpression(value);
+            => ExpressionGenerator.GenerateExpression(this, value);
 
         private protected override SyntaxNode GenerateExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
-            => ExpressionGenerator.GenerateExpression(type, value, canUseFieldReference);
+            => ExpressionGenerator.GenerateExpression(this, type, value, canUseFieldReference);
 
         public override SyntaxNode IdentifierName(string identifier)
             => identifier.ToIdentifierName();

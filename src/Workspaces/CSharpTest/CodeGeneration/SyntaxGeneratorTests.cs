@@ -2355,6 +2355,175 @@ public class C { } // end").Members[0];
                 "public global::System.Int32 Prop { protected get; set; }");
         }
 
+        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a);
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) where TResult : default { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                    where TResult : default
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint2()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a) where TResult : class;
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) where TResult : class { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                    where TResult : class
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint3()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a) where TResult : struct;
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint4()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public class X
+                {
+                }
+
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a) where TResult : X;
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) where TResult : class { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                    where TResult : class
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66375, "https://github.com/dotnet/roslyn/issues/66375")]
+        public void TestExplicitInterface1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public interface IGoo
+                {
+                    void BarMethod();
+                    int BarProp { get; }
+                    int this[int x] { get; }
+                    event System.Action E;
+                }
+
+                public class Goo : IGoo
+                {
+                    void IGoo.BarMethod() { }
+                    int IGoo.BarProp => 0;
+                    int IGoo.this[int x] => 0;
+                    event System.Action IGoo.E { add { } remove { } }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("Goo");
+            var method = type.GetMembers().Single(m => m is IMethodSymbol { MethodKind: MethodKind.ExplicitInterfaceImplementation });
+            var property = type.GetMembers().Single(m => m is IPropertySymbol { IsIndexer: false });
+            var indexer = type.GetMembers().Single(m => m is IPropertySymbol { IsIndexer: true });
+            var ev = type.GetMembers().Single(m => m is IEventSymbol);
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method),
+                """
+                void global::IGoo.BarMethod()
+                {
+                }
+                """);
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(property),
+                "global::System.Int32 global::IGoo.BarProp { get; }");
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.Declaration(indexer),
+                """
+                global::System.Int32 global::IGoo.this[global::System.Int32 x]
+                {
+                    get
+                    {
+                    }
+                }
+                """);
+            VerifySyntax<EventFieldDeclarationSyntax>(
+                Generator.Declaration(ev),
+                """
+                event global::System.Action IGoo.E;
+                """);
+        }
+
         [Fact, WorkItem(66380, "https://github.com/dotnet/roslyn/issues/66380")]
         public void TestConstantFieldDeclarations()
         {
@@ -2817,7 +2986,7 @@ public class C
                 Generator.GetModifiers(Generator.WithModifiers(Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual,
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration), allModifiers)));
         }
 

@@ -704,8 +704,13 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    // if HasAllInformation is false, then this project is always not completed.
-                    var hasSuccessfullyLoaded = this.ProjectState.HasAllInformation;
+                    // Project is complete only if the following are all true:
+                    //  1. HasAllInformation flag is set for the project
+                    //  2. Either the project has non-zero metadata references OR this is the corlib project.
+                    //     For the latter, we use a heuristic if the underlying compilation defines "System.Object" type.
+                    var hasSuccessfullyLoaded = this.ProjectState.HasAllInformation &&
+                        (this.ProjectState.MetadataReferences.Count > 0 ||
+                         compilationWithoutGenerators.GetTypeByMetadataName("System.Object") != null);
 
                     var newReferences = new List<MetadataReference>();
                     var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();

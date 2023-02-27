@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -470,37 +468,42 @@ namespace SimplifyInsideNameof
 }");
         }
 
-        [Fact, WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact]
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
         public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using Goo = SimplifyInsideNameof.Program;
+                """
+                using System;
+                using Goo = SimplifyInsideNameof.Program;
 
-namespace SimplifyInsideNameof
-{
-  class Program
-  {
-    static void Main(string[] args)
-    {
-      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|].Main));
-    }
-  }
-}",
+                namespace SimplifyInsideNameof
+                {
+                  class Program
+                  {
+                    static void Main(string[] args)
+                    {
+                      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|].Main));
+                    }
+                  }
+                }
+                """,
+                """
+                using System;
+                using Goo = SimplifyInsideNameof.Program;
 
-@"using System;
-using Goo = SimplifyInsideNameof.Program;
-
-namespace SimplifyInsideNameof
-{
-  class Program
-  {
-    static void Main(string[] args)
-    {
-      Console.WriteLine(nameof(Goo.Main));
-    }
-  }
-}");
+                namespace SimplifyInsideNameof
+                {
+                  class Program
+                  {
+                    static void Main(string[] args)
+                    {
+                      Console.WriteLine(nameof(Main));
+                    }
+                  }
+                }
+                """);
         }
 
         [Fact, WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
@@ -938,24 +941,34 @@ namespace Root
 ");
         }
 
-        [Fact]
+        [Fact, WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
         public async Task TwoMissingInNameofMemberGroup()
         {
-            // Note: this is something we could potentially support as removing the
-            // qualification here preserves semantics.
-            await TestMissingInRegularAndScriptAsync(
-@"
-    class Example
-    {
-        void Method()
-        {
-            _ = nameof([|Example|].Goo);
-        }
+            await TestInRegularAndScript1Async(
+                """
+                class Example
+                {
+                    void Method()
+                    {
+                        _ = nameof([|Example|].Goo);
+                    }
 
-        public static void Goo() { }
-        public static void Goo(int i) { }
-    }
-");
+                    public static void Goo() { }
+                    public static void Goo(int i) { }
+                }
+                """,
+                """
+                class Example
+                {
+                    void Method()
+                    {
+                        _ = nameof(Goo);
+                    }
+
+                    public static void Goo() { }
+                    public static void Goo(int i) { }
+                }
+                """);
         }
 
         [Fact]
@@ -6121,6 +6134,126 @@ class Base
 }", IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
+        [Fact, WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
+        public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup1()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class Base
+                {
+                    void Goo()
+                    {
+                        var v = nameof([|Base|].Goo);
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class Base
+                {
+                    void Goo()
+                    {
+                        var v = nameof(Goo);
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
+        public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup2()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class Base
+                {
+                    static void Goo()
+                    {
+                        var v = nameof([|Base|].Goo);
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class Base
+                {
+                    static void Goo()
+                    {
+                        var v = nameof(Goo);
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
+        public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup3()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class Base
+                {
+                    void Goo()
+                    {
+                        var v = nameof([|Base|].Goo);
+                    }
+
+                    void Goo(int i) { }
+                }
+                """,
+                """
+                using System;
+
+                class Base
+                {
+                    void Goo()
+                    {
+                        var v = nameof(Goo);
+                    }
+                
+                    void Goo(int i) { }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(40972, "https://github.com/dotnet/roslyn/issues/40972")]
+        public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup4()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class Base
+                {
+                    static void Goo()
+                    {
+                        var v = nameof([|Base|].Goo);
+                    }
+                
+                    static void Goo(int i) { }
+                }
+                """,
+                """
+                using System;
+
+                class Base
+                {
+                    static void Goo()
+                    {
+                        var v = nameof(Goo);
+                    }
+
+                    static void Goo(int i) { }
+                }
+                """);
+        }
+
         [Fact, WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]
         public async Task TestNotOnIllegalInstanceCall()
         {
@@ -6179,6 +6312,106 @@ public ref struct A
         }
     }
 }");
+        }
+
+        [Fact]
+        public async Task TestNint1_NoNumericIntPtr()
+        {
+            var source =
+@"class A
+{
+    [|System.IntPtr|] i;
+}";
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestMissingInRegularAndScriptAsync(source, new TestParameters(options: featureOptions));
+        }
+
+        [Fact]
+        public async Task TestNint1_WithNumericIntPtr_CSharp11()
+        {
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"">
+        <Document>class A
+{
+    [|System.IntPtr|] i;
+}</Document>
+    </Project>
+</Workspace>
+",
+@"class A
+{
+    nint i;
+}", options: featureOptions);
+        }
+
+        [Fact]
+        public async Task TestNint1_WithNumericIntPtr_CSharp8()
+        {
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestMissingInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"" LanguageVersion=""8"">
+        <Document>class A
+{
+    [|System.IntPtr|] i;
+}</Document>
+    </Project>
+</Workspace>
+", new TestParameters(options: featureOptions));
+        }
+
+        [Fact]
+        public async Task TestNUint1_NoNumericIntPtr()
+        {
+            var source =
+@"class A
+{
+    [|System.UIntPtr|] i;
+}";
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestMissingInRegularAndScriptAsync(source, new TestParameters(options: featureOptions));
+        }
+
+        [Fact]
+        public async Task TestNUint1_WithNumericIntPtr_CSharp11()
+        {
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"">
+        <Document>class A
+{
+    [|System.UIntPtr|] i;
+}</Document>
+    </Project>
+</Workspace>
+",
+@"class A
+{
+    nuint i;
+}", options: featureOptions);
+        }
+
+        [Fact]
+        public async Task TestNUint1_WithNumericIntPtr_CSharp8()
+        {
+            var featureOptions = PreferIntrinsicTypeEverywhere;
+            await TestMissingInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"" LanguageVersion=""8"">
+        <Document>class A
+{
+    [|System.UIntPtr|] i;
+}</Document>
+    </Project>
+</Workspace>
+", new TestParameters(options: featureOptions));
         }
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)

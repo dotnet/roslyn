@@ -259,6 +259,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var location in symbol.DeclaringSyntaxReferences)
             {
                 var originalDocument = solution.GetDocument(location.SyntaxTree);
+                var originalRoot = await location.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
                 // GetDocument will return null for locations in #load'ed trees. TODO:  Remove this check and add logic
                 // to fetch the #load'ed tree's Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
@@ -271,7 +272,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var linkedDocumentId in originalDocument.GetLinkedDocumentIds())
                 {
                     var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
+
+                    // It's possible for us to have a solution snapshot where only part of a linked set of documents has
+                    // been updated.  As such, the other linked docs may have different contents/sizes than the original
+                    // doc we started with.  Skip those files as there's no sensible way to say that we have linked
+                    // symbols here when the contents are not the same.
                     var linkedSyntaxRoot = await linkedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    if (originalRoot.FullSpan != linkedSyntaxRoot.FullSpan)
+                        continue;
+
                     var linkedNode = linkedSyntaxRoot.FindNode(location.Span, getInnermostNodeForTie: true);
 
                     var semanticModel = await linkedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

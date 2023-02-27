@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsImplicitObjectCreation,
                 bool containsGlobalSuppressMessageAttribute,
                 bool containsConversion,
-                bool containsGlobalKeyword)
+                bool containsGlobalKeyword,
+                bool containsCollectionInitializer)
                 : this(predefinedTypes, predefinedOperators,
                        ConvertToContainingNodeFlag(
                          containsForEachStatement,
@@ -50,7 +51,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsImplicitObjectCreation,
                          containsGlobalSuppressMessageAttribute,
                          containsConversion,
-                         containsGlobalKeyword))
+                         containsGlobalKeyword,
+                         containsCollectionInitializer))
             {
             }
 
@@ -76,7 +78,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsImplicitObjectCreation,
                 bool containsGlobalSuppressMessageAttribute,
                 bool containsConversion,
-                bool containsGlobalKeyword)
+                bool containsGlobalKeyword,
+                bool containsCollectionInitializer)
             {
                 var containingNodes = ContainingNodes.None;
 
@@ -95,6 +98,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 containingNodes |= containsGlobalSuppressMessageAttribute ? ContainingNodes.ContainsGlobalSuppressMessageAttribute : 0;
                 containingNodes |= containsConversion ? ContainingNodes.ContainsConversion : 0;
                 containingNodes |= containsGlobalKeyword ? ContainingNodes.ContainsGlobalKeyword : 0;
+                containingNodes |= containsCollectionInitializer ? ContainingNodes.ContainsCollectionInitializer : 0;
 
                 return containingNodes;
             }
@@ -150,6 +154,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool ContainsConversion
                 => (_containingNodes & ContainingNodes.ContainsConversion) == ContainingNodes.ContainsConversion;
 
+            public bool ContainsCollectionInitializer
+                => (_containingNodes & ContainingNodes.ContainsCollectionInitializer) == ContainingNodes.ContainsCollectionInitializer;
+
             public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteInt32(_predefinedTypes);
@@ -193,6 +200,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsGlobalSuppressMessageAttribute = 1 << 12,
                 ContainsConversion = 1 << 13,
                 ContainsGlobalKeyword = 1 << 14,
+                ContainsCollectionInitializer = 1 << 15,
             }
         }
     }

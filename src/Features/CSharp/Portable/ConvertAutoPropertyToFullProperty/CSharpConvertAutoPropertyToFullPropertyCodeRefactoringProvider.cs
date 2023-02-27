@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
         }
 
-        internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+        protected override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var rule = await document.GetApplicableNamingRuleAsync(
                 new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 cancellationToken).ConfigureAwait(false);
 
             var fieldName = rule.NamingStyle.MakeCompliant(property.Name).First();
-            return NameGenerator.GenerateUniqueName(fieldName, n => !property.ContainingType.GetMembers(n).Any());
+            return NameGenerator.GenerateUniqueName(fieldName, n => !(property.ContainingType.Name == n || property.ContainingType.GetMembers(n).Any()));
         }
 
-        internal override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
+        protected override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
             CSharpCodeGenerationContextInfo info, SyntaxNode property,
             string fieldName, SyntaxGenerator generator)
         {
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return ((AccessorDeclarationSyntax)accessor).WithBody(blockSyntax);
         }
 
-        internal override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(
+        protected override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(
             CSharpCodeGenerationContextInfo info, SyntaxNode property)
         {
             var propertyDeclaration = (PropertyDeclarationSyntax)property;
@@ -139,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return propertyDeclaration.WithSemicolonToken(default);
         }
 
-        internal override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
+        protected override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
             => syntaxNode;
 
-        internal override SyntaxNode GetInitializerValue(SyntaxNode property)
+        protected override SyntaxNode GetInitializerValue(SyntaxNode property)
             => ((PropertyDeclarationSyntax)property).Initializer?.Value;
 
-        internal override SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property)
+        protected override SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property)
             => ((PropertyDeclarationSyntax)property).WithInitializer(null);
     }
 }

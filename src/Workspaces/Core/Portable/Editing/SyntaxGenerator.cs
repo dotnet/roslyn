@@ -189,7 +189,36 @@ namespace Microsoft.CodeAnalysis.Editing
                 statements: statements);
 
             if (method.TypeParameters.Length > 0)
-                decl = this.WithTypeParametersAndConstraints(decl, method.TypeParameters);
+            {
+                // Overrides are special.  Specifically, in an override, if a type parameter has no constraints, then we
+                // want to still add `where T : default` if that type parameter is used with NRT (e.g. `T?`) that way
+                // the language can distinguish if this is a Nullable Value Type or not.
+                if (method.IsOverride)
+                {
+                    foreach (var typeParameter in method.TypeParameters)
+                    {
+                        if (HasNullableAnnotation(typeParameter, method))
+                        {
+                            if (!HasSomeConstraint(typeParameter))
+                            {
+                                // if there are no constraints, add `where T : default` so it's known this not an NVT
+                                // and is just an unconstrained type parameter.
+                                decl = WithDefaultConstraint(decl, typeParameter.Name);
+                            }
+                            else if (!typeParameter.HasValueTypeConstraint)
+                            {
+                                // if there are some constraints, add `where T : class` so it's known this is not an NVT
+                                // and must specifically be some reference type.
+                                decl = WithTypeConstraint(decl, typeParameter.Name, SpecialTypeConstraintKind.ReferenceType);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    decl = this.WithTypeParametersAndConstraints(decl, method.TypeParameters);
+                }
+            }
 
             if (method.ExplicitInterfaceImplementations.Length > 0)
             {
@@ -198,6 +227,17 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             return decl;
+
+            bool HasNullableAnnotation(ITypeParameterSymbol typeParameter, IMethodSymbol method)
+            {
+                return method.ReturnType.GetReferencedTypeParameters().Any(t => IsNullableAnnotatedTypeParameter(typeParameter, t)) ||
+                    method.Parameters.Any(p => p.Type.GetReferencedTypeParameters().Any(t => IsNullableAnnotatedTypeParameter(typeParameter, t)));
+            }
+
+            static bool IsNullableAnnotatedTypeParameter(ITypeParameterSymbol typeParameter, ITypeParameterSymbol current)
+            {
+                return Equals(current, typeParameter) && current.NullableAnnotation == NullableAnnotation.Annotated;
+            }
         }
 
         /// <summary>
@@ -356,13 +396,21 @@ namespace Microsoft.CodeAnalysis.Editing
                 setAccessor = SetAccessorDeclaration(setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable, setAccessorStatements);
             }
 
-            return PropertyDeclaration(
+            var propDecl = PropertyDeclaration(
                 property.Name,
                 TypeExpression(property.Type, property.RefKind),
                 getAccessor,
                 setAccessor,
                 propertyAccessibility,
                 DeclarationModifiers.From(property));
+
+            if (property.ExplicitInterfaceImplementations.Length > 0)
+            {
+                propDecl = this.WithExplicitInterfaceImplementations(propDecl,
+                    ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations));
+            }
+
+            return propDecl;
         }
 
         private protected abstract SyntaxNode PropertyDeclaration(
@@ -405,13 +453,21 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode>? getAccessorStatements = null,
             IEnumerable<SyntaxNode>? setAccessorStatements = null)
         {
-            return IndexerDeclaration(
+            var indexerDecl = IndexerDeclaration(
                 indexer.Parameters.Select(p => this.ParameterDeclaration(p)),
                 TypeExpression(indexer.Type, indexer.RefKind),
                 indexer.DeclaredAccessibility,
                 DeclarationModifiers.From(indexer),
                 getAccessorStatements,
                 setAccessorStatements);
+
+            if (indexer.ExplicitInterfaceImplementations.Length > 0)
+            {
+                indexerDecl = this.WithExplicitInterfaceImplementations(indexerDecl,
+                    ImmutableArray<ISymbol>.CastUp(indexer.ExplicitInterfaceImplementations));
+            }
+
+            return indexerDecl;
         }
 
         /// <summary>
@@ -438,11 +494,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode EventDeclaration(IEventSymbol symbol)
         {
-            return EventDeclaration(
+            var ev = EventDeclaration(
                 symbol.Name,
                 TypeExpression(symbol.Type),
                 symbol.DeclaredAccessibility,
                 DeclarationModifiers.From(symbol));
+
+            if (symbol.ExplicitInterfaceImplementations.Length > 0)
+            {
+                ev = this.WithExplicitInterfaceImplementations(ev,
+                    ImmutableArray<ISymbol>.CastUp(symbol.ExplicitInterfaceImplementations));
+            }
+
+            return ev;
         }
 
         /// <summary>
@@ -686,7 +750,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.Destructor:
                             return DestructorDeclaration(method);
 
-                        case MethodKind.Ordinary:
+                        case MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation:
                             return MethodDeclaration(method);
 
                         case MethodKind.UserDefinedOperator or MethodKind.Conversion:
@@ -812,7 +876,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
                 foreach (var tp in typeParameters)
                 {
-                    if (tp.HasConstructorConstraint || tp.HasReferenceTypeConstraint || tp.HasValueTypeConstraint || tp.ConstraintTypes.Length > 0)
+                    if (HasSomeConstraint(tp))
                     {
                         declaration = this.WithTypeConstraint(declaration, tp.Name,
                             kinds: (tp.HasConstructorConstraint ? SpecialTypeConstraintKind.Constructor : SpecialTypeConstraintKind.None)
@@ -825,6 +889,9 @@ namespace Microsoft.CodeAnalysis.Editing
 
             return declaration;
         }
+
+        private static bool HasSomeConstraint(ITypeParameterSymbol typeParameter)
+            => typeParameter.HasConstructorConstraint || typeParameter.HasReferenceTypeConstraint || typeParameter.HasValueTypeConstraint || typeParameter.ConstraintTypes.Length > 0;
 
         internal abstract SyntaxNode WithExplicitInterfaceImplementations(
             SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations, bool removeDefaults = true);
@@ -847,6 +914,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Adds a type constraint to a type parameter of a declaration.
         /// </summary>
         public abstract SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types = null);
+
+        private protected abstract SyntaxNode WithDefaultConstraint(SyntaxNode declaration, string typeParameterName);
 
         /// <summary>
         /// Adds a type constraint to a type parameter of a declaration.
@@ -1244,7 +1313,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Gets the accessor of the specified kind for the declaration.
         /// </summary>
-        public SyntaxNode GetAccessor(SyntaxNode declaration, DeclarationKind kind)
+        public SyntaxNode? GetAccessor(SyntaxNode declaration, DeclarationKind kind)
             => this.GetAccessors(declaration).FirstOrDefault(a => GetDeclarationKind(a) == kind);
 
         /// <summary>

@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
@@ -15,11 +15,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.Progression.CodeSchema.Api;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
@@ -56,7 +54,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task<bool> IsPrettyListingOnAsync(string languageName, CancellationToken cancellationToken)
         {
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            return globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
+            return globalOptions.GetOption(LineCommitOptionsStorage.PrettyListing, languageName);
         }
 
         public async Task SetPrettyListingAsync(string languageName, bool value, CancellationToken cancellationToken)
@@ -64,7 +62,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            globalOptions.SetGlobalOption(FeatureOnOffOptions.PrettyListing, languageName, value);
+            globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, languageName, value);
         }
 
         public async Task SetFileScopedNamespaceAsync(bool value, CancellationToken cancellationToken)

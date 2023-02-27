@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
-            InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(VisualStudio.Text.SpanTrackingMode.EdgeInclusive);
+            InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
             RegisterOleComponent();
         }
@@ -353,8 +353,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnReferenceLocationsChanged(object sender, ImmutableArray<InlineRenameLocation> renameLocations)
         {
-            var fileCount = renameLocations.GroupBy(s => s.Document).Count();
-            var referenceCount = renameLocations.Length;
+            // Collapse the same edits across multiple instances of the same linked-file.
+            var fileCount = renameLocations.GroupBy(s => s.Document.FilePath).Count();
+            var referenceCount = renameLocations.Select(loc => (loc.Document.FilePath, loc.TextSpan)).Distinct().Count();
 
             if (referenceCount == 1 && fileCount == 1)
             {

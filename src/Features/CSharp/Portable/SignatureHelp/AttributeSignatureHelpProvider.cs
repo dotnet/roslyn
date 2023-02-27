@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 .ToList();
 
             var isVariadic =
-                constructor.Parameters.Length > 0 && constructor.Parameters.Last().IsParams && namedParameters.Count == 0;
+                constructor.Parameters is [.., { IsParams: true }] && namedParameters.Count == 0;
 
             var item = CreateItem(
                 constructor, semanticModel, position,

@@ -2883,6 +2883,22 @@ class C
             await VerifyItemExistsAsync(markup, "goo");
         }
 
+        [Fact, WorkItem(36352, "https://github.com/dotnet/roslyn/issues/36352")]
+        public async Task InferCollectionInErrorCase1()
+        {
+            var markup = @"
+class Customer { }
+
+class V
+{
+    void M(IEnumerable<Customer> $$)
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "customers");
+        }
+
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
         {
             var styles = new[]

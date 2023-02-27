@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseDeconstructionDiagnosticAnalyzer(), new CSharpUseDeconstructionCodeFixProvider());
 
         [Fact]
@@ -777,6 +775,46 @@ class Program
         await Task.Yield();
     }
 }" + IAsyncEnumerable);
+        }
+
+        [Fact, WorkItem(66994, "https://github.com/dotnet/roslyn/issues/66994")]
+        public async Task TestTopLevelDeconstruct1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                (int A, int B) [|ints|] = (1, 1);
+                M(ints);
+
+                void M((int, int) i)
+                {
+
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66994, "https://github.com/dotnet/roslyn/issues/66994")]
+        public async Task TestTopLevelDeconstruct2()
+        {
+            await TestAsync(
+            """
+                (int A, int B) [|ints|] = (1, 1);
+                M(ints.A, ints.B);
+
+                void M(int x, int y)
+                {
+
+                }
+                """,
+                """
+                (int A, int B) = (1, 1);
+                M(A, B);
+
+                void M(int x, int y)
+                {
+
+                }
+                """,
+                parseOptions: null);
         }
     }
 }

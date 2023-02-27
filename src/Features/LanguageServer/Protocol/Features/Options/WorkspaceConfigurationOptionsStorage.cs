@@ -20,7 +20,7 @@ internal static class WorkspaceConfigurationOptionsStorage
             DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees));
 
     public static readonly Option2<StorageDatabase> Database = new(
-        "Storage_Database", WorkspaceConfigurationOptions.Default.CacheStorage);
+        "Storage_Database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
 
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
         "Storage_CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
