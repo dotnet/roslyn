@@ -1064,9 +1064,12 @@ class A
             var project = workspace.CurrentSolution.Projects.Single();
             var document = documentAnalysis ? project.Documents.Single() : null;
             var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
-            var diagnosticComputer = new DiagnosticComputer(document, project, ideAnalyzerOptions, span: null, AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services);
-            var diagnosticsMapResults = await diagnosticComputer.GetDiagnosticsAsync(analyzerIdsToRequestDiagnostics, reportSuppressedDiagnostics: false,
-                logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
+            var checksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
+            var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
+                document, project, checksum, ideAnalyzerOptions, span: null, analyzerIdsToRequestDiagnostics,
+                AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
+                reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
+                cancellationToken: CancellationToken.None);
             Assert.False(analyzer2.ReceivedSymbolCallback);
 
             Assert.Equal(1, diagnosticsMapResults.Diagnostics.Length);
@@ -1111,14 +1114,15 @@ class A
 
             var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
             var kind = actionKind == AnalyzerRegisterActionKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
-            var diagnosticComputer = new DiagnosticComputer(document, project, ideAnalyzerOptions, span: null, kind, diagnosticAnalyzerInfoCache, workspace.Services);
+            var checksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
             var analyzerIds = new[] { analyzer.GetAnalyzerId() };
 
             // First invoke analysis with cancellation token, and verify canceled compilation and no reported diagnostics.
             Assert.Empty(analyzer.CanceledCompilations);
             try
             {
-                _ = await diagnosticComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics: false,
+                _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, checksum, ideAnalyzerOptions, span: null,
+                    analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, reportSuppressedDiagnostics: false,
                     logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
                 throw ExceptionUtilities.Unreachable();
@@ -1130,7 +1134,8 @@ class A
             Assert.Single(analyzer.CanceledCompilations);
 
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
-            var diagnosticsMap = await diagnosticComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics: false,
+            var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, checksum, ideAnalyzerOptions, span: null,
+                analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
             var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
             var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();
