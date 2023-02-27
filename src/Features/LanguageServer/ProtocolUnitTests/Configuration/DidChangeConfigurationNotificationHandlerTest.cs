@@ -112,7 +112,7 @@ public class A { }";
             }
         }
 
-        private async Task WaitAsync(TestWorkspace testWorkspace, string name)
+        private static async Task WaitAsync(TestWorkspace testWorkspace, string name)
         {
             var listenerProvider = testWorkspace.GetService<AsynchronousOperationListenerProvider>();
             await listenerProvider.GetWaiter(name).ExpeditedWaitAsync();
