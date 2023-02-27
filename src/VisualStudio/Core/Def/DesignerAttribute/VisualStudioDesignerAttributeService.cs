@@ -127,7 +127,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
                 solution,
-                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(callbackId, checksum, priorityDocument, cancellationToken),
+                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
+                    callbackId, checksum, priorityDocument, useFrozenSnapshots: true, cancellationToken),
                 callbackTarget: this,
                 cancellationToken).ConfigureAwait(false);
         }

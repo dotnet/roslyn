@@ -47,9 +47,20 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         {
         }
 
+        private static AsyncLazy<bool> GetLazyHasDesignerCategoryType(Project project)
+            => s_metadataReferencesToDesignerAttributeInfo.GetValue(
+                   project.MetadataReferences,
+                   _ => AsyncLazy.Create(
+                       async cancellationToken =>
+                       {
+                           var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                           return compilation.DesignerCategoryAttributeType() != null;
+                       }, cacheResult: true));
+
         public async ValueTask ProcessSolutionAsync(
             Solution solution,
             DocumentId? priorityDocumentId,
+            bool useFrozenSnapshots,
             IDesignerAttributeDiscoveryService.ICallback callback,
             CancellationToken cancellationToken)
         {
@@ -65,10 +76,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 // Handle the priority doc first.
                 var priorityDocument = solution.GetDocument(priorityDocumentId);
                 if (priorityDocument != null)
-                    await ProcessProjectAsync(priorityDocument.Project, priorityDocument, callback, cancellationToken).ConfigureAwait(false);
+                    await ProcessProjectAsync(priorityDocument.Project, priorityDocument, useFrozenSnapshots, callback, cancellationToken).ConfigureAwait(false);
 
                 // Wait a little after the priority document and process the rest at a lower priority.
-                await Task.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
 
                 // Process the rest of the projects in dependency order so that their data is ready when we hit the 
                 // projects that depend on them.
@@ -76,7 +87,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
                 {
                     if (projectId != priorityDocumentId?.ProjectId)
-                        await ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, callback, cancellationToken).ConfigureAwait(false);
+                        await ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, useFrozenSnapshots, callback, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -84,6 +95,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         private async Task ProcessProjectAsync(
             Project project,
             Document? specificDocument,
+            bool useFrozenSnapshots,
             IDesignerAttributeDiscoveryService.ICallback callback,
             CancellationToken cancellationToken)
         {
@@ -97,14 +109,25 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // change if anything it depends on changes).
             var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync, cacheResult: true);
 
-            var lazyHasDesignerCategoryType = s_metadataReferencesToDesignerAttributeInfo.GetValue(
-                project.MetadataReferences,
-                _ => AsyncLazy.Create(
-                    async cancellationToken =>
-                    {
-                        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                        return compilation.DesignerCategoryAttributeType() != null;
-                    }, cacheResult: true));
+            // Switch to frozen semantics if requested.  We don't need to wait on generators to run here as we want to
+            // be lightweight.  We'll also continue running in the future.  So if any changes to happen that are
+            // important to pickup, then we'll see it in the future.  But this avoids constant churn here trying to do
+            // things like building skeletons.
+            if (useFrozenSnapshots)
+            {
+                var document = specificDocument ?? project.Documents.FirstOrDefault();
+                if (document is null)
+                    return;
+
+                project = document.WithFrozenPartialSemantics(cancellationToken).Project;
+                specificDocument = specificDocument is null ? null : project.GetRequiredDocument(specificDocument.Id);
+            }
+
+            // Note: it's fine to pass a frozen project into this helper.  The purpose of it is to see if we know about
+            // the System.ComponentModel.DesignerCategoryAttribute in that project.  And that question depends only on
+            // metadata-references.  We don't need/want things like skeletons/source-generators involved when answering
+            // that question.
+            var lazyHasDesignerCategoryType = GetLazyHasDesignerCategoryType(project);
 
             await ScanForDesignerCategoryUsageAsync(
                 project, specificDocument, callback, lazyProjectVersion, lazyHasDesignerCategoryType, cancellationToken).ConfigureAwait(false);
@@ -202,6 +225,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         public static async Task<string?> ComputeDesignerAttributeCategoryAsync(
             AsyncLazy<bool> lazyHasDesignerCategoryType, Document document, CancellationToken cancellationToken)
         {
+            // If we have computed the hasDesignerCategoryType value for a prior document, and it turned out to be
+            // false, then we can skip any further steps (like parsing the file).
+            if (lazyHasDesignerCategoryType.TryGetValue(out var hasDesignerCategoryType) && !hasDesignerCategoryType)
+                return null;
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -213,7 +241,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
             // simple case.  If there's no DesignerCategory type in this compilation, then there's
             // definitely no designable types.
-            var hasDesignerCategoryType = await lazyHasDesignerCategoryType.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            hasDesignerCategoryType = await lazyHasDesignerCategoryType.GetValueAsync(cancellationToken).ConfigureAwait(false);
             if (!hasDesignerCategoryType)
                 return null;
 
