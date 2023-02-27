@@ -192,14 +192,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private (uint RefEscapeScope, uint ValEscapeScope) GetLocalScopes(LocalSymbol local)
         {
-            Debug.Assert(_localEscapeScopes is { });
-            return _localEscapeScopes[local];
+            Debug.Assert(_localEscapeScopes?.ContainsKey(local) == true);
+
+            return _localEscapeScopes?.TryGetValue(local, out var scopes) == true
+                ? scopes
+                : (Binder.CallingMethodScope, Binder.CallingMethodScope);
         }
 
         private void SetLocalScopes(LocalSymbol local, uint refEscapeScope, uint valEscapeScope)
         {
-            Debug.Assert(_localEscapeScopes is { });
-            _localEscapeScopes[local] = (refEscapeScope, valEscapeScope);
+            Debug.Assert(_localEscapeScopes?.ContainsKey(local) == true);
+
+            if (_localEscapeScopes?.ContainsKey(local) == true)
+            {
+                _localEscapeScopes[local] = (refEscapeScope, valEscapeScope);
+            }
         }
 
         private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, uint valEscapeScope)
@@ -211,7 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable IDE0060
         private void RemovePlaceholderScope(BoundValuePlaceholderBase placeholder)
         {
-            Debug.Assert(_placeholderScopes is { });
+            Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) == true);
+
             // https://github.com/dotnet/roslyn/issues/65961: Currently, analysis may require subsequent calls
             // to GetRefEscape(), etc. for the same expression so we cannot remove placeholders eagerly.
             //_placeholderScopes.Remove(placeholder);
@@ -220,8 +228,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private uint GetPlaceholderScope(BoundValuePlaceholderBase placeholder)
         {
-            Debug.Assert(_placeholderScopes is { });
-            return _placeholderScopes[placeholder];
+            // https://github.com/dotnet/roslyn/issues/67070: Assert should be re-enabled when placeholders are included.
+            //Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) == true);
+
+            return _placeholderScopes?.TryGetValue(placeholder, out var scope) == true
+                ? scope
+                : Binder.CallingMethodScope;
         }
 
         public override BoundNode? VisitBlock(BoundBlock node)
