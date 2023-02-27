@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.ImplementType
                  globalOptions.CreateProvider());
 
         public static readonly PerLanguageOption2<ImplementTypeInsertionBehavior> InsertionBehavior =
-            new("dotnet_implement_type_insertion_behavior",
+            new("dotnet_insertion_behavior",
                 defaultValue: ImplementTypeOptions.Default.InsertionBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypeInsertionBehavior>());
 
         public static readonly PerLanguageOption2<ImplementTypePropertyGenerationBehavior> PropertyGenerationBehavior =
-            new("dotnet_implement_type_property_generation_behavior",
+            new("dotnet_property_generation_behavior",
                 defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypePropertyGenerationBehavior>());
     }
 }

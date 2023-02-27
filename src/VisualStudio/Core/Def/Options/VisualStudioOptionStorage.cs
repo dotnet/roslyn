@@ -324,8 +324,8 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_generate_equality_operators", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators")},
         {"dotnet_generate_iequatable_implementation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable")},
         {"dotnet_generate_overrides_for_all_members", new RoamingProfileStorage("TextEditor.Specific.GenerateOverridesOptions.SelectAll")},
-        {"dotnet_implement_type_insertion_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior")},
-        {"dotnet_implement_type_property_generation_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.PropertyGenerationBehavior")},
+        {"dotnet_insertion_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior")},
+        {"dotnet_property_generation_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.PropertyGenerationBehavior")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"indent_size", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Indent Size", vbKey: "TextEditor.Basic.Indent Size")},
         {"indent_style", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Insert Tabs", vbKey: "TextEditor.Basic.Insert Tabs")},
