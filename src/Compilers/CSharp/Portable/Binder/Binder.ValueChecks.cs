@@ -2084,8 +2084,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         _compilation.IsPeVerifyCompatEnabled,
                                         stackLocalsOpt: null))
                     {
+#if DEBUG
+                        Debug.Assert(IsVisited(receiver));
+#endif
                         // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
                         receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, _localScopeDepth, receiver.Type).MakeCompilerGenerated();
+#if DEBUG
+                        MarkedVisited(receiver);
+#endif
                     }
                 }
 
@@ -2910,6 +2916,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal uint GetRefEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
+#if DEBUG
+            Debug.Assert(IsVisited(expr));
+#endif
+
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
             {
@@ -3146,6 +3156,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool CheckRefEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+#if DEBUG
+            Debug.Assert(IsVisited(expr));
+#endif
+
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
 
             if (escapeTo >= escapeFrom)
@@ -3468,6 +3482,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
+#if DEBUG
+            Debug.Assert(IsVisited(expr));
+#endif
+
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
             {
@@ -3867,6 +3885,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+#if DEBUG
+            Debug.Assert(IsVisited(expr));
+#endif
+
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
 
             if (escapeTo >= escapeFrom)
