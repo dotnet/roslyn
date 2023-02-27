@@ -372,14 +372,20 @@ namespace Microsoft.CodeAnalysis
 
         private static ImmutableArray<Diagnostic> FilterDiagnostics(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics, DiagnosticBag? driverDiagnostics, CancellationToken cancellationToken)
         {
+            if (generatorDiagnostics.IsEmpty)
+            {
+                return generatorDiagnostics;
+            }
+
+            var suppressMessageState = new SuppressMessageAttributeState(compilation);
             ArrayBuilder<Diagnostic> filteredDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
             foreach (var diag in generatorDiagnostics)
             {
-                var filtered = compilation.Options.FilterDiagnostic(diag, cancellationToken);
-                if (filtered is object)
+                if (compilation.Options.FilterDiagnostic(diag, cancellationToken) is { } filtered &&
+                    suppressMessageState.ApplySourceSuppressions(filtered) is { } effective)
                 {
-                    filteredDiagnostics.Add(filtered);
-                    driverDiagnostics?.Add(filtered);
+                    filteredDiagnostics.Add(effective);
+                    driverDiagnostics?.Add(effective);
                 }
             }
             return filteredDiagnostics.ToImmutableAndFree();

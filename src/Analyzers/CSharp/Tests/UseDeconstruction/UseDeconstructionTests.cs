@@ -3,34 +3,27 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseDeconstruction;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpUseDeconstructionDiagnosticAnalyzer,
+        CSharpUseDeconstructionCodeFixProvider>;
+
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
-    public class UseDeconstructionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class UseDeconstructionTests
     {
-        public UseDeconstructionTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUseDeconstructionDiagnosticAnalyzer(), new CSharpUseDeconstructionCodeFixProvider());
-
         [Fact]
         public async Task TestVar()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
@@ -40,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 
                     (string name, int age) GetPerson() => default;
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
@@ -57,13 +49,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestNotIfNameInInnerScope()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
+            var code = """
                 class C
                 {
                     void M()
                     {
-                        var [|t1|] = GetPerson();
+                        var t1 = GetPerson();
                         {
                             int age;
                         }
@@ -71,51 +62,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 
                     (string name, int age) GetPerson() => default;
                 }
-                """);
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestNotIfNameInOuterScope()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
+            var code = """
                 class C
                 {
                     int age;
 
                     void M()
                     {
-                        var [|t1|] = GetPerson();
+                        var t1 = GetPerson();
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """);
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestUpdateReference()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
                     {
                         var [|t1|] = GetPerson();
-                        Console.WriteLine(t1.name + " " + t1.age);
+                        System.Console.WriteLine(t1.name + " " + t1.age);
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
                     {
                         var (name, age) = GetPerson();
-                        Console.WriteLine(name + " " + age);
+                        System.Console.WriteLine(name + " " + age);
                     }
 
                     (string name, int age) GetPerson() => default;
@@ -126,26 +118,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestTupleType()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
                     {
-                        (int name, int age) [|t1|] = GetPerson();
-                        Console.WriteLine(t1.name + " " + t1.age);
+                        (string name, int age) [|t1|] = GetPerson();
+                        System.Console.WriteLine(t1.name + " " + t1.age);
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
                     {
-                        (int name, int age) = GetPerson();
-                        Console.WriteLine(name + " " + age);
+                        (string name, int age) = GetPerson();
+                        System.Console.WriteLine(name + " " + age);
                     }
 
                     (string name, int age) GetPerson() => default;
@@ -156,8 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestVarInForEach()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 using System.Collections.Generic;
 
                 class C
@@ -165,13 +154,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
                     void M()
                     {
                         foreach (var [|t1|] in GetPeople())
-                            Console.WriteLine(t1.name + " " + t1.age);
+                            System.Console.WriteLine(t1.name + " " + t1.age);
                     }
 
                     IEnumerable<(string name, int age)> GetPeople() => default;
                 }
-                """,
-                """
+                """, """
                 using System.Collections.Generic;
 
                 class C
@@ -179,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
                     void M()
                     {
                         foreach (var (name, age) in GetPeople())
-                            Console.WriteLine(name + " " + age);
+                            System.Console.WriteLine(name + " " + age);
                     }
 
                     IEnumerable<(string name, int age)> GetPeople() => default;
@@ -190,8 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestTupleTypeInForEach()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 using System.Collections.Generic;
 
                 class C
@@ -199,13 +186,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
                     void M()
                     {
                         foreach ((string name, int age) [|t1|] in GetPeople())
-                            Console.WriteLine(t1.name + " " + t1.age);
+                            System.Console.WriteLine(t1.name + " " + t1.age);
                     }
 
                     IEnumerable<(string name, int age)> GetPeople() => default;
                 }
-                """,
-                """
+                """, """
                 using System.Collections.Generic;
 
                 class C
@@ -213,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
                     void M()
                     {
                         foreach ((string name, int age) in GetPeople())
-                            Console.WriteLine(name + " " + age);
+                            System.Console.WriteLine(name + " " + age);
                     }
 
                     IEnumerable<(string name, int age)> GetPeople() => default;
@@ -224,20 +210,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
                     {
-                        var {|FixAllInDocument:t1|} = GetPerson();
-                        var t2 = GetPerson();
+                        var [|t1|] = GetPerson();
+                        var [|t2|] = GetPerson();
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
@@ -254,24 +238,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
                     {
-                        var {|FixAllInDocument:t1|} = GetPerson();
+                        var [|t1|] = GetPerson();
                     }
 
                     void M2()
                     {
-                        var t2 = GetPerson();
+                        var [|t2|] = GetPerson();
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
@@ -292,20 +274,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestFixAll3()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
                     {
-                        (string name1, int age1) {|FixAllInDocument:t1|} = GetPerson();
-                        (string name2, int age2) t2 = GetPerson();
+                        (string name1, int age1) [|t1|] = GetPerson();
+                        (string name2, int age2) [|t2|] = GetPerson();
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
@@ -322,20 +302,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestFixAll4()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
                     {
-                        (string name, int age) {|FixAllInDocument:t1|} = GetPerson();
-                        (string name, int age) t2 = GetPerson();
+                        (string name, int age) [|t1|] = GetPerson();
+                        (string name, int age) [|t2|] = GetPerson();
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
@@ -352,25 +330,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestNotIfDefaultTupleNameWithVar()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
+            var code = """
                 class C
                 {
                     void M()
                     {
-                        var [|t1|] = GetPerson();
+                        var t1 = GetPerson();
                     }
 
                     (string, int) GetPerson() => default;
                 }
-                """);
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestWithUserNamesThatMatchDefaultTupleNameWithVar1()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
@@ -380,8 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 
                     (string Item1, int Item2) GetPerson() => default;
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
@@ -397,26 +374,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestWithUserNamesThatMatchDefaultTupleNameWithVar2()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
                     {
                         var [|t1|] = GetPerson();
-                        Console.WriteLine(t1.Item1);
+                        System.Console.WriteLine(t1.Item1);
                     }
 
                     (string Item1, int Item2) GetPerson() => default;
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
                     {
                         var (Item1, Item2) = GetPerson();
-                        Console.WriteLine(Item1);
+                        System.Console.WriteLine(Item1);
                     }
 
                     (string Item1, int Item2) GetPerson() => default;
@@ -427,115 +402,118 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestNotIfDefaultTupleNameWithTupleType()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
+            var code = """
                 class C
                 {
                     void M()
                     {
-                        (string, int) [|t1|] = GetPerson();
+                        (string, int) t1 = GetPerson();
                     }
 
                     (string, int) GetPerson() => default;
                 }
-                """);
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestNotIfTupleIsUsed()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
+            var code = """
                 class C
                 {
                     void M()
                     {
-                        var [|t1|] = GetPerson();
-                        Console.WriteLine(t1);
+                        var t1 = GetPerson();
+                        System.Console.WriteLine(t1);
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """);
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestNotIfTupleMethodIsUsed()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
+            var code = """
                 class C
                 {
                     void M()
                     {
-                        var [|t1|] = GetPerson();
-                        Console.WriteLine(t1.ToString());
+                        var t1 = GetPerson();
+                        System.Console.WriteLine(t1.ToString());
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """);
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestNotIfTupleDefaultElementNameUsed()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
+            var code = """
                 class C
                 {
                     void M()
                     {
-                        var [|t1|] = GetPerson();
-                        Console.WriteLine(t1.Item1);
+                        var t1 = GetPerson();
+                        System.Console.WriteLine(t1.Item1);
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """);
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestNotIfTupleRandomNameUsed()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
+            var code = """
                 class C
                 {
                     void M()
                     {
-                        var [|t1|] = GetPerson();
-                        Console.WriteLine(t1.Unknown);
+                        var t1 = GetPerson();
+                        System.Console.WriteLine(t1.{|CS1061:Unknown|});
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """);
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestTrivia1()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
                     {
-                        /*1*/(/*2*/int/*3*/ name, /*4*/int/*5*/ age)/*6*/ [|t1|] = GetPerson();
-                        Console.WriteLine(/*7*/t1.name/*8*/ + " " + /*9*/t1.age/*10*/);
+                        /*1*/(/*2*/string/*3*/ name, /*4*/int/*5*/ age)/*6*/ [|t1|] = GetPerson();
+                        System.Console.WriteLine(/*7*/t1.name/*8*/ + " " + /*9*/t1.age/*10*/);
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
                     {
-                        /*1*/(/*2*/int/*3*/ name, /*4*/int/*5*/ age)/*6*/ = GetPerson();
-                        Console.WriteLine(/*7*/name/*8*/ + " " + /*9*/age/*10*/);
+                        /*1*/(/*2*/string/*3*/ name, /*4*/int/*5*/ age)/*6*/ = GetPerson();
+                        System.Console.WriteLine(/*7*/name/*8*/ + " " + /*9*/age/*10*/);
                     }
 
                     (string name, int age) GetPerson() => default;
@@ -546,40 +524,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact, WorkItem(25260, "https://github.com/dotnet/roslyn/issues/25260")]
         public async Task TestNotWithDefaultLiteralInitializer()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
+            await new VerifyCS.Test()
+            {
+                TestCode = """
+                    class C
                     {
-                        (string name, int age) [|person|] = default;
-                        Console.WriteLine(person.name + " " + person.age);
+                        void M()
+                        {
+                            (string name, int age) person = default;
+                            System.Console.WriteLine(person.name + " " + person.age);
+                        }
                     }
-                }
-                """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)));
+                    """,
+                LanguageVersion = LanguageVersion.CSharp7_1
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestWithDefaultExpressionInitializer()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
                     {
                         (string name, int age) [|person|] = default((string, int));
-                        Console.WriteLine(person.name + " " + person.age);
+                        System.Console.WriteLine(person.name + " " + person.age);
                     }
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
                     {
                         (string name, int age) = default((string, int));
-                        Console.WriteLine(name + " " + age);
+                        System.Console.WriteLine(name + " " + age);
                     }
                 }
                 """);
@@ -588,8 +567,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestNotWithImplicitConversionFromNonTuple()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
+            var code = """
                 class C
                 {
                     class Person
@@ -599,18 +577,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 
                     void M()
                     {
-                        (string name, int age) [|person|] = new Person();
-                        Console.WriteLine(person.name + " " + person.age);
+                        (string name, int age) person = new Person();
+                        System.Console.WriteLine(person.name + " " + person.age);
                     }
                 }
-                """);
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestWithExplicitImplicitConversionFromNonTuple()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     class Person
@@ -621,11 +600,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
                     void M()
                     {
                         (string name, int age) [|person|] = ((string, int))new Person();
-                        Console.WriteLine(person.name + " " + person.age);
+                        System.Console.WriteLine(person.name + " " + person.age);
                     }
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     class Person
@@ -636,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
                     void M()
                     {
                         (string name, int age) = ((string, int))new Person();
-                        Console.WriteLine(name + " " + age);
+                        System.Console.WriteLine(name + " " + age);
                     }
                 }
                 """);
@@ -645,8 +623,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestNotWithImplicitConversionFromNonTupleInForEach()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
+            var code = """
                 class C
                 {
                     class Person
@@ -656,18 +633,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
 
                     void M()
                     {
-                        foreach ((string name, int age) [|person|] in new Person[] { })
-                            Console.WriteLine(person.name + " " + person.age);
+                        foreach ((string name, int age) person in new Person[] { })
+                            System.Console.WriteLine(person.name + " " + person.age);
                     }
                 }
-                """);
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task TestWithExplicitImplicitConversionFromNonTupleInForEach()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 using System.Linq;
                 class C
                 {
@@ -679,11 +657,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
                     void M()
                     {
                         foreach ((string name, int age) [|person|] in new Person[] { }.Cast<(string, int)>())
-                            Console.WriteLine(person.name + " " + person.age);
+                            System.Console.WriteLine(person.name + " " + person.age);
                     }
                 }
-                """,
-                """
+                """, """
                 using System.Linq;
                 class C
                 {
@@ -695,7 +672,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
                     void M()
                     {
                         foreach ((string name, int age) in new Person[] { }.Cast<(string, int)>())
-                            Console.WriteLine(name + " " + age);
+                            System.Console.WriteLine(name + " " + age);
                     }
                 }
                 """);
@@ -704,24 +681,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestWithTupleLiteralConversion()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
                     {
                         (object name, double age) [|person|] = (null, 0);
-                        Console.WriteLine(person.name + " " + person.age);
+                        System.Console.WriteLine(person.name + " " + person.age);
                     }
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
                     {
                         (object name, double age) = (null, 0);
-                        Console.WriteLine(name + " " + age);
+                        System.Console.WriteLine(name + " " + age);
                     }
                 }
                 """);
@@ -730,26 +705,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestWithImplicitTupleConversion()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     void M()
                     {
                         (object name, double age) [|person|] = GetPerson();
-                        Console.WriteLine(person.name + " " + person.age);
+                        System.Console.WriteLine(person.name + " " + person.age);
                     }
 
                     (string name, int age) GetPerson() => default;
                 }
-                """,
-                """
+                """, """
                 class C
                 {
                     void M()
                     {
                         (object name, double age) = GetPerson();
-                        Console.WriteLine(name + " " + age);
+                        System.Console.WriteLine(name + " " + age);
                     }
 
                     (string name, int age) GetPerson() => default;
@@ -760,28 +733,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact]
         public async Task TestWithImplicitTupleConversionInForEach()
         {
-            await TestInRegularAndScript1Async(
-                """
+            await VerifyCS.VerifyCodeFixAsync("""
                 using System.Collections.Generic;
                 class C
                 {
                     void M()
                     {
                         foreach ((object name, double age) [|person|] in GetPeople())
-                            Console.WriteLine(person.name + " " + person.age);
+                            System.Console.WriteLine(person.name + " " + person.age);
                     }
 
                     IEnumerable<(string name, int age)> GetPeople() => default;
                 }
-                """,
-                """
+                """, """
                 using System.Collections.Generic;
                 class C
                 {
                     void M()
                     {
                         foreach ((object name, double age) in GetPeople())
-                            Console.WriteLine(name + " " + age);
+                            System.Console.WriteLine(name + " " + age);
                     }
 
                     IEnumerable<(string name, int age)> GetPeople() => default;
@@ -792,131 +763,154 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDeconstruction
         [Fact, WorkItem(27251, "https://github.com/dotnet/roslyn/issues/27251")]
         public async Task TestEscapedContextualKeywordAsTupleName()
         {
-            await TestInRegularAndScript1Async(
-                """
-                using System.Collections.Generic;
-                class C
-                {
-                    void M()
+            await new VerifyCS.Test()
+            {
+                TestCode = """
+                    using System.Collections.Generic;
+                    class C
                     {
-                        var collection = new List<(int position, int @delegate)>();
-                        foreach (var it[||]em in collection)
+                        void M()
                         {
-                            // Do something
+                            var collection = new List<(int position, int @delegate)>();
+                            foreach (var [|item|] in collection)
+                            {
+                                // Do something
+                            }
                         }
-                    }
 
-                    IEnumerable<(string name, int age)> GetPeople() => default;
-                }
-                """,
-                """
-                using System.Collections.Generic;
-                class C
-                {
-                    void M()
+                        IEnumerable<(string name, int age)> GetPeople() => default;
+                    }
+                    """,
+                FixedCode = """
+                    using System.Collections.Generic;
+                    class C
                     {
-                        var collection = new List<(int position, int @delegate)>();
-                        foreach (var (position, @delegate) in collection)
+                        void M()
                         {
-                            // Do something
+                            var collection = new List<(int position, int @delegate)>();
+                            foreach (var (position, @delegate) in collection)
+                            {
+                                // Do something
+                            }
                         }
-                    }
 
-                    IEnumerable<(string name, int age)> GetPeople() => default;
-                }
-                """);
+                        IEnumerable<(string name, int age)> GetPeople() => default;
+                    }
+                    """,
+                CodeActionValidationMode = Testing.CodeActionValidationMode.None
+            }.RunAsync();
         }
 
         [Fact, WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
         public async Task TestPreserveAwait()
         {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Threading.Tasks;
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+                    using System.Collections.Generic;
+                    using System.Threading.Tasks;
 
-                class Program
-                {
-                    static async Task Main(string[] args)
+                    class Program
                     {
-                        [Goo]
-                        await foreach (var [|t|] in Sequence())
+                        static async Task Main(string[] args)
                         {
-                            Console.WriteLine(t.x + t.y);
+                            {|CS7014:[Goo]|}
+                            await foreach (var [|t|] in Sequence())
+                            {
+                                Console.WriteLine(t.x + t.y);
+                            }
+                        }
+
+                        static async IAsyncEnumerable<(int x, int y)> Sequence()
+                        {
+                            yield return (0, 0);
+                            await Task.Yield();
                         }
                     }
+                    """,
+                FixedCode = """
+                    using System;
+                    using System.Collections.Generic;
+                    using System.Threading.Tasks;
 
-                    static async IAsyncEnumerable<(int x, int y)> Sequence()
+                    class Program
                     {
-                        yield return (0, 0);
-                        await Task.Yield();
-                    }
-                }
-                """ + IAsyncEnumerable,
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Threading.Tasks;
-
-                class Program
-                {
-                    static async Task Main(string[] args)
-                    {
-                        [Goo]
-                        await foreach (var (x, y) in Sequence())
+                        static async Task Main(string[] args)
                         {
-                            Console.WriteLine(x + y);
+                            {|CS7014:[Goo]|}
+                            await foreach (var (x, y) in Sequence())
+                            {
+                                Console.WriteLine(x + y);
+                            }
+                        }
+
+                        static async IAsyncEnumerable<(int x, int y)> Sequence()
+                        {
+                            yield return (0, 0);
+                            await Task.Yield();
                         }
                     }
-
-                    static async IAsyncEnumerable<(int x, int y)> Sequence()
-                    {
-                        yield return (0, 0);
-                        await Task.Yield();
-                    }
-                }
-                """ + IAsyncEnumerable);
+                    """,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60
+            }.RunAsync();
         }
 
         [Fact, WorkItem(66994, "https://github.com/dotnet/roslyn/issues/66994")]
         public async Task TestTopLevelDeconstruct1()
         {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                (int A, int B) [|ints|] = (1, 1);
-                M(ints);
+            await new VerifyCS.Test()
+            {
+                TestCode = """
+                    (int A, int B) ints = (1, 1);
+                    M(ints);
 
-                void M((int, int) i)
+                    void M((int, int) i)
+                    {
+
+                    }
+                    """,
+                TestState =
                 {
-
-                }
-                """);
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                LanguageVersion = LanguageVersion.CSharp9
+            }.RunAsync();
         }
 
         [Fact, WorkItem(66994, "https://github.com/dotnet/roslyn/issues/66994")]
         public async Task TestTopLevelDeconstruct2()
         {
-            await TestAsync(
-            """
-                (int A, int B) [|ints|] = (1, 1);
-                M(ints.A, ints.B);
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    (int A, int B) [|ints|] = (1, 1);
+                    M(ints.A, ints.B);
 
-                void M(int x, int y)
+                    void M(int x, int y)
+                    {
+
+                    }
+                    """,
+                FixedCode = """
+                    (int A, int B) = (1, 1);
+                    M(A, B);
+
+                    void M(int x, int y)
+                    {
+
+                    }
+                    """,
+                TestState =
                 {
-
-                }
-                """,
-                """
-                (int A, int B) = (1, 1);
-                M(A, B);
-
-                void M(int x, int y)
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                FixedState =
                 {
-
-                }
-                """,
-                parseOptions: null);
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                LanguageVersion = LanguageVersion.CSharp9
+            }.RunAsync();
         }
     }
 }
