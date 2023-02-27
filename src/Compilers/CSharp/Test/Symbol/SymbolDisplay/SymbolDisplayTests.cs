@@ -3318,7 +3318,7 @@ class C1 {
 
         private static void Verify(ImmutableArray<SymbolDisplayPart> actualParts, string expectedText, params SymbolDisplayPartKind[] expectedKinds)
         {
-            Assert.Equal(expectedText, actualParts.ToDisplayString());
+            AssertEx.Equal(expectedText, actualParts.ToDisplayString());
             if (expectedKinds.Length > 0)
             {
                 AssertEx.Equal(expectedKinds, actualParts.Select(p => p.Kind), itemInspector: p => $"                SymbolDisplayPartKind.{p}");
@@ -8534,6 +8534,105 @@ class Program
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.LocalName);
+        }
+
+        [Fact, WorkItem(38783, "https://github.com/dotnet/roslyn/issues/38783")]
+        public void Operator1()
+        {
+            var source = """
+                class Program
+                {
+                    void M()
+                    {
+                        _ = 1 == 1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var binaryExpression = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            var op = model.GetSymbolInfo(binaryExpression).Symbol;
+
+            // When asking for metadata names, this should show up as a method-name.
+            Verify(op.ToDisplayParts(SymbolDisplayFormat.TestFormat),
+                "System.Boolean System.Int32.op_Equality(System.Int32 left, System.Int32 right)",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName, // Should be MethodName because of 'op_Equality'
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+
+            var ideFormat = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeRef |
+                    SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeContainingType,
+                kindOptions:
+                    SymbolDisplayKindOptions.IncludeMemberKeyword,
+                propertyStyle:
+                    SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeName |
+                    SymbolDisplayParameterOptions.IncludeType |
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                    SymbolDisplayParameterOptions.IncludeExtensionThis |
+                    SymbolDisplayParameterOptions.IncludeDefaultValue |
+                    SymbolDisplayParameterOptions.IncludeOptionalBrackets,
+                localOptions:
+                    SymbolDisplayLocalOptions.IncludeRef |
+                    SymbolDisplayLocalOptions.IncludeType,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
+                    SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral |
+                    SymbolDisplayMiscellaneousOptions.CollapseTupleTypes);
+
+            // When not asking for metadata names, this should show up as an operator.
+            Verify(op.ToDisplayParts(ideFormat),
+                "bool int.operator ==(int left, int right)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Operator, // Should be MethodName because of '=='
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
         }
     }
 }

@@ -4240,7 +4240,7 @@ public class ClassC
                 setOptionsOpt: workspace =>
                 {
                     var globalOptions = workspace.GetService<IGlobalOptionService>();
-                    globalOptions.SetGlobalOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, false);
+                    globalOptions.SetGlobalOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon, false);
                 });
         }
 

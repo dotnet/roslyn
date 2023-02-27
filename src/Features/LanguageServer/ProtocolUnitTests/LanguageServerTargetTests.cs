@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/razor/issues/8311")]
         public async Task LanguageServerRejectsRequestsBeforeInitialized()
         {
             await using var server = await CreateTestLspServerAsync("", new InitializationOptions { CallInitialized = false });
