@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
-            return new BoundBlock(statement.Syntax, locals, localFunctions, hasUnsafeModifier: false,
+            return new BoundBlock(statement.Syntax, locals, localFunctions,
                                   ImmutableArray.Create(statement))
             { WasCompilerGenerated = true };
         }

@@ -176,5 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             throw ExceptionUtilities.Unreachable();
         }
+
+        internal override uint LocalScopeDepth => Binder.CurrentMethodScope;
     }
 }

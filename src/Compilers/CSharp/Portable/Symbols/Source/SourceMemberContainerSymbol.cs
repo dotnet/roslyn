@@ -832,8 +832,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
-        internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
-
         internal SyntaxTree AssociatedSyntaxTree => declaration.Declarations[0].Location.SourceTree;
 
         internal sealed override FileIdentifier? AssociatedFileIdentifier

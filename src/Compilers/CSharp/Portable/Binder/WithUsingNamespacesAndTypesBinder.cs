@@ -225,6 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        internal override uint LocalScopeDepth => Binder.CallingMethodScope;
+
         internal override ImportChain? ImportChain
         {
             get

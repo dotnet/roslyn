@@ -1126,6 +1126,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
 
+            if (!gotError)
+            {
+                CheckInvocationArgMixing(
+                    node,
+                    method,
+                    receiver,
+                    method.Parameters,
+                    args,
+                    argRefKinds,
+                    argsToParams,
+                    this.LocalScopeDepth,
+                    diagnostics);
+            }
+
             bool isDelegateCall = (object)delegateTypeOpt != null;
             if (!isDelegateCall)
             {
@@ -2037,6 +2051,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
 
             bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
+            if (!hasErrors)
+            {
+                hasErrors = !CheckInvocationArgMixing(
+                    node,
+                    funcPtr.Signature,
+                    receiverOpt: null,
+                    funcPtr.Signature.Parameters,
+                    args,
+                    refKinds,
+                    methodResult.Result.ArgsToParamsOpt,
+                    LocalScopeDepth,
+                    diagnostics);
+            }
+
             return new BoundFunctionPointerInvocation(
                 node,
                 boundExpression,

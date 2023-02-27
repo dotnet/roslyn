@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly BoundExpression Construction;
         public readonly bool UsesBoolReturns;
         /// <summary>
+        /// The scope of the expression that contained the interpolated string during initial binding. This is used to determine the SafeToEscape rules
+        /// for the builder during lowering.
+        /// </summary>
+        public readonly uint ScopeOfContainingExpression;
+        /// <summary>
         /// The placeholders that are used for <see cref="Construction"/>.
         /// </summary>
         public readonly ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> ArgumentPlaceholders;
@@ -30,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol builderType,
             BoundExpression construction,
             bool usesBoolReturns,
+            uint scopeOfContainingExpression,
             ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> placeholders,
             ImmutableArray<ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>> positionInfo,
             BoundInterpolatedStringHandlerPlaceholder receiverPlaceholder)
@@ -42,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BuilderType = builderType;
             Construction = construction;
             UsesBoolReturns = usesBoolReturns;
+            ScopeOfContainingExpression = scopeOfContainingExpression;
             ArgumentPlaceholders = placeholders;
             PositionInfo = positionInfo;
             ReceiverPlaceholder = receiverPlaceholder;
