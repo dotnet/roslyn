@@ -91,6 +91,11 @@ try {
         if ($lastexitcode -ne 0) {
             throw "Failure while restoring packages."
         }
+
+        dotnet tool restore @RestoreArguments
+        if ($lastexitcode -ne 0) {
+            throw "Failure while restoring dotnet CLI tools."
+        }
     }
 
     & "$PSScriptRoot/tools/Set-EnvVars.ps1" -Variables $EnvVars -PrependPath $PrependPath | Out-Null

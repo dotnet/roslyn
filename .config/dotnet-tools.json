@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "powershell": {
+      "version": "7.3.3",
+      "commands": [
+        "pwsh"
+      ]
+    },
+    "dotnet-format": {
+      "version": "5.1.250801",
+      "commands": [
+        "dotnet-format"
+      ]
+    }
+  }
+}
