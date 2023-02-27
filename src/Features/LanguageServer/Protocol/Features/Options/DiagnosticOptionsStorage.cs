@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class DiagnosticOptionsStorage
     {
         public static readonly Option2<bool> LspPullDiagnosticsFeatureFlag = new(
-            "dotnet_enable_language_server_protocol_pull_diagnostics", defaultValue: false);
+            "dotnet_enable_lsp_pull_diagnostics", defaultValue: false);
 
         public static readonly Option2<bool> LogTelemetryForBackgroundAnalyzerExecution = new(
             "dotnet_log_telemetry_for_background_analyzer_execution", defaultValue: false);
