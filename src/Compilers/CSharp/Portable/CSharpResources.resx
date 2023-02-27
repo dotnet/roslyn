@@ -3199,24 +3199,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="WRN_InvalidAssemblyName_Description" xml:space="preserve">
     <value>This warning indicates that an attribute, such as InternalsVisibleToAttribute, was not specified correctly.</value>
   </data>
-  <data name="WRN_UnifyReferenceMajMin" xml:space="preserve">
-    <value>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</value>
-  </data>
-  <data name="WRN_UnifyReferenceMajMin_Title" xml:space="preserve">
-    <value>Assuming assembly reference matches identity</value>
-  </data>
-  <data name="WRN_UnifyReferenceMajMin_Description" xml:space="preserve">
-    <value>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</value>
-  </data>
-  <data name="WRN_UnifyReferenceBldRev" xml:space="preserve">
-    <value>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</value>
-  </data>
-  <data name="WRN_UnifyReferenceBldRev_Title" xml:space="preserve">
-    <value>Assuming assembly reference matches identity</value>
-  </data>
-  <data name="WRN_UnifyReferenceBldRev_Description" xml:space="preserve">
-    <value>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</value>
-  </data>
   <data name="ERR_DuplicateImport" xml:space="preserve">
     <value>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</value>
   </data>

@@ -8778,36 +8778,6 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <target state="translated">이 경고는 특성(예: InternalsVisibleToAttribute)이 올바르게 지정되지 않았음을 나타냅니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">'{1}'이(가) 사용하는 '{0}' 어셈블리 참조가 '{3}'의 '{2}'과(와) 일치하는 것으로 간주합니다. 런타임 정책을 지정해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">어셈블리 참조가 ID와 일치하는 것으로 간주합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">두 어셈블리의 릴리스 및/또는 버전 번호가 다릅니다. 통합하려면 애플리케이션의 .config 파일에서 지시문을 지정하고 어셈블리의 강력한 이름을 올바르게 제공해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">'{1}'이(가) 사용하는 '{0}' 어셈블리 참조가 '{3}'의 '{2}'과(와) 일치하는 것으로 간주합니다. 런타임 정책을 지정해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">어셈블리 참조가 ID와 일치하는 것으로 간주합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">두 어셈블리의 릴리스 및/또는 버전 번호가 다릅니다. 통합하려면 애플리케이션의 .config 파일에서 지시문을 지정하고 어셈블리의 강력한 이름을 올바르게 제공해야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateImport">
         <source>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</source>
         <target state="translated">ID가 동일한 여러 어셈블리를 가져왔습니다('{0}', '{1}'). 중복된 참조 중 하나를 제거하세요.</target>

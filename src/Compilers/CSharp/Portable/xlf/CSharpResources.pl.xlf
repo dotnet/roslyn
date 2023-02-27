@@ -8779,36 +8779,6 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <target state="translated">To ostrzeżenie oznacza, że nie określono poprawnie atrybutu, takiego jak InternalsVisibleToAttribute.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">Przyjęto, że odwołanie do zestawu „{0}” używane przez element „{1}” jest zgodne z tożsamością „{2}” elementu „{3}” — może być konieczne określenie zasad wykonywania</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">Przyjęto, że odwołanie do zestawu jest zgodne z tożsamością</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceMajMin_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">Te dwa zestawy różnią się numerem wydania i/lub wersji. Aby można było wykonać ujednolicenie, musisz określić dyrektywy w pliku config aplikacji i podać poprawną silną nazwę zestawu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev">
-        <source>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</source>
-        <target state="translated">Przyjęto, że odwołanie do zestawu „{0}” używane przez element „{1}” jest zgodne z tożsamością „{2}” elementu „{3}” — może być konieczne określenie zasad wykonywania</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Title">
-        <source>Assuming assembly reference matches identity</source>
-        <target state="translated">Przyjęto, że odwołanie do zestawu jest zgodne z tożsamością</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnifyReferenceBldRev_Description">
-        <source>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</source>
-        <target state="translated">Te dwa zestawy różnią się numerem wydania i/lub wersji. Aby można było wykonać ujednolicenie, musisz określić dyrektywy w pliku config aplikacji i podać poprawną silną nazwę zestawu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateImport">
         <source>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</source>
         <target state="translated">Zostało zaimportowanych wiele zestawów o równoważnej tożsamości: „{0}” i „{1}”. Usuń jedno ze zduplikowanych odwołań.</target>

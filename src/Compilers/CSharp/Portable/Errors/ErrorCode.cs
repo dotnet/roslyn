@@ -862,8 +862,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // WRN_AssumedMatchThis = 1698,     // This error code is unused.
         // WRN_UseSwitchInsteadOfAttribute = 1699,     // This error code is unused.
         WRN_InvalidAssemblyName = 1700,
-        WRN_UnifyReferenceMajMin = 1701,
-        WRN_UnifyReferenceBldRev = 1702,
+        //WRN_UnifyReferenceMajMin = 1701,
+        //WRN_UnifyReferenceBldRev = 1702,
         ERR_DuplicateImport = 1703,
         ERR_DuplicateImportSimple = 1704,
         ERR_AssemblyMatchBadVersion = 1705,

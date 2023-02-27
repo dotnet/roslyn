@@ -1037,9 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Unlike VB the C# Dev11 compiler reports only a single unification error/warning.
             // By dropping the location we effectively merge all unification use-site errors that have the same error code into a single error.
             // The error message clearly explains how to fix the problem and reporting the error for each location wouldn't add much value. 
-            if (info.Code == (int)ErrorCode.WRN_UnifyReferenceBldRev ||
-                info.Code == (int)ErrorCode.WRN_UnifyReferenceMajMin ||
-                info.Code == (int)ErrorCode.ERR_AssemblyMatchBadVersion)
+            if (info.Code == (int)ErrorCode.ERR_AssemblyMatchBadVersion)
             {
                 location = NoLocation.Singleton;
             }

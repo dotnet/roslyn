@@ -7172,24 +7172,16 @@ public class C : A<C, C.D>
                 new[] { metadataComp.EmitToImageReference() },
                 targetFramework: TargetFramework.Mscorlib45);
 
-            // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
-            DiagnosticDescription expectedDiagnostic = Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1);
-
             // These are unification use-site diagnostics. The original stackoverflow bug here came from checking constraints as part of
             // unification diagnostic calculation, so we want to verify that these are present to make sure we're testing the correct scenario.
-            comp.VerifyDiagnostics(
-                    expectedDiagnostic,
-                    // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
-                    expectedDiagnostic
-                );
+            comp.VerifyDiagnostics();
 
             CompileAndVerify(
-                comp.WithOptions(comp.Options.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)),
+                comp.WithOptions(comp.Options),
                 expectedOutput: "C+D");
 
             var c = comp.GetTypeByMetadataName("C");
             Assert.True(c.ContainingModule.HasUnifiedReferences);
-            Assert.Equal(expectedDiagnostic.Code, c.GetUseSiteDiagnostic().Code);
         }
 
         [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
@@ -7239,10 +7231,7 @@ System.Console.WriteLine(typeof(G).FullName);
                 new[] { metadataComp.EmitToImageReference(), remappedComp12.EmitToImageReference() },
                 targetFramework: TargetFramework.NetStandard20);
 
-            comp.VerifyDiagnostics(
-                // warning CS1701: Assuming assembly reference 'remapped, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'intermediate' matches identity 'remapped, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'remapped', you may need to supply runtime policy
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("remapped, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "intermediate", "remapped, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "remapped").WithLocation(1, 1)
-            );
+            comp.VerifyDiagnostics();
 
             var c = comp.GetTypeByMetadataName("C");
             Assert.Null(c.GetUseSiteDiagnostic());

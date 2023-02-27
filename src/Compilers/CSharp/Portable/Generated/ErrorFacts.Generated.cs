@@ -99,8 +99,6 @@
                 case ErrorCode.WRN_EndOfPPLineExpected:
                 case ErrorCode.WRN_ConflictingChecksum:
                 case ErrorCode.WRN_InvalidAssemblyName:
-                case ErrorCode.WRN_UnifyReferenceMajMin:
-                case ErrorCode.WRN_UnifyReferenceBldRev:
                 case ErrorCode.WRN_DuplicateTypeParamTag:
                 case ErrorCode.WRN_UnmatchedTypeParamTag:
                 case ErrorCode.WRN_MissingTypeParamTag:

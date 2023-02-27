@@ -5658,9 +5658,7 @@ public class Source
 ";
 
             var comp = CreateCompilation(source, new[] { libAv1Ref, libBv2Ref }, TestOptions.DebugDll);
-            comp.VerifyDiagnostics(
-                // warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(1, 1));
+            comp.VerifyDiagnostics();
 
             WithRuntimeInstance(comp, new[] { MscorlibRef, libAv1Ref, libBv2Ref }, runtime =>
             {
@@ -5672,8 +5670,6 @@ public class Source
                 Assert.Null(error);
                 var methodData = testData.GetMethodData("<>x.<>m0");
 
-                // Even though the method's return type has a use-site warning, we are able to evaluate the expression.
-                Assert.Equal(ErrorCode.WRN_UnifyReferenceMajMin, (ErrorCode)((MethodSymbol)methodData.Method).ReturnType.GetUseSiteDiagnostic().Code);
                 methodData.VerifyIL(@"
 {
   // Code size        6 (0x6)

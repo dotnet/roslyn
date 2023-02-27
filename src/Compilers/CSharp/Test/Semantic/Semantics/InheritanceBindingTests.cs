@@ -3014,10 +3014,7 @@ interface I1
     void Method1();
 }
 
-#pragma warning disable CS1701
-class C3 : C2,
-#pragma warning restore CS1701
-               I1
+class C3 : C2, I1
 {
 }
 ";
@@ -3025,13 +3022,9 @@ class C3 : C2,
 
             // The unification warning shouldn't suppress the CS0535 error.
             comp3.VerifyDiagnostics(
-                // warning CS1701: Assuming assembly reference 'lib1, Version=4.1.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'lib2' matches identity 'lib1, Version=4.2.1.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'lib1', you may need to supply runtime policy
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("lib1, Version=4.1.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "lib2", "lib1, Version=4.2.1.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "lib1").WithLocation(1, 1),
-                // warning CS1701: Assuming assembly reference 'lib1, Version=4.1.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'lib2' matches identity 'lib1, Version=4.2.1.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'lib1', you may need to supply runtime policy
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("lib1, Version=4.1.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "lib2", "lib1, Version=4.2.1.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "lib1").WithLocation(1, 1),
-                // (10,16): error CS0535: 'C3' does not implement interface member 'I1.Method1()'
+                // (7,16): error CS0535: 'C3' does not implement interface member 'I1.Method1()'
                 //                I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.Method1()").WithLocation(10, 16)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.Method1()").WithLocation(7, 16)
                 );
         }
 

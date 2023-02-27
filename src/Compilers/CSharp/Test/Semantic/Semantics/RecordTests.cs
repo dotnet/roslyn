@@ -30208,8 +30208,7 @@ public record C(int I) : B(I);";
 
             var sourceB = "record D(int I) : C(I);";
 
-            // CS1701: Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy
-            var compB = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
             compB.VerifyEmitDiagnostics();
             Assert.True(compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             Assert.True(compB.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses));
