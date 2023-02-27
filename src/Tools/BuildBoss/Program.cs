@@ -139,7 +139,7 @@ namespace BuildBoss
 
         private static bool ProcessTargets(string repositoryDirectory)
         {
-            var targetsDirectory = Path.Combine(repositoryDirectory, Path.Combine(@"eng", "targets"));
+            var targetsDirectory = Path.Combine(repositoryDirectory, Path.Combine("eng", "targets"));
             var checker = new TargetsCheckerUtil(targetsDirectory);
             return CheckCore(checker, $"Targets {targetsDirectory}");
         }
