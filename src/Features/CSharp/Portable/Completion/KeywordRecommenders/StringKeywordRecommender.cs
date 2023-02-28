@@ -74,25 +74,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Kind() != SyntaxKind.RefKeyword)
                 return false;
 
-            // check if the location prior to the 'ref/readonly' is itself a member start location.  If so,
-            // then it's fine to show 'string'.  For example, `class C { public ref $$ }`
-            if (syntaxTree.IsMemberDeclarationContext(
-                    token.SpanStart,
-                    contextOpt: null,
-                    validModifiers: SyntaxKindSet.AllMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                    canBePartial: false,
-                    cancellationToken))
-            {
-                return true;
-            }
-
-            // Compiler error recovery sometimes treats 'ref' standing along as an incomplete member syntax.
-            if (token.Parent is RefTypeSyntax { Parent: IncompleteMemberSyntax { Parent: CompilationUnitSyntax } })
+            // If we're inside a type, this is always to have a ref/readonly string.
+            var containingType = token.GetAncestor<TypeDeclarationSyntax>();
+            if (containingType != null)
                 return true;
 
-            // Otherwise see if we're in a global statement.
-            return token.GetAncestors<SyntaxNode>().Any(a => a is GlobalStatementSyntax);
+            // If not in a type, but in a namespace, this is not ok to have a ref/readonly string.
+            var containingNamespace = token.GetAncestor<BaseNamespaceDeclarationSyntax>();
+            if (containingNamespace != null)
+                return false;
+
+            // otherwise, we're at top level.  Can have a ref/readonly top-level local/function.
+            return true;
         }
     }
 }

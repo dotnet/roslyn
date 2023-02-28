@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -822,11 +823,22 @@ class C
 @"ref $$");
         }
 
-        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
-        public async Task TestNotAfterReadonlyAtTopLevel1()
+        [Theory, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [CombinatorialData]
+        public async Task TestAfterReadonlyAtTopLevel1(bool script)
         {
-            await VerifyAbsenceAsync(
-@"readonly $$");
+            if (script)
+            {
+                // A legal top level script field.
+                await VerifyKeywordAsync(
+@"readonly $$", Options.Script);
+            }
+            else
+            {
+                // no legal top level statement can start with `readonly string`
+                await VerifyAbsenceAsync(
+@"readonly $$", CSharp9ParseOptions);
+            }
         }
 
         [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
@@ -841,7 +853,7 @@ class C
         public async Task TestNotAfterRefInNamespace()
         {
             // This is only legal for a struct declaration
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"namespace N
 {
     ref $$
@@ -863,7 +875,7 @@ class C
         public async Task TestNotAfterRefReadonlyInNamespace()
         {
             // This is only legal for a struct declaration
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"namespace N
 {
     ref readonly $$
