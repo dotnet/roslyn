@@ -8667,7 +8667,7 @@ class Program
             await TestAsync(source,
                 MainDescription($"class System.String"));
         }
-        
+
         [Fact]
         public async Task TestUsingAliasToType1()
         {
