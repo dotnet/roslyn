@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private IReadOnlyDictionary<ParameterSymbol, FieldSymbol>? _capturedParameters = null;
 
-        // PROTOTYPE(PrimaryConstructors): rename file
         public SynthesizedPrimaryConstructor(
              SourceMemberContainerTypeSymbol containingType,
              TypeDeclarationSyntax syntax) :

@@ -7029,7 +7029,7 @@ class Program
                 resultProperties: out _,
                 error: out string error);
 
-            // PROTOTYPE(PrimaryConstructors): There should be no error and IL should refer to a field 
+            // https://github.com/dotnet/roslyn/issues/67107: There should be no error and IL should refer to a field 
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
             //            testData.GetMethodData("<>x.<>m0").VerifyIL(
             //@"{
@@ -7059,7 +7059,7 @@ class Program
                 resultProperties: out _,
                 error: out string error);
 
-            // PROTOTYPE(PrimaryConstructors): There should be no error and IL should refer to a field 
+            // https://github.com/dotnet/roslyn/issues/67107: There should be no error and IL should refer to a field 
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
             //            testData.GetMethodData("<>x.<>m0").VerifyIL(
             //@"{
@@ -7089,8 +7089,8 @@ class Program
                 resultProperties: out _,
                 error: out string error);
 
-            // PROTOTYPE(PrimaryConstructors): Probably should report 
-            // error CS9500: Cannot use primary constructor parameter 'int y' in this context.
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
         }
 
@@ -7121,8 +7121,8 @@ class Program
                 resultProperties: out _,
                 error: out string error);
 
-            // PROTOTYPE(PrimaryConstructors): Probably should report 
-            // error CS9500: Cannot use primary constructor parameter 'int y' in this context.
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
         }
 
@@ -7211,7 +7211,7 @@ class Program
                 atLineNumber: 100,
                 expr: "y");
 
-            // PROTOTYPE(PrimaryConstructors): Should acces the field instead.
+            // https://github.com/dotnet/roslyn/issues/67107: Should access the field instead.
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"
 {
@@ -7243,7 +7243,7 @@ class Base(int x);
                 atLineNumber: 100,
                 expr: "y");
 
-            // PROTOTYPE(PrimaryConstructors): Should acces the field instead.
+            // https://github.com/dotnet/roslyn/issues/67107: Should access the field instead.
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"
 {
@@ -7333,8 +7333,8 @@ class Base(int x);
                 resultProperties: out _,
                 error: out string error);
 
-            // PROTOTYPE(PrimaryConstructors): Probably should report 
-            // error CS9500: Cannot use primary constructor parameter 'int y' in this context.
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
         }
 
@@ -7356,8 +7356,8 @@ class Base(int x);
                 resultProperties: out _,
                 error: out string error);
 
-            // PROTOTYPE(PrimaryConstructors): Probably should report 
-            // error CS9500: Cannot use primary constructor parameter 'int y' in this context.
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
         }
 
@@ -7381,8 +7381,8 @@ class Base(int x);
                 resultProperties: out _,
                 error: out string error);
 
-            // PROTOTYPE(PrimaryConstructors): Probably should report 
-            // error CS9500: Cannot use primary constructor parameter 'int y' in this context.
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
         }
 
@@ -7405,8 +7405,8 @@ class Base(int x);
                 resultProperties: out _,
                 error: out string error);
 
-            // PROTOTYPE(PrimaryConstructors): Probably should report 
-            // error CS9500: Cannot use primary constructor parameter 'int y' in this context.
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
         }
     }

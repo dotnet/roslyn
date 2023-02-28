@@ -334,7 +334,7 @@ class C
             tree.GetDiagnostics().Verify();
 
             var comp = CreateCompilation(text).VerifyDiagnostics(
-                // (1,12): error CS9517: Unexpected parameter list.
+                // (1,12): error CS9122: Unexpected parameter list.
                 // interface P(int x, int y);
                 Diagnostic(ErrorCode.ERR_UnexpectedParameterList, "(int x, int y)").WithLocation(1, 12)
                 );
@@ -2607,10 +2607,10 @@ class C(int X, int Y)
                 // (1,16): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int X, int Y)").WithArguments("primary constructors").WithLocation(1, 16),
-                // (1,21): warning CS9508: Parameter 'X' is unread.
+                // (1,21): warning CS9113: Parameter 'X' is unread.
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(1, 21),
-                // (1,28): warning CS9508: Parameter 'Y' is unread.
+                // (1,28): warning CS9113: Parameter 'Y' is unread.
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Y").WithArguments("Y").WithLocation(1, 28)
                 );
@@ -2793,10 +2793,10 @@ class C(int X, int Y)
                 // (1,15): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int X, int Y)").WithArguments("primary constructors").WithLocation(1, 15),
-                // (1,20): warning CS9508: Parameter 'X' is unread.
+                // (1,20): warning CS9113: Parameter 'X' is unread.
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(1, 20),
-                // (1,27): warning CS9508: Parameter 'Y' is unread.
+                // (1,27): warning CS9113: Parameter 'Y' is unread.
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Y").WithArguments("Y").WithLocation(1, 27)
                 );
