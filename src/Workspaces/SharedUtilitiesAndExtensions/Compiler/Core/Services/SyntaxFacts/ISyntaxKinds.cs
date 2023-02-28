@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int CloseBraceToken { get; }
         int? CloseBracketToken { get; }
         int CloseParenToken { get; }
+        int CommaToken { get; }
         int ColonToken { get; }
         int DotToken { get; }
         int EndOfFileToken { get; }
