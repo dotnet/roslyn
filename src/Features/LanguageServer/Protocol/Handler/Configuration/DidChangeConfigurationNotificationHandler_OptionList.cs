@@ -3,10 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
@@ -14,17 +20,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
     internal partial class DidChangeConfigurationNotificationHandler
     {
         public static readonly ImmutableArray<IOption2> SupportedOptions = ImmutableArray.Create<IOption2>(
-            // Code Action options
+            // Code Action
             SymbolSearchOptionsStorage.SearchReferenceAssemblies,
             ImplementTypeOptionsStorage.InsertionBehavior,
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
-            // Completion options
+            // Completion
             LspOptions.MaxCompletionListSize,
             CompletionOptionsStorage.ShowNameSuggestions,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ProvideRegexCompletions,
+            QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
             // Go to definition
-            MetadataAsSourceOptionsStorage.NavigateToDecompiledSources
-            );
+            MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
+            // Diagnostics
+            SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
+            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
+            InternalDiagnosticsOptions.NormalDiagnosticMode,
+            // Format
+            AutoFormattingOptionsStorage.FormatOnReturn,
+            AutoFormattingOptionsStorage.FormatOnTyping,
+            AutoFormattingOptionsStorage.FormatOnSemicolon,
+            AutoFormattingOptionsStorage.FormatOnCloseBrace,
+            // Document highlight
+            HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor,
+            HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor);
     }
 }
