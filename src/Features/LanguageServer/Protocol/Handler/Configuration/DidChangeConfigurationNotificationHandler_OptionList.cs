@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             AutoFormattingOptionsStorage.FormatOnReturn,
             AutoFormattingOptionsStorage.FormatOnSemicolon,
             AutoFormattingOptionsStorage.FormatOnCloseBrace,
-            // Document highlight
+            // Document highlighting
             HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor,
             HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor);
     }
