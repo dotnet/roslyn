@@ -15160,6 +15160,50 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_20()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static R F()
+                    {
+                        int i = 0;
+                        var r = new R(ref i);
+                        return r
+                           .Append($"[{42}]")
+                           .Append($"[{"str".ToLower()}]");
+                    }
+                }
+                readonly ref struct R
+                {
+                    private readonly ref int _i;
+                    public R(ref int i) { _i = i; }
+                    public R Append([InterpolatedStringHandlerArgument("")] CustomHandler handler)
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                readonly ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16));
+        }
+
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         [InlineData(@"$""{{ {i} }}""")]
         [InlineData(@"$""{{ "" + $""{i}"" + $"" }}""")]
