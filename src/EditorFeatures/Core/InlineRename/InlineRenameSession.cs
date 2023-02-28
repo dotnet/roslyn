@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -90,11 +91,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
         /// <summary>
-        /// Rename session held alive with the OOP server.  This allows us to pin the initial solution snapshot over on
+        /// Keep-alive session held alive with the OOP server.  This allows us to pin the initial solution snapshot over on
         /// the oop side, which is valuable for preventing it from constantly being dropped/synced on every conflict
         /// resolution step.
         /// </summary>
-        private readonly IRemoteRenameKeepAliveSession _keepAliveSession;
+        private readonly RemoteKeepAliveSession _keepAliveSession;
 
         /// <summary>
         /// The task which computes the main rename locations against the original workspace
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Open a session to oop, syncing our solution to it and pinning it there.  The connection will close once
             // _cancellationTokenSource is canceled (which we always do when the session is finally ended).
-            _keepAliveSession = Renamer.CreateRemoteKeepAliveSession(_baseSolution, asyncListener);
+            _keepAliveSession = RemoteKeepAliveSession.Create(_baseSolution, asyncListener);
             InitializeOpenBuffers(triggerSpan);
         }
 
