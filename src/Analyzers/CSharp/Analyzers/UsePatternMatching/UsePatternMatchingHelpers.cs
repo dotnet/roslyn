@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     //
                     //  We can convert this to a pattern in most cases except for:
                     //
-                    // `(expr as T)?... is not X y`.  As itt is not legal to transform into `expr is T { Member: not X y }`.
+                    // `(expr as T)?... is not X y`.  As it is not legal to transform into `expr is T { Member: not X y }`.
                     // Specifically, `not variable` patterns are not legal except at the top level of a pattern.
                     if (parentIsPatternExpression.Pattern is UnaryPatternSyntax
                         {
