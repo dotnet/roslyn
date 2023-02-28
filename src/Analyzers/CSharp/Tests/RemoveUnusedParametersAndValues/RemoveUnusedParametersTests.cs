@@ -1706,5 +1706,17 @@ public class C : ICustomMarshaler
     }
 }");
         }
+
+        [Fact, WorkItem(67013, "https://github.com/dotnet/roslyn/issues/67013")]
+        public async Task TestPrimaryConstructorWithUsedParameter()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C(int [|a100|]) : Object()
+{
+    int M1() => a100;
+}");
+        }
     }
 }
