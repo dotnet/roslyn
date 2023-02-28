@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -17,11 +16,10 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 
 namespace IdeCoreBenchmarks
@@ -93,10 +91,10 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
         }
 
-        protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
+        private protected static async Task<ImmutableSegmentedList<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
         {
             var service = document.GetRequiredLanguageService<IClassificationService>();
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+            var result = ImmutableSegmentedList.CreateBuilder<ClassifiedSpan>();
             await service.AddSemanticClassificationsAsync(document, span, ClassificationOptions.Default, result, CancellationToken.None);
             return result.ToImmutable();
         }

@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     document = document.WithFrozenPartialSemantics(cancellationToken);
                 }
 
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
+                var temp = ImmutableSegmentedList.CreateBuilder<ClassifiedSpan>();
                 await AbstractClassificationService.AddClassificationsInCurrentProcessAsync(
                     document, span, type, options, temp, cancellationToken).ConfigureAwait(false);
 

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     {
         protected AbstractClassifierTests() { }
 
-        protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions? parseOptions, TestHost testHost);
+        private protected abstract Task<ImmutableSegmentedList<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions? parseOptions, TestHost testHost);
 
         protected abstract string WrapInClass(string className, string code);
         protected abstract string WrapInExpression(string code);
@@ -269,28 +270,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         [DebuggerStepThrough]
         protected static ParseOptions[] ParseOptions(params ParseOptions[] options) => options;
 
-        protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
+        private protected static async Task<ImmutableSegmentedList<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
         {
             var service = document.GetRequiredLanguageService<IClassificationService>();
             var options = ClassificationOptions.Default;
 
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+            var result = ImmutableSegmentedList.CreateBuilder<ClassifiedSpan>();
             await service.AddSemanticClassificationsAsync(document, span, options, result, CancellationToken.None);
             await service.AddEmbeddedLanguageClassificationsAsync(document, span, options, result, CancellationToken.None);
             return result.ToImmutable();
         }
 
-        protected static async Task<ImmutableArray<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, TextSpan span)
+        private protected static async Task<ImmutableSegmentedList<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, TextSpan span)
         {
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var service = document.GetRequiredLanguageService<ISyntaxClassificationService>();
 
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var results);
             service.AddSyntacticClassifications(root, span, results, CancellationToken.None);
-            return results.ToImmutable();
+            return ImmutableSegmentedList.CreateRange(results);
         }
 
-        protected static async Task<ImmutableArray<ClassifiedSpan>> GetAllClassificationsAsync(Document document, TextSpan span)
+        private protected static async Task<ImmutableSegmentedList<ClassifiedSpan>> GetAllClassificationsAsync(Document document, TextSpan span)
         {
             var semanticClassifications = await GetSemanticClassificationsAsync(document, span);
             var syntacticClassifications = await GetSyntacticClassificationsAsync(document, span);
@@ -298,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             var classificationsSpans = new HashSet<TextSpan>();
 
             // Add all the semantic classifications in.
-            var allClassifications = new List<ClassifiedSpan>(semanticClassifications);
+            var allClassifications = ImmutableSegmentedList.CreateRange(semanticClassifications);
             classificationsSpans.AddRange(allClassifications.Select(t => t.TextSpan));
 
             // Add the syntactic classifications.  But only if they don't conflict with a semantic classification.
@@ -307,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 where !classificationsSpans.Contains(t.TextSpan)
                 select t);
 
-            return allClassifications.ToImmutableArray();
+            return allClassifications;
         }
     }
 }

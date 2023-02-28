@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Classification
             var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(syntaxClassifiers, c => c.SyntaxTokenKinds);
 
             using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var syntacticClassifications);
-            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticClassifications);
+            var semanticClassifications = ImmutableSegmentedList.CreateBuilder<ClassifiedSpan>();
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 

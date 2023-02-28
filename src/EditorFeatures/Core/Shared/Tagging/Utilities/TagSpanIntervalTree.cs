@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -56,10 +57,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(
                 snapshotSpan.Start, snapshotSpan.Length, new IntervalIntrospector(snapshot));
 
-            List<ITagSpan<TTag>>? result = null;
+            SegmentedList<ITagSpan<TTag>>? result = null;
             foreach (var tagNode in intersectingIntervals)
             {
-                result ??= new List<ITagSpan<TTag>>();
+                result ??= new SegmentedList<ITagSpan<TTag>>();
                 result.Add(new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag));
             }
 
