@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         /// Used to determine if a user focusing VS should look at the clipboard for a callstack and automatically
         /// open the tool window with the callstack inserted
         /// </summary>
-        public static readonly Option2<bool> OpenOnFocus = new("dotnet_open_stack_trace_explorer_on_focus", defaultValue: false);
+        public static readonly Option2<bool> OpenOnFocus = new("visual_studio_dotnet_open_stack_trace_explorer_on_focus", defaultValue: false);
     }
 }

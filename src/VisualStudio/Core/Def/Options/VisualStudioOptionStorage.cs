@@ -407,10 +407,10 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_compiler_diagnostics_scope", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption")},
         {"dotnet_split_comments", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SplitComments")},
         {"csharp_split_string_literal_on_return", new RoamingProfileStorage("TextEditor.CSharp.Specific.SplitStringLiterals")},
-        {"dotnet_open_stack_trace_explorer_on_focus", new RoamingProfileStorage("StackTraceExplorer.Options.OpenOnFocus")},
+        {"visual_studio_dotnet_open_stack_trace_explorer_on_focus", new RoamingProfileStorage("StackTraceExplorer.Options.OpenOnFocus")},
         {"dotnet_enable_asynchronous_suggestions", new RoamingProfileStorage("TextEditor.Specific.Suggestions.Asynchronous4")},
         {"dotnet_disable_asynchronous_quick_actions", new FeatureFlagStorage(@"Roslyn.AsynchronousQuickActionsDisable2")},
-        {"dotnet_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
+        {"visual_studio_dotnet_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
         {"dotnet_search_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
         {"dotnet_search_reference_assemblies", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies")},
 #pragma warning disable CS0612 // Type or member is obsolete
