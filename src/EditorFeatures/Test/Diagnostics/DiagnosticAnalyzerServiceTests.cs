@@ -1064,9 +1064,8 @@ class A
             var project = workspace.CurrentSolution.Projects.Single();
             var document = documentAnalysis ? project.Documents.Single() : null;
             var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
-            var checksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
             var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-                document, project, checksum, ideAnalyzerOptions, span: null, analyzerIdsToRequestDiagnostics,
+                document, project, Checksum.Null, ideAnalyzerOptions, span: null, analyzerIdsToRequestDiagnostics,
                 AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
                 reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
                 cancellationToken: CancellationToken.None);
@@ -1114,14 +1113,13 @@ class A
 
             var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
             var kind = actionKind == AnalyzerRegisterActionKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
-            var checksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
             var analyzerIds = new[] { analyzer.GetAnalyzerId() };
 
             // First invoke analysis with cancellation token, and verify canceled compilation and no reported diagnostics.
             Assert.Empty(analyzer.CanceledCompilations);
             try
             {
-                _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, checksum, ideAnalyzerOptions, span: null,
+                _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
                     analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, reportSuppressedDiagnostics: false,
                     logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
@@ -1134,7 +1132,7 @@ class A
             Assert.Single(analyzer.CanceledCompilations);
 
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
-            var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, checksum, ideAnalyzerOptions, span: null,
+            var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
                 analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
             var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
