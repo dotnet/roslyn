@@ -813,5 +813,103 @@ class C
     required $$
 }");
         }
+
+        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        public async Task TestAfterRefAtTopLevel1()
+        {
+            // Could be defining a ref-local in top-level-code
+            await VerifyKeywordAsync(
+@"ref $$");
+        }
+
+        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        public async Task TestNotAfterReadonlyAtTopLevel1()
+        {
+            await VerifyAbsenceAsync(
+@"readonly $$");
+        }
+
+        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        public async Task TestAfterRefReadonlyAtTopLevel1()
+        {
+            // Could be defining a ref-local in top-level-code
+            await VerifyKeywordAsync(
+@"ref readonly $$");
+        }
+
+        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        public async Task TestNotAfterRefInNamespace()
+        {
+            // This is only legal for a struct declaration
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    ref $$
+}");
+        }
+
+        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        public async Task TestNotAfterReadonlyInNamespace()
+        {
+            // This is only legal for a struct declaration
+            await VerifyAbsenceAsync(
+@"namespace N
+{
+    readonly $$
+}");
+        }
+
+        [Fact, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        public async Task TestNotAfterRefReadonlyInNamespace()
+        {
+            // This is only legal for a struct declaration
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    ref readonly $$
+}");
+        }
+
+        [Theory, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [InlineData("class")]
+        [InlineData("interface")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        public async Task TestAfterRefInClassInterfaceStructRecord(string type)
+        {
+            await VerifyKeywordAsync(
+$@"{type} N
+{{
+    ref $$
+}}");
+        }
+
+        [Theory, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [InlineData("class")]
+        [InlineData("interface")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        public async Task TestAfterReadonlyInClassInterfaceStructRecord(string type)
+        {
+            await VerifyKeywordAsync(
+$@"{type} N
+{{
+    readonly $$
+}}");
+        }
+
+        [Theory, WorkItem(67061, "https://github.com/dotnet/roslyn/issues/67061")]
+        [InlineData("class")]
+        [InlineData("interface")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        public async Task TestAfterRefReadonlyInClassInterfaceStructRecord(string type)
+        {
+            await VerifyKeywordAsync(
+$@"{type} N
+{{
+    ref readonly $$
+}}");
+        }
     }
 }
