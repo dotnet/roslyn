@@ -837,7 +837,7 @@ class C
             {
                 // no legal top level statement can start with `readonly string`
                 await VerifyAbsenceAsync(
-@"readonly $$", CSharp9ParseOptions);
+@"readonly $$", CSharp9ParseOptions, CSharp9ParseOptions);
             }
         }
 
