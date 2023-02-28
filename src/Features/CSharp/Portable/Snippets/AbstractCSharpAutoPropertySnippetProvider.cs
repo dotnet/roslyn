@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -53,9 +54,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 GenerateSetAccessorDeclaration(syntaxContext, generator),
             };
 
+            SyntaxTokenList modifiers = default;
+
+            // If there are no preceding accessibility modifiers create default `public` one
+            if (!syntaxContext.PrecedingModifiers.Any(SyntaxFacts.IsAccessibilityModifier))
+            {
+                modifiers = SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+            }
+
             return SyntaxFactory.PropertyDeclaration(
                 attributeLists: default,
-                modifiers: SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword)),
+                modifiers: modifiers,
                 type: compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
                 explicitInterfaceSpecifier: null,
                 identifier: identifierName.ToIdentifierToken(),
@@ -78,6 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             arrayBuilder.Add(new SnippetPlaceholder(identifier: type.ToString(), placeholderPositions: ImmutableArray.Create(type.SpanStart)));
             arrayBuilder.Add(new SnippetPlaceholder(identifier: identifier.ValueText, placeholderPositions: ImmutableArray.Create(identifier.SpanStart)));
             return arrayBuilder.ToImmutableArray();
+        }
+
+        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
+        {
+            var node = root.FindNode(TextSpan.FromBounds(position, position));
+            return node.GetAncestorOrThis<PropertyDeclarationSyntax>();
         }
     }
 }
