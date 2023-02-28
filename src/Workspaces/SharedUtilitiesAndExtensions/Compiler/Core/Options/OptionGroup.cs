@@ -13,11 +13,12 @@ namespace Microsoft.CodeAnalysis.Options
     {
         public static readonly OptionGroup Default = new(string.Empty, int.MaxValue);
 
-        public OptionGroup(string description, int priority, OptionGroup? parent = null)
+        public OptionGroup(string description, int priority, OptionGroup? parent = null, string? nonLocalizedDescription = null)
         {
             Description = description;
             Priority = priority;
             Parent = parent;
+            NonlocalizedDescription = nonLocalizedDescription ?? string.Empty;
         }
 
         /// <summary>
@@ -29,6 +30,11 @@ namespace Microsoft.CodeAnalysis.Options
         /// A localizable resource description string for the option group.
         /// </summary>
         public string Description { get; }
+
+        /// <summary>
+        /// The non-localized text of <see cref="Description"/>.
+        /// </summary>
+        public string NonlocalizedDescription { get; }
 
         /// <summary>
         /// Relative priority of the option group with respect to other option groups within the same feature.

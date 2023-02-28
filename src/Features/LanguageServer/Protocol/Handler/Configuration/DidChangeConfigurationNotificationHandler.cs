@@ -101,7 +101,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         }
 
         private static string GenerateSection(IOption2 option)
-            // TODO: Description is localized, we should introduce a non-loc description
-            => string.Concat(option.Definition.Group.Description, '.', option.Definition.ConfigName);
+        {
+            // The non-localized description is used as the grouping in LSP client, if the option want to be used by the client, it should not be null or empty.
+            RoslynDebug.Assert(!string.IsNullOrEmpty(option.Definition.Group.NonlocalizedDescription));
+            return string.Concat(option.Definition.Group.NonlocalizedDescription, '.', option.Definition.ConfigName);
+        }
     }
 }

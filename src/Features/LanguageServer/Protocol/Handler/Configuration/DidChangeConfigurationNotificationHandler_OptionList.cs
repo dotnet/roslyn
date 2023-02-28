@@ -25,20 +25,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             ImplementTypeOptionsStorage.InsertionBehavior,
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             // Completion
-            LspOptionsStorage.MaxCompletionListSize,
             CompletionOptionsStorage.ShowNameSuggestions,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ProvideRegexCompletions,
             QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
             // Go to definition
             MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
-            // Diagnostics
-            SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
-            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
-            InternalDiagnosticsOptionsStorage.NormalDiagnosticMode,
             // Format
             AutoFormattingOptionsStorage.FormatOnReturn,
-            AutoFormattingOptionsStorage.FormatOnTyping,
             AutoFormattingOptionsStorage.FormatOnSemicolon,
             AutoFormattingOptionsStorage.FormatOnCloseBrace,
             // Document highlight
