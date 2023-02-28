@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             ImplementTypeOptionsStorage.InsertionBehavior,
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             // Completion
-            LspOptions.MaxCompletionListSize,
+            LspOptionsStorage.MaxCompletionListSize,
             CompletionOptionsStorage.ShowNameSuggestions,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ProvideRegexCompletions,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             // Diagnostics
             SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
             SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
-            InternalDiagnosticsOptions.NormalDiagnosticMode,
+            InternalDiagnosticsOptionsStorage.NormalDiagnosticMode,
             // Format
             AutoFormattingOptionsStorage.FormatOnReturn,
             AutoFormattingOptionsStorage.FormatOnTyping,
