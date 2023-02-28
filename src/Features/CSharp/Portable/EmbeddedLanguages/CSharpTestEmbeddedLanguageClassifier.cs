@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
             if (virtualCharsWithMarkup.IsDefaultOrEmpty)
                 return;
 
+            // Note: if we get here, then we know that the token is well formed (TryConvertToVirtualChars will fail if
+            // the token has diagnostics).
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // Simpler to only support literals where all characters/escapes map to a single utf16 character.  That way
@@ -66,12 +69,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
             var compilationWithTestFile = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(testFileTree);
             var semanticModeWithTestFile = compilationWithTestFile.GetSemanticModel(testFileTree);
 
-            var start = virtualCharsWithoutMarkup[0].Span.Start;
-            context.AddClassification(
-                ClassificationTypeNames.TestCode,
-                TextSpan.FromBounds(
-                    start,
-                    virtualCharsWithoutMarkup.Last().Span.End));
+            if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken)
+            {
+                var text = semanticModel.SyntaxTree.GetText(cancellationToken);
+                var lines = text.Lines;
+                var firstLine = lines.GetLineFromPosition(token.Span.Start);
+                var lastLine = lines.GetLineFromPosition(token.Span.End);
+                var whitespaceCount = 0;
+                for (var i = lastLine.Start; i < lastLine.End && SyntaxFacts.IsWhitespace(text[i]); i++)
+                    whitespaceCount++;
+
+                for (var i = firstLine.LineNumber + 1; i < lastLine.LineNumber; i++)
+                {
+                    var currentLine = lines[i];
+                    if (currentLine.Start + whitespaceCount < currentLine.End)
+                    {
+                        context.AddClassification(
+                            ClassificationTypeNames.TestCode,
+                            TextSpan.FromBounds(
+                                currentLine.Start + whitespaceCount,
+                                currentLine.End));
+                    }
+                }
+            }
+            else
+            {
+                context.AddClassification(
+                    ClassificationTypeNames.TestCode,
+                    TextSpan.FromBounds(
+                        virtualCharsWithoutMarkup.First().Span.Start,
+                        virtualCharsWithoutMarkup.Last().Span.End));
+            }
 
             var testFileClassifiedSpans = Classifier.GetClassifiedSpans(
                 context.SolutionServices,
