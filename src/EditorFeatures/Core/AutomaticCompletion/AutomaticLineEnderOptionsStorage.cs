@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 {
     internal static class AutomaticLineEnderOptionsStorage
     {
-        public static readonly Option2<bool> AutomaticLineEnder = new("dotnet_automatic_line_ender", defaultValue: true);
+        public static readonly Option2<bool> AutomaticLineEnder = new("dotnet_enable_automatic_line_ender", defaultValue: true);
     }
 }
