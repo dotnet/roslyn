@@ -98,8 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 if (type != null)
                 {
-                    AddClassification(span, type);
-
                     // Additionally classify static symbols
                     if (token.Kind() == SyntaxKind.IdentifierToken
                         && ClassificationHelpers.IsStaticallyDeclared(token))
@@ -110,9 +108,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                                 SyntaxKind.Utf8StringLiteralToken or
                                 SyntaxKind.Utf8SingleLineRawStringLiteralToken or
                                 SyntaxKind.Utf8MultiLineRawStringLiteralToken &&
-                            token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
+                             token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
                     {
-                        AddClassification(new TextSpan(token.Span.End - "u8".Length, "u8".Length), ClassificationTypeNames.Keyword);
+                        AddClassification(TextSpan.FromBounds(token.Span.Start, token.Span.End - "u8".Length), type);
+                        AddClassification(TextSpan.FromBounds(token.Span.End - "u8".Length, token.Span.End), ClassificationTypeNames.Keyword);
+                    }
+                    else
+                    {
+                        AddClassification(span, type);
                     }
                 }
             }
