@@ -16,10 +16,10 @@ internal static class HighlightingOptionsStorage
         };
 
     public static PerLanguageOption2<bool> HighlightRelatedRegexComponentsUnderCursor =
-        new("dotnet_highlight_related_regex_components_under_cursor",
+        new("dotnet_highlight_related_regex_components",
             defaultValue: true);
 
     public static PerLanguageOption2<bool> HighlightRelatedJsonComponentsUnderCursor =
-        new("dotnet_highlight_related_json_components_under_cursor",
+        new("dotnet_highlight_related_json_components",
             defaultValue: HighlightingOptions.Default.HighlightRelatedJsonComponentsUnderCursor);
 }
