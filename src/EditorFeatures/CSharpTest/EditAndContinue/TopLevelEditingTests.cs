@@ -18814,6 +18814,54 @@ System.Console.Write(1);
                 Diagnostic(RudeEditKind.Delete, keyword + " C", FeaturesResources.field));
         }
 
+        [Fact]
+        public void PrimaryConstructors_22()
+        {
+            var src1 = "class C2(int x, int y) : C1(() => y) { void M() { x++; } } class C1(System.Func<int> x);";
+            var src2 = "class C2(int x, int y) : C1(() => x + y) { void M() { x++; } } class C1(System.Func<int> x);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "class C2", FeaturesResources.class_));
+        }
+
+        [Fact]
+        public void PrimaryConstructors_23()
+        {
+            var src1 = "class C2(int x, int y) : C1(() => x + y) { void M() { x++; } } class C1(System.Func<int> x);";
+            var src2 = "class C2(int x, int y) : C1(() => y) { void M() { x++; } } class C1(System.Func<int> x);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "class C2", FeaturesResources.class_));
+        }
+
+        [Fact]
+        public void PrimaryConstructors_24()
+        {
+            var src1 = "class C2(int x) : C1(null) { void M() { x++; } } class C1(System.Func<int> x);";
+            var src2 = "class C2(int x) : C1(() => x) { void M() { x++; } } class C1(System.Func<int> x);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "class C2", FeaturesResources.class_));
+        }
+
+        [Fact]
+        public void PrimaryConstructors_25()
+        {
+            var src1 = "class C2(int x) : C1(() => x) { void M() { x++; } } class C1(System.Func<int> x);";
+            var src2 = "class C2(int x) : C1(null) { void M() { x++; } } class C1(System.Func<int> x);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "class C2", FeaturesResources.class_));
+        }
+
         #endregion
     }
 }

@@ -3092,7 +3092,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (symbol.Kind)
             {
                 case SymbolKind.NamedType:
-                    break;
+                    {
+                        return IsTypeWithPrimaryConstructor(symbol, cancellationToken);
+                    }
 
                 case SymbolKind.Parameter:
                     {
@@ -3115,25 +3117,29 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 default:
                     {
-                        var container = symbol.ContainingSymbol;
-
-                        if (container is { Kind: SymbolKind.NamedType, IsImplicitlyDeclared: false })
-                        {
-                            foreach (var syntaxReference in container.DeclaringSyntaxReferences)
-                            {
-                                if (syntaxReference.GetSyntax(cancellationToken) is
-                                    ClassDeclarationSyntax { ParameterList: not null } or
-                                    StructDeclarationSyntax { ParameterList: not null })
-                                {
-                                    return true;
-                                }
-                            }
-                        }
+                        return IsTypeWithPrimaryConstructor(symbol.ContainingSymbol, cancellationToken);
                     }
-                    break;
             }
 
             return false;
+
+            static bool IsTypeWithPrimaryConstructor(ISymbol container, CancellationToken cancellationToken)
+            {
+                if (container is { Kind: SymbolKind.NamedType, IsImplicitlyDeclared: false })
+                {
+                    foreach (var syntaxReference in container.DeclaringSyntaxReferences)
+                    {
+                        if (syntaxReference.GetSyntax(cancellationToken) is
+                            ClassDeclarationSyntax { ParameterList: not null } or
+                            StructDeclarationSyntax { ParameterList: not null })
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
     }
 }
