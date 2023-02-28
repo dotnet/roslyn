@@ -8,6 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal sealed class VisualStudioNavigationOptionsStorage
     {
-        public static readonly PerLanguageOption2<bool> NavigateToObjectBrowser = new("visual_studio_dotnet_navigate_to_object_browser", defaultValue: false);
+        public static readonly PerLanguageOption2<bool> NavigateToObjectBrowser = new("visual_studio_navigate_to_object_browser", defaultValue: false);
     }
 }

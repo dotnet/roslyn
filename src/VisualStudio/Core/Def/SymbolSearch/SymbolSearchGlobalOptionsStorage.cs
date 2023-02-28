@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     internal sealed class SymbolSearchGlobalOptionsStorage
     {
-        public static readonly Option2<bool> Enabled = new("visual_studio_dotnet_enable_symbol_search", defaultValue: true);
+        public static readonly Option2<bool> Enabled = new("visual_studio_enable_symbol_search", defaultValue: true);
     }
 }
