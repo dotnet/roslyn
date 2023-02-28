@@ -98,17 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 if (type != null)
                 {
-                    // Additionally classify static symbols
-                    if (token.Kind() == SyntaxKind.IdentifierToken
-                        && ClassificationHelpers.IsStaticallyDeclared(token))
-                    {
-                        AddClassification(span, ClassificationTypeNames.StaticSymbol);
-                    }
-                    else if (token.Kind() is
-                                SyntaxKind.Utf8StringLiteralToken or
-                                SyntaxKind.Utf8SingleLineRawStringLiteralToken or
-                                SyntaxKind.Utf8MultiLineRawStringLiteralToken &&
-                             token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
+                    if (token.Kind() is
+                            SyntaxKind.Utf8StringLiteralToken or
+                            SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                            SyntaxKind.Utf8MultiLineRawStringLiteralToken &&
+                        token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
                     {
                         AddClassification(TextSpan.FromBounds(token.Span.Start, token.Span.End - "u8".Length), type);
                         AddClassification(TextSpan.FromBounds(token.Span.End - "u8".Length, token.Span.End), ClassificationTypeNames.Keyword);
@@ -116,6 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     else
                     {
                         AddClassification(span, type);
+                    }
+
+                    // Additionally classify static symbols
+                    if (token.Kind() == SyntaxKind.IdentifierToken &&
+                        ClassificationHelpers.IsStaticallyDeclared(token))
+                    {
+                        AddClassification(span, ClassificationTypeNames.StaticSymbol);
                     }
                 }
             }
