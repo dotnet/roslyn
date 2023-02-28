@@ -93,7 +93,7 @@ internal sealed class LoadedProject : IDisposable
             document => _projectSystemProject.AddSourceFile(document.FilePath),
             document => _projectSystemProject.RemoveSourceFile(document.FilePath));
 
-        var metadataReferences = _optionsProcessor.GetParsedCommandLineArguments().MetadataReferences;
+        var metadataReferences = _optionsProcessor.GetParsedCommandLineArguments().MetadataReferences.Distinct();
 
         UpdateProjectSystemProjectCollection(
             metadataReferences,
