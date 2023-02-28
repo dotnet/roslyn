@@ -1202,8 +1202,6 @@ namespace Microsoft.CodeAnalysis
                         success = compilation.CompileMethods(
                             moduleBeingBuilt,
                             Arguments.EmitPdb,
-                            emitOptions.EmitMetadataOnly,
-                            emitOptions.EmitTestCoverageData,
                             diagnostics,
                             filterOpt: null,
                             cancellationToken: cancellationToken);
