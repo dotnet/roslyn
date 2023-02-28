@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -17,6 +18,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             ImplementTypeOptionsStorage.InsertionBehavior,
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             // Completion options
-            LspOptions.MaxCompletionListSize);
+            LspOptions.MaxCompletionListSize,
+            CompletionOptionsStorage.ShowNameSuggestions,
+            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
+            CompletionOptionsStorage.ProvideRegexCompletions);
     }
 }
