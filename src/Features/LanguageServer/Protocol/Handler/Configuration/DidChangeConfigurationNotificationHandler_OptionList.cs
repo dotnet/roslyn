@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
@@ -21,6 +22,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             LspOptions.MaxCompletionListSize,
             CompletionOptionsStorage.ShowNameSuggestions,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
-            CompletionOptionsStorage.ProvideRegexCompletions);
+            CompletionOptionsStorage.ProvideRegexCompletions,
+            // Go to definition
+            MetadataAsSourceOptionsStorage.NavigateToDecompiledSources
+            );
     }
 }
