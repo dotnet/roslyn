@@ -78,9 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _useUpdatedEscapeRules;
         private readonly BindingDiagnosticBag _diagnostics;
         private bool _inUnsafeRegion;
+        // PROTOTYPE: _localScopeDepth is not fixed, and neither is _inUnsafeRegion, so any callback
+        // will use the current value rather than the value at delegate creation! See Binder.ValueCheck.cs
+        // where various GetValEscape() helper methods use the current value of _localScopeDepth.
         private uint _localScopeDepth;
         private Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>? _localEscapeScopes;
-        private Dictionary<BoundValuePlaceholderBase, uint>? _placeholderScopes;
+        private Dictionary<BoundValuePlaceholderBase, (GetEscapeScope?, uint)>? _placeholderScopes;
         private uint _patternInputValEscape;
 
         private RefSafetyAnalysis(
@@ -165,24 +168,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private delegate uint GetEscapeScope(); // PROTOTYPE: Add parameters to reduce allocations.
+
         private ref struct PlaceholderRegion
         {
             private readonly RefSafetyAnalysis _analysis;
-            private readonly ArrayBuilder<(BoundValuePlaceholderBase, uint)> _placeholders;
+            private readonly ArrayBuilder<(BoundValuePlaceholderBase, GetEscapeScope?, uint)> _placeholders;
 
-            public PlaceholderRegion(RefSafetyAnalysis analysis, ArrayBuilder<(BoundValuePlaceholderBase, uint)> placeholders)
+            public PlaceholderRegion(RefSafetyAnalysis analysis, ArrayBuilder<(BoundValuePlaceholderBase, GetEscapeScope?, uint)> placeholders)
             {
                 _analysis = analysis;
                 _placeholders = placeholders;
-                foreach (var (placeholder, valEscapeScope) in placeholders)
+                foreach (var (placeholder, getEscapeScope, valEscapeScope) in placeholders)
                 {
-                    _analysis.AddPlaceholderScope(placeholder, valEscapeScope);
+                    _analysis.AddPlaceholderScope(placeholder, getEscapeScope, valEscapeScope);
                 }
             }
 
             public void Dispose()
             {
-                foreach (var (placeholder, _) in _placeholders)
+                foreach (var (placeholder, _, _) in _placeholders)
                 {
                     _analysis.RemovePlaceholderScope(placeholder);
                 }
@@ -193,19 +198,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         private (uint RefEscapeScope, uint ValEscapeScope) GetLocalScopes(LocalSymbol local)
         {
             Debug.Assert(_localEscapeScopes is { });
+            // PROTOTYPE: Return CallingMethodScope if missing.
+            //return _localEscapeScopes.TryGetValue(local, out var scopes)
+            //    ? scopes
+            //    : (Binder.CallingMethodScope, Binder.CallingMethodScope);
             return _localEscapeScopes[local];
         }
 
         private void SetLocalScopes(LocalSymbol local, uint refEscapeScope, uint valEscapeScope)
         {
             Debug.Assert(_localEscapeScopes is { });
+            // PROTOTYPE: Check if missing.
+            //if (_localEscapeScopes?.ContainsKey(local) == true)
+            //{
+            //    _localEscapeScopes[local] = (refEscapeScope, valEscapeScope);
+            //}
             _localEscapeScopes[local] = (refEscapeScope, valEscapeScope);
         }
 
-        private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, uint valEscapeScope)
+        private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, GetEscapeScope? getEscapeScope, uint valEscapeScope)
         {
-            _placeholderScopes ??= new Dictionary<BoundValuePlaceholderBase, uint>();
-            _placeholderScopes.Add(placeholder, valEscapeScope);
+            _placeholderScopes ??= new Dictionary<BoundValuePlaceholderBase, (GetEscapeScope?, uint)>();
+            _placeholderScopes.Add(placeholder, (getEscapeScope, valEscapeScope));
         }
 
 #pragma warning disable IDE0060
@@ -221,7 +235,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private uint GetPlaceholderScope(BoundValuePlaceholderBase placeholder)
         {
             Debug.Assert(_placeholderScopes is { });
-            return _placeholderScopes[placeholder];
+            // PROTOTYPE: Return CallingMethodScope if missing.
+            //return _placeholderScopes?.TryGetValue(placeholder, out var scope) == true
+            //    ? scope
+            //    : Binder.CallingMethodScope;
+            (GetEscapeScope? getEscapeScope, uint valEscapeScope) = _placeholderScopes[placeholder];
+            if (getEscapeScope is { })
+            {
+                valEscapeScope = getEscapeScope();
+                _placeholderScopes[placeholder] = (null, valEscapeScope);
+            }
+            return valEscapeScope;
         }
 
         public override BoundNode? VisitBlock(BoundBlock node)
@@ -298,13 +322,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             using var _ = new LocalScope(this, node.Locals);
 
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, GetEscapeScope?, uint)>.GetInstance();
             if (node.AwaitOpt is { } awaitableInfo)
             {
-                uint valEscapeScope = node.ExpressionOpt is { } expr
+                var expr = node.ExpressionOpt;
+                GetEscapeScope getEscapeScope = () => expr is { }
                     ? GetValEscape(expr, _localScopeDepth)
                     : _localScopeDepth;
-                GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, valEscapeScope);
+                GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, getEscapeScope, 0);
             }
 
             using var region = new PlaceholderRegion(this, placeholders);
@@ -313,10 +338,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
         {
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, GetEscapeScope?, uint)>.GetInstance();
             if (node.AwaitOpt is { } awaitableInfo)
             {
-                GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, _localScopeDepth);
+                GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, getEscapeScope: null, _localScopeDepth);
             }
 
             using var _ = new PlaceholderRegion(this, placeholders);
@@ -566,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private PlaceholderRegion GetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments)
         {
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, GetEscapeScope?, uint)>.GetInstance();
             foreach (var arg in arguments)
             {
                 if (arg is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString or BoundBinaryOperator } conversion)
@@ -602,39 +627,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void GetInterpolatedStringPlaceholders(
-            ArrayBuilder<(BoundValuePlaceholderBase, uint)> placeholders,
+            ArrayBuilder<(BoundValuePlaceholderBase, GetEscapeScope?, uint)> placeholders,
             in InterpolatedStringHandlerData interpolationData,
             BoundExpression? receiver,
             ImmutableArray<BoundExpression> arguments)
         {
-            placeholders.Add((interpolationData.ReceiverPlaceholder, _localScopeDepth));
+            placeholders.Add((interpolationData.ReceiverPlaceholder, null, _localScopeDepth));
 
             foreach (var placeholder in interpolationData.ArgumentPlaceholders)
             {
-                uint valEscapeScope;
+                GetEscapeScope getEscapeScope;
                 int argIndex = placeholder.ArgumentIndex;
                 switch (argIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                         Debug.Assert(receiver != null);
-                        valEscapeScope = receiver.GetRefKind().IsWritableReference() ? GetRefEscape(receiver, _localScopeDepth) : GetValEscape(receiver, _localScopeDepth);
+                        getEscapeScope = () => receiver.GetRefKind().IsWritableReference() ? GetRefEscape(receiver, _localScopeDepth) : GetValEscape(receiver, _localScopeDepth);
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         continue;
                     case >= 0:
-                        valEscapeScope = GetValEscape(arguments[argIndex], _localScopeDepth);
+                        getEscapeScope = () => GetValEscape(arguments[argIndex], _localScopeDepth);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex);
                 }
-                placeholders.Add((placeholder, valEscapeScope));
+                placeholders.Add((placeholder, getEscapeScope, 0));
             }
         }
 
         public override BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
-            using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments);
+            using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments); // PROTOTYPE: Add test for this case.
             base.VisitObjectCreationExpression(node);
 
             if (!node.HasErrors)
@@ -657,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
-            using var _ = GetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
+            using var _ = GetArgumentPlaceholders(node.ReceiverOpt, node.Arguments); // PROTOTYPE: Add test for this case.
             base.VisitIndexerAccess(node);
 
             if (!node.HasErrors)
@@ -680,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
-            using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments);
+            using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments); // PROTOTYPE: Add test for this case.
             base.VisitFunctionPointerInvocation(node);
 
             if (!node.HasErrors)
@@ -703,18 +728,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
         {
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            GetAwaitableInstancePlaceholders(placeholders, node.AwaitableInfo, GetValEscape(node.Expression, _localScopeDepth));
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, GetEscapeScope?, uint)>.GetInstance();
+            GetAwaitableInstancePlaceholders(placeholders, node.AwaitableInfo, () => GetValEscape(node.Expression, _localScopeDepth), 0); // PROTOTYPE: Add test for this case.
             using var _ = new PlaceholderRegion(this, placeholders);
             base.VisitAwaitExpression(node);
             return null;
         }
 
-        private void GetAwaitableInstancePlaceholders(ArrayBuilder<(BoundValuePlaceholderBase, uint)> placeholders, BoundAwaitableInfo awaitableInfo, uint valEscapeScope)
+        private void GetAwaitableInstancePlaceholders(ArrayBuilder<(BoundValuePlaceholderBase, GetEscapeScope?, uint)> placeholders, BoundAwaitableInfo awaitableInfo, GetEscapeScope? getEscapeScope, uint valEscapeScope)
         {
             if (awaitableInfo.AwaitableInstancePlaceholder is { } placeholder)
             {
-                placeholders.Add((placeholder, valEscapeScope));
+                placeholders.Add((placeholder, getEscapeScope, valEscapeScope));
             }
         }
 
@@ -755,8 +780,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            placeholders.Add((conversion.DeconstructionInfo.InputPlaceholder, GetValEscape(right, _localScopeDepth)));
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, GetEscapeScope?, uint)>.GetInstance();
+            placeholders.Add((conversion.DeconstructionInfo.InputPlaceholder, () => GetValEscape(right, _localScopeDepth), 0));
 
             var parameters = deconstructMethod.Parameters;
             int n = variables.Count;
@@ -768,10 +793,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variable = variables[i];
                 var nestedVariables = variable.NestedVariables;
                 var arg = (BoundDeconstructValuePlaceholder)invocation.Arguments[i + offset];
-                uint valEscape = nestedVariables is null
-                    ? GetValEscape(variable.Expression, _localScopeDepth)
-                    : _localScopeDepth;
-                placeholders.Add((arg, valEscape));
+                GetEscapeScope? getEscapeScope;
+                uint valEscape;
+                if (nestedVariables is null)
+                {
+                    getEscapeScope = () => GetValEscape(variable.Expression, _localScopeDepth);
+                    valEscape = 0;
+                }
+                else
+                {
+                    getEscapeScope = null;
+                    valEscape = _localScopeDepth;
+                }
+                placeholders.Add((arg, getEscapeScope, valEscape));
             }
 
             using var _ = new PlaceholderRegion(this, placeholders);
@@ -861,14 +895,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddLocalScopes(local, refEscapeScope: local.RefKind == RefKind.None ? _localScopeDepth : collectionEscape, valEscapeScope: collectionEscape);
             }
 
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, GetEscapeScope?, uint)>.GetInstance();
             if (node.DeconstructionOpt?.TargetPlaceholder is { } targetPlaceholder)
             {
-                placeholders.Add((targetPlaceholder, collectionEscape));
+                placeholders.Add((targetPlaceholder, null, collectionEscape));
             }
             if (node.AwaitOpt is { } awaitableInfo)
             {
-                GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, collectionEscape);
+                GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, getEscapeScope: null, collectionEscape);
             }
 
             using var region = new PlaceholderRegion(this, placeholders);
