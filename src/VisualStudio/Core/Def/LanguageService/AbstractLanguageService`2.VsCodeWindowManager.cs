@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // that ReleaseOutline will be called on the old window before GetOutline is called for the new window. 
             int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? ppCmdTarget)
             {
-                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsMetadata.EnableDocumentOutline);
+                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline);
                 if (!enabled)
                 {
                     phwnd = default;

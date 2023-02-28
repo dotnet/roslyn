@@ -201,4 +201,40 @@
   <data name="Make_0_return_Task_instead_of_void" xml:space="preserve">
     <value>Make {0} return Task instead of void.</value>
   </data>
+  <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
+    <value>Allow unsafe code in this project</value>
+  </data>
+  <data name="Make_ref_struct" xml:space="preserve">
+    <value>Make 'ref struct'</value>
+    <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
+  </data>
+  <data name="Remove_unused_function" xml:space="preserve">
+    <value>Remove unused function</value>
+  </data>
+  <data name="Upgrade_all_csharp_projects_to_language_version_0" xml:space="preserve">
+    <value>Upgrade all C# projects to language version '{0}'</value>
+  </data>
+  <data name="Upgrade_this_project_to_csharp_language_version_0" xml:space="preserve">
+    <value>Upgrade this project to C# language version '{0}'</value>
+  </data>
+  <data name="Use_0" xml:space="preserve">
+    <value>Use '{0}'</value>
+  </data>
+  <data name="Remove_in_keyword" xml:space="preserve">
+    <value>Remove 'in' keyword</value>
+    <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Remove_new_modifier" xml:space="preserve">
+    <value>Remove 'new' modifier</value>
+  </data>
+  <data name="Convert_to_positional_record" xml:space="preserve">
+    <value>Convert to positional record</value>
+    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Make_method_async" xml:space="preserve">
+    <value>Make method async</value>
+  </data>
+  <data name="Make_method_async_remain_void" xml:space="preserve">
+    <value>Make method async (stay void)</value>
+  </data>
 </root>

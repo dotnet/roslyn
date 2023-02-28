@@ -584,6 +584,132 @@ class D
 }");
         }
 
+        [Fact, WorkItem(41159, "https://github.com/dotnet/roslyn/issues/41159")]
+        public async Task TestCompoundAssign3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    object [||]Prop
+    {
+        get
+        {
+            return null;
+        }
+
+        set
+        {
+            var v = value;
+        }
+    }
+
+    void M()
+    {
+        this.Prop ??= x;
+    }
+}",
+@"class C
+{
+    private object GetProp()
+    {
+        return null;
+    }
+    private void SetProp(object value)
+    {
+        var v = value;
+    }
+
+    void M()
+    {
+        this.SetProp(this.GetProp() ?? x);
+    }
+}");
+        }
+
+        [Fact, WorkItem(41159, "https://github.com/dotnet/roslyn/issues/41159")]
+        public async Task TestCompoundAssign4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+            var v = value;
+        }
+    }
+
+    void M()
+    {
+        this.Prop >>= x;
+    }
+}",
+@"class C
+{
+    private int GetProp()
+    {
+        return 0;
+    }
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
+
+    void M()
+    {
+        this.SetProp(this.GetProp() >> x);
+    }
+}");
+        }
+
+        [Fact, WorkItem(41159, "https://github.com/dotnet/roslyn/issues/41159")]
+        public async Task TestCompoundAssign5()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+            var v = value;
+        }
+    }
+
+    void M()
+    {
+        this.Prop >>>= x;
+    }
+}",
+@"class C
+{
+    private int GetProp()
+    {
+        return 0;
+    }
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
+
+    void M()
+    {
+        this.SetProp(this.GetProp() >>> x);
+    }
+}");
+        }
+
         [Fact]
         public async Task TestMissingAccessors()
         {

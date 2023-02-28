@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     // Nothing to highlight if user hasn't typed anything yet.
                     _highlightMatchingPortions = _filterText.Length > 0
-                        && globalOptions.GetOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, _document.Project.Language);
+                        && globalOptions.GetOption(CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, _document.Project.Language);
 
-                    _showCompletionItemFilters = globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, _document.Project.Language);
+                    _showCompletionItemFilters = globalOptions.GetOption(CompletionViewOptionsStorage.ShowCompletionItemFilters, _document.Project.Language);
                 }
                 else
                 {

@@ -5090,7 +5090,7 @@ class C
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
                 Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys.")
                 Await state.AssertNoCompletionSession()
@@ -5109,7 +5109,7 @@ class C
                               extraExportedTypes:={GetType(CompletedTaskControlledCompletionProvider)}.ToList(),
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
                 Await state.AssertSelectedCompletionItem(displayText:="System")
@@ -5141,7 +5141,7 @@ class C
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
                 Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
 
@@ -5218,7 +5218,7 @@ class C
                 Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
                 Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
                 Dim task1 As Task = Nothing
@@ -5309,7 +5309,7 @@ class C
                 provider.Reset()
 
                 ' Switch to the non-blocking mode
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 ' re-use of TestNoBlockOnCompletionItems1
                 state.SendTypeChars("Sys.")
@@ -5329,7 +5329,7 @@ class C
                 provider.Reset()
 
                 ' Switch to the blocking mode
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
 
 #Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
                 Task.Run(Function()
@@ -9699,6 +9699,9 @@ public class C
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars("..")
+                Await state.AssertNoCompletionSession()
+
+                state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="async", isHardSelected:=False)
 
                 state.SendTypeChars("{ ")
@@ -9764,6 +9767,9 @@ public class C
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars("..")
+                Await state.AssertNoCompletionSession()
+
+                state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="async", isHardSelected:=False)
 
                 state.SendTypeChars("nu")
@@ -10270,7 +10276,7 @@ class C
                 Dim workspace = state.Workspace
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
                 state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
@@ -10325,7 +10331,7 @@ class C
                 Dim workspace = state.Workspace
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
                 state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
@@ -10378,7 +10384,7 @@ class C
                 Dim workspace = state.Workspace
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
 

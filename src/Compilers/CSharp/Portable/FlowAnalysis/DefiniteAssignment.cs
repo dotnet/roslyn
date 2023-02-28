@@ -1971,6 +1971,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
+            if (node.Instrumentation != null)
+            {
+                DeclareVariable(node.Instrumentation.Local);
+                Visit(node.Instrumentation.Prologue);
+            }
+
             DeclareVariables(node.Locals);
 
             VisitStatementsWithLocalFunctions(node);
@@ -1986,6 +1992,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportUnusedVariables(node.Locals);
             ReportUnusedVariables(node.LocalFunctions);
+
+            if (node.Instrumentation != null)
+            {
+                Visit(node.Instrumentation.Epilogue);
+            }
 
             return null;
         }
@@ -2222,6 +2233,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return result;
         }
+
+        public override BoundNode VisitLocalId(BoundLocalId node)
+            => null;
+
+        public override BoundNode VisitParameterId(BoundParameterId node)
+            => null;
+
+        public override BoundNode VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
+            => null;
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {

@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
         public int? CloseBracketToken => (int)SyntaxKind.CloseBracketToken;
         public int CloseParenToken => (int)SyntaxKind.CloseParenToken;
+        public int CommaToken => (int)SyntaxKind.CommaToken;
         public int ColonToken => (int)SyntaxKind.ColonToken;
         public int CharacterLiteralToken => (int)SyntaxKind.CharacterLiteralToken;
         public int DotToken => (int)SyntaxKind.DotToken;

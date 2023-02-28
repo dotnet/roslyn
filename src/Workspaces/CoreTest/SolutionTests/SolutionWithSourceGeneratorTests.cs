@@ -206,16 +206,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     return step.Inputs.Length == 1
                     && step.Inputs[0].Source.Outputs[step.Inputs[0].OutputIndex].Reason == IncrementalStepRunReason.Modified
-                    && step.Outputs.Length == 1
-                    && step.Outputs[0].Reason == IncrementalStepRunReason.Modified;
+                    && step.Outputs is [{ Reason: IncrementalStepRunReason.Modified }];
                 });
             Assert.Contains(runResult.TrackedSteps[GenerateFileForEachAdditionalFileWithContentsCommented.StepName],
                 step =>
                 {
                     return step.Inputs.Length == 1
                     && step.Inputs[0].Source.Outputs[step.Inputs[0].OutputIndex].Reason == IncrementalStepRunReason.Cached
-                    && step.Outputs.Length == 1
-                    && step.Outputs[0].Reason == IncrementalStepRunReason.Cached;
+                    && step.Outputs is [{ Reason: IncrementalStepRunReason.Cached }];
                 });
 
             // Change one of the source documents, and rerun; we should again only reprocess that one change.
@@ -750,6 +748,37 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
 
             Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
+        }
+
+        [Fact]
+        public async Task LinkedDocumentOfFrozenShouldNotRunSourceGenerator()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var generatorRan = false;
+            var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+
+            var originalDocument1 = AddEmptyProject(workspace.CurrentSolution, name: "Project1")
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs");
+
+            // this is a linked document of document1 above
+            var originalDocument2 = AddEmptyProject(originalDocument1.Project.Solution, name: "Project2")
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument(originalDocument1.Name, await originalDocument1.GetTextAsync().ConfigureAwait(false), filePath: originalDocument1.FilePath);
+
+            var frozenSolution = originalDocument2.WithFrozenPartialSemantics(CancellationToken.None).Project.Solution;
+            var documentIdsToTest = new[] { originalDocument1.Id, originalDocument2.Id };
+
+            foreach (var documentIdToTest in documentIdsToTest)
+            {
+                var document = frozenSolution.GetRequiredDocument(documentIdToTest);
+                Assert.Equal(document.GetLinkedDocumentIds().Single(), documentIdsToTest.Except(new[] { documentIdToTest }).Single());
+                document = document.WithText(SourceText.From("// Something else"));
+
+                var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
+                Assert.Single(compilation.SyntaxTrees);
+                Assert.False(generatorRan);
+            }
         }
 
         [Fact]

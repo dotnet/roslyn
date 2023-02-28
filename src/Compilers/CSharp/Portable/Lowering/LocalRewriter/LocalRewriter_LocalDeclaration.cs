@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement rewrittenLocalDeclaration = new BoundExpressionStatement(
                 syntax,
-                new BoundAssignmentOperator(
+                _factory.AssignmentExpression(
                     syntax,
                     new BoundLocal(
                         syntax,
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (originalOpt.Syntax.Kind() == SyntaxKind.LocalDeclarationStatement &&
                         ((LocalDeclarationStatementSyntax)originalOpt.Syntax).Declaration.Variables.Count == 1)))
             {
-                rewrittenLocalDeclaration = Instrumenter.InstrumentLocalInitialization(originalOpt, rewrittenLocalDeclaration);
+                rewrittenLocalDeclaration = Instrumenter.InstrumentUserDefinedLocalInitialization(originalOpt, rewrittenLocalDeclaration);
             }
 
             return rewrittenLocalDeclaration;

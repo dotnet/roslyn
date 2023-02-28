@@ -1889,6 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals,
                 GetDeclaredLocalFunctionsForScope(node),
                 hasUnsafeModifier: node.Parent?.Kind() == SyntaxKind.UnsafeStatement,
+                instrumentation: null,
                 boundStatements);
         }
 

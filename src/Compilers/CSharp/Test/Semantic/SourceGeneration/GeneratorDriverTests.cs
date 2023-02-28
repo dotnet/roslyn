@@ -1280,6 +1280,90 @@ class C { }
             }
         }
 
+        [Fact, WorkItem(66337, "https://github.com/dotnet/roslyn/issues/66337")]
+        public void Diagnostics_Respect_SuppressMessageAttribute()
+        {
+            var gen001 = CSDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 2);
+
+            // reported diagnostics can have a location in source
+            verify("""
+                class C
+                {
+                    //comment
+                }
+                """,
+                new[] { (gen001, "com") },
+                Diagnostic("GEN001", "com").WithLocation(3, 7));
+
+            // diagnostics are suppressed via SuppressMessageAttribute
+            verify("""
+                [System.Diagnostics.CodeAnalysis.SuppressMessage("", "GEN001")]
+                class C
+                {
+                    //comment
+                }
+                """,
+                new[] { (gen001, "com") },
+                Diagnostic("GEN001", "com", isSuppressed: true).WithLocation(4, 7));
+
+            // but not when they don't have a source location
+            verify("""
+                [System.Diagnostics.CodeAnalysis.SuppressMessage("", "GEN001")]
+                class C
+                {
+                    //comment
+                }
+                """,
+                new[] { (gen001, "") },
+                Diagnostic("GEN001").WithLocation(1, 1));
+
+            // different ID suppressed + multiple diagnostics
+            verify("""
+                [System.Diagnostics.CodeAnalysis.SuppressMessage("", "GEN002")]
+                class C
+                {
+                    //comment
+                    //another
+                }
+                """,
+                new[] { (gen001, "com"), (gen001, "ano") },
+                Diagnostic("GEN001", "com").WithLocation(4, 7),
+                Diagnostic("GEN001", "ano").WithLocation(5, 7));
+
+            static void verify(string source, IReadOnlyList<(Diagnostic Diagnostic, string Location)> reportDiagnostics, params DiagnosticDescription[] expected)
+            {
+                var parseOptions = TestOptions.Regular;
+                source = source.Replace(Environment.NewLine, "\r\n");
+                var compilation = CreateCompilation(source, parseOptions: parseOptions);
+                compilation.VerifyDiagnostics();
+                var syntaxTree = compilation.SyntaxTrees.Single();
+                var actualDiagnostics = reportDiagnostics.SelectAsArray(x =>
+                    {
+                        if (string.IsNullOrEmpty(x.Location))
+                        {
+                            return x.Diagnostic;
+                        }
+                        var start = source.IndexOf(x.Location);
+                        Assert.True(start >= 0, $"Not found in source: '{x.Location}'");
+                        var end = start + x.Location.Length;
+                        return x.Diagnostic.WithLocation(Location.Create(syntaxTree, TextSpan.FromBounds(start, end)));
+                    });
+
+                var gen = new CallbackGenerator(c => { }, c =>
+                {
+                    foreach (var d in actualDiagnostics)
+                    {
+                        c.ReportDiagnostic(d);
+                    }
+                });
+
+                var driver = CSharpGeneratorDriver.Create(new[] { gen }, parseOptions: parseOptions);
+                driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+                outputCompilation.VerifyDiagnostics();
+                diagnostics.Verify(expected);
+            }
+        }
+
         [Fact]
         public void GeneratorDriver_Prefers_Incremental_Generators()
         {

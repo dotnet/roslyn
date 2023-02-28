@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -45,22 +43,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ResumableStateMachineStateAllocator _iteratorStateAllocator;
 
-        internal AsyncIteratorMethodToStateMachineRewriter(MethodSymbol method,
+        internal AsyncIteratorMethodToStateMachineRewriter(
+            MethodSymbol method,
             int methodOrdinal,
             AsyncMethodBuilderMemberCollection asyncMethodBuilderMemberCollection,
             AsyncIteratorInfo asyncIteratorInfo,
             SyntheticBoundNodeFactory F,
             FieldSymbol state,
             FieldSymbol builder,
+            FieldSymbol? instanceIdField,
             Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
-            VariableSlotAllocator slotAllocatorOpt,
+            VariableSlotAllocator? slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
             : base(method, methodOrdinal, asyncMethodBuilderMemberCollection, F,
-                  state, builder, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals,
+                  state, builder, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals,
                   stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             Debug.Assert(asyncIteratorInfo != null);
@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 increasing: false);
         }
 
-#nullable enable
         protected override BoundStatement? GenerateMissingStateDispatch()
         {
             var asyncDispatch = base.GenerateMissingStateDispatch();
