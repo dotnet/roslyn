@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
@@ -4054,6 +4055,79 @@ public record A(int X, int Y);";
             // PERF: Verify no analyzer callbacks are made for source files where the analyzer was not enabled.
             var symbol = Assert.Single(analyzer.CallbackSymbols);
             Assert.Equal("C1", symbol.Name);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(67084, "https://github.com/dotnet/roslyn/issues/67084")]
+        internal async Task TestCancellationDuringDiagnosticComputation(AnalyzerRegisterActionKind actionKind)
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        int x = 0;
+    }
+}");
+            var options = compilation.Options.WithSyntaxTreeOptionsProvider(new CancellingSyntaxTreeOptionsProvider());
+            compilation = compilation.WithOptions(options);
+
+            var analyzer = new CancellationTestAnalyzer(actionKind);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+
+            // First invoke analysis with analyzer's cancellation token.
+            // Analyzer itself throws an OperationCanceledException to mimic cancellation during first callback.
+            // Verify canceled compilation and no reported diagnostics.
+            Assert.Empty(analyzer.CanceledCompilations);
+            try
+            {
+                _ = await getDiagnosticsAsync(analyzer.CancellationToken).ConfigureAwait(false);
+
+                throw ExceptionUtilities.Unreachable();
+            }
+            catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
+            {
+            }
+
+            Assert.Single(analyzer.CanceledCompilations);
+
+            // Then invoke analysis with a new cancellation token, and verify reported analyzer diagnostic.
+            var cancellationSource = new CancellationTokenSource();
+            var diagnostics = await getDiagnosticsAsync(cancellationSource.Token).ConfigureAwait(false);
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Equal(CancellationTestAnalyzer.DiagnosticId, diagnostic.Id);
+
+            async Task<ImmutableArray<Diagnostic>> getDiagnosticsAsync(CancellationToken cancellationToken)
+            {
+                var tree = compilation.SyntaxTrees[0];
+                var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+                return actionKind == AnalyzerRegisterActionKind.SyntaxTree ?
+                    await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, cancellationToken).ConfigureAwait(false) :
+                    await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private sealed class CancellingSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
+        {
+            public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return GeneratedKind.NotGenerated;
+            }
+
+            public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                severity = ReportDiagnostic.Default;
+                return false;
+            }
+
+            public override bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                severity = ReportDiagnostic.Default;
+                return false;
+            }
         }
     }
 }
