@@ -17,15 +17,17 @@ internal static class AutoFormattingOptionsStorage
             FormatOnCloseBrace = globalOptions.GetOption(FormatOnCloseBrace, language)
         };
 
+    private static readonly OptionGroup s_formattingGroup = new(FeaturesResources.Formatting, int.MaxValue, null, "Formatting");
+
     internal static readonly PerLanguageOption2<bool> FormatOnReturn = new(
-        "csharp_format_on_return", AutoFormattingOptions.Default.FormatOnReturn);
+        "csharp_format_on_return", AutoFormattingOptions.Default.FormatOnReturn, group: s_formattingGroup);
 
     public static readonly PerLanguageOption2<bool> FormatOnTyping = new(
         "csharp_format_on_typing", AutoFormattingOptions.Default.FormatOnTyping);
 
     public static readonly PerLanguageOption2<bool> FormatOnSemicolon = new(
-        "csharp_format_on_semicolon", AutoFormattingOptions.Default.FormatOnSemicolon);
+        "csharp_format_on_semicolon", AutoFormattingOptions.Default.FormatOnSemicolon, group: s_formattingGroup);
 
     public static readonly PerLanguageOption2<bool> FormatOnCloseBrace = new(
-        "csharp_format_on_close_brace", AutoFormattingOptions.Default.FormatOnCloseBrace);
+        "csharp_format_on_close_brace", AutoFormattingOptions.Default.FormatOnCloseBrace, group: s_formattingGroup);
 }

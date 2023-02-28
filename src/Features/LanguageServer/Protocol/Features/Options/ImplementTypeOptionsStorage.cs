@@ -20,12 +20,14 @@ namespace Microsoft.CodeAnalysis.ImplementType
           => new(globalOptions.GetImplementTypeOptions(languageServices.Language),
                  globalOptions.CreateProvider());
 
+        private static readonly OptionGroup s_implementTypeGroup = new(FeaturesResources.Implement_Type, priority: int.MaxValue, parent: null, nonLocalizedDescription: "Implement_Type");
+
         public static readonly PerLanguageOption2<ImplementTypeInsertionBehavior> InsertionBehavior =
             new("dotnet_insertion_behavior",
-                defaultValue: ImplementTypeOptions.Default.InsertionBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypeInsertionBehavior>());
+                defaultValue: ImplementTypeOptions.Default.InsertionBehavior, group: s_implementTypeGroup, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypeInsertionBehavior>());
 
         public static readonly PerLanguageOption2<ImplementTypePropertyGenerationBehavior> PropertyGenerationBehavior =
             new("dotnet_property_generation_behavior",
-                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypePropertyGenerationBehavior>());
+                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior, group: s_implementTypeGroup, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypePropertyGenerationBehavior>());
     }
 }

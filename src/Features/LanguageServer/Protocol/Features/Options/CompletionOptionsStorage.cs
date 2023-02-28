@@ -30,6 +30,8 @@ internal static class CompletionOptionsStorage
             ShowNewSnippetExperienceFeatureFlag = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
         };
 
+    private static readonly OptionGroup s_completionOptionGroup = new(FeaturesResources.Completion, priority: int.MaxValue, parent: null, nonLocalizedDescription: "Completion");
+
     // feature flags
 
     public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new("dotnet_disable_unnamed_symbol_completion", CompletionOptions.Default.UnnamedSymbolCompletionDisabled);
@@ -40,12 +42,12 @@ internal static class CompletionOptionsStorage
     public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new("dotnet_trigger_completion_on_deletion", CompletionOptions.Default.TriggerOnDeletion);
     public static readonly PerLanguageOption2<EnterKeyRule> EnterKeyBehavior = new("dotnet_return_key_completion_behavior", CompletionOptions.Default.EnterKeyBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<EnterKeyRule>());
     public static readonly PerLanguageOption2<SnippetsRule> SnippetsBehavior = new("dotnet_snippets_behavior", CompletionOptions.Default.SnippetsBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<SnippetsRule>());
-    public static readonly PerLanguageOption2<bool> ShowNameSuggestions = new("dotnet_show_name_completion_suggestions", CompletionOptions.Default.ShowNameSuggestions);
+    public static readonly PerLanguageOption2<bool> ShowNameSuggestions = new("dotnet_show_name_completion_suggestions", CompletionOptions.Default.ShowNameSuggestions, group: s_completionOptionGroup);
 
     //Dev16 options
 
     // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-    public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces = new("dotnet_show_completion_items_from_unimported_namespaces", CompletionOptions.Default.ShowItemsFromUnimportedNamespaces);
+    public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces = new("dotnet_show_completion_items_from_unimported_namespaces", CompletionOptions.Default.ShowItemsFromUnimportedNamespaces, group: s_completionOptionGroup);
 
     public static readonly PerLanguageOption2<bool> TriggerInArgumentLists = new("dotnet_trigger_completion_in_argument_lists", CompletionOptions.Default.TriggerInArgumentLists);
 
@@ -54,7 +56,7 @@ internal static class CompletionOptionsStorage
 
     // Embedded languages:
 
-    public static PerLanguageOption2<bool> ProvideRegexCompletions = new("dotnet_provide_regex_completions", CompletionOptions.Default.ProvideRegexCompletions);
+    public static PerLanguageOption2<bool> ProvideRegexCompletions = new("dotnet_provide_regex_completions", CompletionOptions.Default.ProvideRegexCompletions, group: s_completionOptionGroup);
     public static readonly PerLanguageOption2<bool> ProvideDateAndTimeCompletions = new("dotnet_provide_date_and_time_completions", CompletionOptions.Default.ProvideDateAndTimeCompletions);
     public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperienceUserOption = new("dotnet_show_new_snippet_experience", CompletionOptions.Default.ShowNewSnippetExperienceUserOption);
 }

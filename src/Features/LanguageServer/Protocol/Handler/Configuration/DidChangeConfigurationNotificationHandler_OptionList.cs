@@ -3,16 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
@@ -22,6 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         public static readonly ImmutableArray<IOption2> SupportedOptions = ImmutableArray.Create<IOption2>(
             // Code Action
             SymbolSearchOptionsStorage.SearchReferenceAssemblies,
+            // Implement Type
             ImplementTypeOptionsStorage.InsertionBehavior,
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             // Completion
