@@ -16,10 +16,10 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal static class DiagnosticTaggingOptions
+internal static class DiagnosticTaggingOptionsStorage
 {
     public static readonly Option2<bool> PullDiagnosticTagging = new(
-        "DiagnosticTaggingOptions_PullDiagnosticTagging", defaultValue: true);
+        "dotnet_pull_diagnostic_tagging", defaultValue: true);
 }
 
 /// <summary>
@@ -59,7 +59,7 @@ internal abstract partial class AbstractPushOrPullDiagnosticsTaggerProvider<TTag
         // Put another way, if DiagnosticMode is 'Push' (non-LSP), then this type does all the work, choosing tagging
         // pull/push for all features.   If DiagnosticMode is 'pull' (LSP), then LSP takes over classification,
         // squiggles, and suggestions, while we still handle inline-diagnostics.
-        if (globalOptions.GetOption(DiagnosticTaggingOptions.PullDiagnosticTagging))
+        if (globalOptions.GetOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging))
         {
             _underlyingTaggerProvider = new PullDiagnosticsTaggerProvider(
                 this, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);

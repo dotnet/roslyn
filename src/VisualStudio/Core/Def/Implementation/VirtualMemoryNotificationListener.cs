@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return availableMemory < MemoryThreshold &&
                 !SolutionCrawlerOptionsStorage.LowMemoryForcedMinimalBackgroundAnalysis &&
-                _globalOptions.GetOption(InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor);
+                _globalOptions.GetOption(VirtualMemoryNotificationListenerOptionsStorage.BackgroundAnalysisMemoryMonitor);
         }
 
         private static void DisableBackgroundAnalysis()

@@ -244,9 +244,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             var diagnosticModeOption = context.ServerKind switch
             {
-                WellKnownLspServerKinds.LiveShareLspServer => InternalDiagnosticsOptions.LiveShareDiagnosticMode,
-                WellKnownLspServerKinds.RazorLspServer => InternalDiagnosticsOptions.RazorDiagnosticMode,
-                _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
+                WellKnownLspServerKinds.LiveShareLspServer => InternalDiagnosticsOptionsStorage.LiveShareDiagnosticMode,
+                WellKnownLspServerKinds.RazorLspServer => InternalDiagnosticsOptionsStorage.RazorDiagnosticMode,
+                _ => InternalDiagnosticsOptionsStorage.NormalDiagnosticMode,
             };
 
             var diagnosticMode = GlobalOptions.GetDiagnosticMode(diagnosticModeOption);

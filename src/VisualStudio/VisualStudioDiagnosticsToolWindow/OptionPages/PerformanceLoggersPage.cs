@@ -78,17 +78,17 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
         private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService globalOptions)
         {
-            if (globalOptions.GetOption(LoggerOptions.EtwLoggerKey))
+            if (globalOptions.GetOption(LoggerOptionsStorage.EtwLoggerKey))
             {
                 yield return nameof(EtwLogger);
             }
 
-            if (globalOptions.GetOption(LoggerOptions.TraceLoggerKey))
+            if (globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey))
             {
                 yield return nameof(TraceLogger);
             }
 
-            if (globalOptions.GetOption(LoggerOptions.OutputWindowLoggerKey))
+            if (globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey))
             {
                 yield return nameof(OutputWindowLogger);
             }
