@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             // Code Action options
             SymbolSearchOptionsStorage.SearchReferenceAssemblies,
             ImplementTypeOptionsStorage.InsertionBehavior,
-            ImplementTypeOptionsStorage.PropertyGenerationBehavior);
+            ImplementTypeOptionsStorage.PropertyGenerationBehavior,
+            // Completion options
+            LspOptions.MaxCompletionListSize);
     }
 }
