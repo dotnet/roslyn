@@ -50,6 +50,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'DebuggerDisplay' 属性の追加</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_Imports">
+        <source>Add Imports</source>
+        <target state="new">Add Imports</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">すべてのパラメーターに対して null チェックを追加する</target>
@@ -500,6 +505,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">コメントは使用できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="new">Completion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">{0} コード スタイルの構成</target>
@@ -650,6 +660,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">ソース ファイル '{0}' の現在のコンテンツが、ビルドされたソースと一致しません。デバッグ中にこのファイルに加えられた変更は、そのコンテンツがビルドされたソースと一致するまで適用されません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_Highlighting">
+        <source>Document Highlighting</source>
+        <target state="new">Document Highlighting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
         <source>Document must be contained in the workspace that created this service</source>
         <target state="translated">このサービスを作成したワークスペースにドキュメントが含まれている必要があります</target>
@@ -758,6 +773,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
         <target state="translated">'{0}' の修正中</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting">
+        <source>Formatting</source>
+        <target state="new">Formatting</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -888,6 +908,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
         <target state="translated">'{0}' を暗黙的に実装する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Type">
+        <source>Implement Type</source>
+        <target state="new">Implement Type</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
@@ -1255,6 +1280,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">"{1}" からシンボル '{0}' に移動しています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigation">
+        <source>Navigation</source>
+        <target state="new">Navigation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nested_properties_not_allowed">
         <source>Nested properties not allowed</source>
         <target state="translated">入れ子になったプロパティは使用できません</target>
@@ -1359,6 +1389,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Quantifier {x,y} following nothing</source>
         <target state="translated">量指定子 {x,y} の前に何もありません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Quick_Info">
+        <source>Quick Info</source>
+        <target state="new">Quick Info</target>
+        <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>

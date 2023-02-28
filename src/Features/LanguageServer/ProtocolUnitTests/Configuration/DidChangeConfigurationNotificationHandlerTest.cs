@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel.PeerResolvers;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -24,6 +26,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Configuration
 {
     public class DidChangeConfigurationNotificationHandlerTest : AbstractLanguageServerProtocolTests
     {
+        // A regex help to check the message we send to client.
+        // It should look like "feature group.feature_name"
+        // "feature group" part is separated by space, and the feature name is separated by "_"
+        private static readonly string s_clientSideSectionPattern = @"^([\w\s]+)\.([\w_]+)$";
+
         public DidChangeConfigurationNotificationHandlerTest(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
         {
         }
@@ -226,7 +233,20 @@ public class A { }";
 
                 Assert.Equal(DidChangeConfigurationNotificationHandler.SupportedOptions.Length, configurationParams!.Items.Length);
                 Assert.Equal(DidChangeConfigurationNotificationHandler.SupportedOptions.Length, MockClientSideValues.Count);
+
+                foreach (var item in configurationParams.Items)
+                {
+                    AssertSectionPattern(item.Section);
+                }
                 return JArray.FromObject(MockClientSideValues);
+            }
+
+            private static void AssertSectionPattern(string? section)
+            {
+                Assert.NotNull(section);
+                var regex = new Regex(s_clientSideSectionPattern);
+                var match = regex.Match(section!);
+                Assert.True(match.Success);
             }
         }
     }

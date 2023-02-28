@@ -50,6 +50,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Dodaj atrybut "DebuggerDisplay"</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_Imports">
+        <source>Add Imports</source>
+        <target state="new">Add Imports</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">Dodaj sprawdzenia wartości null dla wszystkich parametrów</target>
@@ -500,6 +505,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Komentarze są niedozwolone</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="new">Completion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Konfiguruj styl kodu {0}</target>
@@ -650,6 +660,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Bieżąca zawartość pliku źródłowego „{0}” nie pasuje do skompilowanego źródła. Wszystkie zmiany wprowadzone w tym pliku podczas debugowania nie zostaną zastosowane do czasu, aż jego zawartość będzie zgodna ze skompilowanym źródłem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_Highlighting">
+        <source>Document Highlighting</source>
+        <target state="new">Document Highlighting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
         <source>Document must be contained in the workspace that created this service</source>
         <target state="translated">Dokument musi się znajdować w obszarze roboczym użytym do utworzenia tej usługi</target>
@@ -758,6 +773,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
         <target state="translated">Naprawianie „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting">
+        <source>Formatting</source>
+        <target state="new">Formatting</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -888,6 +908,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
         <target state="translated">Niejawnie zaimplementuj interfejs „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Type">
+        <source>Implement Type</source>
+        <target state="new">Implement Type</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
@@ -1255,6 +1280,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Trwa przechodzenie do symbolu „{0}” z „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigation">
+        <source>Navigation</source>
+        <target state="new">Navigation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nested_properties_not_allowed">
         <source>Nested properties not allowed</source>
         <target state="translated">Właściwości zagnieżdżone są niedozwolone</target>
@@ -1359,6 +1389,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <source>Quantifier {x,y} following nothing</source>
         <target state="translated">Nic nie występuje przed kwantyfikatorem {x,y}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Quick_Info">
+        <source>Quick Info</source>
+        <target state="new">Quick Info</target>
+        <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>

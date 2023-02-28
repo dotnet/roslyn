@@ -50,6 +50,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">DebuggerDisplay-Attribut hinzufügen</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_Imports">
+        <source>Add Imports</source>
+        <target state="new">Add Imports</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">NULL-Überprüfungen für alle Parameter hinzufügen</target>
@@ -500,6 +505,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Nicht zulässige Kommentare</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="new">Completion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Codeformat "{0}" konfigurieren</target>
@@ -650,6 +660,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Der aktuelle Inhalt der Quelldatei "{0}" stimmt nicht mit dem kompilierten Quellcode überein. Alle Änderungen, die während des Debuggens an dieser Datei vorgenommen wurden, werden erst angewendet, wenn der Inhalt dem kompilierten Quellcode entspricht.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_Highlighting">
+        <source>Document Highlighting</source>
+        <target state="new">Document Highlighting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
         <source>Document must be contained in the workspace that created this service</source>
         <target state="translated">Dokument muss in dem Arbeitsbereich enthalten sein, der diesen Dienst erstellt hat</target>
@@ -758,6 +773,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
         <target state="translated">Befestigung '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting">
+        <source>Formatting</source>
+        <target state="new">Formatting</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -888,6 +908,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
         <target state="translated">"{0}" implizit implementieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Type">
+        <source>Implement Type</source>
+        <target state="new">Implement Type</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
@@ -1255,6 +1280,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Die Navigation von „{1}“ zum Symbol „{0}“ wird durchgeführt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigation">
+        <source>Navigation</source>
+        <target state="new">Navigation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nested_properties_not_allowed">
         <source>Nested properties not allowed</source>
         <target state="translated">Nicht zulässige geschachtelte Eigenschaften</target>
@@ -1359,6 +1389,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <source>Quantifier {x,y} following nothing</source>
         <target state="translated">Quantifizierer {x,y} nach nichts.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Quick_Info">
+        <source>Quick Info</source>
+        <target state="new">Quick Info</target>
+        <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>
