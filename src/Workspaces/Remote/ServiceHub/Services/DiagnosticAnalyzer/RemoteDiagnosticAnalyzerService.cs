@@ -73,10 +73,12 @@ namespace Microsoft.CodeAnalysis.Remote
                         var documentSpan = arguments.DocumentSpan;
                         var documentAnalysisKind = arguments.DocumentAnalysisKind;
                         var hostWorkspaceServices = this.GetWorkspace().Services;
-                        var diagnosticComputer = new DiagnosticComputer(document, project, arguments.IdeOptions, documentSpan, documentAnalysisKind, _analyzerInfoCache, hostWorkspaceServices);
 
-                        var result = await diagnosticComputer.GetDiagnosticsAsync(
-                            arguments.AnalyzerIds,
+                        var result = await DiagnosticComputer.GetDiagnosticsAsync(
+                            document, project, solutionChecksum,
+                            arguments.IdeOptions, documentSpan,
+                            arguments.AnalyzerIds, documentAnalysisKind,
+                            _analyzerInfoCache, hostWorkspaceServices,
                             reportSuppressedDiagnostics: arguments.ReportSuppressedDiagnostics,
                             logPerformanceInfo: arguments.LogPerformanceInfo,
                             getTelemetryInfo: arguments.GetTelemetryInfo,

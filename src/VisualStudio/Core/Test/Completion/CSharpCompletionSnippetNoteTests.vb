@@ -119,7 +119,7 @@ class C
                 Dim testSnippetInfoService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService(Of ISnippetInfoService)(), TestCSharpSnippetInfoService)
                 testSnippetInfoService.SetSnippetShortcuts({"for"})
 
-                state.Workspace.GlobalOptions.SetGlobalOption(InternalFeatureOnOffOptions.Snippets, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(SnippetsOptionsStorage.Snippets, False)
 
                 state.SendTypeChars("for")
                 Await state.AssertCompletionSession()
