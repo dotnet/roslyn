@@ -54,11 +54,10 @@ internal sealed class LanguageServerProjectSystem
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
 
-        // TODO: fill this out
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             DynamicFileInfoProviders: ImmutableArray<Lazy<IDynamicFileInfoProvider, Host.Mef.FileExtensionsMetadata>>.Empty,
-            null!,
-            null!);
+            new ProjectSystemDiagnosticSource(),
+            new HostDiagnosticAnalyzerProvider());
         _fileChangeWatcher = fileChangeWatcher;
     }
 
