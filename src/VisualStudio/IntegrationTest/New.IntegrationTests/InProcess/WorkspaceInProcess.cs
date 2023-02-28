@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
 using Microsoft.CodeAnalysis.Host;
@@ -63,6 +64,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
             globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, languageName, value);
+        }
+
+        public async Task SetTriggerCompletionInArgumentListsAsync(string languageName, bool value, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
+            globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, languageName, value);
         }
 
         public async Task SetFileScopedNamespaceAsync(bool value, CancellationToken cancellationToken)

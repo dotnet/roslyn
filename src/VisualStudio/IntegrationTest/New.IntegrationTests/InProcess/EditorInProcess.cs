@@ -681,6 +681,20 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             broker.DismissAllSessions(view);
         }
 
+        public async Task<bool> IsCompletionActiveAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await WaitForCompletionSetAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            if (view is null)
+                return false;
+
+            var broker = await TestServices.Shell.GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
+            return broker.IsCompletionActive(view);
+        }
+
         public async Task ShowLightBulbAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
