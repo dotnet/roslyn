@@ -76,8 +76,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
                 e.Option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption)
             {
-                var service = Workspace.Services.GetService<ISolutionCrawlerService>();
-                service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
+                if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+                {
+                    var service = Workspace.Services.GetService<ISolutionCrawlerService>();
+                    service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
+                }
             }
         }
 

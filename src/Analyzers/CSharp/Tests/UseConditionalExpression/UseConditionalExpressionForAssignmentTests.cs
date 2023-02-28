@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
 
         private static readonly OptionsCollection PreferImplicitTypeAlways = new(LanguageNames.CSharp)
         {
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement },
-            { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOption2.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOption2.TrueWithSilentEnforcement },
         };
 
         [Fact]
@@ -757,7 +757,7 @@ class C
     {
         var i = true ? 0 : 1;
     }
-}", options: new OptionsCollection(LanguageNames.CSharp) { { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement } });
+}", options: new OptionsCollection(LanguageNames.CSharp) { { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOption2.TrueWithSilentEnforcement } });
         }
 
         [Fact]
@@ -787,7 +787,7 @@ class C
     {
         int i = true ? 0 : 1;
     }
-}", options: new OptionsCollection(LanguageNames.CSharp) { { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement } });
+}", options: new OptionsCollection(LanguageNames.CSharp) { { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSilentEnforcement } });
         }
 
         [Fact]
@@ -817,7 +817,7 @@ class C
     {
         int i = true ? 0 : 1;
     }
-}", options: new OptionsCollection(LanguageNames.CSharp) { { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement } });
+}", options: new OptionsCollection(LanguageNames.CSharp) { { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOption2.TrueWithSilentEnforcement } });
         }
 
         [Fact]

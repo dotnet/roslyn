@@ -8045,26 +8045,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDiscardExpression : BoundExpression
     {
-        public BoundDiscardExpression(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
+        public BoundDiscardExpression(SyntaxNode syntax, NullableAnnotation nullableAnnotation, bool isInferred, TypeSymbol? type, bool hasErrors)
             : base(BoundKind.DiscardExpression, syntax, type, hasErrors)
         {
+            this.NullableAnnotation = nullableAnnotation;
+            this.IsInferred = isInferred;
         }
 
-        public BoundDiscardExpression(SyntaxNode syntax, TypeSymbol? type)
+        public BoundDiscardExpression(SyntaxNode syntax, NullableAnnotation nullableAnnotation, bool isInferred, TypeSymbol? type)
             : base(BoundKind.DiscardExpression, syntax, type)
         {
+            this.NullableAnnotation = nullableAnnotation;
+            this.IsInferred = isInferred;
         }
 
         public new TypeSymbol? Type => base.Type;
+        public NullableAnnotation NullableAnnotation { get; }
+        public bool IsInferred { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDiscardExpression(this);
 
-        public BoundDiscardExpression Update(TypeSymbol? type)
+        public BoundDiscardExpression Update(NullableAnnotation nullableAnnotation, bool isInferred, TypeSymbol? type)
         {
-            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (nullableAnnotation != this.NullableAnnotation || isInferred != this.IsInferred || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDiscardExpression(this.Syntax, type, this.HasErrors);
+                var result = new BoundDiscardExpression(this.Syntax, nullableAnnotation, isInferred, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11510,7 +11516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(type);
+            return node.Update(node.NullableAnnotation, node.IsInferred, type);
         }
         public override BoundNode? VisitThrowExpression(BoundThrowExpression node)
         {
@@ -14025,7 +14031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            BoundDiscardExpression updatedNode = node.Update(infoAndType.Type);
+            BoundDiscardExpression updatedNode = node.Update(node.NullableAnnotation, node.IsInferred, infoAndType.Type);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -16117,6 +16123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitDiscardExpression(BoundDiscardExpression node, object? arg) => new TreeDumperNode("discardExpression", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("nullableAnnotation", node.NullableAnnotation, null),
+            new TreeDumperNode("isInferred", node.IsInferred, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

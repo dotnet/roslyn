@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     context.TargetToken,
                     attributes: false,
                     cancellationToken: cancellationToken,
-                    semanticModelOpt: context.SemanticModel);
+                    semanticModel: context.SemanticModel);
         }
     }
 }

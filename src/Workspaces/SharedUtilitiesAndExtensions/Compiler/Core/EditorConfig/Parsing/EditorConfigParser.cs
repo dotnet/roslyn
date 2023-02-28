@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
 
                 // Section matching
                 var sectionMatches = s_sectionMatcher.Matches(line);
-                if (sectionMatches.Count > 0 && sectionMatches[0].Groups.Count > 0)
+                if (sectionMatches is [{ Groups.Count: > 0 }, ..])
                 {
                     ProcessActiveSection();
                     var sectionName = sectionMatches[0].Groups[1].Value;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
 
                 // property matching
                 var propMatches = s_propertyMatcher.Matches(line);
-                if (propMatches.Count > 0 && propMatches[0].Groups.Count > 1)
+                if (propMatches is [{ Groups.Count: > 1 }, ..])
                 {
                     var key = propMatches[0].Groups[1].Value;
                     var value = propMatches[0].Groups[2].Value;

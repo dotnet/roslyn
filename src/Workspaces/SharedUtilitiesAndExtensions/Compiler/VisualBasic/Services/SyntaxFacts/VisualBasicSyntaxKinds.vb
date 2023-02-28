@@ -40,6 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property CloseBraceToken As Integer = SyntaxKind.CloseBraceToken Implements ISyntaxKinds.CloseBraceToken
         Public ReadOnly Property CloseBracketToken As Integer? = Nothing Implements ISyntaxKinds.CloseBracketToken
         Public ReadOnly Property CloseParenToken As Integer = SyntaxKind.CloseParenToken Implements ISyntaxKinds.CloseParenToken
+        Public ReadOnly Property CommaToken As Integer = SyntaxKind.CommaToken Implements ISyntaxKinds.CommaToken
         Public ReadOnly Property ColonToken As Integer = SyntaxKind.ColonToken Implements ISyntaxKinds.ColonToken
         Public ReadOnly Property CharacterLiteralToken As Integer = SyntaxKind.CharacterLiteralToken Implements ISyntaxKinds.CharacterLiteralToken
         Public ReadOnly Property DotToken As Integer = SyntaxKind.DotToken Implements ISyntaxKinds.DotToken
