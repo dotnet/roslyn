@@ -58,6 +58,38 @@ namespace Microsoft.VisualStudio.LanguageServices
             var tooltipFormatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
 
             UpdateForegroundColors(textFormatMap, tooltipFormatMap);
+
+            // We have features that would like to classify the contents of strings (for example, as regex/json, or even
+            // as C# code itself).  To ensure that the classifications provided for the string show up over the string
+            // literal, we reprioritize the 'string literal' classification to have the lowest priority of all
+            // classifications.
+            ReprioritizeStringClassification(textFormatMap);
+            ReprioritizeStringClassification(tooltipFormatMap);
+        }
+
+        private void ReprioritizeStringClassification(IClassificationFormatMap formatMap)
+        {
+            // No better option (According to DPugh) than bubble sorting this classification backwards to the start of
+            // the list.  Use a batch-update though to make this only do updates once.
+
+            formatMap.BeginBatchUpdate();
+            try
+            {
+                var stringClassification = _classificationTypeRegistryService.GetClassificationType(ClassificationTypeNames.StringLiteral);
+                if (stringClassification != null)
+                {
+                    var index = formatMap.CurrentPriorityOrder.IndexOf(stringClassification);
+                    while (index - 1 >= 0)
+                    {
+                        index--;
+                        formatMap.SwapPriorities(stringClassification, formatMap.CurrentPriorityOrder[index]);
+                    }
+                }
+            }
+            finally
+            {
+                formatMap.EndBatchUpdate();
+            }
         }
 
         private void UpdateForegroundColors(
