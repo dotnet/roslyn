@@ -370,7 +370,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_rename_tracking", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Rename Tracking")},
         {"dotnet_enable_semantic_colorizer", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Semantic Colorizer")},
         {"dotnet_show_intellicode_debug_info", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "ShowDebugInfo")},
-        {"dotnet_smart_indenter", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Smart Indenter")},
+        {"dotnet_enable_smart_indenter", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Smart Indenter")},
         {"dotnet_enable_snippets", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Snippets2")},
         {"dotnet_enable_squiggles", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Squiggles")},
         {"dotnet_enable_syntactic_colorizer", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Syntactic Colorizer")},
