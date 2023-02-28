@@ -4,9 +4,10 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
-
-internal sealed class SplitStringLiteralOptions
+namespace Microsoft.CodeAnalysis.Snippets
 {
-    public static Option2<bool> Enabled = new("SplitStringLiteralOptions_Enabled", defaultValue: true);
+    internal static class SnippetsOptionsStorage
+    {
+        public static readonly Option2<bool> Snippets = new("dotnet_enable_snippets", defaultValue: true);
+    }
 }

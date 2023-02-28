@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
-    internal sealed class DocumentOutlineOptionsMetadata
+    internal sealed class DocumentOutlineOptionsStorage
     {
-        public static readonly Option2<bool> EnableDocumentOutline = new("DocumentOutlineOptions_EnableDocumentOutline", defaultValue: false);
+        public static readonly Option2<bool> EnableDocumentOutline = new("dotnet_enable_document_outline", defaultValue: false);
     }
 }

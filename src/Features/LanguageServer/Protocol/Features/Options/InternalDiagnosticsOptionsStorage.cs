@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal static class InternalDiagnosticsOptions
+internal static class InternalDiagnosticsOptionsStorage
 {
     private static readonly EditorConfigValueSerializer<DiagnosticMode> s_editorConfigValueSerializer = EditorConfigValueSerializer.CreateSerializerForEnum<DiagnosticMode>();
     /// <summary>
@@ -24,5 +24,5 @@ internal static class InternalDiagnosticsOptions
         "InternalDiagnosticsOptions_LiveShareDiagnosticMode", defaultValue: DiagnosticMode.LspPull, serializer: s_editorConfigValueSerializer);
 
     public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new(
-        "InternalDiagnosticsOptions_NormalDiagnosticMode", defaultValue: DiagnosticMode.Default, serializer: s_editorConfigValueSerializer);
+        "dotnet_normal_diagnostic_mode", defaultValue: DiagnosticMode.Default, serializer: s_editorConfigValueSerializer);
 }

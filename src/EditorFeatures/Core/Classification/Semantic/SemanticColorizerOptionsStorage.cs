@@ -4,10 +4,10 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.SymbolSearch
+namespace Microsoft.CodeAnalysis.Classification
 {
-    internal sealed class SymbolSearchGlobalOptions
+    internal static class SemanticColorizerOptionsStorage
     {
-        public static readonly Option2<bool> Enabled = new("SymbolSearchOptions_Enabled", defaultValue: true);
+        public static readonly Option2<bool> SemanticColorizer = new("dotnet_enable_semantic_colorizer", defaultValue: true);
     }
 }

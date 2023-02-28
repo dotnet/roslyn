@@ -6,16 +6,16 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ColorSchemes;
 
-internal sealed class ColorSchemeOptions
+internal sealed class ColorSchemeOptionsStorage
 {
     internal const string ColorSchemeSettingKey = "TextEditor.Roslyn.ColorSchemeName";
 
     public static readonly Option2<ColorSchemeName> ColorScheme = new(
-        "ColorSchemeOptions_ColorSchemeName",
+        "visual_studio_color_scheme_name",
         defaultValue: ColorSchemeName.VisualStudio2019);
 
     public static readonly Option2<UseEnhancedColors> LegacyUseEnhancedColors = new(
-        "ColorSchemeOptions_LegacyUseEnhancedColors",
+        "visual_studio_color_scheme_use_legacy_enhanced_colors",
         defaultValue: UseEnhancedColors.Default);
 
     public enum UseEnhancedColors

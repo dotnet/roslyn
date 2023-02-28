@@ -6,19 +6,19 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal sealed class CompletionViewOptions
+    internal sealed class CompletionViewOptionsStorage
     {
         public static readonly PerLanguageOption2<bool> HighlightMatchingPortionsOfCompletionListItems =
-            new("CompletionOptions_HighlightMatchingPortionsOfCompletionListItems", defaultValue: true);
+            new("dotnet_highlight_matching_portions_of_completion_list_items", defaultValue: true);
 
         public static readonly PerLanguageOption2<bool> ShowCompletionItemFilters =
-            new("CompletionOptions_ShowCompletionItemFilters", defaultValue: true);
+            new("dotnet_show_completion_item_filters", defaultValue: true);
 
         // Use tri-value so the default state can be used to turn on the feature with experimentation service.
         public static readonly PerLanguageOption2<bool?> EnableArgumentCompletionSnippets =
-            new("CompletionOptions_EnableArgumentCompletionSnippets", defaultValue: null);
+            new("dotnet_enable_argument_completion_snippets", defaultValue: null);
 
         public static readonly PerLanguageOption2<bool> BlockForCompletionItems =
-            new("CompletionOptions_BlockForCompletionItems", defaultValue: true);
+            new("block_for_completion_items", defaultValue: true);
     }
 }
