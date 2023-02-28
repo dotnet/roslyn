@@ -22,6 +22,7 @@
         <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="$(MicrosoftCodeAnalysisLanguageServerProtocolVersion)" />
         <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Desktop" Version="$(MicrosoftCodeAnalysisWorkspacesDesktopVersion)" />
         <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="$(MicrosoftCodeAnalysisWorkspacesMSBuildVersion)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Remote.Workspaces" Version="$(MicrosoftCodeAnalysisRemoteWorkspacesVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />

@@ -34,7 +34,8 @@ internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, I
     {
         return ValueTask.FromResult((IReadOnlyCollection<ServiceMoniker>)_container.GetRegisteredServices()
             .Select(s => s.Key)
-            .Where(s => s.Name.StartsWith("Microsoft.CodeAnalysis.LanguageServer", StringComparison.Ordinal))
+            .Where(s => s.Name.StartsWith("Microsoft.CodeAnalysis.LanguageServer.", StringComparison.Ordinal) ||
+                        s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))
             .ToImmutableArray());
     }
 
