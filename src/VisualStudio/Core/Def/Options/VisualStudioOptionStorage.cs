@@ -358,7 +358,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_file_logging_for_diagnostics", new LocalUserProfileStorage(@"Roslyn\Internal\Diagnostics", "EnableFileLoggingForDiagnostics")},
         {"dotnet_normal_diagnostic_mode", new LocalUserProfileStorage(@"Roslyn\Internal\Diagnostics", "NormalDiagnosticMode")},
         {"dotnet_enable_automatic_line_ender", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Automatic Line Ender")},
-        {"dotnet_brace_matching", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Brace Matching")},
+        {"dotnet_enable_brace_matching", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Brace Matching")},
         {"dotnet_classification", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Classification")},
         {"dotnet_event_hook_up", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Event Hookup")},
         {"dotnet_format_on_save", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "FormatOnSave")},
