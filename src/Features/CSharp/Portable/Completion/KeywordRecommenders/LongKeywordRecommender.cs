@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsImplicitOrExplicitOperatorTypeContext ||
                 context.IsPrimaryFunctionExpressionContext ||
                 context.IsCrefContext ||
+                context.IsUsingAliasTypeContext ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.RefKeyword, cancellationToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ReadOnlyKeyword, cancellationToken) ||

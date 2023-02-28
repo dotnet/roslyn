@@ -19664,14 +19664,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly SyntaxToken? globalKeyword;
         internal readonly SyntaxToken usingKeyword;
         internal readonly SyntaxToken? staticKeyword;
+        internal readonly SyntaxToken? unsafeKeyword;
         internal readonly NameEqualsSyntax? alias;
-        internal readonly NameSyntax name;
+        internal readonly TypeSyntax namespaceOrType;
         internal readonly SyntaxToken semicolonToken;
 
-        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, SyntaxToken? unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (globalKeyword != null)
             {
                 this.AdjustFlagsAndWidth(globalKeyword);
@@ -19684,22 +19685,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(staticKeyword);
                 this.staticKeyword = staticKeyword;
             }
+            if (unsafeKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(unsafeKeyword);
+                this.unsafeKeyword = unsafeKeyword;
+            }
             if (alias != null)
             {
                 this.AdjustFlagsAndWidth(alias);
                 this.alias = alias;
             }
-            this.AdjustFlagsAndWidth(name);
-            this.name = name;
+            this.AdjustFlagsAndWidth(namespaceOrType);
+            this.namespaceOrType = namespaceOrType;
             this.AdjustFlagsAndWidth(semicolonToken);
             this.semicolonToken = semicolonToken;
         }
 
-        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, SyntaxToken? unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (globalKeyword != null)
             {
                 this.AdjustFlagsAndWidth(globalKeyword);
@@ -19712,21 +19718,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(staticKeyword);
                 this.staticKeyword = staticKeyword;
             }
+            if (unsafeKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(unsafeKeyword);
+                this.unsafeKeyword = unsafeKeyword;
+            }
             if (alias != null)
             {
                 this.AdjustFlagsAndWidth(alias);
                 this.alias = alias;
             }
-            this.AdjustFlagsAndWidth(name);
-            this.name = name;
+            this.AdjustFlagsAndWidth(namespaceOrType);
+            this.namespaceOrType = namespaceOrType;
             this.AdjustFlagsAndWidth(semicolonToken);
             this.semicolonToken = semicolonToken;
         }
 
-        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+        internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, SyntaxToken? unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken)
           : base(kind)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (globalKeyword != null)
             {
                 this.AdjustFlagsAndWidth(globalKeyword);
@@ -19739,13 +19750,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(staticKeyword);
                 this.staticKeyword = staticKeyword;
             }
+            if (unsafeKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(unsafeKeyword);
+                this.unsafeKeyword = unsafeKeyword;
+            }
             if (alias != null)
             {
                 this.AdjustFlagsAndWidth(alias);
                 this.alias = alias;
             }
-            this.AdjustFlagsAndWidth(name);
-            this.name = name;
+            this.AdjustFlagsAndWidth(namespaceOrType);
+            this.namespaceOrType = namespaceOrType;
             this.AdjustFlagsAndWidth(semicolonToken);
             this.semicolonToken = semicolonToken;
         }
@@ -19753,8 +19769,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public SyntaxToken? GlobalKeyword => this.globalKeyword;
         public SyntaxToken UsingKeyword => this.usingKeyword;
         public SyntaxToken? StaticKeyword => this.staticKeyword;
+        public SyntaxToken? UnsafeKeyword => this.unsafeKeyword;
         public NameEqualsSyntax? Alias => this.alias;
-        public NameSyntax Name => this.name;
+        public TypeSyntax NamespaceOrType => this.namespaceOrType;
         public SyntaxToken SemicolonToken => this.semicolonToken;
 
         internal override GreenNode? GetSlot(int index)
@@ -19763,9 +19780,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 0 => this.globalKeyword,
                 1 => this.usingKeyword,
                 2 => this.staticKeyword,
-                3 => this.alias,
-                4 => this.name,
-                5 => this.semicolonToken,
+                3 => this.unsafeKeyword,
+                4 => this.alias,
+                5 => this.namespaceOrType,
+                6 => this.semicolonToken,
                 _ => null,
             };
 
@@ -19774,11 +19792,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingDirective(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUsingDirective(this);
 
-        public UsingDirectiveSyntax Update(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax alias, NameSyntax name, SyntaxToken semicolonToken)
+        public UsingDirectiveSyntax Update(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, SyntaxToken unsafeKeyword, NameEqualsSyntax alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken)
         {
-            if (globalKeyword != this.GlobalKeyword || usingKeyword != this.UsingKeyword || staticKeyword != this.StaticKeyword || alias != this.Alias || name != this.Name || semicolonToken != this.SemicolonToken)
+            if (globalKeyword != this.GlobalKeyword || usingKeyword != this.UsingKeyword || staticKeyword != this.StaticKeyword || unsafeKeyword != this.UnsafeKeyword || alias != this.Alias || namespaceOrType != this.NamespaceOrType || semicolonToken != this.SemicolonToken)
             {
-                var newNode = SyntaxFactory.UsingDirective(globalKeyword, usingKeyword, staticKeyword, alias, name, semicolonToken);
+                var newNode = SyntaxFactory.UsingDirective(globalKeyword, usingKeyword, staticKeyword, unsafeKeyword, alias, namespaceOrType, semicolonToken);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -19792,15 +19810,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new UsingDirectiveSyntax(this.Kind, this.globalKeyword, this.usingKeyword, this.staticKeyword, this.alias, this.name, this.semicolonToken, diagnostics, GetAnnotations());
+            => new UsingDirectiveSyntax(this.Kind, this.globalKeyword, this.usingKeyword, this.staticKeyword, this.unsafeKeyword, this.alias, this.namespaceOrType, this.semicolonToken, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new UsingDirectiveSyntax(this.Kind, this.globalKeyword, this.usingKeyword, this.staticKeyword, this.alias, this.name, this.semicolonToken, GetDiagnostics(), annotations);
+            => new UsingDirectiveSyntax(this.Kind, this.globalKeyword, this.usingKeyword, this.staticKeyword, this.unsafeKeyword, this.alias, this.namespaceOrType, this.semicolonToken, GetDiagnostics(), annotations);
 
         internal UsingDirectiveSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             var globalKeyword = (SyntaxToken?)reader.ReadValue();
             if (globalKeyword != null)
             {
@@ -19816,15 +19834,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AdjustFlagsAndWidth(staticKeyword);
                 this.staticKeyword = staticKeyword;
             }
+            var unsafeKeyword = (SyntaxToken?)reader.ReadValue();
+            if (unsafeKeyword != null)
+            {
+                AdjustFlagsAndWidth(unsafeKeyword);
+                this.unsafeKeyword = unsafeKeyword;
+            }
             var alias = (NameEqualsSyntax?)reader.ReadValue();
             if (alias != null)
             {
                 AdjustFlagsAndWidth(alias);
                 this.alias = alias;
             }
-            var name = (NameSyntax)reader.ReadValue();
-            AdjustFlagsAndWidth(name);
-            this.name = name;
+            var namespaceOrType = (TypeSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(namespaceOrType);
+            this.namespaceOrType = namespaceOrType;
             var semicolonToken = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(semicolonToken);
             this.semicolonToken = semicolonToken;
@@ -19836,8 +19860,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.globalKeyword);
             writer.WriteValue(this.usingKeyword);
             writer.WriteValue(this.staticKeyword);
+            writer.WriteValue(this.unsafeKeyword);
             writer.WriteValue(this.alias);
-            writer.WriteValue(this.name);
+            writer.WriteValue(this.namespaceOrType);
             writer.WriteValue(this.semicolonToken);
         }
 
@@ -35277,7 +35302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.ExternKeyword), (SyntaxToken)Visit(node.AliasKeyword), (SyntaxToken)Visit(node.Identifier), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitUsingDirective(UsingDirectiveSyntax node)
-            => node.Update((SyntaxToken)Visit(node.GlobalKeyword), (SyntaxToken)Visit(node.UsingKeyword), (SyntaxToken)Visit(node.StaticKeyword), (NameEqualsSyntax)Visit(node.Alias), (NameSyntax)Visit(node.Name), (SyntaxToken)Visit(node.SemicolonToken));
+            => node.Update((SyntaxToken)Visit(node.GlobalKeyword), (SyntaxToken)Visit(node.UsingKeyword), (SyntaxToken)Visit(node.StaticKeyword), (SyntaxToken)Visit(node.UnsafeKeyword), (NameEqualsSyntax)Visit(node.Alias), (TypeSyntax)Visit(node.NamespaceOrType), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.NamespaceKeyword), (NameSyntax)Visit(node.Name), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
@@ -38699,7 +38724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new ExternAliasDirectiveSyntax(SyntaxKind.ExternAliasDirective, externKeyword, aliasKeyword, identifier, semicolonToken, this.context);
         }
 
-        public UsingDirectiveSyntax UsingDirective(SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+        public UsingDirectiveSyntax UsingDirective(SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, SyntaxToken? unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken)
         {
 #if DEBUG
             if (globalKeyword != null)
@@ -38713,12 +38738,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             if (usingKeyword == null) throw new ArgumentNullException(nameof(usingKeyword));
             if (usingKeyword.Kind != SyntaxKind.UsingKeyword) throw new ArgumentException(nameof(usingKeyword));
-            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (staticKeyword != null)
+            {
+                switch (staticKeyword.Kind)
+                {
+                    case SyntaxKind.StaticKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(staticKeyword));
+                }
+            }
+            if (unsafeKeyword != null)
+            {
+                switch (unsafeKeyword.Kind)
+                {
+                    case SyntaxKind.UnsafeKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(unsafeKeyword));
+                }
+            }
+            if (namespaceOrType == null) throw new ArgumentNullException(nameof(namespaceOrType));
             if (semicolonToken == null) throw new ArgumentNullException(nameof(semicolonToken));
             if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
 #endif
 
-            return new UsingDirectiveSyntax(SyntaxKind.UsingDirective, globalKeyword, usingKeyword, staticKeyword, alias, name, semicolonToken, this.context);
+            return new UsingDirectiveSyntax(SyntaxKind.UsingDirective, globalKeyword, usingKeyword, staticKeyword, unsafeKeyword, alias, namespaceOrType, semicolonToken, this.context);
         }
 
         public NamespaceDeclarationSyntax NamespaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
@@ -43770,7 +43813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new ExternAliasDirectiveSyntax(SyntaxKind.ExternAliasDirective, externKeyword, aliasKeyword, identifier, semicolonToken);
         }
 
-        public static UsingDirectiveSyntax UsingDirective(SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+        public static UsingDirectiveSyntax UsingDirective(SyntaxToken? globalKeyword, SyntaxToken usingKeyword, SyntaxToken? staticKeyword, SyntaxToken? unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken)
         {
 #if DEBUG
             if (globalKeyword != null)
@@ -43784,12 +43827,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             if (usingKeyword == null) throw new ArgumentNullException(nameof(usingKeyword));
             if (usingKeyword.Kind != SyntaxKind.UsingKeyword) throw new ArgumentException(nameof(usingKeyword));
-            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (staticKeyword != null)
+            {
+                switch (staticKeyword.Kind)
+                {
+                    case SyntaxKind.StaticKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(staticKeyword));
+                }
+            }
+            if (unsafeKeyword != null)
+            {
+                switch (unsafeKeyword.Kind)
+                {
+                    case SyntaxKind.UnsafeKeyword:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(unsafeKeyword));
+                }
+            }
+            if (namespaceOrType == null) throw new ArgumentNullException(nameof(namespaceOrType));
             if (semicolonToken == null) throw new ArgumentNullException(nameof(semicolonToken));
             if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
 #endif
 
-            return new UsingDirectiveSyntax(SyntaxKind.UsingDirective, globalKeyword, usingKeyword, staticKeyword, alias, name, semicolonToken);
+            return new UsingDirectiveSyntax(SyntaxKind.UsingDirective, globalKeyword, usingKeyword, staticKeyword, unsafeKeyword, alias, namespaceOrType, semicolonToken);
         }
 
         public static NamespaceDeclarationSyntax NamespaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)

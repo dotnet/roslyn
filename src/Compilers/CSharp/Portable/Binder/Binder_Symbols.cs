@@ -477,10 +477,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // ref needs to be handled by the caller
                         var refTypeSyntax = (RefTypeSyntax)syntax;
-                        var refToken = refTypeSyntax.RefKeyword;
                         if (!syntax.HasErrors)
                         {
-                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refToken.GetLocation(), refToken.ToString());
+                            var refToken = refTypeSyntax.RefKeyword;
+
+                            // Specialized diagnostic if our parent is a using directive.
+                            if (refTypeSyntax.Parent is UsingDirectiveSyntax)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadRefInUsingAlias, refToken.GetLocation());
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refToken.GetLocation(), refToken.ToString());
+                            }
                         }
 
                         return BindNamespaceOrTypeOrAliasSymbol(refTypeSyntax.Type, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
@@ -830,29 +839,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsViableType(LookupResult result)
-        {
-            if (!result.IsMultiViable)
-            {
-                return false;
-            }
-
-            foreach (var s in result.Symbols)
-            {
-                switch (s.Kind)
-                {
-                    case SymbolKind.Alias:
-                        if (((AliasSymbol)s).Target.Kind == SymbolKind.NamedType) return true;
-                        break;
-                    case SymbolKind.NamedType:
-                    case SymbolKind.TypeParameter:
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
         protected NamespaceOrTypeOrAliasSymbolWithAnnotations BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol(
             IdentifierNameSyntax node,
             BindingDiagnosticBag diagnostics,
@@ -875,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var errorResult = CreateErrorIfLookupOnTypeParameter(node.Parent, qualifierOpt, identifierValueText, 0, diagnostics);
-            if ((object)errorResult != null)
+            if (errorResult is not null)
             {
                 return TypeWithAnnotations.Create(errorResult);
             }
@@ -891,15 +877,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If we were looking up "dynamic" or "nint" at the topmost level and didn't find anything good,
             // use that particular type (assuming the /langversion is supported).
-            if ((object)qualifierOpt == null &&
-                !IsViableType(result))
+            if (qualifierOpt is null &&
+                !isViableType(result))
             {
                 if (node.Identifier.ValueText == "dynamic")
                 {
-                    if ((node.Parent == null ||
-                          node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as attribute type
-                          SyntaxFacts.IsInTypeOnlyContext(node)) &&
-                        Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                    if (dynamicAllowed())
                     {
                         bindingResult = Compilation.DynamicType;
                         ReportUseSiteDiagnosticForDynamic(diagnostics, node);
@@ -907,7 +890,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    bindingResult = BindNativeIntegerSymbolIfAny(node, diagnostics);
+                    // nint/nuint is allowed to bind to an existing namespace.
+                    if (!isViableNamespace(result))
+                    {
+                        bindingResult = BindNativeIntegerSymbolIfAny(node, diagnostics);
+                    }
                 }
             }
 
@@ -919,15 +906,80 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bindingResult.Kind == SymbolKind.Alias)
                 {
                     var aliasTarget = ((AliasSymbol)bindingResult).GetAliasTarget(basesBeingResolved);
-                    if (aliasTarget.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)aliasTarget).ContainsDynamic())
+                    if (aliasTarget is TypeSymbol type)
                     {
-                        ReportUseSiteDiagnosticForDynamic(diagnostics, node);
+                        if (type.ContainsDynamic())
+                        {
+                            ReportUseSiteDiagnosticForDynamic(diagnostics, node);
+                        }
+
+                        if (type.IsUnsafe())
+                        {
+                            ReportUnsafeIfNotAllowed(node, diagnostics);
+                        }
                     }
                 }
             }
 
             result.Free();
             return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(AreNullableAnnotationsEnabled(node.Identifier), bindingResult);
+
+            bool dynamicAllowed()
+            {
+                if (Compilation.LanguageVersion < MessageID.IDS_FeatureDynamic.RequiredVersion())
+                    return false;
+
+                if (node.Parent == null)
+                    return true;
+
+                // dynamic not allowed as attribute type
+                if (node.Parent.Kind() == SyntaxKind.Attribute)
+                    return false;
+
+                if (SyntaxFacts.IsInTypeOnlyContext(node))
+                    return true;
+
+                // using X = dynamic; is legal.
+                if (node.Parent is UsingDirectiveSyntax { Alias: not null })
+                    return true;
+
+                return false;
+            }
+
+            static bool isViableType(LookupResult result)
+            {
+                if (!result.IsMultiViable)
+                    return false;
+
+                foreach (var s in result.Symbols)
+                {
+                    switch (s.Kind)
+                    {
+                        case SymbolKind.Alias:
+                            if (((AliasSymbol)s).Target.Kind == SymbolKind.NamedType) return true;
+                            break;
+                        case SymbolKind.NamedType:
+                        case SymbolKind.TypeParameter:
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+
+            static bool isViableNamespace(LookupResult result)
+            {
+                if (!result.IsMultiViable)
+                    return false;
+
+                foreach (var s in result.Symbols)
+                {
+                    if (s.Kind == SymbolKind.Namespace)
+                        return true;
+                }
+
+                return false;
+            }
         }
 
         /// <summary>
@@ -936,24 +988,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private NamedTypeSymbol BindNativeIntegerSymbolIfAny(IdentifierNameSyntax node, BindingDiagnosticBag diagnostics)
         {
-            SpecialType specialType;
-            switch (node.Identifier.Text)
-            {
-                case "nint":
-                    specialType = SpecialType.System_IntPtr;
-                    break;
-                case "nuint":
-                    specialType = SpecialType.System_UIntPtr;
-                    break;
-                default:
-                    return null;
-            }
+            var specialType =
+                node.IsNint ? SpecialType.System_IntPtr :
+                node.IsNuint ? SpecialType.System_UIntPtr : SpecialType.None;
+
+            if (specialType == SpecialType.None)
+                return null;
 
             switch (node.Parent)
             {
                 case AttributeSyntax parent when parent.Name == node: // [nint]
                     return null;
-                case UsingDirectiveSyntax parent when parent.Name == node: // using nint; using A = nuint;
+                case UsingDirectiveSyntax usingDirective:
+                    if (usingDirective.Alias != null && usingDirective.NamespaceOrType == node)
+                    {
+                        // legal to write `using A = nuint;` as long as using-alias-to-type is enabled (checked later).
+                        break;
+                    }
+
+                    // `using nint;` not legal where 'nint' has the System.IntPtr meaning. It is legal if you were to
+                    // have `namespace nint { }` somewhere.  That is handled though in our caller.
                     return null;
                 case ArgumentSyntax parent when // nameof(nint)
                     (IsInsideNameof &&

@@ -43,17 +43,24 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        [Fact]
+        public async Task TestNotInUsing()
         {
             await VerifyAbsenceAsync(
+@"using $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInUsingAlias()
+        {
+            await VerifyKeywordAsync(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInGlobalUsingAlias()
+        public async Task TestInGlobalUsingAlias()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"global using Goo = $$");
         }
 

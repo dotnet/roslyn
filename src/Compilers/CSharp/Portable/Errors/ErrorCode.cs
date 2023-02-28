@@ -2162,6 +2162,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
         ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
         ERR_BadSpecialByRefUsing = 9104,
+
+        ERR_BadRefInUsingAlias = 9105,
+        ERR_BadUnsafeInUsingDirective = 9106,
+        ERR_BadNullableReferenceTypeInUsingAlias = 9107,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

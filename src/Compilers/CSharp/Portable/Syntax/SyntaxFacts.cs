@@ -237,14 +237,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node != null)
             {
-                node = (ExpressionSyntax)SyntaxFactory.GetStandaloneExpression(node);
+                node = SyntaxFactory.GetStandaloneExpression(node);
                 var parent = node.Parent;
                 if (parent != null)
                 {
                     switch (parent.Kind())
                     {
                         case UsingDirective:
-                            return ((UsingDirectiveSyntax)parent).Name == node;
+                            return ((UsingDirectiveSyntax)parent).NamespaceOrType == node;
 
                         case QualifiedName:
                             // left of QN is namespace or type.  Note: when you have "a.b.c()", then
