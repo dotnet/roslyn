@@ -3,20 +3,27 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Options;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-internal readonly record struct OptionsTestInfo(IOption2 Option, List<(string namespaceName, string qualifiedName, bool isPublic, IOption2 option)> Accessors)
+internal readonly record struct OptionsTestInfo(IOption2 Option, ImmutableList<(string namespaceName, string qualifiedName, bool isPublic, IOption2 option)> Accessors)
 {
-    public static Dictionary<string, OptionsTestInfo> CollectOptions(string directory)
+    private static Tuple<string, ImmutableDictionary<string, OptionsTestInfo>>? s_cachedResult;
+
+    public static ImmutableDictionary<string, OptionsTestInfo> CollectOptions(string directory)
     {
-        var result = new Dictionary<string, OptionsTestInfo>();
+        if (s_cachedResult is var (cachedResultDirectory, cachedResult)
+            && cachedResultDirectory == directory)
+        {
+            return cachedResult;
+        }
+
+        var resultBuilder = ImmutableDictionary.CreateBuilder<string, OptionsTestInfo>();
         foreach (var file in Directory.EnumerateFiles(directory, "*.dll", SearchOption.TopDirectoryOnly))
         {
             var fileName = Path.GetFileNameWithoutExtension(file);
@@ -56,22 +63,24 @@ internal readonly record struct OptionsTestInfo(IOption2 Option, List<(string na
                             Assert.NotNull(accessorNamespace);
 
                             var configName = option.Definition.ConfigName;
-                            if (result.TryGetValue(configName, out var optionInfo))
+                            if (resultBuilder.TryGetValue(configName, out var optionInfo))
                             {
-                                optionInfo.Accessors.Add((accessorNamespace!, accessor, isPublic, option));
+                                optionInfo = optionInfo with { Accessors = optionInfo.Accessors.Add((accessorNamespace!, accessor, isPublic, option)) };
                             }
                             else
                             {
-                                optionInfo = new OptionsTestInfo(option, new List<(string, string, bool, IOption2)> { (accessorNamespace!, accessor, isPublic, option) });
+                                optionInfo = new OptionsTestInfo(option, ImmutableList.Create<(string, string, bool, IOption2)>((accessorNamespace!, accessor, isPublic, option)));
                             }
 
-                            result[configName] = optionInfo;
+                            resultBuilder[configName] = optionInfo;
                         }
                     }
                 }
             }
         }
 
+        var result = resultBuilder.ToImmutable();
+        s_cachedResult = Tuple.Create(directory, result);
         return result;
     }
 }

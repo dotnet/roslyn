@@ -14,7 +14,7 @@ internal static class SolutionCrawlerOptionsStorage
     /// Option to turn configure background analysis scope for the current user.
     /// </summary>
     public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
-        "SolutionCrawlerOptionsStorage_BackgroundAnalysisScopeOption", defaultValue: BackgroundAnalysisScope.Default, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<BackgroundAnalysisScope>());
+        "dotnet_solution_crawler_background_analysis_scope", defaultValue: BackgroundAnalysisScope.Default, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<BackgroundAnalysisScope>());
 
     /// <summary>
     /// Option to turn configure background analysis scope for the current solution.
@@ -26,16 +26,16 @@ internal static class SolutionCrawlerOptionsStorage
     /// Option to configure compiler diagnostics scope for the current user.
     /// </summary>
     public static readonly PerLanguageOption2<CompilerDiagnosticsScope> CompilerDiagnosticsScopeOption = new(
-        "SolutionCrawlerOptionsStorage_CompilerDiagnosticsScopeOption", defaultValue: CompilerDiagnosticsScope.OpenFiles, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<CompilerDiagnosticsScope>());
+        "dotnet_compiler_diagnostics_scope", defaultValue: CompilerDiagnosticsScope.OpenFiles, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<CompilerDiagnosticsScope>());
 
     public static readonly PerLanguageOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
-        "ServiceFeatureOnOffOptions_RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false);
+        "remove_document_diagnostics_on_document_close", defaultValue: false);
 
     public static readonly Option2<bool?> EnableDiagnosticsInSourceGeneratedFiles = new(
-        "WorkspaceConfigurationOptions_EnableDiagnosticsInSourceGeneratedFiles", defaultValue: null);
+        "dotnet_enable_diagnostics_in_source_generated_files", defaultValue: null);
 
     public static readonly Option2<bool> EnableDiagnosticsInSourceGeneratedFilesFeatureFlag = new(
-        "WorkspaceConfigurationOptions_EnableDiagnosticsInSourceGeneratedFilesFeatureFlag", defaultValue: false);
+        "dotnet_enable_diagnostics_in_source_generated_files_feature_flag", defaultValue: false);
 
     /// <summary>
     /// Enables forced <see cref="BackgroundAnalysisScope.Minimal"/> scope when low VM is detected to improve performance.

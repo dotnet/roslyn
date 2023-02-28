@@ -222,4 +222,7 @@
   <data name="FeatureName_UnitTestingSearch" xml:space="preserve">
     <value>Unit testing search</value>
   </data>
+  <data name="FeatureName_KeepAlive" xml:space="preserve">
+    <value>Keep alive service</value>
+  </data>
 </root>

@@ -421,15 +421,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                // HACK HACK HACK: Ensure we've processed all files being opened before we let designers work further.
-                // In https://devdiv.visualstudio.com/DevDiv/_workitems/edit/728035, a file is opened in an invisible editor and contents are written
-                // to it. The file isn't saved, but it's added to the workspace; we won't have yet hooked up to the open file since that work was deferred.
-                // Since we're on the UI thread here, we can ensure those are all wired up since the analysis of this document may depend on that other file.
-                // We choose to do this here rather than in the project system code when it's added because we don't want to pay the penalty of checking the RDT for
-                // all files being opened on the UI thread if we really don't need it. This uses an 'as' cast, because in unit tests the workspace is a different
-                // derived form of VisualStudioWorkspace, and there we aren't dealing with open files at all so it doesn't matter.
-                (State.Workspace as VisualStudioWorkspaceImpl)?.ProcessQueuedWorkOnUIThread();
-
                 document = Workspace.CurrentSolution.GetDocument(GetDocumentId());
             }
 

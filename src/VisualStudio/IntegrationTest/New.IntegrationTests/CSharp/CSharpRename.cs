@@ -36,7 +36,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
             // reset relevant global options to default values:
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(InlineRenameUIOptions.UseInlineAdornment, false);
+            globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, false);
             globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, false);
             globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, false);
             globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, false);

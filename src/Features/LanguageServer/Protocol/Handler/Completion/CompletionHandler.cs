@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var resultId = result.Value.ResultId;
 
-            var completionListMaxSize = _globalOptions.GetOption(LspOptions.MaxCompletionListSize);
+            var completionListMaxSize = _globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
             var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListMaxSize, completionListSpan, completionTrigger, sourceText, document);
 
             return (completionList, isIncomplete, resultId);

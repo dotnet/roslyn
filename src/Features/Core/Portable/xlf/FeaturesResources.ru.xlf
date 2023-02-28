@@ -610,6 +610,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">декомпилировано</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deconstruct_locals_for_0">
+        <source>Deconstruct locals for '{0}'</source>
+        <target state="new">Deconstruct locals for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">Для удаления {0} вокруг активного оператора требуется перезапустить приложение.</target>

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _touchedNoisyCharacterOnCurrentLine = false;
             }
 
-            private bool UseIndentation
+            private readonly bool UseIndentation
             {
                 get { return _lastLineBreakIndex >= 0; }
             }
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _lastLineBreakIndex = currentIndex;
             }
 
-            private bool OnComment(SyntaxTrivia trivia)
+            private readonly bool OnComment(SyntaxTrivia trivia)
             {
                 if (!trivia.IsRegularOrDocComment())
                 {

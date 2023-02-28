@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
-    internal class SignatureHelpState
+    internal readonly struct SignatureHelpState
     {
-        public int ArgumentIndex;
-        public int ArgumentCount;
-        public string? ArgumentName;
-        public IList<string>? ArgumentNames;
+        public readonly int ArgumentIndex;
+        public readonly int ArgumentCount;
+        public readonly string? ArgumentName;
+        public readonly ImmutableArray<string> ArgumentNames;
 
-        public SignatureHelpState(int argumentIndex, int argumentCount, string? argumentName, IList<string>? argumentNames)
+        public SignatureHelpState(int argumentIndex, int argumentCount, string? argumentName, ImmutableArray<string> argumentNames)
         {
             ArgumentIndex = argumentIndex;
             ArgumentCount = argumentCount;
