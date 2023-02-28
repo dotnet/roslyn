@@ -12,29 +12,60 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        public override BoundNode? VisitArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression node)
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
 
             var syntax = node.Syntax;
             var collectionType = node.Type;
-            var initializers = node.Initializers;
+            var spanConstructor = node.SpanConstructor;
 
-            if (collectionType is ArrayTypeSymbol arrayType)
+            var arrayType = collectionType as ArrayTypeSymbol;
+            if (arrayType is null)
             {
-                return MakeCollectionLiteralArrayExpression(syntax, arrayType, initializers);
-            }
-
-            if (node.SpanConstructor is { } spanConstructor)
-            {
+                Debug.Assert(spanConstructor is { });
                 Debug.Assert(TypeSymbol.Equals(collectionType, spanConstructor.ContainingType, TypeCompareKind.AllIgnoreOptions));
-                var elementType = ((NamedTypeSymbol)collectionType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                var array = MakeCollectionLiteralArrayExpression(syntax, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType), initializers);
 
-                Debug.Assert(TypeSymbol.Equals(array.Type, spanConstructor.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions));
-                return new BoundObjectCreationExpression(syntax, spanConstructor, array);
+                var elementType = ((NamedTypeSymbol)collectionType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
             }
+
+            var initializers = node.Initializers;
+            int arrayLength = initializers.Length;
+            var initialization = (arrayLength == 0)
+                ? null
+                : new BoundArrayInitialization(
+                    syntax,
+                    isInferred: false,
+                    initializers.SelectAsArray(e => VisitExpression(e)));
+            var array = new BoundArrayCreation(
+                syntax,
+                ImmutableArray.Create<BoundExpression>(
+                    new BoundLiteral(
+                        syntax,
+                        ConstantValue.Create(arrayLength),
+                        _compilation.GetSpecialType(SpecialType.System_Int32))),
+                initialization,
+                arrayType)
+            { WasCompilerGenerated = true };
+
+            if (spanConstructor is null)
+            {
+                return array;
+            }
+
+            Debug.Assert(TypeSymbol.Equals(array.Type, spanConstructor.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions));
+            return new BoundObjectCreationExpression(syntax, spanConstructor, array);
+        }
+
+        public override BoundNode? VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression node)
+        {
+            Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(node.Type is { });
+
+            var syntax = node.Syntax;
+            var collectionType = node.Type;
 
             BoundExpression rewrittenReceiver;
             if (collectionType is TypeParameterSymbol typeParameter)
@@ -53,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Create a temp for the collection.
             BoundAssignmentOperator assignmentToTemp;
             BoundLocal temp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+            var initializers = node.Initializers;
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(initializers.Length + 1);
             sideEffects.Add(assignmentToTemp);
 
@@ -83,30 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects.ToImmutableAndFree(),
                 temp,
                 collectionType);
-        }
-
-        private BoundExpression MakeCollectionLiteralArrayExpression(
-            SyntaxNode syntax,
-            ArrayTypeSymbol arrayType,
-            ImmutableArray<BoundExpression> initializers)
-        {
-            int n = initializers.Length;
-            var initialization = (n == 0)
-                ? null
-                : new BoundArrayInitialization(
-                    syntax,
-                    isInferred: false,
-                    initializers.SelectAsArray(e => VisitExpression(e)));
-            return new BoundArrayCreation(
-                syntax,
-                ImmutableArray.Create<BoundExpression>(
-                    new BoundLiteral(
-                        syntax,
-                        ConstantValue.Create(n),
-                        _compilation.GetSpecialType(SpecialType.System_Int32))),
-                initialization,
-                arrayType)
-            { WasCompilerGenerated = true };
         }
     }
 }

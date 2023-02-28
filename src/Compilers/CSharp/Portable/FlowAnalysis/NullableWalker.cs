@@ -3426,7 +3426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        protected override void VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
             // PROTOTYPE: Do we need to call inferInitialObjectState() to set the initial state of the instance?
             int containerSlot = GetOrCreatePlaceholderSlot(node);
@@ -3453,7 +3453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
-            return null;
         }
 
         public override BoundNode? VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)

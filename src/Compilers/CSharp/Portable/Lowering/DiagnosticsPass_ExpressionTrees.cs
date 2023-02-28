@@ -982,14 +982,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitFunctionPointerInvocation(node);
         }
 
-        public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        public override BoundNode VisitArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression node)
+        {
+            CheckCollectionLiteralExpression(node);
+            return base.VisitArrayOrSpanCollectionLiteralExpression(node);
+        }
+
+        public override BoundNode VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression node)
+        {
+            CheckCollectionLiteralExpression(node);
+            return base.VisitCollectionInitializerCollectionLiteralExpression(node);
+        }
+
+        private void CheckCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
             if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral, node);
             }
-
-            return base.VisitCollectionLiteralExpression(node);
         }
     }
 }

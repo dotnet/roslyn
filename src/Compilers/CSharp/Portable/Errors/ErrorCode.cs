@@ -2164,6 +2164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadSpecialByRefUsing = 9104,
         ERR_CollectionLiteralTargetTypeNotConstructible = 9105,
         ERR_ExpressionTreeContainsCollectionLiteral = 9106,
+        ERR_CollectionLiteralElementNotImplemented = 9107, // PROTOTYPE: Temporary error until feature has been implemented.
 
         #endregion
 

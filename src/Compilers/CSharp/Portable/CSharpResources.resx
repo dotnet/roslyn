@@ -6786,6 +6786,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsCollectionLiteral" xml:space="preserve">
     <value>An expression tree may not contain a collection literal.</value>
   </data>
+  <data name="ERR_CollectionLiteralElementNotImplemented" xml:space="preserve">
+    <value>Support for collection literal dictionary and spread elements has not been implemented.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>

@@ -100,8 +100,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayCreationOperation((BoundArrayCreation)boundNode);
                 case BoundKind.ArrayInitialization:
                     return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
-                case BoundKind.CollectionLiteralExpression:
-                    return CreateBoundCollectionLiteralExpression((BoundCollectionLiteralExpression)boundNode);
+                case BoundKind.CollectionInitializerCollectionLiteralExpression:
+                    return CreateBoundCollectionInitializerCollectionLiteralExpression((BoundCollectionInitializerCollectionLiteralExpression)boundNode);
+                case BoundKind.ArrayOrSpanCollectionLiteralExpression:
+                    return CreateBoundArrayOrSpanCollectionLiteralExpression((BoundArrayOrSpanCollectionLiteralExpression)boundNode);
                 case BoundKind.DefaultLiteral:
                     return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
@@ -1217,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
         }
 
-        private IOperation CreateBoundCollectionLiteralExpression(BoundCollectionLiteralExpression boundCollectionLiteralExpression)
+        private IOperation CreateBoundArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression boundCollectionLiteralExpression)
         {
             SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
             ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
@@ -1228,8 +1230,10 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 collectionCreation = createArray(arrayType);
             }
-            else if (boundCollectionLiteralExpression.SpanConstructor is { } spanConstructor)
+            else
             {
+                var spanConstructor = boundCollectionLiteralExpression.SpanConstructor;
+                Debug.Assert(spanConstructor is { });
                 var constructorParameter = spanConstructor.Parameters[0].GetPublicSymbol();
                 IArgumentOperation constructorArgument = new ArgumentOperation(
                     ArgumentKind.Explicit,
@@ -1250,7 +1254,28 @@ namespace Microsoft.CodeAnalysis.Operations
                     constantValue: null,
                     isImplicit: true);
             }
-            else if (collectionType is ITypeParameterSymbol typeParameter)
+            return new CollectionLiteralOperation(collectionCreation, elementValues, _semanticModel, syntax, collectionType, isImplicit: isImplicit);
+
+            ArrayCreationOperation createArray(ITypeSymbol arrayType)
+            {
+                var size = new LiteralOperation(
+                    _semanticModel,
+                    syntax,
+                    _semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32),
+                    ConstantValue.Create(boundCollectionLiteralExpression.Initializers.Length),
+                    isImplicit: true);
+                return new ArrayCreationOperation(ImmutableArray.Create<IOperation>(size), initializer: null, _semanticModel, syntax, arrayType, isImplicit: true);
+            }
+        }
+
+        private IOperation CreateBoundCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression boundCollectionLiteralExpression)
+        {
+            SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
+            ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
+            bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
+            ImmutableArray<IOperation> elementValues = CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers);
+            IOperation collectionCreation;
+            if (collectionType is ITypeParameterSymbol typeParameter)
             {
                 collectionCreation = new TypeParameterObjectCreationOperation(initializer: null, _semanticModel, syntax, typeParameter, isImplicit: true);
             }
@@ -1264,17 +1289,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 return new NoneOperation(ImmutableArray<IOperation>.Empty, _semanticModel, syntax, type: collectionType, constantValue: null, isImplicit: isImplicit);
             }
             return new CollectionLiteralOperation(collectionCreation, elementValues, _semanticModel, syntax, collectionType, isImplicit: isImplicit);
-
-            ArrayCreationOperation createArray(ITypeSymbol arrayType)
-            {
-                var size = new LiteralOperation(
-                    _semanticModel,
-                    syntax,
-                    _semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32),
-                    ConstantValue.Create(boundCollectionLiteralExpression.Initializers.Length),
-                    isImplicit: true);
-                return new ArrayCreationOperation(ImmutableArray.Create<IOperation>(size), initializer: null, _semanticModel, syntax, arrayType, isImplicit: true);
-            }
         }
 
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)

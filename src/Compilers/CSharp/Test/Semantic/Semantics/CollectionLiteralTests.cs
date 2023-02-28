@@ -1318,9 +1318,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,14): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<int, int>.Add(int, int)'
                 //         d = [new KeyValuePair<int, int>(1, 2)];
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new KeyValuePair<int, int>(1, 2)").WithArguments("value", "System.Collections.Generic.Dictionary<int, int>.Add(int, int)").WithLocation(8, 14),
-                // (9,14): error CS1525: Invalid expression term '3:4'
+                // (9,14): error CS9107: Support for collection literal dictionary and spread elements has not been implemented.
                 //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "3:4").WithArguments("3:4").WithLocation(9, 14));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "3:4").WithLocation(9, 14));
         }
 
         [Fact]
@@ -1339,12 +1339,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS1525: Invalid expression term '..a'
+                // (7,14): error CS9107: Support for collection literal dictionary and spread elements has not been implemented.
                 //         a = [..a, ..[1, 2]];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "..a").WithArguments("..a").WithLocation(7, 14),
-                // (7,19): error CS1525: Invalid expression term '..[1, 2]'
+                Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "..a").WithLocation(7, 14),
+                // (7,19): error CS9107: Support for collection literal dictionary and spread elements has not been implemented.
                 //         a = [..a, ..[1, 2]];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "..[1, 2]").WithArguments("..[1, 2]").WithLocation(7, 19));
+                Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "..[1, 2]").WithLocation(7, 19));
         }
 
         [Fact]

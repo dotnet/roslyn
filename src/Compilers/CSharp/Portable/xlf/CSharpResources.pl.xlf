@@ -337,6 +337,11 @@
         <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może implementować elementu „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralElementNotImplemented">
+        <source>Support for collection literal dictionary and spread elements has not been implemented.</source>
+        <target state="new">Support for collection literal dictionary and spread elements has not been implemented.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
         <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>

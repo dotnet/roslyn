@@ -3706,7 +3706,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var switchExpr = (BoundSwitchExpression)expr;
                     return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
 
-                case BoundKind.CollectionLiteralExpression:
+                case BoundKind.ArrayOrSpanCollectionLiteralExpression:
+                case BoundKind.CollectionInitializerCollectionLiteralExpression:
                     return CallingMethodScope;
 
                 default:
@@ -4187,7 +4188,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return true;
 
-                case BoundKind.CollectionLiteralExpression:
+                case BoundKind.ArrayOrSpanCollectionLiteralExpression:
+                case BoundKind.CollectionInitializerCollectionLiteralExpression:
                     return true;
 
                 default:

@@ -427,10 +427,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = (CSharpSyntaxNode)node.Syntax;
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-            BoundExpression? collectionCreation = null;
-            MethodSymbol? spanConstructor = null;
-            ImmutableArray<BoundExpression> elements;
             TypeSymbol? elementType;
+            BoundCollectionLiteralExpression collectionLiteral;
 
             if (targetType is ArrayTypeSymbol arrayType)
             {
@@ -438,20 +436,74 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
                 }
-                elements = convertArrayElements(node.Initializers, arrayType.ElementType, diagnostics);
+                collectionLiteral = bindArrayOrSpan(syntax, spanConstructor: null, implicitReceiver, node.Initializers, arrayType.ElementType, diagnostics);
             }
             else if (isSpanType(targetType, WellKnownType.System_Span_T, out elementType))
             {
-                spanConstructor = getSpanConstructor(syntax, targetType, WellKnownMember.System_Span_T__ctor_Array, diagnostics);
-                elements = convertArrayElements(node.Initializers, elementType, diagnostics);
+                var spanConstructor = getSpanConstructor(syntax, targetType, WellKnownMember.System_Span_T__ctor_Array, diagnostics);
+                collectionLiteral = bindArrayOrSpan(syntax, spanConstructor, implicitReceiver, node.Initializers, elementType, diagnostics);
             }
             else if (isSpanType(targetType, WellKnownType.System_ReadOnlySpan_T, out elementType))
             {
-                spanConstructor = getSpanConstructor(syntax, targetType, WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics);
-                elements = convertArrayElements(node.Initializers, elementType, diagnostics);
+                var spanConstructor = getSpanConstructor(syntax, targetType, WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics);
+                collectionLiteral = bindArrayOrSpan(syntax, spanConstructor, implicitReceiver, node.Initializers, elementType, diagnostics);
             }
             else
             {
+                collectionLiteral = bindCollectionInitializer(syntax, implicitReceiver, node.Initializers, diagnostics);
+            }
+
+            return new BoundConversion(
+                syntax,
+                collectionLiteral,
+                conversion,
+                node.Binder.CheckOverflowAtRuntime,
+                explicitCastInCode: isCast && !wasCompilerGenerated,
+                conversionGroupOpt,
+                collectionLiteral.ConstantValueOpt,
+                targetType);
+
+            bool isSpanType(TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
+            {
+                if (targetType is NamedTypeSymbol { TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArgument] } namedType
+                    && TypeSymbol.Equals(namedType.OriginalDefinition, Compilation.GetWellKnownType(spanType), TypeCompareKind.AllIgnoreOptions))
+                {
+                    elementType = typeArgument.Type;
+                    return true;
+                }
+                elementType = null;
+                return false;
+            }
+
+            BoundArrayOrSpanCollectionLiteralExpression bindArrayOrSpan(
+                CSharpSyntaxNode syntax,
+                MethodSymbol? spanConstructor,
+                BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+                ImmutableArray< BoundExpression> elements,
+                TypeSymbol elementType,
+                BindingDiagnosticBag diagnostics)
+            {
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
+                foreach (var element in elements)
+                {
+                    builder.Add(convertArrayElement(element, elementType, diagnostics));
+                }
+                return new BoundArrayOrSpanCollectionLiteralExpression(
+                    syntax,
+                    spanConstructor,
+                    implicitReceiver,
+                    builder.ToImmutableAndFree(),
+                    targetType)
+                { WasCompilerGenerated = wasCompilerGenerated };
+            }
+
+            BoundCollectionInitializerCollectionLiteralExpression bindCollectionInitializer(
+                CSharpSyntaxNode syntax,
+                BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+                ImmutableArray<BoundExpression> elements,
+                BindingDiagnosticBag diagnostics)
+            {
+                BoundExpression? collectionCreation = null;
                 if (targetType is NamedTypeSymbol namedType)
                 {
                     var analyzedArguments = AnalyzedArguments.GetInstance();
@@ -470,7 +522,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
-
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(node.Initializers.Length);
                 foreach (var element in node.Initializers)
                 {
@@ -484,38 +535,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.WasCompilerGenerated = true;
                     builder.Add(result);
                 }
-                elements = builder.ToImmutableAndFree();
-            }
-
-            var expr = new BoundCollectionLiteralExpression(
-                syntax,
-                collectionCreation,
-                spanConstructor,
-                implicitReceiver,
-                elements,
-                targetType)
-            { WasCompilerGenerated = wasCompilerGenerated };
-
-            return new BoundConversion(
-                syntax,
-                expr,
-                conversion,
-                node.Binder.CheckOverflowAtRuntime,
-                explicitCastInCode: isCast && !wasCompilerGenerated,
-                conversionGroupOpt,
-                expr.ConstantValueOpt,
-                targetType);
-
-            bool isSpanType(TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
-            {
-                if (targetType is NamedTypeSymbol { TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArgument] } namedType
-                    && TypeSymbol.Equals(namedType.OriginalDefinition, Compilation.GetWellKnownType(spanType), TypeCompareKind.AllIgnoreOptions))
-                {
-                    elementType = typeArgument.Type;
-                    return true;
-                }
-                elementType = default;
-                return false;
+                return new BoundCollectionInitializerCollectionLiteralExpression(
+                    syntax,
+                    collectionCreation,
+                    implicitReceiver,
+                    builder.ToImmutableAndFree(),
+                    targetType)
+                { WasCompilerGenerated = wasCompilerGenerated };
             }
 
             MethodSymbol? getSpanConstructor(CSharpSyntaxNode syntax, TypeSymbol spanType, WellKnownMember spanMember, BindingDiagnosticBag diagnostics)
@@ -533,16 +559,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics
                     : targetType.AllInterfacesNoUseSiteDiagnostics;
                 return allInterfaces.Any(t => ienumerableType.Equals(t, TypeCompareKind.AllIgnoreOptions));
-            }
-
-            ImmutableArray<BoundExpression> convertArrayElements(ImmutableArray<BoundExpression> elements, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
-            {
-                var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
-                foreach (var element in elements)
-                {
-                    builder.Add(convertArrayElement(element, elementType, diagnostics));
-                }
-                return builder.ToImmutableAndFree();
             }
 
             BoundExpression convertArrayElement(BoundExpression element, TypeSymbol elementType, BindingDiagnosticBag diagnostics)

@@ -4362,14 +4362,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case DictionaryElementSyntax dictionaryElementSyntax:
                         _ = BindValue(dictionaryElementSyntax.KeyExpression, diagnostics, BindValueKind.RValue);
                         _ = BindValue(dictionaryElementSyntax.ValueExpression, diagnostics, BindValueKind.RValue);
-                        // PROTOTYPE: Temporary error until feature is implemented.
-                        Error(diagnostics, ErrorCode.ERR_InvalidExprTerm, syntax, syntax);
+                        Error(diagnostics, ErrorCode.ERR_CollectionLiteralElementNotImplemented, syntax);
                         return BadExpression(syntax);
 
                     case SpreadElementSyntax spreadElementSyntax:
                         _ = BindValue(spreadElementSyntax.Expression, diagnostics, BindValueKind.RValue);
-                        // PROTOTYPE: Temporary error until feature is implemented.
-                        Error(diagnostics, ErrorCode.ERR_InvalidExprTerm, syntax, syntax);
+                        Error(diagnostics, ErrorCode.ERR_CollectionLiteralElementNotImplemented, syntax);
                         return BadExpression(syntax);
 
                     default:

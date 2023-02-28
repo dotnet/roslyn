@@ -337,6 +337,11 @@
         <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法实现“{1}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralElementNotImplemented">
+        <source>Support for collection literal dictionary and spread elements has not been implemented.</source>
+        <target state="new">Support for collection literal dictionary and spread elements has not been implemented.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
         <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>

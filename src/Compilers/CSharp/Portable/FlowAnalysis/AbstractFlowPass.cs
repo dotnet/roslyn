@@ -1909,13 +1909,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        public override BoundNode VisitArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression node)
+        {
+            VisitCollectionLiteralExpression(node);
+            return null;
+        }
+
+        public override BoundNode VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression node)
+        {
+            VisitCollectionLiteralExpression(node);
+            return null;
+        }
+
+        protected virtual void VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
         {
             foreach (var initializer in node.Initializers)
             {
                 VisitRvalue(initializer);
             }
-            return null;
         }
 
         public override BoundNode VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)

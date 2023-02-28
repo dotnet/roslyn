@@ -1842,17 +1842,23 @@
     <Field Name="Binder" Type="Binder" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundCollectionLiteralExpression" Base="BoundExpression">
+  <AbstractNode Name="BoundCollectionLiteralExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <!-- CollectionCreation will be null for arrays that are constructed from initializers directly and for type parameters. -->
-    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
-    <!-- Constructor to create a span from an array. -->
-    <Field Name="SpanConstructor" Type="MethodSymbol?" Null="allow"/>
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder" Null="disallow" SkipInVisitor="true"/>
     <!-- Collection literal elements. -->
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+  </AbstractNode>
+
+  <Node Name="BoundArrayOrSpanCollectionLiteralExpression" Base="BoundCollectionLiteralExpression">
+    <!-- Constructor to create a span from an array. -->
+    <Field Name="SpanConstructor" Type="MethodSymbol?" Null="allow"/>
+  </Node>
+
+  <Node Name="BoundCollectionInitializerCollectionLiteralExpression" Base="BoundCollectionLiteralExpression">
+    <!-- CollectionCreation will be null for type parameters. -->
+    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
   </Node>
 
   <!-- 

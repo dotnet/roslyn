@@ -3366,6 +3366,7 @@
       </Comments>
     </Property>
   </Node>
+  <!-- PROTOTYPE: Use distinct interfaces for array/span and collection initializer. -->
   <Node Name="ICollectionLiteralOperation" Base="IOperation" ChildrenOrder="CollectionCreation,ElementValues" HasType="true" HasConstantValue="false">
     <Comments>
       <summary>
