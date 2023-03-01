@@ -1177,5 +1177,30 @@ class Test
 
             Await VerifyHighlightsAsync(input, testHost)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        $${|Reference:nint|} n1 = 1;
+        int nint;
+    }
+
+    void nint() { }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
     End Class
 End Namespace
