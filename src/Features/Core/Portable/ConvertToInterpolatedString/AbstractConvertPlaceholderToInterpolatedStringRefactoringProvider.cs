@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var invocationSyntax = await TryFindInvocationAsync().ConfigureAwait(false);
-            if (invocationSyntax is null)
+            var (invocationSyntax, argument) = await TryFindInvocationAsync().ConfigureAwait(false);
+            if (invocationSyntax is null || argument is null)
                 return;
 
             var invocationSymbol = semanticModel.GetSymbolInfo(invocationSyntax, cancellationToken).GetAnySymbol();
@@ -71,49 +71,72 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             return;
 
-            async Task<TInvocationExpressionSyntax?> TryFindInvocationAsync()
+            async Task<(TInvocationExpressionSyntax? invocation, TArgumentSyntax? argument)> TryFindInvocationAsync()
             {
                 // If selection is empty there can be multiple matching invocations (we can be deep in), need to go through all of them
                 var possibleInvocations = await document.GetRelevantNodesAsync<TInvocationExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
-                var invocation = possibleInvocations.FirstOrDefault(IsValidPlaceholderToInterpolatedString);
-
-                // User selected the whole invocation of format.
-                if (invocation != null)
-                    return invocation;
-
-                // User selected a single argument of the invocation (expression / format string) instead of the whole invocation.
-                var argument = await document.TryGetRelevantNodeAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
-                invocation = argument?.Parent?.Parent as TInvocationExpressionSyntax;
-                if (IsValidPlaceholderToInterpolatedString(invocation))
-                    return invocation;
-
-                // User selected the whole argument list: string format with placeholders plus all expressions
-                var argumentList = await document.TryGetRelevantNodeAsync<TArgumentListExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
-                invocation = argumentList?.Parent as TInvocationExpressionSyntax;
-                if (IsValidPlaceholderToInterpolatedString(invocation))
-                    return invocation;
-
-                return null;
-
-                bool IsValidPlaceholderToInterpolatedString([NotNullWhen(true)] TInvocationExpressionSyntax? invocation)
+                foreach (var invocation in possibleInvocations)
                 {
-                    if (invocation != null)
+                    var placeholderArgument = FindValidPlaceholderArgument(invocation);
+                    if (placeholderArgument != null)
+                        return (invocation, placeholderArgument);
+                }
+
+                {
+                    // User selected a single argument of the invocation (expression / format string) instead of the whole invocation.
+                    var argument = await document.TryGetRelevantNodeAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
+                    var invocation = argument?.Parent?.Parent as TInvocationExpressionSyntax;
+                    var placeholderArgument = FindValidPlaceholderArgument(invocation);
+                    if (placeholderArgument != null)
+                        return (invocation, placeholderArgument);
+                }
+
+                {
+                    // User selected the whole argument list: string format with placeholders plus all expressions
+                    var argumentList = await document.TryGetRelevantNodeAsync<TArgumentListExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
+                    var invocation = argumentList?.Parent as TInvocationExpressionSyntax;
+                    var placeholderArgument = FindValidPlaceholderArgument(invocation);
+                    if (placeholderArgument != null)
+                        return (invocation, placeholderArgument);
+                }
+
+                return default;
+            }
+
+            TArgumentSyntax? FindValidPlaceholderArgument([NotNullWhen(true)] TInvocationExpressionSyntax? invocation)
+            {
+                if (invocation != null)
+                {
+                    // look for a string argument containing `"...{0}..."`, followed by more arguments.
+                    var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
+                    for (int i = 0, n = arguments.Count - 2; i < n; i++)
                     {
-                        var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
-                        if (arguments.Count >= 2)
+                        var argument = (TArgumentSyntax)arguments[i];
+                        var expression = syntaxFacts.GetExpressionOfArgument(argument);
+                        if (syntaxFacts.IsStringLiteralExpression(expression))
                         {
-                            if (syntaxFacts.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFacts)) is TLiteralExpressionSyntax firstArgumentExpression &&
-                                syntaxFacts.IsStringLiteral(firstArgumentExpression.GetFirstToken()))
-                            {
-                                var invocationSymbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).GetAnySymbol();
-                                if (invocationSymbol != null)
-                                    return true;
-                            }
+                            var remainingArgCount = arguments.Count - i - 1;
+                            Debug.Assert(remainingArgCount > 0);
+                            if (IsValidPlaceholderArgument(expression.GetFirstToken(), remainingArgCount))
+                                return argument;
                         }
                     }
-
-                    return false;
                 }
+
+                return null;
+            }
+
+            bool IsValidPlaceholderArgument(SyntaxToken stringToken, int remainingArgCount)
+            {
+                // See how many arguments follow the `"...{0}..."`.  We have to have a {0}, {1}, ... {N} part in the
+                // string for each of them.  Note, those could be in any order.
+                for (var i = 0; i < remainingArgCount; i++)
+                {
+                    if (!stringToken.Text.Contains($"{{{i}}}"))
+                        return false;
+                }
+
+                return true;
             }
 
             Task<bool> IsArgumentListCorrectAsync(
