@@ -2770,5 +2770,69 @@ record C([||]string s) { public string s; }";
                 }
                 """);
         }
+
+        [Fact, WorkItem(41140, "https://github.com/dotnet/roslyn/issues/41140")]
+        public async Task TestAfterComma1()
+        {
+            await VerifyCS.VerifyRefactoringAsync("""
+                using System;
+
+                class C
+                {
+                    // should generate for 'b'
+                    void M(string a,$$ string b, string c)
+                    {
+
+                    }
+                }
+                """, """
+                using System;
+
+                class C
+                {
+                    // should generate for 'b'
+                    void M(string a, string b, string c)
+                    {
+                        if (b is null)
+                        {
+                            throw new ArgumentNullException(nameof(b));
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(41140, "https://github.com/dotnet/roslyn/issues/41140")]
+        public async Task TestAfterComma2()
+        {
+            await VerifyCS.VerifyRefactoringAsync("""
+                using System;
+
+                class C
+                {
+                    // should generate for 'a'
+                    void M(string a,$$
+                        string b, string c)
+                    {
+
+                    }
+                }
+                """, """
+                using System;
+
+                class C
+                {
+                    // should generate for 'a'
+                    void M(string a,
+                        string b, string c)
+                    {
+                        if (a is null)
+                        {
+                            throw new ArgumentNullException(nameof(a));
+                        }
+                    }
+                }
+                """);
+        }
     }
 }
