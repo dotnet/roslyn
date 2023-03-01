@@ -11306,7 +11306,6 @@ class Program
         });
     }
 }
-
 ]]>
                 </Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
@@ -11339,7 +11338,6 @@ class Program
         });
     }
 }
-
 ]]>
                 </Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
@@ -11372,7 +11370,6 @@ class Program
         });
     }
 }
-
 ]]>
                 </Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
@@ -11405,7 +11402,6 @@ class Program
         });
     }
 }
-
 ]]>
                 </Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
@@ -11438,7 +11434,6 @@ class Program
         });
     }
 }
-
 ]]>
                 </Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
@@ -11471,7 +11466,6 @@ class Program
         });
     }
 }
-
 ]]>
                 </Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
