@@ -189,6 +189,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                     case CodeActionRequestPriority.None:
                                         // Add all the sets for 'None' request priority.
                                         break;
+
+                                    default:
+                                        throw ExceptionUtilities.UnexpectedValue(priority);
                                 }
 
                                 // We have an action set with matching or higher priority compared to the request priority,
