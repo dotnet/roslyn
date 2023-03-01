@@ -11151,5 +11151,235 @@ class Program
                 Await state.AssertSelectedCompletionItem(displayText:="Program", isHardSelected:=True)
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux(a =>
+        {
+            a.$$
+        });
+    }
+}
+
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a) =>
+        {
+            a.$$
+        });
+    }
+}
+
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b) =>
+        {
+            a.$$
+        });
+    }
+}
+
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="first", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("second")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount4(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b) =>
+        {
+            b.$$
+        });
+    }
+}
+
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount5(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b, c) =>
+        {
+            a.$$
+        });
+    }
+}
+
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="first", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount6(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b, c) =>
+        {
+            b.$$
+        });
+    }
+}
+
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount7(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b, c) =>
+        {
+            c.$$
+        });
+    }
+}
+
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("first", "second")
+            End Using
+        End Function
     End Class
 End Namespace
