@@ -82,6 +82,8 @@ End Module</File>.ConvertTestSourceTag()
 
         <Fact>
         Public Async Function TestItemOrdering3() As Task
+            ' Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
+            ' fixing first.
             Dim text = <File>
 Imports System
 Module T
@@ -90,19 +92,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Dim expected = <File>
-Imports System
-Module T
-    Sub M()
-        Dim a = $"{1 }{1 }{1 }"
-    End Sub
-End Module</File>.ConvertTestSourceTag()
-
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestMissingAsync(text)
         End Function
 
         <Fact>
         Public Async Function TestItemOutsideRange() As Task
+            ' Missing as the format string refers to parameters that aren't provided.
             Dim text = <File>
 Imports System
 Module T
@@ -111,15 +106,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Dim expected = <File>
-Imports System
-Module T
-    Sub M()
-        Dim a = $"{4}{5}{6}"
-    End Sub
-End Module</File>.ConvertTestSourceTag()
-
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestMissingAsync(text)
         End Function
 
         <Fact>
@@ -437,6 +424,8 @@ End Module"
 
         <Fact, WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>
         Public Async Function TestFormatWithNamedArguments1() As Task
+            ' Missing as this scenario Is too esoteric.  I was Not able to find any examples of code that reorders And
+            ' names thigns Like this with format strings.
             Dim text = <File>
 Imports System
 Module T
@@ -445,15 +434,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Dim expected = <File>
-Imports System
-Module T
-    Sub M()
-        Dim a = $"This {"test" } {"also" } works"
-    End Sub
-End Module</File>.ConvertTestSourceTag()
-
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestMissingAsync(text)
         End Function
 
         <Fact, WorkItem(19162, "https://github.com/dotnet/roslyn/issues/19162")>

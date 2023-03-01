@@ -86,8 +86,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     return;
             }
 
-            var interpolatedString = ParseExpression("$" + stringToken.Text) as TInterpolatedStringExpressionSyntax;
-            if (interpolatedString is null || interpolatedString.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            if (ParseExpression("$" + stringToken.Text) is not TInterpolatedStringExpressionSyntax interpolatedString)
+                return;
+
+            if (interpolatedString.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return;
 
             var shouldReplaceInvocation = invocationSymbol is { ContainingType.SpecialType: SpecialType.System_String, Name: nameof(string.Format) };

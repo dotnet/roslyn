@@ -197,7 +197,9 @@ class T
         [Fact]
         public async Task TestItemOrdering3()
         {
-            await TestInRegularAndScriptAsync(
+            // Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
+            // fixing first.
+            await TestMissingAsync(
 @"using System;
 
 class T
@@ -206,22 +208,14 @@ class T
     {
         var a = [|string.Format(""{0}{0}{0}"", 1, 2, 3)|];
     }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var a = $""{1}{1}{1}"";
-    }
 }");
         }
 
         [Fact]
         public async Task TestItemOutsideRange()
         {
-            await TestInRegularAndScriptAsync(
+            // Missing as the format string refers to parameters that aren't provided.
+            await TestMissingAsync(
 @"using System;
 
 class T
@@ -229,15 +223,6 @@ class T
     void M()
     {
         var a = [|string.Format(""{4}{5}{6}"", 1, 2, 3)|];
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var a = $""{4}{5}{6}"";
     }
 }");
         }
@@ -707,7 +692,9 @@ class T
         [Fact]
         public async Task TestFormatWithNamedArguments1()
         {
-            await TestInRegularAndScriptAsync(
+            // Missing as this scenario is too esoteric.  I was not able to find any examples of code that reorders and
+            // names thigns like this with format strings.
+            await TestMissingAsync(
 @"using System;
 
 class T
@@ -715,15 +702,6 @@ class T
     void M()
     {
         var a = [|string.Format(arg0: ""test"", arg1: ""also"", format: ""This {0} {1} works"")|];
-    }
-}",
-@"using System;
-
-class T
-{
-    void M()
-    {
-        var a = $""This {""test""} {""also""} works"";
     }
 }");
         }
