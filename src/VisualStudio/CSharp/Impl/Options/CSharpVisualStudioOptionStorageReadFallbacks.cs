@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.VisualStudio.LanguageServices.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 
@@ -60,9 +61,6 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
             => TryReadFlags(s_storages, (int)CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue, readValue, out var intValue) ? (NewLineBeforeOpenBracePlacement)intValue : default(Optional<object?>);
     }
 
-    private static readonly object s_true = true;
-    private static readonly object s_false = false;
-
     /// <summary>
     /// Returns true if an option for any flag is present in the storage. Each flag in the result will be either read from the storage 
     /// (if present) or from <paramref name="defaultValue"/> otherwise.
@@ -75,7 +73,7 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
         foreach (var (key, flag) in storages)
         {
             var defaultFlagValue = defaultValue & flag;
-            var value = read(key, typeof(bool), (defaultFlagValue != 0) ? s_true : s_false);
+            var value = read(key, typeof(bool), (defaultFlagValue != 0) ? Boxes.BoxedTrue : Boxes.BoxedFalse);
             if (value.HasValue)
             {
                 if ((bool)value.Value!)
