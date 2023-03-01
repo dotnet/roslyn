@@ -50,11 +50,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Dodaj atrybut "DebuggerDisplay"</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_Imports">
-        <source>Add Imports</source>
-        <target state="new">Add Imports</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">Dodaj sprawdzenia wartości null dla wszystkich parametrów</target>
@@ -2673,6 +2668,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Symbol_Description">
         <source>Symbol Description</source>
         <target state="new">Symbol Description</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Search">
+        <source>Symbol Search</source>
+        <target state="new">Symbol Search</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_found_in_assembly_path_0">

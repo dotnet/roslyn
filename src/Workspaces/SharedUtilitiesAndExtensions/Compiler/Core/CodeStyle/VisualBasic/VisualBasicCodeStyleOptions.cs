@@ -56,6 +56,7 @@ internal sealed class VisualBasicCodeStyleOptions
 
 internal static class VisualBasicCodeStyleOptionGroups
 {
-    public static readonly OptionGroup Modifier = new(CompilerExtensionsResources.Modifier_preferences, priority: 1, parent: CodeStyleOptionGroups.CodeStyle);
-    public static readonly OptionGroup ExpressionLevelPreferences = new(CompilerExtensionsResources.Expression_level_preferences, priority: 2, parent: CodeStyleOptionGroups.CodeStyle);
+    private const string name = "Code Style";
+    public static readonly OptionGroup Modifier = new(name: name, description: CompilerExtensionsResources.Modifier_preferences, priority: 1, parent: CodeStyleOptionGroups.CodeStyle);
+    public static readonly OptionGroup ExpressionLevelPreferences = new(name: name, description: CompilerExtensionsResources.Expression_level_preferences, priority: 2, parent: CodeStyleOptionGroups.CodeStyle);
 }

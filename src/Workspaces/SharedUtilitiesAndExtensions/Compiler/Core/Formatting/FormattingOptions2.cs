@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
     internal static class FormattingOptionGroups
     {
-        public static readonly OptionGroup IndentationAndSpacing = new(WorkspacesResources.Indentation_and_spacing, priority: 1);
-        public static readonly OptionGroup NewLine = new(WorkspacesResources.New_line_preferences, priority: 2);
+        private const string name = "Formatting";
+        public static readonly OptionGroup IndentationAndSpacing = new(name: name, description: WorkspacesResources.Indentation_and_spacing, priority: 1);
+        public static readonly OptionGroup NewLine = new(name: name, description: WorkspacesResources.New_line_preferences, priority: 2);
     }
 }

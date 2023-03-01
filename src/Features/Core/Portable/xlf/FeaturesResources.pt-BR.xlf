@@ -50,11 +50,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Adicionar atributo 'DebuggerDisplay'</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_Imports">
-        <source>Add Imports</source>
-        <target state="new">Add Imports</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">Adicionar verificações nulas para todos os parâmetros</target>
@@ -2673,6 +2668,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="Symbol_Description">
         <source>Symbol Description</source>
         <target state="new">Symbol Description</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Search">
+        <source>Symbol Search</source>
+        <target state="new">Symbol Search</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_found_in_assembly_path_0">

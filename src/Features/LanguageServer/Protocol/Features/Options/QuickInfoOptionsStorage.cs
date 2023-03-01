@@ -17,10 +17,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
           };
 
         private static readonly OptionGroup s_quickInfoGroup = new(
-            FeaturesResources.Symbol_Description,
-            int.MaxValue,
-            null,
-            FeaturesResources.ResourceManager.GetString(nameof(FeaturesResources.Symbol_Description), new CultureInfo("en")));
+            "Symbol Description",
+            FeaturesResources.Symbol_Description);
 
         public static readonly PerLanguageOption2<bool> ShowRemarksInQuickInfo = new(
             "dotnet_show_remarks", QuickInfoOptions.Default.ShowRemarksInQuickInfo, group: s_quickInfoGroup);

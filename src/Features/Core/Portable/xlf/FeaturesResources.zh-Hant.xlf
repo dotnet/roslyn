@@ -50,11 +50,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">新增 'DebuggerDisplay' 屬性</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_Imports">
-        <source>Add Imports</source>
-        <target state="new">Add Imports</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">為所有參數新增 null 檢查</target>
@@ -2673,6 +2668,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Symbol_Description">
         <source>Symbol Description</source>
         <target state="new">Symbol Description</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Search">
+        <source>Symbol Search</source>
+        <target state="new">Symbol Search</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_found_in_assembly_path_0">
