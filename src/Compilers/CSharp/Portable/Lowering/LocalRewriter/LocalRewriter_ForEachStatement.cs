@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private bool TryGetDisposeMethod(CommonForEachStatementSyntax forEachSyntax, ForEachEnumeratorInfo enumeratorInfo, out MethodSymbol disposeMethod)
+        private bool TryGetDisposeMethod(SyntaxNode forEachSyntax, ForEachEnumeratorInfo enumeratorInfo, out MethodSymbol disposeMethod)
         {
             if (enumeratorInfo.IsAsync)
             {
@@ -246,10 +246,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - we need to do a runtime check for IDisposable
         /// </summary>
         private BoundStatement WrapWithTryFinallyDispose(
-            CommonForEachStatementSyntax forEachSyntax,
+            SyntaxNode forEachSyntax,
             ForEachEnumeratorInfo enumeratorInfo,
             TypeSymbol enumeratorType,
-            BoundLocal boundEnumeratorVar,
+            BoundExpression boundEnumeratorVar,
             BoundStatement rewrittenBody)
         {
             Debug.Assert(enumeratorInfo.NeedsDisposal);
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Produce:
         /// await /* disposeCall */;
         /// </summary>
-        private BoundStatement WrapWithAwait(CommonForEachStatementSyntax forEachSyntax, BoundExpression disposeCall, BoundAwaitableInfo disposeAwaitableInfoOpt)
+        private BoundStatement WrapWithAwait(SyntaxNode forEachSyntax, BoundExpression disposeCall, BoundAwaitableInfo disposeAwaitableInfoOpt)
         {
             TypeSymbol awaitExpressionType = disposeAwaitableInfoOpt.GetResult?.ReturnType ?? _compilation.DynamicType;
             var awaitExpr = RewriteAwaitExpression(forEachSyntax, disposeCall, disposeAwaitableInfoOpt, awaitExpressionType, used: false);
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="method">Method to invoke.</param>
         /// <param name="receiverConversion">Conversion to be applied to the receiver if not calling an interface method on a struct.</param>
         /// <param name="convertedReceiverType">Type of the receiver after applying the conversion.</param>
-        private BoundExpression ConvertReceiverForInvocation(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, Conversion receiverConversion, TypeSymbol convertedReceiverType)
+        private BoundExpression ConvertReceiverForInvocation(SyntaxNode syntax, BoundExpression receiver, MethodSymbol method, Conversion receiverConversion, TypeSymbol convertedReceiverType)
         {
             Debug.Assert(receiver.Type is { });
             if (!receiver.Type.IsReferenceType && method.ContainingType.IsInterface)
@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundConversion.Operand;
         }
 
-        private static BoundLocal MakeBoundLocal(CSharpSyntaxNode syntax, LocalSymbol local, TypeSymbol type)
+        private static BoundLocal MakeBoundLocal(SyntaxNode syntax, LocalSymbol local, TypeSymbol type)
         {
             return new BoundLocal(syntax,
                 localSymbol: local,
@@ -1012,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: type);
         }
 
-        private BoundStatement MakeLocalDeclaration(CSharpSyntaxNode syntax, LocalSymbol local, BoundExpression rewrittenInitialValue)
+        private BoundStatement MakeLocalDeclaration(SyntaxNode syntax, LocalSymbol local, BoundExpression rewrittenInitialValue)
         {
             var result = RewriteLocalDeclaration(
                 originalOpt: null,

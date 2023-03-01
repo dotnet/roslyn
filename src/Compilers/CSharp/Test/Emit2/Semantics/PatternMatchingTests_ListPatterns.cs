@@ -17,43 +17,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public class PatternMatchingTests_ListPatterns : PatternMatchingTestBase
 {
-    // PROTOTYPE: Wrap entire dag in a try-finally for disposal, possibly one per each enumerator instance in case Dispose throws.
-    // PROTOTYPE: Compute buffer size based on forthcoming element evaluations
-    // PROTOTYPE: Subsumption checking is different for enumerable list-patterns because we cannot test the length upfront.
-    // PROTOTYPE: Instead, we would try to find alternative indexes and rewrite the input temps everywhere which will cause the values to merge.
-    // PROTOTYPE: It's possible we could get rid of double dag building and synthesized nodes only if we accept regression in Subsumption_03 and the like.
-    // PROTOTYPE: As an optimization, we can avoid checking TryGetElementAt where it's guaranteed to fail or succeed based on previous tests.
+    private static readonly string s_bufferSource = """
+namespace System.Runtime.CompilerServices
+{
+    public class Buffer<T>
+    {
+        public Buffer(System.Collections.Generic.IEnumerator<T> enumerator, int bufferFromStart, int bufferFromEnd)
+        {
+        }
+        public bool TryGetElementFromStart(int index, out T element)
+        {
+            throw null;
+        }
+        public T GetElementFromEnd(int index)
+        {
+            throw null;
+        }
+    }
+}
+""";
 
     [Fact]
     public void EnumerableListPattern()
     {
         var source = """
 using System.Collections.Generic;
-
-namespace System.Runtime.CompilerServices
-{
-    public class Buffer<T>
-    {
-        public Buffer(IEnumerator<T> enumerator)
-        {
-        }
-        public bool TryGetElementAt(int index, out T element)
-        {
-            element = default;
-            return false;
-        }
-    }
-}
-
 class C
 {
     public bool Test1(IEnumerable<int> seq) => seq is [10, 20];
     public bool Test2(IEnumerable<int> seq) => seq is [..,2];
     public bool Test3(IEnumerable<int> seq) => seq is [1,..];
-    public bool Test4(IEnumerable<int> seq) => seq is [1,..,2];
+    public bool Test4(IEnumerable<int> seq) => seq is [10,..,20];
 }
 """;
-        var comp = CreateCompilation(source);
+        var comp = CreateCompilation(new[] { source, s_bufferSource });
         AssertEx.Multiple(
             () => VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t0 != null ? [1] : [11]
@@ -74,49 +71,126 @@ class C
 
         var verifier = CompileAndVerify(comp);
         AssertEx.Multiple(
-            () => verifier.VerifyIL("C.Test1", """
+            () => verifier.VerifyIL("C.Test4", """
 {
-  // Code size       69 (0x45)
+  // Code size       82 (0x52)
   .maxstack  3
-  .locals init (System.Runtime.CompilerServices.Buffer<int> V_0,
-                int V_1,
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                System.Runtime.CompilerServices.Buffer<int> V_1,
                 int V_2,
                 int V_3,
                 bool V_4)
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_003f
-  IL_0003:  ldarg.1
-  IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
-  IL_0009:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>)"
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  ldc.i4.0
-  IL_0011:  ldloca.s   V_1
-  IL_0013:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementAt(int, out int)"
-  IL_0018:  brfalse.s  IL_003f
-  IL_001a:  ldloc.1
-  IL_001b:  ldc.i4.s   10
-  IL_001d:  bne.un.s   IL_003f
-  IL_001f:  ldloc.0
-  IL_0020:  ldc.i4.1
-  IL_0021:  ldloca.s   V_2
-  IL_0023:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementAt(int, out int)"
-  IL_0028:  brfalse.s  IL_003f
-  IL_002a:  ldloc.2
-  IL_002b:  ldc.i4.s   20
-  IL_002d:  bne.un.s   IL_003f
-  IL_002f:  ldloc.0
-  IL_0030:  ldc.i4.2
-  IL_0031:  ldloca.s   V_3
-  IL_0033:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementAt(int, out int)"
-  IL_0038:  brtrue.s   IL_003f
-  IL_003a:  ldc.i4.1
-  IL_003b:  stloc.s    V_4
-  IL_003d:  br.s       IL_0042
-  IL_003f:  ldc.i4.0
-  IL_0040:  stloc.s    V_4
-  IL_0042:  ldloc.s    V_4
-  IL_0044:  ret
+  .try
+  {
+    IL_0000:  ldarg.1
+    IL_0001:  brfalse.s  IL_0039
+    IL_0003:  ldarg.1
+    IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+    IL_0009:  dup
+    IL_000a:  stloc.0
+    IL_000b:  ldc.i4.3
+    IL_000c:  ldc.i4.1
+    IL_000d:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>, int, int)"
+    IL_0012:  stloc.1
+    IL_0013:  ldloc.1
+    IL_0014:  ldc.i4.0
+    IL_0015:  ldloca.s   V_2
+    IL_0017:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementFromStart(int, out int)"
+    IL_001c:  brfalse.s  IL_0039
+    IL_001e:  ldloc.2
+    IL_001f:  ldc.i4.s   10
+    IL_0021:  bne.un.s   IL_0039
+    IL_0023:  ldloc.1
+    IL_0024:  ldc.i4.2
+    IL_0025:  ldloca.s   V_3
+    IL_0027:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementFromStart(int, out int)"
+    IL_002c:  brfalse.s  IL_0039
+    IL_002e:  ldloc.1
+    IL_002f:  ldc.i4.1
+    IL_0030:  callvirt   "int System.Runtime.CompilerServices.Buffer<int>.GetElementFromEnd(int)"
+    IL_0035:  ldc.i4.s   20
+    IL_0037:  beq.s      IL_003b
+    IL_0039:  leave.s    IL_004c
+    IL_003b:  leave.s    IL_0047
+  }
+  finally
+  {
+    IL_003d:  ldloc.0
+    IL_003e:  brfalse.s  IL_0046
+    IL_0040:  ldloc.0
+    IL_0041:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0046:  endfinally
+  }
+  IL_0047:  ldc.i4.1
+  IL_0048:  stloc.s    V_4
+  IL_004a:  br.s       IL_004f
+  IL_004c:  ldc.i4.0
+  IL_004d:  stloc.s    V_4
+  IL_004f:  ldloc.s    V_4
+  IL_0051:  ret
+}
+"""),
+            () => verifier.VerifyIL("C.Test1", """
+{
+  // Code size       87 (0x57)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                System.Runtime.CompilerServices.Buffer<int> V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                bool V_5)
+  .try
+  {
+    IL_0000:  ldarg.1
+    IL_0001:  brfalse.s  IL_003e
+    IL_0003:  ldarg.1
+    IL_0004:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+    IL_0009:  dup
+    IL_000a:  stloc.0
+    IL_000b:  ldc.i4.3
+    IL_000c:  ldc.i4.0
+    IL_000d:  newobj     "System.Runtime.CompilerServices.Buffer<int>..ctor(System.Collections.Generic.IEnumerator<int>, int, int)"
+    IL_0012:  stloc.1
+    IL_0013:  ldloc.1
+    IL_0014:  ldc.i4.0
+    IL_0015:  ldloca.s   V_2
+    IL_0017:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementFromStart(int, out int)"
+    IL_001c:  brfalse.s  IL_003e
+    IL_001e:  ldloc.2
+    IL_001f:  ldc.i4.s   10
+    IL_0021:  bne.un.s   IL_003e
+    IL_0023:  ldloc.1
+    IL_0024:  ldc.i4.1
+    IL_0025:  ldloca.s   V_3
+    IL_0027:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementFromStart(int, out int)"
+    IL_002c:  brfalse.s  IL_003e
+    IL_002e:  ldloc.3
+    IL_002f:  ldc.i4.s   20
+    IL_0031:  bne.un.s   IL_003e
+    IL_0033:  ldloc.1
+    IL_0034:  ldc.i4.2
+    IL_0035:  ldloca.s   V_4
+    IL_0037:  callvirt   "bool System.Runtime.CompilerServices.Buffer<int>.TryGetElementFromStart(int, out int)"
+    IL_003c:  brfalse.s  IL_0040
+    IL_003e:  leave.s    IL_0051
+    IL_0040:  leave.s    IL_004c
+  }
+  finally
+  {
+    IL_0042:  ldloc.0
+    IL_0043:  brfalse.s  IL_004b
+    IL_0045:  ldloc.0
+    IL_0046:  callvirt   "void System.IDisposable.Dispose()"
+    IL_004b:  endfinally
+  }
+  IL_004c:  ldc.i4.1
+  IL_004d:  stloc.s    V_5
+  IL_004f:  br.s       IL_0054
+  IL_0051:  ldc.i4.0
+  IL_0052:  stloc.s    V_5
+  IL_0054:  ldloc.s    V_5
+  IL_0056:  ret
 }
 """)
         );

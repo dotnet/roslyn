@@ -911,7 +911,7 @@ namespace Roslyn.Test.Utilities
             List<(int, Exception)> exceptions = null;
 
             // Run assertions in reverse order so that line numbers don't change as we adjust the baseline.
-            for (int index = assertions.Length - 1; index >= 0; --index)
+            for (int index = 0; index < assertions.Length; ++index)
             {
                 try
                 {

@@ -315,29 +315,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverPlaceholder = null;
                 argumentPlaceholder = null;
             }
-            else if (TypeSymbol.Equals(inputType.OriginalDefinition, Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T), TypeCompareKind.ConsiderEverything2))
-            {
-                // PROTOTYPE: struct enumerators and IEnumerable
-                // PROTOTYPE: consider using ForEachEnumeratorInfo
-                return bindEnumerableListPattern();
-                BoundEnumerableListPattern bindEnumerableListPattern()
-                {
-                    var getEnumeratorMethod = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).SymbolAsMember((NamedTypeSymbol)inputType);
-                    elementType = ((NamedTypeSymbol)inputType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                    ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(
-                        node.Patterns, inputType: narrowedType, elementType: elementType,
-                        permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
-                    BindPatternDesignation(
-                        node.Designation,
-                        declType: TypeWithAnnotations.Create(narrowedType, NullableAnnotation.NotAnnotated),
-                        permitDesignations, typeSyntax: null, diagnostics, ref hasErrors,
-                        out Symbol? variableSymbol, out BoundExpression? variableAccess);
-                    return new BoundEnumerableListPattern(node, getEnumeratorMethod, elementType: elementType,
-                        subpatterns, hasSlice: sawSlice, variableSymbol, variableAccess, inputType, narrowedType, hasErrors);
-                }
-            }
             else
             {
+                // PROTOTYPE: Should check after indexer lookup
+
+                BoundExpression collectionExpr = new BoundImplicitReceiver(node, inputType.StrippedType());
+                var builder = new ForEachEnumeratorInfo.Builder();
+                if (GetEnumeratorInfoAndInferCollectionElementType(node, node, ref builder, ref collectionExpr, isAsync: false, BindingDiagnosticBag.Discarded, out TypeWithAnnotations inferredElementType))
+                {
+                    return bindEnumerableListPattern();
+                    BoundEnumerableListPattern bindEnumerableListPattern()
+                    {
+                        elementType = inferredElementType.Type;
+
+                        // PROTOTYPE: Construct and embed a buffer type based on ForEachEnumeratorInfo
+                        var bufferType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_Buffer_T).Construct(elementType);
+                        var bufferCtor = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__ctor).SymbolAsMember(bufferType);
+                        var bufferFromStartMethod = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__TryGetElementFromStart).SymbolAsMember(bufferType);
+                        var bufferFromEndMethod = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__GetElementFromEnd).SymbolAsMember(bufferType);
+                        var bufferInfo = new ListPatternBufferInfo(bufferType, bufferCtor, bufferFromStartMethod, bufferFromEndMethod);
+
+                        ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(
+                            node.Patterns, inputType: narrowedType, elementType: elementType,
+                            permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
+                        BindPatternDesignation(
+                            node.Designation,
+                            declType: TypeWithAnnotations.Create(narrowedType, NullableAnnotation.NotAnnotated),
+                            permitDesignations, typeSyntax: null, diagnostics, ref hasErrors,
+                            out Symbol? variableSymbol, out BoundExpression? variableAccess);
+                        return new BoundEnumerableListPattern(node, builder.Build(this.Flags), bufferInfo,
+                            subpatterns, hasSlice: sawSlice, variableSymbol, variableAccess, inputType, narrowedType, hasErrors);
+                    }
+                }
+
                 hasErrors |= !BindLengthAndIndexerForListPattern(node, narrowedType, diagnostics, out indexerAccess, out lengthAccess, out receiverPlaceholder, out argumentPlaceholder);
 
                 Debug.Assert(indexerAccess!.Type is not null);

@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagSliceEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
                     BoundDagIndexerEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
                     BoundDagAssignmentEvaluation => null,
-                    BoundDagEnumeratorEvaluation e => e.GetEnumeratorMethod,
-                    BoundDagElementEvaluation e => e.ElementType,
+                    BoundDagEnumeratorEvaluation e => e.EnumeratorInfo.GetEnumeratorInfo.Method,
+                    BoundDagElementEvaluation e => e.EnumeratorInfo.GetEnumeratorInfo.Method,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
 
@@ -142,6 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.IsEquivalentTo(obj) &&
                 this.Index == ((BoundDagElementEvaluation)obj).Index;
         }
+
+        public bool IsFromEnd => Index < 0;
     }
 
     partial class BoundDagSliceEvaluation

@@ -512,12 +512,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     addTemp(e, e.Property.Type);
                                     break;
                                 case BoundDagElementEvaluation e:
-                                    addTemp(e, this.compilation.GetSpecialType(SpecialType.System_Boolean), index: 0);
-                                    addTemp(e, e.ElementType, index: 1);
+                                    if (!e.IsFromEnd)
+                                    {
+                                        addTemp(e, this.compilation.GetSpecialType(SpecialType.System_Boolean), index: 0);
+                                    }
+
+                                    addTemp(e, e.EnumeratorInfo.ElementType, index: 1);
                                     break;
                                 case BoundDagEnumeratorEvaluation e:
-                                    addTemp(e, e.GetEnumeratorMethod.ReturnType, index: 0);
-                                    addTemp(e, compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_Buffer_T).Construct(e.ElementType), index: 1);
+                                    addTemp(e, e.EnumeratorInfo.GetEnumeratorInfo.Method.ReturnType, index: 0);
+                                    addTemp(e, e.BufferInfo.BufferType, index: 1);
                                     break;
                                 case BoundDagIndexerEvaluation e:
                                     {

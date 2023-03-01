@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class DecisionDagBuilder
     {
         // PROTOTYPE: Move to DecisionDagBuilder. This is not the whole thing anyways.
-        private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input, BoundIndexableListPattern list, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
+        private Tests MakeTestsAndBindingsForIndexableListPattern(BoundDagTemp input, BoundIndexableListPattern list, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
         {
             Debug.Assert(input.Type.IsErrorType() || list.HasErrors || list.InputType.IsErrorType() ||
                          input.Type.Equals(list.InputType, TypeCompareKind.AllIgnoreOptions) &&
@@ -82,6 +83,87 @@ namespace Microsoft.CodeAnalysis.CSharp
                     tests.Add(new Tests.One(indexEvaluation));
                     var indexTemp = new BoundDagTemp(subpattern.Syntax, subpattern.InputType, indexEvaluation);
                     tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));
+                }
+            }
+
+            if (list.VariableAccess is not null)
+            {
+                bindings.Add(new BoundPatternBinding(list.VariableAccess, input));
+            }
+
+            return Tests.AndSequence.Create(tests);
+        }
+
+        // TODO(elp): Share code
+        private Tests MakeTestsAndBindingsForEnumerableListPattern(BoundDagTemp input, BoundEnumerableListPattern list, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
+        {
+            var syntax = list.Syntax;
+            var subpatterns = list.Subpatterns;
+            var tests = ArrayBuilder<Tests>.GetInstance();
+            output = input = MakeConvertToType(input, list.Syntax, list.NarrowedType, isExplicitTest: false, tests);
+
+            if (list.HasErrors)
+            {
+                tests.Add(new Tests.One(new BoundDagTypeTest(list.Syntax, ErrorType(), input, hasErrors: true)));
+            }
+            else if (subpatterns is [BoundSlicePattern { Pattern: null }])
+            {
+            }
+            else
+            {
+                var enumeratorEvaluation = new BoundDagEnumeratorEvaluation(syntax, list.EnumeratorInfo, list.BufferInfo, input);
+                // PROTOTYPE: Will be only used to call Dispose during lowering
+                // PROTOTYPE: Assuming this is non-null
+                // var enumeratorTemp = new BoundDagTemp(syntax, list.GetEnumeratorMethod.ReturnType, enumeratorEvaluation, index: 0);
+                var bufferTemp = new BoundDagTemp(syntax, list.BufferInfo.BufferType, enumeratorEvaluation, index: 1);
+
+                tests.Add(new Tests.One(enumeratorEvaluation));
+
+                // PROTOTYPE: tests.Add(!input.TryGetNonEnumeratedCount || count >=/== N)
+                // PROTOTYPE: Could result in suboptimal codegen, as an alternative, it could use Buffer.ProbeCount(N) or some such
+
+                int index = 0;
+                foreach (BoundPattern subpattern in subpatterns)
+                {
+                    if (subpattern is BoundSlicePattern slice)
+                    {
+                        var elementEvaluation = new BoundDagElementEvaluation(syntax, subpatterns.Length - 1, list.EnumeratorInfo, list.BufferInfo, bufferTemp);
+                        var successTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), elementEvaluation, index: 0);
+                        tests.Add(new Tests.One(elementEvaluation));
+                        tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.True, successTemp)));
+
+                        index -= subpatterns.Length - 1;
+                        if (slice.Pattern is not null)
+                        {
+                            // PROTOTYPE: Use Buffer.Slice?
+                            // PROTOTYPE: Could return Span/IEnumerable or both and select using explicit type [.. ROS<int>] which is also considered for arrays
+                            throw new NotImplementedException();
+                        }
+
+                        continue;
+                    }
+                    else
+                    {
+                        var elementEvaluation = new BoundDagElementEvaluation(subpattern.Syntax, index++, list.EnumeratorInfo, list.BufferInfo, bufferTemp);
+                        var elementTemp = new BoundDagTemp(syntax, list.EnumeratorInfo.ElementType, elementEvaluation, index: 1);
+                        tests.Add(new Tests.One(elementEvaluation));
+
+                        if (!elementEvaluation.IsFromEnd)
+                        {
+                            var successTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), elementEvaluation, index: 0);
+                            tests.Add(new Tests.One(new BoundDagValueTest(subpattern.Syntax, ConstantValue.True, successTemp)));
+                        }
+
+                        tests.Add(MakeTestsAndBindings(elementTemp, subpattern, bindings));
+                    }
+                }
+
+                if (!list.HasSlice)
+                {
+                    var elementEvaluation = new BoundDagElementEvaluation(syntax, index, list.EnumeratorInfo, list.BufferInfo, bufferTemp);
+                    var successTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), elementEvaluation, index: 0);
+                    tests.Add(new Tests.One(elementEvaluation));
+                    tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.False, successTemp)));
                 }
             }
 

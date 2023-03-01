@@ -297,26 +297,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, access);
                         }
-                    case BoundDagEnumeratorEvaluation e:
+                    case BoundDagEnumeratorEvaluation:
                         {
-                            var getEnumeratorMethod = e.GetEnumeratorMethod;
-                            var callExpr = _factory.Call(input, getEnumeratorMethod);
-                            var enumeratorTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, getEnumeratorMethod.ReturnType, e, index: 0));
-                            var bufferType = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_Buffer_T).Construct(e.ElementType);
-                            var bufferCtor = _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__ctor).AsMember(bufferType);
-                            var bufferTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, bufferType, e, index: 1));
-                            return _factory.AssignmentExpression(bufferTemp, _factory.New(bufferCtor, _factory.AssignmentExpression(enumeratorTemp, callExpr)));
+                            throw ExceptionUtilities.Unreachable();
                         }
                     case BoundDagElementEvaluation e:
                         {
-                            var bufferType = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_Buffer_T).Construct(e.ElementType);
-                            var tryGetElementMethod = _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Buffer_T__TryGetElementAt).AsMember(bufferType);
-                            var successTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, _factory.SpecialType(SpecialType.System_Boolean), e, index: 0));
-                            var elementTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, e.ElementType, e, index: 1));
-                            var callExpr = _factory.Call(input, tryGetElementMethod,
-                                refKinds: ImmutableArray.Create(RefKind.None, RefKind.Out),
-                                args: ImmutableArray.Create(_factory.Literal(e.Index), elementTemp));
-                            return _factory.AssignmentExpression(successTemp, callExpr);
+                            if (!e.IsFromEnd)
+                            {
+                                // successTemp = TryGetElementFromStart(index, out elementTemp)
+                                var method = e.BufferInfo.TryGetElementFromStartMethod;
+                                var successTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, _factory.SpecialType(SpecialType.System_Boolean), e, index: 0));
+                                var elementTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, e.EnumeratorInfo.ElementType, e, index: 1));
+                                var callExpr = _factory.Call(input, method,
+                                    refKinds: ImmutableArray.Create(RefKind.None, RefKind.Out),
+                                    args: ImmutableArray.Create(_factory.Literal(e.Index), elementTemp));
+                                return _factory.AssignmentExpression(successTemp, callExpr);
+                            }
+                            else
+                            {
+                                // elementTemp = GetElementFromEnd(index)
+                                var method = e.BufferInfo.GetElementFromEndMethod;
+                                var elementTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, e.EnumeratorInfo.ElementType, e, index: 1));
+                                var callExpr = _factory.Call(input, method, _factory.Literal(-e.Index));
+                                return _factory.AssignmentExpression(elementTemp, callExpr);
+                            }
                         }
                     case BoundDagAssignmentEvaluation:
                     default:

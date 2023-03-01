@@ -3684,15 +3684,17 @@ namespace Microsoft.CodeAnalysis
                 (byte)MemberFlags.Constructor,                                                                                               // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_Buffer_T - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                                           // Arity
-                    1,                                                                                                                       // Method Signature
+                    3,                                                                                                                       // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                                       // Return Type
                     (byte)SignatureTypeCode.GenericTypeInstance,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerator_T,
                     1,
                     (byte)SignatureTypeCode.GenericTypeParameter, 0,
-                    // PROTOTYPE: int/Span<T> bufferFromStart, int/Span<T> bufferFromEnd
+                    // PROTOTYPE: Use Span<T> ?
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
-                // System_Runtime_CompilerServices_Buffer_T__TryGetElementAt
+                // System_Runtime_CompilerServices_Buffer_T__TryGetElementFromStart
                 (byte)MemberFlags.Method,                                                                                                    // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_Buffer_T - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                                           // Arity
@@ -3700,6 +3702,14 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,                                                    // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
+                // System_Runtime_CompilerServices_Buffer_T__GetElementFromStart
+                (byte)MemberFlags.Method,                                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_Buffer_T - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                                           // Arity
+                    1,                                                                                                                       // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,                                                                         // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -4161,7 +4171,8 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_MissingMethodException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
                 ".ctor",                                    // System_Runtime_CompilerServices_Buffer_T__ctor
-                "TryGetElementAt",                          // System_Runtime_CompilerServices_Buffer_T__TryGetElementAt
+                "TryGetElementFromStart",                   // System_Runtime_CompilerServices_Buffer_T__TryGetElementFromStart
+                "GetElementFromEnd",                        // System_Runtime_CompilerServices_Buffer_T__GetElementFromEnd
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

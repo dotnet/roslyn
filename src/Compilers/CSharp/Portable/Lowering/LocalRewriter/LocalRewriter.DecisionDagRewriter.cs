@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal LocalSymbol? _whenNodeIdentifierLocal;
 #nullable disable
 
+            private readonly ArrayBuilder<BoundDagEnumeratorEvaluation> _toDispose = ArrayBuilder<BoundDagEnumeratorEvaluation>.GetInstance();
+
             protected DecisionDagRewriter(
                 SyntaxNode node,
                 LocalRewriter localRewriter,
@@ -105,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected new void Free()
             {
                 _dagNodeLabels.Free();
+                _toDispose.Free();
                 base.Free();
             }
 
@@ -422,13 +425,119 @@ namespace Microsoft.CodeAnalysis.CSharp
                         nextNode = null;
                     }
 
+                    if (GenerateBufferCtor(node, i, nodesToLower, nextNode))
+                    {
+                        continue;
+                    }
+
                     LowerDecisionDagNode(node, nextNode);
                 }
 
                 loweredNodes.Free();
-                var result = _loweredDecisionDag.ToImmutableAndFree();
+                ImmutableArray<BoundStatement> result;
+
+                if (_toDispose.Any())
+                {
+                    rewriteConditionalGotosToLeafNodes(_loweredDecisionDag);
+                    BoundStatement rewrittenBody = _factory.Block(_loweredDecisionDag.ToImmutableAndFree());
+                    foreach (BoundDagEnumeratorEvaluation toDispose in _toDispose)
+                    {
+                        TypeSymbol enumeratorType = toDispose.EnumeratorInfo.GetEnumeratorInfo.Method.ReturnType;
+                        BoundExpression enumeratorTemp = _tempAllocator.GetTemp(new BoundDagTemp(toDispose.Syntax, enumeratorType, toDispose, index: 0));
+                        rewrittenBody = this._localRewriter.WrapWithTryFinallyDispose(toDispose.Syntax, toDispose.EnumeratorInfo, enumeratorType, enumeratorTemp, rewrittenBody);
+                    }
+
+                    result = ImmutableArray.Create(rewrittenBody);
+                }
+                else
+                {
+                    result = _loweredDecisionDag.ToImmutableAndFree();
+                }
                 _loweredDecisionDag = null;
+
                 return result;
+
+                void rewriteConditionalGotosToLeafNodes(ArrayBuilder<BoundStatement> builder)
+                {
+                    var leafLabels = sortedNodes
+                        .OfType<BoundLeafDecisionDagNode>()
+                        .Select(leaf => leaf.Label)
+                        .ToImmutableHashSet();
+                    var labelMap = PooledDictionary<LabelSymbol, LabelSymbol>.GetInstance();
+                    for (int i = 0, n = builder.Count; i < n; i++)
+                    {
+                        if (builder[i] is BoundConditionalGoto conditional && leafLabels.Contains(conditional.Label))
+                        {
+                            if (!labelMap.TryGetValue(conditional.Label, out LabelSymbol newLabel))
+                                labelMap.Add(conditional.Label, newLabel = _factory.GenerateLabel("leaveLabel"));
+                            builder[i] = conditional.Update(conditional.Condition, conditional.JumpIfTrue, newLabel);
+                        }
+                    }
+
+                    if (labelMap.Count > 0)
+                    {
+                        var leaveLabel = _factory.GenerateLabel("leaveLabel");
+                        builder.Add(_factory.Goto(leaveLabel));
+                        foreach (var (originalLabel, newLabel) in labelMap)
+                        {
+                            builder.Add(_factory.Label(newLabel));
+                            builder.Add(_factory.Goto(originalLabel));
+                        }
+
+                        builder.Add(_factory.Label(leaveLabel));
+                    }
+
+                    labelMap.Free();
+                }
+            }
+
+            private bool GenerateBufferCtor(BoundDecisionDagNode node, int indexOfNode, ImmutableArray<BoundDecisionDagNode> nodesToLower, BoundDecisionDagNode nextNode)
+            {
+                if (node is not BoundEvaluationDecisionDagNode { Evaluation: BoundDagEnumeratorEvaluation e } evalNode)
+                {
+                    return false;
+                }
+
+                _toDispose.Add(e);
+
+                int fromStartCount = 0;
+                int fromEndCount = 0;
+                for (int i = indexOfNode + 1; i < nodesToLower.Length; i++)
+                {
+                    if (nodesToLower[i] is BoundEvaluationDecisionDagNode { Evaluation: BoundDagElementEvaluation element } &&
+                        element.Input.Source?.Equals(e) == true)
+                    {
+                        if (!element.IsFromEnd)
+                            fromStartCount = Math.Max(fromStartCount, element.Index+1);
+                        else
+                            fromEndCount = Math.Max(fromEndCount, (-element.Index));
+                    }
+                }
+
+                if (fromEndCount == 0)
+                {
+                    // PROTOTYPE: Consider avoiding the buffer entirely
+                }
+
+                BoundExpression input = _tempAllocator.GetTemp(e.Input);
+                var getEnumeratorMethod = e.EnumeratorInfo.GetEnumeratorInfo.Method;
+                var callExpr = _factory.Call(input, getEnumeratorMethod);
+                var enumeratorTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, getEnumeratorMethod.ReturnType, e, index: 0));
+                var bufferType = e.BufferInfo.BufferType;
+                var bufferCtor = e.BufferInfo.Constructor;
+                var bufferTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, bufferType, e, index: 1));
+                var bufferCtorArgs = ImmutableArray.Create<BoundExpression>(
+                    _factory.AssignmentExpression(enumeratorTemp, callExpr),
+                    _factory.Literal(fromStartCount),
+                    _factory.Literal(fromEndCount));
+                var sideEffect = _factory.AssignmentExpression(bufferTemp, _factory.New(bufferCtor, bufferCtorArgs));
+                _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
+                if (nextNode != evalNode.Next)
+                {
+                    _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(evalNode.Next)));
+                }
+
+                return true;
             }
 
             /// <summary>
