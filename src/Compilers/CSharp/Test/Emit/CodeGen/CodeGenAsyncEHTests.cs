@@ -2104,5 +2104,43 @@ class Driver
 ";
             CompileAndVerify(source, expected);
         }
+
+        [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
+        public void NestedCatch_DuplicateWhen()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    bool F(Exception ex) => throw null!;
+
+                    async Task M1()
+                    {
+                        try
+                        {
+                        }
+                        catch (Exception ex) when (F(ex))
+                        {
+                            await M2(ex);
+                        }
+                        catch (Exception ex) when (F(ex))
+                        {
+                            try
+                            {
+                            }
+                            catch 
+                            {
+                                await M2(ex);
+                            }
+                        }
+                    }
+
+                    Task M2(Exception ex) => throw null!;
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.DebugDll).VerifyEmitDiagnostics();
+        }
     }
 }
