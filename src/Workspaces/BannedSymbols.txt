@@ -1,3 +1,5 @@
 M:Microsoft.CodeAnalysis.CodeActions.CodeAction.PostProcessAsync(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.CodeActions.CodeActionOperation},System.Threading.CancellationToken); Use overload that takes a solution
 M:Microsoft.CodeAnalysis.CodeActions.CodeAction.PostProcessChangesAsync(Microsoft.CodeAnalysis.Solution,System.Threading.CancellationToken); Use overload that takes a solution
 M:Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions.GetOperationsAsync(System.Object,System.Threading.CancellationToken); Use overload that takes a solution
+M:Microsoft.CodeAnalysis.CodeActions.CodeAction.GetOperationsAsync(System.Threading.CancellationToken); Use overload that takes a solution
+M:Microsoft.CodeAnalysis.CodeActions.CodeAction.GetPreviewOperationsAsync(System.Threading.CancellationToken); Use overload that takes a solution

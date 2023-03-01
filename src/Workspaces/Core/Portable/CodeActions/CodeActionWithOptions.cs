@@ -51,10 +51,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var options = this.GetOptions(cancellationToken);
-            return (await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
+            var operations = await this.GetOperationsAsync(originalSolution, options, cancellationToken).ConfigureAwait(false);
+            return operations.ToImmutableArrayOrEmpty();
         }
 
         /// <summary>

@@ -136,25 +136,25 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// The sequence of operations that define the code action.
         /// </summary>
         public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
-            => GetOperationsAsync(new ProgressTracker(), cancellationToken);
+            => GetOperationsAsync(originalSolution: null!, new ProgressTracker(), cancellationToken);
 
         internal Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            return GetOperationsCoreAsync(progressTracker, cancellationToken);
+            return GetOperationsCoreAsync(originalSolution, progressTracker, cancellationToken);
         }
 
         /// <summary>
         /// The sequence of operations that define the code action.
         /// </summary>
         internal virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var operations = await this.ComputeOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(false);
 
             if (operations != null)
             {
-                return await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
+                return await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
             }
 
             return ImmutableArray<CodeActionOperation>.Empty;
@@ -163,13 +163,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// The sequence of operations used to construct a preview.
         /// </summary>
-        public async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
+            => GetPreviewOperationsAsync(originalSolution: null!, cancellationToken);
+
+        internal async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(
+            Solution originalSolution, CancellationToken cancellationToken)
         {
             var operations = await this.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
 
             if (operations != null)
             {
-                return await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
+                return await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
             }
 
             return ImmutableArray<CodeActionOperation>.Empty;
