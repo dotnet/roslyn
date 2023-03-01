@@ -7742,7 +7742,7 @@ C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due 
             args.Errors.AssertNoErrors()
             Assert.Equal(2, args.AnalyzerConfigPaths.Length)
             Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(0))
-            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.AnalyzerConfigPaths(1))
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir", ".editorconfig"), args.AnalyzerConfigPaths(1))
 
             args = DefaultParse({"/analyzerconfig:.editorconfig", "a.vb", "/analyzerconfig:.editorconfig"}, _baseDirectory)
             args.Errors.AssertNoErrors()
@@ -7752,19 +7752,19 @@ C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due 
 
             args = DefaultParse({"/analyzerconfig:..\.editorconfig", "a.vb"}, _baseDirectory)
             args.Errors.AssertNoErrors()
-            Assert.Equal(Path.Combine(_baseDirectory, "..\.editorconfig"), args.AnalyzerConfigPaths.Single())
+            Assert.Equal(Path.Combine(_baseDirectory, "..", ".editorconfig"), args.AnalyzerConfigPaths.Single())
 
             args = DefaultParse({"/analyzerconfig:.editorconfig;subdir\.editorconfig", "a.vb"}, _baseDirectory)
             args.Errors.AssertNoErrors()
             Assert.Equal(2, args.AnalyzerConfigPaths.Length)
             Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(0))
-            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.AnalyzerConfigPaths(1))
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir", ".editorconfig"), args.AnalyzerConfigPaths(1))
 
             args = DefaultParse({"/analyzerconfig:.editorconfig,subdir\.editorconfig", "a.vb"}, _baseDirectory)
             args.Errors.AssertNoErrors()
             Assert.Equal(2, args.AnalyzerConfigPaths.Length)
             Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(0))
-            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.AnalyzerConfigPaths(1))
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir", ".editorconfig"), args.AnalyzerConfigPaths(1))
 
             args = DefaultParse({"/analyzerconfig:.editorconfig:.editorconfig", "a.vb"}, _baseDirectory)
             args.Errors.AssertNoErrors()
