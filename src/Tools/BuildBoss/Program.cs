@@ -102,7 +102,7 @@ namespace BuildBoss
 
             allGood &= ProcessTargets(repositoryDirectory);
             allGood &= ProcessPackages(repositoryDirectory, artifactsDirectory, configuration);
-            allGood &= ProcessStructuredLog(artifactsDirectory, configuration);
+            allGood &= ProcessStructuredLog(artifactsDirectory);
             allGood &= ProcessOptProf(repositoryDirectory, artifactsDirectory, configuration);
 
             if (!allGood)
@@ -143,7 +143,7 @@ namespace BuildBoss
             return CheckCore(checker, $"Targets {targetsDirectory}");
         }
 
-        private static bool ProcessStructuredLog(string artifactsDirectory, string configuration)
+        private static bool ProcessStructuredLog(string artifactsDirectory)
         {
             var logFilePath = Path.Combine(Path.Combine(Path.Combine(artifactsDirectory, "log"), "{configuration}"), "Build.binlog");
             var util = new StructuredLoggerCheckerUtil(logFilePath);
