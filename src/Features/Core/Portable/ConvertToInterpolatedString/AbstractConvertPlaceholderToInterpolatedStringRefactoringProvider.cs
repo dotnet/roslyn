@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         where TArgumentListExpressionSyntax : SyntaxNode
         where TInterpolationSyntax : SyntaxNode
     {
-        protected abstract SyntaxNode GetInterpolatedString(string text);
+        protected abstract TExpressionSyntax ParseExpression(string text);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -49,9 +49,19 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var invocationSyntax = await TryFindInvocationAsync().ConfigureAwait(false);
-            if (invocationSyntax is null)
+            var (invocationSyntax, placeholderArgument) = await TryFindInvocationAsync().ConfigureAwait(false);
+            if (invocationSyntax is null || placeholderArgument is null)
                 return;
+
+            // Not supported if there are any omitted arguments following the placeholder.
+            var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocationSyntax);
+            var placeholderIndex = arguments.IndexOf(placeholderArgument);
+            Contract.ThrowIfTrue(placeholderIndex < 0);
+            for (var i = placeholderIndex + 1; i < arguments.Count; i++)
+            {
+                if (syntaxFacts.GetExpressionOfArgument(arguments[i]) is null)
+                    return;
+            }
 
             var invocationSymbol = semanticModel.GetSymbolInfo(invocationSyntax, cancellationToken).GetAnySymbol();
             if (invocationSymbol is null)
@@ -74,38 +84,45 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             context.RegisterRefactoring(
                 CodeAction.Create(
                     FeaturesResources.Convert_to_interpolated_string,
-                    cancellationToken => CreateInterpolatedStringAsync(document, invocationSyntax, shouldReplaceInvocation, cancellationToken),
+                    cancellationToken => CreateInterpolatedStringAsync(document, invocationSyntax, placeholderArgument, shouldReplaceInvocation, cancellationToken),
                     nameof(FeaturesResources.Convert_to_interpolated_string)),
                 invocationSyntax.Span);
 
             return;
 
-            async Task<TInvocationExpressionSyntax?> TryFindInvocationAsync()
+            async Task<(TInvocationExpressionSyntax? invocation, TArgumentSyntax? placeholderArgument)> TryFindInvocationAsync()
             {
                 // If selection is empty there can be multiple matching invocations (we can be deep in), need to go through all of them
-                var possibleInvocations = await document.GetRelevantNodesAsync<TInvocationExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
-                var invocation = possibleInvocations.FirstOrDefault(IsValidPlaceholderToInterpolatedString);
+                var invocations = await document.GetRelevantNodesAsync<TInvocationExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
+                foreach (var invocation in invocations)
+                {
+                    var argument = FindValidPlaceholderArgument(invocation);
+                    if (argument != null)
+                        return (invocation, argument);
+                }
 
-                // User selected the whole invocation of format.
-                if (invocation != null)
-                    return invocation;
+                {
+                    // User selected a single argument of the invocation (expression / format string) instead of the whole invocation.
+                    var argument = await document.TryGetRelevantNodeAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
+                    var invocation = argument?.Parent?.Parent as TInvocationExpressionSyntax;
+                    var placeholderArgument = FindValidPlaceholderArgument(invocation);
+                    if (placeholderArgument != null)
+                        return (invocation, argument);
+                }
 
-                // User selected a single argument of the invocation (expression / format string) instead of the whole invocation.
-                var argument = await document.TryGetRelevantNodeAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
-                invocation = argument?.Parent?.Parent as TInvocationExpressionSyntax;
-                if (IsValidPlaceholderToInterpolatedString(invocation))
-                    return invocation;
+                {
+                    // User selected the whole argument list: string format with placeholders plus all expressions
+                    var argumentList = await document.TryGetRelevantNodeAsync<TArgumentListExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
+                    var invocation = argumentList?.Parent as TInvocationExpressionSyntax;
+                    var argument = FindValidPlaceholderArgument(invocation);
+                    if (argument != null)
+                        return (invocation, argument);
+                }
 
-                // User selected the whole argument list: string format with placeholders plus all expressions
-                var argumentList = await document.TryGetRelevantNodeAsync<TArgumentListExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
-                invocation = argumentList?.Parent as TInvocationExpressionSyntax;
-                if (IsValidPlaceholderToInterpolatedString(invocation))
-                    return invocation;
-
-                return null;
+                return default;
             }
 
-            bool IsValidPlaceholderToInterpolatedString([NotNullWhen(true)] TInvocationExpressionSyntax? invocation)
+            TArgumentSyntax? FindValidPlaceholderArgument(TInvocationExpressionSyntax? invocation)
             {
                 if (invocation != null)
                 {
@@ -120,12 +137,12 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                             var remainingArgCount = arguments.Count - i - 1;
                             Debug.Assert(remainingArgCount > 0);
                             if (IsValidPlaceholderArgument(expression.GetFirstToken(), remainingArgCount))
-                                return true;
+                                return (TArgumentSyntax)argument;
                         }
                     }
                 }
 
-                return false;
+                return null;
             }
 
             bool IsValidPlaceholderArgument(SyntaxToken stringToken, int remainingArgCount)
@@ -170,6 +187,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         private async Task<Document> CreateInterpolatedStringAsync(
             Document document,
             TInvocationExpressionSyntax invocation,
+            TArgumentSyntax placeholderArgument,
             bool shouldReplaceInvocation,
             CancellationToken cancellationToken)
         {
@@ -177,96 +195,86 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
-            var literalExpression = (TLiteralExpressionSyntax?)syntaxFacts.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService));
+            var literalExpression = (TLiteralExpressionSyntax?)syntaxFacts.GetExpressionOfArgument(placeholderArgument);
             Contract.ThrowIfNull(literalExpression);
-            var text = literalExpression.GetFirstToken().ToString();
+
             var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var expandedArguments = GetExpandedArguments(semanticModel, arguments, syntaxGenerator, syntaxFactsService);
-            var interpolatedString = GetInterpolatedString(text);
-            var newInterpolatedString = VisitArguments(expandedArguments, interpolatedString, syntaxFactsService);
+            var interpolatedString = ParseExpression("$" + literalExpression.GetFirstToken().ToString());
+
+            var expandedArguments = GetExpandedArguments();
+            var newInterpolatedString = VisitArguments();
 
             var replacementNode = shouldReplaceInvocation
                 ? newInterpolatedString
                 : syntaxGenerator.InvocationExpression(
-                    syntaxFactsService.GetExpressionOfInvocationExpression(invocation),
+                    syntaxFacts.GetExpressionOfInvocationExpression(invocation),
                     newInterpolatedString);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(invocation, replacementNode.WithTriviaFrom(invocation));
             return document.WithSyntaxRoot(newRoot);
-        }
 
-        private static string GetArgumentName(TArgumentSyntax argument, ISyntaxFacts syntaxFacts)
-            => syntaxFacts.GetNameForArgument(argument);
-
-        private static SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
-            => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[1];
-
-        private static TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
-            => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[0];
-
-        private static TArgumentSyntax GetArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, int index, ISyntaxFacts syntaxFacts)
-        {
-            if (arguments.Count > 4)
+            ImmutableArray<TExpressionSyntax> GetExpandedArguments()
             {
-                return arguments[index];
+                var placeholderIndex = arguments.IndexOf(placeholderArgument);
+                Contract.ThrowIfTrue(placeholderIndex < 0);
+
+                using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var builder);
+                for (var i = placeholderIndex + 1; i < arguments.Count; i++)
+                {
+                    var argumentExpression = syntaxFacts.GetExpressionOfArgument(arguments[i]);
+                    var convertedType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).ConvertedType;
+
+                    builder.Add(convertedType is null
+                        ? (TExpressionSyntax)syntaxGenerator.AddParentheses(argumentExpression)
+                        : (TExpressionSyntax)syntaxGenerator.CastExpression(convertedType, syntaxGenerator.AddParentheses(argumentExpression)));
+                }
+
+                return builder.ToImmutableAndClear();
             }
 
-            return arguments.FirstOrDefault(
-                argument => string.Equals(GetArgumentName(argument, syntaxFacts), StringFormatArguments.ParamsArgumentNames[index], StringComparison.OrdinalIgnoreCase))
-                ?? arguments[index];
-        }
-
-        private static ImmutableArray<TExpressionSyntax> GetExpandedArguments(
-            SemanticModel semanticModel,
-            SeparatedSyntaxList<TArgumentSyntax> arguments,
-            SyntaxGenerator syntaxGenerator,
-            ISyntaxFacts syntaxFacts)
-        {
-            using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var builder);
-            for (var i = 1; i < arguments.Count; i++)
+            TExpressionSyntax VisitArguments()
             {
-                var argumentExpression = syntaxFacts.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFacts));
-                var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
-                if (convertedType is null)
+                return interpolatedString.ReplaceNodes(syntaxFacts.GetContentsOfInterpolatedString(interpolatedString), (oldNode, newNode) =>
                 {
-                    builder.Add((TExpressionSyntax)syntaxGenerator.AddParentheses(argumentExpression));
-                }
-                else
-                {
-                    builder.Add((TExpressionSyntax)syntaxGenerator.CastExpression(convertedType, syntaxGenerator.AddParentheses(argumentExpression)));
-                }
-            }
-
-            return builder.ToImmutable();
-        }
-
-        private static SyntaxNode VisitArguments(
-            ImmutableArray<TExpressionSyntax> expandedArguments,
-            SyntaxNode interpolatedString,
-            ISyntaxFactsService syntaxFactsService)
-        {
-            return interpolatedString.ReplaceNodes(syntaxFactsService.GetContentsOfInterpolatedString(interpolatedString), (oldNode, newNode) =>
-            {
-                if (newNode is TInterpolationSyntax interpolation)
-                {
-                    if (syntaxFactsService.GetExpressionOfInterpolation(interpolation) is TLiteralExpressionSyntax literalExpression && syntaxFactsService.IsNumericLiteralExpression(literalExpression))
+                    if (newNode is TInterpolationSyntax interpolation)
                     {
-                        if (int.TryParse(literalExpression.GetFirstToken().ValueText, out var index))
+                        if (syntaxFacts.GetExpressionOfInterpolation(interpolation) is TLiteralExpressionSyntax literalExpression &&
+                            syntaxFacts.IsNumericLiteralExpression(literalExpression) &&
+                            int.TryParse(literalExpression.GetFirstToken().ValueText, out var index) &&
+                            index >= 0 && index < expandedArguments.Length)
                         {
-                            if (index >= 0 && index < expandedArguments.Length)
-                            {
-                                return interpolation.ReplaceNode(
-                                    literalExpression,
-                                    syntaxFactsService.ConvertToSingleLine(expandedArguments[index], useElasticTrivia: true).WithAdditionalAnnotations(Formatter.Annotation));
-                            }
+                            return interpolation.ReplaceNode(
+                                literalExpression,
+                                syntaxFacts.ConvertToSingleLine(expandedArguments[index], useElasticTrivia: true).WithAdditionalAnnotations(Formatter.Annotation));
                         }
                     }
-                }
 
-                return newNode;
-            });
+                    return newNode;
+                });
+            }
         }
+
+        //private static string GetArgumentName(TArgumentSyntax argument, ISyntaxFacts syntaxFacts)
+        //    => syntaxFacts.GetNameForArgument(argument);
+
+        //private static SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
+        //    => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[1];
+
+        //private static TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
+        //    => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[0];
+
+        //private static TArgumentSyntax GetArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, int index, ISyntaxFacts syntaxFacts)
+        //{
+        //    if (arguments.Count > 4)
+        //    {
+        //        return arguments[index];
+        //    }
+
+        //    return arguments.FirstOrDefault(
+        //        argument => string.Equals(GetArgumentName(argument, syntaxFacts), StringFormatArguments.ParamsArgumentNames[index], StringComparison.OrdinalIgnoreCase))
+        //        ?? arguments[index];
+        //}
 
         //private static bool ShouldIncludeFormatMethod(IMethodSymbol methodSymbol)
         //{
