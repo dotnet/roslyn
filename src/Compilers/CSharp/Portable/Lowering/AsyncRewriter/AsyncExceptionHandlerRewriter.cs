@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntheticBoundNodeFactory _F;
         private readonly AwaitInFinallyAnalysis _analysis;
 
-        private AwaitCatchFrame _currentAwaitCatchFrame;
+        private AwaitCatchFrame _parentAwaitCatchFrame, _currentAwaitCatchFrame;
         private AwaitFinallyFrame _currentAwaitFinallyFrame = new AwaitFinallyFrame();
 
         private AsyncExceptionHandlerRewriter(
@@ -455,7 +455,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewrittenTry;
             }
 
+            var origParentAwaitCatchFrame = _parentAwaitCatchFrame;
             var origAwaitCatchFrame = _currentAwaitCatchFrame;
+            _parentAwaitCatchFrame = origAwaitCatchFrame;
             _currentAwaitCatchFrame = null;
 
             var rewrittenCatches = this.VisitList(node.CatchBlocks);
@@ -494,6 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _F.Label(handledLabel));
             }
 
+            _parentAwaitCatchFrame = origParentAwaitCatchFrame;
             _currentAwaitCatchFrame = origAwaitCatchFrame;
 
             return tryWithCatches;
@@ -517,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node.Syntax.IsKind(SyntaxKind.CatchClause));
                 var tryStatementSyntax = (TryStatementSyntax)node.Syntax.Parent;
 
-                currentAwaitCatchFrame = _currentAwaitCatchFrame = new AwaitCatchFrame(_F, tryStatementSyntax);
+                currentAwaitCatchFrame = _currentAwaitCatchFrame = new AwaitCatchFrame(_F, tryStatementSyntax, _parentAwaitCatchFrame);
             }
 
             var catchType = node.ExceptionTypeOpt ?? _F.SpecialType(SpecialType.System_Object);
@@ -1004,14 +1007,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly Dictionary<LocalSymbol, LocalSymbol> _hoistedLocals;
             private readonly List<LocalSymbol> _orderedHoistedLocals;
 
-            public AwaitCatchFrame(SyntheticBoundNodeFactory F, TryStatementSyntax tryStatementSyntax)
+            public AwaitCatchFrame(SyntheticBoundNodeFactory F, TryStatementSyntax tryStatementSyntax, AwaitCatchFrame parentOpt = null)
             {
                 this.pendingCaughtException = new SynthesizedLocal(F.CurrentFunction, TypeWithAnnotations.Create(F.SpecialType(SpecialType.System_Object)), SynthesizedLocalKind.TryAwaitPendingCaughtException, tryStatementSyntax);
                 this.pendingCatch = new SynthesizedLocal(F.CurrentFunction, TypeWithAnnotations.Create(F.SpecialType(SpecialType.System_Int32)), SynthesizedLocalKind.TryAwaitPendingCatch, tryStatementSyntax);
 
                 this.handlers = new List<BoundBlock>();
-                _hoistedLocals = new Dictionary<LocalSymbol, LocalSymbol>();
-                _orderedHoistedLocals = new List<LocalSymbol>();
+                _hoistedLocals = parentOpt != null
+                    ? new Dictionary<LocalSymbol, LocalSymbol>(parentOpt._hoistedLocals)
+                    : new Dictionary<LocalSymbol, LocalSymbol>();
+                _orderedHoistedLocals = parentOpt != null
+                    ? new List<LocalSymbol>(parentOpt._orderedHoistedLocals)
+                    : new List<LocalSymbol>();
             }
 
             public void HoistLocal(LocalSymbol local, SyntheticBoundNodeFactory F)
