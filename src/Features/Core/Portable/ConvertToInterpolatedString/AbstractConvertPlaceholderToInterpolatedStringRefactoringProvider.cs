@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var (invocationSyntax, placeholderArgument) = await TryFindInvocationAsync().ConfigureAwait(false);
-            if (invocationSyntax is null || placeholderArgument is null)
+            var (invocation, placeholderArgument) = await TryFindInvocationAsync().ConfigureAwait(false);
+            if (invocation is null || placeholderArgument is null)
                 return;
 
             var placeholderExpression = syntaxFacts.GetExpressionOfArgument(placeholderArgument);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
 
             // Not supported if there are any omitted arguments following the placeholder.
-            var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocationSyntax);
+            var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
             var placeholderIndex = arguments.IndexOf(placeholderArgument);
             Contract.ThrowIfTrue(placeholderIndex < 0);
             for (var i = placeholderIndex + 1; i < arguments.Count; i++)
@@ -73,14 +73,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     return;
             }
 
-            var invocationSymbol = semanticModel.GetSymbolInfo(invocationSyntax, cancellationToken).GetAnySymbol();
-            if (invocationSymbol is null)
+            if (semanticModel.GetSymbolInfo(invocation, cancellationToken).GetAnySymbol() is not IMethodSymbol invocationSymbol)
                 return;
 
             // If the user is actually passing an array to a params argument, we can't change this to be an interpolated string.
             if (invocationSymbol.IsParams())
             {
-                var lastArgument = syntaxFacts.GetArgumentsOfInvocationExpression(invocationSyntax).Last();
+                var lastArgument = syntaxFacts.GetArgumentsOfInvocationExpression(invocation).Last();
                 var lastArgumentType = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(lastArgument), cancellationToken).Type;
                 if (lastArgumentType is IArrayTypeSymbol)
                     return;
@@ -97,9 +96,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             context.RegisterRefactoring(
                 CodeAction.Create(
                     FeaturesResources.Convert_to_interpolated_string,
-                    cancellationToken => CreateInterpolatedStringAsync(document, invocationSyntax, placeholderArgument, interpolatedString, shouldReplaceInvocation, cancellationToken),
+                    cancellationToken => CreateInterpolatedStringAsync(
+                        document, invocation, placeholderArgument, invocationSymbol, interpolatedString, shouldReplaceInvocation, cancellationToken),
                     nameof(FeaturesResources.Convert_to_interpolated_string)),
-                invocationSyntax.Span);
+                invocation.Span);
 
             return;
 
@@ -214,6 +214,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             Document document,
             TInvocationExpressionSyntax invocation,
             TArgumentSyntax placeholderArgument,
+            IMethodSymbol invocationSymbol,
             TInterpolatedStringExpressionSyntax interpolatedString,
             bool shouldReplaceInvocation,
             CancellationToken cancellationToken)
@@ -227,8 +228,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
-            var expandedArguments = GetExpandedArguments();
-            var newInterpolatedString = VisitArguments();
+            var newInterpolatedString =
+                InsertArgumentsIntoInterpolatedString(
+                    ExpandArgumentExpressions(
+                        GetReorderedArgumentsAfterPlaceholderArgument()));
 
             var replacementNode = shouldReplaceInvocation
                 ? newInterpolatedString
@@ -240,15 +243,45 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var newRoot = root.ReplaceNode(invocation, replacementNode.WithTriviaFrom(invocation));
             return document.WithSyntaxRoot(newRoot);
 
-            ImmutableArray<TExpressionSyntax> GetExpandedArguments()
+            ImmutableArray<SyntaxNode> GetReorderedArgumentsAfterPlaceholderArgument()
             {
                 var placeholderIndex = arguments.IndexOf(placeholderArgument);
                 Contract.ThrowIfTrue(placeholderIndex < 0);
 
-                using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var builder);
-                for (var i = placeholderIndex + 1; i < arguments.Count; i++)
+                var afterPlaceholderArguments = arguments.Skip(placeholderIndex + 1).ToImmutableArray();
+                var unnamedArguments = afterPlaceholderArguments.TakeWhile(a => !syntaxFacts.IsNamedArgument(a)).ToImmutableArray();
+                var namedAndUnnamedArguments = afterPlaceholderArguments.Skip(unnamedArguments.Length).ToImmutableArray();
+
+                // if all the remaining arguments are named, then sort by name in the original member so that the index
+                // finds the right one.  If not all the arguments are named, then they must be in the right order
+                // already (the language requires this), so no need to sort.
+                if (namedAndUnnamedArguments.All(syntaxFacts.IsNamedArgument))
                 {
-                    var argumentExpression = syntaxFacts.GetExpressionOfArgument(arguments[i]);
+                    namedAndUnnamedArguments = namedAndUnnamedArguments.Sort((arg1, arg2) =>
+                    {
+                        var arg1Name = syntaxFacts.GetNameForArgument(arg1);
+                        var arg2Name = syntaxFacts.GetNameForArgument(arg2);
+
+                        var param1 = invocationSymbol.Parameters.FirstOrDefault(p => syntaxFacts.StringComparer.Equals(p.Name, arg1Name));
+                        var param2 = invocationSymbol.Parameters.FirstOrDefault(p => syntaxFacts.StringComparer.Equals(p.Name, arg2Name));
+
+                        // Couldn't find the corresponding parameter.  No way to know how to order these.  Keep in original order
+                        if (param1 is null || param2 is null)
+                            return namedAndUnnamedArguments.IndexOf(arg1) - namedAndUnnamedArguments.IndexOf(arg2);
+
+                        return param1.Ordinal - param2.Ordinal;
+                    });
+                }
+
+                return unnamedArguments.Concat(namedAndUnnamedArguments);
+            }
+
+            ImmutableArray<TExpressionSyntax> ExpandArgumentExpressions(ImmutableArray<SyntaxNode> argumentsAfterPlaceholder)
+            {
+                using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var builder);
+                foreach (var argument in argumentsAfterPlaceholder)
+                {
+                    var argumentExpression = syntaxFacts.GetExpressionOfArgument(argument);
                     var convertedType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).ConvertedType;
 
                     builder.Add(convertedType is null
@@ -259,7 +292,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return builder.ToImmutableAndClear();
             }
 
-            TExpressionSyntax VisitArguments()
+            TExpressionSyntax InsertArgumentsIntoInterpolatedString(ImmutableArray<TExpressionSyntax> expressions)
             {
                 return interpolatedString.ReplaceNodes(syntaxFacts.GetContentsOfInterpolatedString(interpolatedString), (oldNode, newNode) =>
                 {
@@ -268,11 +301,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         if (syntaxFacts.GetExpressionOfInterpolation(interpolation) is TLiteralExpressionSyntax literalExpression &&
                             syntaxFacts.IsNumericLiteralExpression(literalExpression) &&
                             int.TryParse(literalExpression.GetFirstToken().ValueText, out var index) &&
-                            index >= 0 && index < expandedArguments.Length)
+                            index >= 0 && index < expressions.Length)
                         {
                             return interpolation.ReplaceNode(
                                 literalExpression,
-                                syntaxFacts.ConvertToSingleLine(expandedArguments[index], useElasticTrivia: true).WithAdditionalAnnotations(Formatter.Annotation));
+                                syntaxFacts.ConvertToSingleLine(expressions[index], useElasticTrivia: true).WithAdditionalAnnotations(Formatter.Annotation));
                         }
                     }
 
