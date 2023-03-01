@@ -1888,6 +1888,59 @@ record B(int i) : A
 }", parseOptions: TestOptions.RegularPreview);
         }
 
+        [Fact]
+        public async Task TestWithClassWithParameters()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class A
+{
+    public abstract void AbstractMethod();
+}
+
+class [|B|](int i) : A
+{
+
+}",
+@"abstract class A
+{
+    public abstract void AbstractMethod();
+}
+
+class B(int i) : A
+{
+    public override void AbstractMethod()
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact]
+        public async Task TestWithClassWithSemicolonBody()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class A
+{
+    public abstract void AbstractMethod();
+}
+
+class [|B|] : A;
+",
+@"abstract class A
+{
+    public abstract void AbstractMethod();
+}
+
+class B : A
+{
+    public override void AbstractMethod()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+", parseOptions: TestOptions.RegularPreview);
+        }
+
         [Fact, WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
         public async Task TestUnconstrainedGenericNullable()
         {

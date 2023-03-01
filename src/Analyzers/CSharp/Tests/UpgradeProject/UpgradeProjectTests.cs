@@ -1091,6 +1091,66 @@ class C
         }
 
         [Fact]
+        public async Task UpgradeProjectForPrimaryConstructors_Class()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program[|()|];",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForPrimaryConstructors_Struct()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+struct Program[|()|];",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForSemicolonBody_Class()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program[|;|]",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForSemicolonBody_Struct()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+struct Program[|;|]",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForSemicolonBody_Interface()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+interface Program[|;|]",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForSemicolonBody_Enum()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+enum Program[|;|]",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+        }
+
+        [Fact]
         public async Task UpgradeProjectForTargetTypedNew()
         {
             await TestLanguageVersionUpgradedAsync("""

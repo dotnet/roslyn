@@ -48,13 +48,17 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         // where there are more than one overloads of ThenInclude accepting different types of parameters.
         private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position, bool useBaseReferenceAccessibility, bool unwrapNullable, bool isForDereference)
         {
-            var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position, isForDereference);
+            var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position, unwrapNullable, isForDereference);
             return symbols.IsDefault
                 ? GetMemberSymbols(parameter.Type, position, excludeInstance: false, useBaseReferenceAccessibility, unwrapNullable, isForDereference)
                 : symbols;
         }
 
-        private ImmutableArray<ISymbol> TryGetMemberSymbolsForLambdaParameter(IParameterSymbol parameter, int position, bool isForDereference)
+        private ImmutableArray<ISymbol> TryGetMemberSymbolsForLambdaParameter(
+            IParameterSymbol parameter,
+            int position,
+            bool unwrapNullable,
+            bool isForDereference)
         {
             // Use normal lookup path for this/base parameters.
             if (parameter.IsThis)
@@ -120,8 +124,8 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             // parameter the compiler inferred as it may have made a completely suitable inference for it.
             return parameterTypeSymbols
                 .Concat(parameter.Type)
-                .SelectMany(parameterTypeSymbol => GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable: false, isForDereference))
-                .ToImmutableArray();
+                .SelectManyAsArray(parameterTypeSymbol =>
+                    GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable, isForDereference));
         }
 
         private ImmutableArray<ITypeSymbol> SubstituteTypeParameters(ImmutableArray<ITypeSymbol> parameterTypeSymbols, SyntaxNode invocationExpression)

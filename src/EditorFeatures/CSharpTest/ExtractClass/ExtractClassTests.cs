@@ -244,6 +244,50 @@ partial class Test
         }
 
         [Fact]
+        public async Task TestClass_Method()
+        {
+            var input = """
+                class R(string S)
+                {
+                    void $$M()
+                    {
+                    }
+                }
+                """;
+
+            var expected1 = """
+                class R(string S) : MyBase
+                {
+                }
+                """;
+
+            var expected2 = """
+                internal class MyBase
+                {
+                    void M()
+                    {
+                    }
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                FileName = "Test1.cs",
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestRecord_Property()
         {
             var input = """
@@ -324,6 +368,45 @@ partial class Test
             }.RunAsync();
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/62415")]
+        public async Task TestClass_PropertyAndImplicitField()
+        {
+            var input = """
+                class R(string S)
+                {
+                    public string $$S { get; set; } = S;
+                }
+                """;
+
+            var expected1 = """
+                class R(string S) : MyBase(S)
+                {
+                }
+                """;
+
+            var expected2 = """
+                class MyBase(string S)
+                {
+                    public string S { get; set; } = S;
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+            }.RunAsync();
+        }
+
         [Fact]
         public async Task TestRecordParam()
         {
@@ -339,6 +422,74 @@ partial class Test
                 TestCode = input,
                 FixedCode = input,
                 LanguageVersion = LanguageVersion.CSharp9,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestClassParam1()
+        {
+            var input = """
+                class R(string $$S)
+                {
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestClassParam2()
+        {
+            var input = """
+                class R(string $$S);
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestStructParam1()
+        {
+            var input = """
+                struct R(string $$S)
+                {
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestStructParam2()
+        {
+            var input = """
+                struct R(string $$S);
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.Preview,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
@@ -360,6 +511,27 @@ partial class Test
                 TestCode = input,
                 FixedCode = input,
                 LanguageVersion = LanguageVersion.CSharp10,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestStruct()
+        {
+            var input = """
+                struct R(string S)
+                {
+                    void $$M()
+                    {
+                    }
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.Preview,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }

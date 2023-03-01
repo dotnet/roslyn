@@ -7009,5 +7009,405 @@ class Program
 }
 """);
         }
+
+        [Fact]
+        public void PrimaryConstructors_01_EvaluateCapturedParameterInsideCapturingInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M()
+    {
+        return y;
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: There should be no error and IL should refer to a field 
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+            //            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            //@"{
+            //}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_02_EvaluateCapturedParameterInsideNonCapturingInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M1()
+    {
+        return y;
+    }
+
+    void M2()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M2",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: There should be no error and IL should refer to a field 
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+            //            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            //@"{
+            //}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_03_EvaluateCapturedParameterInsideInstanceConstructor()
+        {
+            var source =
+@"class C(int y)
+{
+    C() : this(1)
+    {
+    }
+
+    int M()
+    {
+        return y;
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_04_EvaluateCapturedParameterInsideInstanceConstructorInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+    C() :
+#line 100
+          this(1)
+#line 200
+    {
+    }
+
+    int M()
+    {
+        return y;
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                atLineNumber: 100,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_05_EvaluateNotCapturedParameterInsideInstanceMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    void M()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_06_EvaluateNotCapturedParameterInsideInstanceConstructor()
+        {
+            var source =
+@"class C(int y)
+{
+    C() : this(1)
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_07_EvaluateNotCapturedParameterInsideInstanceConstructorInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+    C() :
+#line 100
+          this(1)
+#line 200
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor()",
+                atLineNumber: 100,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_08_EvaluateCapturedParameterInsideInstanceFieldInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+#line 100
+    int Y = y;
+#line 200
+    int M() => y;
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100,
+                expr: "y");
+
+            // https://github.com/dotnet/roslyn/issues/67107: Should access the field instead.
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_09_EvaluateCapturedParameterInsidePrimaryConstructorInitializer()
+        {
+            var source =
+@"class C(int y) : 
+#line 100
+                   Base(1)
+#line 200
+{
+    int M() => y;
+}
+
+class Base(int x);
+";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100,
+                expr: "y");
+
+            // https://github.com/dotnet/roslyn/issues/67107: Should access the field instead.
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_10_EvaluateNotCapturedParameterInsideInstanceFieldInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+#line 100
+    int Y = y;
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100,
+                expr: "y");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_11_EvaluateNotCapturedParameterInsidePrimaryConstructorInitializer()
+        {
+            var source =
+@"class C(int y) : 
+#line 100
+                   Base(1)
+#line 200
+{
+}
+
+class Base(int x);
+";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..ctor",
+                atLineNumber: 100,
+                expr: "y");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_12_EvaluateCapturedParameterInsideStaticMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    int M1()
+    {
+        return y;
+    }
+
+    static void M2()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M2",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_13_EvaluateNotCapturedParameterInsideStaticMethod()
+        {
+            var source =
+@"class C(int y)
+{
+    static void M()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_14_EvaluateCapturedParameterInsideStaticFieldInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+#line 100
+    static int Y = 1;
+#line 200
+    int M() => y;
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..cctor",
+                atLineNumber: 100,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void PrimaryConstructors_15_EvaluateNotCapturedParameterInsideStaticFieldInitializer()
+        {
+            var source =
+@"class C(int y)
+{
+#line 100
+    static int Y = 1;
+#line 200
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C..cctor",
+                atLineNumber: 100,
+                expr: "y",
+                resultProperties: out _,
+                error: out string error);
+
+            // https://github.com/dotnet/roslyn/issues/67107: Probably should report 
+            // error CS9105: Cannot use primary constructor parameter 'int y' in this context.
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+        }
     }
 }
