@@ -238,8 +238,6 @@ class T
         [Fact]
         public async Task TestNotWithMissingCurly1()
         {
-            // Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
-            // fixing first.
             await TestMissingAsync(
 @"using System;
 
@@ -255,8 +253,6 @@ class T
         [Fact]
         public async Task TestNotWithMissingCurly2()
         {
-            // Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
-            // fixing first.
             await TestMissingAsync(
 @"using System;
 
@@ -272,8 +268,6 @@ class T
         [Fact]
         public async Task TestNotWithIncorrectSyntax1()
         {
-            // Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
-            // fixing first.
             await TestMissingAsync(
 @"using System;
 
@@ -287,10 +281,24 @@ class T
         }
 
         [Fact]
+        public async Task TestNotWithMatchWithFollowingNumber()
+        {
+            // want to make sure that `{1` is not matched as `{1}`
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{0}{12}"", 1, 2)|];
+    }
+}");
+        }
+
+        [Fact]
         public async Task TestNotWithStringThatParsesWrongAsInterpolation()
         {
-            // Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
-            // fixing first.
             await TestMissingAsync(
 @"using System;
 
