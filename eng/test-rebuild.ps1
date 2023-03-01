@@ -34,6 +34,7 @@ try {
   if (-not $noBuild) {
     Write-Host "Building Roslyn"
     Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
+  }
 
   Subst-TempDir
 
@@ -83,7 +84,6 @@ finally {
       $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
       Copy-Item $_.FullName (Join-Path $jsonDest $path)
     }
-  }
 
   Unsubst-TempDir
   Pop-Location
