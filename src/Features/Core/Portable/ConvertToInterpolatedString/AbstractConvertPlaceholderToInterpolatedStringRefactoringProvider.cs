@@ -173,7 +173,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             bool ContainsIndex(string stringLiteralText, string indexString)
             {
                 var currentLocation = 0;
-                while (true) {
+                while (true)
+                {
                     currentLocation = stringLiteralText.IndexOf(indexString, currentLocation);
                     if (currentLocation < 0)
                         return false;
