@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -142,8 +143,12 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         {
                             var remainingArgCount = arguments.Count - i - 1;
                             Debug.Assert(remainingArgCount > 0);
-                            if (IsValidPlaceholderArgument(expression.GetFirstToken(), remainingArgCount))
-                                return (TArgumentSyntax)argument;
+                            var stringLiteralText = expression.GetFirstToken().Text;
+                            if (stringLiteralText.Contains("{") && stringLiteralText.Contains("}"))
+                            {
+                                if (IsValidPlaceholderArgument(stringLiteralText, remainingArgCount))
+                                    return (TArgumentSyntax)argument;
+                            }
                         }
                     }
                 }
@@ -151,17 +156,50 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return null;
             }
 
-            bool IsValidPlaceholderArgument(SyntaxToken stringToken, int remainingArgCount)
+            bool IsValidPlaceholderArgument(string stringLiteralText, int remainingArgCount)
             {
                 // See how many arguments follow the `"...{0}..."`.  We have to have a {0}, {1}, ... {N} part in the
                 // string for each of them.  Note, those could be in any order.
                 for (var i = 0; i < remainingArgCount; i++)
                 {
-                    if (!stringToken.Text.Contains($"{{{i}}}"))
+                    var indexString = i.ToString(CultureInfo.InvariantCulture);
+                    if (!ContainsIndex(stringLiteralText, indexString))
                         return false;
                 }
 
                 return true;
+            }
+
+            bool ContainsIndex(string stringLiteralText, string indexString)
+            {
+                var currentLocation = 0;
+                while (true) {
+                    currentLocation = stringLiteralText.IndexOf(indexString, currentLocation);
+                    if (currentLocation < 0)
+                        return false;
+
+                    if (currentLocation + 1 >= stringLiteralText.Length)
+                        return false;
+
+                    // while we found the number, it was followed by another number.  so this isn't a valid match.  Keep looking.
+                    if (stringLiteralText[currentLocation + 1] is >= '0' and <= '9')
+                        continue;
+
+                    // now check if the number is preceeded by whitespace and a '{'
+
+                    var lookbackLocation = currentLocation - 1;
+                    while (lookbackLocation > 0 && char.IsWhiteSpace(stringLiteralText[lookbackLocation]))
+                        lookbackLocation--;
+
+                    if (stringLiteralText[lookbackLocation] != '{')
+                    {
+                        // not a match, keep looking.
+                        continue;
+                    }
+
+                    // success.  we found `{ N`
+                    return true;
+                }
             }
         }
 
