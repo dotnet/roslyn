@@ -1225,27 +1225,36 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
             bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
             ImmutableArray<IOperation> elementValues = CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers);
-            IOperation collectionCreation;
-            if (collectionType is IArrayTypeSymbol arrayType)
+
+            var spanConstructor = boundCollectionLiteralExpression.SpanConstructor?.GetPublicSymbol();
+            var arrayType = (IArrayTypeSymbol)(spanConstructor is null ? collectionType : spanConstructor.Parameters[0].Type);
+            IOperation size = new LiteralOperation(
+                _semanticModel,
+                syntax,
+                _semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32),
+                ConstantValue.Create(boundCollectionLiteralExpression.Initializers.Length),
+                isImplicit: true);
+            IOperation collectionCreation = new ArrayCreationOperation(
+                ImmutableArray.Create(size),
+                initializer: null,
+                _semanticModel,
+                syntax,
+                arrayType,
+                isImplicit: true);
+
+            if (spanConstructor is { })
             {
-                collectionCreation = createArray(arrayType);
-            }
-            else
-            {
-                var spanConstructor = boundCollectionLiteralExpression.SpanConstructor;
-                Debug.Assert(spanConstructor is { });
-                var constructorParameter = spanConstructor.Parameters[0].GetPublicSymbol();
                 IArgumentOperation constructorArgument = new ArgumentOperation(
                     ArgumentKind.Explicit,
-                    constructorParameter,
-                    createArray(constructorParameter.Type),
+                    spanConstructor.Parameters[0],
+                    collectionCreation,
                     OperationFactory.IdentityConversion,
                     OperationFactory.IdentityConversion,
                     _semanticModel,
                     syntax,
                     isImplicit: true);
                 collectionCreation = new ObjectCreationOperation(
-                    spanConstructor.GetPublicSymbol(),
+                    spanConstructor,
                     initializer: null,
                     ImmutableArray.Create(constructorArgument),
                     _semanticModel,
@@ -1254,18 +1263,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     constantValue: null,
                     isImplicit: true);
             }
-            return new CollectionLiteralOperation(collectionCreation, elementValues, _semanticModel, syntax, collectionType, isImplicit: isImplicit);
 
-            ArrayCreationOperation createArray(ITypeSymbol arrayType)
-            {
-                var size = new LiteralOperation(
-                    _semanticModel,
-                    syntax,
-                    _semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32),
-                    ConstantValue.Create(boundCollectionLiteralExpression.Initializers.Length),
-                    isImplicit: true);
-                return new ArrayCreationOperation(ImmutableArray.Create<IOperation>(size), initializer: null, _semanticModel, syntax, arrayType, isImplicit: true);
-            }
+            return new CollectionLiteralOperation(collectionCreation, elementValues, _semanticModel, syntax, collectionType, isImplicit: isImplicit);
         }
 
         private IOperation CreateBoundCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression boundCollectionLiteralExpression)

@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode syntax,
                 MethodSymbol? spanConstructor,
                 BoundObjectOrCollectionValuePlaceholder implicitReceiver,
-                ImmutableArray< BoundExpression> elements,
+                ImmutableArray<BoundExpression> elements,
                 TypeSymbol elementType,
                 BindingDiagnosticBag diagnostics)
             {

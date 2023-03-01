@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var initializers = node.Initializers;
             int arrayLength = initializers.Length;
+            // PROTOTYPE: Should [] be emitted as Array.Empty<T>()?
             var initialization = (arrayLength == 0)
                 ? null
                 : new BoundArrayInitialization(
