@@ -951,6 +951,122 @@ namespace X
         Public Async Function TestNintNUint1(testHost As TestHost) As Task
             Dim input =
             <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        $${|Reference:nint|} n1 = 1;
+        nuint n2 = 1;
+        {|Reference:nint|} n3 = 1;
+        nuint n4 = 1;
+        IntPtr n5 = 1;
+        UIntPtr n6 = 1;
+        IntPtr n7 = 1;
+        UIntPtr n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint2(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        nint n1 = 1;
+        nuint n2 = 1;
+        nint n3 = 1;
+        nuint n4 = 1;
+        $${|Reference:IntPtr|} n5 = 1;
+        UIntPtr n6 = 1;
+        {|Reference:IntPtr|} n7 = 1;
+        UIntPtr n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint3(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        nint n1 = 1;
+        $${|Reference:nuint|} n2 = 1;
+        nint n3 = 1;
+        {|Reference:nuint|} n4 = 1;
+        IntPtr n5 = 1;
+        UIntPtr n6 = 1;
+        IntPtr n7 = 1;
+        UIntPtr n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint4(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        nint n1 = 1;
+        nuint n2 = 1;
+        nint n3 = 1;
+        nuint n4 = 1;
+        IntPtr n5 = 1;
+        $${|Reference:UIntPtr|} n6 = 1;
+        IntPtr n7 = 1;
+        {|Reference:UIntPtr|} n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint1_Net7(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
                 <Project Language="C#" CommonReferencesNet7="true">
                     <Document>
 using System;
@@ -977,7 +1093,7 @@ class Test
 
         <WpfTheory, CombinatorialData>
         <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
-        Public Async Function TestNintNUint2(testHost As TestHost) As Task
+        Public Async Function TestNintNUint2_Net7(testHost As TestHost) As Task
             Dim input =
             <Workspace>
                 <Project Language="C#" CommonReferencesNet7="true">
@@ -1006,7 +1122,7 @@ class Test
 
         <WpfTheory, CombinatorialData>
         <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
-        Public Async Function TestNintNUint3(testHost As TestHost) As Task
+        Public Async Function TestNintNUint3_Net7(testHost As TestHost) As Task
             Dim input =
             <Workspace>
                 <Project Language="C#" CommonReferencesNet7="true">
@@ -1035,7 +1151,7 @@ class Test
 
         <WpfTheory, CombinatorialData>
         <WorkItem(42988, "https://github.com/dotnet/roslyn/issues/42988")>
-        Public Async Function TestNintNUint4(testHost As TestHost) As Task
+        Public Async Function TestNintNUint4_Net7(testHost As TestHost) As Task
             Dim input =
             <Workspace>
                 <Project Language="C#" CommonReferencesNet7="true">
