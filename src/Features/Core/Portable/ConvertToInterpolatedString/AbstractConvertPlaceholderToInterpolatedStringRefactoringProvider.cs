@@ -234,8 +234,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 }
                 else
                 {
-                    var castExpression = (TExpressionSyntax)syntaxGenerator.CastExpression(convertedType, syntaxGenerator.AddParentheses(argumentExpression)).WithAdditionalAnnotations(Simplifier.Annotation);
-                    builder.Add(castExpression);
+                    builder.Add((TExpressionSyntax)syntaxGenerator.CastExpression(convertedType, syntaxGenerator.AddParentheses(argumentExpression)));
                 }
             }
 
