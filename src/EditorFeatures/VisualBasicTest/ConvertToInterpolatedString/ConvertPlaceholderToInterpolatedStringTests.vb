@@ -96,6 +96,27 @@ End Module</File>.ConvertTestSourceTag()
         End Function
 
         <Fact>
+        Public Async Function TestItemOrdering4() As Task
+            Dim text = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = [|String.Format("{0}{1}{2}{0}{1}{2}", 1, 2, 3)|]
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Dim expected = <File>
+Imports System
+Module T
+    Sub M()
+        Dim a = $"{1 }{2 }{3 }{1 }{2 }{3 }"
+    End Sub
+End Module</File>.ConvertTestSourceTag()
+
+            Await TestInRegularAndScriptAsync(text, expected)
+        End Function
+
+        <Fact>
         Public Async Function TestItemOutsideRange() As Task
             ' Missing as the format string refers to parameters that aren't provided.
             Dim text = <File>

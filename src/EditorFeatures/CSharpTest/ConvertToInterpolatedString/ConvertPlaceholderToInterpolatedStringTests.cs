@@ -212,6 +212,98 @@ class T
         }
 
         [Fact]
+        public async Task TestItemOrdering4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{0}{1}{2}{0}{1}{2}"", 1, 2, 3)|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}{2}{3}{1}{2}{3}"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestNotWithMissingCurly1()
+        {
+            // Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
+            // fixing first.
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""0}{"", 1)|];
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestNotWithMissingCurly2()
+        {
+            // Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
+            // fixing first.
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""0{"", 1)|];
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestNotWithIncorrectSyntax1()
+        {
+            // Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
+            // fixing first.
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{:0}"", 1)|];
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestNotWithStringThatParsesWrongAsInterpolation()
+        {
+            // Missing as we have arguments we don't know what to do with here.  Likely a bug in user code that needs
+            // fixing first.
+            await TestMissingAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{0}{a +}"", 1)|];
+    }
+}");
+        }
+
+        [Fact]
         public async Task TestItemOutsideRange()
         {
             // Missing as the format string refers to parameters that aren't provided.
