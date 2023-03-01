@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         public Optional<object?> TryReadAndMonitorOptionValue(OptionKey2 primaryOptionKey, string primaryStorageKey, string storageKey, Type storageType, object? defaultValue)
         {
             Contract.ThrowIfNull(_settingManager);
-            ImmutableInterlocked.GetOrAdd(ref _storageKeysToMonitorForChanges, storageKey, _ => (primaryOptionKey, primaryStorageKey));
+            ImmutableInterlocked.GetOrAdd(ref _storageKeysToMonitorForChanges, storageKey, static (_, arg) => arg, factoryArgument: (primaryOptionKey, primaryStorageKey));
             return TryReadOptionValue(_settingManager, storageKey, storageType, defaultValue);
         }
 
