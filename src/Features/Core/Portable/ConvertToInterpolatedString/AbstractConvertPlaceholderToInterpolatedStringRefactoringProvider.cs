@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 {
                     // look for a string argument containing `"...{0}..."`, followed by more arguments.
                     var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
-                    for (int i = 0, n = arguments.Count - 2; i < n; i++)
+                    for (int i = 0, n = arguments.Count - 1; i < n; i++)
                     {
                         var argument = arguments[i];
                         var expression = syntaxFacts.GetExpressionOfArgument(argument);
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                             var remainingArgCount = arguments.Count - i - 1;
                             Debug.Assert(remainingArgCount > 0);
                             var stringLiteralText = expression.GetFirstToken().Text;
-                            if (stringLiteralText.Contains("{") && stringLiteralText.Contains("}"))
+                            if (stringLiteralText.Contains('{') && stringLiteralText.Contains('}'))
                             {
                                 if (IsValidPlaceholderArgument(stringLiteralText, remainingArgCount))
                                     return (TArgumentSyntax)argument;
@@ -172,10 +172,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             bool ContainsIndex(string stringLiteralText, string indexString)
             {
-                var currentLocation = 0;
+                var currentLocation = -1;
                 while (true)
                 {
-                    currentLocation = stringLiteralText.IndexOf(indexString, currentLocation);
+                    currentLocation = stringLiteralText.IndexOf(indexString, currentLocation + 1);
                     if (currentLocation < 0)
                         return false;
 
