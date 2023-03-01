@@ -300,6 +300,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
             Solution changedSolution,
             CancellationToken cancellationToken)
         {
+            // originalSolution is only null on backward compatible codepaths.  In that case, we get the workspace's
+            // current solution.  This is not ideal (as that is a mutable field that could be changing out from
+            // underneath us).  But it's the only option we have for the compat case with existing public extension
+            // points.
             originalSolution ??= changedSolution.Workspace.CurrentSolution;
             var solutionChanges = changedSolution.GetChanges(originalSolution);
 
