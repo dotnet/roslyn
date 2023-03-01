@@ -2162,9 +2162,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
         ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
         ERR_BadSpecialByRefUsing = 9104,
-        ERR_CollectionLiteralTargetTypeNotConstructible = 9105,
-        ERR_ExpressionTreeContainsCollectionLiteral = 9106,
-        ERR_CollectionLiteralElementNotImplemented = 9107, // PROTOTYPE: Temporary error until feature has been implemented.
+
+        ERR_CollectionLiteralTargetTypeNotConstructible = 9500, // PROTOTYPE: Update error numbers.
+        ERR_ExpressionTreeContainsCollectionLiteral = 9501,
+        ERR_CollectionLiteralElementNotImplemented = 9502, // PROTOTYPE: Temporary error until feature has been implemented.
 
         #endregion
 

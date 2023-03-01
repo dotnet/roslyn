@@ -1222,9 +1222,10 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateBoundArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression boundCollectionLiteralExpression)
         {
             SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
-            ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
             bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
             ImmutableArray<IOperation> elementValues = CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers);
+            ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
+            Debug.Assert(collectionType is { });
 
             var spanConstructor = boundCollectionLiteralExpression.SpanConstructor?.GetPublicSymbol();
             var arrayType = (IArrayTypeSymbol)(spanConstructor is null ? collectionType : spanConstructor.Parameters[0].Type);

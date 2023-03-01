@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Missing = MessageBase + 12830,
         IDS_FeatureLambdaOptionalParameters = MessageBase + 12831,
         IDS_FeatureLambdaParamsArray = MessageBase + 12832,
-        IDS_FeatureCollectionLiterals = MessageBase + 12833,
+        IDS_FeatureCollectionLiterals = MessageBase + 12900, // PROTOTYPE: Update message number.
     }
 
     // Message IDs may refer to strings that need to be localized.

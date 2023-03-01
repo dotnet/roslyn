@@ -133,10 +133,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9105: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("object").WithLocation(5, 20),
-                // (6,21): error CS9105: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
+                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("dynamic").WithLocation(6, 21),
                 // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
@@ -160,10 +160,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9105: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object x = [1];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("object").WithLocation(5, 20),
-                // (6,21): error CS9105: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
+                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("dynamic").WithLocation(6, 21),
                 // (7,13): error CS0815: Cannot assign collection literals to an implicitly-typed variable
@@ -186,10 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,23): error CS9105: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (5,23): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object[] x = [[]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("object").WithLocation(5, 23),
-                // (6,23): error CS9105: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (6,23): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object[] y = [[2]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("object").WithLocation(6, 23));
         }
@@ -501,10 +501,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,23): error CS9105: Cannot initialize type 'object[*,*]' with a collection literal because the type is not constructible.
+                // (5,23): error CS9500: Cannot initialize type 'object[*,*]' with a collection literal because the type is not constructible.
                 //         object[,] x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("object[*,*]").WithLocation(5, 23),
-                // (6,20): error CS9105: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible.
+                // (6,20): error CS9500: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible.
                 //         int[,] y = [null, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null, 2]").WithArguments("int[*,*]").WithLocation(6, 20),
                 // (6,21): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
@@ -806,10 +806,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,5): error CS9105: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (2,5): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 // s = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(2, 5),
-                // (3,5): error CS9105: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (3,5): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 // s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(3, 5));
         }
@@ -1290,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (16,57): error CS9105: Cannot initialize type 'T?' with a collection literal because the type is not constructible.
+                // (16,57): error CS9500: Cannot initialize type 'T?' with a collection literal because the type is not constructible.
                 //     static T? Create2<T, U>() where T : struct, I<U> => [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("T?").WithLocation(16, 57));
         }
@@ -1318,7 +1318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,14): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<int, int>.Add(int, int)'
                 //         d = [new KeyValuePair<int, int>(1, 2)];
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new KeyValuePair<int, int>(1, 2)").WithArguments("value", "System.Collections.Generic.Dictionary<int, int>.Add(int, int)").WithLocation(8, 14),
-                // (9,14): error CS9107: Support for collection literal dictionary and spread elements has not been implemented.
+                // (9,14): error CS9502: Support for collection literal dictionary and spread elements has not been implemented.
                 //         d = [3:4];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "3:4").WithLocation(9, 14));
         }
@@ -1339,10 +1339,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9107: Support for collection literal dictionary and spread elements has not been implemented.
+                // (7,14): error CS9502: Support for collection literal dictionary and spread elements has not been implemented.
                 //         a = [..a, ..[1, 2]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "..a").WithLocation(7, 14),
-                // (7,19): error CS9107: Support for collection literal dictionary and spread elements has not been implemented.
+                // (7,19): error CS9502: Support for collection literal dictionary and spread elements has not been implemented.
                 //         a = [..a, ..[1, 2]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralElementNotImplemented, "..[1, 2]").WithLocation(7, 19));
         }
@@ -1476,16 +1476,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,24): error CS9105: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
+                // (13,24): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         S<object>? x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S<object>?").WithLocation(13, 24),
-                // (14,13): error CS9105: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
+                // (14,13): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S<object>?").WithLocation(14, 13),
-                // (15,24): error CS9105: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
+                // (15,24): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         S<object>? y = [1];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("S<object>?").WithLocation(15, 24),
-                // (16,13): error CS9105: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
+                // (16,13): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         y = [2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("S<object>?").WithLocation(16, 13));
         }
@@ -1619,13 +1619,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,22): error CS9106: An expression tree may not contain a collection literal.
+                // (13,22): error CS9501: An expression tree may not contain a collection literal.
                 //         return () => [];
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral, "[]").WithLocation(13, 22),
-                // (17,22): error CS9106: An expression tree may not contain a collection literal.
+                // (17,22): error CS9501: An expression tree may not contain a collection literal.
                 //         return () => [1, 2];
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral, "[1, 2]").WithLocation(17, 22),
-                // (21,22): error CS9106: An expression tree may not contain a collection literal.
+                // (21,22): error CS9501: An expression tree may not contain a collection literal.
                 //         return () => [a, b];
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral, "[a, b]").WithLocation(21, 22));
         }
