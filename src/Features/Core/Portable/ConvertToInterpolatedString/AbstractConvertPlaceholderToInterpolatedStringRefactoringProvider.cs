@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     var invocation = argument?.Parent?.Parent as TInvocationExpressionSyntax;
                     var placeholderArgument = FindValidPlaceholderArgument(invocation);
                     if (placeholderArgument != null)
-                        return (invocation, argument);
+                        return (invocation, placeholderArgument);
                 }
 
                 {
