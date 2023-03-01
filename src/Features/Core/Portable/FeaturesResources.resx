@@ -3203,7 +3203,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Document_Highlighting" xml:space="preserve">
     <value>Document Highlighting</value>
   </data>
-  <data name="Symbol_Description" xml:space="preserve">
-    <value>Symbol Description</value>
+  <data name="Quick_Info" xml:space="preserve">
+    <value>Quick Info</value>
   </data>
 </root>

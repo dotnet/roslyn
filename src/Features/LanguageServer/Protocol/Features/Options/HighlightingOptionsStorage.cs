@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Globalization;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -16,7 +15,7 @@ internal static class HighlightingOptionsStorage
             HighlightRelatedJsonComponentsUnderCursor = globalOptions.GetOption(HighlightRelatedJsonComponentsUnderCursor, language)
         };
 
-    private static readonly OptionGroup s_documentHighlightingGroup = new(description: FeaturesResources.Document_Highlighting, name: "Document Highlighting");
+    private static readonly OptionGroup s_documentHighlightingGroup = new(name: "Document Highlighting", description: FeaturesResources.Document_Highlighting);
 
     public static PerLanguageOption2<bool> HighlightRelatedRegexComponentsUnderCursor =
         new("dotnet_highlight_related_regex_components",

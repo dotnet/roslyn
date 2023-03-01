@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Globalization;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -19,7 +18,7 @@ internal static class MetadataAsSourceOptionsStorage
             NavigateToSourceLinkAndEmbeddedSources = globalOptions.GetOption(NavigateToSourceLinkAndEmbeddedSources),
         };
 
-    private static readonly OptionGroup s_navigationGroup = new(description: FeaturesResources.Navigation, name: "Navigation");
+    private static readonly OptionGroup s_navigationGroup = new(name: "Navigation", description: FeaturesResources.Navigation);
 
     public static Option2<bool> NavigateToDecompiledSources = new("dotnet_navigate_to_decompiled_sources", defaultValue: true, group: s_navigationGroup);
     public static Option2<bool> AlwaysUseDefaultSymbolServers = new("dotnet_always_use_default_symbol_servers", defaultValue: true, group: s_navigationGroup);

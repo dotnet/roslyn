@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Globalization;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -16,12 +15,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 SearchNuGetPackages = globalOptions.GetOption(SearchNuGetPackages, language)
             };
 
+        private static readonly OptionGroup s_optionGroup = new(name: "Symbol Search", description: FeaturesResources.Symbol_Search);
+
         public static PerLanguageOption2<bool> SearchReferenceAssemblies =
             new("dotnet_search_reference_assemblies",
                 SymbolSearchOptions.Default.SearchReferenceAssemblies,
-                group: new OptionGroup(description: FeaturesResources.Symbol_Search, name: "Symbol Search"));
+                group: s_optionGroup);
 
         public static PerLanguageOption2<bool> SearchNuGetPackages =
-            new("dotnet_search_nuget_packages", SymbolSearchOptions.Default.SearchNuGetPackages);
+            new("dotnet_search_nuget_packages", SymbolSearchOptions.Default.SearchNuGetPackages, group: s_optionGroup);
     }
 }
