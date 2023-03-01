@@ -11151,5 +11151,31 @@ class Program
                 Await state.AssertSelectedCompletionItem(displayText:="Program", isHardSelected:=True)
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(42910, "https://github.com/dotnet/roslyn/issues/42910")>
+        Public Async Function CompletionOffOfNullableLambdaParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+struct TestStruct
+{
+    public int TestField;
+}
+
+class Program
+{
+    void Main() => TestMethod1(x => { return x?.$$ });
+
+    void TestMethod1(Predicate<TestStruct?> predicate) => default;
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="TestField", displayTextSuffix:="")
+            End Using
+        End Function
     End Class
 End Namespace
