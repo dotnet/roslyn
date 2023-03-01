@@ -73,7 +73,7 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
         foreach (var (key, flag) in storages)
         {
             var defaultFlagValue = defaultValue & flag;
-            var value = read(key, typeof(bool), (defaultFlagValue != 0) ? Boxes.BoxedTrue : Boxes.BoxedFalse);
+            var value = read(key, typeof(bool), Boxes.Box(defaultFlagValue != 0));
             if (value.HasValue)
             {
                 if ((bool)value.Value!)
