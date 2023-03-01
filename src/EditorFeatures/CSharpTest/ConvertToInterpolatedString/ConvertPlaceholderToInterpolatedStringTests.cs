@@ -902,7 +902,7 @@ class T
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(1756068, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1756068")]
         public async Task TestArbitraryAPI()
         {
             await TestInRegularAndScriptAsync(
