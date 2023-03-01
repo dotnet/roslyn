@@ -71,10 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
         public async Task UpgradeProjectFromCSharp7_2ToCSharp8()
         {
             await TestLanguageVersionUpgradedAsync(
-@"class C
-{
-    object F = [|null!|];
-}",
+                """
+                class C
+                {
+                    object F = [|null!|];
+                }
+                """,
                 LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
@@ -83,10 +85,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
         public async Task UpgradeProjectFromCSharp7ToCSharp8()
         {
             await TestLanguageVersionUpgradedAsync(
-@"class C
-{
-    object F = [|null!|];
-}",
+                """
+                class C
+                {
+                    object F = [|null!|];
+                }
+                """,
                 LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
@@ -95,14 +99,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
         public async Task UpgradeProjectFromCSharp6ToCSharp7()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Program
-{
-    void A()
-    {
-        var x = [|(1, 2)|];
-    }
-}",
+                """
+                class Program
+                {
+                    void A()
+                    {
+                        var x = [|(1, 2)|];
+                    }
+                }
+                """,
                 LanguageVersion.CSharp7,
                 new CSharpParseOptions(LanguageVersion.CSharp6));
         }
@@ -111,14 +116,15 @@ class Program
         public async Task UpgradeProjectFromCSharp5ToCSharp6()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Program
-{
-    void A()
-    {
-        var x = [|nameof(A)|];
-    }
-}",
+                """
+                class Program
+                {
+                    void A()
+                    {
+                        var x = [|nameof(A)|];
+                    }
+                }
+                """,
                 LanguageVersion.CSharp6,
                 new CSharpParseOptions(LanguageVersion.CSharp5));
         }
@@ -127,14 +133,15 @@ class Program
         public async Task UpgradeProjectFromCSharp4ToCSharp5()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Program
-{
-    void A()
-    {
-        Func<int, Task<int>> f = [|async|] x => x;
-    }
-}",
+                """
+                class Program
+                {
+                    void A()
+                    {
+                        Func<int, Task<int>> f = [|async|] x => x;
+                    }
+                }
+                """,
                 LanguageVersion.CSharp5,
                 new CSharpParseOptions(LanguageVersion.CSharp4));
         }
@@ -156,32 +163,32 @@ class Program
         public async Task UpgradeProjectFromCSharp7To7_1_TriggeredByInferredTupleNames()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Program
-{
-    void M()
-    {
-        int b = 2;
-        var t = (1, b);
-        System.Console.Write(t.[|b|]);
-    }
-}
+                """
+                class Program
+                {
+                    void M()
+                    {
+                        int b = 2;
+                        var t = (1, b);
+                        System.Console.Write(t.[|b|]);
+                    }
+                }
 
-namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public T1 Item1;
-        public T2 Item2;
+                namespace System
+                {
+                    public struct ValueTuple<T1, T2>
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
 
-        public ValueTuple(T1 item1, T2 item2)
-        {
-            this.Item1 = item1;
-            this.Item2 = item2;
-        }
-    }
-}
-",
+                        public ValueTuple(T1 item1, T2 item2)
+                        {
+                            this.Item1 = item1;
+                            this.Item2 = item2;
+                        }
+                    }
+                }
+                """,
                 LanguageVersion.CSharp7_1,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
@@ -203,11 +210,12 @@ class Program
         public async Task UpgradeProjectFromCSharp7ToCSharp7_1()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Program
-{
-#error [|version:7.1|]
-}",
+                """
+                class Program
+                {
+                #error [|version:7.1|]
+                }
+                """,
                 LanguageVersion.CSharp7_1,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
@@ -216,14 +224,15 @@ class Program
         public async Task UpgradeProjectWithNonTrailingNamedArgumentToCSharp7_2()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Program
-{
-    void M()
-    {
-        [|M2(a: 1, 2);|]
-    }
-}",
+                """
+                class Program
+                {
+                    void M()
+                    {
+                        [|M2(a: 1, 2);|]
+                    }
+                }
+                """,
                 LanguageVersion.CSharp7_2,
                 new CSharpParseOptions(LanguageVersion.CSharp7_1));
         }
@@ -232,16 +241,17 @@ class Program
         public async Task UpgradeProjectFromCSharp7ToCSharp7_1_B()
         {
             await TestLanguageVersionUpgradedAsync(
-@"public class Base { }
-public class Derived : Base { }
-public class Program
-{
-    public static void M<T>(T x) where T: Base
-    {
-        System.Console.Write(x is [|Derived|] b0);
-    }
-}
-",
+                """
+                public class Base { }
+                public class Derived : Base { }
+                public class Program
+                {
+                    public static void M<T>(T x) where T: Base
+                    {
+                        System.Console.Write(x is [|Derived|] b0);
+                    }
+                }
+                """,
                 LanguageVersion.CSharp7_1,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
@@ -264,13 +274,14 @@ class Program
         public async Task UpgradeProjectFromCSharp7_2To7_3_TriggeredByAttributeOnBackingField()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class A : System.Attribute { }
-class Program
-{
-    [|[field: A]|]
-    int P { get; set; }
-}",
+                """
+                class A : System.Attribute { }
+                class Program
+                {
+                    [|[field: A]|]
+                    int P { get; set; }
+                }
+                """,
                 LanguageVersion.CSharp7_3,
                 new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
@@ -279,10 +290,11 @@ class Program
         public async Task UpgradeProjectFromCSharp7_2To7_3_EnumConstraint()
         {
             await TestLanguageVersionUpgradedAsync(
-@"public class X<T> where T : [|System.Enum|]
-{
-}
-",
+                """
+                public class X<T> where T : [|System.Enum|]
+                {
+                }
+                """,
                 LanguageVersion.CSharp7_3,
                 new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
@@ -291,10 +303,11 @@ class Program
         public async Task UpgradeProjectFromCSharp7_2To7_3_DelegateConstraint()
         {
             await TestLanguageVersionUpgradedAsync(
-@"public class X<T> where T : [|System.Delegate|]
-{
-}
-",
+                """
+                public class X<T> where T : [|System.Delegate|]
+                {
+                }
+                """,
                 LanguageVersion.CSharp7_3,
                 new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
@@ -303,10 +316,11 @@ class Program
         public async Task UpgradeProjectFromCSharp7_2To7_3_MulticastDelegateConstraint()
         {
             await TestLanguageVersionUpgradedAsync(
-@"public class X<T> where T : [|System.MulticastDelegate|]
-{
-}
-",
+                """
+                public class X<T> where T : [|System.MulticastDelegate|]
+                {
+                }
+                """,
                 LanguageVersion.CSharp7_3,
                 new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
@@ -343,14 +357,15 @@ class Program
         public async Task UpgradeProjectForVerbatimInterpolatedString()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Program
-{
-    void A()
-    {
-        var x = [|@$""hello""|];
-    }
-}",
+                """
+                class Program
+                {
+                    void A()
+                    {
+                        var x = [|@$"hello"|];
+                    }
+                }
+                """,
                 expected: LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
@@ -360,25 +375,27 @@ class Program
         public async Task UpgradeAllProjectsToCSharp7()
         {
             await TestLanguageVersionUpgradedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    void A()
-    {
-        var x = [|(1, 2)|];
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""7"" CommonReferences=""true"">
-    </Project>
-    <Project Language=""Visual Basic"">
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="true">
+                        <Document>
+                class C
+                {
+                    void A()
+                    {
+                        var x = [|(1, 2)|];
+                    }
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="true">
+                    </Project>
+                    <Project Language="C#" LanguageVersion="7" CommonReferences="true">
+                    </Project>
+                    <Project Language="Visual Basic">
+                    </Project>
+                </Workspace>
+                """,
                 LanguageVersion.CSharp7,
                 parseOptions: null,
                 index: 1);
@@ -388,22 +405,24 @@ class C
         public async Task UpgradeAllProjectsToCSharp8()
         {
             await TestLanguageVersionUpgradedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    object F = [|null!|];
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""7"" CommonReferences=""true"">
-    </Project>
-    <Project Language=""Visual Basic"" CommonReferences=""true"">
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="true">
+                        <Document>
+                class C
+                {
+                    object F = [|null!|];
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="true">
+                    </Project>
+                    <Project Language="C#" LanguageVersion="7" CommonReferences="true">
+                    </Project>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                    </Project>
+                </Workspace>
+                """,
                 LanguageVersion.CSharp8,
                 parseOptions: null,
                 index: 1);
@@ -413,26 +432,28 @@ class C
         public async Task UpgradeAllProjectsToCSharp8_NullableReferenceType()
         {
             await TestLanguageVersionUpgradedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""True"">
-        <Document>
-class C
-{
-    void A(string[|?|] s)
-    {
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""6"">
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""7"">
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""8"">
-    </Project>
-    <Project Language=""Visual Basic"">
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="True">
+                        <Document>
+                class C
+                {
+                    void A(string[|?|] s)
+                    {
+                    }
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" LanguageVersion="6">
+                    </Project>
+                    <Project Language="C#" LanguageVersion="7">
+                    </Project>
+                    <Project Language="C#" LanguageVersion="8">
+                    </Project>
+                    <Project Language="Visual Basic">
+                    </Project>
+                </Workspace>
+                """,
                 LanguageVersion.CSharp8,
                 parseOptions: null,
                 index: 1);
@@ -442,21 +463,23 @@ class C
         public async Task UpgradeAllProjectsToCSharp9()
         {
             await TestLanguageVersionUpgradedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
-        <Document>
-[|System.Console.WriteLine();|]
-        </Document>
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""7"" CommonReferences=""true"">
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""8"" CommonReferences=""true"">
-    </Project>
-    <Project Language=""Visual Basic"" CommonReferences=""true"">
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="true">
+                        <Document>
+                [|System.Console.WriteLine();|]
+                        </Document>
+                    </Project>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="true">
+                    </Project>
+                    <Project Language="C#" LanguageVersion="7" CommonReferences="true">
+                    </Project>
+                    <Project Language="C#" LanguageVersion="8" CommonReferences="true">
+                    </Project>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                    </Project>
+                </Workspace>
+                """,
                 LanguageVersion.CSharp9,
                 parseOptions: null,
                 index: 1);
@@ -467,23 +490,25 @@ class C
         {
             await TestExactActionSetOfferedAsync(
 
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    void A()
-    {
-        var x = [|(1, 2)|];
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""7"" CommonReferences=""true"">
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="true">
+                        <Document>
+                class C
+                {
+                    void A()
+                    {
+                        var x = [|(1, 2)|];
+                    }
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" LanguageVersion="7" CommonReferences="true">
+                    </Project>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="true">
+                    </Project>
+                </Workspace>
+                """,
                 new[] {
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
@@ -495,23 +520,25 @@ class C
         {
             await TestExactActionSetOfferedAsync(
 
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
-        <Document>
-class C
-{
-    void A()
-    {
-#error version:[|8|]
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""7"">
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""8"">
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="6">
+                        <Document>
+                class C
+                {
+                    void A()
+                    {
+                #error version:[|8|]
+                    }
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" LanguageVersion="7">
+                    </Project>
+                    <Project Language="C#" LanguageVersion="8">
+                    </Project>
+                </Workspace>
+                """,
                 new[]
                 {
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
@@ -525,21 +552,23 @@ class C
         {
             await TestExactActionSetOfferedAsync(
 
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    void A()
-    {
-        var x = [|(1, 2)|];
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""Visual Basic"" CommonReferences=""true"">
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="true">
+                        <Document>
+                class C
+                {
+                    void A()
+                    {
+                        var x = [|(1, 2)|];
+                    }
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                    </Project>
+                </Workspace>
+                """,
                 new[] {
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
                     });
@@ -550,23 +579,25 @@ class C
         {
             await TestExactActionSetOfferedAsync(
 
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    void A()
-    {
-        var x = [|(1, 2)|];
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""7"" CommonReferences=""true"">
-    </Project>
-    <Project Language=""Visual Basic"" CommonReferences=""true"">
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="true">
+                        <Document>
+                class C
+                {
+                    void A()
+                    {
+                        var x = [|(1, 2)|];
+                    }
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" LanguageVersion="7" CommonReferences="true">
+                    </Project>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                    </Project>
+                </Workspace>
+                """,
                 new[] {
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
                     });
@@ -606,20 +637,22 @@ class C
         {
             await TestExactActionSetOfferedAsync(
 
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    object F = [|null!|];
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""8"" CommonReferences=""true"">
-    </Project>
-    <Project Language=""Visual Basic"" CommonReferences=""true"">
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="6" CommonReferences="true">
+                        <Document>
+                class C
+                {
+                    object F = [|null!|];
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" LanguageVersion="8" CommonReferences="true">
+                    </Project>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                    </Project>
+                </Workspace>
+                """,
             new[] {
                 string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
                 });
@@ -658,11 +691,13 @@ class C
         public async Task UpgradeProjectWithUnconstrainedNullableTypeParameter()
         {
             await TestLanguageVersionUpgradedAsync(
-@"#nullable enable
-class C<T>
-{
-    static void F([|T?|] t) { }
-}",
+                """
+                #nullable enable
+                class C<T>
+                {
+                    static void F([|T?|] t) { }
+                }
+                """,
                 LanguageVersion.CSharp9,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
@@ -671,10 +706,11 @@ class C<T>
         public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Type()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Test<T> where T : [|unmanaged|]
-{
-}",
+                """
+                class Test<T> where T : [|unmanaged|]
+                {
+                }
+                """,
                 LanguageVersion.CSharp7_3,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
@@ -683,16 +719,18 @@ class Test<T> where T : [|unmanaged|]
         public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Type_AlreadyDefined()
         {
             await TestExactActionSetOfferedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""7"">
-        <Document>
-interface unmanaged { }
-class Test&lt;T&gt; where T : [|unmanaged|]
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="7">
+                        <Document>
+                interface unmanaged { }
+                class Test&lt;T&gt; where T : [|unmanaged|]
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 expectedActionSet: Enumerable.Empty<string>());
         }
 
@@ -700,11 +738,12 @@ class Test&lt;T&gt; where T : [|unmanaged|]
         public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Method()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Test
-{
-    public void M<T>() where T : [|unmanaged|] { }
-}",
+                """
+                class Test
+                {
+                    public void M<T>() where T : [|unmanaged|] { }
+                }
+                """,
                 LanguageVersion.CSharp7_3,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
@@ -713,17 +752,19 @@ class Test
         public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Method_AlreadyDefined()
         {
             await TestExactActionSetOfferedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""7"">
-        <Document>
-interface unmanaged { }
-class Test
-{
-    public void M&lt;T&gt;() where T : [|unmanaged|] { }
-}
-        </Document>
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="7">
+                        <Document>
+                interface unmanaged { }
+                class Test
+                {
+                    public void M&lt;T&gt;() where T : [|unmanaged|] { }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 expectedActionSet: Enumerable.Empty<string>());
         }
 
@@ -731,7 +772,7 @@ class Test
         public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Delegate()
         {
             await TestLanguageVersionUpgradedAsync(
-@"delegate void D<T>() where T : [|unmanaged|];",
+                @"delegate void D<T>() where T : [|unmanaged|];",
                 LanguageVersion.CSharp7_3,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
@@ -740,14 +781,16 @@ class Test
         public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Delegate_AlreadyDefined()
         {
             await TestExactActionSetOfferedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""7"">
-        <Document>
-interface unmanaged { }
-delegate void D&lt;T&gt;() where T : [| unmanaged |];
-        </Document>
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="7">
+                        <Document>
+                interface unmanaged { }
+                delegate void D&lt;T&gt;() where T : [| unmanaged |];
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 expectedActionSet: Enumerable.Empty<string>());
         }
 
@@ -755,14 +798,15 @@ delegate void D&lt;T&gt;() where T : [| unmanaged |];
         public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_LocalFunction()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Test
-{
-    public void N()
-    {
-        void M<T>() where T : [|unmanaged|] { }
-    }
-}",
+                """
+                class Test
+                {
+                    public void N()
+                    {
+                        void M<T>() where T : [|unmanaged|] { }
+                    }
+                }
+                """,
                 LanguageVersion.CSharp7_3,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
@@ -771,20 +815,22 @@ class Test
         public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_LocalFunction_AlreadyDefined()
         {
             await TestExactActionSetOfferedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""7"">
-        <Document>
-interface unmanaged { }
-class Test
-{
-    public void N()
-    {
-        void M&lt;T&gt;() where T : [|unmanaged|] { }
-    }
-}
-        </Document>
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="7">
+                        <Document>
+                interface unmanaged { }
+                class Test
+                {
+                    public void N()
+                    {
+                        void M&lt;T&gt;() where T : [|unmanaged|] { }
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 expectedActionSet: Enumerable.Empty<string>());
         }
 
@@ -792,12 +838,12 @@ class Test
         public async Task UpgradeProjectForDefaultInterfaceImplementation_CS8703()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-public interface I1
-{
-    public void [|M01|]();
-}
-",
+                """
+                public interface I1
+                {
+                    public void [|M01|]();
+                }
+                """,
                 expected: LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
@@ -806,27 +852,27 @@ public interface I1
         public async Task UpgradeProjectForDefaultInterfaceImplementation_CS8706()
         {
             await TestLanguageVersionNotUpgradedAsync(
-@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <ProjectReference>Assembly2</ProjectReference>
-        <Document FilePath=""Test1.cs"">
-class Test1 : [|I1|]
-{}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" LanguageVersion=""Preview"">
-        <Document FilePath=""Test2.cs"">
-public interface I1
-{
-    void M1() 
-    {
-    }
-}
-        </Document>
-    </Project>
-</Workspace>
-",
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <ProjectReference>Assembly2</ProjectReference>
+                        <Document FilePath="Test1.cs">
+                class Test1 : [|I1|]
+                {}
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true" LanguageVersion="Preview">
+                        <Document FilePath="Test2.cs">
+                public interface I1
+                {
+                    void M1() 
+                    {
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
 
@@ -834,11 +880,12 @@ public interface I1
         public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_01()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Test
-{
-    bool M<T>(T t) => t is [|null|];
-}",
+                """
+                class Test
+                {
+                    bool M<T>(T t) => t is [|null|];
+                }
+                """,
                 LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
@@ -847,11 +894,12 @@ class Test
         public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_02()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Test
-{
-    bool M<T>(T t) => t is [|100|];
-}",
+                """
+                class Test
+                {
+                    bool M<T>(T t) => t is [|100|];
+                }
+                """,
                 LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
@@ -860,11 +908,12 @@ class Test
         public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_03()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Test
-{
-    bool M<T>(T t) => t is [|""frog""|];
-}",
+                """
+                class Test
+                {
+                    bool M<T>(T t) => t is [|"frog"|];
+                }
+                """,
                 LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
@@ -873,10 +922,11 @@ class Test
         public async Task UpgradeProjectWithNotNullConstraintTo8_0_Type()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Test<T> where T : [|notnull|]
-{
-}",
+                """
+                class Test<T> where T : [|notnull|]
+                {
+                }
+                """,
                 LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
@@ -885,16 +935,18 @@ class Test<T> where T : [|notnull|]
         public async Task UpgradeProjectWithNotNullConstraintTo8_0_Type_AlreadyDefined()
         {
             await TestExactActionSetOfferedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""7.3"">
-        <Document>
-interface notnull { }
-class Test&lt;T&gt; where T : [|notnull|]
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="7.3">
+                        <Document>
+                interface notnull { }
+                class Test&lt;T&gt; where T : [|notnull|]
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 expectedActionSet: Enumerable.Empty<string>());
         }
 
@@ -902,11 +954,12 @@ class Test&lt;T&gt; where T : [|notnull|]
         public async Task UpgradeProjectWithNotNullConstraintTo8_0_Method()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Test
-{
-    public void M<T>() where T : [|notnull|] { }
-}",
+                """
+                class Test
+                {
+                    public void M<T>() where T : [|notnull|] { }
+                }
+                """,
                 LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
@@ -915,17 +968,19 @@ class Test
         public async Task UpgradeProjectWithNotNullConstraintTo8_0_Method_AlreadyDefined()
         {
             await TestExactActionSetOfferedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""7.3"">
-        <Document>
-interface notnull { }
-class Test
-{
-    public void M&lt;T&gt;() where T : [|notnull|] { }
-}
-        </Document>
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="7.3">
+                        <Document>
+                interface notnull { }
+                class Test
+                {
+                    public void M&lt;T&gt;() where T : [|notnull|] { }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 expectedActionSet: Enumerable.Empty<string>());
         }
 
@@ -942,14 +997,16 @@ class Test
         public async Task UpgradeProjectWithNotNullConstraintTo8_0_Delegate_AlreadyDefined()
         {
             await TestExactActionSetOfferedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""7.3"">
-        <Document>
-interface notnull { }
-delegate void D&lt;T&gt;() where T : [| notnull |];
-        </Document>
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="7.3">
+                        <Document>
+                interface notnull { }
+                delegate void D&lt;T&gt;() where T : [| notnull |];
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 expectedActionSet: Enumerable.Empty<string>());
         }
 
@@ -957,14 +1014,15 @@ delegate void D&lt;T&gt;() where T : [| notnull |];
         public async Task UpgradeProjectWithNotNullConstraintTo8_0_LocalFunction()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Test
-{
-    public void N()
-    {
-        void M<T>() where T : [|notnull|] { }
-    }
-}",
+                """
+                class Test
+                {
+                    public void N()
+                    {
+                        void M<T>() where T : [|notnull|] { }
+                    }
+                }
+                """,
                 LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
@@ -973,20 +1031,22 @@ class Test
         public async Task UpgradeProjectWithNotNullConstraintTo8_0_LocalFunction_AlreadyDefined()
         {
             await TestExactActionSetOfferedAsync(
-@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""7.3"">
-        <Document>
-interface notnull { }
-class Test
-{
-    public void N()
-    {
-        void M&lt;T&gt;() where T : [|notnull|] { }
-    }
-}
-        </Document>
-    </Project>
-</Workspace>",
+                """
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="7.3">
+                        <Document>
+                interface notnull { }
+                class Test
+                {
+                    public void N()
+                    {
+                        void M&lt;T&gt;() where T : [|notnull|] { }
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 expectedActionSet: Enumerable.Empty<string>());
         }
 
@@ -994,12 +1054,12 @@ class Test
         public async Task UpgradeProjectForVarianceSafetyForStaticInterfaceMembers_CS8904()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-interface I2<out T1>
-{
-    static T1 M1([|T1|] x) => x;
-}
-",
+                """
+                interface I2<out T1>
+                {
+                    static T1 M1([|T1|] x) => x;
+                }
+                """,
                 expected: LanguageVersion.CSharp9,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
@@ -1008,24 +1068,24 @@ interface I2<out T1>
         public async Task UpgradeProjectForSealedToStringInRecords_CS8912()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""9"">
-        <ProjectReference>Assembly2</ProjectReference>
-        <Document FilePath=""Derived.cs"">
-record [|Derived|] : Base;
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" LanguageVersion=""10"">
-        <Document FilePath=""Base.cs"">
-public record Base
-{
-    public sealed override string ToString() => throw null;
-}
-        </Document>
-    </Project>
-</Workspace>
-",
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" LanguageVersion="9">
+                        <ProjectReference>Assembly2</ProjectReference>
+                        <Document FilePath="Derived.cs">
+                record [|Derived|] : Base;
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true" LanguageVersion="10">
+                        <Document FilePath="Base.cs">
+                public record Base
+                {
+                    public sealed override string ToString() => throw null;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
                 expected: LanguageVersion.CSharp10,
                 new CSharpParseOptions(LanguageVersion.CSharp9));
         }
@@ -1033,11 +1093,12 @@ public record Base
         [Fact]
         public async Task UpgradeProjectForTargetTypedNew()
         {
-            await TestLanguageVersionUpgradedAsync(@"
-class Test
-{
-    Test t = [|new()|];
-}",
+            await TestLanguageVersionUpgradedAsync("""
+                class Test
+                {
+                    Test t = [|new()|];
+                }
+                """,
                 LanguageVersion.CSharp9,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
@@ -1045,9 +1106,9 @@ class Test
         [Fact]
         public async Task UpgradeProjectForGlobalUsing()
         {
-            await TestLanguageVersionUpgradedAsync(@"
-[|global using System;|]
-",
+            await TestLanguageVersionUpgradedAsync("""
+                [|global using System;|]
+                """,
                 LanguageVersion.CSharp10,
                 new CSharpParseOptions(LanguageVersion.CSharp9));
         }
@@ -1056,17 +1117,17 @@ class Test
         public async Task UpgradeProjectForImplicitImplementationOfNonPublicMembers_CS8704()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-public interface I1
-{
-    protected void M01();
-}
+                """
+                public interface I1
+                {
+                    protected void M01();
+                }
 
-class C1 : I1
-{
-    public void [|M01|]() {}
-}
-",
+                class C1 : I1
+                {
+                    public void [|M01|]() {}
+                }
+                """,
                 expected: LanguageVersion.CSharp10,
                 new CSharpParseOptions(LanguageVersion.CSharp9));
         }
@@ -1074,14 +1135,15 @@ class C1 : I1
         [Fact]
         public async Task UpgradeProjectForTargetTypedConditional()
         {
-            await TestLanguageVersionUpgradedAsync(@"
-class C
-{
-    void M(bool b)
-    {
-        int? i = [|b ? 1 : null|];
-    }
-}",
+            await TestLanguageVersionUpgradedAsync("""
+                class C
+                {
+                    void M(bool b)
+                    {
+                        int? i = [|b ? 1 : null|];
+                    }
+                }
+                """,
                 expected: LanguageVersion.CSharp9,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
@@ -1089,16 +1151,17 @@ class C
         [Fact, WorkItem(57154, "https://github.com/dotnet/roslyn/issues/57154")]
         public async Task UpgradeProjectForNewLinesInInterpolations()
         {
-            await TestLanguageVersionUpgradedAsync(@"
-class Test
-{
-    void M()
-    {
-        var v = $""x{
-                    1 + 1
-                 [|}|]y"";
-    }
-}",
+            await TestLanguageVersionUpgradedAsync("""
+                class Test
+                {
+                    void M()
+                    {
+                        var v = $"x{
+                                    1 + 1
+                                 [|}|]y";
+                    }
+                }
+                """,
                 expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
@@ -1106,12 +1169,13 @@ class Test
         [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_1()
         {
-            await TestLanguageVersionUpgradedAsync(@"
-struct Test
-{
-    public int X;
-    public [|Test|]() { }
-}",
+            await TestLanguageVersionUpgradedAsync("""
+                struct Test
+                {
+                    public int X;
+                    public [|Test|]() { }
+                }
+                """,
                 expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
@@ -1119,12 +1183,13 @@ struct Test
         [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_2()
         {
-            await TestLanguageVersionUpgradedAsync(@"
-struct Test
-{
-    public int X;
-    public [|Test|]() { this.ToString(); }
-}",
+            await TestLanguageVersionUpgradedAsync("""
+                struct Test
+                {
+                    public int X;
+                    public [|Test|]() { this.ToString(); }
+                }
+                """,
                 expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
@@ -1132,12 +1197,13 @@ struct Test
         [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
         public async Task UpgradeProjectForStructAutoDefaultError_3()
         {
-            await TestLanguageVersionUpgradedAsync(@"
-struct Test
-{
-    public int X { get; set; }
-    public [|Test|]() { this.ToString(); }
-}",
+            await TestLanguageVersionUpgradedAsync("""
+                struct Test
+                {
+                    public int X { get; set; }
+                    public [|Test|]() { this.ToString(); }
+                }
+                """,
                 expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
