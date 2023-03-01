@@ -1,6 +1,0 @@
-# This file has specific settings for unit tests
-
-[*]
-
-# VSTHRD200: Use "Async" suffix in names of methods that return an awaitable type
-dotnet_diagnostic.VSTHRD200.severity = none

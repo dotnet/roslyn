@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.Utilities.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.BrokeredServiceBridgeManifest;
 
