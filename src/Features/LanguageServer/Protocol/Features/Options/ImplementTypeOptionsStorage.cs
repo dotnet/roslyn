@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CodeGeneration;
+using System.Globalization;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
@@ -21,12 +21,16 @@ namespace Microsoft.CodeAnalysis.ImplementType
           => new(globalOptions.GetImplementTypeOptions(languageServices.Language),
                  globalOptions.CreateProvider());
 
+        private static readonly OptionGroup s_implementTypeGroup = new(
+            description: FeaturesResources.Implement_Type,
+            name: "Implement Type");
+
         public static readonly PerLanguageOption2<ImplementTypeInsertionBehavior> InsertionBehavior =
             new("dotnet_insertion_behavior",
-                defaultValue: ImplementTypeOptions.Default.InsertionBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypeInsertionBehavior>());
+                defaultValue: ImplementTypeOptions.Default.InsertionBehavior, group: s_implementTypeGroup, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypeInsertionBehavior>());
 
         public static readonly PerLanguageOption2<ImplementTypePropertyGenerationBehavior> PropertyGenerationBehavior =
             new("dotnet_property_generation_behavior",
-                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypePropertyGenerationBehavior>());
+                defaultValue: ImplementTypeOptions.Default.PropertyGenerationBehavior, group: s_implementTypeGroup, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImplementTypePropertyGenerationBehavior>());
     }
 }

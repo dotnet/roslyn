@@ -50,6 +50,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Adicionar atributo 'DebuggerDisplay'</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_Imports">
+        <source>Add Imports</source>
+        <target state="new">Add Imports</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">Adicionar verificações nulas para todos os parâmetros</target>
@@ -500,6 +505,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Comentários não permitidos</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="new">Completion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configurar estilo de código de {0}</target>
@@ -650,6 +660,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">O conteúdo atual do arquivo de origem '{0}' não corresponde à origem criada. Todas as alterações feitas neste arquivo durante a depuração não serão aplicadas até que o conteúdo corresponda à origem criada.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_Highlighting">
+        <source>Document Highlighting</source>
+        <target state="new">Document Highlighting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
         <source>Document must be contained in the workspace that created this service</source>
         <target state="translated">O Documento deve estar contido no workspace que criou este serviço</target>
@@ -758,6 +773,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
         <target state="translated">Corrigindo '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting">
+        <source>Formatting</source>
+        <target state="new">Formatting</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -888,6 +908,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
         <target state="translated">Implementar '{0}' implicitamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Type">
+        <source>Implement Type</source>
+        <target state="new">Implement Type</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
@@ -1253,6 +1278,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Navigating_to_symbol_0_from_1">
         <source>Navigating to symbol '{0}' from '{1}'.</source>
         <target state="translated">Navegando para o símbolo '{0}' de '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigation">
+        <source>Navigation</source>
+        <target state="new">Navigation</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_properties_not_allowed">
@@ -2638,6 +2668,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="Switching_between_lambda_and_local_function_requires_restarting_the_application">
         <source>Switching between a lambda and a local function requires restarting the application.</source>
         <target state="translated">Alternar entre um lambda e uma função local requer a reinicialização do aplicativo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Description">
+        <source>Symbol Description</source>
+        <target state="new">Symbol Description</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_found_in_assembly_path_0">

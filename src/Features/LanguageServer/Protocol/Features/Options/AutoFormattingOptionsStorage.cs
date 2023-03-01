@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Globalization;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Formatting;
@@ -17,15 +18,17 @@ internal static class AutoFormattingOptionsStorage
             FormatOnCloseBrace = globalOptions.GetOption(FormatOnCloseBrace, language)
         };
 
+    private static readonly OptionGroup s_formattingGroup = new(description: FeaturesResources.Formatting, name: "Formatting");
+
     internal static readonly PerLanguageOption2<bool> FormatOnReturn = new(
-        "csharp_format_on_return", AutoFormattingOptions.Default.FormatOnReturn);
+        "csharp_format_on_return", AutoFormattingOptions.Default.FormatOnReturn, group: s_formattingGroup);
 
     public static readonly PerLanguageOption2<bool> FormatOnTyping = new(
-        "csharp_format_on_typing", AutoFormattingOptions.Default.FormatOnTyping);
+        "csharp_format_on_typing", AutoFormattingOptions.Default.FormatOnTyping, group: s_formattingGroup);
 
     public static readonly PerLanguageOption2<bool> FormatOnSemicolon = new(
-        "csharp_format_on_semicolon", AutoFormattingOptions.Default.FormatOnSemicolon);
+        "csharp_format_on_semicolon", AutoFormattingOptions.Default.FormatOnSemicolon, group: s_formattingGroup);
 
     public static readonly PerLanguageOption2<bool> FormatOnCloseBrace = new(
-        "csharp_format_on_close_brace", AutoFormattingOptions.Default.FormatOnCloseBrace);
+        "csharp_format_on_close_brace", AutoFormattingOptions.Default.FormatOnCloseBrace, group: s_formattingGroup);
 }

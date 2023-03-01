@@ -3185,4 +3185,25 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Deconstruct_locals_for_0" xml:space="preserve">
     <value>Deconstruct locals for '{0}'</value>
   </data>
+  <data name="Symbol_Search" xml:space="preserve">
+    <value>Symbol Search</value>
+  </data>
+  <data name="Completion" xml:space="preserve">
+    <value>Completion</value>
+  </data>
+  <data name="Implement_Type" xml:space="preserve">
+    <value>Implement Type</value>
+  </data>
+  <data name="Formatting" xml:space="preserve">
+    <value>Formatting</value>
+  </data>
+  <data name="Navigation" xml:space="preserve">
+    <value>Navigation</value>
+  </data>
+  <data name="Document_Highlighting" xml:space="preserve">
+    <value>Document Highlighting</value>
+  </data>
+  <data name="Symbol_Description" xml:space="preserve">
+    <value>Symbol Description</value>
+  </data>
 </root>

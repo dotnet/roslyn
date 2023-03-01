@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     internal static class CodeStyleOptionGroups
     {
-        public static readonly OptionGroup CodeStyle = new("", priority: 1);
+        public static readonly OptionGroup CodeStyle = new(name: "CodeStyle", description: "", priority: 1);
 
         public static readonly OptionGroup Usings = new(CompilerExtensionsResources.Organize_usings, priority: 1, parent: CodeStyle);
         public static readonly OptionGroup ThisOrMe = new(CompilerExtensionsResources.this_dot_and_Me_dot_preferences, priority: 2, parent: CodeStyle);
