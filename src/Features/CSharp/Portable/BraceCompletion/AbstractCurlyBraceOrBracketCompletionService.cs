@@ -115,18 +115,24 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             if (closingPointLine - openingPointLine == 1)
             {
                 // Handling syntax tree directly to avoid parsing in potentially UI blocking code-path
-                var closingToken = document.Root.FindTokenOnLeftOfPosition(context.ClosingPoint);
-                var newLineString = options.FormattingOptions.NewLine;
-                newLineEdit = new TextChange(new TextSpan(closingToken.FullSpan.Start, 0), newLineString);
+                var closingToken = document.Root.FindToken(closingPoint - 1);
+                Debug.Assert(IsValidClosingBraceToken(closingToken));
 
-                var generator = document.LanguageServices.GetRequiredService<SyntaxGeneratorInternal>();
-                var endOfLine = generator.EndOfLine(newLineString);
+                var newClosingToken = closingToken.WithPrependedLeadingTrivia(
+                    SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(options.FormattingOptions.NewLine)));
 
-                var rootToFormat = document.Root.ReplaceToken(closingToken, closingToken.WithPrependedLeadingTrivia(endOfLine));
-                document = document.WithChangedRoot(rootToFormat, cancellationToken);
+                var rootToFormat = document.Root.ReplaceToken(closingToken, newClosingToken);
+
+                newClosingToken = rootToFormat.FindToken(closingPoint - 1, findInsideTrivia: true);
+                Debug.Assert(IsValidClosingBraceToken(newClosingToken));
 
                 // Modify the closing point location to adjust for the newly inserted line.
-                closingPoint += newLineString.Length;
+                closingPoint = newClosingToken.Span.End;
+
+                var textChangeLength = newClosingToken.Span.End - closingToken.Span.End;
+                newLineEdit = new TextChange(new TextSpan(closingToken.FullSpan.Start, 0), newClosingToken.ToFullString()[..textChangeLength]);
+
+                document = document.WithChangedRoot(rootToFormat, cancellationToken);
             }
 
             // Format the text that contains the newly inserted line.
