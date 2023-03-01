@@ -42,7 +42,7 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
         var allLanguages = new[] { LanguageNames.CSharp, LanguageNames.VisualBasic };
         var noLanguages = new[] { (string?)null };
 
-        var vsVersion = await TestServices.Shell.GetVersionAsync(CancellationToken.None);
+        var vsVersion = await TestServices.Shell.GetVersionAsync(HangMitigatingCancellationToken);
 
         foreach (var (configName, optionInfo) in optionsInfo)
         {
