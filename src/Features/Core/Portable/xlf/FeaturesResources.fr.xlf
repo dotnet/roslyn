@@ -1390,11 +1390,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Le quantificateur {x,y} ne suit rien</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
       </trans-unit>
-      <trans-unit id="Quick_Info">
-        <source>Quick Info</source>
-        <target state="new">Quick Info</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>
         <target state="translated">référence à un groupe indéfini</target>
@@ -2673,6 +2668,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Switching_between_lambda_and_local_function_requires_restarting_the_application">
         <source>Switching between a lambda and a local function requires restarting the application.</source>
         <target state="translated">Le passage d’une fonction lambda à une fonction locale requiert le redémarrage de l’application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Description">
+        <source>Symbol Description</source>
+        <target state="new">Symbol Description</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_found_in_assembly_path_0">

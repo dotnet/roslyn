@@ -17,15 +17,15 @@ namespace Microsoft.CodeAnalysis.QuickInfo
           };
 
         private static readonly OptionGroup s_quickInfoGroup = new(
-            FeaturesResources.Quick_Info,
+            FeaturesResources.Symbol_Description,
             int.MaxValue,
             null,
-            FeaturesResources.ResourceManager.GetString(nameof(FeaturesResources.Quick_Info), new CultureInfo("en")));
+            FeaturesResources.ResourceManager.GetString(nameof(FeaturesResources.Symbol_Description), new CultureInfo("en")));
 
         public static readonly PerLanguageOption2<bool> ShowRemarksInQuickInfo = new(
-            "dotnet_show_remarks_in_quick_info", QuickInfoOptions.Default.ShowRemarksInQuickInfo, group: s_quickInfoGroup);
+            "dotnet_show_remarks", QuickInfoOptions.Default.ShowRemarksInQuickInfo, group: s_quickInfoGroup);
 
         public static readonly Option2<bool> IncludeNavigationHintsInQuickInfo = new(
-            "dotnet_include_navigation_hints_in_quick_info", QuickInfoOptions.Default.IncludeNavigationHintsInQuickInfo);
+            "dotnet_include_navigation_hints", QuickInfoOptions.Default.IncludeNavigationHintsInQuickInfo);
     }
 }
