@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -631,6 +633,234 @@ class Program
                 // (6,17): error CS0305: Using the generic method 'Program.Goo<T, U>(T, U)' requires 2 type arguments
                 //         var s = Goo<>(123, 345);
                 Diagnostic(ErrorCode.ERR_BadArity, "Goo<>").WithArguments("Program.Goo<T, U>(T, U)", "method", "2"));
+        }
+
+        [Fact]
+        public void Bug50782_1()
+        {
+            string source = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+
+interface IOperation<T> 
+{ }
+
+public class StringOperation : IOperation<string?> 
+{ }
+
+public class C 
+{   
+    static void Main() 
+    {
+        TestA(new StringOperation(), out string? discardA);
+        TestA(new StringOperation(), out string? _);
+        TestA(new StringOperation(), out var _);
+        TestA(new StringOperation(), out _);
+        
+        TestB(new StringOperation(), out string? discardB);
+        TestB(new StringOperation(), out string? _);
+        TestB(new StringOperation(), out var _);
+        TestB(new StringOperation(), out _);
+        
+        TestC<string?>(out string? discardC);
+        TestC<string?>(out string? _);
+        TestC<string?>(out var _);
+        TestC<string?>(out _);
+        
+        TestD<string?>(out string? discardD);
+        TestD<string?>(out string? _);
+        TestD<string?>(out var _);
+        TestD<string?>(out _);
+        
+        TestE(out string? discardE);
+        TestE(out var discardEVar);
+        TestE(out string? _);
+        TestE(out var _);
+        TestE(out _);
+        
+        TestF(out string? discardF);
+        TestF(out string? _);
+    }
+   
+    static void TestA<T>(IOperation<T> operation, [MaybeNull] out T result) => result = default;
+    static void TestB<T>(IOperation<T> operation, out T result) => result = default!;
+    
+    static void TestC<T>([MaybeNull] out T result) => result = default;
+    static void TestD<T>(out T result) => result = default!;
+
+    static void TestE([MaybeNull] out string result) => result = default;
+    static void TestF(out string result) => result = "";
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // out _
+            foreach (var discardOut in GetDiscardIdentifiers(tree))
+            {
+                CheckDiscard(model, discardOut, "System.String?");
+            }
+
+            // out T _, out var _, out T? _
+            foreach (var discardDecl in GetDiscardDesignations(tree))
+            {
+                CheckDiscard(model, discardDecl, "System.String?");
+            }
+        }
+
+        [Fact]
+        public void Bug50782_2()
+        {
+            string source = """
+#nullable enable
+
+interface IOperation<T> 
+{ }
+
+public class StringOperation : IOperation<string> 
+{ }
+
+public class C 
+{   
+    static void Main() 
+    {
+        TestA(new StringOperation(), out string discardA);
+        TestA(new StringOperation(), out string _);
+        TestA(new StringOperation(), out var _);
+        TestA(new StringOperation(), out _);
+
+        TestB(out string discardB);
+        TestB(out string _);
+        TestB<string>(out var discardVarB);
+        TestB<string>(out var _);
+        TestB<string>(out _);
+
+        TestC(out var _);
+        TestC(out _);
+    }
+   
+    static void TestA<T>(IOperation<T> operation, out T result) => result = default!;
+    static void TestB<T>(out T result) => result = default!;
+    static void TestC(out string result) => result = "";
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // out _
+            foreach (var discardOut in GetDiscardIdentifiers(tree))
+            {
+                CheckDiscard(model, discardOut, "System.String!");
+            }
+
+            // out var _, out T _
+            foreach (var discardDecl in GetDiscardDesignations(tree))
+            {
+                CheckDiscard(model, discardDecl, "System.String!");
+            }
+        }
+
+        [Fact]
+        public void Bug50782_3()
+        {
+            string source = """
+#nullable enable
+
+interface IOperation<T> 
+{ }
+
+public class StringOperation : IOperation<string> 
+{ }
+
+public class C 
+{   
+    static void Main() 
+    {
+        TestA(new StringOperation(), out string? discardA);
+        TestA(new StringOperation(), out string? _);
+
+        TestC(out string? discardC);
+        TestC(out string? _);
+    }
+   
+    static void TestA<T>(IOperation<T> operation, out T result) => result = default!;
+    static void TestC(out string result) => result = "";
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // out _
+            foreach (var discardOut in GetDiscardIdentifiers(tree))
+            {
+                CheckDiscard(model, discardOut, "System.String?");
+            }
+
+            // out var _, out T _
+            foreach (var discardDecl in GetDiscardDesignations(tree))
+            {
+                CheckDiscard(model, discardDecl, "System.String?");
+            }
+        }
+
+        [Fact]
+        public void Bug50782_4()
+        {
+            string source = """
+#nullable enable
+void M((string, string?) tuple)
+{
+    (_, _) = tuple;
+    (string _, string _) = tuple;
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(new[] { 
+                 // (2,6): warning CS8321: The local function 'M' is declared but never used
+                // void M((string, string?) tuple)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(2, 6),
+                // (5,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     (string _, string _) = tuple;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "tuple").WithLocation(5, 28)
+            });
+        }
+
+        private static void CheckDiscard(SemanticModel model, DiscardDesignationSyntax discard, string type)
+        {
+            Assert.Null(model.GetDeclaredSymbol(discard));
+            Assert.Null(model.GetTypeInfo(discard).Type);
+            Assert.Null(model.GetSymbolInfo(discard).Symbol);
+            var declaration = (DeclarationExpressionSyntax)discard.Parent;
+            Assert.Equal(type, model.GetTypeInfo(declaration).Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Null(model.GetSymbolInfo(declaration).Symbol);
+        }
+
+        private static void CheckDiscard(SemanticModel model, IdentifierNameSyntax discard, string type)
+        {
+            Assert.Null(model.GetDeclaredSymbol(discard));
+            var discardSymbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+            Assert.Equal(type, discardSymbol.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal(type, model.GetTypeInfo(discard).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        private static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<DiscardDesignationSyntax>();
+        }
+
+        private static IEnumerable<IdentifierNameSyntax> GetDiscardIdentifiers(SyntaxTree tree)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
         }
 
         [WorkItem(541887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]

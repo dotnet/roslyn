@@ -92,10 +92,20 @@
         <target state="translated">L’expression lambda peut être supprimée.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_member_readonly">
+        <source>Make member 'readonly'</source>
+        <target state="new">Make member 'readonly'</target>
+        <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_struct_readonly">
         <source>Make struct 'readonly'</source>
         <target state="translated">Rendre le struct 'readonly'</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Member can be made readonly">
+        <source>Member can be made 'readonly'</source>
+        <target state="new">Member can be made 'readonly'</target>
+        <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>

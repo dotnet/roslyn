@@ -305,8 +305,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Formatting_TriggerOnPaste
         {
-            get { return GetBooleanOption(FormattingOptionsMetadata.FormatOnPaste); }
-            set { SetBooleanOption(FormattingOptionsMetadata.FormatOnPaste, value); }
+            get { return GetBooleanOption(FormattingOptionsStorage.FormatOnPaste); }
+            set { SetBooleanOption(FormattingOptionsStorage.FormatOnPaste, value); }
         }
 
         public int Formatting_TriggerOnStatementCompletion

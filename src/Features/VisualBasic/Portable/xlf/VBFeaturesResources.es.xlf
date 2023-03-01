@@ -1732,16 +1732,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
         <target state="translated">{0}.set</target>
         <note>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</note>
       </trans-unit>
-      <trans-unit id="Make_Async_Function">
-        <source>Make Async Function</source>
-        <target state="translated">Convertir función en asincrónica</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_Async_Sub">
-        <source>Make Async Sub</source>
-        <target state="translated">Convertir Sub en asincrónico</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>
         <target state="translated">Convertir a "Select Case"</target>

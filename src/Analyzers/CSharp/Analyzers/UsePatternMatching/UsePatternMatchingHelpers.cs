@@ -80,9 +80,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 }
                 else if (conditionalAccessExpression.Parent is IsPatternExpressionSyntax parentIsPatternExpression)
                 {
-                    // `(expr as T)?... is pattern
+                    // `(expr as T)?... is pattern`
                     //
-                    //  In this case we can always convert to a pattern.
+                    //  We can convert this to a pattern in most cases except for:
+                    //
+                    // `(expr as T)?... is not X y`.  As it is not legal to transform into `expr is T { Member: not X y }`.
+                    // Specifically, `not variable` patterns are not legal except at the top level of a pattern.
+                    if (parentIsPatternExpression.Pattern is UnaryPatternSyntax
+                        {
+                            Pattern: DeclarationPatternSyntax or VarPatternSyntax or RecursivePatternSyntax { Designation: not null }
+                        })
+                    {
+                        return false;
+                    }
+
                     isPatternExpression = parentIsPatternExpression;
                     return true;
                 }

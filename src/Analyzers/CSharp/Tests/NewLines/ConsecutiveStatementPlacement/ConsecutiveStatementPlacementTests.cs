@@ -32,7 +32,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -51,7 +51,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -72,7 +72,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -93,7 +93,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -117,7 +117,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -141,7 +141,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -166,7 +166,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -191,7 +191,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -216,7 +216,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -241,7 +241,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -267,7 +267,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -292,7 +292,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -321,7 +321,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -353,7 +353,7 @@ class C
         return;
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -376,7 +376,7 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.TrueWithSilentEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.TrueWithSilentEnforcement } }
             }.RunAsync();
         }
 
@@ -408,7 +408,7 @@ class C
         return;
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -440,7 +440,7 @@ class C
         return;
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -468,7 +468,7 @@ class C
         return;
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -504,7 +504,7 @@ class C
         }
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -545,7 +545,7 @@ class C
         return;
     }
 }",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -915,7 +915,7 @@ public class Foo
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -1102,7 +1102,7 @@ public class Goo
     }
 }
 ",
-                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
     }

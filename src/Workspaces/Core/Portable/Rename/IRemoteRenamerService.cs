@@ -5,14 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -30,14 +27,6 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
         }
-
-        /// <summary>
-        /// Keeps alive this solution in the OOP process until the cancellation token is triggered.  Used so that we can
-        /// call FindRenameLocationsAsync followed by many calls to ResolveConflictsAsync, knowing that things will stay 
-        /// hydrated and alive on the OOP side.
-        /// </summary>
-        ValueTask KeepAliveAsync(
-            Checksum solutionChecksum, CancellationToken cancellationToken);
 
         /// <summary>
         /// Runs the entire rename operation OOP and returns the final result. More efficient (due to less back and

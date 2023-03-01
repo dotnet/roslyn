@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             _gate = new();
             _buffer = new();
             _taskQueue = new(AsynchronousOperationListenerProvider.NullListener, TaskScheduler.Default);
-            _enabled = globalOptions.GetOption(VisualStudioLoggingOptionsMetadata.EnableFileLoggingForDiagnostics);
+            _enabled = globalOptions.GetOption(VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics);
             globalOptions.OptionChanged += OptionService_OptionChanged;
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         private void OptionService_OptionChanged(object? sender, OptionChangedEventArgs e)
         {
-            if (e.Option == VisualStudioLoggingOptionsMetadata.EnableFileLoggingForDiagnostics)
+            if (e.Option == VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics)
             {
                 Contract.ThrowIfNull(e.Value);
 

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public static DiagnosticMode GetDiagnosticMode(this IGlobalOptionService globalOptions, Option2<DiagnosticMode>? option = null)
         {
-            option ??= InternalDiagnosticsOptions.NormalDiagnosticMode;
+            option ??= InternalDiagnosticsOptionsStorage.NormalDiagnosticMode;
             var diagnosticModeOption = globalOptions.GetOption(option);
 
             // If the workspace diagnostic mode is set to Default, defer to the feature flag service.

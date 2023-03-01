@@ -85,7 +85,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         private static readonly SymbolDisplayFormat _testDataKeyFormat = new SymbolDisplayFormat(
-            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames | SymbolDisplayCompilerInternalOptions.UseValueTuple | SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes,
+            compilerInternalOptions:
+                SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames |
+                SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes,
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
@@ -101,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // types.  If we visited their types directly, we wouldn't get ref/out/params.
             miscellaneousOptions:
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                SymbolDisplayMiscellaneousOptions.ExpandValueTuple |
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                 SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                 SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);

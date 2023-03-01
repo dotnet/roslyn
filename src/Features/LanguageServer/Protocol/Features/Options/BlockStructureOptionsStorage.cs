@@ -30,38 +30,38 @@ internal static class BlockStructureOptionsStorage
         };
 
     public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = new(
-        "BlockStructureOptions_ShowBlockStructureGuidesForCommentsAndPreprocessorRegions", BlockStructureOptions.Default.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions);
+        "dotnet_show_block_structure_guides_for_comments_and_preprocessor_regions", BlockStructureOptions.Default.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions);
 
     public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForDeclarationLevelConstructs = new(
-        "BlockStructureOptions_ShowBlockStructureGuidesForDeclarationLevelConstructs", BlockStructureOptions.Default.ShowBlockStructureGuidesForDeclarationLevelConstructs);
+        "dotnet_show_block_structure_guides_for_declaration_level_constructs", BlockStructureOptions.Default.ShowBlockStructureGuidesForDeclarationLevelConstructs);
 
     public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForCodeLevelConstructs = new(
-        "BlockStructureOptions_ShowBlockStructureGuidesForCodeLevelConstructs", BlockStructureOptions.Default.ShowBlockStructureGuidesForCodeLevelConstructs);
+        "dotnet_show_block_structure_guides_for_code_level_constructs", BlockStructureOptions.Default.ShowBlockStructureGuidesForCodeLevelConstructs);
 
     public static readonly PerLanguageOption2<bool> ShowOutliningForCommentsAndPreprocessorRegions = new(
-        "BlockStructureOptions_ShowOutliningForCommentsAndPreprocessorRegions", BlockStructureOptions.Default.ShowOutliningForCommentsAndPreprocessorRegions);
+        "dotnet_show_outlining_for_comments_and_preprocessor_regions", BlockStructureOptions.Default.ShowOutliningForCommentsAndPreprocessorRegions);
 
     public static readonly PerLanguageOption2<bool> ShowOutliningForDeclarationLevelConstructs = new(
-        "BlockStructureOptions_ShowOutliningForDeclarationLevelConstructs", BlockStructureOptions.Default.ShowOutliningForDeclarationLevelConstructs);
+        "dotnet_show_outlining_for_declaration_level_constructs", BlockStructureOptions.Default.ShowOutliningForDeclarationLevelConstructs);
 
     public static readonly PerLanguageOption2<bool> ShowOutliningForCodeLevelConstructs = new(
-        "BlockStructureOptions_ShowOutliningForCodeLevelConstructs", BlockStructureOptions.Default.ShowOutliningForCodeLevelConstructs);
+        "dotnet_show_outlining_for_code_level_constructs", BlockStructureOptions.Default.ShowOutliningForCodeLevelConstructs);
 
     public static readonly PerLanguageOption2<bool> CollapseRegionsWhenFirstOpened = new(
-        "BlockStructureOptions_CollapseRegionsWhenFirstOpened", BlockStructureOptions.Default.CollapseRegionsWhenFirstOpened);
+        "dotnet_collapse_regions_when_first_opened", BlockStructureOptions.Default.CollapseRegionsWhenFirstOpened);
 
     public static readonly PerLanguageOption2<bool> CollapseImportsWhenFirstOpened = new(
-        "BlockStructureOptions_CollapseImportsWhenFirstOpened", BlockStructureOptions.Default.CollapseImportsWhenFirstOpened);
+        "dotnet_collapse_imports_when_first_opened", BlockStructureOptions.Default.CollapseImportsWhenFirstOpened);
 
     public static readonly PerLanguageOption2<bool> CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened = new(
-        "BlockStructureOptions_CollapseMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseMetadataImplementationsWhenFirstOpened);
+        "dotnet_collapse_metadata_implementations_when_first_opened", BlockStructureOptions.Default.CollapseMetadataImplementationsWhenFirstOpened);
 
     public static readonly PerLanguageOption2<bool> CollapseMetadataSignatureFilesWhenFirstOpened = new(
-        "BlockStructureOptions_CollapseEmptyMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseEmptyMetadataImplementationsWhenFirstOpened);
+        "dotnet_collapse_empty_metadata_implementations_when_first_opened", BlockStructureOptions.Default.CollapseEmptyMetadataImplementationsWhenFirstOpened);
 
     public static readonly PerLanguageOption2<bool> CollapseRegionsWhenCollapsingToDefinitions = new(
-        "BlockStructureOptions_CollapseRegionsWhenCollapsingToDefinitions", BlockStructureOptions.Default.CollapseRegionsWhenCollapsingToDefinitions);
+        "dotnet_collapse_regions_when_collapsing_to_definitions", BlockStructureOptions.Default.CollapseRegionsWhenCollapsingToDefinitions);
 
     public static readonly PerLanguageOption2<int> MaximumBannerLength = new(
-        "BlockStructureOptions_MaximumBannerLength", BlockStructureOptions.Default.MaximumBannerLength);
+        "dotnet_maximum_block_banner_length", BlockStructureOptions.Default.MaximumBannerLength);
 }

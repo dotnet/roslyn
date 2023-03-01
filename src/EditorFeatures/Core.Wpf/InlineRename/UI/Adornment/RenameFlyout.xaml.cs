@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 IdentifierTextBox.Focus();
                 IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
+                IdentifierTextBox.SelectionChanged += IdentifierTextBox_SelectionChanged;
             };
 
             InitializeComponent();
@@ -199,6 +201,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void ToggleExpand(object sender, RoutedEventArgs e)
         {
             _viewModel.IsExpanded = !_viewModel.IsExpanded;
+        }
+
+        /// <summary>
+        /// Respond to selection/cursor changes in the textbox the user is editing by
+        /// applying the same selection to the textview that initiated the command
+        /// </summary>
+        private void IdentifierTextBox_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            var start = IdentifierTextBox.SelectionStart;
+            var length = IdentifierTextBox.SelectionLength;
+
+            var buffer = _viewModel.InitialTrackingSpan.TextBuffer;
+            var startPoint = _viewModel.InitialTrackingSpan.GetStartPoint(buffer.CurrentSnapshot);
+            _textView.SetSelection(new SnapshotSpan(startPoint + start, length));
         }
     }
 }

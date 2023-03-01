@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             _span = span;
         }
 
-        internal void MarkBit(int bitPosition)
+        internal readonly void MarkBit(int bitPosition)
         {
             var bitArrayIndex = bitPosition / IntSize;
             if ((uint)bitArrayIndex < (uint)_span.Length)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             }
         }
 
-        internal bool IsMarked(int bitPosition)
+        internal readonly bool IsMarked(int bitPosition)
         {
             var bitArrayIndex = bitPosition / IntSize;
             return
