@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
         private bool _inExpressionLambda;
 
+        /// <summary>
+        /// The original body of the current lambda or local function body, or null if not currently lowering a lambda.
+        /// </summary>
+        private BoundBlock? _currentLambdaBody;
+
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private bool _needsSpilling;
@@ -78,10 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
-            bool instrumentForDynamicAnalysis,
-            ref ImmutableArray<SourceSpan> dynamicAnalysisSpans,
+            MethodInstrumentation instrumentation,
             DebugDocumentProvider debugDocumentProvider,
             BindingDiagnosticBag diagnostics,
+            out ImmutableArray<SourceSpan> codeCoverageSpans,
             out bool sawLambdas,
             out bool sawLocalFunctions,
             out bool sawAwaitInExceptionHandler)
@@ -98,8 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var instrumenter = Instrumenter.NoOp;
 
+                if (instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing) &&
+                    LocalStateTracingInstrumenter.TryCreate(method, statement, factory, diagnostics, instrumenter, out var localStateTracingInstrumenter))
+                {
+                    instrumenter = localStateTracingInstrumenter;
+                }
+
                 CodeCoverageInstrumenter? codeCoverageInstrumenter = null;
-                if (instrumentForDynamicAnalysis &&
+                if (instrumentation.Kinds.Contains(InstrumentationKind.TestCoverage) &&
                     CodeCoverageInstrumenter.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, instrumenter, out codeCoverageInstrumenter))
                 {
                     instrumenter = codeCoverageInstrumenter;
@@ -126,10 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredStatement = spilledStatement;
                 }
 
-                if (codeCoverageInstrumenter != null)
-                {
-                    dynamicAnalysisSpans = codeCoverageInstrumenter.DynamicAnalysisSpans;
-                }
+                codeCoverageSpans = codeCoverageInstrumenter?.DynamicAnalysisSpans ?? ImmutableArray<SourceSpan>.Empty;
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
                 localRewriter.AssertNoPlaceholderReplacements();
@@ -140,12 +148,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ex.Diagnostic);
                 sawLambdas = sawLocalFunctions = sawAwaitInExceptionHandler = false;
+                codeCoverageSpans = ImmutableArray<SourceSpan>.Empty;
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);
             }
         }
 
         internal SyntheticBoundNodeFactory Factory
             => _factory;
+
+        internal BoundBlock? CurrentLambdaBody
+            => _currentLambdaBody;
 
         internal BoundStatement CurrentMethodBody
             => _rootStatement;
@@ -268,8 +280,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var oldContainingSymbol = _factory.CurrentFunction;
             var oldInstrumenter = InstrumentationState.Instrumenter;
+            var oldLambdaBody = _currentLambdaBody;
             try
             {
+                _currentLambdaBody = node.Body;
+
                 _factory.CurrentFunction = lambda;
                 if (lambda.IsDirectlyExcludedFromCodeCoverage)
                 {
@@ -282,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CurrentFunction = oldContainingSymbol;
                 InstrumentationState.Instrumenter = oldInstrumenter;
+                _currentLambdaBody = oldLambdaBody;
             }
         }
 
@@ -327,8 +343,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldContainingSymbol = _factory.CurrentFunction;
             var oldInstrumenter = InstrumentationState.Instrumenter;
             var oldDynamicFactory = _dynamicFactory;
+            var oldLambdaBody = _currentLambdaBody;
             try
             {
+                _currentLambdaBody = node.Body;
                 _factory.CurrentFunction = localFunction;
 
                 if (localFunction.IsDirectlyExcludedFromCodeCoverage)
@@ -351,6 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CurrentFunction = oldContainingSymbol;
                 InstrumentationState.Instrumenter = oldInstrumenter;
                 _dynamicFactory = oldDynamicFactory;
+                _currentLambdaBody = oldLambdaBody;
             }
         }
 
@@ -589,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
                         Debug.Assert(statement is { });
-                        statements.Add(block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, ImmutableArray.Create(statement)));
+                        statements.Add(block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, block.Instrumentation, ImmutableArray.Create(statement)));
                     }
                     else
                     {

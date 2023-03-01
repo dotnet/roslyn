@@ -694,7 +694,7 @@ class D : B
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                globalOptions.SetGlobalOption(InlineRenameUIOptions.CollapseUI, False)
+                globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseUI, False)
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)

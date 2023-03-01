@@ -109,12 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (typeInferenceInfo.InferredType == null)
                         {
                             var allSymbols = symbolInfo.GetAllSymbols();
-                            if (allSymbols.Length == 1 &&
-                                allSymbols[0].Kind == SymbolKind.Method)
-                            {
-                                var method = allSymbols[0];
+                            if (allSymbols is [IMethodSymbol method])
                                 typeInferenceInfo = new TypeInferenceInfo(method.ConvertToType(this.Compilation));
-                            }
                         }
 
                         if (IsUsableTypeFunc(typeInferenceInfo))

@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 // We can only enter the on-state if the user has the chord feature enabled.  We can always enter the
                 // off state though.
-                on = on && _globalOptions.GetOption(InlineHintsViewOptions.DisplayAllHintsWhilePressingAltF1);
+                on = on && _globalOptions.GetOption(InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1);
                 _globalOptions.RefreshOption(new OptionKey2(InlineHintsGlobalStateOption.DisplayAllOverride), on);
             }
         }

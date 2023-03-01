@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -29,15 +31,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     {
         private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, IAsyncSuggestedActionsSource
         {
+            private readonly IAsynchronousOperationListener _listener;
+
             public AsyncSuggestedActionsSource(
                 IThreadingContext threadingContext,
                 IGlobalOptionService globalOptions,
                 SuggestedActionsSourceProvider owner,
                 ITextView textView,
                 ITextBuffer textBuffer,
-                ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry)
+                ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
+                IAsynchronousOperationListener listener)
                 : base(threadingContext, globalOptions, owner, textView, textBuffer, suggestedActionCategoryRegistry)
             {
+                _listener = listener;
             }
 
             public async Task GetSuggestedActionsAsync(
@@ -89,6 +95,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     if (document is null)
                         return;
 
+                    // Create a single keep-alive session as we process each lightbulb priority group.  We want to
+                    // ensure that all calls to OOP will reuse the same solution-snapshot on the oop side (including
+                    // reusing all the same computed compilations that may have been computed on that side.  This is
+                    // especially important as we are sending disparate requests for diagnostics, and we do not want the
+                    // individual diagnostic requests to redo all the work to run source generators, create skeletons,
+                    // etc.
+                    using var _1 = RemoteKeepAliveSession.Create(document.Project.Solution, _listener);
+
                     // Keep track of how many actions we've put in the lightbulb at each priority level.  We do
                     // this as each priority level will both sort and inline actions.  However, we don't want to
                     // inline actions at each priority if it's going to make the total number of actions too high.
@@ -103,8 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // Note that lowest request priority is reserved for suppression/configuration action sets,
                     // and we expect the code fix service to only return suppression/configuration actions for this
                     // request priority. We have an assert for this invariant below and don't need to track pendingLowestPrioritySets.
-                    using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var pendingLowPrioritySets);
-                    using var _2 = ArrayBuilder<SuggestedActionSet>.GetInstance(out var pendingMediumPrioritySets);
+                    using var _2 = ArrayBuilder<SuggestedActionSet>.GetInstance(out var pendingLowPrioritySets);
+                    using var _3 = ArrayBuilder<SuggestedActionSet>.GetInstance(out var pendingMediumPrioritySets);
 
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)

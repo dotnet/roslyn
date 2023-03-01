@@ -4,6 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             return to;
         }
 
-        internal static ISymbol? GetOriginalSymbolInfo(SemanticModel semanticModel, SyntaxNode expression)
+        public static ISymbol? GetOriginalSymbolInfo(SemanticModel semanticModel, SyntaxNode expression)
         {
             Contract.ThrowIfNull(expression);
             var annotation1 = expression.GetAnnotations(SymbolAnnotation.Kind).FirstOrDefault();
@@ -68,9 +69,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             {
                 var typeSymbol = SymbolAnnotation.GetSymbol(annotation1, semanticModel.Compilation);
                 if (IsValidSymbolInfo(typeSymbol))
-                {
                     return typeSymbol;
-                }
             }
 
             var annotation2 = expression.GetAnnotations(SpecialTypeAnnotation.Kind).FirstOrDefault();
@@ -81,17 +80,13 @@ namespace Microsoft.CodeAnalysis.Simplification
                 {
                     var typeSymbol = semanticModel.Compilation.GetSpecialType(specialType);
                     if (IsValidSymbolInfo(typeSymbol))
-                    {
                         return typeSymbol;
-                    }
                 }
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(expression);
             if (!IsValidSymbolInfo(symbolInfo.Symbol))
-            {
                 return null;
-            }
 
             return symbolInfo.Symbol;
         }

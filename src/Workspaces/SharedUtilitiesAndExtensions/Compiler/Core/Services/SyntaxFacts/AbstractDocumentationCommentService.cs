@@ -43,10 +43,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         private static void AddSpaceIfNotAlreadyThere(StringBuilder sb)
         {
-            if (sb.Length > 0 && sb[sb.Length - 1] != ' ')
-            {
+            if (sb is [.., not ' '])
                 sb.Append(' ');
-            }
         }
 
         private string GetDocumentationCommentPrefix(TDocumentationCommentTriviaSyntax documentationComment)

@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             // Only check `new (...)` calls that supply enough arguments to match all the required parameters for the constructor.
             var minimumArgumentCount = symbol.Parameters.Count(p => !p.IsOptional && !p.IsParams);
-            var maximumArgumentCount = symbol.Parameters.Length > 0 && symbol.Parameters.Last().IsParams
+            var maximumArgumentCount = symbol.Parameters is [.., { IsParams: true }]
                 ? int.MaxValue
                 : symbol.Parameters.Length;
 
