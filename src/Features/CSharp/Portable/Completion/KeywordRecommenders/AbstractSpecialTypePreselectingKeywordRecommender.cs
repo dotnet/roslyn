@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Kind() != SyntaxKind.RefKeyword)
                 return false;
 
-            // If we're inside a type, this is always to have a ref/readonly string.
+            // If we're inside a type, this is always to have a ref/readonly type name.
             var containingType = token.GetAncestor<TypeDeclarationSyntax>();
             if (containingType != null)
                 return true;
 
-            // If not in a type, but in a namespace, this is not ok to have a ref/readonly string.
+            // If not in a type, but in a namespace, this is not ok to have a ref/readonly type name.
             var containingNamespace = token.GetAncestor<BaseNamespaceDeclarationSyntax>();
             if (containingNamespace != null)
                 return false;
