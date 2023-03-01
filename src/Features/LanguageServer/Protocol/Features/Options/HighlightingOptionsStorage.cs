@@ -15,15 +15,15 @@ internal static class HighlightingOptionsStorage
             HighlightRelatedJsonComponentsUnderCursor = globalOptions.GetOption(HighlightRelatedJsonComponentsUnderCursor, language)
         };
 
-    private static readonly OptionGroup s_documentHighlightingGroup = new(name: "Document Highlighting", description: FeaturesResources.Document_Highlighting);
+    private static readonly OptionGroup s_highlightingGroup = new(name: "Highlighting", description: "");
 
     public static PerLanguageOption2<bool> HighlightRelatedRegexComponentsUnderCursor =
         new("dotnet_highlight_related_regex_components",
             defaultValue: true,
-            s_documentHighlightingGroup);
+            s_highlightingGroup);
 
     public static PerLanguageOption2<bool> HighlightRelatedJsonComponentsUnderCursor =
         new("dotnet_highlight_related_json_components",
             defaultValue: HighlightingOptions.Default.HighlightRelatedJsonComponentsUnderCursor,
-            s_documentHighlightingGroup);
+            s_highlightingGroup);
 }

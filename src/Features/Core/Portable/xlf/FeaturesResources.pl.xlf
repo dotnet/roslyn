@@ -500,11 +500,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Komentarze są niedozwolone</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completion">
-        <source>Completion</source>
-        <target state="new">Completion</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Konfiguruj styl kodu {0}</target>
@@ -655,11 +650,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Bieżąca zawartość pliku źródłowego „{0}” nie pasuje do skompilowanego źródła. Wszystkie zmiany wprowadzone w tym pliku podczas debugowania nie zostaną zastosowane do czasu, aż jego zawartość będzie zgodna ze skompilowanym źródłem.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_Highlighting">
-        <source>Document Highlighting</source>
-        <target state="new">Document Highlighting</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
         <source>Document must be contained in the workspace that created this service</source>
         <target state="translated">Dokument musi się znajdować w obszarze roboczym użytym do utworzenia tej usługi</target>
@@ -768,11 +758,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
         <target state="translated">Naprawianie „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="new">Formatting</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -903,11 +888,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
         <target state="translated">Niejawnie zaimplementuj interfejs „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Type">
-        <source>Implement Type</source>
-        <target state="new">Implement Type</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
@@ -1273,11 +1253,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Navigating_to_symbol_0_from_1">
         <source>Navigating to symbol '{0}' from '{1}'.</source>
         <target state="translated">Trwa przechodzenie do symbolu „{0}” z „{1}”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Navigation">
-        <source>Navigation</source>
-        <target state="new">Navigation</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_properties_not_allowed">
@@ -2663,16 +2638,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Switching_between_lambda_and_local_function_requires_restarting_the_application">
         <source>Switching between a lambda and a local function requires restarting the application.</source>
         <target state="translated">Przełączenie między wyrażeniem lambda a funkcją lokalną wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Description">
-        <source>Symbol Description</source>
-        <target state="new">Symbol Description</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Search">
-        <source>Symbol Search</source>
-        <target state="new">Symbol Search</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_found_in_assembly_path_0">

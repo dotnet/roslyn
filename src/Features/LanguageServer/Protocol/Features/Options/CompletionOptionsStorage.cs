@@ -30,7 +30,7 @@ internal static class CompletionOptionsStorage
             ShowNewSnippetExperienceFeatureFlag = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
         };
 
-    private static readonly OptionGroup s_completionOptionGroup = new(description: FeaturesResources.Completion, name: "Completion");
+    private static readonly OptionGroup s_completionOptionGroup = new(name: "Completion", description: "");
 
     // feature flags
 

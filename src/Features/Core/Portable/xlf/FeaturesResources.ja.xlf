@@ -500,11 +500,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">コメントは使用できません</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completion">
-        <source>Completion</source>
-        <target state="new">Completion</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">{0} コード スタイルの構成</target>
@@ -655,11 +650,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">ソース ファイル '{0}' の現在のコンテンツが、ビルドされたソースと一致しません。デバッグ中にこのファイルに加えられた変更は、そのコンテンツがビルドされたソースと一致するまで適用されません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_Highlighting">
-        <source>Document Highlighting</source>
-        <target state="new">Document Highlighting</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
         <source>Document must be contained in the workspace that created this service</source>
         <target state="translated">このサービスを作成したワークスペースにドキュメントが含まれている必要があります</target>
@@ -768,11 +758,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
         <target state="translated">'{0}' の修正中</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="new">Formatting</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -903,11 +888,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
         <target state="translated">'{0}' を暗黙的に実装する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Type">
-        <source>Implement Type</source>
-        <target state="new">Implement Type</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
@@ -1273,11 +1253,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Navigating_to_symbol_0_from_1">
         <source>Navigating to symbol '{0}' from '{1}'.</source>
         <target state="translated">"{1}" からシンボル '{0}' に移動しています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Navigation">
-        <source>Navigation</source>
-        <target state="new">Navigation</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_properties_not_allowed">
@@ -2663,16 +2638,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Switching_between_lambda_and_local_function_requires_restarting_the_application">
         <source>Switching between a lambda and a local function requires restarting the application.</source>
         <target state="translated">ラムダとローカル関数を切り替えるには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Description">
-        <source>Symbol Description</source>
-        <target state="new">Symbol Description</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Search">
-        <source>Symbol Search</source>
-        <target state="new">Symbol Search</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_found_in_assembly_path_0">

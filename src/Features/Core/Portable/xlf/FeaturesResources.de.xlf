@@ -500,11 +500,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Nicht zulässige Kommentare</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completion">
-        <source>Completion</source>
-        <target state="new">Completion</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Codeformat "{0}" konfigurieren</target>
@@ -655,11 +650,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Der aktuelle Inhalt der Quelldatei "{0}" stimmt nicht mit dem kompilierten Quellcode überein. Alle Änderungen, die während des Debuggens an dieser Datei vorgenommen wurden, werden erst angewendet, wenn der Inhalt dem kompilierten Quellcode entspricht.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_Highlighting">
-        <source>Document Highlighting</source>
-        <target state="new">Document Highlighting</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
         <source>Document must be contained in the workspace that created this service</source>
         <target state="translated">Dokument muss in dem Arbeitsbereich enthalten sein, der diesen Dienst erstellt hat</target>
@@ -768,11 +758,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
         <target state="translated">Befestigung '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="new">Formatting</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -903,11 +888,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
         <target state="translated">"{0}" implizit implementieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Type">
-        <source>Implement Type</source>
-        <target state="new">Implement Type</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
@@ -1273,11 +1253,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Navigating_to_symbol_0_from_1">
         <source>Navigating to symbol '{0}' from '{1}'.</source>
         <target state="translated">Die Navigation von „{1}“ zum Symbol „{0}“ wird durchgeführt.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Navigation">
-        <source>Navigation</source>
-        <target state="new">Navigation</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_properties_not_allowed">
@@ -2663,16 +2638,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="Switching_between_lambda_and_local_function_requires_restarting_the_application">
         <source>Switching between a lambda and a local function requires restarting the application.</source>
         <target state="translated">Der Wechsel zwischen einer Lambda- und einer lokalen Funktion erfordert einen Neustart der Anwendung.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Description">
-        <source>Symbol Description</source>
-        <target state="new">Symbol Description</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Search">
-        <source>Symbol Search</source>
-        <target state="new">Symbol Search</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_found_in_assembly_path_0">

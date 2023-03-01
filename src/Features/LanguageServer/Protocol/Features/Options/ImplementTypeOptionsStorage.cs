@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.ImplementType
           => new(globalOptions.GetImplementTypeOptions(languageServices.Language),
                  globalOptions.CreateProvider());
 
-        private static readonly OptionGroup s_implementTypeGroup = new(
-            name: "Implement Type",
-            description: FeaturesResources.Implement_Type);
+        private static readonly OptionGroup s_implementTypeGroup = new(name: "Implement Type", description: "");
 
         public static readonly PerLanguageOption2<ImplementTypeInsertionBehavior> InsertionBehavior =
             new("dotnet_insertion_behavior",

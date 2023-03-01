@@ -17,7 +17,7 @@ internal static class AutoFormattingOptionsStorage
             FormatOnCloseBrace = globalOptions.GetOption(FormatOnCloseBrace, language)
         };
 
-    private static readonly OptionGroup s_formattingGroup = new(name: "Formatting", description: FeaturesResources.Formatting,);
+    private static readonly OptionGroup s_formattingGroup = new(name: "Formatting", description: "");
 
     internal static readonly PerLanguageOption2<bool> FormatOnReturn = new(
         "csharp_format_on_return", AutoFormattingOptions.Default.FormatOnReturn, group: s_formattingGroup);

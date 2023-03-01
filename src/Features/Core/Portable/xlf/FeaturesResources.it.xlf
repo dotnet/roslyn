@@ -500,11 +500,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Commenti non consentiti</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completion">
-        <source>Completion</source>
-        <target state="new">Completion</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configura lo stile del codice di {0}</target>
@@ -655,11 +650,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Il contenuto corrente del file di origine '{0}' non corrisponde al codice sorgente compilato. Tutte le modifiche apportate a questo file durante il debug non verranno applicate finché il relativo contenuto non corrisponde al codice sorgente compilato.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_Highlighting">
-        <source>Document Highlighting</source>
-        <target state="new">Document Highlighting</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
         <source>Document must be contained in the workspace that created this service</source>
         <target state="translated">Il documento deve essere contenuto nell'area di lavoro che ha creato il servizio</target>
@@ -768,11 +758,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
         <target state="translated">Correzione di '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="new">Formatting</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -903,11 +888,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
         <target state="translated">Implementa '{0}' in modo implicito</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Type">
-        <source>Implement Type</source>
-        <target state="new">Implement Type</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
@@ -1273,11 +1253,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Navigating_to_symbol_0_from_1">
         <source>Navigating to symbol '{0}' from '{1}'.</source>
         <target state="translated">Passaggio al simbolo '{0}' da '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Navigation">
-        <source>Navigation</source>
-        <target state="new">Navigation</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_properties_not_allowed">
@@ -2663,16 +2638,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Switching_between_lambda_and_local_function_requires_restarting_the_application">
         <source>Switching between a lambda and a local function requires restarting the application.</source>
         <target state="translated">Se si passa da un'espressione lambda a una funzione locale, è necessario riavviare l'applicazione.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Description">
-        <source>Symbol Description</source>
-        <target state="new">Symbol Description</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Search">
-        <source>Symbol Search</source>
-        <target state="new">Symbol Search</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_found_in_assembly_path_0">

@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
               IncludeNavigationHintsInQuickInfo = globalOptions.GetOption(IncludeNavigationHintsInQuickInfo),
           };
 
-        private static readonly OptionGroup s_quickInfoGroup = new(
-           name: "Quick Info",
-           description: FeaturesResources.Quick_Info);
+        private static readonly OptionGroup s_quickInfoGroup = new(name: "Quick Info", description: "");
 
         public static readonly PerLanguageOption2<bool> ShowRemarksInQuickInfo = new(
             "dotnet_include_remarks_in_quick_info", QuickInfoOptions.Default.ShowRemarksInQuickInfo, group: s_quickInfoGroup);
