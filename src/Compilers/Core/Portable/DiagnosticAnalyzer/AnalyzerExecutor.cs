@@ -142,12 +142,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
-            Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken>? onAnalyzerException,
             AnalyzerManager analyzerManager,
             CancellationToken cancellationToken = default)
         {
-            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> newOnAnalyzerException =
-                (ex, analyzer, diagnostic, _) => onAnalyzerException?.Invoke(ex, analyzer, diagnostic);
+            onAnalyzerException ??= (ex, analyzer, diagnostic, cancellationToken) => { };
             return new AnalyzerExecutor(
                 compilation: null,
                 analyzerOptions: null,
