@@ -13,10 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString), Shared]
     internal partial class CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider :
         AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<
-            InvocationExpressionSyntax,
             ExpressionSyntax,
-            ArgumentSyntax,
             LiteralExpressionSyntax,
+            InvocationExpressionSyntax,
+            InterpolatedStringExpressionSyntax,
+            ArgumentSyntax,
             ArgumentListSyntax,
             InterpolationSyntax>
     {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
         {
         }
 
-        protected override SyntaxNode GetInterpolatedString(string text)
-            => SyntaxFactory.ParseExpression("$" + text) as InterpolatedStringExpressionSyntax;
+        protected override ExpressionSyntax ParseExpression(string text)
+            => SyntaxFactory.ParseExpression(text);
     }
 }

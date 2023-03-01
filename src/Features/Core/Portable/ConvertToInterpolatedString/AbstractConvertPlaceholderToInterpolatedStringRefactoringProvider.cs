@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,8 +14,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
@@ -26,12 +22,14 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         TExpressionSyntax,
         TLiteralExpressionSyntax,
         TInvocationExpressionSyntax,
+        TInterpolatedStringExpressionSyntax,
         TArgumentSyntax,
         TArgumentListExpressionSyntax,
         TInterpolationSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TLiteralExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
+        where TInterpolatedStringExpressionSyntax : TExpressionSyntax
         where TArgumentSyntax : SyntaxNode
         where TArgumentListExpressionSyntax : SyntaxNode
         where TInterpolationSyntax : SyntaxNode
@@ -51,6 +49,17 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             var (invocationSyntax, placeholderArgument) = await TryFindInvocationAsync().ConfigureAwait(false);
             if (invocationSyntax is null || placeholderArgument is null)
+                return;
+
+            var placeholderExpression = syntaxFacts.GetExpressionOfArgument(placeholderArgument);
+            var stringToken = placeholderExpression.GetFirstToken();
+
+            // don't offer if the string argument has errors in it, or if converting it to an interpolated string creates errors.
+            if (stringToken.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                return;
+
+            var interpolatedString = ParseExpression("$" + stringToken.Text) as TInterpolatedStringExpressionSyntax;
+            if (interpolatedString is null || interpolatedString.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return;
 
             // Not supported if there are any omitted arguments following the placeholder.
@@ -76,15 +85,12 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     return;
             }
 
-            //if (!await IsArgumentListCorrectAsync(invocationSyntax, invocationSymbol).ConfigureAwait(false))
-            //    return;
-
             var shouldReplaceInvocation = invocationSymbol is { ContainingType.SpecialType: SpecialType.System_String, Name: nameof(string.Format) };
 
             context.RegisterRefactoring(
                 CodeAction.Create(
                     FeaturesResources.Convert_to_interpolated_string,
-                    cancellationToken => CreateInterpolatedStringAsync(document, invocationSyntax, placeholderArgument, shouldReplaceInvocation, cancellationToken),
+                    cancellationToken => CreateInterpolatedStringAsync(document, invocationSyntax, placeholderArgument, interpolatedString, shouldReplaceInvocation, cancellationToken),
                     nameof(FeaturesResources.Convert_to_interpolated_string)),
                 invocationSyntax.Span);
 
@@ -157,37 +163,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
                 return true;
             }
-
-            //Task<bool> IsArgumentListCorrectAsync(
-            //    TInvocationExpressionSyntax invocation,
-            //    ISymbol invocationSymbol)
-            //{
-            //    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            //    var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
-
-            //    if (arguments.Count >= 2 &&
-            //        syntaxFacts.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFacts)) is TLiteralExpressionSyntax firstExpression &&
-            //        syntaxFacts.IsStringLiteral(firstExpression.GetFirstToken()))
-            //    {
-            //        // We do not want to substitute the expression if it is being passed to params array argument
-            //        // Example: 
-            //        // string[] args;
-            //        // String.Format("{0}{1}{2}", args);
-            //        return await IsArgumentListNotPassingArrayToParams(
-            //            document,
-            //            syntaxFacts.GetExpressionOfArgument(GetParamsArgument(arguments, syntaxFacts)),
-            //            invocationSymbol,
-            //            cancellationToken);
-            //    }
-
-            //    return SpecializedTasks.False;
-            //}
         }
 
-        private async Task<Document> CreateInterpolatedStringAsync(
+        private static async Task<Document> CreateInterpolatedStringAsync(
             Document document,
             TInvocationExpressionSyntax invocation,
             TArgumentSyntax placeholderArgument,
+            TInterpolatedStringExpressionSyntax interpolatedString,
             bool shouldReplaceInvocation,
             CancellationToken cancellationToken)
         {
@@ -199,7 +181,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             Contract.ThrowIfNull(literalExpression);
 
             var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var interpolatedString = ParseExpression("$" + literalExpression.GetFirstToken().ToString());
 
             var expandedArguments = GetExpandedArguments();
             var newInterpolatedString = VisitArguments();
@@ -254,67 +235,5 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 });
             }
         }
-
-        //private static string GetArgumentName(TArgumentSyntax argument, ISyntaxFacts syntaxFacts)
-        //    => syntaxFacts.GetNameForArgument(argument);
-
-        //private static SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
-        //    => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[1];
-
-        //private static TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
-        //    => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[0];
-
-        //private static TArgumentSyntax GetArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, int index, ISyntaxFacts syntaxFacts)
-        //{
-        //    if (arguments.Count > 4)
-        //    {
-        //        return arguments[index];
-        //    }
-
-        //    return arguments.FirstOrDefault(
-        //        argument => string.Equals(GetArgumentName(argument, syntaxFacts), StringFormatArguments.ParamsArgumentNames[index], StringComparison.OrdinalIgnoreCase))
-        //        ?? arguments[index];
-        //}
-
-        //private static bool ShouldIncludeFormatMethod(IMethodSymbol methodSymbol)
-        //{
-        //    if (!methodSymbol.IsStatic)
-        //    {
-        //        return false;
-        //    }
-
-        //    if (methodSymbol.Parameters.Length == 0)
-        //    {
-        //        return false;
-        //    }
-
-        //    var firstParameter = methodSymbol.Parameters[0];
-        //    if (firstParameter?.Name != StringFormatArguments.FormatArgumentName)
-        //    {
-        //        return false;
-        //    }
-
-        //    return true;
-        //}
-
-        //private static async Task<bool> IsArgumentListNotPassingArrayToParams(
-
-        //    SyntaxNode? expression,
-        //    ISymbol invocationSymbol,
-        //    SemanticModel semanticModel,
-        //    CancellationToken cancellationToken)
-        //{
-        //    if (expression != null)
-        //    {
-        //        var formatMethodsAcceptingParamsArray = formatMethods.Where(
-        //            x => x.Parameters is [_, { Type.Kind: SymbolKind.ArrayType }, ..]);
-        //        if (formatMethodsAcceptingParamsArray.Contains(invocationSymbol))
-        //        {
-        //            return semanticModel.GetTypeInfo(expression, cancellationToken).Type?.Kind != SymbolKind.ArrayType;
-        //        }
-        //    }
-
-        //    return true;
-        //}
     }
 }
