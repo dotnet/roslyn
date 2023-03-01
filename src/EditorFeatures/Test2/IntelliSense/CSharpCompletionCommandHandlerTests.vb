@@ -7938,6 +7938,78 @@ namespace NS
             End Using
         End Function
 
+        <WorkItem(67081, "https://github.com/dotnet/roslyn/issues/67081")>
+        <WpfTheory>
+        <InlineData("System", True)>
+        <InlineData("System.Collections", True)>
+        <InlineData("SystemNamespace", False)>
+        <InlineData("MyNamespace1", True)>
+        <InlineData("MyNamespace3", False)>
+        Public Async Function SortUnimportedItemFromSystemNamespacesFirst(containingNamespace As String, sortedAhead As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace NS1
+{
+    class C
+    {
+        void M()
+        {
+            $$
+        }
+    }
+}
+
+namespace MyNamespace2
+{
+    public class UnimportedType { }
+}
+
+namespace  <%= containingNamespace %>
+{
+    public class UnimportedType { }
+}
+</Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                ' make sure expander is selected
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("unimportedtype")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                ' make sure expander is selected
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                Dim expectedOrder As (String, String)()
+
+                If sortedAhead Then
+                    Await state.AssertSelectedCompletionItem(displayText:="UnimportedType", inlineDescription:=containingNamespace)
+                    expectedOrder =
+                    {
+                        ("UnimportedType", containingNamespace),
+                        ("UnimportedType", "MyNamespace2")
+                    }
+                Else
+                    Await state.AssertSelectedCompletionItem(displayText:="UnimportedType", inlineDescription:="MyNamespace2")
+                    expectedOrder =
+                    {
+                        ("UnimportedType", "MyNamespace2"),
+                        ("UnimportedType", containingNamespace)
+                    }
+                End If
+
+                state.AssertItemsInOrder(expectedOrder)
+
+            End Using
+        End Function
+
         <WorkItem(41601, "https://github.com/dotnet/roslyn/issues/41601")>
         <WpfTheory, CombinatorialData>
         Public Async Function SortItemsByExpandedFlag(showCompletionInArgumentLists As Boolean) As Task
