@@ -29,7 +29,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         /// <param name="options">An object instance returned from a prior call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        public async Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(object? options, CancellationToken cancellationToken)
+        public Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(object? options, CancellationToken cancellationToken)
+            => GetOperationsAsync(originalSolution: null!, options, cancellationToken);
+
+        internal async Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(
+            Solution originalSolution, object? options, CancellationToken cancellationToken)
         {
             if (options == null)
             {
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             if (operations != null)
             {
-                operations = await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
+                operations = await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
             }
 
             return operations;

@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -239,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// used by batch fixer engine to get new solution
         /// </summary>
-        internal async Task<Solution?> GetChangedSolutionInternalAsync(bool postProcessChanges = true, CancellationToken cancellationToken = default)
+        internal async Task<Solution?> GetChangedSolutionInternalAsync(Solution originalSolution, bool postProcessChanges = true, CancellationToken cancellationToken = default)
         {
             var solution = await GetChangedSolutionAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
             if (solution == null || !postProcessChanges)
@@ -247,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return solution;
             }
 
-            return await this.PostProcessChangesAsync(solution, cancellationToken).ConfigureAwait(false);
+            return await this.PostProcessChangesAsync(originalSolution, solution, cancellationToken).ConfigureAwait(false);
         }
 
         internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
@@ -259,33 +260,44 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="operations">A list of operations.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A new list of operations with post processing steps applied to any <see cref="ApplyChangesOperation"/>'s.</returns>
-        protected async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+        protected Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+            => PostProcessAsync(originalSolution: null!, operations, cancellationToken);
+
+        internal async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
+            Solution originalSolution, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
         {
-            var arrayBuilder = new ArrayBuilder<CodeActionOperation>();
+            using var result = TemporaryArray<CodeActionOperation>.Empty;
 
             foreach (var op in operations)
             {
                 if (op is ApplyChangesOperation ac)
                 {
-                    arrayBuilder.Add(new ApplyChangesOperation(await this.PostProcessChangesAsync(ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
+                    result.Add(new ApplyChangesOperation(await this.PostProcessChangesAsync(originalSolution, ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
                 }
                 else
                 {
-                    arrayBuilder.Add(op);
+                    result.Add(op);
                 }
             }
 
-            return arrayBuilder.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
 
         /// <summary>
-        ///  Apply post processing steps to solution changes, like formatting and simplification.
+        /// Apply post processing steps to solution changes, like formatting and simplification.
         /// </summary>
         /// <param name="changedSolution">The solution changed by the <see cref="CodeAction"/>.</param>
         /// <param name="cancellationToken">A cancellation token</param>
-        protected async Task<Solution> PostProcessChangesAsync(Solution changedSolution, CancellationToken cancellationToken)
+        protected Task<Solution> PostProcessChangesAsync(Solution changedSolution, CancellationToken cancellationToken)
+            => PostProcessChangesAsync(originalSolution: null!, changedSolution, cancellationToken);
+
+        internal async Task<Solution> PostProcessChangesAsync(
+            Solution originalSolution,
+            Solution changedSolution,
+            CancellationToken cancellationToken)
         {
-            var solutionChanges = changedSolution.GetChanges(changedSolution.Workspace.CurrentSolution);
+            originalSolution ??= changedSolution.Workspace.CurrentSolution;
+            var solutionChanges = changedSolution.GetChanges(originalSolution);
 
             var processedSolution = changedSolution;
 
