@@ -923,5 +923,41 @@ class T
     }
 }");
         }
+
+        [Fact]
+        public async Task TestArbitraryAPI()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+interface ILogger
+{
+    public void Log(string s) { }
+    public void Log(string s, object arg1) { }
+}
+
+class T
+{
+    void M(ILogger logger)
+    {
+        [|logger.Log(""{0}"", 5)|];
+    }
+}",
+@"using System;
+
+interface ILogger
+{
+    public void Log(string s) { }
+    public void Log(string s, object arg1) { }
+}
+
+class T
+{
+    void M(ILogger logger)
+    {
+        logger.Log($""{5}"");
+    }
+}");
+        }
     }
 }
