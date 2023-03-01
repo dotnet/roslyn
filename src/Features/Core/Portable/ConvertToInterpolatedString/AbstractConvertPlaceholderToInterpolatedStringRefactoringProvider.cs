@@ -49,8 +49,12 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var (invocationSyntax, invocationSymbol) = await TryFindInvocationAsync().ConfigureAwait(false);
-            if (invocationSyntax is null || invocationSymbol is null)
+            var invocationSyntax = await TryFindInvocationAsync().ConfigureAwait(false);
+            if (invocationSyntax is null)
+                return;
+
+            var invocationSymbol = semanticModel.GetSymbolInfo(invocationSyntax, cancellationToken).GetAnySymbol();
+            if (invocationSymbol is null)
                 return;
 
             if (!await IsArgumentListCorrectAsync(invocationSyntax, invocationSymbol).ConfigureAwait(false))
@@ -67,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             return;
 
-            async Task<(TInvocationExpressionSyntax? invocation, ISymbol? invocationSymbol)> TryFindInvocationAsync()
+            async Task<TInvocationExpressionSyntax?> TryFindInvocationAsync()
             {
                 // If selection is empty there can be multiple matching invocations (we can be deep in), need to go through all of them
                 var possibleInvocations = await document.GetRelevantNodesAsync<TInvocationExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
@@ -75,21 +79,21 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
                 // User selected the whole invocation of format.
                 if (invocation != null)
-                    return (invocation, semanticModel.GetSymbolInfo(invocation, cancellationToken).GetAnySymbol());
+                    return invocation;
 
                 // User selected a single argument of the invocation (expression / format string) instead of the whole invocation.
                 var argument = await document.TryGetRelevantNodeAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
                 invocation = argument?.Parent?.Parent as TInvocationExpressionSyntax;
                 if (IsValidPlaceholderToInterpolatedString(invocation))
-                    return (invocation, semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol);
+                    return invocation;
 
                 // User selected the whole argument list: string format with placeholders plus all expressions
                 var argumentList = await document.TryGetRelevantNodeAsync<TArgumentListExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
                 invocation = argumentList?.Parent as TInvocationExpressionSyntax;
                 if (IsValidPlaceholderToInterpolatedString(invocation))
-                    return (invocation, semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol);
+                    return invocation;
 
-                return default;
+                return null;
 
                 bool IsValidPlaceholderToInterpolatedString([NotNullWhen(true)] TInvocationExpressionSyntax? invocation)
                 {
