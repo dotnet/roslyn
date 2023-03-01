@@ -756,7 +756,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 Assert.Equal(parameters.title, action.Title);
             }
 
-            return await action.GetOperationsAsync(CancellationToken.None);
+            return await action.GetOperationsAsync(
+                workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
         }
 
         protected static async Task<Tuple<Solution, Solution>> ApplyOperationsAndGetSolutionAsync(
