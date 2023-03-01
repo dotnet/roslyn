@@ -1457,6 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else
             {
                 firstKeyword = ConvertToKeyword(this.EatToken());
+                secondKeyword = null;
                 mainKeyword = firstKeyword;
             }
 
@@ -1649,7 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (mainKeyword.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
-                        RoslynDebug.Assert(firstKeyword is not null);
+                        RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
                         RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
@@ -1670,7 +1671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
-                        RoslynDebug.Assert(firstKeyword is not null);
+                        RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
                         RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
@@ -1691,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.InterfaceKeyword:
-                        RoslynDebug.Assert(firstKeyword is not null);
+                        RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
                         RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
@@ -1715,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // record struct ...
                         // record ...
                         // record class ...
-                        RoslynDebug.Assert(firstKeyword is not null);
+                        RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null or { Kind: SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword });
                         RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
@@ -1740,6 +1741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // explicit extension
                         // implicit extension
                         RoslynDebug.Assert(firstKeyword!.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword);
+                        RoslynDebug.Assert(secondKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword!.Kind == SyntaxKind.ExtensionKeyword);
                         RoslynDebug.Assert(forKeyword is null == forType is null);
 
