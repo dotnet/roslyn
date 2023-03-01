@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(PrimaryConstructors): Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
+        // https://github.com/dotnet/roslyn/issues/67104: Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
         private void CompileFieldLikeEventAccessor(SourceEventSymbol eventSymbol, bool isAddMethod)
         {
             Debug.Assert(_moduleBeingBuiltOpt != null);
@@ -1929,7 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
                     if (property is not null && property.IsAutoPropertyWithGetAccessor)
                     {
-                        // PROTOTYPE(PrimaryConstructors): Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
+                        // https://github.com/dotnet/roslyn/issues/67104: Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
 

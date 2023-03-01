@@ -962,7 +962,7 @@ namespace @namespace
             Assert.Equal("myClass", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
         }
 
-        // PROTOTYPE(PrimaryConstructors): should clone this test for parameter backing field
+        // https://github.com/dotnet/roslyn/issues/67107: should clone this test for parameter backing field
         [Fact]
         public void MangledName_SimplifyBackingField()
         {

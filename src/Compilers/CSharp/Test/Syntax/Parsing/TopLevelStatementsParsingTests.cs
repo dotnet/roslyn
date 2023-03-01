@@ -3247,10 +3247,10 @@ record class Point(int x, int y);
                 // (2,19): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 19),
-                // (2,24): warning CS9508: Parameter 'x' is unread.
+                // (2,24): warning CS9113: Parameter 'x' is unread.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 24),
-                // (2,31): warning CS9508: Parameter 'y' is unread.
+                // (2,31): warning CS9113: Parameter 'y' is unread.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 31)
                 );

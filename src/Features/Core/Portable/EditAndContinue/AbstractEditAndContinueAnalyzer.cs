@@ -2599,7 +2599,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                     if (IsRudeEditDueToPrimaryConstructor(oldSymbol, cancellationToken))
                                     {
-                                        // PROTOTYPE(PrimaryConstructors): Disable edits for now
+                                        // https://github.com/dotnet/roslyn/issues/67108: Disable edits for now
                                         diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Delete, GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldDeclaration),
                                                                                oldDeclaration, new[] { GetDisplayName(oldDeclaration, EditKind.Delete) }));
                                         continue;
@@ -2775,7 +2775,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                     if (IsRudeEditDueToPrimaryConstructor(newSymbol, cancellationToken))
                                     {
-                                        // PROTOTYPE(PrimaryConstructors): Disable edits for now
+                                        // https://github.com/dotnet/roslyn/issues/67108: Disable edits for now
                                         diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Insert, GetDiagnosticSpan(newDeclaration, EditKind.Insert),
                                                                                newDeclaration, new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
                                         continue;
@@ -3049,7 +3049,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     if (IsRudeEditDueToPrimaryConstructor(oldSymbol, cancellationToken) ||
                                         IsRudeEditDueToPrimaryConstructor(newSymbol, cancellationToken))
                                     {
-                                        // PROTOTYPE(PrimaryConstructors): Disable edits for now
+                                        // https://github.com/dotnet/roslyn/issues/67108: Disable edits for now
                                         diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Update, GetDiagnosticSpan(newDeclaration, EditKind.Update),
                                                                                newDeclaration, new[] { GetDisplayName(newDeclaration, EditKind.Update) }));
                                         continue;
