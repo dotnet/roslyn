@@ -166,20 +166,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ? GetCompletedAnalyzersForFile_NoLock(filterScope.Value.file, filterScope.Value.syntax)
                     : null;
 
-                var builder = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length);
-                foreach (var analyzer in analyzers)
-                {
-                    // If the analyzer has not executed for the entire compilation, or we are computing
-                    // pending analyzers for a specific filterScope and the analyzer has not executed on
-                    // this filter scope, then we add the analyzer to pending analyzers.
-                    if (!_completedAnalyzersForCompilation.Contains(analyzer) &&
-                        (completedAnalyzersForFile == null || !completedAnalyzersForFile.Contains(analyzer)))
+                return analyzers.WhereAsArray(
+                    static (analyzer, arg) =>
                     {
-                        builder.Add(analyzer);
-                    }
-                }
+                        // If the analyzer has not executed for the entire compilation, or we are computing
+                        // pending analyzers for a specific filterScope and the analyzer has not executed on
+                        // this filter scope, then we add the analyzer to pending analyzers.
+                        if (!arg.self._completedAnalyzersForCompilation.Contains(analyzer) &&
+                            (arg.completedAnalyzersForFile == null || !arg.completedAnalyzersForFile.Contains(analyzer)))
+                        {
+                            return true;
+                        }
 
-                return builder.ToImmutableAndFree();
+                        return false;
+                    },
+                    (self: this, completedAnalyzersForFile));
             }
         }
 

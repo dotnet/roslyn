@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.Remote
             return new AssetProvider(solutionChecksum, assetCache, assetSource, serializerService);
         }
 
+        protected internal override bool PartialSemanticsEnabled => true;
+
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
         /// solution for <see langword="this"/> workspace.  This will also end up updating <see

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.EventHookup;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.EventHookup))
+            if (!_globalOptions.GetOption(EventHookupOptionsStorage.EventHookup))
             {
                 nextHandler();
                 return;

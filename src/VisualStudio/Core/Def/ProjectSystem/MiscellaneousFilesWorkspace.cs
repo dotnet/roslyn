@@ -34,10 +34,10 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [Export(typeof(MiscellaneousFilesWorkspace))]
-    internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IRunningDocumentTableEventListener
+    internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenTextBufferEventListener
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        private readonly OpenTextBufferProvider _openTextBufferProvider;
         private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
 
         private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new();
@@ -59,13 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
 
         private IVsTextManager _textManager;
-        private RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MiscellaneousFilesWorkspace(
             IThreadingContext threadingContext,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            OpenTextBufferProvider openTextBufferProvider,
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
             VisualStudioWorkspace visualStudioWorkspace)
             : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
@@ -73,34 +72,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
 
             _threadingContext = threadingContext;
-            _editorAdaptersFactoryService = editorAdaptersFactoryService;
+            _openTextBufferProvider = openTextBufferProvider;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
+
+            _openTextBufferProvider.AddListener(this);
         }
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
         {
             await TaskScheduler.Default;
             _textManager = await serviceProvider.GetServiceAsync<SVsTextManager, IVsTextManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
-            var runningDocumentTable = await serviceProvider.GetServiceAsync<SVsRunningDocumentTable, IVsRunningDocumentTable>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
-
-            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(
-                _threadingContext, _editorAdaptersFactoryService, runningDocumentTable, this);
         }
 
-        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _, IVsWindowFrame __) => TrackOpenedDocument(moniker, textBuffer);
+        void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _) => TrackOpenedDocument(moniker, textBuffer);
+        void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
 
-        void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);
+        void IOpenTextBufferEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);
 
         /// <summary>
         /// File hierarchy events are not relevant to the misc workspace.
         /// </summary>
-        void IRunningDocumentTableEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
+        void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
         {
         }
 
-        void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
+        void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
         {
             // We want to consider this file to be added in one of two situations:
             //
@@ -192,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // It's also theoretically possible that we are getting notified about a workspace change to a document that has
             // been simultaneously removed from the RDT but we haven't gotten the notification. In that case, also bail.
-            if (!_runningDocumentTableEventTracker.IsFileOpen(moniker))
+            if (!_openTextBufferProvider.IsFileOpen(moniker))
             {
                 return;
             }
@@ -214,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // the moniker. Once we observe the rename later in OnAfterAttributeChangeEx we'll completely disconnect.
                     if (TryGetLanguageInformation(moniker) != null)
                     {
-                        if (_runningDocumentTableEventTracker.TryGetBufferFromMoniker(moniker, out var buffer))
+                        if (_openTextBufferProvider.TryGetBufferFromFilePath(moniker, out var buffer))
                         {
                             AttachToDocument(moniker, buffer);
                         }

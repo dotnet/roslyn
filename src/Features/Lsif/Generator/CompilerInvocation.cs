@@ -51,10 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 {
                     var rulesetPath = splitCommandLine[i][RuleSetSwitch.Length..];
 
-                    var quoted = rulesetPath.Length > 2 &&
-                        rulesetPath.StartsWith("\"", StringComparison.Ordinal) &&
-                        rulesetPath.EndsWith("\"", StringComparison.Ordinal);
-
+                    var quoted = rulesetPath is ['"', _, .., '"'];
                     if (quoted)
                     {
                         rulesetPath = rulesetPath[1..^1];

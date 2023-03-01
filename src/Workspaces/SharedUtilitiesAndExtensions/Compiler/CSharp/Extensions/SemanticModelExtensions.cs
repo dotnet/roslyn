@@ -7,12 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -441,13 +439,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         var parameter = member.Parameters[index];
                         if (parameter.Type.OriginalDefinition.TypeKind != TypeKind.TypeParameter)
                         {
-                            return parameter.Name;
+                            if (SyntaxFacts.GetContextualKeywordKind(parameter.Name) is not SyntaxKind.UnderscoreToken)
+                            {
+                                return parameter.Name;
+                            }
                         }
                     }
                 }
             }
 
             return null;
+        }
+
+        public static INamedTypeSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseTypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
+                ?? throw new InvalidOperationException();
         }
     }
 }

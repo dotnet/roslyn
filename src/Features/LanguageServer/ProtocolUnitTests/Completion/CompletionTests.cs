@@ -1289,7 +1289,7 @@ class A
             var globalOptions = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
             var listMaxSize = 1;
 
-            globalOptions.SetGlobalOption(LspOptions.MaxCompletionListSize, listMaxSize);
+            globalOptions.SetGlobalOption(LspOptionsStorage.MaxCompletionListSize, listMaxSize);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.True(results.IsIncomplete);

@@ -4,6 +4,7 @@
 
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AddImportOnPaste
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.ColorSchemes
@@ -12,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.DocumentHighlighting
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 Imports Microsoft.CodeAnalysis.Editor.InlineDiagnostics
@@ -19,16 +21,23 @@ Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.ImplementType
+Imports Microsoft.CodeAnalysis.InheritanceMargin
 Imports Microsoft.CodeAnalysis.InlineHints
 Imports Microsoft.CodeAnalysis.InlineRename
+Imports Microsoft.CodeAnalysis.KeywordHighlighting
+Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.QuickInfo
+Imports Microsoft.CodeAnalysis.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
+Imports Microsoft.CodeAnalysis.VisualBasic.AutomaticInsertionOfAbstractOrInterfaceMembers
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
@@ -57,11 +66,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                          End Function)
 
             BindToOption(Show_compiler_errors_and_warnings_for, SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic)
-            BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.VisualBasic)
-            BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
-            BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.VisualBasic)
-            BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptions.OOP64Bit)
-            BindToOption(Enable_file_logging_for_diagnostics, VisualStudioLoggingOptionsMetadata.EnableFileLoggingForDiagnostics)
+            BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics, LanguageNames.VisualBasic)
+            BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
+            BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.VisualBasic)
+            BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit)
+            BindToOption(Enable_file_logging_for_diagnostics, VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics)
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds)
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences,
                          Function()
@@ -74,33 +83,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Rename
             BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.RenameAsynchronously)
-            BindToOption(Rename_UI_setting, InlineRenameUIOptions.UseInlineAdornment, label:=Rename_UI_setting_label)
+            BindToOption(Rename_UI_setting, InlineRenameUIOptionsStorage.UseInlineAdornment, label:=Rename_UI_setting_label)
 
             ' Import directives
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic)
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic)
             BindToOption(SuggestForTypesInReferenceAssemblies, SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.VisualBasic)
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.VisualBasic)
-            BindToOption(AddMissingImportsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.VisualBasic)
+            BindToOption(AddMissingImportsOnPaste, AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.VisualBasic)
 
             ' Quick Actions
-            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous,
+            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptionsStorage.Asynchronous,
                          Function()
                              ' If the option has Not been set by the user, check if the option is disabled from experimentation.
-                             Return Not optionStore.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag)
+                             Return Not optionStore.GetOption(SuggestionsOptionsStorage.AsynchronousQuickActionsDisableFeatureFlag)
                          End Function)
 
             ' Highlighting
-            BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.VisualBasic)
-            BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.VisualBasic)
+            BindToOption(EnableHighlightReferences, ReferenceHighlightingOptionsStorage.ReferenceHighlighting, LanguageNames.VisualBasic)
+            BindToOption(EnableHighlightKeywords, KeywordHighlightingOptionsStorage.KeywordHighlighting, LanguageNames.VisualBasic)
 
             ' Outlining
-            BindToOption(EnableOutlining, FeatureOnOffOptions.Outlining, LanguageNames.VisualBasic)
+            BindToOption(EnableOutlining, OutliningOptionsStorage.Outlining, LanguageNames.VisualBasic)
             BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, LanguageNames.VisualBasic)
             BindToOption(Collapse_imports_on_file_open, BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, LanguageNames.VisualBasic)
             BindToOption(Collapse_sourcelink_embedded_decompiled_files_on_open, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, LanguageNames.VisualBasic)
             BindToOption(Collapse_metadata_signature_files_on_open, BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, LanguageNames.VisualBasic)
-            BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.VisualBasic)
+            BindToOption(DisplayLineSeparators, LineSeparatorsOptionsStorage.LineSeparator, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_comments_and_preprocessor_regions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions, LanguageNames.VisualBasic)
@@ -115,19 +124,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Comments
             BindToOption(GenerateXmlDocCommentsForTripleApostrophes, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
-            BindToOption(InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments, SplitCommentOptions.Enabled, LanguageNames.VisualBasic)
+            BindToOption(InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments, SplitCommentOptionsStorage.Enabled, LanguageNames.VisualBasic)
 
             ' Editor help
-            BindToOption(EnableEndConstruct, FeatureOnOffOptions.EndConstruct, LanguageNames.VisualBasic)
-            BindToOption(EnableLineCommit, FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)
-            BindToOption(AutomaticInsertionOfInterfaceAndMustOverrideMembers, FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic)
-            BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.VisualBasic)
+            BindToOption(EnableEndConstruct, EndConstructGenerationOptionsStorage.EndConstruct, LanguageNames.VisualBasic)
+            BindToOption(EnableLineCommit, LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic)
+            BindToOption(AutomaticInsertionOfInterfaceAndMustOverrideMembers, AutomaticInsertionOfAbstractOrInterfaceMembersOptionsStorage.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic)
+            BindToOption(RenameTrackingPreview, RenameTrackingOptionsStorage.RenameTrackingPreview, LanguageNames.VisualBasic)
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic)
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.VisualBasic)
 
             ' Go To Definition
-            BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic)
+            BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, LanguageNames.VisualBasic)
             BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
                          Function()
                              ' If the option has Not been set by the user, check if the option is enabled from experimentation.
@@ -145,7 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Highlight_related_JSON_components_under_cursor, HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.VisualBasic)
 
             ' Editor color scheme
-            BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme)
+            BindToOption(Editor_color_scheme, ColorSchemeOptionsStorage.ColorScheme)
 
             ' Extract method
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct, LanguageNames.VisualBasic)
@@ -158,8 +167,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(prefer_auto_properties, ImplementTypeOptionsStorage.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.VisualBasic)
 
             ' Inline hints
-            BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsViewOptions.DisplayAllHintsWhilePressingAltF1)
-            BindToOption(ColorHints, InlineHintsViewOptions.ColorHints, LanguageNames.VisualBasic)
+            BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1)
+            BindToOption(ColorHints, InlineHintsViewOptionsStorage.ColorHints, LanguageNames.VisualBasic)
 
             BindToOption(DisplayInlineParameterNameHints, InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.VisualBasic)
             BindToOption(ShowHintsForLiterals, InlineHintsOptionsStorage.ForLiteralParameters, LanguageNames.VisualBasic)
@@ -171,9 +180,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(SuppressHintsWhenParameterNamesMatchArgumentNames, InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName, LanguageNames.VisualBasic)
 
             ' Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
-            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic, Function() True)
-            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin)
-            BindToOption(IncludeGlobalImports, FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, LanguageNames.VisualBasic)
+            BindToOption(ShowInheritanceMargin, InheritanceMarginOptionsStorage.ShowInheritanceMargin, LanguageNames.VisualBasic, Function() True)
+            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin)
+            BindToOption(IncludeGlobalImports, InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, LanguageNames.VisualBasic)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
