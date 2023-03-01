@@ -130,5 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override DeclarationScope EffectiveScope => CalculateEffectiveScopeIgnoringAttributes();
+
+        internal override bool HasUnscopedRefAttribute => false;
     }
 }

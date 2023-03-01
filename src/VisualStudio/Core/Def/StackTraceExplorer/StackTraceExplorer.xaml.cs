@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 
@@ -49,6 +50,17 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         internal void OnClear()
         {
             ViewModel.OnClear();
+        }
+
+        private void TextBlock_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            var textBlock = (TextBlock)sender;
+
+            if (textBlock.IsVisible)
+            {
+                var peer = FrameworkElementAutomationPeer.FromElement(textBlock);
+                peer?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+            }
         }
     }
 }

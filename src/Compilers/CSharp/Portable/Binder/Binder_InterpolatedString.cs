@@ -562,7 +562,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversionDiagnostics.Free();
             }
 
-
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, syntax);
             int constructorArgumentLength = 3 + additionalConstructorArguments.Length;
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(constructorArgumentLength);
@@ -576,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // because we want to track that we're using the type no matter what.
             var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, syntax);
             var trailingConstructorValidityPlaceholder =
-                new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, valSafeToEscape: LocalScopeDepth, boolType)
+                new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, boolType)
                 { WasCompilerGenerated = true };
             var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
             refKindsBuilder.Add(RefKind.Out);
@@ -663,7 +662,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 interpolatedStringHandlerType,
                                 constructorCall,
                                 usesBoolReturn,
-                                LocalScopeDepth,
                                 additionalConstructorArguments.NullToEmpty(),
                                 positionInfo,
                                 implicitBuilderReceiver);
@@ -853,7 +851,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref MemberAnalysisResult memberAnalysisResult,
             int interpolatedStringArgNum,
             BoundExpression? receiver,
-            bool requiresInstanceReceiver,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(unconvertedString is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
@@ -1007,27 +1004,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 SyntaxNode placeholderSyntax;
-                uint valSafeToEscapeScope;
                 bool isSuppressed;
 
                 switch (argumentIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                         Debug.Assert(receiver != null);
-                        valSafeToEscapeScope = requiresInstanceReceiver
-                            ? receiver.GetRefKind().IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
-                            : Binder.CallingMethodScope;
                         isSuppressed = receiver.IsSuppressed;
                         placeholderSyntax = receiver.Syntax;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         placeholderSyntax = unconvertedString.Syntax;
-                        valSafeToEscapeScope = Binder.CallingMethodScope;
                         isSuppressed = false;
                         break;
                     case >= 0:
                         placeholderSyntax = arguments[argumentIndex].Syntax;
-                        valSafeToEscapeScope = GetValEscape(arguments[argumentIndex], LocalScopeDepth);
                         isSuppressed = arguments[argumentIndex].IsSuppressed;
                         break;
                     default:
@@ -1038,7 +1029,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (BoundInterpolatedStringArgumentPlaceholder)(new BoundInterpolatedStringArgumentPlaceholder(
                         placeholderSyntax,
                         argumentIndex,
-                        valSafeToEscapeScope,
                         placeholderType,
                         hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
                     { WasCompilerGenerated = true }.WithSuppression(isSuppressed)));

@@ -1820,7 +1820,6 @@ M5 - 1
             CompileAndVerify(compilation, expectedOutput:=expected)
         End Sub
 
-
         <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_If_1()
             Dim source =
@@ -3381,7 +3380,6 @@ End Module
 }
 ]]>)
 
-
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
             compilationVerifier = CompileAndVerify(compilation)
@@ -3749,7 +3747,6 @@ End Module
   IL_00b6:  ret
 }
 ]]>)
-
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
@@ -4164,7 +4161,6 @@ End Module
 }
 ]]>)
 
-
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
             compilationVerifier = CompileAndVerify(compilation)
@@ -4545,7 +4541,6 @@ End Module
   IL_00e6:  ret
 }]]>)
 
-
             ' Changed from verifying output to checking IL - Bug 717949
             ' Leaving in expected output for  information purpose
 
@@ -4679,7 +4674,6 @@ End Module
   IL_00c7:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
   IL_00cc:  ret
 }]]>)
-
 
         End Sub
 
@@ -4816,7 +4810,6 @@ End Module
   IL_00b0:  ret
 }
 ]]>)
-
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
@@ -5069,7 +5062,6 @@ End Module
 }
 ]]>)
 
-
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
             compilationVerifier = CompileAndVerify(compilation)
@@ -5320,7 +5312,6 @@ End Module
   IL_00b0:  ret
 }
 ]]>)
-
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
@@ -5868,7 +5859,6 @@ End Module
   IL_00a9:  ret
 }
 ]]>)
-
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
@@ -6684,7 +6674,6 @@ End Module
   IL_00a2:  ret
 }
 ]]>)
-
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
 
@@ -11903,7 +11892,6 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
-
             Dim expected =
             <![CDATA[
 --- Test - 0
@@ -12827,9 +12815,6 @@ End Module
   IL_0168:  ret
 }]]>)
 
-
-
-
             '            Dim expected =
             '            <![CDATA[
             '--- Test - 0
@@ -12987,7 +12972,6 @@ End Module
   IL_013d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
   IL_0142:  ret
 }]]>)
-
 
         End Sub
 
@@ -14591,7 +14575,6 @@ after throw
 
         End Sub
 
-
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub SingleLabelErrorHandler()
             Dim source =
@@ -15347,7 +15330,6 @@ End Module
   IL_0096:  ret
 }]]>)
         End Sub
-
 
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_Resume_Next_With_Explicit_Exception_AndLabel_Next()
@@ -16788,7 +16770,6 @@ Before 2 Exception
 Goo
 After 2 Exception]]>)
 
-
             compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[
 {
   // Code size      258 (0x102)
@@ -16944,7 +16925,6 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:="Before Exception" & Environment.NewLine & "Before Exception")
 
-
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[
 {
   // Code size      260 (0x104)
@@ -17078,7 +17058,6 @@ End Module
 }
 ]]>)
         End Sub
-
 
         <Fact()>
         Public Sub OnError_WithSyncLock_2()
@@ -18227,7 +18206,6 @@ Procedure call or argument is not valid.
 
         <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorHandler_InCollectionInitializer()
-
 
             'As we are handling the error in the Add, we should handle two items to the collection
             'In other collection initializer we would result in all or nothing behavior

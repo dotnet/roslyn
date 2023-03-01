@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis
                 EntryState.Cached => s_allCachedEntries,
                 EntryState.Modified => s_allModifiedEntries,
                 EntryState.Removed => s_allRemovedEntries,
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
             public Enumerator GetEnumerator()
@@ -549,7 +549,6 @@ namespace Microsoft.CodeAnalysis
 
                 public T Current => _entry.GetItem(_index);
             }
-
 
 #if DEBUG
             public override string ToString()

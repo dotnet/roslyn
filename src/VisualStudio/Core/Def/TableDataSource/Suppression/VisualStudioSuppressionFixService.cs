@@ -576,7 +576,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         }
 
                         // Filter out stale diagnostics in error list.
-                        documentDiagnosticsToFix = documentDiagnostics.Value.Where(d => latestDocumentDiagnostics.Contains(d) || SuppressionHelpers.IsSynthesizedExternalSourceDiagnostic(d));
+                        documentDiagnosticsToFix = documentDiagnostics.Value
+                            .Where(d => latestDocumentDiagnostics.Contains(d) ||
+                                        d.IsBuildDiagnostic() ||
+                                        SuppressionHelpers.IsSynthesizedExternalSourceDiagnostic(d));
                     }
                     else
                     {

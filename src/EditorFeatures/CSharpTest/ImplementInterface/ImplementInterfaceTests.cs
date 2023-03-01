@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -13,12 +14,13 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.ImplementInterface.CSharpImplementInterfaceCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        EmptyDiagnosticAnalyzer,
+        CSharpImplementInterfaceCodeFixProvider>;
+
     [Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
     public class ImplementInterfaceTests
     {
@@ -3547,9 +3549,12 @@ class A : I<E>
         }
 
         [Fact, WorkItem(542621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542621")]
-        public async Task TestUnexpressibleConstraint10()
+        public async Task TestUnexpressibleConstraint10_CSharp72()
         {
-            await TestWithAllCodeStyleOptionsOffAsync(
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp7_2,
+                TestCode =
 @"using System;
 
 interface I<S>
@@ -3560,6 +3565,7 @@ interface I<S>
 class A : {|CS0535:I<ValueType>|}
 {
 }",
+                FixedCode =
 @"using System;
 
 interface I<S>
@@ -3573,7 +3579,43 @@ class A : I<ValueType>
     {
         throw new NotImplementedException();
     }
-}");
+}",
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(542621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542621")]
+        public async Task TestUnexpressibleConstraint10_CSharp8()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp8,
+                TestCode =
+@"using System;
+
+interface I<S>
+{
+    void Goo<T>() where T : S;
+}
+
+class A : {|CS0535:I<ValueType>|}
+{
+}",
+                FixedCode =
+@"using System;
+
+interface I<S>
+{
+    void Goo<T>() where T : S;
+}
+
+class A : I<ValueType>
+{
+    void I<ValueType>.Goo<T>()
+    {
+        throw new NotImplementedException();
+    }
+}",
+            }.RunAsync();
         }
 
         [Fact, WorkItem(542669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542669")]
@@ -10502,6 +10544,190 @@ abstract class C3 : I1<C3>
                 CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Implement_interface_abstractly, codeAction.Title),
                 CodeActionEquivalenceKey = "False;True;True:global::I1<global::C3>;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
                 CodeActionIndex = 1,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(34580, "https://github.com/dotnet/roslyn/issues/34580")]
+        public async Task TestSupportedConstraints1()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp7_3,
+                TestCode =
+@"using System;
+
+public interface ITest
+{
+    void TestEnum<T>(T value) where T : Enum;
+}
+
+public abstract class BaseTest : {|CS0535:ITest|}
+{
+}",
+                FixedCode =
+@"using System;
+
+public interface ITest
+{
+    void TestEnum<T>(T value) where T : Enum;
+}
+
+public abstract class BaseTest : ITest
+{
+    public void TestEnum<T>(T value) where T : Enum
+    {
+        throw new NotImplementedException();
+    }
+}",
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(34580, "https://github.com/dotnet/roslyn/issues/34580")]
+        public async Task TestSupportedConstraints2()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp7_2,
+                TestCode =
+@"using System;
+
+public interface ITest
+{
+    void TestEnum<T>(T value) where T : {|CS8320:Enum|};
+}
+
+public abstract class BaseTest : {|CS0535:ITest|}
+{
+}",
+                FixedCode =
+@"using System;
+
+public interface ITest
+{
+    void TestEnum<T>(T value) where T : {|CS8320:Enum|};
+}
+
+public abstract class BaseTest : ITest
+{
+    void ITest.TestEnum<T>(T value)
+    {
+        throw new NotImplementedException();
+    }
+}",
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(58136, "https://github.com/dotnet/roslyn/issues/58136")]
+        public async Task TestStaticAbstractMembers1()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = @"
+using System;
+
+internal interface I
+{
+    internal static abstract int P { get; }
+
+    internal static abstract event Action E;
+
+    internal static abstract void M();
+}
+
+class C : {|CS0535:{|CS0535:{|CS0535:I|}|}|}
+{
+}
+",
+                FixedCode = @"
+using System;
+
+internal interface I
+{
+    internal static abstract int P { get; }
+
+    internal static abstract event Action E;
+
+    internal static abstract void M();
+}
+
+class C : I
+{
+    static int I.P => throw new NotImplementedException();
+
+    static event Action I.E
+    {
+        add
+        {
+            throw new NotImplementedException();
+        }
+
+        remove
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    static void I.M()
+    {
+        throw new NotImplementedException();
+    }
+}
+",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Implement_all_members_explicitly, codeAction.Title),
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(37374, "https://github.com/dotnet/roslyn/issues/37374")]
+        public async Task TestRefReadonly1()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                TestCode =
+@"using System.Collections;
+using System.Collections.Generic;
+
+public interface IRefReadOnlyList<T> : IReadOnlyList<T> where T : struct
+{
+    new ref readonly T this[int ix] { get; }
+}
+
+public struct A { };
+
+public class Class : {|CS0535:{|CS0535:{|CS0535:{|CS0535:{|CS0535:IRefReadOnlyList<A>|}|}|}|}|}
+{
+}",
+                FixedCode =
+@"using System.Collections;
+using System.Collections.Generic;
+
+public interface IRefReadOnlyList<T> : IReadOnlyList<T> where T : struct
+{
+    new ref readonly T this[int ix] { get; }
+}
+
+public struct A { };
+
+public class Class : IRefReadOnlyList<A>
+{
+    public ref readonly A this[int ix] => throw new System.NotImplementedException();
+
+    A IReadOnlyList<A>.this[int index] => throw new System.NotImplementedException();
+
+    public int Count => throw new System.NotImplementedException();
+
+    public IEnumerator<A> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+}",
             }.RunAsync();
         }
     }

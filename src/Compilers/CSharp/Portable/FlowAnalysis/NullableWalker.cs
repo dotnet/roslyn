@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal VariableState(VariablesSnapshot variables, LocalStateSnapshot variableNullableStates)
             {
+                Debug.Assert(variables.Id == variableNullableStates.Id);
                 Variables = variables;
                 VariableNullableStates = variableNullableStates;
             }
@@ -608,6 +609,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // https://github.com/dotnet/roslyn/issues/46718: give diagnostics on return points, not constructor signature
                         var exitLocation = method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault();
                         bool constructorEnforcesRequiredMembers = method.ShouldCheckRequiredMembers();
+
+                        // Required properties can be attributed MemberNotNull, indicating that if the property is set, the field will be set as well.
+                        // If we're enforcing required members (ie, the constructor is not attributed with SetsRequiredMembers), we also want to
+                        // not warn for members named in such attributes.
+                        var membersWithStateEnforcedByRequiredMembers = constructorEnforcesRequiredMembers
+                            ? method.ContainingType.GetMembersUnordered().SelectManyAsArray(
+                                predicate: member => member is PropertySymbol { IsRequired: true },
+                                selector: member =>
+                                {
+                                    var property = (PropertySymbol)member;
+                                    return property.SetMethod?.NotNullMembers ?? property.NotNullMembers;
+                                })
+                            : ImmutableArray<string>.Empty;
+
                         var alreadyWarnedMembers = PooledHashSet<Symbol>.GetInstance();
                         foreach (var member in method.ContainingType.GetMembersUnordered())
                         {
@@ -615,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // For auto-properties, `GetMembersUnordered()` will return the backing field, and `checkStateOnConstructorExit` will follow that to the property itself, so we only need
                             // to force property analysis if the member is required and _does not_ have a backing field.
                             var shouldForcePropertyAnalysis = !constructorEnforcesRequiredMembers && member is not SourcePropertySymbolBase { BackingField: not null } && member.IsRequired();
-                            checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, forcePropertyAnalysis: shouldForcePropertyAnalysis);
+                            checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, membersWithStateEnforcedByRequiredMembers, forcePropertyAnalysis: shouldForcePropertyAnalysis);
                         }
 
                         // If this constructor is adding `SetsRequiredMembers` and the base or this constructor did not have it, we need
@@ -631,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // been reported in constructor of the type that defined them.
                             foreach (var (_, member) in baseType.AllRequiredMembers)
                             {
-                                checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, forcePropertyAnalysis: true);
+                                checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, membersWithStateEnforcedByRequiredMembers: ImmutableArray<string>.Empty, forcePropertyAnalysis: true);
                             }
                         }
 
@@ -653,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation, bool forcePropertyAnalysis)
+            void checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation, ImmutableArray<string> membersWithStateEnforcedByRequiredMembers, bool forcePropertyAnalysis)
             {
                 var isStatic = !constructor.RequiresInstanceReceiver();
                 if (member.IsStatic != isStatic)
@@ -706,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (symbol.IsRequired() && constructor.ShouldCheckRequiredMembers())
+                if ((symbol.IsRequired() || membersWithStateEnforcedByRequiredMembers.Contains(symbol.Name)) && constructor.ShouldCheckRequiredMembers())
                 {
                     return;
                 }
@@ -963,10 +978,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 => ImmutableArray<Symbol>.Empty,
 
                             (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: false)
-                                => containingType.GetMembersUnordered().SelectAsArray(predicate: SymbolExtensions.IsRequired, selector: getFieldSymbolToBeInitialized),
+                                => containingType.GetMembersUnordered().SelectManyAsArray(predicate: SymbolExtensions.IsRequired, selector: getAllMembersToBeDefaulted),
 
                             (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
-                                => containingType.AllRequiredMembers.SelectAsArray(static kvp => getFieldSymbolToBeInitialized(kvp.Value)),
+                                => containingType.AllRequiredMembers.SelectManyAsArray(static kvp => getAllMembersToBeDefaulted(kvp.Value)),
 
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: _, includeBaseRequiredMembers: false)
                                 => containingType.GetMembersUnordered().SelectAsArray(getFieldSymbolToBeInitialized),
@@ -975,7 +990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 => getAllTypeAndRequiredMembers(containingType),
 
                             (includeAllMembers: _, includeCurrentTypeRequiredMembers: false, includeBaseRequiredMembers: true)
-                                => throw ExceptionUtilities.Unreachable,
+                                => throw ExceptionUtilities.Unreachable(),
                         };
 
                         static ImmutableArray<Symbol> getAllTypeAndRequiredMembers(TypeSymbol containingType)
@@ -993,10 +1008,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foreach (var (_, requiredMember) in requiredMembers)
                             {
                                 // We want to assume that all required members were _not_ set by the chained constructor
-                                builder.Add(getFieldSymbolToBeInitialized(requiredMember));
+                                builder.AddRange(getAllMembersToBeDefaulted(requiredMember));
                             }
 
                             return builder.ToImmutableAndFree();
+                        }
+
+                        static IEnumerable<Symbol> getAllMembersToBeDefaulted(Symbol requiredMember)
+                        {
+                            Debug.Assert(requiredMember.IsRequired());
+
+                            if (requiredMember is FieldSymbol)
+                            {
+                                yield return requiredMember;
+                            }
+                            else
+                            {
+                                var property = (PropertySymbol)requiredMember;
+                                yield return getFieldSymbolToBeInitialized(property);
+
+                                // If the set method is null (ie missing), that's an error, but we'll recover as best we can
+                                foreach (var notNullMemberName in (property.SetMethod?.NotNullMembers ?? property.NotNullMembers))
+                                {
+                                    foreach (var member in property.ContainingType.GetMembers(notNullMemberName))
+                                    {
+                                        yield return getFieldSymbolToBeInitialized(member);
+                                    }
+                                }
+                            }
                         }
 
                         static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)
@@ -1153,7 +1192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportParameterIfBadConditionalState(syntax, parameter, sense, stateWhen);
             }
         }
-
 
         private void ReportParameterIfBadConditionalState(SyntaxNode syntax, ParameterSymbol parameter, bool sense, LocalState stateWhen)
         {
@@ -1692,6 +1730,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol!) ?? -1;
             try
             {
+#if DEBUG
+                if (initialState.HasValue)
+                {
+                    Debug.Assert(walker._variables.Id == initialState.Value.Id);
+                }
+#endif
                 bool badRegion = false;
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialState);
                 diagnostics?.AddRange(walker.Diagnostics);
@@ -2846,6 +2890,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocal(BoundLocal node)
         {
             var local = node.LocalSymbol;
+
+            // Ignore var self-references (e.g., the RHS of `var x = x;`) to avoid cycles.
+            // While inferring the type of a more complex construct (like lambda),
+            // nullability analysis could be triggered against a reference of the local being inferred,
+            // querying its type and hence starting the same type inference recursively.
+            if (local is SourceLocalSymbol { IsVar: true } && local.ForbiddenZone?.Contains(node.Syntax) == true)
+            {
+                SetResultType(node, TypeWithState.ForType(node.Type));
+                return null;
+            }
+
             int slot = GetOrCreateSlot(local);
             var type = GetDeclaredLocalResult(local);
 
@@ -3051,7 +3106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isCall)
         {
             // Do not use this overload in NullableWalker. Use the overload below instead.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private void VisitLocalFunctionUse(LocalFunctionSymbol symbol)
@@ -3794,7 +3849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private new void VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
 #pragma warning restore IDE0051 // Remove unused private members
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private Action<int, TypeSymbol>? VisitCollectionElementInitializer(BoundCollectionElementInitializer node, TypeSymbol containingType, bool delayCompletionForType)
@@ -5008,7 +5063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 targetType = TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
             }
-            TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand, targetType), trackMembers: false, AssignmentKind.Assignment);
+            TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand), trackMembers: false, AssignmentKind.Assignment);
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
             TypeWithState resultType = TypeWithState.Create(targetType.Type, rightResult.State);
@@ -5382,7 +5437,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref discardedUseSiteInfo);
             }
 
-
             resultType ??= node.Type?.SetUnknownNullabilityForReferenceTypes();
 
             TypeWithAnnotations resultTypeWithAnnotations;
@@ -5406,7 +5460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 resultTypeWithAnnotations = TypeWithAnnotations.Create(resultType);
             }
-
 
             TypeWithState typeWithState = convertArms(
                                                 node, originalConsequence, originalAlternative, consequenceState, alternativeState, consequenceRValue, alternativeRValue,
@@ -6004,7 +6057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
         {
             // Callers should be using VisitArguments overload below.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private (MethodSymbol? method, ImmutableArray<VisitArgumentResult> results, bool returnNotNull) VisitArguments(
@@ -6644,7 +6697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 parameterValue,
                                 targetType: ApplyLValueAnnotations(lValueType, leftAnnotations),
                                 valueType: applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations),
-                                UseLegacyWarnings(argument, result.LValueType));
+                                UseLegacyWarnings(argument));
                         }
                     }
                     break;
@@ -6683,7 +6736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // report warnings if parameter would unsafely let a null out in the worst case
                         if (!argument.IsSuppressed)
                         {
-                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, worstCaseParameterWithState, UseLegacyWarnings(argument, result.LValueType));
+                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, worstCaseParameterWithState, UseLegacyWarnings(argument));
 
                             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                             if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.Type, lValueType.Type, ref discardedUseSiteInfo))
@@ -8980,7 +9033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!node.IsRef)
                 {
                     var discarded = left is BoundDiscardExpression;
-                    rightState = VisitOptionalImplicitConversion(right, targetTypeOpt: discarded ? default : leftLValueType, UseLegacyWarnings(left, leftLValueType), trackMembers: true, AssignmentKind.Assignment);
+                    rightState = VisitOptionalImplicitConversion(right, targetTypeOpt: discarded ? default : leftLValueType, UseLegacyWarnings(left), trackMembers: true, AssignmentKind.Assignment);
                     Unsplit();
                 }
                 else
@@ -9104,7 +9157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return annotations;
         }
 
-        private static bool UseLegacyWarnings(BoundExpression expr, TypeWithAnnotations exprType)
+        private static bool UseLegacyWarnings(BoundExpression expr)
         {
             switch (expr.Kind)
             {
@@ -9431,7 +9484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitIncrementOperator(BoundIncrementOperator node)
@@ -10157,7 +10210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
             // Should be handled by VisitObjectCreationExpression.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
@@ -10396,7 +10449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportArgumentWarnings(right, rightType, logicalOperator.Parameters[1]);
             }
 
-            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node, right, isAnd, isBool, ref leftTrue, ref leftFalse);
+            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(right, isAnd, isBool, ref leftTrue, ref leftFalse);
         }
 
         private TypeWithState InferResultNullabilityOfBinaryLogicalOperator(BoundExpression node, TypeWithState leftType, TypeWithState rightType)
@@ -10735,7 +10788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitAnonymousPropertyDeclaration(BoundAnonymousPropertyDeclaration node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
@@ -11278,7 +11331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public LocalState CreateNestedMethodState(Variables variables)
             {
                 Debug.Assert(Id == variables.Container!.Id);
-                return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(capacity: variables.NextAvailableIndex, reachable: true));
+                return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(capacity: 1, reachable: true));
             }
 
             private static BitVector CreateBitVector(int capacity, bool reachable)

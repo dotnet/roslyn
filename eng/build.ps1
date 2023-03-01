@@ -371,7 +371,7 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
-  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net6.0"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net7.0"
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
@@ -384,7 +384,7 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net6.0"
+    $args += " --tfm net6.0 --tfm net7.0"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -470,6 +470,14 @@ function TestUsingRunTests() {
         Copy-Item -Path $serviceHubLogs -Destination (Join-Path $LogDir "servicehub") -Recurse
       } else {
         Write-Host "No ServiceHub logs found to copy"
+      }
+
+      $projectFaultLogs = Join-Path $TempDir "VsProjectFault_*.failure.txt"
+      if (Test-Path $projectFaultLogs) {
+        Write-Host "Copying VsProjectFault logs to $LogDir"
+        Copy-Item -Path $projectFaultLogs -Destination $LogDir
+      } else {
+        Write-Host "No VsProjectFault logs found to copy"
       }
 
       if ($lspEditor) {

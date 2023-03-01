@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -16,24 +17,21 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
         private class MetadataSymbolsSearchScope : SearchScope
         {
-            private readonly Solution _solution;
+            private readonly Project _assemblyProject;
             private readonly IAssemblySymbol _assembly;
-            private readonly ProjectId _assemblyProjectId;
             private readonly PortableExecutableReference _metadataReference;
 
             public MetadataSymbolsSearchScope(
                 AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                Solution solution,
+                Project assemblyProject,
                 IAssemblySymbol assembly,
-                ProjectId assemblyProjectId,
                 PortableExecutableReference metadataReference,
                 bool exact,
                 CancellationToken cancellationToken)
                 : base(provider, exact, cancellationToken)
             {
-                _solution = solution;
+                _assemblyProject = assemblyProject;
                 _assembly = assembly;
-                _assemblyProjectId = assemblyProjectId;
                 _metadataReference = metadataReference;
             }
 
@@ -42,15 +40,15 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return new MetadataSymbolReference(
                     provider,
                     searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol),
-                    _assemblyProjectId,
+                    _assemblyProject.Id,
                     _metadataReference);
             }
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 SymbolFilter filter, SearchQuery searchQuery)
             {
-                var service = _solution.Services.GetService<SymbolTreeInfoCacheService>();
-                var info = await service.TryGetPotentiallyStaleMetadataSymbolTreeInfoAsync(_solution, _metadataReference, CancellationToken).ConfigureAwait(false);
+                var service = _assemblyProject.Solution.Services.GetService<ISymbolTreeInfoCacheService>();
+                var info = await service.TryGetPotentiallyStaleMetadataSymbolTreeInfoAsync(_assemblyProject, _metadataReference, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                     return ImmutableArray<ISymbol>.Empty;
 

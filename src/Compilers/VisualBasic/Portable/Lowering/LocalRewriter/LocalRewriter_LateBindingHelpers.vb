@@ -47,7 +47,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-
         ' returns "New Type(){GetType(Type1), GetType(Type2) ...} or Nothing literal
         Private Function LateMakeTypeArgumentArrayArgument(node As SyntaxNode, arguments As BoundTypeArguments, typeArrayType As TypeSymbol) As BoundExpression
             If arguments Is Nothing Then
@@ -333,7 +332,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-
         ' Makes expressions like
         '  if(copyBackArrayRef[argNum], assignmentTarget := valueArrayRef[argNum] , Nothing)
         '
@@ -499,7 +497,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     arguments,
                                                                     argumentNames)
 
-
             Dim callerInvocation As BoundExpression = New BoundCall(
                 syntax,
                 lateIndexGetMethod,
@@ -622,7 +619,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(invocation), Nothing, Me.GetSpecialType(SpecialType.System_Void))
                 End If
             End If
-
 
             ' arg0  "object Instance"
             Dim receiver As BoundExpression = LateMakeReceiverArgument(syntax, invocation.Member.MakeRValue, lateIndexSetMethod.Parameters(0).Type)
@@ -810,7 +806,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     argumentNames,
                                                                     typeArguments,
                                                                     copyBack)
-
 
             ' 
             ' It appears that IgnoreReturn is always set when LateCall is called from compiled code.

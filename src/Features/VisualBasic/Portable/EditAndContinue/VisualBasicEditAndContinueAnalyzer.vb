@@ -1270,6 +1270,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Dim newSymbols As OneOrMany(Of ISymbol) = Nothing
 
             Select Case editKind
+                Case EditKind.Reorder
+                    If TryCast(oldNode, ParameterSyntax) Is Nothing OrElse TryCast(newNode, ParameterSyntax) Is Nothing Then
+                        ' Other than parameters, we don't do any semantic checks for reordering
+                        ' And we don't need to report them to the compiler either.
+                        ' Consider: Currently Symbol ordering changes are Not reflected in metadata (Reflection will report original order).
+
+                        ' Consider Reordering of fields Is Not allowed since it changes the layout of the type.
+                        ' This ordering should however Not matter unless the type has explicit layout so we might want to allow it.
+                        ' We do Not check changes to the order if they occur across multiple documents (the containing type Is partial).
+                        Debug.Assert(Not IsDeclarationWithInitializer(oldNode) AndAlso Not IsDeclarationWithInitializer(newNode))
+                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
+                    End If
+
+                    If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) OrElse
+                       Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
+                        Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
+                    End If
+
+                    Return OneOrMany.Create((oldSymbols(0).ContainingSymbol, newSymbols(0).ContainingSymbol, EditKind.Update))
                 Case EditKind.Delete
                     If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) Then
                         Return OneOrMany(Of (ISymbol, ISymbol, EditKind)).Empty
@@ -2233,7 +2252,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                          SyntaxKind.NewConstraint,
                          SyntaxKind.TypeConstraint,
                          SyntaxKind.AttributeList,
-                         SyntaxKind.Attribute
+                         SyntaxKind.Attribute,
+                         SyntaxKind.Parameter
                         ' We'll ignore these edits. A general policy is to ignore edits that are only discoverable via reflection.
                         Return
 
@@ -2258,8 +2278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ReportError(RudeEditKind.Move)
                         Return
 
-                    Case SyntaxKind.TypeParameter,
-                         SyntaxKind.Parameter
+                    Case SyntaxKind.TypeParameter
                         ReportError(RudeEditKind.Move)
                         Return
 

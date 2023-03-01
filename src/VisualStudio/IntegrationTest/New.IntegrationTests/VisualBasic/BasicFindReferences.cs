@@ -104,8 +104,7 @@ End Class
             await TestServices.FindReferencesWindow.NavigateToAsync(results[0], isPreview: false, shouldActivate: true, HangMitigatingCancellationToken);
 
             // Assert we are in the right file now
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            Assert.Equal($"Class1.vb{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"Class1.vb", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
             Assert.Equal("Alpha As Int32", await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken));
         }
     }

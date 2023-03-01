@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (module.Module.TryExtractStringArrayValueFromAttribute(attribute, out var transformerNames))
                         transformerOrders.Add(transformerNames);
                     else
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
         }

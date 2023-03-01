@@ -57,12 +57,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 return;
             }
 
+            var container = localFunction.GetAncestor<MemberDeclarationSyntax>();
+            // If the local function is defined in a block within the top-level statements context, then we can't provide the refactoring because
+            // there is no class we can put the generated method in.
+            if (container == null || container.IsKind(SyntaxKind.GlobalStatement))
+            {
+                return;
+            }
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactoring(
                 CodeAction.Create(
                     CSharpFeaturesResources.Convert_to_method,
-                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, context.Options, c),
+                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, container, context.Options, c),
                     nameof(CSharpFeaturesResources.Convert_to_method)),
                 localFunction.Span);
         }
@@ -72,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             Document document,
             BlockSyntax parentBlock,
             LocalFunctionStatementSyntax localFunction,
+            MemberDeclarationSyntax container,
             CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
@@ -106,7 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var captureTypes = captures.SelectMany(capture => capture.GetSymbolType().GetReferencedTypeParameters());
             RemoveUnusedTypeParameters(localFunction, semanticModel, typeParameters, reservedTypeParameters: captureTypes);
 
-            var container = localFunction.GetAncestor<MemberDeclarationSyntax>();
             var containerSymbol = semanticModel.GetDeclaredSymbol(container, cancellationToken);
             var isStatic = containerSymbol.IsStatic || captures.All(capture => !capture.IsThisParameter());
 

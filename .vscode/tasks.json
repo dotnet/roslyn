@@ -49,7 +49,7 @@
 },
     {
         "label": "generate compiler code",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
+        "command": "dotnet",
         "type": "shell",
         "args": [
           "pwsh",
@@ -70,70 +70,6 @@
         },
         "problemMatcher": "$msCompile",
         "group": "build"
-    },
-    {
-        "label": "run tests in current file (netcoreapp3.1)",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
-        "type": "shell",
-        "args": [
-          "pwsh",
-          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
-          "-filePath",
-          "${file}",
-          "-msbuildEngine",
-          "dotnet",
-          "-framework",
-          "netcoreapp3.1",
-          "-filter",
-          "${fileBasenameNoExtension}"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "test"
-    },
-    {
-        "label": "run tests in current project (netcoreapp3.1)",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
-        "type": "shell",
-        "args": [
-          "pwsh",
-          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
-          "-filePath",
-          "${file}",
-          "-msbuildEngine",
-          "dotnet",
-          "-framework",
-          "netcoreapp3.1"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "test"
-    },
-    {
-        "label": "run tests in current file (all frameworks)",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
-        "type": "shell",
-        "args": [
-          "pwsh",
-          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
-          "-filePath",
-          "${file}",
-          "-filter",
-          "${fileBasenameNoExtension}"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "test"
-    },
-    {
-        "label": "run tests in current project (all frameworks)",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
-        "type": "shell",
-        "args": [
-          "pwsh",
-          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
-          "-filePath",
-          "${file}"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "test"
     }
   ]
 }

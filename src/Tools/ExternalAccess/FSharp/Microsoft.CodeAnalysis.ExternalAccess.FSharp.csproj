@@ -16,10 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Internal\Utilities\IsExternalInit.cs" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <!--
       ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
@@ -46,6 +42,8 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
   </ItemGroup>
 
   <ItemGroup>

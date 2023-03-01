@@ -106,6 +106,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private async ValueTask ProcessWorkspaceChangeAsync(CancellationToken cancellationToken)
         {
+            var statusService = _workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            await statusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             var solution = _workspace.CurrentSolution;
             foreach (var (projectId, _) in _cpsProjects)
             {

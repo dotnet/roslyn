@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
         {
-            return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
+            return new BoundBlock(Syntax, locals, localFunctions, hasUnsafeModifier: false, statements) { WasCompilerGenerated = true };
         }
 
         public BoundExtractedFinallyBlock ExtractedFinallyBlock(BoundBlock finallyBlock)
@@ -532,6 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type,
             SyntaxNode? syntax = null,
             bool isPinned = false,
+            bool isKnownToReferToTempIfReferenceType = false,
             RefKind refKind = RefKind.None,
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp
 #if DEBUG
@@ -541,7 +542,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), kind, syntax, isPinned, refKind
+            return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), kind, syntax, isPinned,
+                isKnownToReferToTempIfReferenceType, refKind
 #if DEBUG
                 , createdAtLineNumber, createdAtFilePath
 #endif
@@ -550,7 +552,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public LocalSymbol InterpolatedStringHandlerLocal(
             TypeSymbol type,
-            uint valEscapeScope,
             SyntaxNode syntax
 #if DEBUG
             ,
@@ -559,11 +560,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            return new SynthesizedLocalWithValEscape(
+            return new SynthesizedLocal(
                 CurrentFunction,
                 TypeWithAnnotations.Create(type),
                 SynthesizedLocalKind.LoweringTemp,
-                valEscapeScope,
                 syntax
 #if DEBUG
                 , createdAtLineNumber: createdAtLineNumber, createdAtFilePath: createdAtFilePath
@@ -810,12 +810,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)
+        public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type, bool isRef = false)
         {
-            return new BoundConditionalOperator(Syntax, false, condition, consequence, alternative, constantValueOpt: null, type, wasTargetTyped: false, type) { WasCompilerGenerated = true };
+            return new BoundConditionalOperator(Syntax, isRef, condition, consequence, alternative, constantValueOpt: null, type, wasTargetTyped: false, type) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)
+        public BoundComplexConditionalReceiver ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)
         {
             Debug.Assert(valueTypeReceiver.Type is { });
             Debug.Assert(TypeSymbol.Equals(valueTypeReceiver.Type, referenceTypeReceiver.Type, TypeCompareKind.ConsiderEverything2));
@@ -1467,6 +1467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundAssignmentOperator store,
             RefKind refKind = RefKind.None,
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
+            bool isKnownToReferToTempIfReferenceType = false,
             SyntaxNode? syntaxOpt = null
 #if DEBUG
             , [CallerLineNumber] int callerLineNumber = 0
@@ -1520,6 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                     syntaxOpt: syntaxOpt ?? (kind.IsLongLived() ? syntax : null),
                     isPinned: false,
+                    isKnownToReferToTempIfReferenceType: isKnownToReferToTempIfReferenceType,
                     refKind: refKind),
                 null,
                 type);

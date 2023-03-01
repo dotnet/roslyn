@@ -797,8 +797,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // used on their own or in the context of methods.
 
             var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
-            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
-                symbol.Name.Length != 0;
+            var includeName = symbol.Name.Length != 0 && (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) ||
+                (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone) && builder.Count == 0));
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
             var includeDefaultValue = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
                 format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
@@ -812,20 +812,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                AddParameterRefKindIfNeeded(symbol);
-                AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
-
-                if (symbol.ScopedKind == ScopedKind.ScopedValue &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
                 {
-                    AddKeyword(SyntaxKind.ScopedKeyword);
-                    AddSpace();
+                    // Add 'scoped' unless the parameter is an out parameter or
+                    // 'this' since those cases are implicitly scoped.
+                    if (symbol.ScopedKind == ScopedKind.ScopedRef &&
+                        symbol.RefKind != RefKind.Out &&
+                        !symbol.IsThis)
+                    {
+                        AddKeyword(SyntaxKind.ScopedKeyword);
+                        AddSpace();
+                    }
+
+                    AddParameterRefKind(symbol.RefKind);
                 }
 
-                if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
+                AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
+
+                if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
                 {
-                    AddKeyword(SyntaxKind.ParamsKeyword);
-                    AddSpace();
+                    if (symbol.ScopedKind == ScopedKind.ScopedValue && symbol.RefKind == RefKind.None)
+                    {
+                        AddKeyword(SyntaxKind.ScopedKeyword);
+                        AddSpace();
+                    }
+
+                    if (symbol.IsParams)
+                    {
+                        AddKeyword(SyntaxKind.ParamsKeyword);
+                        AddSpace();
+                    }
                 }
 
                 symbol.Type.Accept(this.NotFirstVisitor);
@@ -1108,26 +1124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddKeyword(SyntaxKind.ReadOnlyKeyword);
                 AddSpace();
-            }
-        }
-
-        private void AddParameterRefKindIfNeeded(IParameterSymbol symbol)
-        {
-            if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
-            {
-                if (symbol.ScopedKind == ScopedKind.ScopedRef &&
-                    !symbol.IsThis &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
-                {
-                    var parameter = (symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>();
-                    if (parameter is null || !ParameterHelpers.IsRefScopedByDefault(parameter))
-                    {
-                        AddKeyword(SyntaxKind.ScopedKeyword);
-                        AddSpace();
-                    }
-                }
-
-                AddParameterRefKind(symbol.RefKind);
             }
         }
 

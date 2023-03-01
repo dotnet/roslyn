@@ -918,7 +918,6 @@ End Namespace
     </file>
 </compilation>, {compRef1})
 
-
             Dim ns = DirectCast(comp.SourceModule.GlobalNamespace.GetMembers("SS").Single(), NamespaceSymbol)
             Dim type1 = DirectCast(ns.GetTypeMembers("Goo", 0).Single(), NamedTypeSymbol)
             ' Not impl ex
@@ -1514,7 +1513,6 @@ End Structure
         </compilation>, {New VisualBasicCompilationReference(compilation1)})
             CompilationUtils.AssertNoErrors(compilation2)
 
-
             Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="MultiplyCyclesInStructure05_I">
             <file name="a.vb">
@@ -2107,7 +2105,6 @@ BC31089: Types declared 'Private' must be inside another type.
 Private delegate Sub D11()
                      ~~~
 </expected>)
-
 
             compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                <compilation name="Bug4136">

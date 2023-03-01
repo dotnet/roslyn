@@ -2324,6 +2324,46 @@ class C
                 MainDescription($"({FeaturesResources.parameter}) int param = 42"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Lambda_Parameter_DefaultValue_01()
+        {
+            await TestInMethodAsync(
+@"(int param = 42) => {
+    return para$$m + 1;
+}",
+    MainDescription($"({FeaturesResources.parameter}) int param = 42"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Lambda_Parameter_DefaultValue_02()
+        {
+            await TestInMethodAsync(
+@"(int param = $$int.MaxValue) => {
+    return param + 1;
+}",
+    MainDescription($"{FeaturesResources.struct_} System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Lambda_Parameter_DefaultValue_03()
+        {
+            await TestInMethodAsync(
+@"(int param = int.$$MaxValue) => {
+    return param + 1;
+}",
+    MainDescription($"({FeaturesResources.constant}) const int int.MaxValue = 2147483647"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Lambda_Parameter_ParamsArray()
+        {
+            await TestInMethodAsync(
+@"(params int[] xs) => {
+    return x$$s.Length;
+}",
+    MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
+        }
+
         [Fact]
         public async Task Parameter_Params()
         {
@@ -8084,7 +8124,7 @@ TResult {FeaturesResources.is_} string"));
         $$var v = (ref int i) => i.ToString();
     }
 }",
-                MainDescription("delegate string <anonymous delegate>(ref int)"),
+                MainDescription("delegate string <anonymous delegate>(ref int arg)"),
                 AnonymousTypes(""));
         }
 
@@ -8103,7 +8143,7 @@ TResult {FeaturesResources.is_} string"));
                 AnonymousTypes(
 $@"
 {FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate string (ref int)"));
+    'a {FeaturesResources.is_} delegate string (ref int arg)"));
         }
 
         [Fact, WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
@@ -8124,7 +8164,154 @@ $@"
                 AnonymousTypes(
 $@"
 {FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate string (ref int)"));
+    'a {FeaturesResources.is_} delegate string (ref int arg)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType4()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (int param = 42) => param + 1;
+        $$lam();
+    }
+}
+",
+    MainDescription($"({FeaturesResources.local_variable}) 'a lam"),
+    AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} delegate int (int arg = 42)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType5()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        $$var lam = (int param = 42) => param;
+    }
+}
+", MainDescription("delegate int <anonymous delegate>(int arg = 42)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType6()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (i$$nt param = 42) => param;
+    }
+}
+", MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType7()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (int pa$$ram = 42) => param;
+    }
+}
+", MainDescription($"({FeaturesResources.parameter}) int param = 42"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType8()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var lam = (int param = 4$$2) => param;
+    }
+}
+", MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType9()
+        {
+            await TestAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        var lam = (params int[] xs) => xs.Length;
+                        $$lam();
+                    }
+                }
+                """,
+                MainDescription($"({FeaturesResources.local_variable}) 'a lam"),
+                AnonymousTypes($"""
+
+                {FeaturesResources.Types_colon}
+                    'a {FeaturesResources.is_} delegate int (params int[] arg)
+                """));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType10()
+        {
+            await TestAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        $$var lam = (params int[] xs) => xs.Length;
+                    }
+                }
+                """,
+                MainDescription("delegate int <anonymous delegate>(params int[] arg)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType11()
+        {
+            await TestAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        var lam = (params i$$nt[] xs) => xs.Length;
+                    }
+                }
+                """,
+                MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType12()
+        {
+            await TestAsync("""
+            class C
+            {
+                void M()
+                {
+                    var lam = (params int[] x$$s) => xs.Length;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
         }
 
         [Fact, WorkItem(61320, "https://github.com/dotnet/roslyn/issues/61320")]
@@ -8393,6 +8580,45 @@ class Program
 ";
             await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
                 MainDescription($"({FeaturesResources.parameter}) string s"));
+        }
+
+        [Fact]
+        public async Task TestScopedParameter()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void F(R r1, scoped R r2, ref R r3, scoped ref R r4, in R r5, scoped in R r6, out R r7, scoped out R r8)
+    {
+        r7 = default;
+        r8 = default;
+    }
+    static void Main()
+    {
+        R r = default;
+        $$F(r, r, ref r, ref r, r, r, out r, out r);
+    }
+}";
+            await TestAsync(source,
+                MainDescription($"void Program.F(R r1, scoped R r2, ref R r3, scoped ref R r4, in R r5, scoped in R r6, out R r7, out R r8)"));
+        }
+
+        [Fact]
+        public async Task TestScopedLocal()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        int i = 0;
+        scoped ref int r = ref i;
+        i = $$r;
+    }
+}";
+            await TestAsync(source,
+                MainDescription($"({FeaturesResources.local_variable}) scoped ref int r"));
         }
     }
 }

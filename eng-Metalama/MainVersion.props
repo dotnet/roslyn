@@ -2,6 +2,6 @@
     <PropertyGroup>
         <MainVersion>2023.0.105</MainVersion>
         <PackageVersionSuffix>-rc</PackageVersionSuffix>
-        <RoslynVersion>4.4.0</RoslynVersion>
+        <RoslynVersion>4.5.0</RoslynVersion>
     </PropertyGroup>
 </Project>

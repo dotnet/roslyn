@@ -8,11 +8,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -105,37 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         public string Name => _searchResult.NavigableItem.DisplayTaggedParts.JoinText();
 
         public void NavigateTo()
-        {
-            var token = _asyncListener.BeginAsyncOperation(nameof(NavigateTo));
-            NavigateToAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
-        }
-
-        private async Task NavigateToAsync()
-        {
-            var document = _searchResult.NavigableItem.Document;
-            if (document == null)
-                return;
-
-            var workspace = document.Project.Solution.Workspace;
-            var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-
-            // Document tabs opened by NavigateTo are carefully created as preview or regular tabs
-            // by them; trying to specifically open them in a particular kind of tab here has no
-            // effect.
-            //
-            // In the case of a stale item, don't require that the span be in bounds of the document
-            // as it exists right now.
-            using var context = _threadOperationExecutor.BeginExecute(
-                EditorFeaturesResources.Navigating_to_definition, EditorFeaturesResources.Navigating_to_definition, allowCancellation: true, showProgress: false);
-            await navigationService.TryNavigateToSpanAsync(
-                _threadingContext,
-                workspace,
-                document.Id,
-                _searchResult.NavigableItem.SourceSpan,
-                NavigationOptions.Default,
-                allowInvalidSpan: _searchResult.NavigableItem.IsStale,
-                context.UserCancellationToken).ConfigureAwait(false);
-        }
+            => NavigateToHelpers.NavigateTo(_searchResult, _threadingContext, _threadOperationExecutor, _asyncListener);
 
         public int GetProvisionalViewingStatus()
         {

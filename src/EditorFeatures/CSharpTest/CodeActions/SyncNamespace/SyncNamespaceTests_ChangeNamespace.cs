@@ -713,7 +713,7 @@ namespace Foo
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">
 using System;
 
 // Comments before declaration.
@@ -729,7 +729,8 @@ namespace [||]{declaredNamespace}
 </Workspace>";
 
             var expectedSourceOriginal =
-@"using System;
+@"
+using System;
 
 // Comments before declaration.
 // Comments after opening brace
@@ -1139,7 +1140,8 @@ class Class2
 }
 ";
             var expectedSourceReference =
-@"using System;
+@"
+using System;
 using Class1Alias = Class1;
 
 namespace Foo
@@ -1166,7 +1168,7 @@ namespace Foo
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">
 using System;
 
 class [||]Class1
@@ -1177,7 +1179,8 @@ class [||]Class1
 </Workspace>";
 
             var expectedSourceOriginal =
-@"using System;
+@"
+using System;
 
 namespace A.B.C
 {

@@ -1266,7 +1266,6 @@ public class FileModifierTests : CSharpTestBase
         Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFileLocal: true });
         Assert.Equal(comp.SyntaxTrees[1], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
 
-
         comp = CreateCompilation(new[] { (source2, "file2.cs"), (source1, "file1.cs") });
         comp.VerifyDiagnostics(
             // file1.cs(5,24): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
@@ -1340,7 +1339,6 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(2, syntaxReferences.Length);
         Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[0].SyntaxTree);
         Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[1].SyntaxTree);
-
 
         comp = CreateCompilation(new[] { (source2, "file2.cs"), (source1, "file1.cs") });
         comp.VerifyDiagnostics(

@@ -12539,5 +12539,87 @@ class C
 ";
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
+
+        [Fact, WorkItem(28867, "https://github.com/dotnet/roslyn/issues/28867")]
+        public async Task DoNotRemoveNullableCastInConditional()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int? a = false ? (int?)1 : default;
+        System.Console.WriteLine(a.HasValue);
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact, WorkItem(28867, "https://github.com/dotnet/roslyn/issues/28867")]
+        public async Task DoNotRemoveNullableRefCastToVar()
+        {
+            var code = @"
+#nullable enable
+
+class Bar
+{
+}
+
+class C
+{
+    void Goo(Bar bar)
+    {
+        var nullableBar = (Bar?)bar;
+        nullableBar = null;
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact, WorkItem(65005, "https://github.com/dotnet/roslyn/issues/65005")]
+        public async Task DoNotRemoveImplicitNullableBoxingCast1()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    void Goo()
+    {
+        byte? temp = 10;
+        object box = (int?)temp;
+
+        Console.WriteLine((int?)box);
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact, WorkItem(65005, "https://github.com/dotnet/roslyn/issues/65005")]
+        public async Task DoNotRemoveImplicitNullableBoxingCast2()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    void Goo()
+    {
+        byte? temp = 10;
+        object? box = (int?)temp;
+
+        Console.WriteLine((int?)box);
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
     }
 }

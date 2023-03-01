@@ -24,8 +24,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         /// <summary>
         /// Return all cached local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer).
-        /// Also returns empty diagnostics for suppressed analyzer.
-        /// Returns null if the diagnostics need to be computed.
+        /// Otherwise, return <code>null</code>.
+        /// For the latter case, <paramref name="isAnalyzerSuppressed"/> indicates if the analyzer is suppressed
+        /// for the given document/project. If suppressed, the caller does not need to compute the diagnostics for the given
+        /// analyzer. Otherwise, diagnostics need to be computed.
         /// </summary>
         private DocumentAnalysisData? TryGetCachedDocumentAnalysisData(
             TextDocument document, StateSet stateSet,
@@ -34,9 +36,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             CompilerDiagnosticsScope compilerDiagnosticsScope,
             bool isActiveDocument, bool isVisibleDocument,
             bool isOpenDocument, bool isGeneratedRazorDocument,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            out bool isAnalyzerSuppressed)
         {
             Debug.Assert(isActiveDocument || isOpenDocument || isGeneratedRazorDocument);
+
+            isAnalyzerSuppressed = false;
 
             try
             {
@@ -48,19 +53,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return existingData;
                 }
 
-                // Perf optimization: Check whether analyzer is suppressed for project or document and avoid getting diagnostics if suppressed.
-                if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project, GlobalOptions) ||
+                // Check whether analyzer is suppressed for project or document.
+                // If so, we set the flag indicating that the client can skip analysis for this document.
+                // Regardless of whether or not the analyzer is suppressed for project or document,
+                // we return null to indicate that no diagnostics are cached for this document for the given version.
+                isAnalyzerSuppressed = !DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project, GlobalOptions) ||
                     !IsAnalyzerEnabledForDocument(stateSet.Analyzer, existingData, analysisScope, compilerDiagnosticsScope,
-                        isActiveDocument, isVisibleDocument, isOpenDocument, isGeneratedRazorDocument))
-                {
-                    return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
-                }
-
+                        isActiveDocument, isVisibleDocument, isOpenDocument, isGeneratedRazorDocument);
                 return null;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             static bool IsAnalyzerEnabledForDocument(
@@ -154,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
         }
@@ -249,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
         }
@@ -332,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -373,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -489,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

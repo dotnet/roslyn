@@ -94,19 +94,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public void OnSourceFileUpdated(Document document)
-        {
-            // notify all active debugging sessions
-            foreach (var debuggingSession in GetActiveDebuggingSessions())
-            {
-                // fire and forget
-                _ = Task.Run(() => debuggingSession.OnSourceFileUpdatedAsync(document)).ReportNonFatalErrorAsync();
-            }
-        }
-
         public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(
             Solution solution,
             IManagedHotReloadService debuggerService,
+            IPdbMatchingSourceTextProvider sourceTextProvider,
             ImmutableArray<DocumentId> captureMatchingDocuments,
             bool captureAllMatchingDocuments,
             bool reportDiagnostics,
@@ -120,11 +111,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
                 {
-                    var documentsByProject = captureAllMatchingDocuments ?
-                        solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values)) :
-                        GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
+                    var documentsByProject = captureAllMatchingDocuments
+                        ? solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values))
+                        : GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
 
-                    initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false);
+                    initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, sourceTextProvider, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -132,7 +123,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-                var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, initialDocumentStates, reportDiagnostics);
+                var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates, reportDiagnostics);
 
                 lock (_debuggingSessions)
                 {
@@ -145,7 +136,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

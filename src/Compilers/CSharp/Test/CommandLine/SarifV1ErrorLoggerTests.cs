@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             SimpleCompilerDiagnosticsImpl();
         }
 
-        internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile)
+        internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile, params string[] suppressionKinds)
         {
             var expectedHeader = GetExpectedErrorLogHeader(cmd);
             var expectedIssues = string.Format(@"
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return expectedHeader + expectedIssues;
         }
 
-        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification)
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType, params string[] suppressionKinds)
         {
             var expectedHeader = GetExpectedErrorLogHeader(cmd);
             var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogWithSuppressionResultsAndRulesText(cmd.Compilation);

@@ -25,12 +25,6 @@ Ensures that the order of transformers is consistent and fully specified. This i
 
 It uses a simplified version of `Graph` from PostSharp.
 
-### TimeBomb
-
-Prevents a version of Metalama Compiler to be used 90 days after it has been built, with a warning after 60 days.
-
-This code should be removed once Metalama is out of preview.
-
 ### TreeTracker
 
 #### Tracking of nodes
@@ -57,7 +51,7 @@ Tree tracker is then used when emitting PDBs (in `CodeGenerator`) and when handl
 
 #### Mapping of locations and diagnostics
 
-The method `TreeTracker.MapDiagnostic` maps a diagnostic from the transformed syntax tree to the source syntax tree. Additionally, it adds the stores the `SyntaxNode` and `Compilation` related to this diagnostic. This info can be retrieved using `TreeTracker.TryGetDiagnosticInfo`. This is used to make it easier for diagnostic suppression to retrieve symbol information about a diagnostic.  
+The method `TreeTracker.MapDiagnostic` maps a diagnostic from the transformed syntax tree to the source syntax tree. Additionally, it stores the `SyntaxNode` and `Compilation` related to this diagnostic. This info can be retrieved using `TreeTracker.TryGetDiagnosticInfo`. This is used to make it easier for diagnostic suppression to retrieve symbol information about a diagnostic.  
 
 ## Metalama.Compiler.Shared
 
@@ -95,4 +89,4 @@ Also, loading transformers from assemblies, using the same approach as loading s
 
 ## Microsoft.CodeAnalysis.CSharp.Workspaces
 
-Changes required to make try.postsharp.net work, since it uses the Roslyn Workspace API and not the command-line compiler.
+Changes required to make try.metalama.net work, since it uses the Roslyn Workspace API and not the command-line compiler.

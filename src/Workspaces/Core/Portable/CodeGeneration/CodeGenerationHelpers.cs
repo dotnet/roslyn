@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return factory.ThrowStatement(exceptionCreationExpression);
         }
 
-        [return: NotNullIfNotNull("syntax")]
+        [return: NotNullIfNotNull(nameof(syntax))]
         public static TSyntaxNode? AddAnnotationsTo<TSyntaxNode>(ISymbol symbol, TSyntaxNode? syntax) where TSyntaxNode : SyntaxNode
             => symbol is CodeGenerationSymbol codeGenerationSymbol
                 ? syntax?.WithAdditionalAnnotations(codeGenerationSymbol.GetAnnotations())
@@ -184,9 +184,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             Contract.ThrowIfNull(attribute);
 
-            return info.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null ?
-                attribute.ApplicationSyntaxReference.GetSyntax() as T :
-                null;
+            return info.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null
+                ? attribute.ApplicationSyntaxReference.GetSyntax() as T
+                : null;
         }
 
         public static int GetInsertionIndex<TDeclaration>(
@@ -397,5 +397,25 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // Couldn't find anything with our name.  Just place us at the end of this group.
             return desiredGroupIndex;
         }
+
+        // from https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
+        public static bool IsCompilerInternalAttribute(AttributeData attribute)
+            => attribute.AttributeClass is
+            {
+                Name: "NullableAttribute" or "NullableContextAttribute" or "NativeIntegerAttribute" or "DynamicAttribute",
+                ContainingNamespace:
+                {
+                    Name: nameof(System.Runtime.CompilerServices),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System.Runtime),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(System),
+                            ContainingNamespace.IsGlobalNamespace: true,
+                        },
+                    },
+                },
+            };
     }
 }

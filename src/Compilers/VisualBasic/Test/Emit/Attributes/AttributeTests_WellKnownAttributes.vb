@@ -141,7 +141,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                         Assert.Equal(TypeLibFuncFlags.FDefaultBind, CType(attrSym.CommonConstructorArguments(0).Value, TypeLibFuncFlags)) ' 32
                     End Sub
 
-
             ' Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator(True), symbolValidator:=attributeValidator(False))
         End Sub
@@ -276,7 +275,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                                      End Sub
 
-
             ' Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
@@ -341,7 +339,6 @@ End Class
                                          Dim sigSym = interopNS.GetTypeMember("PreserveSigAttribute")
                                          Dim offSym = interopNS.GetTypeMember("FieldOffsetAttribute")
                                          Dim mshSym = interopNS.GetTypeMember("MarshalAsAttribute")
-
 
                                          Dim optSym = interopNS.GetTypeMember("OptionalAttribute")
                                          Dim inSym = interopNS.GetTypeMember("InAttribute")
@@ -3463,7 +3460,6 @@ End Namespace
 
                                                                 End Sub
 
-
             ' Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
@@ -3609,7 +3605,7 @@ end structure
 
                     ' Get System.Security.Permissions.HostProtection
                     Dim emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "HostProtectionAttribute")
-                    Dim hostProtectionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
+                    Dim hostProtectionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupDeclaredTopLevelMetadataType(emittedName)
                     Assert.NotNull(hostProtectionAttr)
 
                     ' Verify type security attributes
@@ -5653,7 +5649,6 @@ Class C
     End Function
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5685,7 +5680,6 @@ End Namespace
 Class C
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5722,7 +5716,6 @@ Class C
     End Property
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5760,7 +5753,6 @@ Class C
     End Property
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5790,7 +5782,6 @@ Namespace System.Runtime.CompilerServices
     End Class
 End Namespace
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5817,7 +5808,6 @@ Namespace System.Runtime.CompilerServices
     End Class
 End Namespace
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5847,7 +5837,6 @@ Enum E
     Member
 End Enum
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5879,7 +5868,6 @@ Enum E
     Member2
 End Enum
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5912,7 +5900,6 @@ Class C
     Event E(ByVal i As Integer)
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5942,7 +5929,6 @@ Class C
     Delegate Sub D()
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -5971,7 +5957,6 @@ End Namespace
 Interface I
 End Interface
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6000,7 +5985,6 @@ End Namespace
 Structure S
 End Structure
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6031,7 +6015,6 @@ Class C
     End Function
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6061,7 +6044,6 @@ Class C
     End Sub
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6091,7 +6073,6 @@ Class C
     Dim i As Integer
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6368,7 +6349,6 @@ End Namespace
 Class C
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6400,7 +6380,6 @@ Class C
     End Property
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6433,7 +6412,6 @@ Class C
     End Property
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6463,7 +6441,6 @@ Namespace System.Runtime.CompilerServices
     End Class
 End Namespace
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6485,7 +6462,6 @@ Namespace System.Runtime.CompilerServices
     End Class
 End Namespace
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6510,7 +6486,6 @@ Enum E
     Member
 End Enum
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6537,7 +6512,6 @@ Enum E
     Member2
 End Enum
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6562,7 +6536,6 @@ Class C
     Event E(ByVal i As Integer)
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6587,7 +6560,6 @@ Class C
     Delegate Sub D()
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6611,7 +6583,6 @@ End Namespace
 Interface I
 End Interface
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6635,7 +6606,6 @@ End Namespace
 Structure S
 End Structure
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6661,7 +6631,6 @@ Class C
     End Function
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6686,7 +6655,6 @@ Class C
     End Sub
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
@@ -6711,7 +6679,6 @@ Class C
     Dim i As Integer
 End Class
 ]]>
-
                              </file>
                          </compilation>
 
