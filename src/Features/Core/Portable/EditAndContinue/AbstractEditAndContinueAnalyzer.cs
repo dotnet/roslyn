@@ -4828,7 +4828,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel? oldModel,
             Compilation oldCompilation,
             Compilation newCompilation,
-            IReadOnlySet<ISymbol> processedSymbols,
+            Roslyn.Utilities.IReadOnlySet<ISymbol> processedSymbols,
             EditAndContinueCapabilitiesGrantor capabilities,
             bool isStatic,
             [Out] ArrayBuilder<SemanticEditInfo> semanticEdits,

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => CSharpSyntaxFormattingOptions.Default;
 
         public override SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options, SyntaxFormattingOptions? fallbackOptions)
-            => options.GetCSharpSyntaxFormattingOptions((CSharpSyntaxFormattingOptions?)fallbackOptions);
+            => new CSharpSyntaxFormattingOptions(options, (CSharpSyntaxFormattingOptions?)fallbackOptions);
 
         protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null)
             => new AggregatedFormattingResult(node, results, formattingSpans);

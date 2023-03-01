@@ -163,6 +163,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement)
             => SemanticFacts.GetForEachSymbols(semanticModel, forEachStatement);
 
+        public SymbolInfo GetCollectionInitializerSymbolInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => SemanticFacts.GetCollectionInitializerSymbolInfo(semanticModel, node, cancellationToken);
+
         public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
             => SemanticFacts.GetGetAwaiterMethod(semanticModel, node);
 
@@ -201,6 +204,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
             => SemanticFacts.IsInExpressionTree(semanticModel, node, expressionTypeOpt, cancellationToken);
+
+        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
+            => SemanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize, cancellationToken);
 
         #endregion
     }

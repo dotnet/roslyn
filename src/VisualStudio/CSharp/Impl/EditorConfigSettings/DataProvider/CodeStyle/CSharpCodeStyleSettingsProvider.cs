@@ -85,6 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
         {
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferStaticLocalFunction, ServicesVSResources.Prefer_static_local_functions, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferReadOnlyStruct, ServicesVSResources.Prefer_read_only_struct, options, updater);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferReadOnlyStructMember, ServicesVSResources.Prefer_read_only_struct_member, options, updater);
         }
 
         private static IEnumerable<CodeStyleSetting> GetCodeBlockCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

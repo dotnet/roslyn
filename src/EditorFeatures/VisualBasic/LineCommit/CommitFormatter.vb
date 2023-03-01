@@ -12,14 +12,10 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Export(GetType(ICommitFormatter))>
@@ -64,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                If Not (isExplicitFormat OrElse _editorOptionsService.GlobalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
+                If Not (isExplicitFormat OrElse _editorOptionsService.GlobalOptions.GetOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic)) Then
                     Return
                 End If
 

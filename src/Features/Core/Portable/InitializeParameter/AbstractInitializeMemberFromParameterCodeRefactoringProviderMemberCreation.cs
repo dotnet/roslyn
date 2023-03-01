@@ -481,14 +481,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             return codeGenerator.AddProperty(
                                 currentTypeDecl, property,
-                                options.GetInfo(GetAddContext<IPropertySymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), document.Project),
+                                codeGenerator.GetInfo(GetAddContext<IPropertySymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
                                 cancellationToken);
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
                             return codeGenerator.AddField(
                                 currentTypeDecl, field,
-                                options.GetInfo(GetAddContext<IFieldSymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), document.Project),
+                                codeGenerator.GetInfo(GetAddContext<IFieldSymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
                                 cancellationToken);
                         }
                         else

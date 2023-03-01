@@ -235,7 +235,7 @@ End Class
                 ' This test specifically matters for the case where a user is typing in the editor
                 ' and is not intended to test the rename flyout tab behavior
                 Dim optionsService = workspace.GetService(Of IGlobalOptionService)()
-                optionsService.SetGlobalOption(InlineRenameUIOptions.UseInlineAdornment, False)
+                optionsService.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, False)
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))

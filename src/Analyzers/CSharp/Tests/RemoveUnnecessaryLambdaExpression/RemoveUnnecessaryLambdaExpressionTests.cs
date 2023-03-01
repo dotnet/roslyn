@@ -1539,5 +1539,27 @@ public partial class C
     private static void M2(Action<string> a) { }
 }");
         }
+
+        [Fact, WorkItem(63464, "https://github.com/dotnet/roslyn/issues/63464")]
+        public async Task TestNotWithConditionalAttribute()
+        {
+            await TestMissingInRegularAndScriptAsync("""
+                using System;
+                using System.Diagnostics;
+
+                public class C
+                {
+                    internal void M1()
+                    {
+                        M2(x => M3(x));
+                    }
+
+                    [Conditional("DEBUG")]
+                    internal void M3(string s) { }
+
+                    private static void M2(Action<string> a) { }
+                }
+                """);
+        }
     }
 }

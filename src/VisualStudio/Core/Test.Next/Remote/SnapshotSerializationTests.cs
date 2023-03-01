@@ -478,8 +478,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var dir = temp.CreateDirectory();
 
             // create two analyzer assembly files whose content is identical but path is different:
-            var file1 = dir.CreateFile("analyzer1.dll").CopyContentFrom(_testFixture.FaultyAnalyzer.Path);
-            var file2 = dir.CreateFile("analyzer2.dll").CopyContentFrom(_testFixture.FaultyAnalyzer.Path);
+            var file1 = dir.CreateFile("analyzer1.dll").CopyContentFrom(_testFixture.FaultyAnalyzer);
+            var file2 = dir.CreateFile("analyzer2.dll").CopyContentFrom(_testFixture.FaultyAnalyzer);
 
             var analyzer1 = new AnalyzerFileReference(file1.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
             var analyzer2 = new AnalyzerFileReference(file2.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
@@ -705,8 +705,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
-            protected override Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath) =>
-                throw new FileNotFoundException(assemblyOriginalPath);
+            protected override string PreparePathToLoad(string fullPath) =>
+                throw new FileNotFoundException(fullPath);
         }
 
         private class MissingMetadataReference : PortableExecutableReference

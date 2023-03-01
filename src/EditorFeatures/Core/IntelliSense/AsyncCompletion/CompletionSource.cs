@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // There could be mixed desired behavior per textView and even per same completion session.
                 // The right fix would be to send this information as a result of the method. 
                 // Then, the Editor would choose the right behavior for mixed cases.
-                _textView.Options.GlobalOptions.SetOptionValue(s_nonBlockingCompletionEditorOption, !_editorOptionsService.GlobalOptions.GetOption(CompletionViewOptions.BlockForCompletionItems, service.Language));
+                _textView.Options.GlobalOptions.SetOptionValue(s_nonBlockingCompletionEditorOption, !_editorOptionsService.GlobalOptions.GetOption(CompletionViewOptionsStorage.BlockForCompletionItems, service.Language));
                 _responsiveCompletionEnabled = _textView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId);
 
                 // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // contemplate such action thus typing slower before commit and/or spending more time examining the list, which give us some opportunities
                 // to still provide those items later before they are truly required.     
 
-                var showCompletionItemFilters = _editorOptionsService.GlobalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, document.Project.Language);
+                var showCompletionItemFilters = _editorOptionsService.GlobalOptions.GetOption(CompletionViewOptionsStorage.ShowCompletionItemFilters, document.Project.Language);
                 var options = _editorOptionsService.GlobalOptions.GetCompletionOptions(document.Project.Language) with
                 {
                     UpdateImportCompletionCacheInBackground = true,

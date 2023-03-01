@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool SupportsTargetTypedConditionalExpression(ParseOptions options);
         bool SupportsIsNotTypeExpression(ParseOptions options);
         bool SupportsConstantInterpolatedStrings(ParseOptions options);
+        bool SupportsTupleDeconstruction(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -499,6 +500,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node);
         bool IsElementAccessInitializer([NotNullWhen(true)] SyntaxNode? node);
+
         bool IsObjectMemberInitializer([NotNullWhen(true)] SyntaxNode? node);
         bool IsObjectCollectionInitializer([NotNullWhen(true)] SyntaxNode? node);
 

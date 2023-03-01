@@ -1313,7 +1313,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Gets the accessor of the specified kind for the declaration.
         /// </summary>
-        public SyntaxNode GetAccessor(SyntaxNode declaration, DeclarationKind kind)
+        public SyntaxNode? GetAccessor(SyntaxNode declaration, DeclarationKind kind)
             => this.GetAccessors(declaration).FirstOrDefault(a => GetDeclarationKind(a) == kind);
 
         /// <summary>

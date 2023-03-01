@@ -333,5 +333,20 @@ class C
             await VerifyKeywordAsync(
 @"var lam = (int i = $$");
         }
+
+        [Fact, WorkItem(36472, "https://github.com/dotnet/roslyn/issues/36472")]
+        public async Task InAmbiguousCast1()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    static void Main(string[] args)
+    {
+        (int i, string s) tuple;
+        tuple = ($$)
+        Main(args);
+    }
+}");
+        }
     }
 }

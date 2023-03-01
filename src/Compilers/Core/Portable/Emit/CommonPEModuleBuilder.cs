@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -28,13 +26,13 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IEnumerable<ResourceDescription> ManifestResources;
         internal readonly Cci.ModulePropertiesForSerialization SerializationProperties;
         internal readonly OutputKind OutputKind;
-        internal Stream RawWin32Resources;
-        internal IEnumerable<Cci.IWin32Resource> Win32Resources;
-        internal Cci.ResourceSection Win32ResourceSection;
-        internal Stream SourceLinkStreamOpt;
+        internal Stream? RawWin32Resources;
+        internal IEnumerable<Cci.IWin32Resource>? Win32Resources;
+        internal Cci.ResourceSection? Win32ResourceSection;
+        internal Stream? SourceLinkStreamOpt;
 
-        internal Cci.IMethodReference PEEntryPoint;
-        internal Cci.IMethodReference DebugEntryPoint;
+        internal Cci.IMethodReference? PEEntryPoint;
+        internal Cci.IMethodReference? DebugEntryPoint;
 
         private readonly ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody> _methodBodyMap;
         private readonly TokenMap _referencesInILMap = new();
@@ -45,13 +43,10 @@ namespace Microsoft.CodeAnalysis.Emit
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
         private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
 
-        // Only set when running tests to allow realized IL for a given method to be looked up by method.
-        internal ConcurrentDictionary<IMethodSymbolInternal, CompilationTestData.MethodData> TestData { get; private set; }
+        // Only set when running tests to allow inspection of the emitted data.
+        internal CompilationTestData? TestData { get; private set; }
 
         internal EmitOptions EmitOptions { get; }
-
-        internal DebugInformationFormat DebugInformationFormat => EmitOptions.DebugInformationFormat;
-        internal HashAlgorithmName PdbChecksumAlgorithm => EmitOptions.PdbChecksumAlgorithm;
 
         public CommonPEModuleBuilder(
             IEnumerable<ResourceDescription> manifestResources,
@@ -72,7 +67,9 @@ namespace Microsoft.CodeAnalysis.Emit
             EmitOptions = emitOptions;
         }
 
-#nullable enable
+        internal DebugInformationFormat DebugInformationFormat => EmitOptions.DebugInformationFormat;
+        internal HashAlgorithmName PdbChecksumAlgorithm => EmitOptions.PdbChecksumAlgorithm;
+
         /// <summary>
         /// Symbol changes when emitting EnC delta.
         /// </summary>
@@ -505,17 +502,11 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        internal bool SaveTestData => TestData != null;
-
-        internal void SetMethodTestData(IMethodSymbolInternal method, ILBuilder builder)
-        {
-            TestData.Add(method, new CompilationTestData.MethodData(builder, method));
-        }
-
-        internal void SetMethodTestData(ConcurrentDictionary<IMethodSymbolInternal, CompilationTestData.MethodData> methods)
+        internal void SetTestData(CompilationTestData testData)
         {
             Debug.Assert(TestData == null);
-            TestData = methods;
+            TestData = testData;
+            testData.Module = this;
         }
 
         public int GetTypeDefinitionGeneration(Cci.INamedTypeDefinition typeDef)
