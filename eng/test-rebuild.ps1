@@ -36,6 +36,7 @@ try {
     Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
   }
 
+  exit 1
   Subst-TempDir
 
   $dotnetInstallDir = (InitializeDotNetCli -install:$true)
