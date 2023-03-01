@@ -11262,6 +11262,8 @@ class Program
         Public Async Function CompletionOffOfNullableLambdaParameter(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
+using System;
+
 struct TestStruct
 {
     public int TestField;
