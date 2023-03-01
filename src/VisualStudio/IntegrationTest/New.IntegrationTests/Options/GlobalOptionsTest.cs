@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
@@ -40,6 +42,8 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
         var allLanguages = new[] { LanguageNames.CSharp, LanguageNames.VisualBasic };
         var noLanguages = new[] { (string?)null };
 
+        var vsVersion = await TestServices.Shell.GetVersionAsync(HangMitigatingCancellationToken);
+
         foreach (var (configName, optionInfo) in optionsInfo)
         {
             var option = optionInfo.Option;
@@ -70,6 +74,15 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
                 if (storage is VisualStudioOptionStorage.FeatureFlagStorage)
                 {
                     Assert.True(currentValue is bool);
+                    continue;
+                }
+
+                // TODO: Remove once test machines move to 17.6 Preview 1.
+                // Skip nullable types to avoid hitting https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1718326
+                if (vsVersion < new Version(17, 6) &&
+                    storage is VisualStudioOptionStorage.RoamingProfileStorage &&
+                    Nullable.GetUnderlyingType(option.Type) != null)
+                {
                     continue;
                 }
 
