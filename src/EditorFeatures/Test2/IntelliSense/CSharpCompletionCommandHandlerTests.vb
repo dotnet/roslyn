@@ -11258,13 +11258,36 @@ class Program
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData, WorkItem(42910, "https://github.com/dotnet/roslyn/issues/42910")>
+        Public Async Function CompletionOffOfNullableLambdaParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+struct TestStruct
+{
+    public int TestField;
+}
+
+class Program
+{
+    void Main() => TestMethod1(x => { return x?.$$ });
+
+    void TestMethod1(Predicate<TestStruct?> predicate) => default;
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="TestField", displayTextSuffix:="")
+            End Using
+        End Function
+
         <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
         Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
 
-<<<<<<< HEAD
 class Goo { public string first; }
 class Bar { public string second; }
 
@@ -11486,30 +11509,6 @@ class Program
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
                 Await state.AssertCompletionItemsDoNotContainAny("first")
-            End Using
-        End Function
-
-        <WpfTheory, CombinatorialData, WorkItem(42910, "https://github.com/dotnet/roslyn/issues/42910")>
-        Public Async Function CompletionOffOfNullableLambdaParameter(showCompletionInArgumentLists As Boolean) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
-                <Document><![CDATA[
-struct TestStruct
-{
-    public int TestField;
-}
-
-class Program
-{
-    void Main() => TestMethod1(x => { return x?.$$ });
-
-    void TestMethod1(Predicate<TestStruct?> predicate) => default;
-}
-]]>
-                </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
-
-                state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContain(displayText:="TestField", displayTextSuffix:="")
             End Using
         End Function
     End Class
