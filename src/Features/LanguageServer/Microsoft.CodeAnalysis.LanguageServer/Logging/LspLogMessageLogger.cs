@@ -49,7 +49,7 @@ internal sealed class LspLogMessageLogger : ILogger
         if (message != null && logLevel != LogLevel.None)
         {
             message = $"[{_categoryName}]{message}";
-            var _ = server.NotifyAsync(Methods.WindowLogMessageName, new LogMessageParams()
+            var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
             {
                 Message = message,
                 MessageType = logLevel switch
@@ -62,7 +62,7 @@ internal sealed class LspLogMessageLogger : ILogger
                     LogLevel.Critical => MessageType.Error,
                     _ => throw new InvalidOperationException($"Unexpected logLevel argument {logLevel}"),
                 }
-            });
+            }, CancellationToken.None);
         }
     }
 }

@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 internal sealed class LanguageServerHost
 #pragma warning restore CA1001 // The JsonRpc instance is disposed of by the AbstractLanguageServer during shutdown
 {
+    // TODO: replace this with a MEF part instead
     /// <summary>
     /// A static reference to the server instance.
     /// Used by loggers to determine if they can send log messages via LSP
@@ -61,8 +62,8 @@ internal sealed class LanguageServerHost
         await _roslynLanguageServer.WaitForExitAsync();
     }
 
-    public Task NotifyAsync(string targetName, object? argument)
+    public T GetRequiredLspService<T>() where T : ILspService
     {
-        return _jsonRpc.NotifyAsync(targetName, argument);
+        return _roslynLanguageServer.GetLspServices().GetRequiredService<T>();
     }
 }
