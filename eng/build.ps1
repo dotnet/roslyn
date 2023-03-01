@@ -67,6 +67,7 @@ param (
   [switch]$sequential,
   [switch]$helix,
   [string]$helixQueueName = "",
+  [string]$helixApiAccessToken = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -453,6 +454,10 @@ function TestUsingRunTests() {
 
   if ($helixQueueName) {
     $args += " --helixQueueName $helixQueueName"
+  }
+
+  if ($helixApiAccessToken) {
+    $args += " --helixApiAccessToken $helixApiAccessToken"
   }
 
   try {

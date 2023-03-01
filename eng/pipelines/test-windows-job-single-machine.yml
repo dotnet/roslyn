@@ -22,7 +22,10 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   pool:
-    name: NetCore-Public
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+        name: NetCore-Public
+    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      name: NetCore1ESPool-Internal
     demands: ImageOverride -equals ${{ parameters.queueName }}
   timeoutInMinutes: 120
   variables:
