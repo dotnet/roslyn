@@ -80,16 +80,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 () => CodeAction.GetOperationsAsync(this.OriginalSolution, progressTracker, cancellationToken), cancellationToken);
         }
 
-        protected static Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
+        protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
+            CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
         {
             return Task.Run(
-                () => actionWithOptions.GetOperationsAsync(options, cancellationToken), cancellationToken);
+                () => actionWithOptions.GetOperationsAsync(this.OriginalSolution, options, cancellationToken), cancellationToken);
         }
 
         protected Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
         {
             return Task.Run(
-                () => CodeAction.GetPreviewOperationsAsync(cancellationToken), cancellationToken);
+                () => CodeAction.GetPreviewOperationsAsync(this.OriginalSolution, cancellationToken), cancellationToken);
         }
 
         public void Invoke(CancellationToken cancellationToken)
