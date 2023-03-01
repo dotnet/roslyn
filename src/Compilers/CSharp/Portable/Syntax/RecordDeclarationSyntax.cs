@@ -9,19 +9,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class RecordDeclarationSyntax
     {
-        internal PrimaryConstructorBaseTypeSyntax? PrimaryConstructorBaseTypeIfClass
-        {
-            get
-            {
-                if (Kind() == SyntaxKind.RecordStructDeclaration)
-                {
-                    return null;
-                }
-
-                return BaseList?.Types.FirstOrDefault() as PrimaryConstructorBaseTypeSyntax;
-            }
-        }
-
         public RecordDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier,
             TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
             SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)

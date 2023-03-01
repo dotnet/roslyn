@@ -9405,6 +9405,70 @@ record C : {|CS0535:I|}
             }.RunAsync();
         }
 
+        [Fact]
+        public async Task TestImplementOnClass_WithSemiColon()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = @"
+interface I
+{
+    void M1();
+}
+
+class C : {|CS0535:I|};
+",
+                FixedCode = @"
+interface I
+{
+    void M1();
+}
+
+class C : {|CS0535:I|}
+{
+    public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+",
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestImplementOnStruct_WithSemiColon()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = @"
+interface I
+{
+    void M1();
+}
+
+struct C : {|CS0535:I|};
+",
+                FixedCode = @"
+interface I
+{
+    void M1();
+}
+
+struct C : {|CS0535:I|}
+{
+    public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+",
+            }.RunAsync();
+        }
+
         [Fact, WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
         public async Task TestImplementOnRecord_WithBracesAndTrivia()
         {
@@ -9441,6 +9505,8 @@ record C : {|CS0535:I|}
         [InlineData("record")]
         [InlineData("record class")]
         [InlineData("record struct")]
+        [InlineData("class")]
+        [InlineData("struct")]
         public async Task TestImplementOnRecord_WithSemiColonAndTrivia(string record)
         {
             await new VerifyCS.Test

@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private UnboundLambda AnalyzeAnonymousFunction(
             AnonymousFunctionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
+            // !!! The only binding operations allowed here - binding type references
+
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 

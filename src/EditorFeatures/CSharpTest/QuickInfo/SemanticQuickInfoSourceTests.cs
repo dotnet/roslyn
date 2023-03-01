@@ -7602,6 +7602,15 @@ record Student(int Id) : $$Person(null, null);
         }
 
         [Fact]
+        public async Task QuickInfoClass_BaseTypeList()
+        {
+            await TestAsync(@"
+class Person(string First, string Last);
+class Student(int Id) : $$Person(null, null);
+", MainDescription("Person.Person(string First, string Last)"));
+        }
+
+        [Fact]
         public async Task QuickInfo_BaseConstructorInitializer()
         {
             await TestAsync(@"
