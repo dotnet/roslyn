@@ -97,7 +97,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // items should be pushed higher up, and less important items shouldn't take up that much space.
                     var currentActionCount = 0;
 
-                    using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var lowPrioritySets);
+                    // Builders to store low and medium priority sets that were reported for a higher request priority.
+                    // These mismatched priority sets are stored in one of the below pending priority sets, and later added
+                    // when we are computing sets with matching request priority.
+                    // Note that lowest request priority is reserved for suppression/configuration action sets,
+                    // and we expect the code fix service to only return suppression/configuration actions for this
+                    // request priority. We have an assert for this invariant below and don't need to track pendingLowestPrioritySets.
+                    using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var pendingLowPrioritySets);
+                    using var _2 = ArrayBuilder<SuggestedActionSet>.GetInstance(out var pendingMediumPrioritySets);
 
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
@@ -106,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                         if (priority != null)
                         {
+                            // Compute the actions sets for the current request priority.
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
                                 range, selection,
@@ -113,25 +121,93 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 priority.Value,
                                 currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
+                            // Add those computed actions sets to the current collector set which they have
+                            // matching or higher priority compared to the request priority.
+                            // For computed action sets with a lower priority compared to the request priority,
+                            // add them to the appropriate pending set so it gets added to the collector set in later iteration.
                             await foreach (var set in allSets)
                             {
-                                if (priority == CodeActionRequestPriority.High && set.Priority == SuggestedActionSetPriority.Low)
+                                switch (priority)
                                 {
-                                    // if we're processing the high pri bucket, but we get action sets for lower pri
-                                    // groups, then keep track of them and add them in later when we get to that group.
-                                    lowPrioritySets.Add(set);
+                                    case CodeActionRequestPriority.High:
+                                        switch (set.Priority)
+                                        {
+                                            case SuggestedActionSetPriority.High:
+                                                break;
+
+                                            case SuggestedActionSetPriority.Medium:
+                                                pendingMediumPrioritySets.Add(set);
+                                                continue;
+
+                                            case SuggestedActionSetPriority.Low:
+                                                pendingLowPrioritySets.Add(set);
+                                                continue;
+
+                                            default:
+                                                throw ExceptionUtilities.UnexpectedValue(set.Priority);
+                                        }
+
+                                        break;
+
+                                    case CodeActionRequestPriority.Normal:
+                                        switch (set.Priority)
+                                        {
+                                            case SuggestedActionSetPriority.High:
+                                            case SuggestedActionSetPriority.Medium:
+                                                break;
+
+                                            case SuggestedActionSetPriority.Low:
+                                                pendingLowPrioritySets.Add(set);
+                                                continue;
+
+                                            default:
+                                                throw ExceptionUtilities.UnexpectedValue(set.Priority);
+                                        }
+
+                                        break;
+
+                                    case CodeActionRequestPriority.Low:
+                                        switch (set.Priority)
+                                        {
+                                            case SuggestedActionSetPriority.High:
+                                            case SuggestedActionSetPriority.Medium:
+                                            case SuggestedActionSetPriority.Low:
+                                                break;
+
+                                            default:
+                                                throw ExceptionUtilities.UnexpectedValue(set.Priority);
+                                        }
+
+                                        break;
+
+                                    case CodeActionRequestPriority.Lowest:
+                                        // We only expect suppression/configuration fixes for 'Lowest' request priority.
+                                        // These action sets have 'SuggestedActionSetPriority.None'.
+                                        Contract.ThrowIfFalse(set.Priority == SuggestedActionSetPriority.None);
+                                        break;
+
+                                    case CodeActionRequestPriority.None:
+                                        // Add all the sets for 'None' request priority.
+                                        break;
                                 }
-                                else
-                                {
-                                    currentActionCount += set.Actions.Count();
-                                    collector.Add(set);
-                                }
+
+                                // We have an action set with matching or higher priority compared to the request priority,
+                                // so add it to the collector set.
+                                currentActionCount += set.Actions.Count();
+                                collector.Add(set);
                             }
 
-                            if (priority == CodeActionRequestPriority.Normal)
+                            // Drain any pending actions sets for the next request priority which were computed for a higher request priority.
+                            var pendingSetsToDrain = priority switch
                             {
-                                // now, add any low pri items we've been waiting on to the final group.
-                                foreach (var set in lowPrioritySets)
+                                CodeActionRequestPriority.High => pendingMediumPrioritySets,
+                                CodeActionRequestPriority.Normal => pendingLowPrioritySets,
+                                _ => null,
+                            };
+
+                            if (pendingSetsToDrain != null)
+                            {
+                                foreach (var set in pendingSetsToDrain)
                                 {
                                     currentActionCount += set.Actions.Count();
                                     collector.Add(set);
