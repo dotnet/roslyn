@@ -1466,6 +1466,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
+            var paramList = mainKeyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
+                ? ParseParenthesizedParameterList() : null;
+
             SyntaxToken? forKeyword = null;
             TypeSyntax? forType = null;
             if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
@@ -1475,9 +1478,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 forKeyword = EatToken(SyntaxKind.ForKeyword);
                 forType = ParseType();
             }
-
-            var paramList = mainKeyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
-                ? ParseParenthesizedParameterList() : null;
 
             var baseList = this.ParseBaseList();
             _termState = saveTerm;
