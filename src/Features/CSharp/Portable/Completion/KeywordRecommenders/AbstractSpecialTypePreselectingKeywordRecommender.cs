@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Kind() is SyntaxKind.ReadOnlyKeyword)
                 token = syntaxTree.FindTokenOnLeftOfPosition(token.SpanStart, cancellationToken);
 
-            // if we're not after `ref` or `ref readonly` then don't offer `string` here.
+            // if we're not after `ref` or `ref readonly` then don't offer a type-keyword here.
             if (token.Kind() != SyntaxKind.RefKeyword)
                 return false;
 
