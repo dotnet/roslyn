@@ -138,14 +138,14 @@ namespace BuildBoss
 
         private static bool ProcessTargets(string repositoryDirectory)
         {
-            var targetsDirectory = Path.Combine(repositoryDirectory, "eng", "targets");
+            var targetsDirectory = Path.Combine(repositoryDirectory, Path.Combine("eng", "targets"));
             var checker = new TargetsCheckerUtil(targetsDirectory);
             return CheckCore(checker, $"Targets {targetsDirectory}");
         }
 
         private static bool ProcessStructuredLog(string artifactsDirectory, string configuration)
         {
-            var logFilePath = Path.Combine(artifactsDirectory, $@"log\{configuration}\Build.binlog");
+            var logFilePath = Path.Combine(Path.Combine(Path.Combine(artifactsDirectory, "log"), "{configuration}"), "Build.binlog");
             var util = new StructuredLoggerCheckerUtil(logFilePath);
             return CheckCore(util, $"Structured log {logFilePath}");
         }
