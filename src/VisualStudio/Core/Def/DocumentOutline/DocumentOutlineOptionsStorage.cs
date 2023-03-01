@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     internal sealed class DocumentOutlineOptionsStorage
     {
+        // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
         public static readonly Option2<bool> EnableDocumentOutline = new("dotnet_enable_document_outline", defaultValue: true);
     }
 }

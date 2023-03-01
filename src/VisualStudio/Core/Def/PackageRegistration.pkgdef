@@ -36,6 +36,12 @@
 "Description"="Enables the LSP-powered diagnostics for managed .Net projects"
 "Value"=dword:00000000
 
+// Corresponds to DocumentOutlineOptionsStorage.EnableDocumentOutline
+[$RootKey$\FeatureFlags\Roslyn\DocumentOutline]
+"Description"="Enables Document Outline View to show for for C# and VB."
+"Title"="C#/VB Enable Document Outline"
+"Value"=dword:00000001
+
 // The option page configuration is duplicated in RoslynPackage
 // [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
 [$RootKey$\ToolWindows\{60a19d42-2dd7-43f3-be90-c7a9cb7d28f4}]
