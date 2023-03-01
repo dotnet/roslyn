@@ -33,7 +33,7 @@ internal partial class CSharpRecommendationService
         protected override int GetLambdaParameterCount(AnonymousFunctionExpressionSyntax lambdaSyntax)
             => lambdaSyntax switch
             {
-                AnonymousMethodExpressionSyntax { ParameterList: { } parameterList } => parameterList.Parameters.Count,
+                AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.ParameterList?.Parameters.Count ?? -1,
                 ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters.Count,
                 SimpleLambdaExpressionSyntax => 1,
                 _ => throw ExceptionUtilities.UnexpectedValue(lambdaSyntax.Kind()),
