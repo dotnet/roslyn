@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.BraceCompletion;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
@@ -153,11 +152,21 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Set the caret position to the properly indented column in the desired line.
             var caretPosition = GetIndentedLinePosition(newDocument, newDocument.Text, desiredCaretLine.LineNumber, options, cancellationToken);
 
-            // The new line edit is calculated against the original text, d0, to get text d1.
-            // The formatting edits are calculated against d1 to get text d2.
-            // Merge the formatting and new line edits into a set of whitespace only text edits that all apply to d0.
-            var overallChanges = newLineEdit != null ? GetMergedChanges(newLineEdit.Value, formattingChanges, newDocument.Text) : formattingChanges;
-            return new BraceCompletionResult(overallChanges, caretPosition);
+            return new BraceCompletionResult(GetOverallChanges(), caretPosition);
+
+            ImmutableArray<TextChange> GetOverallChanges()
+            {
+                // The new line edit is calculated against the original text, d0, to get text d1.
+                // The formatting edits are calculated against d1 to get text d2.
+                // Merge the formatting and new line edits into a set of whitespace only text edits that all apply to d0.
+                if (!newLineEdit.HasValue)
+                    return formattingChanges;
+
+                if (formattingChanges.IsEmpty)
+                    return ImmutableArray.Create(newLineEdit.Value);
+
+                return GetMergedChanges(newLineEdit.Value, formattingChanges, newDocument.Text);
+            }
 
             static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)
             {
