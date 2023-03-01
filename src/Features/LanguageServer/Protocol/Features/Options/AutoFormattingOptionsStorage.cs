@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Globalization;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Formatting;
@@ -17,7 +18,11 @@ internal static class AutoFormattingOptionsStorage
             FormatOnCloseBrace = globalOptions.GetOption(FormatOnCloseBrace, language)
         };
 
-    private static readonly OptionGroup s_formattingGroup = new(FeaturesResources.Formatting, int.MaxValue, null, "Formatting");
+    private static readonly OptionGroup s_formattingGroup = new(
+        FeaturesResources.Formatting,
+        int.MaxValue,
+        null,
+        FeaturesResources.ResourceManager.GetString(nameof(FeaturesResources.Formatting), new CultureInfo("en")));
 
     internal static readonly PerLanguageOption2<bool> FormatOnReturn = new(
         "csharp_format_on_return", AutoFormattingOptions.Default.FormatOnReturn, group: s_formattingGroup);

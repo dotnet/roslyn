@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Globalization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -30,7 +31,11 @@ internal static class CompletionOptionsStorage
             ShowNewSnippetExperienceFeatureFlag = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
         };
 
-    private static readonly OptionGroup s_completionOptionGroup = new(FeaturesResources.Completion, priority: int.MaxValue, parent: null, nonLocalizedDescription: "Completion");
+    private static readonly OptionGroup s_completionOptionGroup = new(
+        FeaturesResources.Completion,
+        priority: int.MaxValue,
+        parent: null,
+        nonLocalizedDescription: FeaturesResources.ResourceManager.GetString(nameof(FeaturesResources.Completion), new CultureInfo("en")));
 
     // feature flags
 

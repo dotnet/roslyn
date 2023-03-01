@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Globalization;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
@@ -15,7 +16,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo
               IncludeNavigationHintsInQuickInfo = globalOptions.GetOption(IncludeNavigationHintsInQuickInfo),
           };
 
-        private static readonly OptionGroup s_quickInfoGroup = new(FeaturesResources.Quick_Info, int.MaxValue, null, "Quick Info");
+        private static readonly OptionGroup s_quickInfoGroup = new(
+            FeaturesResources.Quick_Info,
+            int.MaxValue,
+            null,
+            FeaturesResources.ResourceManager.GetString(nameof(FeaturesResources.Quick_Info), new CultureInfo("en")));
 
         public static readonly PerLanguageOption2<bool> ShowRemarksInQuickInfo = new(
             "dotnet_show_remarks_in_quick_info", QuickInfoOptions.Default.ShowRemarksInQuickInfo, group: s_quickInfoGroup);

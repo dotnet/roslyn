@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Globalization;
-using System.Resources;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -20,7 +19,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public static PerLanguageOption2<bool> SearchReferenceAssemblies =
             new("dotnet_search_reference_assemblies",
                 SymbolSearchOptions.Default.SearchReferenceAssemblies,
-                group: new OptionGroup(FeaturesResources.Add_Imports, priority: int.MaxValue, parent: null, nonLocalizedDescription: "Add Imports"));
+                group: new OptionGroup(FeaturesResources.Add_Imports,
+                    priority:
+                    int.MaxValue,
+                    parent: null,
+                    nonLocalizedDescription: FeaturesResources.ResourceManager.GetString(nameof(FeaturesResources.Add_Imports), new CultureInfo("en"))));
 
         public static PerLanguageOption2<bool> SearchNuGetPackages =
             new("dotnet_search_nuget_packages", SymbolSearchOptions.Default.SearchNuGetPackages);
