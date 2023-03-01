@@ -59,17 +59,17 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             if (stringToken.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return;
 
-            var interpolatedString = ParseExpression("$" + stringToken.Text) as TInterpolatedStringExpressionSyntax;
-            if (interpolatedString is null || interpolatedString.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
-                return;
-
             // Not supported if there are any omitted arguments following the placeholder.
             var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocationSyntax);
             var placeholderIndex = arguments.IndexOf(placeholderArgument);
             Contract.ThrowIfTrue(placeholderIndex < 0);
             for (var i = placeholderIndex + 1; i < arguments.Count; i++)
             {
-                if (syntaxFacts.GetExpressionOfArgument(arguments[i]) is null)
+                var argument = arguments[i];
+                if (syntaxFacts.GetExpressionOfArgument(argument) is null)
+                    return;
+
+                if (syntaxFacts.GetRefKindOfArgument(argument) != RefKind.None)
                     return;
             }
 
@@ -82,9 +82,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             {
                 var lastArgument = syntaxFacts.GetArgumentsOfInvocationExpression(invocationSyntax).Last();
                 var lastArgumentType = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(lastArgument), cancellationToken).Type;
-                if (lastArgument is IArrayTypeSymbol)
+                if (lastArgumentType is IArrayTypeSymbol)
                     return;
             }
+
+            var interpolatedString = ParseExpression("$" + stringToken.Text) as TInterpolatedStringExpressionSyntax;
+            if (interpolatedString is null || interpolatedString.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                return;
 
             var shouldReplaceInvocation = invocationSymbol is { ContainingType.SpecialType: SpecialType.System_String, Name: nameof(string.Format) };
 
@@ -103,15 +107,15 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 var invocations = await document.GetRelevantNodesAsync<TInvocationExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
                 foreach (var invocation in invocations)
                 {
-                    var argument = FindValidPlaceholderArgument(invocation);
-                    if (argument != null)
-                        return (invocation, argument);
+                    var placeholderArgument = FindValidPlaceholderArgument(invocation);
+                    if (placeholderArgument != null)
+                        return (invocation, placeholderArgument);
                 }
 
                 {
                     // User selected a single argument of the invocation (expression / format string) instead of the whole invocation.
-                    var argument = await document.TryGetRelevantNodeAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
-                    var invocation = argument?.Parent?.Parent as TInvocationExpressionSyntax;
+                    var selectedArgument = await document.TryGetRelevantNodeAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
+                    var invocation = selectedArgument?.Parent?.Parent as TInvocationExpressionSyntax;
                     var placeholderArgument = FindValidPlaceholderArgument(invocation);
                     if (placeholderArgument != null)
                         return (invocation, placeholderArgument);
@@ -121,9 +125,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     // User selected the whole argument list: string format with placeholders plus all expressions
                     var argumentList = await document.TryGetRelevantNodeAsync<TArgumentListExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
                     var invocation = argumentList?.Parent as TInvocationExpressionSyntax;
-                    var argument = FindValidPlaceholderArgument(invocation);
-                    if (argument != null)
-                        return (invocation, argument);
+                    var placeholderArgument = FindValidPlaceholderArgument(invocation);
+                    if (placeholderArgument != null)
+                        return (invocation, placeholderArgument);
                 }
 
                 return default;
