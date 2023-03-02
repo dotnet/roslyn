@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts = analyzer => analyzerActionCounts[analyzer];
 
                 // We use different analyzer execution models based on whether we are analyzing the full compilation or not.
-                if (!analysisScope.IsSingleFileAnalysis)
+                if (analysisScope.IsEntireCompilationAnalysis)
                 {
                     // We are performing full compilation analysis.
                     // PERF: For improved performance, we first attach the event queue to the driver and then
@@ -664,9 +664,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
+                    Debug.Assert(analysisScope.IsSingleFileAnalysis);
+
                     // We are performing analysis for a single file in the compilation, with or without a filter span.
                     // First fetch the compilation events to drive this partial analysis.
-                    var compilationEvents = GetCompilationEventsForSingleFileAnalysis(compilation, analysisScope, AdditionalFiles, hasAnyActionsRequiringCompilationEvents, cancellationToken);
+                    var compilationEvents = await GetCompilationEventsForFileAnalysisAsync(compilation, analysisScope, AdditionalFiles, hasAnyActionsRequiringCompilationEvents, cancellationToken).ConfigureAwait(false);
 
                     var builder = ArrayBuilder<(AnalysisScope, ImmutableArray<CompilationEvent>)>.GetInstance();
                     builder.Add((analysisScope, compilationEvents));
@@ -694,8 +696,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
 
                         var tree = analysisScope.FilterFileOpt!.Value.SourceTree!;
-                        processSymbolStartAnalyzers(tree, compilationEvents, symbolStartAnalyzers, compilation,
-                            _analysisResultBuilder, builder, AdditionalFiles, analysisScope.ConcurrentAnalysis, cancellationToken);
+                        await processSymbolStartAnalyzersAsync(tree, compilationEvents, symbolStartAnalyzers, compilation,
+                            _analysisResultBuilder, builder, AdditionalFiles, analysisScope.ConcurrentAnalysis, cancellationToken).ConfigureAwait(false);
                     }
 
                     await attachQueueAndProcessAllEventsAsync(builder, driver, _eventQueuePool, cancellationToken).ConfigureAwait(false);
@@ -826,7 +828,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return (symbolStartAnalyzersBuilder.ToImmutableAndFree(), otherAnalyzersBuilder.ToImmutableAndFree());
             }
 
-            static void processSymbolStartAnalyzers(
+            static async Task processSymbolStartAnalyzersAsync(
                 SyntaxTree tree,
                 ImmutableArray<CompilationEvent> compilationEventsForTree,
                 ImmutableArray<DiagnosticAnalyzer> symbolStartAnalyzers,
@@ -868,48 +870,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    // Next, generate compilation events for each of the partial trees
-                    // and add the (analysisScope, compilationEvents) tuple for each tree to the builder.
-                    // Process all trees sequentially: this is required to ensure the appropriate
-                    // compilation events are mapped to the tree for which they are generated.
-                    foreach (var partialTree in partialTrees)
-                    {
-                        if (tryProcessTree(partialTree, out var analysisScopeAndEvents))
-                        {
-                            builder.Add((analysisScopeAndEvents.Value.scope, analysisScopeAndEvents.Value.events));
-                        }
-                    }
+                    // Next, generate compilation events for all partial trees
+                    // and add a new (analysisScope, compilationEvents) tuple to the builder.
+                    var analysisScope = new AnalysisScope(partialTrees.ToImmutableArray(), symbolStartAnalyzers, concurrentAnalysis, categorizeDiagnostics: true);
+
+                    var filterScope = (file: new SourceOrAdditionalFile(tree), syntax: false);
+                    analysisScope = GetPendingAnalysisScope(analysisScope, filterScope, analysisResultBuilder);
+                    if (analysisScope == null)
+                        return;
+
+                    var compilationEvents = await GetCompilationEventsForFileAnalysisAsync(compilation, analysisScope, additionalFiles, hasAnyActionsRequiringCompilationEvents: true, cancellationToken).ConfigureAwait(false);
+                    builder.Add((analysisScope, compilationEventsForTree.AddRange(compilationEvents)));
                 }
                 finally
                 {
                     partialTrees.Free();
-                }
-
-                bool tryProcessTree(SyntaxTree partialTree, [NotNullWhen(true)] out (AnalysisScope scope, ImmutableArray<CompilationEvent> events)? scopeAndEvents)
-                {
-                    scopeAndEvents = null;
-
-                    var file = new SourceOrAdditionalFile(partialTree);
-                    var analysisScope = new AnalysisScope(symbolStartAnalyzers, file, filterSpan: null,
-                        isSyntacticSingleFileAnalysis: false, concurrentAnalysis, categorizeDiagnostics: true);
-
-                    analysisScope = GetPendingAnalysisScope(analysisScope, analysisResultBuilder);
-                    if (analysisScope == null)
-                        return false;
-
-                    var compilationEvents = GetCompilationEventsForSingleFileAnalysis(compilation, analysisScope, additionalFiles, hasAnyActionsRequiringCompilationEvents: true, cancellationToken);
-
-                    // Include the already generated compilations events for the primary tree.
-                    if (partialTree == tree)
-                    {
-                        compilationEvents = compilationEventsForTree.AddRange(compilationEvents);
-
-                        // We shouldn't have any duplicate events.
-                        Debug.Assert(compilationEvents.Distinct().Length == compilationEvents.Length);
-                    }
-
-                    scopeAndEvents = (analysisScope, compilationEvents);
-                    return true;
                 }
             }
         }
@@ -919,6 +894,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             (SourceOrAdditionalFile file, bool syntax)? filterScope = analysisScope.FilterFileOpt.HasValue ?
                 (analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis) :
                 null;
+            return GetPendingAnalysisScope(analysisScope, filterScope, analysisResultBuilder);
+        }
+
+        private static AnalysisScope? GetPendingAnalysisScope(AnalysisScope analysisScope, (SourceOrAdditionalFile file, bool syntax)? filterScope, AnalysisResultBuilder analysisResultBuilder)
+        {
             var pendingAnalyzers = analysisResultBuilder.GetPendingAnalyzers(analysisScope.Analyzers, filterScope);
             if (pendingAnalyzers.IsEmpty)
             {
@@ -931,14 +911,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analysisScope;
         }
 
-        private static ImmutableArray<CompilationEvent> GetCompilationEventsForSingleFileAnalysis(
+        private static async Task<ImmutableArray<CompilationEvent>> GetCompilationEventsForFileAnalysisAsync(
             Compilation compilation,
             AnalysisScope analysisScope,
             ImmutableArray<AdditionalText> additionalFiles,
             bool hasAnyActionsRequiringCompilationEvents,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(analysisScope.IsSingleFileAnalysis);
+            Debug.Assert(!analysisScope.IsEntireCompilationAnalysis);
 
             if (analysisScope.IsSyntacticSingleFileAnalysis || !hasAnyActionsRequiringCompilationEvents)
             {
@@ -961,25 +941,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return ImmutableArray.Create<CompilationEvent>(compilationStartedEvent, compilationUnitCompletedEvent);
             }
 
-            generateCompilationEvents(compilation, analysisScope, cancellationToken);
+            await generateCompilationEventsAsync(compilation, analysisScope, cancellationToken).ConfigureAwait(false);
 
             return dequeueAndFilterCompilationEvents(compilation, analysisScope, additionalFiles, cancellationToken);
 
-            static void generateCompilationEvents(Compilation compilation, AnalysisScope analysisScope, CancellationToken cancellationToken)
+            static async Task generateCompilationEventsAsync(Compilation compilation, AnalysisScope analysisScope, CancellationToken cancellationToken)
             {
+                Debug.Assert(!analysisScope.IsEntireCompilationAnalysis);
+                Debug.Assert(!analysisScope.IsSyntacticSingleFileAnalysis);
+
                 // Invoke GetDiagnostics to populate CompilationEvent queue for the given analysis scope.
                 // Discard the returned diagnostics.
-                if (analysisScope.FilterFileOpt == null)
-                {
-                    _ = compilation.GetDiagnostics(cancellationToken);
-                }
-                else if (!analysisScope.IsSyntacticSingleFileAnalysis)
+                if (analysisScope.FilterFileOpt.HasValue)
                 {
                     // Get the mapped model and invoke GetDiagnostics for the given filter span, if any.
                     // Limiting the GetDiagnostics scope to the filter span ensures we only generate compilation events
                     // for the required symbols whose declaration intersects with this span, instead of all symbols in the tree.
-                    var mappedModel = compilation.GetSemanticModel(analysisScope.FilterFileOpt!.Value.SourceTree!);
+                    var mappedModel = compilation.GetSemanticModel(analysisScope.FilterFileOpt.Value.SourceTree!);
                     _ = mappedModel.GetDiagnostics(analysisScope.FilterSpanOpt, cancellationToken);
+                }
+                else
+                {
+                    // We have a multiple file analysis scope, which shouldn't have a filter span.
+                    Debug.Assert(!analysisScope.FilterSpanOpt.HasValue);
+
+                    // Invoke GetDiagnostics for all the files in the analysis scope.
+                    if (analysisScope.ConcurrentAnalysis)
+                    {
+                        await Task.WhenAll(analysisScope.SyntaxTrees.Select(tree =>
+                            Task.Run(() =>
+                            {
+                                _ = compilation.GetSemanticModel(tree).GetDiagnostics(cancellationToken: cancellationToken);
+                            }, cancellationToken))).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        foreach (var tree in analysisScope.SyntaxTrees)
+                        {
+                            _ = compilation.GetSemanticModel(tree).GetDiagnostics(cancellationToken: cancellationToken);
+                        }
+                    }
                 }
             }
 
@@ -989,7 +990,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ImmutableArray<AdditionalText> additionalFiles,
                 CancellationToken cancellationToken)
             {
-                Debug.Assert(analysisScope.IsSingleFileAnalysis);
+                Debug.Assert(!analysisScope.IsEntireCompilationAnalysis);
                 Debug.Assert(!analysisScope.IsSyntacticSingleFileAnalysis);
 
                 var eventQueue = compilation.EventQueue!;
@@ -1004,7 +1005,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // of compiler diagnostic analyzer. See https://github.com/dotnet/roslyn/issues/56843 for more details.
                 var needsSpanBasedCompilationUnitCompletedEvent = analysisScope.FilterSpanOpt.HasValue;
 
-                var tree = analysisScope.FilterFileOpt!.Value.SourceTree!;
                 var builder = ArrayBuilder<CompilationEvent>.GetInstance();
                 while (eventQueue.TryDequeue(out CompilationEvent compilationEvent))
                 {
@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
 
                         case CompilationUnitCompletedEvent compilationUnitCompletedEvent:
-                            if (tree != compilationUnitCompletedEvent.CompilationUnit)
+                            if (!analysisScope.SyntaxTrees.Contains(compilationUnitCompletedEvent.CompilationUnit))
                                 continue;
 
                             // We don't need to synthesize a span-based CompilationUnitCompletedEvent if the event queue already
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             var hasLocationInTree = false;
                             foreach (var location in symbolDeclaredCompilationEvent.Symbol.Locations)
                             {
-                                if (tree == location.SourceTree)
+                                if (location.SourceTree != null && analysisScope.SyntaxTrees.Contains(location.SourceTree))
                                 {
                                     hasLocationInTree = true;
                                     break;
@@ -1055,7 +1055,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (needsSpanBasedCompilationUnitCompletedEvent)
                 {
-                    builder.Add(new CompilationUnitCompletedEvent(compilation, tree, analysisScope.FilterSpanOpt));
+                    Debug.Assert(analysisScope.FilterFileOpt.HasValue);
+                    builder.Add(new CompilationUnitCompletedEvent(compilation, analysisScope.FilterFileOpt.Value.SourceTree!, analysisScope.FilterSpanOpt));
                 }
 
                 return builder.ToImmutableAndFree();

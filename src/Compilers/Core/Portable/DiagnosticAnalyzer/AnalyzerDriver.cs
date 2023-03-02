@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteSyntaxTreeActions(AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
-            if (analysisScope.IsSingleFileAnalysis && !analysisScope.IsSyntacticSingleFileAnalysis)
+            if (!analysisScope.IsEntireCompilationAnalysis && !analysisScope.IsSyntacticSingleFileAnalysis)
             {
                 // For partial analysis, only execute syntax tree actions if performing syntax analysis.
                 return;
@@ -762,7 +762,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteAdditionalFileActions(AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
-            if (analysisScope.IsSingleFileAnalysis && !analysisScope.IsSyntacticSingleFileAnalysis)
+            if (!analysisScope.IsEntireCompilationAnalysis && !analysisScope.IsSyntacticSingleFileAnalysis)
             {
                 // For partial analysis, only execute additional file actions if performing syntactic single file analysis.
                 return;
@@ -2418,7 +2418,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (analysisScope.FilterFileOpt != null && analysisScope.FilterFileOpt?.SourceTree != decl.SyntaxTree)
+                    if (!analysisScope.ShouldAnalyze(decl.SyntaxTree))
                     {
                         continue;
                     }

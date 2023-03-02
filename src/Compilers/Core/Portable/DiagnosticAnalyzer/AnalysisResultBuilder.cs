@@ -211,43 +211,56 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     bool fullSemanticDiagnosticsForTree = false;
                     bool fullCompilationDiagnostics = false;
 
-                    // Check if we computed syntax/semantic diagnostics for a specific filter file only.
-                    if (analysisScope.FilterFileOpt.HasValue)
+                    // Check if we computed syntax/semantic diagnostics for specific filter file(s) only.
+                    if (!analysisScope.IsEntireCompilationAnalysis)
                     {
-                        var completedAnalyzersForFile = GetCompletedAnalyzersForFile_NoLock(analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis);
-                        if (completedAnalyzersForFile?.Contains(analyzer) == true)
-                        {
-                            // Already stored analysis result for this analyzer for the analyzed file.
-                            continue;
-                        }
-                        else if (!analysisScope.FilterSpanOpt.HasValue)
-                        {
-                            // We have complete analysis result for this file.
-                            // Mark this file as completely analyzed for this analyzer.
-                            if (completedAnalyzersForFile != null)
-                            {
-                                completedAnalyzersForFile.Add(analyzer);
-                            }
-                            else
-                            {
-                                AddCompletedAnalyzerForFile_NoLock(analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis, analyzer);
-                            }
+                        var files = analysisScope.FilterFileOpt.HasValue ?
+                            SpecializedCollections.SingletonEnumerable(analysisScope.FilterFileOpt.Value) :
+                            analysisScope.SyntaxTrees.Select(tree => new SourceOrAdditionalFile(tree));
 
-                            // Set the appropriate full diagnostics for tree/additional file flag.
-                            if (analysisScope.IsSyntacticSingleFileAnalysis)
+                        var first = true;
+                        foreach (var file in files)
+                        {
+                            var completedAnalyzersForFile = GetCompletedAnalyzersForFile_NoLock(file, analysisScope.IsSyntacticSingleFileAnalysis);
+                            if (completedAnalyzersForFile?.Contains(analyzer) == true)
                             {
-                                if (analysisScope.FilterFileOpt.Value.SourceTree != null)
+                                // Already stored analysis result for this analyzer for the analyzed file.
+                                continue;
+                            }
+                            else if (!analysisScope.FilterSpanOpt.HasValue)
+                            {
+                                // We have complete analysis result for this file.
+                                // Mark this file as completely analyzed for this analyzer.
+                                if (completedAnalyzersForFile != null)
                                 {
-                                    fullSyntaxDiagnosticsForTree = true;
+                                    completedAnalyzersForFile.Add(analyzer);
                                 }
                                 else
                                 {
-                                    fullSyntaxDiagnosticsForAdditionalFile = true;
+                                    AddCompletedAnalyzerForFile_NoLock(file, analysisScope.IsSyntacticSingleFileAnalysis, analyzer);
                                 }
-                            }
-                            else
-                            {
-                                fullSemanticDiagnosticsForTree = true;
+
+                                // Set the appropriate full diagnostics for tree/additional file flag.
+                                if (first)
+                                {
+                                    if (analysisScope.IsSyntacticSingleFileAnalysis)
+                                    {
+                                        if (file.SourceTree != null)
+                                        {
+                                            fullSyntaxDiagnosticsForTree = true;
+                                        }
+                                        else
+                                        {
+                                            fullSyntaxDiagnosticsForAdditionalFile = true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        fullSemanticDiagnosticsForTree = true;
+                                    }
+
+                                    first = false;
+                                }
                             }
                         }
                     }
@@ -414,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableArray.CreateBuilder<Diagnostic>();
             if (getLocalDiagnostics)
             {
-                if (!analysisScope.IsSingleFileAnalysis)
+                if (analysisScope.IsEntireCompilationAnalysis)
                 {
                     AddAllLocalDiagnostics_NoLock(_localSyntaxDiagnosticsOpt, analysisScope, builder);
                     AddAllLocalDiagnostics_NoLock(_localSemanticDiagnosticsOpt, analysisScope, builder);
@@ -458,7 +471,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnostics,
             AnalysisScope analysisScope,
             ImmutableArray<Diagnostic>.Builder builder)
-            => AddLocalDiagnosticsForPartialAnalysis_NoLock(localDiagnostics, analysisScope.FilterFileOpt!.Value.SourceTree, analysisScope.Analyzers, builder);
+        {
+            foreach (var tree in analysisScope.SyntaxTrees)
+            {
+                AddLocalDiagnosticsForPartialAnalysis_NoLock(localDiagnostics, tree, analysisScope.Analyzers, builder);
+            }
+        }
 
         private static void AddLocalDiagnosticsForPartialAnalysis_NoLock(
             Dictionary<AdditionalText, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnostics,
