@@ -92,7 +92,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AnalysisScope(ImmutableArray<SyntaxTree> trees, ImmutableArray<AdditionalText> additionalFiles, ImmutableArray<DiagnosticAnalyzer> analyzers, bool isPartialAnalysis, SourceOrAdditionalFile? filterFile, TextSpan? filterSpanOpt, bool isSyntacticSingleFileAnalysis, bool isEntireCompilationAnalysis, bool concurrentAnalysis, bool categorizeDiagnostics)
         {
-            Debug.Assert(trees.Any() || additionalFiles.Any());
             Debug.Assert(isPartialAnalysis || FilterFileOpt == null);
             Debug.Assert(isPartialAnalysis || FilterSpanOpt == null);
             Debug.Assert(isPartialAnalysis || !isSyntacticSingleFileAnalysis);
