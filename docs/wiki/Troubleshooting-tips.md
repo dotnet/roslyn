@@ -67,8 +67,16 @@ Using the 32-bit Task Manager (`%WINDIR%\SysWow64\TaskMgr.exe` so that SoS will 
 
 # Investigating build-time regressions
 
-The first thing to do is to build with the following options `/p:ReportAnalyzer=true /p:Features=debug-determinism`.  
-The `ReportAnalyzer` flag adds analyzer timing information to the binary log. This allows to rule out (or focus on) analyzer issues.  
-The `debug-determinism` feature creates an additional output file that documents all the inputs to a particular compilation. The file is written next to the compilation output and has a `.key` suffix. Comparing those files between slow and fast runs helps detect pertinent changes (new inputs, new references, etc).  
-
-
+There are three significant candidates to investigate:
+1. analyzer issue:  
+  Use `/p:ReportAnalyzer=true` to add analyzer timing information to the binary log.  
+  The binary log viewer can display that information.
+2. difference in inputs:  
+  Use `/p:Features=debug-determinism` to create an additional output file that documents all the inputs to a particular compilation.  
+  The file is written next to the compilation output and has a `.key` suffix.  
+  Comparing those files between slow and fast runs helps detect pertinent changes (new inputs, new references, etc).  
+3. compiler server issue:  
+  Inspect the binary log (search for "Error:" and such).  
+  If the compiler server is having issues, there will be many such entries.  
+  In that case, use the environment variable `set RoslynCommandLineLogFile=c:\some\dir\log.txt` to enable additional logging.  
+  In that log, "Keep alive" entries indicate that the compiler server restarted (which we don't expect to happen very often).
