@@ -68,6 +68,8 @@ internal partial class SolutionAssetStorage
         public async ValueTask<IReadOnlyDictionary<Checksum, SolutionAsset>> GetAssetsAsync(
             Checksum[] checksums, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var checksumsToFind = Creator.CreateChecksumSet(checksums);
 
             var numberOfChecksumsToSearch = checksumsToFind.Object.Count;
@@ -91,6 +93,8 @@ internal partial class SolutionAssetStorage
         /// </summary>
         private async ValueTask<SolutionAsset> FindAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var checksumPool = Creator.CreateChecksumSet(SpecializedCollections.SingletonEnumerable(checksum));
             using var resultPool = Creator.CreateResultSet();
 
