@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.Cci
 {
@@ -44,7 +45,7 @@ namespace Microsoft.Cci
         /// member ref names, type def (full) names, type ref (full) names, exported type
         /// (full) names, parameter names, manifest resource names, and unmanaged method names
         /// (ImplMap table).
-        /// 
+        ///
         /// See CLI Part II, section 22.
         /// </remarks>
         internal const int NameLengthLimit = 1024 - 1; //MAX_CLASS_NAME = 1024 in dev11
@@ -55,13 +56,13 @@ namespace Microsoft.Cci
         /// </summary>
         /// <remarks>
         /// Used for file names, module names, and module ref names.
-        /// 
+        ///
         /// See CLI Part II, section 22.
         /// </remarks>
         internal const int PathLengthLimit = 260 - 1; //MAX_PATH = 1024 in dev11
 
         /// <summary>
-        /// This is the maximum length of a string in the PDB, assuming it is in UTF-8 format 
+        /// This is the maximum length of a string in the PDB, assuming it is in UTF-8 format
         /// and not (yet) null-terminated.
         /// </summary>
         /// <remarks>
@@ -216,7 +217,7 @@ namespace Microsoft.Cci
         protected abstract MethodDefinitionHandle GetMethodDefinitionHandle(IMethodDefinition def);
 
         /// <summary>
-        /// The method definition corresponding to full metadata method handle. 
+        /// The method definition corresponding to full metadata method handle.
         /// Deltas are only required to support indexing into current generation.
         /// </summary>
         protected abstract IMethodDefinition GetMethodDef(MethodDefinitionHandle handle);
@@ -287,9 +288,9 @@ namespace Microsoft.Cci
         // and module names specified by P/Invokes (plain strings). Names in the table must be unique and are case sensitive.
         //
         // Spec 22.31 (ModuleRef : 0x1A)
-        // "Name should match an entry in the Name column of the File table. Moreover, that entry shall enable the 
+        // "Name should match an entry in the Name column of the File table. Moreover, that entry shall enable the
         // CLI to locate the target module (typically it might name the file used to hold the module)"
-        // 
+        //
         // This is not how the Dev10 compilers and ILASM work. An entry is added to File table only for resources and netmodules.
         // Entries aren't added for P/Invoked modules.
 
@@ -1324,7 +1325,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// The Microsoft CLR requires that {namespace} + "." + {name} fit in MAX_CLASS_NAME 
+        /// The Microsoft CLR requires that {namespace} + "." + {name} fit in MAX_CLASS_NAME
         /// (even though the name and namespace are stored separately in the Microsoft
         /// implementation).  Note that the namespace name of a nested type is always blank
         /// (since comes from the container).
@@ -1599,9 +1600,9 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            // NOTE: Even though CLR documentation does not explicitly specify any requirements 
-            // NOTE: to the order of records in TypeRef table, some tools and/or APIs (e.g. 
-            // NOTE: IMetaDataEmit::MergeEnd) assume that the containing type referenced as 
+            // NOTE: Even though CLR documentation does not explicitly specify any requirements
+            // NOTE: to the order of records in TypeRef table, some tools and/or APIs (e.g.
+            // NOTE: IMetaDataEmit::MergeEnd) assume that the containing type referenced as
             // NOTE: ResolutionScope for its nested types should appear in TypeRef table
             // NOTE: *before* any of its nested types.
             // SEE ALSO: bug#570975 and test Bug570975()
@@ -1695,7 +1696,7 @@ namespace Microsoft.Cci
             var mappedFieldDataBuilder = new BlobBuilder(0);
             var managedResourceDataBuilder = new BlobBuilder(0);
 
-            // Add 4B of padding to the start of the separated IL stream, 
+            // Add 4B of padding to the start of the separated IL stream,
             // so that method RVAs, which are offsets to this stream, are never 0.
             ilBuilder.WriteUInt32(0);
 
@@ -2932,7 +2933,7 @@ namespace Microsoft.Cci
                     SerializeMethodDebugInfo(body, methodRid, aggregateMethodRid, localSignatureHandleOpt, ref lastLocalVariableHandle, ref lastLocalConstantHandle);
                 }
 
-                _dynamicAnalysisDataWriterOpt?.SerializeMethodDynamicAnalysisData(body);
+                _dynamicAnalysisDataWriterOpt?.SerializeMethodCodeCoverageData(body);
 
                 bodyOffsets[methodRid - 1] = bodyOffset;
 
@@ -3141,10 +3142,44 @@ namespace Microsoft.Cci
             return default(ReservedBlob<UserStringHandle>);
         }
 
-        internal const uint LiteralMethodDefinitionToken = 0x80000000;
-        internal const uint LiteralGreatestMethodDefinitionToken = 0x40000000;
-        internal const uint SourceDocumentIndex = 0x20000000;
+        public enum RawTokenEncoding : byte
+        {
+            None = 0,
+
+            /// <summary>
+            /// Emit ldc.i4 of row id of an entity represented by the pseudo-token.
+            /// </summary>
+            RowId,
+
+            /// <summary>
+            /// Emit ldc.i4 of the greatest row id assigned to a method definition in the module being built.
+            /// </summary>
+            GreatestMethodDefinitionRowId,
+
+            /// <summary>
+            /// Emit ldc.i4 of row id of a source document represented by the pseudo-token.
+            /// </summary>
+            DocumentRowId,
+
+            /// <summary>
+            /// Emit ldc.i4 of row id of the hoisted local variable or parameter field that the pseudo-token represents, 
+            /// increased by <see cref="LiftedVariableBaseIndex"/>.
+            /// </summary>
+            LiftedVariableId,
+        }
+
+        public static uint GetRawToken(RawTokenEncoding encoding, uint pseudoToken)
+        {
+            Debug.Assert(pseudoToken <= 0xffffff);
+            return unchecked((uint)encoding << 24 | pseudoToken);
+        }
+
         internal const uint ModuleVersionIdStringToken = 0x80000000;
+
+        /// <summary>
+        /// Greater than any valid ordinal of a local variable or a parameter (0xffff).
+        /// </summary>
+        internal const int LiftedVariableBaseIndex = 0x10000;
 
         private void WriteInstructions(Blob finalIL, ImmutableArray<byte> generatedIL, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
         {
@@ -3173,27 +3208,40 @@ namespace Microsoft.Cci
                             // This is a trick to enable loading raw metadata token indices as integers.
                             if (operandType == OperandType.InlineTok)
                             {
-                                int tokenMask = pseudoToken & unchecked((int)0xff000000);
-                                if (tokenMask != 0 && (uint)pseudoToken != 0xffffffff)
+                                var rawTokenEncoding = (RawTokenEncoding)(pseudoToken >> 24);
+                                if (rawTokenEncoding != RawTokenEncoding.None && (uint)pseudoToken != 0xffffffff)
                                 {
                                     Debug.Assert(ReadByte(generatedIL, offset - 1) == (byte)ILOpCode.Ldtoken);
                                     writer.Offset = offset - 1;
                                     writer.WriteByte((byte)ILOpCode.Ldc_i4);
-                                    switch ((uint)tokenMask)
+                                    switch (rawTokenEncoding)
                                     {
-                                        case LiteralMethodDefinitionToken:
-                                            // Crash the compiler if pseudo token fails to resolve to a MethodDefinitionHandle.
-                                            var handle = (MethodDefinitionHandle)ResolveEntityHandleFromPseudoToken(pseudoToken & 0x00ffffff);
-                                            token = MetadataTokens.GetToken(handle) & 0x00ffffff;
+                                        case RawTokenEncoding.RowId:
+                                            {
+                                                var handle = ResolveEntityHandleFromPseudoToken(pseudoToken & 0x00ffffff);
+                                                Debug.Assert(handle.Kind is HandleKind.MethodDefinition);
+                                                token = MetadataTokens.GetRowNumber(handle);
+                                            }
                                             break;
-                                        case LiteralGreatestMethodDefinitionToken:
+
+                                        case RawTokenEncoding.LiftedVariableId:
+                                            {
+                                                var handle = ResolveEntityHandleFromPseudoToken(pseudoToken & 0x00ffffff);
+                                                Debug.Assert(handle.Kind is HandleKind.FieldDefinition);
+                                                token = MetadataTokens.GetRowNumber(handle) + LiftedVariableBaseIndex;
+                                            }
+                                            break;
+
+                                        case RawTokenEncoding.GreatestMethodDefinitionRowId:
                                             token = GreatestMethodDefIndex;
                                             break;
-                                        case SourceDocumentIndex:
-                                            token = _dynamicAnalysisDataWriterOpt.GetOrAddDocument(((CommonPEModuleBuilder)module).GetSourceDocumentFromIndex((uint)(pseudoToken & 0x00ffffff)));
+
+                                        case RawTokenEncoding.DocumentRowId:
+                                            token = _dynamicAnalysisDataWriterOpt.GetOrAddDocument(module.GetSourceDocumentFromIndex((uint)(pseudoToken & 0x00ffffff)));
                                             break;
+
                                         default:
-                                            throw ExceptionUtilities.UnexpectedValue(tokenMask);
+                                            throw ExceptionUtilities.UnexpectedValue(rawTokenEncoding);
                                     }
                                 }
                             }
@@ -3435,7 +3483,7 @@ namespace Microsoft.Cci
                     vectorEncoder = encoder.Vector();
 
                     // In FixedArg the element type of the parameter array has to match the element type of the argument array,
-                    // but in NamedArg T[] can be assigned to object[]. In that case we need to encode the arguments using 
+                    // but in NamedArg T[] can be assigned to object[]. In that case we need to encode the arguments using
                     // the parameter element type not the argument element type.
                     targetElementType = targetArrayType.GetElementType(this.Context);
                 }
@@ -3910,9 +3958,9 @@ namespace Microsoft.Cci
 
         private void SerializeCustomAttributeArrayType(in EmitContext context, CustomAttributeArrayTypeEncoder encoder, IArrayTypeReference arrayTypeReference)
         {
-            // A single-dimensional, zero-based array is specified as a single byte 0x1D followed by the FieldOrPropType of the element type. 
+            // A single-dimensional, zero-based array is specified as a single byte 0x1D followed by the FieldOrPropType of the element type.
 
-            // only non-jagged SZ arrays are allowed in attributes 
+            // only non-jagged SZ arrays are allowed in attributes
             // (need to encode the type of the SZ array if the parameter type is Object):
             Debug.Assert(arrayTypeReference.IsSZArray);
 
@@ -3933,7 +3981,7 @@ namespace Microsoft.Cci
         {
             // Spec:
             // The FieldOrPropType shall be exactly one of:
-            // ELEMENT_TYPE_BOOLEAN, ELEMENT_TYPE_CHAR, ELEMENT_TYPE_I1, ELEMENT_TYPE_U1, ELEMENT_TYPE_I2, ELEMENT_TYPE_U2, ELEMENT_TYPE_I4, 
+            // ELEMENT_TYPE_BOOLEAN, ELEMENT_TYPE_CHAR, ELEMENT_TYPE_I1, ELEMENT_TYPE_U1, ELEMENT_TYPE_I2, ELEMENT_TYPE_U2, ELEMENT_TYPE_I4,
             // ELEMENT_TYPE_U4, ELEMENT_TYPE_I8, ELEMENT_TYPE_U8, ELEMENT_TYPE_R4, ELEMENT_TYPE_R8, ELEMENT_TYPE_STRING.
             // An enum is specified as a single byte 0x55 followed by a SerString.
 

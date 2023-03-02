@@ -2,72 +2,80 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.AddImportOnPaste
+Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.KeywordHighlighting
+Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.MetadataAsSource
+Imports Microsoft.CodeAnalysis.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Structure
+Imports Microsoft.CodeAnalysis.VisualBasic.AutomaticInsertionOfAbstractOrInterfaceMembers
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
         Public Property AutoEndInsert As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.EndConstruct)
+                Return GetBooleanOption(EndConstructGenerationOptionsStorage.EndConstruct)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.EndConstruct, value)
+                SetBooleanOption(EndConstructGenerationOptionsStorage.EndConstruct, value)
             End Set
         End Property
 
         Public Property AutoRequiredMemberInsert As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers)
+                Return GetBooleanOption(AutomaticInsertionOfAbstractOrInterfaceMembersOptionsStorage.AutomaticInsertionOfAbstractOrInterfaceMembers)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, value)
+                SetBooleanOption(AutomaticInsertionOfAbstractOrInterfaceMembersOptionsStorage.AutomaticInsertionOfAbstractOrInterfaceMembers, value)
             End Set
         End Property
 
         Public Property RenameTrackingPreview As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview)
+                Return GetBooleanOption(RenameTrackingOptionsStorage.RenameTrackingPreview)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview, value)
+                SetBooleanOption(RenameTrackingOptionsStorage.RenameTrackingPreview, value)
             End Set
         End Property
 
         Public Property DisplayLineSeparators As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.LineSeparator)
+                Return GetBooleanOption(LineSeparatorsOptionsStorage.LineSeparator)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.LineSeparator, value)
+                SetBooleanOption(LineSeparatorsOptionsStorage.LineSeparator, value)
             End Set
         End Property
 
         Public Property EnableHighlightReferences As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.ReferenceHighlighting)
+                Return GetBooleanOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.ReferenceHighlighting, value)
+                SetBooleanOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, value)
             End Set
         End Property
 
         Public Property EnableHighlightRelatedKeywords As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.KeywordHighlighting)
+                Return GetBooleanOption(KeywordHighlightingOptionsStorage.KeywordHighlighting)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.KeywordHighlighting, value)
+                SetBooleanOption(KeywordHighlightingOptionsStorage.KeywordHighlighting, value)
             End Set
         End Property
 
         Public Property Outlining As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.Outlining)
+                Return GetBooleanOption(OutliningOptionsStorage.Outlining)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.Outlining, value)
+                SetBooleanOption(OutliningOptionsStorage.Outlining, value)
             End Set
         End Property
 
@@ -109,10 +117,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property PrettyListing As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.PrettyListing)
+                Return GetBooleanOption(LineCommitOptionsStorage.PrettyListing)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.PrettyListing, value)
+                SetBooleanOption(LineCommitOptionsStorage.PrettyListing, value)
             End Set
         End Property
 
@@ -145,10 +153,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property AddImportsOnPaste As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste)
+                Return GetBooleanOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste, value)
+                SetBooleanOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, value)
             End Set
         End Property
 

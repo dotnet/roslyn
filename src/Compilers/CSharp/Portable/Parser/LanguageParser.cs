@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfFunctionPointerParameterList = 1 << 23,
             IsEndOfFunctionPointerParameterListErrored = 1 << 24,
             IsEndOfFunctionPointerCallingConvention = 1 << 25,
-            IsEndOfRecordSignature = 1 << 26,
+            IsEndOfRecordOrClassOrStructOrInterfaceSignature = 1 << 26,
         }
 
-        private const int LastTerminatorState = (int)TerminatorState.IsEndOfRecordSignature;
+        private const int LastTerminatorState = (int)TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature;
 
         private bool IsTerminator()
         {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList(errored: false):
                     case TerminatorState.IsEndOfFunctionPointerParameterListErrored when this.IsEndOfFunctionPointerParameterList(errored: true):
                     case TerminatorState.IsEndOfFunctionPointerCallingConvention when this.IsEndOfFunctionPointerCallingConvention():
-                    case TerminatorState.IsEndOfRecordSignature when this.IsEndOfRecordSignature():
+                    case TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature when this.IsEndOfRecordOrClassOrStructOrInterfaceSignature():
                         return true;
                 }
             }
@@ -325,7 +325,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        /// <summary>Are we possibly at the start of an attribute list, or at a modifier which is valid on a type, or on a keyword of a type declaration?</summary>
         private static bool IsPossibleStartOfTypeDeclaration(SyntaxKind kind)
+        {
+            return IsTypeModifierOrTypeKeyword(kind) || kind == SyntaxKind.OpenBracketToken;
+        }
+
+        /// <summary>Are we at a modifier which is valid on a type declaration or at a type keyword?</summary>
+        private static bool IsTypeModifierOrTypeKeyword(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -343,7 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.SealedKeyword:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.UnsafeKeyword:
-                case SyntaxKind.OpenBracketToken:
                     return true;
                 default:
                     return false;
@@ -1241,13 +1247,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // ... 'TOKEN' [partial] <typename> <membername> ...
             // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
             // anything other than async methods are detected as erroneous later, during the define phase
-            // The comments in general were not updated to add "async or required" everywhere to preserve
-            // history, but generally wherever async occurs, it can also be required.
+            // Generally wherever we refer to 'async' here, it can also be 'required' or 'file'.
 
             if (!parsingStatementNotDeclaration)
             {
                 var currentTokenKind = this.CurrentToken.Kind;
-                if (IsPossibleStartOfTypeDeclaration(currentTokenKind) ||
+                if (IsTypeModifierOrTypeKeyword(currentTokenKind) ||
                     currentTokenKind == SyntaxKind.EventKeyword ||
                     (currentTokenKind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword && PeekToken(1).Kind == SyntaxKind.OperatorKeyword))
                 {
@@ -1443,16 +1448,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
-            var outerSaveTerm = _termState;
-
-            if (tryScanRecordStart(out var keyword, out var recordModifier))
-            {
-                _termState |= TerminatorState.IsEndOfRecordSignature;
-            }
-            else
+            if (!tryScanRecordStart(out var keyword, out var recordModifier))
             {
                 keyword = ConvertToKeyword(this.EatToken());
             }
+
+            var outerSaveTerm = _termState;
+            _termState |= TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature;
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
@@ -1460,7 +1462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            var paramList = keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
+            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? ParseParenthesizedParameterList() : null;
 
             var baseList = this.ParseBaseList();
@@ -1483,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
                 SyntaxToken? closeBrace;
-                if (keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                if (CurrentToken.Kind == SyntaxKind.SemicolonToken)
                 {
                     semicolon = EatToken(SyntaxKind.SemicolonToken);
                     openBrace = null;
@@ -1614,15 +1616,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (keyword.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.ClassDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,
@@ -1631,15 +1631,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.StructDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,
@@ -1648,15 +1646,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.InterfaceKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.InterfaceDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,
@@ -1803,7 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             while (true)
             {
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
-                    ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
+                    ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
                     this.IsCurrentTokenWhereOfConstraintClause())
                 {
                     break;
@@ -1871,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 while (true)
                 {
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                        || ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                        || ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                         || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
                         || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                     {
@@ -3115,8 +3111,10 @@ parse_member_name:;
         private bool IsEndOfMethodSignature()
             => this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
 
-        private bool IsEndOfRecordSignature()
-            => this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
+        private bool IsEndOfRecordOrClassOrStructOrInterfaceSignature()
+        {
+            return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
+        }
 
         private bool IsEndOfNameInExplicitInterface()
             => this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.ColonColonToken;
@@ -4302,7 +4300,16 @@ parse_member_name:;
             }
 
             var type = this.ParseType(mode: ParseTypeMode.Parameter);
-            var identifier = this.ParseIdentifierToken();
+            SyntaxToken identifier;
+
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && IsCurrentTokenWhereOfConstraintClause())
+            {
+                identifier = this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
+            }
+            else
+            {
+                identifier = this.ParseIdentifierToken();
+            }
 
             // When the user type "int goo[]", give them a useful error
             if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
@@ -5221,22 +5228,38 @@ parse_member_name:;
             }
 
             var members = default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+            SyntaxToken semicolon;
+            SyntaxToken openBrace;
+            SyntaxToken closeBrace;
 
-            if (!openBrace.IsMissing)
+            if (CurrentToken.Kind == SyntaxKind.SemicolonToken)
             {
-                // It's not uncommon for people to use semicolons to separate out enum members.  So be resilient to
-                // that, successfully consuming them as separators, while telling the user it needs to be a comma
-                // instead.
-                members = this.ParseCommaSeparatedSyntaxList(
-                    ref openBrace,
-                    SyntaxKind.CloseBraceToken,
-                    static @this => @this.IsPossibleEnumMemberDeclaration(),
-                    static @this => @this.ParseEnumMemberDeclaration(),
-                    skipBadEnumMemberListTokens,
-                    allowTrailingSeparator: true,
-                    requireOneElement: false,
-                    allowSemicolonAsSeparator: true);
+                semicolon = EatToken(SyntaxKind.SemicolonToken);
+                openBrace = null;
+                closeBrace = null;
+            }
+            else
+            {
+                openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+
+                if (!openBrace.IsMissing)
+                {
+                    // It's not uncommon for people to use semicolons to separate out enum members.  So be resilient to
+                    // that, successfully consuming them as separators, while telling the user it needs to be a comma
+                    // instead.
+                    members = this.ParseCommaSeparatedSyntaxList(
+                        ref openBrace,
+                        SyntaxKind.CloseBraceToken,
+                        static @this => @this.IsPossibleEnumMemberDeclaration(),
+                        static @this => @this.ParseEnumMemberDeclaration(),
+                        skipBadEnumMemberListTokens,
+                        allowTrailingSeparator: true,
+                        requireOneElement: false,
+                        allowSemicolonAsSeparator: true);
+                }
+
+                closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+                semicolon = TryEatToken(SyntaxKind.SemicolonToken);
             }
 
             return _syntaxFactory.EnumDeclaration(
@@ -5247,8 +5270,8 @@ parse_member_name:;
                 baseList,
                 openBrace,
                 members,
-                this.EatToken(SyntaxKind.CloseBraceToken),
-                TryEatToken(SyntaxKind.SemicolonToken));
+                closeBrace,
+                semicolon);
 
             static PostSkipAction skipBadEnumMemberListTokens(
                 LanguageParser @this, ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<EnumMemberDeclarationSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)
@@ -7376,6 +7399,7 @@ done:;
                     case SyntaxKind.ReturnKeyword:
                         return this.ParseReturnStatement(attributes);
                     case SyntaxKind.SwitchKeyword:
+                    case SyntaxKind.CaseKeyword: // error recovery case.
                         return this.ParseSwitchStatement(attributes);
                     case SyntaxKind.ThrowKeyword:
                         return this.ParseThrowStatement(attributes);
@@ -7920,6 +7944,7 @@ done:;
             //   new T []
             //   new T { }
             //   new <non-type>
+            //   new partial []
             //
             if (SyntaxFacts.GetBaseTypeDeclarationKind(nextToken.Kind) != SyntaxKind.None)
             {
@@ -7936,7 +7961,7 @@ done:;
 
                 // class, struct, enum, interface keywords, but also other modifiers that are not allowed after 
                 // partial keyword but start class declaration, so we can assume the user just swapped them.
-                if (IsPossibleStartOfTypeDeclaration(PeekToken(2).Kind))
+                if (IsTypeModifierOrTypeKeyword(PeekToken(2).Kind))
                 {
                     return false;
                 }
@@ -8195,6 +8220,7 @@ done:;
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.ExternKeyword:
                 case SyntaxKind.OpenBracketToken:
+                case SyntaxKind.CaseKeyword: // for parsing an errant case without a switch.
                     return true;
 
                 case SyntaxKind.IdentifierToken:
@@ -9026,53 +9052,72 @@ done:;
 
         private SwitchStatementSyntax ParseSwitchStatement(SyntaxList<AttributeListSyntax> attributes)
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.SwitchKeyword);
-            var @switch = this.EatToken(SyntaxKind.SwitchKeyword);
-            var expression = this.ParseExpressionCore();
-            SyntaxToken openParen;
-            SyntaxToken closeParen;
-            if (expression.Kind == SyntaxKind.ParenthesizedExpression)
-            {
-                var parenExpression = (ParenthesizedExpressionSyntax)expression;
-                openParen = parenExpression.OpenParenToken;
-                expression = parenExpression.Expression;
-                closeParen = parenExpression.CloseParenToken;
+            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.SwitchKeyword or SyntaxKind.CaseKeyword);
 
-                Debug.Assert(parenExpression.GetDiagnostics().Length == 0);
-            }
-            else if (expression.Kind == SyntaxKind.TupleExpression)
-            {
-                // As a special case, when a tuple literal is the governing expression of
-                // a switch statement we permit the switch statement's own parentheses to be omitted.
-                // LDM 2018-04-04.
-                openParen = closeParen = null;
-            }
-            else
-            {
-                // Some other expression has appeared without parens. Give a syntax error.
-                openParen = SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken);
-                expression = this.AddError(expression, ErrorCode.ERR_SwitchGoverningExpressionRequiresParens);
-                closeParen = SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken);
-            }
-
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-
+            parseSwitchHeader(out var switchKeyword, out var openParen, out var expression, out var closeParen, out var openBrace);
             var sections = _pool.Allocate<SwitchSectionSyntax>();
 
             while (this.IsPossibleSwitchSection())
-            {
                 sections.Add(this.ParseSwitchSection());
-            }
 
             return _syntaxFactory.SwitchStatement(
                 attributes,
-                @switch,
+                switchKeyword,
                 openParen,
                 expression,
                 closeParen,
                 openBrace,
                 _pool.ToListAndFree(sections),
                 this.EatToken(SyntaxKind.CloseBraceToken));
+
+            void parseSwitchHeader(
+                out SyntaxToken switchKeyword,
+                out SyntaxToken openParen,
+                out ExpressionSyntax expression,
+                out SyntaxToken closeParen,
+                out SyntaxToken openBrace)
+            {
+                if (this.CurrentToken.Kind is SyntaxKind.CaseKeyword)
+                {
+                    // try to eat a 'switch' so the user gets a good error message about what's wrong. then directly
+                    // creating missing tokens for the rest so they don't get cascading errors.
+                    switchKeyword = EatToken(SyntaxKind.SwitchKeyword);
+                    openParen = SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken);
+                    expression = CreateMissingIdentifierName();
+                    closeParen = SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken);
+                    openBrace = SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken);
+                }
+                else
+                {
+                    switchKeyword = this.EatToken(SyntaxKind.SwitchKeyword);
+                    expression = this.ParseExpressionCore();
+                    if (expression.Kind == SyntaxKind.ParenthesizedExpression)
+                    {
+                        var parenExpression = (ParenthesizedExpressionSyntax)expression;
+                        openParen = parenExpression.OpenParenToken;
+                        expression = parenExpression.Expression;
+                        closeParen = parenExpression.CloseParenToken;
+
+                        Debug.Assert(parenExpression.GetDiagnostics().Length == 0);
+                    }
+                    else if (expression.Kind == SyntaxKind.TupleExpression)
+                    {
+                        // As a special case, when a tuple literal is the governing expression of
+                        // a switch statement we permit the switch statement's own parentheses to be omitted.
+                        // LDM 2018-04-04.
+                        openParen = closeParen = null;
+                    }
+                    else
+                    {
+                        // Some other expression has appeared without parens. Give a syntax error.
+                        openParen = SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken);
+                        expression = this.AddError(expression, ErrorCode.ERR_SwitchGoverningExpressionRequiresParens);
+                        closeParen = SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken);
+                    }
+
+                    openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+                }
+            }
         }
 
         private bool IsPossibleSwitchSection()
@@ -9145,7 +9190,7 @@ done:;
 
             // Next, parse statement list stopping for new sections
             CSharpSyntaxNode tmp = labels[^1];
-            this.ParseStatements(ref tmp, statements, true);
+            this.ParseStatements(ref tmp, statements, stopOnSwitchSections: true);
             labels[^1] = (SwitchLabelSyntax)tmp;
 
             return _syntaxFactory.SwitchSection(

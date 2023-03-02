@@ -532,7 +532,7 @@ class A
             var testAccessor = cache.GetTestAccessor();
 
             // This test assumes that the maximum cache size is 3, and will have to modified if this number changes.
-            Assert.True(CompletionListCache.TestAccessor.MaximumCacheSize == 3);
+            Assert.True(testAccessor.MaximumCacheSize == 3);
 
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
@@ -542,37 +542,37 @@ class A
 
             // 1 item in cache
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            var completionList = cache.GetCachedCompletionList(0).CompletionList;
+            var completionList = cache.GetCachedEntry(0).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 1);
 
             // 2 items in cache
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            completionList = cache.GetCachedCompletionList(0).CompletionList;
+            completionList = cache.GetCachedEntry(0).CompletionList;
             Assert.NotNull(completionList);
-            completionList = cache.GetCachedCompletionList(1).CompletionList;
+            completionList = cache.GetCachedEntry(1).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 2);
 
             // 3 items in cache
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            completionList = cache.GetCachedCompletionList(0).CompletionList;
+            completionList = cache.GetCachedEntry(0).CompletionList;
             Assert.NotNull(completionList);
-            completionList = cache.GetCachedCompletionList(1).CompletionList;
+            completionList = cache.GetCachedEntry(1).CompletionList;
             Assert.NotNull(completionList);
-            completionList = cache.GetCachedCompletionList(2).CompletionList;
+            completionList = cache.GetCachedEntry(2).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 3);
 
             // Maximum size of cache (3) should not be exceeded - oldest item should be ejected
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            var cacheEntry = cache.GetCachedCompletionList(0);
+            var cacheEntry = cache.GetCachedEntry(0);
             Assert.Null(cacheEntry);
-            completionList = cache.GetCachedCompletionList(1).CompletionList;
+            completionList = cache.GetCachedEntry(1).CompletionList;
             Assert.NotNull(completionList);
-            completionList = cache.GetCachedCompletionList(2).CompletionList;
+            completionList = cache.GetCachedEntry(2).CompletionList;
             Assert.NotNull(completionList);
-            completionList = cache.GetCachedCompletionList(3).CompletionList;
+            completionList = cache.GetCachedEntry(3).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 3);
         }
@@ -1289,7 +1289,7 @@ class A
             var globalOptions = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
             var listMaxSize = 1;
 
-            globalOptions.SetGlobalOption(LspOptions.MaxCompletionListSize, listMaxSize);
+            globalOptions.SetGlobalOption(LspOptionsStorage.MaxCompletionListSize, listMaxSize);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.True(results.IsIncomplete);

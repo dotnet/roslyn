@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsCatchVariableDeclarationContext(position, cancellationToken) ||
                 syntaxTree.IsDefiniteCastTypeContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsDelegateReturnTypeContext(position, tokenOnLeftOfPosition) ||
-                syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel) ||
+                syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel) ||
                 syntaxTree.IsPrimaryFunctionExpressionContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsGenericTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken, semanticModel) ||
                 syntaxTree.IsFunctionPointerTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken) ||
@@ -1696,7 +1696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             CancellationToken cancellationToken,
             SemanticModel? semanticModelOpt = null)
         {
-            if (syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: false, cancellationToken: cancellationToken, semanticModelOpt: semanticModelOpt) &&
+            if (syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: false, cancellationToken: cancellationToken, semanticModel: semanticModelOpt) &&
                 !syntaxTree.IsConstantExpressionContext(position, tokenOnLeftOfPosition))
             {
                 return true;
@@ -1739,32 +1739,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //         |
             if (!token.IntersectsWith(position) &&
                 token.IsLastTokenOfQueryClause())
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool IsDeclarationExpressionContext(
-            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
-        {
-            // cases:
-            //  M(out var
-            //  var x = var
-
-            var token = tokenOnLeftOfPosition;
-            token = token.GetPreviousTokenIfTouchingWord(position);
-
-            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.OutKeyword) &&
-                token.Parent.IsKind(SyntaxKind.Argument))
-            {
-                return true;
-            }
-
-            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.EqualsToken) &&
-                token.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
-                token.Parent.IsParentKind(SyntaxKind.VariableDeclarator))
             {
                 return true;
             }
@@ -2183,7 +2157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             SyntaxToken tokenOnLeftOfPosition,
             bool attributes,
             CancellationToken cancellationToken,
-            SemanticModel? semanticModelOpt = null)
+            SemanticModel? semanticModel = null)
         {
             // cases:
             //   var q = |
@@ -2261,10 +2235,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // ( |
-            if (token.IsKind(SyntaxKind.OpenParenToken) &&
-                token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+            if (token.IsKind(SyntaxKind.OpenParenToken))
             {
-                return true;
+                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+                    return true;
+
+                // If there's a string in the parenthesis in the code below, the parser would return
+                // a CastExpression instead of ParenthesizedExpression. However, some features like keyword completion
+                // might be able tolerate this and still want to treat it as a ParenthesizedExpression.
+                //
+                //         var data = (n$$)
+                //         M();
+                if (token.Parent is CastExpressionSyntax castExpression &&
+                    (castExpression.Expression.IsMissing || castExpression.CloseParenToken.TrailingTrivia.GetFirstNewLine().HasValue))
+                {
+                    return true;
+                }
             }
 
             // - |
@@ -2314,7 +2300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // then this is not an expression context. i.e. if we have "Goo < |" then it could
                 // be an expression context, or it could be a type context if Goo binds to a type or
                 // method.
-                if (semanticModelOpt != null && syntaxTree.IsGenericTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken, semanticModelOpt))
+                if (semanticModel != null && syntaxTree.IsGenericTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken, semanticModel))
                 {
                     return false;
                 }
@@ -2324,9 +2310,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     // If this is a multiplication expression and a semantic model was passed in,
                     // check to see if the expression to the left is a type name. If it is, treat
                     // this as a pointer type.
-                    if (token.IsKind(SyntaxKind.AsteriskToken) && semanticModelOpt != null)
+                    if (token.IsKind(SyntaxKind.AsteriskToken) && semanticModel != null)
                     {
-                        if (binary.Left is TypeSyntax type && type.IsPotentialTypeName(semanticModelOpt, cancellationToken))
+                        if (binary.Left is TypeSyntax type && type.IsPotentialTypeName(semanticModel, cancellationToken))
                         {
                             return false;
                         }
@@ -2360,7 +2346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                                 ? pointerType.ElementType
                                 : ((NullableTypeSyntax)type).ElementType;
 
-                            if (!underlyingType.IsPotentialTypeName(semanticModelOpt, cancellationToken))
+                            if (!underlyingType.IsPotentialTypeName(semanticModel, cancellationToken))
                             {
                                 return true;
                             }
@@ -2380,13 +2366,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
+            // 1..|
+            // not 1.|.
+            if (token.IsKind(SyntaxKind.DotDotToken) &&
+                token.Parent.IsKind(SyntaxKind.RangeExpression) &&
+                position >= token.Span.End)
+            {
+                return true;
+            }
+
             // goo ? |
             if (token.IsKind(SyntaxKind.QuestionToken) &&
                 token.Parent is ConditionalExpressionSyntax conditionalExpression)
             {
                 // If the condition is simply a TypeSyntax that binds to a type, treat this as a nullable type.
                 return conditionalExpression.Condition is not TypeSyntax type
-                    || !type.IsPotentialTypeName(semanticModelOpt, cancellationToken);
+                    || !type.IsPotentialTypeName(semanticModel, cancellationToken);
             }
 
             // goo ? bar : |
@@ -2507,11 +2502,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     // Perform a semantic check to determine whether or not the type being created
                     // can support a collection initializer. If not, this must be an object initializer
                     // and can't be an expression context.
-                    if (semanticModelOpt != null &&
+                    if (semanticModel != null &&
                         token.Parent?.Parent is ObjectCreationExpressionSyntax objectCreation)
                     {
-                        var containingSymbol = semanticModelOpt.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
-                        if (semanticModelOpt.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol is ITypeSymbol type && !type.CanSupportCollectionInitializer(containingSymbol))
+                        var containingSymbol = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
+                        if (semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol is ITypeSymbol type && !type.CanSupportCollectionInitializer(containingSymbol))
                         {
                             return false;
                         }

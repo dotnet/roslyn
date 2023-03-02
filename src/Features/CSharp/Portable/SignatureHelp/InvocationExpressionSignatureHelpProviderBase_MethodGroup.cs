@@ -26,9 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IMethodSymbol? currentSymbol,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(
-                (accessibleMethods.SelectAsArray(m => ConvertMethodGroupMethod(document, m, invocationExpression.SpanStart, semanticModel)),
-                 TryGetSelectedIndex(accessibleMethods, currentSymbol)));
+            var items = accessibleMethods.SelectAsArray(method => ConvertMethodGroupMethod(
+                document, method, invocationExpression.SpanStart, semanticModel));
+            var selectedItemIndex = TryGetSelectedIndex(accessibleMethods, currentSymbol);
+            return Task.FromResult((items, selectedItemIndex));
         }
 
         private static ImmutableArray<IMethodSymbol> GetAccessibleMethods(

@@ -824,15 +824,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             category = null;
 
             if (suppressMessageAttributeType.Equals(attribute.AttributeClass) &&
-                attribute.AttributeConstructor?.Parameters.Length >= 2 &&
-                attribute.AttributeConstructor.Parameters[1].Name == "checkId" &&
-                attribute.AttributeConstructor.Parameters[1].Type.SpecialType == SpecialType.System_String &&
-                attribute.ConstructorArguments.Length >= 2 &&
-                attribute.ConstructorArguments[1] is
-                {
-                    Kind: TypedConstantKind.Primitive,
-                    Value: string checkId
-                })
+                attribute.AttributeConstructor?.Parameters is [_, { Name: "checkId", Type.SpecialType: SpecialType.System_String }, ..] &&
+                attribute.ConstructorArguments is [_, { Kind: TypedConstantKind.Primitive, Value: string checkId }, ..])
             {
                 // CheckId represents diagnostic ID, followed by an option ':' and name.
                 // For example, "CA1801:ReviewUnusedParameters"

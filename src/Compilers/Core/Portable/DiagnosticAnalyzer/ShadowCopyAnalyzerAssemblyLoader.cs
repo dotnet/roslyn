@@ -16,7 +16,7 @@ using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class ShadowCopyAnalyzerAssemblyLoader : DefaultAnalyzerAssemblyLoader
+    internal sealed class ShadowCopyAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         /// <summary>
         /// The base directory for shadow copies. Each instance of
@@ -96,8 +96,24 @@ namespace Microsoft.CodeAnalysis
                     // using it. That is, if there is no corresponding mutex.
                     if (!Mutex.TryOpenExisting(name, out mutex))
                     {
-                        ClearReadOnlyFlagOnFiles(subDirectory);
-                        Directory.Delete(subDirectory, recursive: true);
+                        try
+                        {
+                            // Avoid calling ClearReadOnlyFlagOnFiles before calling Directory.Delete. In general, files
+                            // created by the shadow copy should not be marked read-only (CopyFile also clears the
+                            // read-only flag), and clearing the read-only flag for the entire directory requires
+                            // significant disk access.
+                            //
+                            // If the deletion fails for an IOException, it may have been the result of a file being
+                            // marked read-only. We catch that exception and perform an explicit clear before trying
+                            // again.
+                            Directory.Delete(subDirectory, recursive: true);
+                        }
+                        catch (IOException)
+                        {
+                            // Retry after clearing the read-only flag
+                            ClearReadOnlyFlagOnFiles(subDirectory);
+                            Directory.Delete(subDirectory, recursive: true);
+                        }
                     }
                 }
                 catch
@@ -159,6 +175,10 @@ namespace Microsoft.CodeAnalysis
         private static void CopyFile(string originalPath, string shadowCopyPath)
         {
             var directory = Path.GetDirectoryName(shadowCopyPath);
+            if (directory is null)
+            {
+                throw new ArgumentException($"Shadow copy path '{shadowCopyPath}' must not be the root directory");
+            }
             Directory.CreateDirectory(directory);
 
             File.Copy(originalPath, shadowCopyPath);

@@ -2355,6 +2355,121 @@ public class C { } // end").Members[0];
                 "public global::System.Int32 Prop { protected get; set; }");
         }
 
+        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint1()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a);
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) where TResult : default { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                    where TResult : default
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint2()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a) where TResult : class;
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) where TResult : class { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                    where TResult : class
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint3()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a) where TResult : struct;
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        public void TestOverrideDefaultConstraint4()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public class X
+                {
+                }
+
+                public abstract partial class A
+                {
+                    public abstract TResult? Accept<TResult>(int a) where TResult : X;
+                }
+
+                public sealed partial class B : A
+                {
+                    public override TResult? Accept<TResult>(int a) where TResult : class { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("B");
+            var property = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(property),
+                """
+                public override TResult? Accept<TResult>(global::System.Int32 a)
+                    where TResult : class
+                {
+                }
+                """);
+        }
+
         [Fact, WorkItem(66375, "https://github.com/dotnet/roslyn/issues/66375")]
         public void TestExplicitInterface1()
         {
@@ -2871,7 +2986,7 @@ public class C
                 Generator.GetModifiers(Generator.WithModifiers(Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual,
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration), allModifiers)));
         }
 
@@ -3050,7 +3165,9 @@ public class C
 
             Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.DelegateDeclaration("d"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
 
-            Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.StructDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.InterfaceDeclaration("c"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.IdentifierName("x"), new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) })).Count);
         }
 
@@ -3750,6 +3867,24 @@ $@"public {typeKind} C
 }}");
         }
 
+        [Fact]
+        public void TestInsertMembersOnClass_SemiColon()
+        {
+            var comp = Compile(
+$@"public class C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+$@"public class C
+{{
+    T A;
+}}");
+        }
+
         [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
         public void TestInsertMembersOnRecordStruct_SemiColon()
         {
@@ -3769,6 +3904,78 @@ $@"public {typeKind} C
 {
     T A;
 }");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnStruct_SemiColon()
+        {
+            var comp = Compile(
+$@"public struct C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<StructDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+$@"public struct C
+{{
+    T A;
+}}");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnInterface_SemiColon_01()
+        {
+            var comp = Compile(
+$@"public interface C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.PropertyDeclaration("A", Generator.IdentifierName("T"))),
+$@"public interface C
+{{
+    T A {{ get; set; }}
+}}");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnInterface_SemiColon_02()
+        {
+            var comp = Compile(
+$@"public interface C();
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.PropertyDeclaration("A", Generator.IdentifierName("T"))),
+$@"public interface C()
+{{
+    T A {{ get; set; }}
+}}");
+        }
+
+        [Fact]
+        public void TestInsertMembersOnEnum_SemiColon()
+        {
+            var comp = Compile(
+$@"public enum C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<EnumDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.EnumMember("A")),
+$@"public enum C
+{{
+    A
+}}");
         }
 
         [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]

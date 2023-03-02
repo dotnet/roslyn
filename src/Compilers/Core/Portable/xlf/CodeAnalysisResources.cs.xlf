@@ -104,6 +104,11 @@
         <target state="translated">Potlačené ID diagnostiky {0} neodpovídá potlačitelnému ID {1} pro daný popisovač potlačení.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidInstrumentationKind">
+        <source>Invalid instrumentation kind: {0}</source>
+        <target state="new">Invalid instrumentation kind: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">Blok dané operace nepatří do aktuálního analytického kontextu.</target>
@@ -117,6 +122,11 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">Parametr {0} musí být symbol z této kompilace nebo některé odkazované sestavení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="new">Method symbol expected</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">

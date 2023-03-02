@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -332,9 +331,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (document.SupportsSyntaxTree)
             {
-                // TODO: avoid ILegacyGlobalOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
-                var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
-                var fallbackOptions = globalOptions?.CleanCodeGenerationOptionsProvider ?? CodeActionOptions.DefaultProvider;
+                // TODO: avoid ILegacyGlobalCodeActionOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
+                var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
+                var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
 
                 var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                 return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
@@ -418,18 +417,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="isInlinable"><see langword="true"/> to allow inlining the members of the group into the parent;
         /// otherwise, <see langword="false"/> to require that this group appear as a group with nested actions.</param>
         public static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+            => Create(title, nestedActions, isInlinable, priority: CodeActionPriority.Default);
+
+        internal static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable, CodeActionPriority priority)
         {
             if (title is null)
-            {
                 throw new ArgumentNullException(nameof(title));
-            }
 
             if (nestedActions == null)
-            {
                 throw new ArgumentNullException(nameof(nestedActions));
-            }
 
-            return CodeActionWithNestedActions.Create(title, nestedActions, isInlinable);
+            return CodeActionWithNestedActions.Create(title, nestedActions, isInlinable, priority);
         }
 
         internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
@@ -500,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
             }
 
-            public static CodeActionWithNestedActions Create(
+            public static new CodeActionWithNestedActions Create(
                string title,
                ImmutableArray<CodeAction> nestedActions,
                bool isInlinable,

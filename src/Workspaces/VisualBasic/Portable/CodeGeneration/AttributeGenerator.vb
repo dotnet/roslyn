@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -34,10 +35,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Return SyntaxFactory.Attribute(If(target.HasValue, SyntaxFactory.AttributeTarget(target.Value), Nothing),
                                            attribute.AttributeClass.GenerateTypeSyntax(),
-                                           GenerateArgumentList(attribute))
+                                           GenerateArgumentList(options.Generator, attribute))
         End Function
 
-        Private Function GenerateArgumentList(attribute As AttributeData) As ArgumentListSyntax
+        Private Function GenerateArgumentList(generator As SyntaxGenerator, attribute As AttributeData) As ArgumentListSyntax
             If attribute.ConstructorArguments.Length = 0 AndAlso attribute.NamedArguments.Length = 0 Then
                 Return Nothing
             End If
@@ -45,10 +46,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim arguments = New List(Of ArgumentSyntax)
 
             arguments.AddRange(attribute.ConstructorArguments.Select(
-                Function(a) SyntaxFactory.SimpleArgument(GenerateExpression(a))))
+                Function(a) SyntaxFactory.SimpleArgument(GenerateExpression(generator, a))))
 
             arguments.AddRange(attribute.NamedArguments.Select(
-                Function(kvp) SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(kvp.Key.ToIdentifierName()), GenerateExpression(kvp.Value))))
+                Function(kvp) SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(kvp.Key.ToIdentifierName()), GenerateExpression(generator, kvp.Value))))
 
             Return SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))
         End Function

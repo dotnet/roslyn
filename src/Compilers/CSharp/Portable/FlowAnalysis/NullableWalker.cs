@@ -2072,6 +2072,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (containingSlot > 0 && !IsSlotMember(containingSlot, symbol))
                 return -1;
 
+            // Primary constructor parameter and its backing field share the slot when
+            // we are dealing with 'this' instance.
+            if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter &&
+                primaryConstructor.GetCapturedParameters().TryGetValue(parameter, out FieldSymbol? field))
+            {
+                Debug.Assert(containingSlot == 0);
+
+                var enclosingMemberMethod = _symbol as MethodSymbol;
+
+                while (enclosingMemberMethod?.MethodKind is MethodKind.AnonymousFunction or MethodKind.LocalFunction)
+                {
+                    enclosingMemberMethod = enclosingMemberMethod.ContainingSymbol as MethodSymbol;
+                }
+
+                if (enclosingMemberMethod?.TryGetThisParameter(out ParameterSymbol methodThisParameter) == true &&
+                    methodThisParameter?.ContainingSymbol.ContainingSymbol == (object)primaryConstructor.ContainingSymbol &&
+                    GetOrCreateSlot(methodThisParameter) is >= 0 and var thisSlot)
+                {
+                    symbol = field;
+                    containingSlot = thisSlot;
+                }
+            }
+
             return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty, createIfMissing);
         }
 
@@ -2676,11 +2699,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (methodSymbol is SynthesizedRecordConstructor)
+            if (methodSymbol is SynthesizedPrimaryConstructor)
             {
                 if (_hasInitialState)
                 {
-                    // A record primary constructor's parameters are entered before analyzing initializers.
+                    // Primary constructor's parameters are entered before analyzing initializers.
                     // On the second pass, the correct parameter states (potentially modified by initializers)
                     // are contained in the initial state.
                     return;
@@ -6742,7 +6765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _variables.SetType(local.LocalSymbol, varType);
                             lValueType = varType;
                         }
-                        else if (argument is BoundDiscardExpression discard)
+                        else if (argument is BoundDiscardExpression discard && discard.IsInferred)
                         {
                             SetAnalyzedNullability(discard, new VisitResult(parameterWithState, parameterWithState.ToTypeWithAnnotations(compilation)), isLvalue: true);
                         }
@@ -11026,7 +11049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
-            var result = TypeWithAnnotations.Create(node.Type);
+            var result = TypeWithAnnotations.Create(node.Type, node.IsInferred ? NullableAnnotation.Annotated : node.NullableAnnotation);
             var rValueType = TypeWithState.ForType(node.Type);
             SetResult(node, rValueType, result);
             return null;

@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -141,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             If asmIdentity.IsStrongName AndAlso Not refIdentity.IsStrongName AndAlso
                asmRef.Identity.ContentType <> Reflection.AssemblyContentType.WindowsRuntime Then
-                ' Dev12 reported error, we have changed it to a warning to allow referencing libraries 
+                ' Dev12 reported error, we have changed it to a warning to allow referencing libraries
                 ' built for platforms that don't support strong names.
                 diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.WRN_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton)
             End If
@@ -208,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Case SymbolKind.Namespace
                         location = GetSmallestSourceLocationOrNull(symbol)
 
-                        ' filtering out synthesized symbols not having real source 
+                        ' filtering out synthesized symbols not having real source
                         ' locations such as anonymous types, my types, etc...
                         If location IsNot Nothing Then
                             For Each member In symbol.GetMembers()
@@ -318,6 +319,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overridable Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Return Nothing
+        End Function
+
+        Friend Overridable Function GetMethodBodyInstrumentations(method As MethodSymbol) As MethodInstrumentation
+            Return New MethodInstrumentation() With {.Kinds = EmitOptions.InstrumentationKinds}
         End Function
 
         Friend Overridable Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
@@ -655,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Case SymbolKind.Namespace
                         Dim location = GetSmallestSourceLocationOrNull(symbol)
 
-                        ' filtering out synthesized symbols not having real source 
+                        ' filtering out synthesized symbols not having real source
                         ' locations such as anonymous types, my types, etc...
                         If location IsNot Nothing Then
                             For Each member In symbol.GetMembers()

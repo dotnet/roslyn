@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             var mean = (double)total / values.Count;
 
             var range = max - min;
-            var mode = values.GroupBy(i => i).OrderByDescending(g => g.Count()).FirstOrDefault().Key;
+            var mode = values.GroupBy(i => i).OrderByDescending(g => g.Count()).First().Key;
 
             return new StatisticResult(max, min, mean, range, mode, values.Count);
         }

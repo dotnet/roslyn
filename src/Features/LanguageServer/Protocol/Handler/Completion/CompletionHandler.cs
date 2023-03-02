@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var resultId = result.Value.ResultId;
 
-            var completionListMaxSize = _globalOptions.GetOption(LspOptions.MaxCompletionListSize);
+            var completionListMaxSize = _globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
             var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListMaxSize, completionListSpan, completionTrigger, sourceText, document);
 
             return (completionList, isIncomplete, resultId);
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // Cache the completion list so we can avoid recomputation in the resolve handler
-            var resultId = completionListCache.UpdateCache(request.TextDocument, completionList);
+            var resultId = completionListCache.UpdateCache(new CompletionListCache.CacheEntry(request.TextDocument, completionList));
 
             return (completionList, resultId);
         }

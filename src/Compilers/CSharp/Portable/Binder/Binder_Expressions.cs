@@ -1460,6 +1460,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
+#if DEBUG
+            adjustIdentifierMapIfAny(node, invoked);
+#endif
+
             // If the syntax tree is ill-formed and the identifier is missing then we've already
             // given a parse error. Just return an error local and continue with analysis.
             if (node.IsMissing)
@@ -1486,35 +1490,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // It's possible that the argument list is malformed; if so, do not attempt to bind it;
             // just use the null array.
 
-            int arity = node.Arity;
-            bool hasTypeArguments = arity > 0;
+            bool hasTypeArguments = node.Arity > 0;
 
             SeparatedSyntaxList<TypeSyntax> typeArgumentList = node.Kind() == SyntaxKind.GenericName
                 ? ((GenericNameSyntax)node).TypeArgumentList.Arguments
                 : default(SeparatedSyntaxList<TypeSyntax>);
 
-            Debug.Assert(arity == typeArgumentList.Count);
+            Debug.Assert(node.Arity == typeArgumentList.Count);
 
             var typeArgumentsWithAnnotations = hasTypeArguments ?
                 BindTypeArguments(typeArgumentList, diagnostics) :
                 default(ImmutableArray<TypeWithAnnotations>);
 
             var lookupResult = LookupResult.GetInstance();
-            LookupOptions options = LookupOptions.AllMethodsOnArityZero;
-            if (invoked)
-            {
-                options |= LookupOptions.MustBeInvocableIfMember;
-            }
-
-            if (!IsInMethodBody && !IsInsideNameof)
-            {
-                Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
-                options |= LookupOptions.MustNotBeMethodTypeParameter;
-            }
-
             var name = node.Identifier.ValueText;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            this.LookupSymbolsWithFallback(lookupResult, name, arity: arity, useSiteInfo: ref useSiteInfo, options: options);
+            this.LookupIdentifier(lookupResult, node, invoked, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
             if (lookupResult.Kind != LookupResultKind.Empty)
@@ -1581,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (FallBackOnDiscard(identifier, diagnostics))
                     {
-                        expression = new BoundDiscardExpression(node, type: null);
+                        expression = new BoundDiscardExpression(node, NullableAnnotation.Annotated, isInferred: true, type: null);
                     }
                 }
 
@@ -1610,6 +1601,55 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             lookupResult.Free();
             return expression;
+
+#if DEBUG
+            // Here we record all identifiers that we are trying to bind so that MethodCompiler.BindMethodBody
+            // could assert that we are able to syntactically locate all of them.
+            // Correctness of SynthesizedPrimaryConstructor.GetCapturedParameters depends on this.
+            void adjustIdentifierMapIfAny(SimpleNameSyntax node, bool invoked)
+            {
+                if (node is IdentifierNameSyntax id && !this.IsSemanticModelBinder)
+                {
+                    Binder current = this;
+                    while (current is not (null or InMethodBinder { IdentifierMap: not null }))
+                    {
+                        current = current.Next;
+                    }
+
+                    if (current is InMethodBinder { IdentifierMap: { } identifierMap })
+                    {
+                        // Assert that we can always figure out lookup mode from syntax
+                        Debug.Assert(SyntaxFacts.IsInvoked(id) == invoked);
+
+                        if (identifierMap.ContainsKey(id))
+                        {
+                            identifierMap[id] |= 2;
+                        }
+                        else
+                        {
+                            identifierMap.Add(id, 2);
+                        }
+                    }
+                }
+            }
+#endif
+        }
+
+        private void LookupIdentifier(LookupResult lookupResult, SimpleNameSyntax node, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            LookupOptions options = LookupOptions.AllMethodsOnArityZero;
+            if (invoked)
+            {
+                options |= LookupOptions.MustBeInvocableIfMember;
+            }
+
+            if (!IsInMethodBody && !IsInsideNameof)
+            {
+                Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
+                options |= LookupOptions.MustNotBeMethodTypeParameter;
+            }
+
+            this.LookupSymbolsWithFallback(lookupResult, node.Identifier.ValueText, arity: node.Arity, useSiteInfo: ref useSiteInfo, options: options);
         }
 
         /// <summary>
@@ -1871,11 +1911,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
-                        if (IsBadLocalOrParameterCapture(parameter, parameter.Type, parameter.RefKind))
+                        var primaryCtor = parameter.ContainingSymbol as SynthesizedPrimaryConstructor;
+
+                        if (primaryCtor is not null &&
+                            (!IsInDeclaringTypeInstanceMember(primaryCtor) ||
+                             (this.ContainingMember() is MethodSymbol { MethodKind: MethodKind.Constructor } containingMember && (object)containingMember != primaryCtor)) && // We are in a non-primary instance constructor
+                            !IsInsideNameof)
                         {
-                            isError = true;
-                            Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                            Error(diagnostics, ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, node, parameter);
                         }
+                        else
+                        {
+                            // Records never capture parameters within the type
+                            Debug.Assert(primaryCtor is null ||
+                                         primaryCtor.ContainingSymbol is NamedTypeSymbol { IsRecord: false, IsRecordStruct: false } ||
+                                         (this.ContainingMember() is FieldSymbol || (object)primaryCtor == this.ContainingMember()) ||
+                                         IsInsideNameof);
+
+                            if (IsBadLocalOrParameterCapture(parameter, parameter.Type, parameter.RefKind))
+                            {
+                                isError = true;
+                                Error(diagnostics, parameter.Type.IsRefLikeType ? ErrorCode.ERR_AnonDelegateCantUseRefLike : ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                            }
+                            else if (primaryCtor is not null)
+                            {
+                                // Quick check if this reference itself causes the parameter capture in a field 
+                                bool capture = (this.ContainingMember() is MethodSymbol containingMethod && (object)primaryCtor != containingMethod);
+
+                                if (capture &&
+                                    (parameter.RefKind != RefKind.None || parameter.Type.IsRefLikeType) &&
+                                    !IsInsideNameof)
+                                {
+                                    Error(diagnostics, parameter.Type.IsRefLikeType ? ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike : ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRef, node, parameter.Name);
+                                }
+                                else if (primaryCtor is { ThisParameter.RefKind: not RefKind.None } &&
+                                         this.ContainingMemberOrLambda is MethodSymbol { MethodKind: MethodKind.AnonymousFunction or MethodKind.LocalFunction } &&
+                                         !IsInsideNameof)
+                                {
+                                    // Captured in a lambda.
+
+                                    if (capture)
+                                    {
+                                        // This reference itself causes the parameter capture in a field  
+                                        Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember, node);
+                                    }
+                                    else if (primaryCtor.GetCapturedParameters().ContainsKey(parameter)) // check other references in the entire type
+                                    {
+                                        Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured, node);
+                                    }
+                                }
+                            }
+                        }
+
                         return new BoundParameter(node, parameter, hasErrors: isError);
                     }
 
@@ -1941,6 +2028,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
+        }
+
+        private bool IsInDeclaringTypeInstanceMember(SynthesizedPrimaryConstructor primaryCtor)
+        {
+            return !(InParameterDefaultValue ||
+                     InAttributeArgument ||
+                     this.ContainingMember() is not { Kind: not SymbolKind.NamedType, IsStatic: false } containingMember || // We are not in an instance member
+                     (object)containingMember.ContainingSymbol != primaryCtor.ContainingSymbol); // The member doesn't belong to our type, i.e. from nested type
         }
 
         private bool ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(SimpleNameSyntax node, Symbol symbol, BindingDiagnosticBag diagnostics)
@@ -2816,8 +2911,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AliasSymbol alias;
                         var declType = BindVariableTypeWithAnnotations(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
                         Debug.Assert(isVar != declType.HasType);
+                        var type = declType.Type;
 
-                        return new BoundDiscardExpression(declarationExpression, declType.Type);
+                        return new BoundDiscardExpression(declarationExpression, declType.NullableAnnotation, isInferred: type is null, type);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);
@@ -4178,6 +4274,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                     var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
+
+                    if (constructor is SynthesizedPrimaryConstructor primaryConstructor && primaryConstructor.GetCapturedParameters().Any())
+                    {
+                        for (int i = 0; i < analyzedArguments.Arguments.Count; i++)
+                        {
+                            if (analyzedArguments.RefKind(i) is (RefKind.Ref or RefKind.Out))
+                            {
+                                continue;
+                            }
+
+                            BoundParameter boundParameter;
+
+                            switch (analyzedArguments.Argument(i))
+                            {
+                                case BoundParameter param:
+                                    boundParameter = param;
+                                    break;
+
+                                case BoundConversion { Conversion.IsIdentity: true, Operand: BoundParameter param }:
+                                    boundParameter = param;
+                                    break;
+
+                                default:
+                                    continue;
+                            }
+
+                            if (boundParameter.ParameterSymbol is { } parameter &&
+                                primaryConstructor.GetCapturedParameters().ContainsKey(parameter))
+                            {
+                                if (expanded)
+                                {
+                                    var baseParameter = GetCorrespondingParameter(i, resultMember.Parameters, argsToParamsOpt, expanded: true);
+
+                                    if (baseParameter.Ordinal == resultMember.ParameterCount - 1 && OverloadResolution.IsValidParamsParameter(baseParameter))
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                                diagnostics.Add(ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase, boundParameter.Syntax.Location, parameter);
+                            }
+                        }
+                    }
+
                     BindDefaultArguments(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
 
                     var arguments = analyzedArguments.Arguments.ToImmutable();
@@ -4256,7 +4396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return constructor.ContainingType is SourceNamedTypeSymbol sourceType &&
                 sourceType.IsRecord &&
-                constructor is not SynthesizedRecordConstructor &&
+                constructor is not SynthesizedPrimaryConstructor &&
                 SynthesizedRecordCopyCtor.HasCopyConstructorSignature(constructor);
         }
 
@@ -6164,6 +6304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
+            Debug.Assert(invoked == SyntaxFacts.IsInvoked(node));
 
             BoundExpression boundLeft;
 
@@ -6224,6 +6365,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         [MethodImpl(MethodImplOptions.NoInlining)]
         private BoundExpression BindLeftIdentifierOfPotentialColorColorMemberAccess(IdentifierNameSyntax left, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert((left.Parent is MemberAccessExpressionSyntax { RawKind: (int)SyntaxKind.SimpleMemberAccessExpression } memberAccess && memberAccess.Expression == left) ||
+                         (left.Parent is QualifiedNameSyntax qualifiedName && qualifiedName.Left == left) ||
+                         (left.Parent is FromClauseSyntax { Parent: QueryExpressionSyntax query } fromClause && query.FromClause == fromClause && fromClause.Expression == left));
+
             // SPEC: 7.6.4.1 Identical simple names and type names
             // SPEC: In a member access of the form E.I, if E is a single identifier, and if the meaning of E as
             // SPEC: a simple-name (spec 7.6.2) is a constant, field, property, local variable, or parameter with the
@@ -6266,12 +6411,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var boundType = BindNamespaceOrType(left, typeDiagnostics);
                             if (TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.AllIgnoreOptions))
                             {
+                                Debug.Assert(!leftType.IsDynamic());
+                                Debug.Assert(IsPotentialColorColorReceiver(left, leftType));
+
                                 // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
                                 boundValue = BindToNaturalType(boundValue, valueDiagnostics);
                                 return new BoundTypeOrValueExpression(left,
                                     new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType);
                             }
                         }
+
+                        Debug.Assert(!IsPotentialColorColorReceiver(left, leftType));
                         break;
 
                         // case SymbolKind.Event: //SPEC: 7.6.4.1 (a.k.a. Color Color) doesn't cover events
@@ -6282,6 +6432,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: it is up to the caller to call CheckValue on the result.
             diagnostics.AddRange(valueDiagnostics);
             return boundValue;
+        }
+
+        private bool IsPotentialColorColorReceiver(IdentifierNameSyntax id, TypeSymbol type)
+        {
+            string name = id.Identifier.ValueText;
+
+            return (type.Name == name || IsUsingAliasInScope(name)) &&
+                   TypeSymbol.Equals(BindNamespaceOrType(id, BindingDiagnosticBag.Discarded).Type, type, TypeCompareKind.AllIgnoreOptions);
         }
 
         // returns true if name matches a using alias in scope
@@ -6352,13 +6510,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: hasErrors);
         }
 
+#if DEBUG
         /// <summary>
         /// Bind the RHS of a member access expression, given the bound LHS.
         /// It is assumed that CheckValue has not been called on the LHS.
         /// </summary>
         /// <remarks>
-        /// If new checks are added to this method, they will also need to be added to <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, TypeSyntax, TypeWithAnnotations, BindingDiagnosticBag)"/>.
+        /// If new checks are added to this method, they will also need to be added to
+        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, TypeSyntax, TypeWithAnnotations, BindingDiagnosticBag, string)"/>.
         /// </remarks>
+#else
+        /// <summary>
+        /// Bind the RHS of a member access expression, given the bound LHS.
+        /// It is assumed that CheckValue has not been called on the LHS.
+        /// </summary>
+        /// <remarks>
+        /// If new checks are added to this method, they will also need to be added to
+        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, TypeSyntax, TypeWithAnnotations, BindingDiagnosticBag)"/>.
+        /// </remarks>
+#endif
         private BoundExpression BindMemberAccessWithBoundLeft(
             ExpressionSyntax node,
             BoundExpression boundLeft,
@@ -6696,11 +6866,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(rightArity == (typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length));
             var leftType = boundLeft.Type;
-            LookupOptions options = LookupOptions.AllMethodsOnArityZero;
-            if (invoked)
-            {
-                options |= LookupOptions.MustBeInvocableIfMember;
-            }
 
             var lookupResult = LookupResult.GetInstance();
             try
@@ -6712,13 +6877,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // UNDONE: Classify E as prop access, indexer access, variable or value
 
                 bool leftIsBaseReference = boundLeft.Kind == BoundKind.BaseReference;
-                if (leftIsBaseReference)
-                {
-                    options |= LookupOptions.UseBaseReferenceAccessibility;
-                }
-
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
+                this.LookupInstanceMember(lookupResult, leftType, leftIsBaseReference, rightName, rightArity, invoked, ref useSiteInfo);
                 diagnostics.Add(right, useSiteInfo);
 
                 // SPEC: Otherwise, an attempt is made to process E.I as an extension method invocation.
@@ -6738,6 +6898,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (searchExtensionMethodsIfNecessary)
                 {
+                    BoundExpression colorColorValueReceiver = GetValueExpressionIfTypeOrValueReceiver(boundLeft);
+
+                    if (IsPossiblyCapturingPrimaryConstructorParameterReference(colorColorValueReceiver, out _))
+                    {
+                        boundLeft = ReplaceTypeOrValueReceiver(boundLeft, useType: false, diagnostics);
+                    }
+
                     var boundMethodGroup = new BoundMethodGroup(
                         node,
                         typeArgumentsWithAnnotations,
@@ -6763,6 +6930,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 lookupResult.Free();
             }
+        }
+
+        private void LookupInstanceMember(LookupResult lookupResult, TypeSymbol leftType, bool leftIsBaseReference, string rightName, int rightArity, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            LookupOptions options = LookupOptions.AllMethodsOnArityZero;
+            if (invoked)
+            {
+                options |= LookupOptions.MustBeInvocableIfMember;
+            }
+
+            if (leftIsBaseReference)
+            {
+                options |= LookupOptions.UseBaseReferenceAccessibility;
+            }
+
+            this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
         }
 
         private void BindMemberAccessReportError(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
@@ -7198,21 +7381,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             int arity;
-            LookupOptions options;
             if (typeArgumentsWithAnnotations.IsDefault)
             {
                 arity = 0;
-                options = LookupOptions.AllMethodsOnArityZero;
             }
             else
             {
                 arity = typeArgumentsWithAnnotations.Length;
-                options = LookupOptions.Default;
             }
 
             var lookupResult = LookupResult.GetInstance();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            this.LookupExtensionMethodsInSingleBinder(scope, lookupResult, rightName, arity, options, ref useSiteInfo);
+            this.LookupExtensionMethods(lookupResult, scope, rightName, arity, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
             if (lookupResult.IsMultiViable)
@@ -7228,6 +7408,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             lookupResult.Free();
+        }
+
+        private void LookupExtensionMethods(LookupResult lookupResult, ExtensionMethodScope scope, string rightName, int arity, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            LookupOptions options;
+            if (arity == 0)
+            {
+                options = LookupOptions.AllMethodsOnArityZero;
+            }
+            else
+            {
+                options = LookupOptions.Default;
+            }
+
+            this.LookupExtensionMethodsInSingleBinder(scope, lookupResult, rightName, arity, options, ref useSiteInfo);
         }
 
         protected BoundExpression BindFieldAccess(
@@ -7275,7 +7470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var isFixedStatementExpression = SyntaxFacts.IsFixedStatementExpression(node);
 
-                    if (IsMoveableVariable(receiver, out Symbol accessedLocalOrParameterOpt) != isFixedStatementExpression)
+                    if (IsMoveableVariable(receiver, accessedLocalOrParameterOpt: out _) != isFixedStatementExpression)
                     {
                         if (indexed)
                         {

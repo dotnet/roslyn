@@ -202,6 +202,39 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
+        <Fact, WorkItem(66507, "https://github.com/dotnet/roslyn/issues/66507")>
+        Public Async Function TestUtf8StringSuffix() As Task
+            Using workspace = TestWorkspace.Create(
+                <Workspace>
+                    <Project Language="C#" AssemblyName="TestAssembly" CommonReferences="true">
+                        <Document>
+                        [|var v = "goo"u8;|]
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+                Dim text = Await document.GetTextAsync()
+                Dim referenceSpan = workspace.Documents.Single().SelectedSpans.Single()
+
+                Dim spansAndHighlightSpan = Await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                    New DocumentSpan(document, referenceSpan),
+                    ClassificationOptions.Default, CancellationToken.None)
+
+                ' string classification should not overlap u8 classification.
+                AssertEx.Equal(
+"(keyword, 'var', [26..29))
+(text, '<spaces>', [29..30))
+(local name, 'v', [30..31))
+(text, '<spaces>', [31..32))
+(operator, '=', [32..33))
+(text, '<spaces>', [33..34))
+(string, '""goo""', [34..39))
+(keyword, 'u8', [39..41))
+(punctuation, ';', [41..42))", String.Join(vbCrLf, spansAndHighlightSpan.ClassifiedSpans.Select(Function(s) ToTestString(text, s))))
+            End Using
+        End Function
+
         Private Shared Function ToTestString(text As SourceText, span As ClassifiedSpan) As String
             Dim subText = text.ToString(span.TextSpan)
             Return $"({span.ClassificationType}, '{If(subText.Trim() = "", "<spaces>",

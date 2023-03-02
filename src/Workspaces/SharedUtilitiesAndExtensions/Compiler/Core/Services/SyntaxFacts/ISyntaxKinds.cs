@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int? GlobalStatement { get; }
         int TrueKeyword { get; }
         int FalseKeyword { get; }
+        int UsingKeyword { get; }
 
         #endregion
 
@@ -69,6 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int CloseBraceToken { get; }
         int? CloseBracketToken { get; }
         int CloseParenToken { get; }
+        int CommaToken { get; }
         int ColonToken { get; }
         int DotToken { get; }
         int EndOfFileToken { get; }

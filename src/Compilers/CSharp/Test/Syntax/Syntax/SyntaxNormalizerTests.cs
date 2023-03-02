@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNormalizeExpression1()
+        public void TestNormalizeDifferentExpressions()
         {
             TestNormalizeExpression("!a", "!a");
             TestNormalizeExpression("-a", "-a");
@@ -415,12 +415,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNormalizeStatement1()
+        public void TestNormalizeExpressionStatement()
         {
-            // expressions
             TestNormalizeStatement("a;", "a;");
+        }
 
-            // blocks
+        [Fact]
+        public void TestNormalizeBlockStatements()
+        {
             TestNormalizeStatement(
                 "{a;}", """
                 {
@@ -447,8 +449,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   b;
                 }
                 """);
+        }
 
-            // if
+        [Fact]
+        public void TestNormalizeIfStatements()
+        {
             TestNormalizeStatement(
                 "if(a)b;", """
                 if (a)
@@ -483,8 +488,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 else if (c)
                   d;
                 """);
+        }
 
-            // while
+        [Fact]
+        public void TestNormalizeWhileStatements()
+        {
             TestNormalizeStatement(
                 "while(a)b;", """
                 while (a)
@@ -497,8 +505,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   b;
                 }
                 """);
+        }
 
-            // do 
+        [Fact]
+        public void TestNormalizeDoWhileStatement()
+        {
             TestNormalizeStatement(
                 "do{a;}while(b);", """
                 do
@@ -507,8 +518,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 while (b);
                 """);
+        }
 
-            // for
+        [Fact]
+        public void TestNormalizeForStatements()
+        {
             TestNormalizeStatement(
                 "for(a;b;c)d;", """
                 for (a; b; c)
@@ -519,15 +533,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 for (;;)
                   a;
                 """);
+        }
 
-            // foreach
+        [Fact]
+        public void TestNormalizeForeachStatement()
+        {
             TestNormalizeStatement(
                 "foreach(a in b)c;", """
                 foreach (a in b)
                   c;
                 """);
+        }
 
-            // try
+        [Fact]
+        public void TestNormalizeTryStatements()
+        {
             TestNormalizeStatement(
                 "try{a;}catch(b){c;}", """
                 try
@@ -550,8 +570,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   b;
                 }
                 """);
+        }
 
-            // other
+        [Fact]
+        public void TestNormalizeOtherStatements()
+        {
             TestNormalizeStatement(
                 "lock(a)b;", """
                 lock (a)
@@ -588,15 +611,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   a;
                 }
                 """);
+        }
 
-            // declaration statements
+        [Fact]
+        public void TestNormalizeDeclarationStatements()
+        {
             TestNormalizeStatement("a b;", "a b;");
             TestNormalizeStatement("a?b;", "a? b;");
             TestNormalizeStatement("a b,c;", "a b, c;");
             TestNormalizeStatement("a b=c;", "a b = c;");
             TestNormalizeStatement("a b=c,d=e;", "a b = c, d = e;");
+        }
 
-            // empty statements
+        [Fact]
+        public void TestNormalizeEmptyStatements()
+        {
             TestNormalizeStatement(";", ";");
             TestNormalizeStatement(
                 "{;;}", """
@@ -605,8 +634,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   ;
                 }
                 """);
+        }
 
-            // labelled statements
+        [Fact]
+        public void TestNormalizeLabelStatements()
+        {
             TestNormalizeStatement(
                 "goo:;", """
                 goo:
@@ -617,8 +649,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 goo:
                   a;
                 """);
+        }
 
-            // return/goto
+        [Fact]
+        public void TestNormalizeReturnAndGotoStatements()
+        {
             TestNormalizeStatement("return;", "return;");
             TestNormalizeStatement("return(a);", "return (a);");
             TestNormalizeStatement("continue;", "continue;");
@@ -630,8 +665,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("throw;", "throw;");
             TestNormalizeStatement("throw a;", "throw a;");
             TestNormalizeStatement("return this.Bar()", "return this.Bar()");
+        }
 
-            // switch
+        [Fact]
+        public void TestNormalizeSwitchStatements()
+        {
             TestNormalizeStatement(
                 "switch(a){case b:c;}", """
                 switch (a)
@@ -695,8 +733,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   }
                 }
                 """);
+        }
 
-            // curlies
+        [Fact]
+        public void TestNormalizeStatements_Curlies()
+        {
             TestNormalizeStatement(
                 "{if(goo){}if(bar){}}", """
                 {
@@ -710,7 +751,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
 
-            // Queries
+        }
+
+        [Fact]
+        public void TestNormalizeStatements_Queries()
+        {
             TestNormalizeStatement(
                 "int i=from v in vals select v;", """
                 int i =
@@ -740,8 +785,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     where g > 10
                     select g;
                 """);
+        }
 
-            // Generics
+        [Fact]
+        public void TestNormalizeStatements_Generics()
+        {
             TestNormalizeStatement("Func<string, int> f = blah;", "Func<string, int> f = blah;");
         }
 
@@ -784,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeExpression(
                 "[A]B()=>{ }", """
                 [A]
-                B() =>
+                B () =>
                 {
                 }
                 """);
@@ -796,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeExpression("int( x )=>x", "int (x) => x");
             TestNormalizeExpression(
                 "A( B b )=>{}", """
-                A(B b) =>
+                A (B b) =>
                 {
                 }
                 """);
@@ -805,7 +853,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 async
                 A<int>()=>x
                 """,
-                "static async A<int>() => x");
+                "static async A<int> () => x");
+            TestNormalizeExpression("(A,B)()=>(new A(),new B())", "(A, B) () => (new A(), new B())");
+            TestNormalizeExpression("A.B()=>null", "A.B () => null");
+            TestNormalizeExpression("A.B.C()=>null", "A.B.C () => null");
+            TestNormalizeExpression("int[]()=>null", "int[] () => null");
+            TestNormalizeExpression("A.B[]()=>null", "A.B[] () => null");
+            TestNormalizeExpression("A.B.C[]()=>null", "A.B.C[] () => null");
+            TestNormalizeExpression("int*()=>null", "int* () => null");
+            TestNormalizeExpression("A.B*()=>null", "A.B* () => null");
+            TestNormalizeExpression("A.B.C*()=>null", "A.B.C* () => null");
         }
 
         [Fact]
@@ -887,9 +944,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNormalizeDeclaration1()
+        public void TestNormalizeUsingDeclarations()
         {
-            // usings
             TestNormalizeDeclaration("using a;", "using a;");
             TestNormalizeDeclaration("using a=b;", "using a = b;");
             TestNormalizeDeclaration("using a.b;", "using a.b;");
@@ -933,8 +989,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                 }
                 """);
+        }
 
-            // namespace
+        [Fact]
+        public void TestNormalizeNamespaceDeclarations()
+        {
             TestNormalizeDeclaration(
                 "namespace a{}", """
                 namespace a
@@ -974,8 +1033,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                 }
                 """);
+        }
 
-            // type
+        [Fact]
+        public void TestNormalizeTypeDeclarations()
+        {
             TestNormalizeDeclaration(
                 "class a{}", """
                 class a
@@ -1011,8 +1073,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                 }
                 """);
+        }
 
-            // methods
+        [Fact]
+        public void TestNormalizeMethodDeclarations()
+        {
             TestNormalizeDeclaration(
                 "class a{void b(){}}", """
                 class a
@@ -1053,8 +1118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   }
                 }
                 """);
+        }
 
-            // operators
+        [Fact]
+        public void TestNormalizeOperatorDeclarations()
+        {
             TestNormalizeDeclaration(
                 "class a{b operator    checked-(c d){}}", """
                 class a
@@ -1147,8 +1215,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   }
                 }
                 """);
+        }
 
-            // properties
+        [Fact]
+        public void TestNormalizePropertyDeclarations()
+        {
             TestNormalizeDeclaration(
                 "class a{b c{get;}}", """
                 class a
@@ -1537,8 +1608,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   }
                 }
                 """);
+        }
 
-            // properties with initializers
+        [Fact]
+        public void TestNormalizePropertyDeclarations_WithInitializers()
+        {
             TestNormalizeDeclaration("""
                 class i4
                 {
@@ -1702,8 +1776,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   } = 1;
                 }
                 """);
+        }
 
-            // line breaks between property and other member
+        [Fact]
+        public void TestNormalizePropertyDeclarations_LineBreaksBetweenPropertyAndOtherMembers()
+        {
             TestNormalizeDeclaration(
                 "class A{public string Prop{get;}public int f;}", """
                 class A
@@ -2414,8 +2491,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   public delegate int D();
                 }
                 """);
+        }
 
-            // indexers
+        [Fact]
+        public void TestNormalizeIndexerDeclarations()
+        {
             TestNormalizeDeclaration(
                 "class a{b this[c d]{get;}}", """
                 class a
@@ -2636,8 +2716,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   }
                 }
                 """);
+        }
 
-            // events
+        [Fact]
+        public void TestNormalizeEventDeclarations()
+        {
             TestNormalizeDeclaration("""
                 class a
                 {
@@ -2838,8 +2921,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   event w e { add; remove; }
                 }
                 """);
+        }
 
-            // fields
+        [Fact]
+        public void TestNormalizeFieldDeclarations()
+        {
             TestNormalizeDeclaration(
                 "class a{b c;}", """
                 class a
@@ -2877,13 +2963,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   e f = g;
                 }
                 """);
+        }
 
-            // delegate
+        [Fact]
+        public void TestNormalizeDelegateDeclarations()
+        {
             TestNormalizeDeclaration("delegate a b();", "delegate a b();");
             TestNormalizeDeclaration("delegate a b(c);", "delegate a b(c);");
             TestNormalizeDeclaration("delegate a b(c,d);", "delegate a b(c, d);");
+        }
 
-            // enums
+        [Fact]
+        public void TestNormalizeEnumDeclarations()
+        {
             TestNormalizeDeclaration(
                 "enum a{}", """
                 enum a
@@ -2912,8 +3004,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   b = c
                 }
                 """);
+        }
 
-            // attributes
+        [Fact]
+        public void TestNormalizeDeclarations_Attributes()
+        {
+            // declaration attributes
             TestNormalizeDeclaration(
                 "[a]class b{}", """
                 [a]
@@ -2994,6 +3090,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestNormalizeDeclaration("record  class  C(int I, int J);", "record class C(int I, int J);");
             TestNormalizeDeclaration("record  struct  S(int I, int J);", "record struct S(int I, int J);");
+        }
+
+        [Fact]
+        public void TestSpacingOnPrimaryConstructor()
+        {
+            TestNormalizeDeclaration("class  C     (   int    I   ,    int    J   )   ;    ", "class C(int I, int J);");
+            TestNormalizeDeclaration("struct  S     (   int    I   ,    int    J   )   ;    ", "struct S(int I, int J);");
+            TestNormalizeDeclaration("interface  S     (   int    I   ,    int    J   )   ;    ", "interface S(int I, int J);");
+            TestNormalizeDeclaration("class  C     (   )   ;    ", "class C();");
+            TestNormalizeDeclaration("struct   S  (  )  ;    ", "struct S();");
+            TestNormalizeDeclaration("interface   S  (  )  ;    ", "interface S();");
+        }
+
+        [Fact]
+        public void TestSemicolonBody()
+        {
+            TestNormalizeDeclaration("class      C       ;    ", "class C;");
+            TestNormalizeDeclaration("struct      C       ;    ", "struct C;");
+            TestNormalizeDeclaration("interface      C       ;    ", "interface C;");
+            TestNormalizeDeclaration("enum      C       ;    ", "enum C;");
         }
 
         [Fact, WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]

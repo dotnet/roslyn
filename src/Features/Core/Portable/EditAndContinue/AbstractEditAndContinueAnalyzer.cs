@@ -2394,6 +2394,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        protected virtual bool IsRudeEditDueToPrimaryConstructor(ISymbol symbol, CancellationToken cancellationToken)
+        {
+            return false;
+        }
+
         private async Task<ImmutableArray<SemanticEditInfo>> AnalyzeSemanticsAsync(
             EditScript<SyntaxNode> editScript,
             IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
@@ -2592,6 +2597,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     Contract.ThrowIfNull(oldSymbol);
                                     Contract.ThrowIfNull(oldDeclaration);
 
+                                    if (IsRudeEditDueToPrimaryConstructor(oldSymbol, cancellationToken))
+                                    {
+                                        // https://github.com/dotnet/roslyn/issues/67108: Disable edits for now
+                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Delete, GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldDeclaration),
+                                                                               oldDeclaration, new[] { GetDisplayName(oldDeclaration, EditKind.Delete) }));
+                                        continue;
+                                    }
+
                                     var activeStatementIndices = GetOverlappingActiveStatements(oldDeclaration, oldActiveStatements);
                                     var hasActiveStatement = activeStatementIndices.Any();
 
@@ -2759,6 +2772,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     Contract.ThrowIfNull(newModel);
                                     Contract.ThrowIfNull(newSymbol);
                                     Contract.ThrowIfNull(newDeclaration);
+
+                                    if (IsRudeEditDueToPrimaryConstructor(newSymbol, cancellationToken))
+                                    {
+                                        // https://github.com/dotnet/roslyn/issues/67108: Disable edits for now
+                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Insert, GetDiagnosticSpan(newDeclaration, EditKind.Insert),
+                                                                               newDeclaration, new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
+                                        continue;
+                                    }
 
                                     syntaxMap = null;
 
@@ -3024,6 +3045,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                     Contract.ThrowIfNull(oldDeclaration);
                                     Contract.ThrowIfNull(newDeclaration);
+
+                                    if (IsRudeEditDueToPrimaryConstructor(oldSymbol, cancellationToken) ||
+                                        IsRudeEditDueToPrimaryConstructor(newSymbol, cancellationToken))
+                                    {
+                                        // https://github.com/dotnet/roslyn/issues/67108: Disable edits for now
+                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Update, GetDiagnosticSpan(newDeclaration, EditKind.Update),
+                                                                               newDeclaration, new[] { GetDisplayName(newDeclaration, EditKind.Update) }));
+                                        continue;
+                                    }
 
                                     var oldBody = TryGetDeclarationBody(oldDeclaration);
                                     if (oldBody != null)
@@ -4828,7 +4858,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel? oldModel,
             Compilation oldCompilation,
             Compilation newCompilation,
-            IReadOnlySet<ISymbol> processedSymbols,
+            Roslyn.Utilities.IReadOnlySet<ISymbol> processedSymbols,
             EditAndContinueCapabilitiesGrantor capabilities,
             bool isStatic,
             [Out] ArrayBuilder<SemanticEditInfo> semanticEdits,

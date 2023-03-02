@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     public abstract class GeneratorDriver
     {
+        internal const IncrementalGeneratorOutputKind HostKind = (IncrementalGeneratorOutputKind)0b100000; // several steps higher than IncrementalGeneratorOutputKind.Implementation
+
         internal readonly GeneratorDriverState _state;
 
         internal GeneratorDriver(GeneratorDriverState state)
@@ -293,7 +295,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
-                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, driverStateBuilder);
+                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | HostKind, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, driverStateBuilder);
                     (var sources, var generatorDiagnostics, var generatorRunStateTable, var hostOutputs) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
@@ -370,14 +372,20 @@ namespace Microsoft.CodeAnalysis
 
         private static ImmutableArray<Diagnostic> FilterDiagnostics(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics, DiagnosticBag? driverDiagnostics, CancellationToken cancellationToken)
         {
+            if (generatorDiagnostics.IsEmpty)
+            {
+                return generatorDiagnostics;
+            }
+
+            var suppressMessageState = new SuppressMessageAttributeState(compilation);
             ArrayBuilder<Diagnostic> filteredDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
             foreach (var diag in generatorDiagnostics)
             {
-                var filtered = compilation.Options.FilterDiagnostic(diag, cancellationToken);
-                if (filtered is object)
+                if (compilation.Options.FilterDiagnostic(diag, cancellationToken) is { } filtered &&
+                    suppressMessageState.ApplySourceSuppressions(filtered) is { } effective)
                 {
-                    filteredDiagnostics.Add(filtered);
-                    driverDiagnostics?.Add(filtered);
+                    filteredDiagnostics.Add(effective);
+                    driverDiagnostics?.Add(effective);
                 }
             }
             return filteredDiagnostics.ToImmutableAndFree();

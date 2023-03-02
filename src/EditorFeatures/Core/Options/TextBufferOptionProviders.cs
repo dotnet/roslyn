@@ -50,10 +50,10 @@ internal static class TextBufferOptionProviders
     {
         var configOptions = editorOptions.ToAnalyzerConfigOptions();
         var fallbackOptions = globalOptions.GetSyntaxFormattingOptions(languageServices);
-        var options = configOptions.GetSyntaxFormattingOptions(fallbackOptions, languageServices);
+        var options = configOptions.GetSyntaxFormattingOptions(languageServices, fallbackOptions);
         var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, indentationManager, explicitFormat);
 
-        return options.With(lineFormattingOptions);
+        return options with { LineFormatting = lineFormattingOptions };
     }
 
     public static IndentationOptions GetIndentationOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, LanguageServices languageServices, bool explicitFormat)
@@ -74,7 +74,7 @@ internal static class TextBufferOptionProviders
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
         var configOptions = editorOptions.ToAnalyzerConfigOptions();
         var fallbackOptions = optionsProvider.GlobalOptions.GetAddImportPlacementOptions(languageServices);
-        return configOptions.GetAddImportPlacementOptions(allowInHiddenRegions, fallbackOptions, languageServices);
+        return configOptions.GetAddImportPlacementOptions(languageServices, allowInHiddenRegions, fallbackOptions);
     }
 
     public static CodeCleanupOptions GetCodeCleanupOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, LanguageServices languageServices, bool explicitFormat, bool allowImportsInHiddenRegions)
@@ -83,10 +83,10 @@ internal static class TextBufferOptionProviders
         var configOptions = editorOptions.ToAnalyzerConfigOptions();
         var fallbackOptions = optionsProvider.GlobalOptions.GetCodeCleanupOptions(languageServices);
 
-        var options = configOptions.GetCodeCleanupOptions(allowImportsInHiddenRegions, fallbackOptions, languageServices);
+        var options = configOptions.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions);
         var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, optionsProvider.IndentationManager, explicitFormat);
 
-        return options with { FormattingOptions = options.FormattingOptions.With(lineFormattingOptions) };
+        return options with { FormattingOptions = options.FormattingOptions with { LineFormatting = lineFormattingOptions } };
     }
 
     public static IndentingStyle ToEditorIndentStyle(this FormattingOptions2.IndentStyle value)
