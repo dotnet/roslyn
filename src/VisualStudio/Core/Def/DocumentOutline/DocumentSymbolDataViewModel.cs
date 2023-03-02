@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// It is expected that these can be modified from any thread with INotifyPropertyChanged notifications
     /// being marshalled to the correct thread by WPF if there needs to be a change to the visual presentation.
     /// </summary>
-    internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged
+    internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged, IEquatable<DocumentSymbolDataViewModel>
     {
         public DocumentSymbolData Data { get; }
         public ImmutableArray<DocumentSymbolDataViewModel> Children { get; init; }
@@ -81,5 +81,30 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             field = value;
             NotifyPropertyChanged(propertyName);
         }
+
+        public bool Equals(DocumentSymbolDataViewModel? other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            var translatedRangeSpan = this.Data.RangeSpan.TranslateTo(other.Data.RangeSpan.Snapshot, SpanTrackingMode.EdgeNegative);
+            return translatedRangeSpan == other.Data.RangeSpan &&
+                   Data.Name == other.Data.Name &&
+                   Data.SymbolKind == Data.SymbolKind;
+        }
+
+        public static bool operator !=(DocumentSymbolDataViewModel? left, DocumentSymbolDataViewModel? right)
+            => !(left == right);
+
+        public static bool operator ==(DocumentSymbolDataViewModel? left, DocumentSymbolDataViewModel? right)
+            => left is not null && left.Equals(right);
+
+        public override bool Equals(object obj)
+            => Equals(obj as DocumentSymbolDataViewModel);
+
+        public override int GetHashCode()
+            => Data.GetHashCode();
     }
 }

@@ -189,11 +189,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 
             // Check that all updatedUIItems nodes are collapsed
             DocumentOutlineHelper.SetExpansionOption(updatedUIItems, true);
-            CheckNodeExpansion(updatedUIItems, false);
+            CheckNodeExpansion(updatedUIItems, true);
 
             // Check that all updatedUIItems nodes are expanded
             DocumentOutlineHelper.SetExpansionOption(updatedUIItems, false);
-            CheckNodeExpansion(updatedUIItems, true);
+            CheckNodeExpansion(updatedUIItems, false);
 
             // Collapse 3 nodes in originalUIItems
             originalUIItems.Single(parent => parent.Data.Name.Equals("App")).IsExpanded = false;

@@ -276,12 +276,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             foreach (var item in currentDocumentSymbolItems)
             {
-                var oldValue = item.IsExpanded;
                 item.IsExpanded = expand;
-                if (oldValue != item.IsExpanded)
-                {
-                    SetExpansionOption(item.Children, expand);
-                }
+                SetExpansionOption(item.Children, expand);
             }
         }
 
