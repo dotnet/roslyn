@@ -25,22 +25,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToBase
             End If
 
             Dim constructorBlock = TryCast(subNew.Parent, ConstructorBlockSyntax)
-            If constructorBlock Is Nothing OrElse constructorBlock.Statements.Count = 0 Then
+            If constructorBlock Is Nothing Then
                 Return Nothing
             End If
 
             Dim initializer As MemberAccessExpressionSyntax = Nothing
-            If Not constructorBlock.Statements(0).IsConstructorInitializer(initializer) Then
-                Return Nothing
+            If constructorBlock.Statements.Count = 0 OrElse
+               Not constructorBlock.Statements(0).IsConstructorInitializer(initializer) Then
+                Return FindBaseNoArgConstructor(constructor)
             End If
 
             Dim document = solution.GetDocument(constructorBlock.SyntaxTree)
-            If Document Is Nothing Then
+            If document Is Nothing Then
                 Return Nothing
             End If
 
-            Dim semanticModel = Await Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-
+            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Return TryCast(semanticModel.GetSymbolInfo(initializer, cancellationToken).GetAnySymbol(), IMethodSymbol)
         End Function
     End Class

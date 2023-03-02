@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GoToBase
 {
@@ -15,6 +16,17 @@ namespace Microsoft.CodeAnalysis.GoToBase
     {
         protected abstract Task<IMethodSymbol?> FindNextConstructorInChainAsync(
             Solution solution, IMethodSymbol constructor, CancellationToken cancellationToken);
+
+        protected static IMethodSymbol? FindBaseNoArgConstructor(IMethodSymbol constructor)
+        {
+            var baseType = constructor.ContainingType.BaseType;
+            if (baseType is null)
+                return null;
+
+            return baseType.InstanceConstructors.FirstOrDefault(
+                baseConstructor => baseConstructor.IsAccessibleWithin(constructor.ContainingType) &&
+                    baseConstructor.Parameters.All(p => p.IsOptional || p.IsParams));
+        }
 
         public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
         {

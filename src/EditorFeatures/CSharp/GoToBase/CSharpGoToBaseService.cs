@@ -33,23 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GoToBase
             if (document is null)
                 return null;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
+            // this constructor must be calling an accessible no-arg constructor in the base type.
             if (constructorDeclaration.Initializer is null)
-            {
-                // this constructor must be calling an accessible no-arg constructor in the base type.
-                var baseType = constructor.ContainingType.BaseType;
-                if (baseType is null)
-                    return null;
+                return FindBaseNoArgConstructor(constructor);
 
-                return baseType.InstanceConstructors.FirstOrDefault(
-                    baseConstructor => baseConstructor.IsAccessibleWithin(constructor.ContainingType) &&
-                        baseConstructor.Parameters.All(p => p.IsOptional || p.IsParams));
-            }
-            else
-            {
-                return semanticModel.GetSymbolInfo(constructorDeclaration.Initializer, cancellationToken).GetAnySymbol() as IMethodSymbol;
-            }
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return semanticModel.GetSymbolInfo(constructorDeclaration.Initializer, cancellationToken).GetAnySymbol() as IMethodSymbol;
         }
     }
 }
