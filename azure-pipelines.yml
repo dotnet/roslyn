@@ -39,49 +39,49 @@ variables:
   - name: PoolName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: NetCore-Public
-    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    ${{ else }}:
       value: NetCore1ESPool-Internal
 
   - name: Vs2022PreviewQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        value: windows.vs2022preview.amd64.open
-    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      value: windows.vs2022preview.amd64.open
+    ${{ else }}:
       value: windows.vs2022preview.amd64
 
   - name: Vs2022QueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: windows.vs2022.amd64.open
-    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    ${{ else }}:
       value: windows.vs2022.amd64
 
   - name: UbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: Build.Ubuntu.1804.Amd64.Open
-    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    ${{ else }}:
       value: Build.Ubuntu.1804.Amd64
 
   - name: HelixWindowsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: Windows.10.Amd64.Open
-    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    ${{ else }}:
       value: Windows.10.Amd64
 
   - name: HelixWindowsSpanishQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: Windows.10.Amd64.Server2022.ES.Open
-    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    ${{ else }}:
       value: Windows.10.Amd64.Server2022.ES
 
   - name: HelixUbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: Ubuntu.1804.Amd64.Open
-    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    ${{ else }}:
       value: Ubuntu.1804.Amd64
 
   - name: HelixMacOsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: OSX.1015.Amd64.Open
-    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    ${{ else }}:
       value: OSX.1015.Amd64
 
 stages:

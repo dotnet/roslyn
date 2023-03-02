@@ -5,7 +5,6 @@ parameters:
   type: number
   default: 1
 
-# Git path based on https://github.com/microsoft/azure-pipelines-agent/blob/f98a479ab3cc323ff17b8cb75d5ab5f953f342cc/src/Agent.Plugins/GitCliManager.cs#L90
 steps:
   - checkout: self
     fetchDepth: ${{ parameters.depth }}
