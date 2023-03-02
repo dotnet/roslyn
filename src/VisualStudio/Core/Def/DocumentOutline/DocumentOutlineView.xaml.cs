@@ -133,13 +133,21 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// When a symbol node in the window is clicked, move the caret to its position in the latest active text view.
+        /// When a symbol node in the window is selected via the keyboard, move the caret to its position in the latest active text view.
         /// </summary>
-        private void SymbolTree_MouseDown(object sender, EventArgs e)
+        private void SymbolTree_Selected(object sender, RoutedEventArgs e)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            if (sender is StackPanel { DataContext: DocumentSymbolDataViewModel symbolModel })
+            // We are already navigating, this indicates we've finished selecting the item we wanted.
+            if (_isNavigating)
+            {
+                _isNavigating = false;
+                return;
+            }
+
+            // This is a user-initiated navigation
+            if (e.OriginalSource is TreeViewItem { DataContext: DocumentSymbolDataViewModel symbolModel })
             {
                 _isNavigating = true;
                 try
@@ -153,6 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 }
                 finally
                 {
+                    Debug.Assert(_isNavigating);
                     _isNavigating = false;
                 }
             }
@@ -166,8 +175,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _threadingContext.ThrowIfNotOnUIThread();
 
             // Do not respond to caret changing events if we are the ones moving the caret
-            if (!e.NewPosition.Equals(e.OldPosition) && !_isNavigating)
+            if (!_isNavigating && !e.NewPosition.Equals(e.OldPosition))
             {
+                // indicate that we are about to programmatically set focus
+                _isNavigating = true;
                 _viewModel.EnqueueSelectTreeNode(e.NewPosition);
             }
         }

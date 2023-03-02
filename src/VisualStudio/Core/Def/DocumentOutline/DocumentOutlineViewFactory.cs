@@ -47,6 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             Assumes.NotNull(wpfTextView);
 
             var subjectBuffer = wpfTextView.TextBuffer;
+            // Unfortunately, the DocumentSymbol LSP request as its implemented requires semantic information so 
+            // we need to listen for compilation changes. This can be simplifies if Roslyn's implementation of the
+            // DocumentSymbol request is ever changed to just operate off of syntax tree.
             var textViewEventSource = new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
                 asyncListener,

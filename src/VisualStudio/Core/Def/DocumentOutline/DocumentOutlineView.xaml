@@ -141,6 +141,7 @@
                   Name="SymbolTree"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
+                  TreeViewItem.Selected="SymbolTree_Selected"
                   ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}"> <!-- Binding to our CollectionViewSource -->
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolDataViewModel}">
@@ -150,7 +151,8 @@
                             <Binding Path="DataContext.SortOption"  RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=UserControl}" />
                         </MultiBinding>
                     </HierarchicalDataTemplate.ItemsSource>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="SymbolTree_MouseDown">
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
                         <imaging:CrispImage Moniker="{Binding ImageMoniker}" Margin="0, 0, 5, 0" />
                         <TextBlock Text="{Binding Data.Name}" />
                     </StackPanel>

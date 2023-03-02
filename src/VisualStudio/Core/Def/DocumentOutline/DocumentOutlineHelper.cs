@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PatternMatching;
@@ -275,16 +276,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             foreach (var item in currentDocumentSymbolItems)
             {
-                if (!expand)
+                var oldValue = item.IsExpanded;
+                item.IsExpanded = expand;
+                if (oldValue != item.IsExpanded)
                 {
-                    item.IsExpanded = false;
+                    SetExpansionOption(item.Children, expand);
                 }
-                else if (expand)
-                {
-                    item.IsExpanded = true;
-                }
-
-                SetExpansionOption(item.Children, expand);
             }
         }
 
@@ -321,26 +318,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 documentSymbolItem.IsSelected = false;
                 UnselectAll(documentSymbolItem.Children);
             }
-        }
-
-        internal static bool AreAllTopLevelItemsCollapsed(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolViewModelItems)
-        {
-            if (!documentSymbolViewModelItems.Any())
-            {
-                // We are operating on an empty array this can happen if the LSP service hasn't populated us with any data yet.
-                return false;
-            }
-
-            // No need to recurse, if all the items are collapsed then so are their children
-            foreach (var item in documentSymbolViewModelItems)
-            {
-                if (item.IsExpanded)
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
     }
 }

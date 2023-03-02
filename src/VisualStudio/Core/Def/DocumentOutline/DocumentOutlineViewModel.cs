@@ -21,13 +21,16 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     /// <summary>
     /// Responsible for updating data related to Document outline.
-    /// It is expected that all operations this type do not need to be on the UI thread.
+    /// It is expected that all public methods on this type do not need to be on the UI thread.
+    /// Two properties: <see cref="SortOption"/> and <see cref="SearchText"/> are intended to be bound to a WPF view
+    /// and should only be set from the UI thread.
     /// </summary>
     internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged, IDisposable
     {
@@ -84,6 +87,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _documentSymbolQueue.AddWork(cancelExistingWork: true);
         }
 
+        public void Dispose()
+        {
+            _taggerEventSource.Changed -= OnEventSourceChanged;
+            _taggerEventSource.Disconnect();
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Dispose();
+        }
+
         private SortOption _sortOption = SortOption.Location;
         public SortOption SortOption
         {
@@ -111,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public ImmutableArray<DocumentSymbolDataViewModel> DocumentSymbolViewModelItems
         {
             get => _documentSymbolViewModelItems;
-            set
+            private set
             {
                 _threadingContext.ThrowIfNotOnBackgroundThread();
 
@@ -140,17 +151,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             NotifyPropertyChanged(propertyName);
         }
 
-        public void Dispose()
-        {
-            _taggerEventSource.Changed -= OnEventSourceChanged;
-            _taggerEventSource.Disconnect();
-            _cancellationTokenSource.Cancel();
-            _cancellationTokenSource.Dispose();
-        }
-
         private async ValueTask<DocumentSymbolDataModel?> GetDocumentSymbolAsync(CancellationToken cancellationToken)
         {
-            _threadingContext.ThrowIfNotOnBackgroundThread();
+            // We do not want this work running on a background thread
+            await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
             var textBuffer = _textBuffer;
@@ -199,7 +203,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private async ValueTask UpdateViewModelStateAsync(ImmutableSegmentedList<ViewModelStateDataChange> viewModelStateData, CancellationToken cancellationToken)
         {
-            _threadingContext.ThrowIfNotOnBackgroundThread();
+            // We do not want this work running on a background thread
+            await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
 
             var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
@@ -230,6 +235,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     else
                     {
                         // We are going to show results so we unset any expand / collapse state
+                        // If we are in the middle of searching the developer should always be able to see the results
+                        // so we don't want to collapse (and therefore hide) data here.
                         documentSymbolViewModelItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(
                              DocumentOutlineHelper.SearchDocumentSymbolData(model.DocumentSymbolData, currentQuery, cancellationToken));
                     }
@@ -240,20 +247,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 if (position is { } currentPosition)
                 {
                     var caretPoint = currentPosition.Point.GetPoint(_textBuffer, PositionAffinity.Predecessor);
-                    if (!caretPoint.HasValue)
+                    // If the we can't find the caret then the document has changed since we were queued to the point that we can't find this position.
+                    if (caretPoint.HasValue)
                     {
-                        // document has changed since we were queued to the point that we can't find this position.
-                        return;
+                        var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(DocumentSymbolViewModelItems, model.OriginalSnapshot, caretPoint.Value);
+                        // If null this means we can't find the symbol to select. The document has changed enough since we are queued that we can't find anything applicable.
+                        if (symbolToSelect is not null)
+                        {
+                            DocumentOutlineHelper.ExpandAncestors(DocumentSymbolViewModelItems, symbolToSelect.Data.SelectionRangeSpan);
+                            symbolToSelect.IsSelected = true;
+                        }
                     }
-
-                    var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(DocumentSymbolViewModelItems, model.OriginalSnapshot, caretPoint.Value);
-                    if (symbolToSelect is null)
-                    {
-                        return;
-                    }
-
-                    DocumentOutlineHelper.ExpandAncestors(DocumentSymbolViewModelItems, symbolToSelect.Data.SelectionRangeSpan);
-                    symbolToSelect.IsSelected = true;
                 }
             }
 
@@ -269,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             static void ApplyExpansionStateToNewItems(ImmutableArray<DocumentSymbolDataViewModel> oldItems, ImmutableArray<DocumentSymbolDataViewModel> newItems)
             {
-                if (DocumentOutlineHelper.AreAllTopLevelItemsCollapsed(oldItems))
+                if (AreAllTopLevelItemsCollapsed(oldItems))
                 {
                     // new nodes are un-collapsed by default
                     // we want to collapse all new top-level nodes if 
@@ -282,6 +286,26 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 else
                 {
                     DocumentOutlineHelper.SetIsExpandedOnNewItems(newItems, oldItems);
+                }
+
+                static bool AreAllTopLevelItemsCollapsed(ImmutableArray<DocumentSymbolDataViewModel> documentSymbolViewModelItems)
+                {
+                    if (!documentSymbolViewModelItems.Any())
+                    {
+                        // We are operating on an empty array this can happen if the LSP service hasn't populated us with any data yet.
+                        return false;
+                    }
+
+                    // No need to recurse, if all the items are collapsed then so are their children
+                    foreach (var item in documentSymbolViewModelItems)
+                    {
+                        if (item.IsExpanded)
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
                 }
             }
         }
