@@ -30,6 +30,15 @@ internal partial class CSharpRecommendationService
         {
         }
 
+        protected override int GetLambdaParameterCount(AnonymousFunctionExpressionSyntax lambdaSyntax)
+            => lambdaSyntax switch
+            {
+                AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.ParameterList?.Parameters.Count ?? -1,
+                ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters.Count,
+                SimpleLambdaExpressionSyntax => 1,
+                _ => throw ExceptionUtilities.UnexpectedValue(lambdaSyntax.Kind()),
+            };
+
         public override RecommendedSymbols GetRecommendedSymbols()
         {
             if (_context.IsInNonUserCode ||
