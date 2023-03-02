@@ -86,6 +86,13 @@ finally {
       Copy-Item $_.FullName (Join-Path $jsonDest $path)
     }
 
+  $gpropsDest = Join-Path $LogDir "gprops-after-build"
+  Create-Directory $gpropsDest
+  Get-ChildItem -re -in *.g.props (Join-Path $ArtifactsDir "obj") | %{ 
+      $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
+      Copy-Item $_.FullName (Join-Path $gpropsDest $path)
+    }
+
   Unsubst-TempDir
   Pop-Location
 }

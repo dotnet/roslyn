@@ -338,6 +338,13 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
       Copy-Item $_.FullName (Join-Path $jsonDest $path)
     }
 
+  $gpropsDest = Join-Path $LogDir "gprops-before-clean"
+  Create-Directory $gpropsDest
+  Get-ChildItem -re -in *.g.props (Join-Path $ArtifactsDir "obj") | %{ 
+      $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
+      Copy-Item $_.FullName (Join-Path $gpropsDest $path)
+    }
+
   Write-Host "Cleaning Bootstrap compiler artifacts"
   Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
 
@@ -348,6 +355,12 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
       Copy-Item $_.FullName (Join-Path $jsonDest $path)
     }
 
+  $gpropsDest = Join-Path $LogDir "gprops-after-clean"
+  Create-Directory $gpropsDest
+  Get-ChildItem -re -in *.g.props (Join-Path $ArtifactsDir "obj") | %{ 
+      $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
+      Copy-Item $_.FullName (Join-Path $gpropsDest $path)
+    }
 
   # Work around NuGet bug that doesn't correctly re-generate our project.assets.json files.
   # Deleting everything forces a regen
