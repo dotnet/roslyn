@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             public static NameComparer Instance { get; } = new();
 
             public int Compare(DocumentSymbolDataViewModel x, DocumentSymbolDataViewModel y)
-                => StringComparer.OrdinalIgnoreCase.Compare(x.Name, y.Name);
+                => StringComparer.OrdinalIgnoreCase.Compare(x.Data.Name, y.Data.Name);
         }
 
         private sealed class LocationComparer : IComparer<DocumentSymbolDataViewModel>
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             public static LocationComparer Instance { get; } = new();
 
             public int Compare(DocumentSymbolDataViewModel x, DocumentSymbolDataViewModel y)
-                => x.StartPosition - y.StartPosition;
+                => x.Data.RangeSpan.Start - y.Data.RangeSpan.Start;
         }
 
         private sealed class TypeComparer : IComparer<DocumentSymbolDataViewModel>
@@ -63,9 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             public static TypeComparer Instance { get; } = new();
 
             public int Compare(DocumentSymbolDataViewModel x, DocumentSymbolDataViewModel y)
-                => x.SymbolKind == y.SymbolKind
+                => x.Data.SymbolKind == y.Data.SymbolKind
                     ? NameComparer.Instance.Compare(x, y)
-                    : x.SymbolKind - y.SymbolKind;
+                    : x.Data.SymbolKind - y.Data.SymbolKind;
         }
     }
 }

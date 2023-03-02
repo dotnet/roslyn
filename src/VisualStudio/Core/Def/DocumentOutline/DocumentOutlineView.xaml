@@ -26,7 +26,7 @@
             IsLiveSortingRequested="True"
             Source="{Binding DocumentSymbolViewModelItems}">
             <CollectionViewSource.SortDescriptions>
-                <ComponentModel:SortDescription PropertyName="StartPosition" Direction="Ascending" />
+                <ComponentModel:SortDescription PropertyName="Data.RangeSpan.Start" Direction="Ascending" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
         <!-- An instance of our custom sorter, This uses ImmutableArray's sort methods instead of linq 
@@ -152,7 +152,7 @@
                     </HierarchicalDataTemplate.ItemsSource>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="SymbolTree_MouseDown">
                         <imaging:CrispImage Moniker="{Binding ImageMoniker}" Margin="0, 0, 5, 0" />
-                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding Data.Name}" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"

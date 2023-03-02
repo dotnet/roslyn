@@ -100,7 +100,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 
             static DocumentSymbolDataViewModel ReplaceChildren(DocumentSymbolDataViewModel symbolToUpdate, ImmutableArray<DocumentSymbolDataViewModel> newChildren)
             {
-                var symbolData = new DocumentSymbolData(symbolToUpdate.Name, symbolToUpdate.SymbolKind, symbolToUpdate.RangeSpan, symbolToUpdate.SelectionRangeSpan, ImmutableArray<DocumentSymbolData>.Empty);
+                var symbolData = new DocumentSymbolData(symbolToUpdate.Data.Name, symbolToUpdate.Data.SymbolKind, symbolToUpdate.Data.RangeSpan, symbolToUpdate.Data.SelectionRangeSpan, ImmutableArray<DocumentSymbolData>.Empty);
                 return new DocumentSymbolDataViewModel(symbolData, newChildren, symbolToUpdate.IsExpanded, symbolToUpdate.IsSelected);
             }
 
@@ -109,9 +109,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 var actual = sortedSymbols;
                 var expected = sortOption switch
                 {
-                    SortOption.Name => sortedSymbols.OrderBy(static x => x.Name, StringComparer.OrdinalIgnoreCase),
-                    SortOption.Location => sortedSymbols.OrderBy(static x => x.RangeSpan.Start),
-                    SortOption.Type => sortedSymbols.OrderBy(static x => x.SymbolKind).ThenBy(static x => x.Name),
+                    SortOption.Name => sortedSymbols.OrderBy(static x => x.Data.Name, StringComparer.OrdinalIgnoreCase),
+                    SortOption.Location => sortedSymbols.OrderBy(static x => x.Data.RangeSpan.Start),
+                    SortOption.Type => sortedSymbols.OrderBy(static x => x.Data.SymbolKind).ThenBy(static x => x.Data.Name),
                     _ => throw new InvalidOperationException($"The value for {nameof(sortOption)} is invalid: {sortOption}")
                 };
 
@@ -168,17 +168,17 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             // Click within range of a parent symbol
             caretPosition = currentTextSnapshotLines.ElementAt(1).End;
             nodeToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(uiItems, model.OriginalSnapshot, caretPosition);
-            Assert.Equal("MyClass", nodeToSelect?.Name);
+            Assert.Equal("MyClass", nodeToSelect?.Data.Name);
 
             // Click within range of a child symbol
             caretPosition = currentTextSnapshotLines.ElementAt(4).End - 1;
             nodeToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(uiItems, model.OriginalSnapshot, caretPosition);
-            Assert.Equal("Method1", nodeToSelect?.Name);
+            Assert.Equal("Method1", nodeToSelect?.Data.Name);
 
             // Click between 2 child symbols (caret is in range of parent)
             caretPosition = currentTextSnapshotLines.ElementAt(14).End;
             nodeToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(uiItems, model.OriginalSnapshot, caretPosition);
-            Assert.Equal("App", nodeToSelect?.Name);
+            Assert.Equal("App", nodeToSelect?.Data.Name);
         }
 
         [WpfFact]
@@ -188,17 +188,17 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var updatedUIItems = DocumentOutlineHelper.GetDocumentSymbolItemViewModels(model.DocumentSymbolData);
 
             // Check that all updatedUIItems nodes are collapsed
-            DocumentOutlineHelper.SetExpansionOption(updatedUIItems, ExpansionOption.Collapse);
+            DocumentOutlineHelper.SetExpansionOption(updatedUIItems, true);
             CheckNodeExpansion(updatedUIItems, false);
 
             // Check that all updatedUIItems nodes are expanded
-            DocumentOutlineHelper.SetExpansionOption(updatedUIItems, ExpansionOption.Expand);
+            DocumentOutlineHelper.SetExpansionOption(updatedUIItems, false);
             CheckNodeExpansion(updatedUIItems, true);
 
             // Collapse 3 nodes in originalUIItems
-            originalUIItems.Single(parent => parent.Name.Equals("App")).IsExpanded = false;
-            originalUIItems.Single(parent => parent.Name.Equals("MyClass")).Children.Single(child => child.Name.Equals("Method2")).IsExpanded = false;
-            originalUIItems.Single(parent => parent.Name.Equals("foo")).Children.Single(child => child.Name.Equals("r")).IsExpanded = false;
+            originalUIItems.Single(parent => parent.Data.Name.Equals("App")).IsExpanded = false;
+            originalUIItems.Single(parent => parent.Data.Name.Equals("MyClass")).Children.Single(child => child.Data.Name.Equals("Method2")).IsExpanded = false;
+            originalUIItems.Single(parent => parent.Data.Name.Equals("foo")).Children.Single(child => child.Data.Name.Equals("r")).IsExpanded = false;
 
             // Apply same expansion as originalUIItems to updatedUIItems
             DocumentOutlineHelper.SetIsExpandedOnNewItems(updatedUIItems, originalUIItems);
@@ -231,11 +231,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var (mocks, model, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
 
             // Collapse all nodes first
-            DocumentOutlineHelper.SetExpansionOption(uiItems, ExpansionOption.Collapse);
+            DocumentOutlineHelper.SetExpansionOption(uiItems, false);
 
             // Call ExpandAncestors on a child node
-            var selectedNode = uiItems.Single(parent => parent.Name.Equals("MyClass")).Children.Single(child => child.Name.Equals("Method2"));
-            DocumentOutlineHelper.ExpandAncestors(uiItems, selectedNode.RangeSpan);
+            var selectedNode = uiItems.Single(parent => parent.Data.Name.Equals("MyClass")).Children.Single(child => child.Data.Name.Equals("Method2"));
+            DocumentOutlineHelper.ExpandAncestors(uiItems, selectedNode.Data.RangeSpan);
 
             // Confirm that only the child node and its ancestors are expanded
             CheckAncestorNodeExpansion(uiItems);
@@ -244,7 +244,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             {
                 foreach (var symbol in documentSymbolItems)
                 {
-                    Assert.True(symbol.Name.Equals("MyClass") || symbol.Name.Equals("Method2") ? symbol.IsExpanded : !symbol.IsExpanded);
+                    Assert.True(symbol.Data.Name.Equals("MyClass") || symbol.Data.Name.Equals("Method2") ? symbol.IsExpanded : !symbol.IsExpanded);
                     CheckAncestorNodeExpansion(symbol.Children);
                 }
             }

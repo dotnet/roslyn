@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 foreach (var symbol in documentSymbolItems)
                 {
-                    if (symbol.RangeSpan.IntersectsWith(originalCaretPoint))
+                    if (symbol.Data.RangeSpan.IntersectsWith(originalCaretPoint))
                         return symbol;
                 }
 
@@ -305,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 foreach (var symbol in documentSymbolItems)
                 {
-                    if (symbol.RangeSpan.Contains(rangeSpan))
+                    if (symbol.Data.RangeSpan.Contains(rangeSpan))
                         return symbol;
                 }
 

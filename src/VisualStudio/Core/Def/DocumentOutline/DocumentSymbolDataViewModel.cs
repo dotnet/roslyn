@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -21,24 +21,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged, IEquatable<DocumentSymbolDataViewModel>
     {
-        private readonly DocumentSymbolData _data;
-
-        public string Name => _data.Name;
+        public DocumentSymbolData Data { get; }
         public ImmutableArray<DocumentSymbolDataViewModel> Children { get; init; }
-        public int StartPosition => RangeSpan.Start;
 
         /// <summary>
-        /// The total range of the symbol including leading/trailing trivia
+        /// Necessary because we cannot convert to this type dynamically in WPF.
         /// </summary>
-        public SnapshotSpan RangeSpan => _data.RangeSpan;
-
-        /// <summary>
-        /// The range that represents what should be selected in the editor for this item.
-        /// Typically, this is the identifier name for the symbol
-        /// </summary>
-        public SnapshotSpan SelectionRangeSpan => _data.SelectionRangeSpan;
-        public SymbolKind SymbolKind => _data.SymbolKind;
-        public ImageMoniker ImageMoniker => _data.SymbolKind.GetImageMoniker();
+        public ImageMoniker ImageMoniker => Data.SymbolKind.GetImageMoniker();
 
         private bool _isExpanded;
         public bool IsExpanded
@@ -61,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             bool isExpanded,
             bool isSelected)
         {
-            _data = data;
+            Data = data;
             Children = children;
             _isExpanded = isExpanded;
             _isSelected = isSelected;

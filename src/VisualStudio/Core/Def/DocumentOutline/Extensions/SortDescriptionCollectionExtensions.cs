@@ -10,9 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal static class SortDescriptionCollectionExtensions
     {
-        private static ImmutableArray<SortDescription> NameSortDescriptions { get; } = ImmutableArray.Create(new SortDescription(nameof(DocumentSymbolDataViewModel.Name), ListSortDirection.Ascending));
-        private static ImmutableArray<SortDescription> LocationSortDescriptions { get; } = ImmutableArray.Create(new SortDescription(nameof(DocumentSymbolDataViewModel.StartPosition), ListSortDirection.Ascending));
-        private static ImmutableArray<SortDescription> TypeSortDescriptions { get; } = ImmutableArray.Create(new SortDescription(nameof(DocumentSymbolDataViewModel.SymbolKind), ListSortDirection.Ascending), new SortDescription(nameof(DocumentSymbolDataViewModel.Name), ListSortDirection.Ascending));
+        private static ImmutableArray<SortDescription> NameSortDescriptions { get; } = ImmutableArray.Create(new SortDescription("Data.Name", ListSortDirection.Ascending));
+        private static ImmutableArray<SortDescription> LocationSortDescriptions { get; } = ImmutableArray.Create(new SortDescription("Data.RangeSpan.Start", ListSortDirection.Ascending));
+        private static ImmutableArray<SortDescription> TypeSortDescriptions { get; } = ImmutableArray.Create(
+            new SortDescription("Data.SymbolKind", ListSortDirection.Ascending),
+            new SortDescription("Data.Name", ListSortDirection.Ascending));
 
         public static void UpdateSortDescription(this SortDescriptionCollection sortDescriptions, SortOption sortOption)
         {
