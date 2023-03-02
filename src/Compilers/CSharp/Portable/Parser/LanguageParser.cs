@@ -344,6 +344,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.UnsafeKeyword:
                 case SyntaxKind.OpenBracketToken:
+                case SyntaxKind.ExplicitKeyword:
+                case SyntaxKind.ImplicitKeyword:
                     return true;
                 default:
                     return false;
@@ -622,7 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.DelegateDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.RoleDeclaration:
                     case SyntaxKind.ExtensionDeclaration:
                         if (seen < NamespaceParts.TypesAndNamespaces)
                         {
@@ -1192,11 +1193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (token.ContextualKind == SyntaxKind.RecordKeyword)
                 {
-                    // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                    // does not support a feature, but in this case we are effectively making a language breaking
-                    // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                    // older code that is not using C# 9 we conditionally parse based on langversion
-                    return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureRecords);
                 }
 
                 return false;
@@ -1336,20 +1333,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (nextToken.ContextualKind == SyntaxKind.RecordKeyword)
             {
-                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                // does not support a feature, but in this case we are effectively making a language breaking
-                // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                // older code that is not using C# 9 we conditionally parse based on langversion
-                return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureRecords);
             }
 
-            if (nextToken.ContextualKind is SyntaxKind.RoleKeyword or SyntaxKind.ExtensionKeyword)
+            if (nextToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword &&
+                this.PeekToken(2).ContextualKind is SyntaxKind.ExtensionKeyword)
             {
-                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                // does not support a feature, but in this case we are effectively making a language breaking
-                // change to consider "role" or "extension" a type declaration in all ambiguous cases.
-                // To avoid breaking older code that is not using C# 12 we conditionally parse based on langversion
-                return IsFeatureEnabled(MessageID.IDS_FeatureRoles);
+                return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
             }
 
             return false;
@@ -1415,13 +1405,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.ClassKeyword:
-                    return this.ParseClassOrStructOrInterfaceOrRoleDeclaration(attributes, modifiers);
-
                 case SyntaxKind.StructKeyword:
-                    return this.ParseClassOrStructOrInterfaceOrRoleDeclaration(attributes, modifiers);
-
                 case SyntaxKind.InterfaceKeyword:
-                    return this.ParseClassOrStructOrInterfaceOrRoleDeclaration(attributes, modifiers);
+                case SyntaxKind.ExplicitKeyword: // explicit extension
+                case SyntaxKind.ImplicitKeyword: // implicit extension
+                    return this.ParseClassOrStructOrInterfaceOrExtensionDeclaration(attributes, modifiers);
 
                 case SyntaxKind.DelegateKeyword:
                     return this.ParseDelegateDeclaration(attributes, modifiers);
@@ -1430,9 +1418,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.ParseEnumDeclaration(attributes, modifiers);
 
                 case SyntaxKind.IdentifierToken:
-                    Debug.Assert(CurrentToken.ContextualKind is SyntaxKind.RecordKeyword
-                        or SyntaxKind.RoleKeyword or SyntaxKind.ExtensionKeyword);
-                    return ParseClassOrStructOrInterfaceOrRoleDeclaration(attributes, modifiers);
+                    Debug.Assert(CurrentToken.ContextualKind is SyntaxKind.RecordKeyword);
+                    // record
+                    // record class
+                    // record struct
+                    return ParseClassOrStructOrInterfaceOrExtensionDeclaration(attributes, modifiers);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.CurrentToken.Kind);
@@ -1441,23 +1431,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
 #nullable enable
 
-        private TypeDeclarationSyntax ParseClassOrStructOrInterfaceOrRoleDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private TypeDeclarationSyntax ParseClassOrStructOrInterfaceOrExtensionDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
-                this.CurrentToken.ContextualKind is SyntaxKind.RecordKeyword or SyntaxKind.RoleKeyword or SyntaxKind.ExtensionKeyword);
+                this.CurrentToken.ContextualKind is SyntaxKind.RecordKeyword ||
+                (this.CurrentToken.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword && this.PeekToken(1).ContextualKind == SyntaxKind.ExtensionKeyword));
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
             var outerSaveTerm = _termState;
 
-            if (tryScanRecordStart(out var keyword, out var recordModifier))
+            SyntaxToken? firstKeyword; // class, struct, interface, record, implicit, explicit
+            SyntaxToken? secondKeyword; // class (for record class), struct (for record struct), extension
+            SyntaxToken mainKeyword; // class, struct, interface, record, extension
+            if (tryScanRecordStart(out firstKeyword, out secondKeyword))
             {
                 _termState |= TerminatorState.IsEndOfRecordSignature;
+                mainKeyword = firstKeyword;
+            }
+            else if (tryScanExtensionStart(out firstKeyword, out secondKeyword))
+            {
+                mainKeyword = secondKeyword;
             }
             else
             {
-                keyword = ConvertToKeyword(this.EatToken());
+                firstKeyword = ConvertToKeyword(this.EatToken());
+                secondKeyword = null;
+                mainKeyword = firstKeyword;
             }
 
             var saveTerm = _termState;
@@ -1466,8 +1467,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            var paramList = keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
+            var paramList = mainKeyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? ParseParenthesizedParameterList() : null;
+
+            SyntaxToken? forKeyword = null;
+            TypeSyntax? forType = null;
+            if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
+                && CurrentToken.Kind == SyntaxKind.ForKeyword)
+            {
+                // PROTOTYPE consider error recovery for `class X for type`
+                forKeyword = EatToken(SyntaxKind.ForKeyword);
+                forType = ParseType();
+            }
 
             var baseList = this.ParseBaseList();
             _termState = saveTerm;
@@ -1489,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
                 SyntaxToken? closeBrace;
-                if (keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                if (mainKeyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.SemicolonToken)
                 {
                     semicolon = EatToken(SyntaxKind.SemicolonToken);
                     openBrace = null;
@@ -1521,7 +1532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 var saveTerm2 = _termState;
                                 _termState |= TerminatorState.IsPossibleMemberStartOrStop;
 
-                                var member = this.ParseMemberDeclaration(keyword.Kind);
+                                var member = this.ParseMemberDeclaration(mainKeyword.Kind);
                                 if (member != null)
                                 {
                                     // statements are accepted here, a semantic error will be reported later
@@ -1561,7 +1572,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     semicolon = TryEatToken(SyntaxKind.SemicolonToken);
                 }
 
-                return constructTypeDeclaration(_syntaxFactory, attributes, modifiers, keyword, recordModifier, name, typeParameters, paramList, baseList, constraints, openBrace, members, closeBrace, semicolon);
+                return constructTypeDeclaration(_syntaxFactory, attributes, modifiers, firstKeyword, secondKeyword, mainKeyword, name, typeParameters, paramList,
+                    forKeyword, forType, baseList, constraints, openBrace, members, closeBrace, semicolon);
             }
             finally
             {
@@ -1610,23 +1622,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxToken keyword, SyntaxToken? recordModifier,
-                SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, BaseListSyntax baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
+            bool tryScanExtensionStart([NotNullWhen(true)] out SyntaxToken? implicitOrExplicitKeyword, [NotNullWhen(true)] out SyntaxToken? extensionKeyword)
+            {
+                // PROTOTYPE consider improving error recovery for `extension explicit` and `extension implicit`
+                if (this.CurrentToken.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword &&
+                    this.PeekToken(1).ContextualKind == SyntaxKind.ExtensionKeyword)
+                {
+                    implicitOrExplicitKeyword = EatToken();
+                    extensionKeyword = ConvertToKeyword(EatToken());
+                    return true;
+                }
+
+                implicitOrExplicitKeyword = null;
+                extensionKeyword = null;
+                return false;
+            }
+
+            static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers,
+                SyntaxToken? firstKeyword, SyntaxToken? secondKeyword, SyntaxToken mainKeyword,
+                SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, SyntaxToken? forKeyword, TypeSyntax? forType,
+                BaseListSyntax baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
                 SyntaxToken? openBrace, SyntaxListBuilder<MemberDeclarationSyntax> members, SyntaxToken? closeBrace, SyntaxToken semicolon)
             {
                 var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();
                 var membersList = (SyntaxList<MemberDeclarationSyntax>)members;
                 var constraintsList = (SyntaxList<TypeParameterConstraintClauseSyntax>)constraints;
-                switch (keyword.Kind)
+                switch (mainKeyword.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
+                        RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
+                        RoslynDebug.Assert(secondKeyword is null);
+                        RoslynDebug.Assert(forKeyword is null);
+                        RoslynDebug.Assert(forType is null);
                         RoslynDebug.Assert(paramList is null);
                         RoslynDebug.Assert(openBrace != null);
                         RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.ClassDeclaration(
                             attributes,
                             modifiersList,
-                            keyword,
+                            keyword: firstKeyword,
                             name,
                             typeParameters,
                             baseList,
@@ -1637,13 +1671,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
+                        RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
+                        RoslynDebug.Assert(secondKeyword is null);
+                        RoslynDebug.Assert(forKeyword is null);
+                        RoslynDebug.Assert(forType is null);
                         RoslynDebug.Assert(paramList is null);
                         RoslynDebug.Assert(openBrace != null);
                         RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.StructDeclaration(
                             attributes,
                             modifiersList,
-                            keyword,
+                            keyword: firstKeyword,
                             name,
                             typeParameters,
                             baseList,
@@ -1654,13 +1692,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.InterfaceKeyword:
+                        RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
+                        RoslynDebug.Assert(secondKeyword is null);
+                        RoslynDebug.Assert(forKeyword is null);
+                        RoslynDebug.Assert(forType is null);
                         RoslynDebug.Assert(paramList is null);
                         RoslynDebug.Assert(openBrace != null);
                         RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.InterfaceDeclaration(
                             attributes,
                             modifiersList,
-                            keyword,
+                            keyword: firstKeyword,
                             name,
                             typeParameters,
                             baseList,
@@ -1674,13 +1716,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // record struct ...
                         // record ...
                         // record class ...
-                        SyntaxKind declarationKind = recordModifier?.Kind == SyntaxKind.StructKeyword ? SyntaxKind.RecordStructDeclaration : SyntaxKind.RecordDeclaration;
+                        RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
+                        RoslynDebug.Assert(secondKeyword is null or { Kind: SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword });
+                        RoslynDebug.Assert(forKeyword is null);
+                        RoslynDebug.Assert(forType is null);
+                        SyntaxKind declarationKind = secondKeyword?.Kind == SyntaxKind.StructKeyword ? SyntaxKind.RecordStructDeclaration : SyntaxKind.RecordDeclaration;
                         return syntaxFactory.RecordDeclaration(
                             declarationKind,
                             attributes,
                             modifiers.ToList(),
-                            keyword,
-                            classOrStructKeyword: recordModifier,
+                            keyword: firstKeyword,
+                            classOrStructKeyword: secondKeyword,
                             name,
                             typeParameters,
                             paramList,
@@ -1691,29 +1737,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             closeBrace,
                             semicolon);
 
-                    case SyntaxKind.RoleKeyword:
-                        // role ...
-                        return syntaxFactory.RoleDeclaration(
-                            attributes,
-                            modifiers.ToList(),
-                            keyword,
-                            name,
-                            typeParameters,
-                            baseList,
-                            constraints,
-                            openBrace,
-                            members,
-                            closeBrace,
-                            semicolon);
-
                     case SyntaxKind.ExtensionKeyword:
-                        // extension ...
+                        // explicit extension
+                        // implicit extension
+                        RoslynDebug.Assert(firstKeyword!.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword);
+                        RoslynDebug.Assert(secondKeyword == (object)mainKeyword);
+                        RoslynDebug.Assert(secondKeyword!.Kind == SyntaxKind.ExtensionKeyword);
+                        RoslynDebug.Assert(forKeyword is null == forType is null);
+
+                        ForTypeSyntax? forUnderlyingType = forKeyword == null ? null : syntaxFactory.ForType(forKeyword, forType!);
                         return syntaxFactory.ExtensionDeclaration(
                             attributes,
                             modifiers.ToList(),
-                            keyword,
+                            implicitOrExplicitKeyword: firstKeyword,
+                            keyword: secondKeyword,
                             name,
                             typeParameters,
+                            forUnderlyingType,
                             baseList,
                             constraints,
                             openBrace,
@@ -1722,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(keyword.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(mainKeyword.Kind);
                 }
             }
         }
@@ -2083,24 +2123,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.StructKeyword:
                     return true;
 
+                case SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword
+                    when this.PeekToken(1).ContextualKind is SyntaxKind.ExtensionKeyword:
+
+                    return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
+
                 case SyntaxKind.IdentifierToken:
                     if (CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
                     {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 9 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                        return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureRecords);
                     }
 
-                    if (CurrentToken.ContextualKind is SyntaxKind.RoleKeyword or SyntaxKind.ExtensionKeyword)
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "role" or "extension" a type declaration in all ambiguous cases.
-                        // To avoid breaking older code that is not using C# 12 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRoles);
-                    }
                     return false;
 
                 default:
@@ -2129,7 +2162,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.FileScopedNamespaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                case SyntaxKind.RoleDeclaration:
                 case SyntaxKind.ExtensionDeclaration:
                     return true;
                 case SyntaxKind.FieldDeclaration:
@@ -3347,6 +3379,12 @@ parse_member_name:;
                 var style = this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword
                     ? this.EatToken()
                     : this.EatToken(SyntaxKind.ExplicitKeyword);
+
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword)
+                {
+                    this.Reset(ref point);
+                    return null;
+                }
 
                 ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt = tryParseExplicitInterfaceSpecifier();
                 Debug.Assert(!style.IsMissing || haveExplicitInterfaceName == explicitInterfaceOpt is not null);
@@ -4854,7 +4892,6 @@ parse_member_name:;
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.RoleDeclaration:
                     case SyntaxKind.ExtensionDeclaration:
                         return ((CSharp.Syntax.TypeDeclarationSyntax)decl).Modifiers;
                     case SyntaxKind.DelegateDeclaration:

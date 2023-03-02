@@ -313,7 +313,6 @@ type_declaration
   | extension_declaration
   | interface_declaration
   | record_declaration
-  | role_declaration
   | struct_declaration
   ;
 
@@ -322,7 +321,11 @@ class_declaration
   ;
 
 extension_declaration
-  : attribute_list* modifier* syntax_token identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  : attribute_list* modifier* ('implicit' | 'explicit') 'extension' identifier_token type_parameter_list? for_type? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  ;
+
+for_type
+  : 'for' type
   ;
 
 interface_declaration
@@ -331,10 +334,6 @@ interface_declaration
 
 record_declaration
   : attribute_list* modifier* syntax_token ('class' | 'struct')? identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
-  ;
-
-role_declaration
-  : attribute_list* modifier* syntax_token identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 struct_declaration

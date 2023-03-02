@@ -1106,6 +1106,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
+        /// This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+        /// does not support a feature, but this is used to make a language breaking change.
+        /// To avoid breaking older code that is not using the new langver
+        /// we conditionally parse based on langversion
+        /// </summary>
+        protected bool IsCompatBreakingFeatureEnabled(MessageID feature)
+        {
+            return IsFeatureEnabled(feature);
+        }
+
+        /// <summary>
         /// Whenever parsing in a <c>while (true)</c> loop and a bug could prevent the loop from making progress,
         /// this method can prevent the parsing from hanging.
         /// Use as:
