@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// It is expected that these can be modified from any thread with INotifyPropertyChanged notifications
     /// being marshalled to the correct thread by WPF if there needs to be a change to the visual presentation.
     /// </summary>
-    internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged, IEquatable<DocumentSymbolDataViewModel>
+    internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged
     {
         public DocumentSymbolData Data { get; }
         public ImmutableArray<DocumentSymbolDataViewModel> Children { get; init; }
@@ -81,23 +81,5 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             field = value;
             NotifyPropertyChanged(propertyName);
         }
-
-        public static bool operator ==(DocumentSymbolDataViewModel left, DocumentSymbolDataViewModel right)
-            => left.Equals(right);
-
-        public static bool operator !=(DocumentSymbolDataViewModel left, DocumentSymbolDataViewModel right)
-            => !(left == right);
-
-        public override bool Equals(object obj)
-            => Equals(obj as DocumentSymbolDataViewModel);
-
-        public bool Equals(DocumentSymbolDataViewModel? other)
-            => ReferenceEquals(this, other) ||
-                 (other is not null &&
-                   (RangeSpan.Span, Name, SymbolKind) ==
-                   (other.RangeSpan.Span, other.Name, other.SymbolKind));
-
-        public override int GetHashCode()
-            => (RangeSpan.Span.Start, RangeSpan.Span.End, Name, SymbolKind).GetHashCode();
     }
 }
