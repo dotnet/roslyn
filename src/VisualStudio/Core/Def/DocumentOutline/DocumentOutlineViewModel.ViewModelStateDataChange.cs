@@ -8,6 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     internal sealed partial class DocumentOutlineViewModel
     {
-        private sealed record ViewModelStateDataChange(string? SearchText, CaretPosition? CaretPositionOfNodeToSelect, ExpansionOption? ExpansionOption, bool DataUpdated);
+        private sealed record ViewModelStateDataChange(string? SearchText, CaretPosition? CaretPositionOfNodeToSelect, bool? ShouldExpand, bool DataUpdated);
     }
 }

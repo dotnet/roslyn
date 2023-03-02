@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -91,10 +91,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
-            => _viewModel.EnqueueExpandOrCollapse(ExpansionOption.Expand);
+            => _viewModel.EnqueueExpandOrCollapse(true);
 
         private void CollapseAll(object sender, RoutedEventArgs e)
-            => _viewModel.EnqueueExpandOrCollapse(ExpansionOption.Collapse);
+            => _viewModel.EnqueueExpandOrCollapse(false);
 
         private void SortByName(object sender, EventArgs e)
             => UpdateSort(SortOption.Name);

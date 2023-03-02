@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -183,19 +183,19 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var model = DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
 
-            _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText, CaretPositionOfNodeToSelect: null, ExpansionOption: null, DataUpdated: true));
+            _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText, CaretPositionOfNodeToSelect: null, ShouldExpand: null, DataUpdated: true));
 
             return model;
         }
 
         private void EnqueueFilter(string? newText)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(newText, CaretPositionOfNodeToSelect: null, ExpansionOption: null, DataUpdated: false));
+            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(newText, CaretPositionOfNodeToSelect: null, ShouldExpand: null, DataUpdated: false));
 
         public void EnqueueSelectTreeNode(CaretPosition caretPoint)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText, caretPoint, ExpansionOption: null, DataUpdated: false));
+            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText, caretPoint, ShouldExpand: null, DataUpdated: false));
 
-        public void EnqueueExpandOrCollapse(ExpansionOption option)
-            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText, CaretPositionOfNodeToSelect: null, option, DataUpdated: false));
+        public void EnqueueExpandOrCollapse(bool shouldExpand)
+            => _updateViewModelStateQueue.AddWork(new ViewModelStateDataChange(SearchText, CaretPositionOfNodeToSelect: null, ShouldExpand: shouldExpand, DataUpdated: false));
 
         private async ValueTask UpdateViewModelStateAsync(ImmutableSegmentedList<ViewModelStateDataChange> viewModelStateData, CancellationToken cancellationToken)
         {
@@ -205,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var model = await _documentSymbolQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
             var searchText = viewModelStateData.SelectLastNonNullOrDefault(static x => x.SearchText);
             var position = viewModelStateData.SelectLastNonNullOrDefault(static x => x.CaretPositionOfNodeToSelect);
-            var expansion = viewModelStateData.SelectLastNonNullOrDefault(static x => x.ExpansionOption);
+            var expansion = viewModelStateData.SelectLastNonNullOrDefault(static x => x.ShouldExpand);
             var dataUpdated = viewModelStateData.Any(static x => x.DataUpdated);
 
             // These updates always require a valid model to perform
@@ -262,9 +262,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 DocumentOutlineHelper.SetExpansionOption(DocumentSymbolViewModelItems, expansionOption);
             }
-            else if (expansion is ExpansionOption.Collapse)
+            else if (expansion is { } shouldExpand)
             {
-                DocumentOutlineHelper.SetExpansionOption(DocumentSymbolViewModelItems, ExpansionOption.Collapse);
+                DocumentOutlineHelper.SetExpansionOption(DocumentSymbolViewModelItems, shouldExpand);
             }
 
             static void ApplyExpansionStateToNewItems(ImmutableArray<DocumentSymbolDataViewModel> oldItems, ImmutableArray<DocumentSymbolDataViewModel> newItems)
