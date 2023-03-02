@@ -51,7 +51,7 @@ try {
   Write-Host "Running BuildBoss"
   $buildBossPath = GetProjectOutputBinary "BuildBoss.exe"
   Write-Host "$buildBossPath -r `"$RepoRoot`" -c $configuration -p Roslyn.sln"
-  Exec-Console $buildBossPath "-r `"$RepoRoot`" -c $configuration" -p Roslyn.sln
+  Exec-Console $buildBossPath -r "$RepoRoot" -c $configuration -p Roslyn.sln
   Write-Host ""
 
   # Verify the state of our generated syntax files
