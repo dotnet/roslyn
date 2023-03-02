@@ -23,8 +23,8 @@ internal partial class SolutionAssetStorage
         public readonly SolutionState Solution;
 
         /// <summary>
-        ///  Will be disposed from <see cref="SolutionAssetStorage.DecreaseScopeRefCount(Scope)"/> when the last
-        ///  ref-count to this scope goes away.
+        ///  Will be disposed from <see cref="DecreaseScopeRefCount(Scope)"/> when the last ref-count to this scope goes
+        ///  away.
         /// </summary>
         public readonly SolutionReplicationContext ReplicationContext = new();
 
@@ -50,7 +50,7 @@ internal partial class SolutionAssetStorage
         /// Retrieve asset of a specified <paramref name="checksum"/> available within <see langword="this"/> from
         /// the storage.
         /// </summary>
-        public async ValueTask<SolutionAsset?> GetAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<SolutionAsset> GetAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
             if (checksum == Checksum.Null)
             {
@@ -58,20 +58,7 @@ internal partial class SolutionAssetStorage
                 return SolutionAsset.Null;
             }
 
-            var remotableData = await FindAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
-            if (remotableData != null)
-            {
-                return remotableData;
-            }
-
-            // if it reached here, it means things get canceled. due to involving 2 processes,
-            // current design can make slightly staled requests to running even when things canceled.
-            // if it is other case, remote host side will throw and close connection which will cause
-            // vs to crash.
-            // this should be changed once I address this design issue
-            cancellationToken.ThrowIfCancellationRequested();
-
-            return null;
+            return await FindAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -79,7 +66,7 @@ internal partial class SolutionAssetStorage
         /// the storage.
         /// </summary>
         public async ValueTask<IReadOnlyDictionary<Checksum, SolutionAsset>> GetAssetsAsync(
-            IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+            Checksum[] checksums, CancellationToken cancellationToken)
         {
             using var checksumsToFind = Creator.CreateChecksumSet(checksums);
 
@@ -92,42 +79,28 @@ internal partial class SolutionAssetStorage
             }
 
             await FindAssetsAsync(checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
-            if (result.Count == numberOfChecksumsToSearch)
-            {
-                // no checksum left to find
-                Debug.Assert(checksumsToFind.Object.Count == 0);
-                return result;
-            }
+            Contract.ThrowIfTrue(result.Count != numberOfChecksumsToSearch);
 
-            // if it reached here, it means things get canceled. due to involving 2 processes,
-            // current design can make slightly staled requests to running even when things canceled.
-            // if it is other case, remote host side will throw and close connection which will cause
-            // vs to crash.
-            // this should be changed once I address this design issue
-            cancellationToken.ThrowIfCancellationRequested();
-
+            // no checksum left to find
+            Debug.Assert(checksumsToFind.Object.Count == 0);
             return result;
         }
 
         /// <summary>
         /// Find an asset of the specified <paramref name="checksum"/> within <see langword="this"/>.
         /// </summary>
-        private async ValueTask<SolutionAsset?> FindAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+        private async ValueTask<SolutionAsset> FindAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
             using var checksumPool = Creator.CreateChecksumSet(SpecializedCollections.SingletonEnumerable(checksum));
             using var resultPool = Creator.CreateResultSet();
 
             await FindAssetsAsync(checksumPool.Object, resultPool.Object, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfTrue(resultPool.Object.Count != 1);
 
-            if (resultPool.Object.Count == 1)
-            {
-                var (resultingChecksum, value) = resultPool.Object.First();
-                Contract.ThrowIfFalse(checksum == resultingChecksum);
+            var (resultingChecksum, value) = resultPool.Object.First();
+            Contract.ThrowIfFalse(checksum == resultingChecksum);
 
-                return new SolutionAsset(checksum, value);
-            }
-
-            return null;
+            return new SolutionAsset(checksum, value);
         }
 
         /// <summary>
