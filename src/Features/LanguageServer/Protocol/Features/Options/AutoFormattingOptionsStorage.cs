@@ -18,17 +18,13 @@ internal static class AutoFormattingOptionsStorage
             FormatOnCloseBrace = globalOptions.GetOption(FormatOnCloseBrace, language)
         };
 
-    private static readonly OptionGroup s_formattingGroup = new(
-        FeaturesResources.Formatting,
-        int.MaxValue,
-        null,
-        FeaturesResources.ResourceManager.GetString(nameof(FeaturesResources.Formatting), new CultureInfo("en")));
+    private static readonly OptionGroup s_formattingGroup = new(name: "Formatting", description: "");
 
     internal static readonly PerLanguageOption2<bool> FormatOnReturn = new(
         "csharp_format_on_return", AutoFormattingOptions.Default.FormatOnReturn, group: s_formattingGroup);
 
     public static readonly PerLanguageOption2<bool> FormatOnTyping = new(
-        "csharp_format_on_typing", AutoFormattingOptions.Default.FormatOnTyping);
+        "csharp_format_on_typing", AutoFormattingOptions.Default.FormatOnTyping, group: s_formattingGroup);
 
     public static readonly PerLanguageOption2<bool> FormatOnSemicolon = new(
         "csharp_format_on_semicolon", AutoFormattingOptions.Default.FormatOnSemicolon, group: s_formattingGroup);

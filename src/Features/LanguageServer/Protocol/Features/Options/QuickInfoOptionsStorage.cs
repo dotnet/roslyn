@@ -16,14 +16,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
               IncludeNavigationHintsInQuickInfo = globalOptions.GetOption(IncludeNavigationHintsInQuickInfo),
           };
 
-        private static readonly OptionGroup s_quickInfoGroup = new(
-            FeaturesResources.Symbol_Description,
-            int.MaxValue,
-            null,
-            FeaturesResources.ResourceManager.GetString(nameof(FeaturesResources.Symbol_Description), new CultureInfo("en")));
+        private static readonly OptionGroup s_quickInfoGroup = new(name: "Quick Info", description: "");
 
         public static readonly PerLanguageOption2<bool> ShowRemarksInQuickInfo = new(
-            "dotnet_show_remarks", QuickInfoOptions.Default.ShowRemarksInQuickInfo, group: s_quickInfoGroup);
+            "dotnet_include_remarks_in_quick_info", QuickInfoOptions.Default.ShowRemarksInQuickInfo, group: s_quickInfoGroup);
 
         public static readonly Option2<bool> IncludeNavigationHintsInQuickInfo = new(
             "dotnet_include_navigation_hints", QuickInfoOptions.Default.IncludeNavigationHintsInQuickInfo);

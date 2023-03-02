@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Globalization;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
@@ -21,11 +20,7 @@ namespace Microsoft.CodeAnalysis.ImplementType
           => new(globalOptions.GetImplementTypeOptions(languageServices.Language),
                  globalOptions.CreateProvider());
 
-        private static readonly OptionGroup s_implementTypeGroup = new(
-            FeaturesResources.Implement_Type,
-            priority: int.MaxValue,
-            parent: null,
-            nonLocalizedDescription: FeaturesResources.ResourceManager.GetString(nameof(FeaturesResources.Implement_Type), new CultureInfo("en")));
+        private static readonly OptionGroup s_implementTypeGroup = new(name: "Implement Type", description: "");
 
         public static readonly PerLanguageOption2<ImplementTypeInsertionBehavior> InsertionBehavior =
             new("dotnet_insertion_behavior",

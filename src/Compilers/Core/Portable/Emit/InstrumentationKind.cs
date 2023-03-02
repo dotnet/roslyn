@@ -15,13 +15,15 @@ namespace Microsoft.CodeAnalysis.Emit
         None = 0,
 
         /// <summary>
-        /// Instruments the binary to add test coverage.
+        /// Instruments the code to add test coverage.
         /// </summary>
         TestCoverage = 1,
     }
 
     internal static class InstrumentationKindExtensions
     {
+        internal const InstrumentationKind LocalStateTracing = (InstrumentationKind)(-1);
+
         internal static bool IsValid(this InstrumentationKind value)
         {
             return value >= InstrumentationKind.None && value <= InstrumentationKind.TestCoverage;

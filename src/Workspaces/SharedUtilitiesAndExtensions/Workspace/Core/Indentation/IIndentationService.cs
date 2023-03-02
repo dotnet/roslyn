@@ -30,12 +30,15 @@ namespace Microsoft.CodeAnalysis.Indentation
         public static string GetPreferredIndentation(this SyntaxToken token, ParsedDocument document, IndentationOptions options, CancellationToken cancellationToken)
         {
             var tokenLine = document.Text.Lines.GetLineFromPosition(token.SpanStart);
-            var firstNonWhitespacePos = tokenLine.GetFirstNonWhitespacePosition();
-            Contract.ThrowIfNull(firstNonWhitespacePos);
-            if (firstNonWhitespacePos.Value == token.SpanStart)
+            if (tokenLine.Start != token.SpanStart)
             {
-                // token was on it's own line.  Start the end delimiter at the same location as it.
-                return tokenLine.Text!.ToString(TextSpan.FromBounds(tokenLine.Start, token.SpanStart));
+                var firstNonWhitespacePos = tokenLine.GetFirstNonWhitespacePosition();
+                Contract.ThrowIfNull(firstNonWhitespacePos);
+                if (firstNonWhitespacePos.Value == token.SpanStart)
+                {
+                    // token was on it's own line.  Start the end delimiter at the same location as it.
+                    return document.Text.ToString(TextSpan.FromBounds(tokenLine.Start, token.SpanStart));
+                }
             }
 
             // Token was on a line with something else.  Determine where we would indent the token if it was on the next

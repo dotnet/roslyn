@@ -316,9 +316,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
     internal static class CSharpFormattingOptionGroups
     {
-        public static readonly OptionGroup NewLine = new(WorkspacesResources.New_line_preferences, priority: 1);
-        public static readonly OptionGroup Indentation = new(CSharpWorkspaceResources.Indentation_preferences, priority: 2);
-        public static readonly OptionGroup Spacing = new(CSharpWorkspaceResources.Space_preferences, priority: 3);
-        public static readonly OptionGroup Wrapping = new(CSharpWorkspaceResources.Wrapping_preferences, priority: 4);
+        private const string optionGroupName = "Formatting";
+        public static readonly OptionGroup NewLine = new(optionGroupName, WorkspacesResources.New_line_preferences, priority: 1);
+        public static readonly OptionGroup Indentation = new(optionGroupName, CSharpWorkspaceResources.Indentation_preferences, priority: 2);
+        public static readonly OptionGroup Spacing = new(optionGroupName, CSharpWorkspaceResources.Space_preferences, priority: 3);
+        public static readonly OptionGroup Wrapping = new(optionGroupName, CSharpWorkspaceResources.Wrapping_preferences, priority: 4);
     }
 }
