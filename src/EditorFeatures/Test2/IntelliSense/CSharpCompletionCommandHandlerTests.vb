@@ -11503,8 +11503,7 @@ class Program
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
-                Await state.AssertCompletionItemsDoNotContainAny("first")
+                Await state.AssertCompletionItemsDoNotContainAny("first", "second")
             End Using
         End Function
     End Class
