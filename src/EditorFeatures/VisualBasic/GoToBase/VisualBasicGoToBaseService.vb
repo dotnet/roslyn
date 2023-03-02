@@ -6,6 +6,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.GoToBase
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GoToBase
     <ExportLanguageService(GetType(IGoToBaseService), LanguageNames.VisualBasic), [Shared]>
@@ -17,8 +18,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToBase
         Public Sub New()
         End Sub
 
-        Protected Overrides Function FindNextConstructorInChainAsync(solution As Solution, constructor As IMethodSymbol, cancellationToken As CancellationToken) As Task(Of IMethodSymbol)
-            Return SpecializedTasks.Null(Of IMethodSymbol)
+        Protected Overrides Async Function FindNextConstructorInChainAsync(solution As Solution, constructor As IMethodSymbol, cancellationToken As CancellationToken) As Task(Of IMethodSymbol)
+            Dim subNew = TryCast(constructor.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(cancellationToken), SubNewStatementSyntax)
+            If subNew Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim constructorBlock = TryCast(subNew.Parent, ConstructorBlockSyntax)
+            If constructorBlock Is Nothing OrElse constructorBlock.Statements.Count = 0 Then
+                Return Nothing
+            End If
+
+            Dim initializer As MemberAccessExpressionSyntax = Nothing
+            If Not constructorBlock.Statements(0).IsConstructorInitializer(initializer) Then
+                Return Nothing
+            End If
+
+            Dim document = solution.GetDocument(constructorBlock.SyntaxTree)
+            If Document Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim semanticModel = Await Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+
+            Return TryCast(semanticModel.GetSymbolInfo(initializer, cancellationToken).GetAnySymbol(), IMethodSymbol)
         End Function
     End Class
 End Namespace
