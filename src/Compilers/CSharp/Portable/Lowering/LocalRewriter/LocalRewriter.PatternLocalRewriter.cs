@@ -297,18 +297,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, access);
                         }
-                    case BoundDagEnumeratorEvaluation:
-                        {
-                            throw ExceptionUtilities.Unreachable();
-                        }
                     case BoundDagElementEvaluation e:
                         {
                             if (!e.IsFromEnd)
                             {
                                 // successTemp = TryGetElementFromStart(index, out elementTemp)
                                 var method = e.BufferInfo.TryGetElementFromStartMethod;
-                                var successTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, _factory.SpecialType(SpecialType.System_Boolean), e, index: 0));
-                                var elementTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, e.EnumeratorInfo.ElementType, e, index: 1));
+                                var successTemp = _tempAllocator.GetTemp(e.SuccessTemp(_factory.Compilation));
+                                var elementTemp = _tempAllocator.GetTemp(e.ElementTemp());
                                 var callExpr = _factory.Call(input, method,
                                     refKinds: ImmutableArray.Create(RefKind.None, RefKind.Out),
                                     args: ImmutableArray.Create(_factory.Literal(e.Index), elementTemp));
@@ -318,11 +314,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // elementTemp = GetElementFromEnd(index)
                                 var method = e.BufferInfo.GetElementFromEndMethod;
-                                var elementTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, e.EnumeratorInfo.ElementType, e, index: 1));
+                                var elementTemp = _tempAllocator.GetTemp(e.ElementTemp());
                                 var callExpr = _factory.Call(input, method, _factory.Literal(-e.Index));
                                 return _factory.AssignmentExpression(elementTemp, callExpr);
                             }
                         }
+                    case BoundDagEnumeratorEvaluation:
                     case BoundDagAssignmentEvaluation:
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);

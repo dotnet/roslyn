@@ -1551,25 +1551,9 @@
   </Node>
   <Node Name="BoundDagElementEvaluation" Base="BoundDagEvaluation">
     <Field Name="Index" Type="int"/>
-    <!--
-    - When there is no buffer:
-        successTemp = enumeratorTemp.MoveNext()
-        elementTemp = enumeratorTemp.Current
-    PROTOTYPE: `Current` must be called only if `MoveNext()` is true, so it's not as straightforward
-    - Otherwise, one of:
-        successTemp = bufferTemp.TryGetElementFromStart(i, out elementTemp)
-        elementTemp = bufferTemp.GetElementFromEnd(i)
-    -->
-    <Field Name="EnumeratorInfo" Type="ForEachEnumeratorInfo"/>
     <Field Name="BufferInfo" Type="ListPatternBufferInfo"/>
   </Node>
   <Node Name="BoundDagEnumeratorEvaluation" Base="BoundDagEvaluation">
-    <!--
-      - When there is no buffer:
-          enumeratorTemp = e.GetEnumerator()
-      - Otherwise:
-          bufferTemp = new Buffer(enumeratorTemp = e.GetEnumerator())
-    -->
     <Field Name="EnumeratorInfo" Type="ForEachEnumeratorInfo"/>
     <Field Name="BufferInfo" Type="ListPatternBufferInfo"/>
   </Node>

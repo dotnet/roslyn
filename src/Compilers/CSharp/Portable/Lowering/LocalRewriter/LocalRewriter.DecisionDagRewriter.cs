@@ -498,39 +498,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                _toDispose.Add(e);
+                if (e.EnumeratorInfo.NeedsDisposal)
+                {
+                    _toDispose.Add(e);
+                }
 
+                BoundDagTemp bufferTemp = e.BufferTemp();
                 int fromStartCount = 0;
                 int fromEndCount = 0;
                 for (int i = indexOfNode + 1; i < nodesToLower.Length; i++)
                 {
                     if (nodesToLower[i] is BoundEvaluationDecisionDagNode { Evaluation: BoundDagElementEvaluation element } &&
-                        element.Input.Source?.Equals(e) == true)
+                        element.Input.Equals(bufferTemp))
                     {
                         if (!element.IsFromEnd)
+                            // PROTOTYPE: This might be one too many, because !TryGet counts
                             fromStartCount = Math.Max(fromStartCount, element.Index+1);
                         else
                             fromEndCount = Math.Max(fromEndCount, (-element.Index));
                     }
                 }
 
-                if (fromEndCount == 0)
-                {
-                    // PROTOTYPE: Consider avoiding the buffer entirely
-                }
-
                 BoundExpression input = _tempAllocator.GetTemp(e.Input);
                 var getEnumeratorMethod = e.EnumeratorInfo.GetEnumeratorInfo.Method;
                 var callExpr = _factory.Call(input, getEnumeratorMethod);
-                var enumeratorTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, getEnumeratorMethod.ReturnType, e, index: 0));
-                var bufferType = e.BufferInfo.BufferType;
-                var bufferCtor = e.BufferInfo.Constructor;
-                var bufferTemp = _tempAllocator.GetTemp(new BoundDagTemp(e.Syntax, bufferType, e, index: 1));
-                var bufferCtorArgs = ImmutableArray.Create<BoundExpression>(
-                    _factory.AssignmentExpression(enumeratorTemp, callExpr),
-                    _factory.Literal(fromStartCount),
-                    _factory.Literal(fromEndCount));
-                var sideEffect = _factory.AssignmentExpression(bufferTemp, _factory.New(bufferCtor, bufferCtorArgs));
+                var enumeratorTemp = _tempAllocator.GetTemp(e.EnumeratorTemp());
+                var sideEffect = _factory.AssignmentExpression(
+                    _tempAllocator.GetTemp(bufferTemp),
+                    _factory.New(
+                        e.BufferInfo.Constructor,
+                        ImmutableArray.Create<BoundExpression>(
+                            _factory.AssignmentExpression(enumeratorTemp, callExpr),
+                            _factory.Literal(fromStartCount),
+                            _factory.Literal(fromEndCount))));
                 _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
                 if (nextNode != evalNode.Next)
                 {

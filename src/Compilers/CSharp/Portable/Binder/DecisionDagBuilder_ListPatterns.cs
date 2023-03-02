@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Tests.AndSequence.Create(tests);
         }
 
-        // TODO(elp): Share code
         private Tests MakeTestsAndBindingsForEnumerableListPattern(BoundDagTemp input, BoundEnumerableListPattern list, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
         {
             var syntax = list.Syntax;
@@ -112,10 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var enumeratorEvaluation = new BoundDagEnumeratorEvaluation(syntax, list.EnumeratorInfo, list.BufferInfo, input);
-                // PROTOTYPE: Will be only used to call Dispose during lowering
                 // PROTOTYPE: Assuming this is non-null
-                // var enumeratorTemp = new BoundDagTemp(syntax, list.GetEnumeratorMethod.ReturnType, enumeratorEvaluation, index: 0);
-                var bufferTemp = new BoundDagTemp(syntax, list.BufferInfo.BufferType, enumeratorEvaluation, index: 1);
+                // Will be only used to call Dispose during lowering
+                // var enumeratorTemp = enumeratorEvaluation.EnumeratorTemp();
+                var bufferTemp = enumeratorEvaluation.BufferTemp();
 
                 tests.Add(new Tests.One(enumeratorEvaluation));
 
@@ -127,10 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (subpattern is BoundSlicePattern slice)
                     {
-                        var elementEvaluation = new BoundDagElementEvaluation(syntax, subpatterns.Length - 1, list.EnumeratorInfo, list.BufferInfo, bufferTemp);
-                        var successTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), elementEvaluation, index: 0);
-                        tests.Add(new Tests.One(elementEvaluation));
-                        tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.True, successTemp)));
+                        for (int j = index, n = subpatterns.Length - 2; j <= n; j++)
+                        {
+                            var elementEvaluation = new BoundDagElementEvaluation(syntax, j, list.BufferInfo, bufferTemp);
+                            var successTemp = elementEvaluation.SuccessTemp(_compilation);
+                            tests.Add(new Tests.One(elementEvaluation));
+                            tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.True, successTemp)));
+                        }
 
                         index -= subpatterns.Length - 1;
                         if (slice.Pattern is not null)
@@ -139,18 +141,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // PROTOTYPE: Could return Span/IEnumerable or both and select using explicit type [.. ROS<int>] which is also considered for arrays
                             throw new NotImplementedException();
                         }
-
-                        continue;
                     }
                     else
                     {
-                        var elementEvaluation = new BoundDagElementEvaluation(subpattern.Syntax, index++, list.EnumeratorInfo, list.BufferInfo, bufferTemp);
-                        var elementTemp = new BoundDagTemp(syntax, list.EnumeratorInfo.ElementType, elementEvaluation, index: 1);
+                        var elementEvaluation = new BoundDagElementEvaluation(subpattern.Syntax, index++, list.BufferInfo, bufferTemp);
+                        var elementTemp = elementEvaluation.ElementTemp();
                         tests.Add(new Tests.One(elementEvaluation));
 
                         if (!elementEvaluation.IsFromEnd)
                         {
-                            var successTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), elementEvaluation, index: 0);
+                            BoundDagTemp successTemp = elementEvaluation.SuccessTemp(_compilation);
                             tests.Add(new Tests.One(new BoundDagValueTest(subpattern.Syntax, ConstantValue.True, successTemp)));
                         }
 
@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!list.HasSlice)
                 {
-                    var elementEvaluation = new BoundDagElementEvaluation(syntax, index, list.EnumeratorInfo, list.BufferInfo, bufferTemp);
-                    var successTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), elementEvaluation, index: 0);
+                    var elementEvaluation = new BoundDagElementEvaluation(syntax, index, list.BufferInfo, bufferTemp);
+                    var successTemp = elementEvaluation.SuccessTemp(_compilation);
                     tests.Add(new Tests.One(elementEvaluation));
                     tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.False, successTemp)));
                 }

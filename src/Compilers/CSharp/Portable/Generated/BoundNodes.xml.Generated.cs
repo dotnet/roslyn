@@ -5259,31 +5259,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDagElementEvaluation : BoundDagEvaluation
     {
-        public BoundDagElementEvaluation(SyntaxNode syntax, int index, ForEachEnumeratorInfo enumeratorInfo, ListPatternBufferInfo bufferInfo, BoundDagTemp input, bool hasErrors = false)
+        public BoundDagElementEvaluation(SyntaxNode syntax, int index, ListPatternBufferInfo bufferInfo, BoundDagTemp input, bool hasErrors = false)
             : base(BoundKind.DagElementEvaluation, syntax, input, hasErrors || input.HasErrors())
         {
 
-            RoslynDebug.Assert(enumeratorInfo is object, "Field 'enumeratorInfo' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(bufferInfo is object, "Field 'bufferInfo' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Index = index;
-            this.EnumeratorInfo = enumeratorInfo;
             this.BufferInfo = bufferInfo;
         }
 
         public int Index { get; }
-        public ForEachEnumeratorInfo EnumeratorInfo { get; }
         public ListPatternBufferInfo BufferInfo { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagElementEvaluation(this);
 
-        public BoundDagElementEvaluation Update(int index, ForEachEnumeratorInfo enumeratorInfo, ListPatternBufferInfo bufferInfo, BoundDagTemp input)
+        public BoundDagElementEvaluation Update(int index, ListPatternBufferInfo bufferInfo, BoundDagTemp input)
         {
-            if (index != this.Index || enumeratorInfo != this.EnumeratorInfo || bufferInfo != this.BufferInfo || input != this.Input)
+            if (index != this.Index || bufferInfo != this.BufferInfo || input != this.Input)
             {
-                var result = new BoundDagElementEvaluation(this.Syntax, index, enumeratorInfo, bufferInfo, input, this.HasErrors);
+                var result = new BoundDagElementEvaluation(this.Syntax, index, bufferInfo, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11158,7 +11155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDagElementEvaluation(BoundDagElementEvaluation node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(node.Index, node.EnumeratorInfo, node.BufferInfo, input);
+            return node.Update(node.Index, node.BufferInfo, input);
         }
         public override BoundNode? VisitDagEnumeratorEvaluation(BoundDagEnumeratorEvaluation node)
         {
@@ -15520,7 +15517,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDagElementEvaluation(BoundDagElementEvaluation node, object? arg) => new TreeDumperNode("dagElementEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("index", node.Index, null),
-            new TreeDumperNode("enumeratorInfo", node.EnumeratorInfo, null),
             new TreeDumperNode("bufferInfo", node.BufferInfo, null),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

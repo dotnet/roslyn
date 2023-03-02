@@ -536,7 +536,6 @@ namespace Microsoft.CodeAnalysis
         System_MissingMethodException__ctor,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
-        // PROTOTYPE: Should be a concerete symbol rather than a well-known member
         System_Runtime_CompilerServices_Buffer_T__ctor,
         System_Runtime_CompilerServices_Buffer_T__TryGetElementFromStart,
         System_Runtime_CompilerServices_Buffer_T__GetElementFromEnd,

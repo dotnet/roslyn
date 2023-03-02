@@ -329,7 +329,6 @@ namespace Microsoft.CodeAnalysis
         System_MissingMethodException,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
 
-        // PROTOTYPE: Should probably embedded into the compilation
         System_Runtime_CompilerServices_Buffer_T,
 
         NextAvailable,

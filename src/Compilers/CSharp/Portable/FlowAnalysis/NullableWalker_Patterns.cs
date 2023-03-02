@@ -512,12 +512,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     addTemp(e, e.Property.Type);
                                     break;
                                 case BoundDagElementEvaluation e:
+                                    // PROTOTYPE: Nullability
                                     if (!e.IsFromEnd)
                                     {
                                         addTemp(e, this.compilation.GetSpecialType(SpecialType.System_Boolean), index: 0);
                                     }
 
-                                    addTemp(e, e.EnumeratorInfo.ElementType, index: 1);
+                                    addTemp(e, e.BufferInfo.ElementType, index: 1);
                                     break;
                                 case BoundDagEnumeratorEvaluation e:
                                     addTemp(e, e.EnumeratorInfo.GetEnumeratorInfo.Method.ReturnType, index: 0);

@@ -12,6 +12,7 @@ internal sealed class ListPatternBufferInfo
     public readonly MethodSymbol Constructor;
     public readonly MethodSymbol TryGetElementFromStartMethod;
     public readonly MethodSymbol GetElementFromEndMethod;
+    public TypeSymbol ElementType => GetElementFromEndMethod.ReturnType;
 
     public ListPatternBufferInfo(
         TypeSymbol bufferType,

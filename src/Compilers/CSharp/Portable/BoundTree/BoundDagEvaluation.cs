@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagIndexerEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
                     BoundDagAssignmentEvaluation => null,
                     BoundDagEnumeratorEvaluation e => e.EnumeratorInfo.GetEnumeratorInfo.Method,
-                    BoundDagElementEvaluation e => e.EnumeratorInfo.GetEnumeratorInfo.Method,
+                    BoundDagElementEvaluation e => e.BufferInfo.BufferType, // PROTOTYPE: null? (also consider making this abstract)
+                                                                            // if input and index are the same, buffer is identical
+                                                                            // this might apply to the indexer and slice evaluations
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
 
@@ -169,6 +171,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return base.IsEquivalentTo(obj) &&
                 this.Target.Equals(((BoundDagAssignmentEvaluation)obj).Target);
+        }
+    }
+
+    partial class BoundDagEnumeratorEvaluation
+    {
+        public BoundDagTemp EnumeratorTemp()
+        {
+            return new BoundDagTemp(Syntax, EnumeratorInfo.GetEnumeratorInfo.Method.ReturnType, this, index: 0);
+        }
+
+        public BoundDagTemp BufferTemp()
+        {
+            return new BoundDagTemp(Syntax, BufferInfo.BufferType, this, index: 1);
+        }
+    }
+
+    partial class BoundDagElementEvaluation
+    {
+        public BoundDagTemp SuccessTemp(CSharpCompilation compilation)
+        {
+            return new BoundDagTemp(Syntax, compilation.GetSpecialType(SpecialType.System_Boolean), this, index: 0);
+        }
+
+        public BoundDagTemp ElementTemp()
+        {
+            return new BoundDagTemp(Syntax, BufferInfo.ElementType, this, index: 1);
         }
     }
 }

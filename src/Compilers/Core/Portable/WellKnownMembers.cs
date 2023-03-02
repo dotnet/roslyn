@@ -3690,7 +3690,6 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerator_T,
                     1,
                     (byte)SignatureTypeCode.GenericTypeParameter, 0,
-                    // PROTOTYPE: Use Span<T> ?
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
