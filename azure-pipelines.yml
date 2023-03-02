@@ -30,8 +30,59 @@ pr:
       - README.md
 
 variables:
-  HelixApiAccessToken: ''
-  
+  # This value is conditionally overriden by the variable group DotNet-HelixApi-Access.
+  # ADO only lets us conditionally include a variable group on individual stages.
+  - name: HelixApiAccessToken
+    value: ''
+
+  # Set pool / queue name variables depending on which instance we're running in.
+  - name: PoolName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: NetCore-Public
+    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      value: NetCore1ESPool-Internal
+
+  - name: Vs2022PreviewQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+        value: windows.vs2022preview.amd64.open
+    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      value: windows.vs2022preview.amd64
+
+  - name: Vs2022QueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: windows.vs2022.amd64.open
+    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      value: windows.vs2022.amd64
+
+  - name: UbuntuQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: Build.Ubuntu.1804.Amd64.Open
+    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      value: Build.Ubuntu.1804.Amd64
+
+  - name: HelixWindowsQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: Windows.10.Amd64.Open
+    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      value: Windows.10.Amd64
+
+  - name: HelixWindowsSpanishQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: Windows.10.Amd64.Server2022.ES.Open
+    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      value: Windows.10.Amd64.Server2022.ES
+
+  - name: HelixUbuntuQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: Ubuntu.1804.Amd64.Open
+    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      value: Ubuntu.1804.Amd64
+
+  - name: HelixMacOsQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: OSX.1015.Amd64.Open
+    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      value: OSX.1015.Amd64
 
 stages:
 - stage: Windows_Debug_Build
@@ -42,10 +93,8 @@ stages:
       jobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        queueName: windows.vs2022preview.amd64.open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        queueName: windows.vs2022preview.amd64
+      poolName: $(PoolName)
+      queueName: $(Vs2022PreviewQueueName)
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -57,10 +106,8 @@ stages:
       jobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        queueName: windows.vs2022preview.amd64.open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        queueName: windows.vs2022preview.amd64
+      poolName: $(PoolName)
+      queueName: $(Vs2022PreviewQueueName)
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -72,10 +119,8 @@ stages:
       jobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        queueName: Build.Ubuntu.1804.Amd64.Open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        queueName: Build.Ubuntu.1804.Amd64
+      poolName: $(PoolName)
+      queueName: $(UbuntuQueueName)
 
 - stage: Source_Build
   dependsOn: []
@@ -96,11 +141,8 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testDesktop -testArch x86
-        ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          helixQueueName: Windows.10.Amd64.Open
-        ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          helixQueueName: Windows.10.Amd64
-          helixApiAccessToken: $(HelixApiAccessToken)
+        helixQueueName: $(HelixWindowsQueueName)
+        helixApiAccessToken: $(HelixApiAccessToken)
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -109,11 +151,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x64
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64.Open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64
-        helixApiAccessToken: $(HelixApiAccessToken)
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
 - stage: Windows_Release_Desktop
   dependsOn: Windows_Release_Build
@@ -128,11 +167,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64.Open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64
-        helixApiAccessToken: $(HelixApiAccessToken)
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -142,11 +178,8 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
         testArguments: -testDesktop -testArch x64
-        ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          helixQueueName: Windows.10.Amd64.Open
-        ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          helixQueueName: Windows.10.Amd64
-          helixApiAccessToken: $(HelixApiAccessToken)
+        helixQueueName: $(HelixWindowsQueueName)
+        helixApiAccessToken: $(HelixApiAccessToken)
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -155,11 +188,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x64
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64.Server2022.ES.Open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64.Server2022.ES
-        helixApiAccessToken: $(HelixApiAccessToken)
+      helixQueueName: $(HelixWindowsSpanishQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
 - stage: Windows_Debug_CoreClr
   dependsOn: Windows_Debug_Build
@@ -174,11 +204,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64.Open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64
-        helixApiAccessToken: $(HelixApiAccessToken)
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job-single-machine.yml
@@ -187,10 +214,8 @@ stages:
         jobName: Test_Windows_CoreClr_Debug_Single_Machine
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
-        ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          queueName: windows.vs2022.amd64.open
-        ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          queueName: windows.vs2022.amd64
+        poolName: $(PoolName)
+        queueName: $(Vs2022QueueName)
         testArguments: -testCoreClr
 
   - template: eng/pipelines/test-windows-job.yml
@@ -200,11 +225,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testIOperation -testCompilerOnly
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64.Open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64
-        helixApiAccessToken: $(HelixApiAccessToken)
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
   # This leg runs almost all the compiler tests supported on CoreCLR, but
   #  with additional validation for used assemblies and GetEmitDiagnostics
@@ -215,11 +237,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64.Open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64
-        helixApiAccessToken: $(HelixApiAccessToken)
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
 - stage: Windows_Release_CoreClr
   dependsOn: Windows_Release_Build
@@ -234,11 +253,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testCoreClr
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64.Open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Windows.10.Amd64
-        helixApiAccessToken: $(HelixApiAccessToken)
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
 - stage: Unix_Debug_CoreClr
   dependsOn: Unix_Build
@@ -253,11 +269,8 @@ stages:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Ubuntu.1804.Amd64.Open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: Ubuntu.1804.Amd64
-        helixApiAccessToken: $(HelixApiAccessToken)
+      helixQueueName: $(HelixUbuntuQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-unix-job-single-machine.yml
@@ -267,10 +280,8 @@ stages:
         testArtifactName: Transport_Artifacts_Unix_Debug
         configuration: Debug
         testArguments: --testCoreClr
-        ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          queueName: Build.Ubuntu.1804.Amd64.Open
-        ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          queueName: Build.Ubuntu.1804.Amd64
+        poolName: $(PoolName)
+        queueName: $(UbuntuQueueName)
 
   - template: eng/pipelines/test-unix-job.yml
     parameters:
@@ -279,11 +290,8 @@ stages:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr 
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: OSX.1015.Amd64.Open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        helixQueueName: OSX.1015.Amd64
-        helixApiAccessToken: $(HelixApiAccessToken)
+      helixQueueName: $(HelixMacOsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
 - stage: Correctness
   dependsOn: []
@@ -291,6 +299,7 @@ stages:
   - template: eng/pipelines/evaluate-changed-files.yml
     parameters:
       jobName: Determine_Changes
+      poolName: $(PoolName)
       vmImageName: ubuntu-latest
       paths:
         - subset: compilers
@@ -303,12 +312,8 @@ stages:
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
     pool:
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        name: NetCore-Public
-        demands: ImageOverride -equals windows.vs2022preview.amd64.open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        name: NetCore1ESPool-Internal
-        demands: ImageOverride -equals windows.vs2022preview.amd64
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -357,12 +362,8 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        name: NetCore-Public
-        demands: ImageOverride -equals windows.vs2022preview.amd64.open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        name: NetCore1ESPool-Internal
-        demands: ImageOverride -equals windows.vs2022preview.amd64
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -383,12 +384,8 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        name: NetCore-Public
-        demands: ImageOverride -equals windows.vs2022preview.amd64.open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        name: NetCore1ESPool-Internal
-        demands: ImageOverride -equals windows.vs2022preview.amd64
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -433,12 +430,8 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        name: NetCore-Public
-        demands: ImageOverride -equals windows.vs2022preview.amd64.open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        name: NetCore1ESPool-Internal
-        demands: ImageOverride -equals windows.vs2022preview.amd64
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -466,12 +459,8 @@ stages:
 
   - job: Correctness_Analyzers
     pool:
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        name: NetCore-Public
-        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        name: NetCore1ESPool-Internal
-        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+      name: $(PoolName)
+      demands: ImageOverride -equals $(UbuntuQueueName)
     timeoutInMinutes: 35
     variables:
       - template: eng/pipelines/variables-build.yml

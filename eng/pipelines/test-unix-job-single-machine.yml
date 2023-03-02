@@ -15,6 +15,9 @@ parameters:
 - name: testArguments
   type: string
   default: ''
+- name: poolName
+  type: string
+  default: ''
 - name: queueName
   type: string
   default: ''
@@ -26,10 +29,7 @@ jobs:
 - job: ${{ parameters.jobName }}
   pool:
     ${{ if ne(parameters.queueName, '') }}:
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        name: NetCore-Public
-      ${{ if ne(variables['System.TeamProject'], 'public') }}:
-        name: NetCore1ESPool-Internal
+      name: ${{ parameters.poolName }}
       demands: ImageOverride -equals ${{ parameters.queueName }}
 
     ${{ if ne(parameters.vmImageName, '') }}:
