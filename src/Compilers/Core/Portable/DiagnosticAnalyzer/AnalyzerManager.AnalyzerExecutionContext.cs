@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
@@ -302,13 +303,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     argument: (object?)null);
 
                 // Force evaluate and report exception diagnostics from LocalizableString.ToString().
-                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
+                Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
                 if (onAnalyzerException != null)
                 {
                     var handler = new EventHandler<Exception>((sender, ex) =>
                     {
                         var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
-                        onAnalyzerException(ex, analyzer, diagnostic);
+                        onAnalyzerException(ex, analyzer, diagnostic, analyzerExecutor.CancellationToken);
                     });
 
                     foreach (var descriptor in supportedDiagnostics)
