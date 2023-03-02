@@ -21,23 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        public static ExpressionSyntax GenerateExpressionSyntax(
-            this ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Instance)!.WithAdditionalAnnotations(Simplifier.Annotation);
-        }
+        /// <paramref name="nameSyntax"><see langword="true"/> if only normal name-syntax nodes should be returned.
+        /// <see langword="false"/> if special nodes (like predefined types) can be used.</paramref>
+        public static ExpressionSyntax GenerateExpressionSyntax(this ITypeSymbol typeSymbol, bool nameSyntax = false)
+            => typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Create(nameSyntax))!.WithAdditionalAnnotations(Simplifier.Annotation);
 
-        public static NameSyntax GenerateNameSyntax(
-            this INamespaceOrTypeSymbol symbol, bool allowVar = true)
-        {
-            return (NameSyntax)GenerateTypeSyntax(symbol, nameSyntax: true, allowVar: allowVar);
-        }
+        public static NameSyntax GenerateNameSyntax(this INamespaceOrTypeSymbol symbol, bool allowVar = true)
+            => (NameSyntax)GenerateTypeSyntax(symbol, nameSyntax: true, allowVar: allowVar);
 
-        public static TypeSyntax GenerateTypeSyntax(
-            this INamespaceOrTypeSymbol symbol, bool allowVar = true)
-        {
-            return GenerateTypeSyntax(symbol, nameSyntax: false, allowVar: allowVar);
-        }
+        public static TypeSyntax GenerateTypeSyntax(this INamespaceOrTypeSymbol symbol, bool allowVar = true)
+            => GenerateTypeSyntax(symbol, nameSyntax: false, allowVar: allowVar);
 
         private static TypeSyntax GenerateTypeSyntax(
             INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
