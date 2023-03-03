@@ -10,10 +10,6 @@
       https://github.com/OmniSharp/omnisharp-roslyn
     </PackageDescription>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="IsExternalInit.cs" />
-  </ItemGroup>
   
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" />
