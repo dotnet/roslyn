@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -19,20 +21,26 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
-    internal abstract class CSharpTypeSnippetProvider : AbstractTypeSnippetProvider
+    internal abstract class AbstractCSharpTypeSnippetProvider : AbstractTypeSnippetProvider
     {
         private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-            {
-                SyntaxKind.NewKeyword,
-                SyntaxKind.PublicKeyword,
-                SyntaxKind.ProtectedKeyword,
-                SyntaxKind.InternalKeyword,
-                SyntaxKind.PrivateKeyword,
-                SyntaxKind.AbstractKeyword,
-                SyntaxKind.SealedKeyword,
-                SyntaxKind.StaticKeyword,
-                SyntaxKind.UnsafeKeyword
-            };
+        {
+            SyntaxKind.NewKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.ProtectedKeyword,
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.PrivateKeyword,
+            SyntaxKind.AbstractKeyword,
+            SyntaxKind.SealedKeyword,
+            SyntaxKind.StaticKeyword,
+            SyntaxKind.UnsafeKeyword
+        };
+
+        protected override async Task<bool> HasPrecedingAccessibilityModifiersAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            return tree.GetPrecedingModifiers(position, cancellationToken).Any(SyntaxFacts.IsAccessibilityModifier);
+        }
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -71,6 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             // Adding the offset calculated with one tab so that it is indented once past the line containing the opening brace
             var newIndentation = new IndentationResult(indentation.BasePosition, indentation.Offset + syntaxFormattingOptions.TabSize);
             return newIndentation.GetIndentationString(parsedDocument.Text, syntaxFormattingOptions.UseTabs, syntaxFormattingOptions.TabSize) + newLine;
+        }
+
+        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
+        {
+            var node = root.FindNode(TextSpan.FromBounds(position, position));
+            return node.GetAncestorOrThis<TypeDeclarationSyntax>();
         }
 
         protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
