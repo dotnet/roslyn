@@ -36,28 +36,37 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
 
         public FileChangeContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         {
-            _watchedDirectories = watchedDirectories;
-            var builder = ImmutableArray.CreateBuilder<FileSystemWatcher>(watchedDirectories.Length);
+            var watchedDirectoriesBuilder = ImmutableArray.CreateBuilder<WatchedDirectory>(watchedDirectories.Length);
+            var watcherBuilder = ImmutableArray.CreateBuilder<FileSystemWatcher>(watchedDirectories.Length);
 
             foreach (var watchedDirectory in watchedDirectories)
             {
-                var watcher = new FileSystemWatcher(watchedDirectory.Path);
-                watcher.IncludeSubdirectories = true;
+                // If the directory doesn't exist, we can't create a watcher for changes inside of it. In this case, we'll just skip this as a directory
+                // to watch; any requests for a watch within that directory will still create a one-off watcher for that specific file. That's not likely
+                // to be an issue in practice: directories that are missing would be things like global reference directories -- if it's not there, we
+                // probably won't ever see a watch for a file under there later anyways.
+                if (Directory.Exists(watchedDirectory.Path))
+                {
+                    var watcher = new FileSystemWatcher(watchedDirectory.Path);
+                    watcher.IncludeSubdirectories = true;
 
-                if (watchedDirectory.ExtensionFilter != null)
-                    watcher.Filter = '*' + watchedDirectory.ExtensionFilter;
+                    if (watchedDirectory.ExtensionFilter != null)
+                        watcher.Filter = '*' + watchedDirectory.ExtensionFilter;
 
-                watcher.Changed += RaiseEvent;
-                watcher.Created += RaiseEvent;
-                watcher.Deleted += RaiseEvent;
-                watcher.Renamed += RaiseEvent;
+                    watcher.Changed += RaiseEvent;
+                    watcher.Created += RaiseEvent;
+                    watcher.Deleted += RaiseEvent;
+                    watcher.Renamed += RaiseEvent;
 
-                watcher.EnableRaisingEvents = true;
+                    watcher.EnableRaisingEvents = true;
 
-                builder.Add(watcher);
+                    watchedDirectoriesBuilder.Add(watchedDirectory);
+                    watcherBuilder.Add(watcher);
+                }
             }
 
-            _directoryFileSystemWatchers = builder.ToImmutable();
+            _watchedDirectories = watchedDirectoriesBuilder.ToImmutable();
+            _directoryFileSystemWatchers = watcherBuilder.ToImmutable();
         }
 
         public event EventHandler<string>? FileChanged;
