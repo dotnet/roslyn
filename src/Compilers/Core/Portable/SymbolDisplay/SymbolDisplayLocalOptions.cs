@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -31,8 +32,15 @@ namespace Microsoft.CodeAnalysis
         IncludeConstantValue = 1 << 1,
 
         /// <summary>
-        /// Includes the <c>ref</c> keyword for ref-locals.
+        /// Includes the <c>ref</c> keyword for ref-locals and the <c>scoped</c> keyword for scoped locals.
+        /// Replaced by <see cref="IncludeModifiers"/>.
         /// </summary>
-        IncludeRef = 1 << 2,
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IncludeRef = IncludeModifiers,
+
+        /// <summary>
+        /// Includes the <c>ref</c> keyword for ref-locals and the <c>scoped</c> keyword for scoped locals.
+        /// </summary>
+        IncludeModifiers = 1 << 2,
     }
 }

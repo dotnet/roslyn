@@ -46,18 +46,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics, bool encodeAsRawToken = false)
+        internal void EmitToken(Cci.IReference value, SyntaxNode? syntaxNode, DiagnosticBag diagnostics, Cci.MetadataWriter.RawTokenEncoding encoding = 0)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
-            // Setting the high bit indicates that the token value is to be interpreted literally rather than as a handle.
-            if (encodeAsRawToken)
+            if (encoding != Cci.MetadataWriter.RawTokenEncoding.None)
             {
-                token |= Cci.MetadataWriter.LiteralMethodDefinitionToken;
+                token = Cci.MetadataWriter.GetRawToken(encoding, token);
             }
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Cci.ISignature value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitToken(Cci.ISignature value, SyntaxNode? syntaxNode, DiagnosticBag diagnostics)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
             this.GetCurrentWriter().WriteUInt32(token);
@@ -65,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitGreatestMethodToken()
         {
-            // A magic value indicates that the token value is to be the literal value of the greatest method definition token.
-            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
+            var token = Cci.MetadataWriter.GetRawToken(Cci.MetadataWriter.RawTokenEncoding.GreatestMethodDefinitionRowId, 0);
+            this.GetCurrentWriter().WriteUInt32(token);
         }
 
         internal void EmitModuleVersionIdStringToken()
@@ -77,16 +76,31 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitSourceDocumentIndexToken(Cci.DebugSourceDocument document)
         {
-            this.GetCurrentWriter().WriteUInt32((module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
+            var token = Cci.MetadataWriter.GetRawToken(Cci.MetadataWriter.RawTokenEncoding.DocumentRowId, module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF);
+            this.GetCurrentWriter().WriteUInt32(token);
         }
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
+            // Emit the call to RuntimeHelpers.InitializeArray, creating the necessary metadata blob if there isn't
+            // already one for this data.  Note that this specifies an alignment of 1.  This is valid regardless of
+            // the kind of data stored in the array, as it's never accessed directly in the blob; rather, InitializeArray
+            // copies out the data as bytes.  The upside to keeping this as 1 is it means no special alignment is required.
+            // Although the compiler currently always aligns the metadata fields at an 8-byte boundary, the .pack field
+            // is appropriately set to the alignment value, and a rewriter (e.g. illink) may respect that.  If the alignment
+            // value were to be increased to match the actual alignment requirements of the element type, that could cause
+            // such rewritten binaries to regress in size due to the extra padding necessary for aligning.  The downside
+            // to keeping this as 1 is that this data won't unify with any blobs created for spans (RuntimeHelpers.CreateSpan).
+            // Code typically does directly read from the blobs via spans, and as such alignment there is required to be
+            // at least what the element type requires.  That means if the same data/element type is used with an array
+            // and separately with a span, the data will exist duplicated in two different blobs.  If it turns out that's
+            // very common, this can be revised in the future to specify the element type's alignment.
+
             // get helpers
             var initializeArray = module.GetInitArrayHelper();
 
-            // map a field to the block (that makes it addressable via a token)
-            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+            // map a field to the block (that makes it addressable via a token).
+            var field = module.GetFieldForData(data, alignment: 1, syntaxNode, diagnostics);
 
             // emit call to the helper
             EmitOpCode(ILOpCode.Dup);       //array
@@ -94,38 +108,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitToken(field, syntaxNode, diagnostics);      //block
             EmitOpCode(ILOpCode.Call, -2);
             EmitToken(initializeArray, syntaxNode, diagnostics);
-        }
-
-        internal void EmitStackAllocBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, bool emitInitBlock, DiagnosticBag diagnostics)
-        {
-            if (emitInitBlock)
-            {
-                // All bytes are the same, no need for metadata blob
-
-                EmitOpCode(ILOpCode.Dup);
-                EmitIntConstant(data[0]);
-                EmitIntConstant(data.Length);
-                EmitOpCode(ILOpCode.Initblk, -3);
-            }
-            else
-            {
-                var field = module.GetFieldForData(data, syntaxNode, diagnostics);
-
-                EmitOpCode(ILOpCode.Dup);
-                EmitOpCode(ILOpCode.Ldsflda);
-                EmitToken(field, syntaxNode, diagnostics);
-                EmitIntConstant(data.Length);
-                EmitOpCode(ILOpCode.Cpblk, -3);
-            }
-        }
-
-        internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
-        {
-            // map a field to the block (that makes it addressable)
-            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
-
-            EmitOpCode(ILOpCode.Ldsflda);
-            EmitToken(field, syntaxNode, diagnostics);
         }
 
         /// <summary>
@@ -433,13 +415,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitLoad(LocalOrParameter localOrParameter)
         {
-            if (localOrParameter.Local != null)
+            if (localOrParameter.Local is { } local)
             {
-                EmitLocalLoad(localOrParameter.Local);
+                EmitLocalLoad(local);
             }
             else
             {
                 EmitLoadArgumentOpcode(localOrParameter.ParameterIndex);
+            }
+        }
+
+        internal void EmitLoadAddress(LocalOrParameter localOrParameter)
+        {
+            if (localOrParameter.Local is { } local)
+            {
+                EmitLocalAddress(local);
+            }
+            else
+            {
+                EmitLoadArgumentAddrOpcode(localOrParameter.ParameterIndex);
             }
         }
 

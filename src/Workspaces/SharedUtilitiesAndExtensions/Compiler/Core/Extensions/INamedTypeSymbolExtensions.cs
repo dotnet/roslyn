@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     // interface I<T> where T : I<T> { static abstract int operator -(T x); }
 
                     // See https://github.com/dotnet/csharplang/blob/main/spec/classes.md#unary-operators.
-                    return method.Parameters.Any(p => p.Type.Equals(within, SymbolEqualityComparer.Default));
+                    return method.Parameters.Any(static (p, within) => p.Type.Equals(within, SymbolEqualityComparer.Default), within);
                 }
 
                 return true;

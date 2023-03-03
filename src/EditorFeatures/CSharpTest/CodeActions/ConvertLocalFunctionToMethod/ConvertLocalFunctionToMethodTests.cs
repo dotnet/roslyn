@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,12 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLocalFunctionToMethod
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
     public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertLocalFunctionToMethodCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestCaptures1()
         {
             await TestInRegularAndScriptAsync(
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLoca
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestCaptures2()
         {
             await TestInRegularAndScriptAsync(
@@ -114,7 +113,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestCaptures3()
         {
             await TestInRegularAndScriptAsync(
@@ -143,7 +142,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestCaptures4()
         {
             await TestInRegularAndScriptAsync(
@@ -168,7 +167,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestCaptures5()
         {
             await TestInRegularAndScriptAsync(
@@ -199,7 +198,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestTypeParameters1()
         {
             await TestInRegularAndScriptAsync(
@@ -253,7 +252,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestTypeParameters2()
         {
             await TestInRegularAndScriptAsync(
@@ -276,7 +275,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestNameConflict()
         {
             await TestInRegularAndScriptAsync(
@@ -305,7 +304,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestNamedArguments1()
         {
             await TestAsync(
@@ -340,7 +339,7 @@ struct S
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestNamedArguments2()
         {
             await TestAsync(
@@ -375,7 +374,7 @@ struct S
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestDelegate1()
         {
             await TestInRegularAndScriptAsync(
@@ -402,7 +401,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestDelegate2()
         {
             await TestInRegularAndScriptAsync(
@@ -429,7 +428,7 @@ struct S
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestAsyncFunction1()
         {
             await TestInRegularAndScriptAsync(
@@ -466,7 +465,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [Fact]
         public async Task TestAsyncFunction2()
         {
             await TestInRegularAndScriptAsync(
@@ -503,8 +502,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestCaretPositon()
         {
             await TestAsync("C [||]LocalFunction(C c)");
@@ -562,8 +560,7 @@ $@"class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection1()
         {
             await TestInRegularAndScriptAsync(
@@ -590,8 +587,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection2()
         {
 
@@ -608,8 +604,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection3()
         {
             await TestInRegularAndScriptAsync(
@@ -640,8 +635,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection4()
         {
 
@@ -661,8 +655,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection5()
         {
 
@@ -683,8 +676,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection6()
         {
 
@@ -706,8 +698,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection7()
         {
             await TestMissingAsync(
@@ -723,8 +714,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection8()
         {
             await TestInRegularAndScriptAsync(
@@ -751,8 +741,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection9()
         {
             await TestInRegularAndScriptAsync(
@@ -779,8 +768,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection10()
         {
             await TestInRegularAndScriptAsync(
@@ -806,8 +794,8 @@ $@"class C
     }
 }");
         }
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestMethodBlockSelection11()
         {
             await TestMissingAsync(
@@ -824,8 +812,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
+        [Fact, WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
         public async Task TestUnsafeLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -856,8 +843,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
+        [Fact, WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
         public async Task TestUnsafeLocalFunctionInUnsafeMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -888,8 +874,7 @@ $@"class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-        [WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
+        [Fact, WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
         public async Task TestLocalFunctionInUnsafeMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -916,6 +901,87 @@ $@"class C
     private static byte GetPtr(byte bytePt)
     {
         return bytePt;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestTopLevelStatements()
+        {
+            await TestMissingAsync(@"
+Console.WriteLine(""Hello"");
+{
+    public static int [|Add|](int x, int y)
+    {
+        return x + y;
+    }
+}");
+        }
+
+        [Fact, WorkItem(32975, "https://github.com/dotnet/roslyn/issues/32975")]
+        public async Task TestRefReturn()
+        {
+            await TestInRegularAndScript1Async(@"
+class ClassA
+{
+    class RefClass { }
+    RefClass refClass = new RefClass();
+    public void RefLocalFunction()
+    {
+        ref RefClass [|GetRef|]()
+        {
+            return ref refClass;
+        }
+        ref var aReference = ref GetRef();
+    }
+}", @"
+class ClassA
+{
+    class RefClass { }
+    RefClass refClass = new RefClass();
+    public void RefLocalFunction()
+    {
+        ref var aReference = ref GetRef();
+    }
+
+    private ref RefClass GetRef()
+    {
+        return ref refClass;
+    }
+}");
+        }
+
+        [Fact, WorkItem(32975, "https://github.com/dotnet/roslyn/issues/32975")]
+        public async Task TestAttributes()
+        {
+            await TestInRegularAndScript1Async(@"
+class ClassA
+{
+    class RefClass { }
+    RefClass refClass = new RefClass();
+    public void RefLocalFunction()
+    {
+        [System.STAThread]
+        ref RefClass [|GetRef|]()
+        {
+            return ref refClass;
+        }
+        ref var aReference = ref GetRef();
+    }
+}", @"
+class ClassA
+{
+    class RefClass { }
+    RefClass refClass = new RefClass();
+    public void RefLocalFunction()
+    {
+        ref var aReference = ref GetRef();
+    }
+
+    [System.STAThread]
+    private ref RefClass GetRef()
+    {
+        return ref refClass;
     }
 }");
         }

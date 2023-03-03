@@ -76,8 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
             var sourceGeneratedDocumentsForGeneratorById =
-                sourceGeneratedDocuments.Where(d => d.SourceGeneratorAssemblyName == _parentGeneratorItem.GeneratorAssemblyName &&
-                                                    d.SourceGeneratorTypeName == _parentGeneratorItem.GeneratorTypeName)
+                sourceGeneratedDocuments.Where(d => d.Identity.Generator == _parentGeneratorItem.Identity)
                 .ToDictionary(d => d.Id);
 
             // We must update the list on the UI thread, since the WPF elements bound to our list expect that
@@ -92,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _items.BeginBulkOperation();
 
                 // Do we already have a "no files" placeholder item?
-                if (_items.Count == 1 && _items[0] is NoSourceGeneratedFilesPlaceholderItem)
+                if (_items is [NoSourceGeneratedFilesPlaceholderItem])
                 {
                     // We do -- if we have no items, we're done, since the placeholder is all that needs to be there;
                     // otherwise remove it since we have real files now

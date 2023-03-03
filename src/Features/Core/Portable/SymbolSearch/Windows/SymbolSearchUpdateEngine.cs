@@ -30,14 +30,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// </summary>
     internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
     {
-        private readonly ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
-            new();
+        private readonly ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = new();
 
         /// <summary>
         /// Don't call directly. Use <see cref="SymbolSearchUpdateEngineFactory"/> instead.
         /// </summary>
-        public SymbolSearchUpdateEngine()
-            : this(new RemoteControlService(),
+        public SymbolSearchUpdateEngine(IFileDownloaderFactory fileDownloaderFactory)
+            : this(fileDownloaderFactory,
                    new DelayService(),
                    new IOService(),
                    new PatchService(),
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// For testing purposes only.
         /// </summary>
         internal SymbolSearchUpdateEngine(
-            IRemoteControlService remoteControlService,
+            IFileDownloaderFactory fileDownloaderFactory,
             IDelayService delayService,
             IIOService ioService,
             IPatchService patchService,
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         {
             _delayService = delayService;
             _ioService = ioService;
-            _remoteControlService = remoteControlService;
+            _fileDownloaderFactory = fileDownloaderFactory;
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
             _reportAndSwallowExceptionUnlessCanceled = reportAndSwallowExceptionUnlessCanceled;

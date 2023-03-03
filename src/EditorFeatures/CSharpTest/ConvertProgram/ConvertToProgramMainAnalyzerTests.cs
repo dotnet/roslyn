@@ -205,7 +205,7 @@ class Program
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options =
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never },
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Never },
                     { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
                 },
             }.RunAsync();
@@ -597,7 +597,7 @@ internal class Program
             }.RunAsync();
         }
 
-        [Fact]
+        [Fact, WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
         public async Task TestHasExistingPart()
         {
             await new VerifyCS.Test
@@ -615,57 +615,54 @@ partial class Program
                 FixedCode = @"
 using System;
 
-internal partial class Program
+partial class Program
 {
+    int x;
+
     private static void Main(string[] args)
     {
         Console.WriteLine(0);
     }
-}
-
-partial class Program
-{
-    int x;
-}
-",
+}",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestHasExistingPublicPart()
+        [Theory, WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("static")]
+        [InlineData("abstract")]
+        [InlineData("file")]
+        public async Task TestHasExistingPart_KeepsModifiers(string modifier)
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
+                TestCode = $@"
 using System;
 
-{|IDE0211:Console|}.WriteLine(0);
+{{|IDE0211:Console|}}.WriteLine(0);
 
-public partial class Program
-{
-    int x;
-}
+{modifier} partial class Program
+{{
+    static int x;
+}}
 ",
-                FixedCode = @"
+                FixedCode = $@"
 using System;
 
-public partial class Program
-{
+{modifier} partial class Program
+{{
+    static int x;
+
     private static void Main(string[] args)
-    {
+    {{
         Console.WriteLine(0);
-    }
-}
-
-public partial class Program
-{
-    int x;
-}
-",
-                LanguageVersion = LanguageVersion.CSharp9,
+    }}
+}}",
+                LanguageVersion = LanguageVersion.CSharp11,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
             }.RunAsync();

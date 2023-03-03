@@ -4,13 +4,12 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
@@ -36,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             Dim beforeText = before.Replace("$$", "")
             Using workspace = TestWorkspace.CreateVisualBasic(beforeText, composition:=EditorTestCompositions.EditorFeatures)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
+                globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic, False)
 
                 Dim view = workspace.Documents.First().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextSnapshot, caretPos))
@@ -66,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                   afterCaret As Integer())
             Using workspace = TestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
+                globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic, False)
 
                 Dim textView = workspace.Documents.First().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
@@ -210,9 +209,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             ' create separate composition
             Using workspace = TestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
+                globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic, False)
 
                 Dim view = workspace.Documents.First().GetTextView()
+                view.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
+
                 Dim line = view.TextSnapshot.GetLineFromLineNumber(beforeCaret(0))
                 If beforeCaret(1) = -1 Then
                     view.Caret.MoveTo(line.End)
@@ -224,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Dim endConstructor = New EndConstructCommandHandler(
                     factory,
                     workspace.GetService(Of ITextUndoHistoryRegistry),
-                    globalOptions)
+                    workspace.GetService(Of EditorOptionsService))
 
                 Dim operations = factory.GetEditorOperations(view)
                 endConstructor.ExecuteCommand_ReturnKeyCommandHandler(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() operations.InsertNewLine(), TestCommandExecutionContext.Create())

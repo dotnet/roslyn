@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         protected abstract bool NodeRequiresNonSpeculativeSemanticModel(SyntaxNode node);
 
         public abstract SimplifierOptions DefaultOptions { get; }
-        public abstract SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options, SimplifierOptions? fallbackOptions);
+        public abstract SimplifierOptions GetSimplifierOptions(IOptionsReader options, SimplifierOptions? fallbackOptions);
 
         protected virtual SyntaxNode TransformReducedNode(SyntaxNode reducedNode, SyntaxNode originalNode)
             => reducedNode;
@@ -101,8 +102,8 @@ namespace Microsoft.CodeAnalysis.Simplification
             // Create a simple interval tree for simplification spans.
             var spansTree = new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), spans);
 
-            bool isNodeOrTokenOutsideSimplifySpans(SyntaxNodeOrToken nodeOrToken) =>
-                !spansTree.HasIntervalThatOverlapsWith(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length);
+            bool isNodeOrTokenOutsideSimplifySpans(SyntaxNodeOrToken nodeOrToken)
+                => !spansTree.HasIntervalThatOverlapsWith(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -223,9 +224,9 @@ namespace Microsoft.CodeAnalysis.Simplification
                                     var annotation = new SyntaxAnnotation();
                                     currentNodeOrToken = currentNodeOrToken.WithAdditionalAnnotations(annotation);
 
-                                    var replacedParent = isNode ?
-                                        nodeOrToken.Parent.ReplaceNode(nodeOrToken.AsNode()!, currentNodeOrToken.AsNode()!) :
-                                        nodeOrToken.Parent.ReplaceToken(nodeOrToken.AsToken(), currentNodeOrToken.AsToken());
+                                    var replacedParent = isNode
+                                        ? nodeOrToken.Parent.ReplaceNode(nodeOrToken.AsNode()!, currentNodeOrToken.AsNode()!)
+                                        : nodeOrToken.Parent.ReplaceToken(nodeOrToken.AsToken(), currentNodeOrToken.AsToken());
 
                                     currentNodeOrToken = replacedParent
                                         .ChildNodesAndTokens()

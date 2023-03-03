@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Persistence
 {
-    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Test), Shared, PartNotDiscoverable]
+    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageServiceInternal), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal sealed class TestTemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]

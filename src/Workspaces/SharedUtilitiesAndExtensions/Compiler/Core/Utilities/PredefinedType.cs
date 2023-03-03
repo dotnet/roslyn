@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal enum PredefinedType
     {
@@ -24,5 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         UInt32 = 1 << 14,
         UInt64 = 1 << 15,
         Void = 1 << 16,
+        IntPtr = 1 << 17,
+        UIntPtr = 1 << 18,
     }
 }

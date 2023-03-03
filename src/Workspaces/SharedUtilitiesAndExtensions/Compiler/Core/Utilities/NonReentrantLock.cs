@@ -240,7 +240,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Since we want to avoid boxing the return from <see cref="NonReentrantLock.DisposableWait"/>, this type must be public.
         /// </summary>
-        public struct SemaphoreDisposer : IDisposable
+        public readonly struct SemaphoreDisposer : IDisposable
         {
             private readonly NonReentrantLock _semaphore;
 

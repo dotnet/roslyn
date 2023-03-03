@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -50,7 +51,7 @@ class Program
 }", HangMitigatingCancellationToken);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp), false);
+            globalOptions.SetGlobalOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.CSharp, false);
 
             await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
@@ -98,7 +99,7 @@ class Program
             await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp), true);
+            globalOptions.SetGlobalOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.CSharp, true);
 
             await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
 
@@ -120,12 +121,58 @@ class Program
             await telemetry.VerifyFiredAsync(new[] { "vs/ide/vbcs/commandhandler/paste/importsonpaste" }, HangMitigatingCancellationToken);
         }
 
+        [IdeFact]
+        public async Task VerifyIndentation()
+        {
+            var project = ProjectName;
+            await TestServices.SolutionExplorer.AddFileAsync(project, "Example.cs", contents: @"
+public class Example
+{
+}
+");
+            await SetUpEditorAsync(@"
+namespace MyNs
+{
+    using System;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+
+        $$
+    }
+}", HangMitigatingCancellationToken);
+
+            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+            globalOptions.SetGlobalOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, LanguageNames.CSharp, true);
+
+            await PasteAsync(@"Task DoThingAsync() => Task.CompletedTask;", HangMitigatingCancellationToken);
+
+            AssertEx.EqualOrDiff(@"
+namespace MyNs
+{
+    using System;
+    using System.Threading.Tasks;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+
+        Task DoThingAsync() => Task.CompletedTask;
+    }
+}", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        }
+
         private async Task PasteAsync(string text, CancellationToken cancellationToken)
         {
             var provider = await TestServices.Shell.GetComponentModelServiceAsync<IAsynchronousOperationListenerProvider>(HangMitigatingCancellationToken);
             var waiter = (IAsynchronousOperationWaiter)provider.GetListener(FeatureAttribute.AddImportsOnPaste);
 
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy }, cancellationToken);
             Clipboard.SetText(text);
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Paste, cancellationToken);
 

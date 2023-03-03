@@ -32,10 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public void CloseWorkspace()
         {
-            if (_previewWorkspace != null)
-            {
-                _previewWorkspace.Dispose();
-            }
+            _previewWorkspace?.Dispose();
         }
 
         public void UpdateView(TextDocument document, SpanChange spanSource)
@@ -75,10 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 _previewWorkspace.CloseDocument(currentDocument, currentDocumentText);
             }
 
-            if (_previewWorkspace == null)
-            {
-                _previewWorkspace = new PreviewDialogWorkspace(document.Project.Solution);
-            }
+            _previewWorkspace ??= new PreviewDialogWorkspace(document.Project.Solution);
 
             _currentDocumentId = document.Id;
             ApplyDocumentToBuffer(document, out var container);
@@ -87,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         private void ApplyDocumentToBuffer(TextDocument document, out SourceTextContainer container)
         {
-            var contentTypeService = document.Project.LanguageServices.GetRequiredService<IContentTypeLanguageService>();
+            var contentTypeService = document.Project.Services.GetRequiredService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
             _textView.TextBuffer.ChangeContentType(contentType, null);

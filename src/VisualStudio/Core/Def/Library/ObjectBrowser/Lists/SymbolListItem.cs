@@ -32,10 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             _fullNameText = fullNameText;
             _searchText = searchText;
 
-            _supportsGoToDefinition = symbol.Kind != SymbolKind.Namespace
-                ? symbol.Locations.Any(l => l.IsInSource)
-                : false;
-
+            _supportsGoToDefinition = symbol.Kind != SymbolKind.Namespace;
             _supportsFindAllReferences = symbol.Kind != SymbolKind.Namespace;
         }
 

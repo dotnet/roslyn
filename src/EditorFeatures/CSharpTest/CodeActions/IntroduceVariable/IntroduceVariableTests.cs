@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,6 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.IntroduceVariable
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
     public class IntroduceVariableTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -32,14 +31,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 
         // specify all options explicitly to override defaults.
         private OptionsCollection ImplicitTypingEverywhere()
-            => new OptionsCollection(GetLanguage())
+            => new(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
             };
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        // Workaround to mimic awaitable `ValueTask` type from the runtime 
+        private const string ValueTaskDeclaration = """
+            namespace System.Runtime.CompilerServices
+            {
+                public class AsyncMethodBuilderAttribute : System.Attribute { }
+            }
+            
+            namespace System.Threading.Tasks
+            {
+                [System.Runtime.CompilerServices.AsyncMethodBuilder]
+                public struct ValueTask { }
+            }
+            """;
+
+        [Fact]
         public async Task TestEmptySpan1()
         {
             await TestInRegularAndScriptAsync(
@@ -62,7 +75,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestEmptySpan2()
         {
             await TestInRegularAndScriptAsync(
@@ -85,7 +98,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestEmptySpan3()
         {
             await TestMissingAsync(
@@ -99,8 +112,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestEmptySpan4()
         {
             await TestInRegularAndScriptAsync(
@@ -123,7 +135,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMethodFix1()
         {
             await TestInRegularAndScriptAsync(
@@ -147,7 +159,7 @@ class C
                 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMethodFix2()
         {
             await TestInRegularAndScriptAsync(
@@ -171,7 +183,7 @@ class C
                 index: 3);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMethodFix3()
         {
             var code =
@@ -198,7 +210,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMethodFix4()
         {
             var code =
@@ -225,7 +237,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 3);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestThrowExpression()
         {
             var code =
@@ -239,7 +251,7 @@ class C
             await TestActionCountAsync(code, count: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestThrowExpression2()
         {
             await TestInRegularAndScriptAsync(
@@ -261,7 +273,7 @@ class C
                 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestThrowStatement()
         {
             var code =
@@ -275,7 +287,7 @@ class C
             await TestActionCountAsync(code, count: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestFieldFix1()
         {
             var code =
@@ -294,7 +306,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestFieldFix2()
         {
             var code =
@@ -313,8 +325,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(21747, "https://github.com/dotnet/roslyn/issues/21747")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(21747, "https://github.com/dotnet/roslyn/issues/21747")]
         public async Task TestTriviaFieldFix1()
         {
             var code =
@@ -333,8 +344,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(21747, "https://github.com/dotnet/roslyn/issues/21747")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(21747, "https://github.com/dotnet/roslyn/issues/21747")]
         public async Task TestTriviaFieldFix2()
         {
             var code =
@@ -353,7 +363,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestConstFieldFix1()
         {
             var code =
@@ -372,7 +382,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestConstFieldFix2()
         {
             var code =
@@ -391,7 +401,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestConstructorFix1()
         {
             await TestInRegularAndScriptAsync(
@@ -412,7 +422,7 @@ class C
                 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestConstructorFix2()
         {
             await TestInRegularAndScriptAsync(
@@ -433,7 +443,7 @@ class C
                 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestParameterFix1()
         {
             await TestInRegularAndScriptAsync(
@@ -454,7 +464,7 @@ class C
                 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestParameterFix2()
         {
             await TestInRegularAndScriptAsync(
@@ -498,7 +508,7 @@ class C
                 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestAttributeFix2()
         {
             await TestInRegularAndScriptAsync(
@@ -521,7 +531,7 @@ class C
                 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMethodFixExistingName1()
         {
             await TestInRegularAndScriptAsync(
@@ -547,7 +557,7 @@ class C
                 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestFieldExistingName1()
         {
             var code =
@@ -573,7 +583,7 @@ class C
                 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMethodFixComplexName1()
         {
             await TestInRegularAndScriptAsync(
@@ -602,7 +612,7 @@ class C
                 options: ImplicitTypingEverywhere());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMethodFixComplexName1NotVar()
         {
             await TestInRegularAndScriptAsync(
@@ -630,7 +640,7 @@ class C
                 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestNameConflict1()
         {
             await TestInRegularAndScriptAsync(
@@ -651,7 +661,7 @@ class C
                 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestNameConflict2()
         {
             await TestInRegularAndScriptAsync(
@@ -687,7 +697,7 @@ class Program
 options: ImplicitTypingEverywhere());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestNameConflict2NotVar()
         {
             await TestInRegularAndScriptAsync(
@@ -722,7 +732,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestNameVerbatimIdentifier1()
         {
             await TestInRegularAndScriptAsync(
@@ -766,7 +776,7 @@ class Program
 options: ImplicitTypingEverywhere());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestNameVerbatimIdentifier1NoVar()
         {
             await TestInRegularAndScriptAsync(
@@ -809,7 +819,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestNameVerbatimIdentifier2()
         {
             await TestInRegularAndScriptAsync(
@@ -847,7 +857,7 @@ class Program
 options: ImplicitTypingEverywhere());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestNameVerbatimIdentifier2NoVar()
         {
             await TestInRegularAndScriptAsync(
@@ -884,8 +894,7 @@ options: ImplicitTypingEverywhere());
 }");
         }
 
-        [WorkItem(540078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540078")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(540078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540078")]
         public async Task TestConstantField1()
         {
             await TestInRegularAndScriptAsync(
@@ -900,8 +909,7 @@ options: ImplicitTypingEverywhere());
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(540079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540079")]
+        [Fact, WorkItem(540079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540079")]
         public async Task TestFormattingOfReplacedExpression1()
         {
             await TestInRegularAndScriptAsync(
@@ -923,8 +931,7 @@ options: ImplicitTypingEverywhere());
 index: 2);
         }
 
-        [WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")]
         public async Task TestCantExtractMethodTypeParameterToField()
         {
             await TestInRegularAndScriptAsync(
@@ -954,8 +961,7 @@ class Program
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")]
         public async Task TestCantExtractMethodTypeParameterToFieldCount()
         {
             await TestActionCountAsync(
@@ -975,7 +981,7 @@ count: 2);
 
         [WorkItem(552389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552389")]
         [WorkItem(540482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540482")]
-        [WpfFact(Skip = "552389"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WpfFact(Skip = "552389")]
         public async Task TestConstantForFixedBufferInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -990,8 +996,7 @@ count: 2);
 }");
         }
 
-        [WorkItem(540486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540486")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(540486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540486")]
         public async Task TestFormattingOfIntroduceLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -1013,7 +1018,7 @@ count: 2);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestLocalConstant()
         {
             await TestInRegularAndScriptAsync(
@@ -1035,8 +1040,7 @@ index: 2);
 index: 2);
         }
 
-        [WorkItem(542699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542699")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(542699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542699")]
         public async Task TestFieldConstant()
         {
             await TestInRegularAndScriptAsync(
@@ -1068,8 +1072,7 @@ internal class GooAttribute : System.Attribute
 index: 1);
         }
 
-        [WorkItem(542781, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542781")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(542781, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542781")]
         public async Task TestMissingOnExpressionStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1084,8 +1087,7 @@ index: 1);
 }");
         }
 
-        [WorkItem(542780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542780")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(542780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542780")]
         public async Task TestSingleQueryClause()
         {
             await TestInRegularAndScriptAsync(
@@ -1118,8 +1120,7 @@ class Program
 }");
         }
 
-        [WorkItem(542780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542780")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(542780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542780")]
         public async Task TestSingleQuerySelectOrGroupByClause()
         {
             await TestInRegularAndScriptAsync(
@@ -1154,7 +1155,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestLinqQuery()
         {
             await TestInRegularAndScriptAsync(
@@ -1192,7 +1193,7 @@ class Program
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestSingleQueryReplaceAll()
         {
             await TestInRegularAndScriptAsync(
@@ -1230,7 +1231,7 @@ class Program
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestNestedQueryReplaceOne1()
         {
             await TestInRegularAndScriptAsync(
@@ -1277,7 +1278,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestNestedQueryReplaceAll1()
         {
             await TestInRegularAndScriptAsync(
@@ -1325,7 +1326,7 @@ class Program
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestNestedQueryReplaceOne2()
         {
             await TestInRegularAndScriptAsync(
@@ -1372,7 +1373,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestNestedQueryReplaceAll2()
         {
             await TestInRegularAndScriptAsync(
@@ -1420,8 +1421,7 @@ class Program
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(10742, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(10742, "DevDiv_Projects/Roslyn")]
         public async Task TestAnonymousTypeMemberAssignment()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1434,8 +1434,7 @@ index: 1);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(10743, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(10743, "DevDiv_Projects/Roslyn")]
         public async Task TestAnonymousTypeBody()
         {
             await TestInRegularAndScriptAsync(
@@ -1456,8 +1455,7 @@ index: 1);
 }");
         }
 
-        [WorkItem(543477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543477")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(543477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543477")]
         public async Task TestImplicitlyTypedArraysUsedInCheckedExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1481,8 +1479,7 @@ index: 1);
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(543832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543832")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(543832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543832")]
         public async Task TestMissingOnGenericTypeParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1500,8 +1497,7 @@ options: ImplicitTypingEverywhere());
 }");
         }
 
-        [WorkItem(543941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543941")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(543941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543941")]
         public async Task TestAnonymousType1()
         {
             await TestInRegularAndScriptAsync(
@@ -1522,8 +1518,7 @@ options: ImplicitTypingEverywhere());
 }");
         }
 
-        [WorkItem(544099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544099")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(544099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544099")]
         public async Task TestMissingOnAttributeNameEquals()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1537,8 +1532,7 @@ class M
 }");
         }
 
-        [WorkItem(544162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544162")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(544162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544162")]
         public async Task TestMissingOnRightOfDot()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1552,8 +1546,7 @@ class M
 }");
         }
 
-        [WorkItem(544209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(544209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
         public async Task TestMissingOnAttributeNamedParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1572,8 +1565,7 @@ class Goo
 }");
         }
 
-        [WorkItem(544264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544264")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(544264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544264")]
         public async Task TestMissingOnVariableWrite()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1587,9 +1579,8 @@ class Goo
 }");
         }
 
-        [WorkItem(544577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544577")]
+        [Fact, WorkItem(544577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544577")]
         [WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestExpressionTLambda()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1602,8 +1593,7 @@ class Program
 }");
         }
 
-        [WorkItem(544915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544915")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(544915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544915")]
         public async Task TestMissingOnTypeSyntax()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1618,8 +1608,7 @@ class Program
 }");
         }
 
-        [WorkItem(544610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544610")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(544610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544610")]
         public async Task ParenthesizeIfParseChanges()
         {
             var code = @"
@@ -1646,7 +1635,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestInPartiallyHiddenMethod()
         {
             await TestInRegularAndScript1Async(
@@ -1672,7 +1661,7 @@ class C
 }", parameters: new TestParameters(Options.Regular));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestInVisibleMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -1701,7 +1690,7 @@ class Program
 #line default");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMissingInFieldInPartiallyHiddenType()
         {
             await TestMissingAsync(
@@ -1714,7 +1703,7 @@ class Program
 #line default", new TestParameters(Options.Regular));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMissingInAttributeInPartiallyHiddenType()
         {
             await TestMissingAsync(
@@ -1726,7 +1715,7 @@ class Program
 #line default", new TestParameters(Options.Regular));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMissingInConstructorInitializerInPartiallyHiddenType()
         {
             await TestMissingAsync(
@@ -1741,7 +1730,7 @@ class Program
 #line default", new TestParameters(Options.Regular));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMissingInParameterInPartiallyHiddenType()
         {
             await TestMissingAsync(
@@ -1756,7 +1745,7 @@ class Program
 #line default", new TestParameters(Options.Regular));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMissingInQueryInPartiallyHiddenType()
         {
             await TestMissingAsync(
@@ -1775,7 +1764,7 @@ class Program
 }", new TestParameters(Options.Regular));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestInVisibleQueryInHiddenType()
         {
             await TestAsync(
@@ -1815,7 +1804,7 @@ class Program
 parseOptions: Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMissingOnNamespace()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1828,7 +1817,7 @@ parseOptions: Options.Regular);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMissingOnType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1841,7 +1830,7 @@ parseOptions: Options.Regular);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMissingOnBase()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1854,7 +1843,7 @@ parseOptions: Options.Regular);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestVenusGeneration1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1870,7 +1859,7 @@ parseOptions: Options.Regular);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestVenusGeneration2()
         {
             var code =
@@ -1909,7 +1898,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestVenusGeneration3()
         {
             var code =
@@ -1932,8 +1921,7 @@ class Program
                 new[] { string.Format(FeaturesResources.Introduce_local_constant_for_0, "5"), string.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5") });
         }
 
-        [WorkItem(529795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529795")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(529795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529795")]
         public async Task TestMissingOnNegatedLiteral()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1946,8 +1934,7 @@ class Program
 }");
         }
 
-        [WorkItem(546091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546091")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(546091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546091")]
         public async Task TestNotOnInterfaceAttribute()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1957,8 +1944,7 @@ public interface I
 }");
         }
 
-        [WorkItem(546095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546095")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(546095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546095")]
         public async Task TestNotOnTypeOfInAttribute()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1970,8 +1956,7 @@ public class Button
 }");
         }
 
-        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         public async Task TestPreferGenerateConstantField1()
         {
             await TestInRegularAndScriptAsync(
@@ -1993,8 +1978,7 @@ public class Button
 }");
         }
 
-        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         public async Task TestPreferGenerateConstantField2()
         {
             await TestInRegularAndScriptAsync(
@@ -2017,8 +2001,7 @@ public class Button
 index: 1);
         }
 
-        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         public async Task TestPreferGenerateConstantField3()
         {
             await TestInRegularAndScriptAsync(
@@ -2040,8 +2023,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         public async Task TestPreferGenerateConstantField4()
         {
             await TestInRegularAndScriptAsync(
@@ -2063,8 +2045,7 @@ index: 2);
 index: 3);
         }
 
-        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         public async Task TestNoGenerateConstantFieldIfAccessingLocal1()
         {
             await TestInRegularAndScriptAsync(
@@ -2087,8 +2068,7 @@ index: 3);
 }");
         }
 
-        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         public async Task TestNoGenerateConstantFieldIfAccessingLocal2()
         {
             await TestInRegularAndScriptAsync(
@@ -2112,8 +2092,7 @@ index: 3);
 index: 1);
         }
 
-        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal1()
         {
             await TestInRegularAndScriptAsync(
@@ -2138,8 +2117,7 @@ index: 1);
 }");
         }
 
-        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal2()
         {
             await TestInRegularAndScriptAsync(
@@ -2165,8 +2143,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal3()
         {
             await TestInRegularAndScriptAsync(
@@ -2192,8 +2169,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal4()
         {
             await TestInRegularAndScriptAsync(
@@ -2219,8 +2195,7 @@ index: 2);
 index: 3);
         }
 
-        [WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347")]
         public async Task InsertNeededCast1()
         {
             await TestInRegularAndScriptAsync(
@@ -2265,8 +2240,7 @@ static class C
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347")]
         public async Task InsertNeededCast1NotVar()
         {
             await TestInRegularAndScriptAsync(
@@ -2309,8 +2283,7 @@ static class C
 }");
         }
 
-        [WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
         public async Task InsertNeededCast2()
         {
             await TestInRegularAndScriptAsync(
@@ -2344,8 +2317,7 @@ class Program
 }");
         }
 
-        [WorkItem(546512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546512")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(546512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546512")]
         public async Task TestInSwitchSection()
         {
             await TestInRegularAndScriptAsync(
@@ -2379,7 +2351,7 @@ class Program
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestInSwitchSection_AllOccurencesMultiStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -2417,7 +2389,7 @@ class Program
 index: 3);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestInSwitchSection_AllOccurencesDifferentSections()
         {
             await TestInRegularAndScriptAsync(
@@ -2455,8 +2427,7 @@ class Program
 index: 3);
         }
 
-        [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
         public async Task TestLambdaParameter1()
         {
             await TestInRegularAndScriptAsync(
@@ -2485,8 +2456,7 @@ class Program
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
         public async Task TestLambdaParameter2()
         {
             await TestInRegularAndScriptAsync(
@@ -2515,8 +2485,7 @@ class Program
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
         public async Task TestLambdaParameter3()
         {
             await TestInRegularAndScriptAsync(
@@ -2545,8 +2514,7 @@ class Program
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
         public async Task TestLambdaParameter4()
         {
             await TestInRegularAndScriptAsync(
@@ -2574,8 +2542,7 @@ class Program
 }");
         }
 
-        [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
         public async Task TestLambdaParameter5()
         {
             await TestInRegularAndScriptAsync(
@@ -2603,8 +2570,7 @@ class Program
 }");
         }
 
-        [WorkItem(530721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530721")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530721")]
         public async Task TestIntroVarInAction1()
         {
             await TestInRegularAndScriptAsync(
@@ -2631,8 +2597,7 @@ class Program
 }");
         }
 
-        [WorkItem(530919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530919")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530919")]
         public async Task TestNullableOfPointerType()
         {
             await TestInRegularAndScriptAsync(
@@ -2658,8 +2623,7 @@ class Program
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(530919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530919")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(530919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530919")]
         public async Task TestNullableOfPointerTypeNotVar()
         {
             await TestInRegularAndScriptAsync(
@@ -2684,8 +2648,7 @@ class Program
 }");
         }
 
-        [WorkItem(830885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830885")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(830885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830885")]
         public async Task TestIntroduceLocalRemovesUnnecessaryCast()
         {
             await TestInRegularAndScriptAsync(
@@ -2713,8 +2676,7 @@ class C
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(655498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655498")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(655498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655498")]
         public async Task HandleParenthesizedExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -2744,8 +2706,7 @@ class C
 }");
         }
 
-        [WorkItem(682683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682683")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(682683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682683")]
         public async Task DontRemoveParenthesesIfOperatorPrecedenceWouldBeBroken()
         {
             await TestInRegularAndScriptAsync(
@@ -2772,8 +2733,7 @@ class Program
 index: 2);
         }
 
-        [WorkItem(828108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828108")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(828108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828108")]
         public async Task UseNewSemanticModelForSimplification()
         {
             await TestInRegularAndScriptAsync(
@@ -2808,8 +2768,7 @@ class Program
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
         public async Task TestInCollectionInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -2835,8 +2794,7 @@ class C
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
         public async Task TestInCollectionInitializerNoVar()
         {
             await TestInRegularAndScriptAsync(
@@ -2861,8 +2819,7 @@ class C
 }");
         }
 
-        [WorkItem(854662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854662")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(854662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854662")]
         public async Task TestInNestedCollectionInitializers()
         {
             await TestInRegularAndScriptAsync(
@@ -2892,8 +2849,7 @@ class C
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
         public async Task TestInArrayInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -2919,8 +2875,7 @@ class C
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
         public async Task TestInArrayInitializerWithoutVar()
         {
             await TestInRegularAndScriptAsync(
@@ -2945,8 +2900,7 @@ class C
 }");
         }
 
-        [WorkItem(1022447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022447")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1022447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022447")]
         public async Task TestFormattingOfIntroduceLocal2()
         {
             await TestInRegularAndScriptAsync(
@@ -2981,8 +2935,7 @@ index: 1,
 options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(939259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(939259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")]
         public async Task TestIntroduceLocalWithTriviaInMultiLineStatements()
         {
             var code =
@@ -3011,8 +2964,7 @@ options: ImplicitTypingEverywhere());
             await TestInRegularAndScriptAsync(code, expected, index: 3);
         }
 
-        [WorkItem(939259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(939259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")]
         public async Task TestIntroduceLocalWithTriviaInMultiLineStatements2()
         {
             var code =
@@ -3041,8 +2993,7 @@ options: ImplicitTypingEverywhere());
             await TestInRegularAndScriptAsync(code, expected, index: 3);
         }
 
-        [WorkItem(1064803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064803")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1064803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064803")]
         public async Task TestIntroduceLocalInStringInterpolation()
         {
             var code =
@@ -3067,8 +3018,7 @@ options: ImplicitTypingEverywhere());
             await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(1037057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1037057")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1037057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1037057")]
         public async Task TestIntroduceLocalWithBlankLine()
         {
             await TestInRegularAndScriptAsync(@"
@@ -3097,7 +3047,7 @@ class C
 ", options: ImplicitTypingEverywhere());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalWithBlankLine_AllOccurencesMultiStatement()
         {
             await TestInRegularAndScriptAsync(@"
@@ -3128,7 +3078,7 @@ class C
 ", options: ImplicitTypingEverywhere(), index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public Task TestIntroduceLocal_NullableType_FlowStateNonNull()
         => TestInRegularAndScriptAsync(@"
 #nullable enable
@@ -3161,7 +3111,7 @@ class C
     }
 }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public Task TestIntroduceLocal_NullableType_FlowStateNull()
         => TestInRegularAndScriptAsync(@"
 #nullable enable
@@ -3194,8 +3144,7 @@ class C
     }
 }");
 
-        [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
         public async Task TestIntroduceVariableTextDoesntSpanLines1()
         {
             await TestSmartTagTextAsync(
@@ -3213,8 +3162,7 @@ string.Format(FeaturesResources.Introduce_local_constant_for_0, @"@""a b c"""),
 index: 2);
         }
 
-        [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
         public async Task TestIntroduceVariableTextDoesntSpanLines2()
         {
             await TestSmartTagTextAsync(
@@ -3231,8 +3179,7 @@ c""|];
 string.Format(FeaturesResources.Introduce_constant_for_0, @"$@""a b c"""));
         }
 
-        [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext()
         {
             var code =
@@ -3259,8 +3206,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext2()
         {
             var code =
@@ -3287,8 +3233,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext3()
         {
             var code =
@@ -3333,8 +3278,7 @@ class B
             await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext4()
         {
             var code =
@@ -3381,8 +3325,7 @@ class B
             await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestIntroduceFieldInExpressionBodiedMethod()
         {
             var code =
@@ -3405,8 +3348,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestIntroduceLocalInExpressionBodiedNonVoidMethod()
         {
             var code =
@@ -3432,8 +3374,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(31012, "https://github.com/dotnet/roslyn/issues/31012")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(31012, "https://github.com/dotnet/roslyn/issues/31012")]
         public async Task TestIntroduceLocalInArgumentList()
         {
             var code =
@@ -3467,8 +3408,7 @@ public class Test
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
-        [WorkItem(24807, "https://github.com/dotnet/roslyn/issues/24807")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(24807, "https://github.com/dotnet/roslyn/issues/24807")]
         public async Task TestIntroduceLocalInExpressionBodiedVoidMethod()
         {
             var code =
@@ -3494,7 +3434,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceFieldInExpressionBodiedConstructor()
         {
             var code =
@@ -3517,8 +3457,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(24807, "https://github.com/dotnet/roslyn/issues/24807")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(24807, "https://github.com/dotnet/roslyn/issues/24807")]
         public async Task TestIntroduceLocalInExpressionBodiedConstructor()
         {
             var code =
@@ -3544,7 +3483,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceFieldInExpressionBodiedDestructor()
         {
             var code =
@@ -3567,8 +3506,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(24807, "https://github.com/dotnet/roslyn/issues/24807")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(24807, "https://github.com/dotnet/roslyn/issues/24807")]
         public async Task TestIntroduceLocalInExpressionBodiedDestructor()
         {
             var code =
@@ -3594,8 +3532,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestIntroduceFieldInExpressionBodiedOperator()
         {
             var code =
@@ -3628,8 +3565,7 @@ class Complex
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestIntroduceLocalInExpressionBodiedOperator()
         {
             var code =
@@ -3665,8 +3601,7 @@ class Complex
             await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestIntroduceFieldInExpressionBodiedConversionOperator()
         {
             var code =
@@ -3703,7 +3638,7 @@ public struct DBBool
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalInExpressionBodiedConversionOperator()
         {
             var code =
@@ -3743,8 +3678,7 @@ public struct DBBool
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestIntroduceFieldInExpressionBodiedProperty()
         {
             var code =
@@ -3766,8 +3700,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestIntroduceLocalInExpressionBodiedProperty()
         {
             var code =
@@ -3794,8 +3727,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestIntroduceFieldInExpressionBodiedIndexer()
         {
             var code =
@@ -3818,8 +3750,7 @@ class SampleCollection<T>
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestIntroduceLocalInExpressionBodiedIndexer()
         {
             var code =
@@ -3848,7 +3779,7 @@ class SampleCollection<T>
             await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceFieldInExpressionBodiedPropertyGetter()
         {
             var code =
@@ -3876,7 +3807,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalInExpressionBodiedPropertyGetter()
         {
             var code =
@@ -3906,7 +3837,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceFieldInExpressionBodiedPropertySetter()
         {
             var code =
@@ -3934,7 +3865,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalInExpressionBodiedPropertySetter()
         {
             var code =
@@ -3964,7 +3895,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceFieldInExpressionBodiedIndexerGetter()
         {
             var code =
@@ -3992,7 +3923,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalInExpressionBodiedIndexerGetter()
         {
             var code =
@@ -4022,7 +3953,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceFieldInExpressionBodiedIndexerSetter()
         {
             var code =
@@ -4050,7 +3981,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalInExpressionBodiedIndexerSetter()
         {
             var code =
@@ -4080,7 +4011,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceFieldInExpressionBodiedEventAdder()
         {
             var code =
@@ -4110,7 +4041,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalInExpressionBodiedEventAdder()
         {
             var code =
@@ -4142,7 +4073,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceFieldInExpressionBodiedEventRemover()
         {
             var code =
@@ -4172,7 +4103,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalInExpressionBodiedEventRemover()
         {
             var code =
@@ -4204,7 +4135,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceFieldInExpressionBodiedLocalFunction()
         {
             var code =
@@ -4232,7 +4163,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalInExpressionBodiedNonVoidLocalFunction()
         {
             var code =
@@ -4262,7 +4193,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalInExpressionBodiedVoidLocalFunction()
         {
             var code =
@@ -4292,8 +4223,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestTrailingTriviaOnExpressionBodiedMethodRewrites()
         {
             var code =
@@ -4323,8 +4253,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestLeadingTriviaOnExpressionBodiedMethodRewrites()
         {
             var code =
@@ -4350,8 +4279,7 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestTriviaAroundArrowTokenInExpressionBodiedMemberSyntax()
         {
             var code =
@@ -4377,9 +4305,8 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
         {
             var code =
@@ -4406,9 +4333,8 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
         {
             var code =
@@ -4428,9 +4354,8 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
         {
             var code =
@@ -4457,8 +4382,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
         {
             var code =
@@ -4482,9 +4406,8 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedParenthesizedLambdaExpression()
         {
             var code =
@@ -4511,8 +4434,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithExpressionBodiedParenthesizedLambdaExpression()
         {
             var code =
@@ -4536,9 +4458,8 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact, WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
         {
             var code =
@@ -4565,8 +4486,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
         public async Task TestNoConstantForInterpolatedStrings()
         {
             var code =
@@ -4593,8 +4513,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
         public async Task TestConstantForInterpolatedStrings()
         {
             var code =
@@ -4624,7 +4543,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestConstantForInterpolatedStringsNested()
         {
             var code =
@@ -4654,7 +4573,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestConstantForInterpolatedStringsInvalid()
         {
             var code =
@@ -4683,8 +4602,7 @@ class TestClass
             await TestInRegularAndScriptAsync(code, expected, index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")]
         public async Task TestMissingOnNullLiteral()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4706,8 +4624,7 @@ class Test
 }");
         }
 
-        [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
         public async Task InParentConditionalAccessExpressions()
         {
             var code =
@@ -4736,8 +4653,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
         public async Task InParentConditionalAccessExpression2()
         {
             var code =
@@ -4766,9 +4682,8 @@ class C
             await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
+        [Fact, WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
         [WorkItem(3110, "https://github.com/dotnet/roslyn/issues/3110")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task MissingAcrossMultipleParentConditionalAccessExpressions()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4784,8 +4699,7 @@ class C
 }");
         }
 
-        [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
         public async Task MissingOnInvocationExpressionInParentConditionalAccessExpressions()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4801,8 +4715,7 @@ class C
 }");
         }
 
-        [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
         public async Task MissingOnMemberBindingExpressionInParentConditionalAccessExpressions()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4817,8 +4730,7 @@ class C
 }");
         }
 
-        [WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")]
         public async Task HandleFormattableStringTargetTyping1()
         {
             const string code = CodeSnippets.FormattableStringType + @"
@@ -4853,8 +4765,7 @@ namespace N
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(49720, "https://github.com/dotnet/roslyn/issues/49720")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(49720, "https://github.com/dotnet/roslyn/issues/49720")]
         public async Task HandleIFormattableTargetTyping1()
         {
             const string code = @"
@@ -4891,8 +4802,7 @@ namespace N
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
         public async Task InAutoPropertyInitializer()
         {
             var code =
@@ -4912,8 +4822,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
         public async Task InAutoPropertyInitializer2()
         {
             var code =
@@ -4933,8 +4842,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
         public async Task BlockContextPreferredOverAutoPropertyInitializerContext()
         {
             var code =
@@ -4952,7 +4860,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task Tuple_TuplesDisabled()
         {
             var code =
@@ -4971,7 +4879,7 @@ class C
             await TestAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task ElementOfTuple()
         {
             var code =
@@ -4991,7 +4899,7 @@ class C
                 code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task Tuple_IntroduceConstant()
         {
             var code =
@@ -5010,7 +4918,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TupleWithNames_IntroduceConstant()
         {
             var code =
@@ -5029,7 +4937,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task Tuple_IntroduceConstantForAllOccurrences()
         {
             var code =
@@ -5048,7 +4956,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TupleWithNames_IntroduceConstantForAllOccurrences()
         {
             var code =
@@ -5067,7 +4975,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TupleWithDifferentNames_IntroduceConstantForAllOccurrences()
         {
             var code =
@@ -5086,7 +4994,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TupleWithOneName_IntroduceConstantForAllOccurrences()
         {
             var code =
@@ -5108,7 +5016,7 @@ class C
             await TestActionCountAsync(code, count: 2, parameters: new TestParameters(TestOptions.Regular));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task Tuple_IntroduceLocalForAllOccurrences()
         {
             // Cannot refactor tuple as local constant
@@ -5123,8 +5031,7 @@ class C
 }", count: 2);
         }
 
-        [WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")]
         public async Task TestGenerateLocalConflictingName1()
         {
             await TestInRegularAndScriptAsync(
@@ -5157,7 +5064,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TupleWithInferredName_LeaveExplicitName()
         {
             var code =
@@ -5186,7 +5093,7 @@ class C
             await TestAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TupleWithInferredName_InferredNameBecomesExplicit()
         {
             var code =
@@ -5215,7 +5122,7 @@ class C
             await TestAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TupleWithInferredName_AllOccurrences()
         {
             var code =
@@ -5245,7 +5152,7 @@ class C
             await TestAsync(code, expected, index: 1, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TupleWithInferredName_NoDuplicateNames()
         {
             var code =
@@ -5273,7 +5180,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task AnonymousTypeWithInferredName_LeaveExplicitName()
         {
             var code =
@@ -5302,7 +5209,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task AnonymousTypeWithInferredName_InferredNameBecomesExplicit()
         {
             var code =
@@ -5331,7 +5238,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task AnonymousTypeWithInferredName_NoDuplicatesAllowed()
         {
             var code =
@@ -5360,8 +5267,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(31795, "https://github.com/dotnet/roslyn/issues/31795")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(31795, "https://github.com/dotnet/roslyn/issues/31795")]
         public async Task TestInAnonymousObjectMemberDeclaratorWithInferredType()
         {
             var code =
@@ -5400,8 +5306,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
         public async Task TestPickNameBasedOnArgument1()
         {
             await TestInRegularAndScriptAsync(
@@ -5438,8 +5343,7 @@ struct TextSpan
 }");
         }
 
-        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
         public async Task TestPickNameBasedOnArgument2()
         {
             await TestInRegularAndScriptAsync(
@@ -5476,8 +5380,7 @@ struct TextSpan
 }");
         }
 
-        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
         public async Task TestPickNameBasedOnValueTupleFieldName1()
         {
             await TestAsync(
@@ -5502,8 +5405,7 @@ class C
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
-        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
         public async Task TestPickNameBasedOnValueTupleFieldName2()
         {
             await TestAsync(
@@ -5529,8 +5431,7 @@ class C
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 0);
         }
 
-        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
         public async Task TestPickNameBasedOnValueTupleFieldName3()
         {
             await TestAsync(
@@ -5555,8 +5456,7 @@ class C
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 2);
         }
 
-        [WorkItem(21373, "https://github.com/dotnet/roslyn/issues/21373")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(21373, "https://github.com/dotnet/roslyn/issues/21373")]
         public async Task TestInAttribute()
         {
             await TestInRegularAndScriptAsync(
@@ -5578,8 +5478,7 @@ class C
 }");
         }
 
-        [WorkItem(21687, "https://github.com/dotnet/roslyn/issues/21687")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(21687, "https://github.com/dotnet/roslyn/issues/21687")]
         public async Task TestIfClassHasSameNameAsNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -5607,8 +5506,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        [Fact, WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
         public async Task TestSimpleParameterName()
         {
             await TestInRegularAndScriptAsync(
@@ -5631,8 +5529,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        [Fact, WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
         public async Task TestSimpleParamterName_EmptySelection()
         {
             await TestMissingAsync(
@@ -5645,8 +5542,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        [Fact, WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestSimpleParamterName_SmallSelection()
         {
@@ -5668,8 +5564,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        [Fact, WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
         public async Task TestFieldName_QualifiedWithThis()
         {
             await TestInRegularAndScriptAsync(
@@ -5694,8 +5589,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        [Fact, WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
         public async Task TestFieldName_QualifiedWithType()
         {
             await TestInRegularAndScriptAsync(
@@ -5720,8 +5614,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        [Fact, WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
         public async Task TestFieldName_QualifiedWithType_TinySelection1()
         {
             // While one might argue that offering the refactoring in this case is not strictly correct the selection expression is
@@ -5748,8 +5641,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        [Fact, WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
         public async Task TestFieldName_QualifiedWithType_TinySelection2()
         {
             await TestMissingAsync(
@@ -5764,8 +5656,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        [Fact, WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
         public async Task TestFieldName_QualifiedWithType_TinySelection3()
         {
             await TestMissingAsync(
@@ -5780,8 +5671,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        [Fact, WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
         public async Task TestFieldName_QualifiedWithType_EmptySelection()
         {
             await TestMissingAsync(
@@ -5795,8 +5685,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
+        [Fact, WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
         public async Task TestWithLineBreak()
         {
             await TestInRegularAndScriptAsync(
@@ -5822,8 +5711,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
+        [Fact, WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
         public async Task TestWithLineBreak_AfterExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -5849,8 +5737,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
+        [Fact, WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
         public async Task TestWithLineBreak_WithMultiLineComment()
         {
             await TestMissingAsync(
@@ -5865,8 +5752,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
+        [Fact, WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestWithLineBreak_WithSingleLineComments()
         {
@@ -5894,7 +5780,7 @@ class C
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalInCallRefExpression()
         {
             // This test indicates that ref-expressions are l-values and
@@ -5921,7 +5807,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIntroduceLocalInRefCallRefExpression()
         {
             // Cannot extract expressions passed by ref
@@ -5937,8 +5823,7 @@ class C
 }");
         }
 
-        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
         public async Task TestCaretAtEndOfExpression1()
         {
             await TestInRegularAndScriptAsync(
@@ -5960,8 +5845,7 @@ class C
 }");
         }
 
-        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
         public async Task TestCaretAtEndOfExpression2()
         {
             await TestInRegularAndScriptAsync(
@@ -5983,8 +5867,7 @@ class C
 }");
         }
 
-        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
         public async Task TestCaretAtEndOfExpression3()
         {
             await TestInRegularAndScriptAsync(
@@ -6006,8 +5889,7 @@ class C
 }");
         }
 
-        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
         public async Task TestCaretAtEndOfExpression4()
         {
             await TestInRegularAndScriptAsync(
@@ -6029,8 +5911,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(27949, "https://github.com/dotnet/roslyn/issues/27949")]
+        [Fact, WorkItem(27949, "https://github.com/dotnet/roslyn/issues/27949")]
         public async Task TestWhitespaceSpanInAssignment()
         {
             await TestMissingAsync(@"
@@ -6040,8 +5921,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(28665, "https://github.com/dotnet/roslyn/issues/28665")]
+        [Fact, WorkItem(28665, "https://github.com/dotnet/roslyn/issues/28665")]
         public async Task TestWhitespaceSpanInAttribute()
         {
             await TestMissingAsync(@"
@@ -6054,8 +5934,7 @@ class C
 }");
         }
 
-        [WorkItem(28941, "https://github.com/dotnet/roslyn/issues/28941")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(28941, "https://github.com/dotnet/roslyn/issues/28941")]
         public async Task TestElementAccessExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -6080,7 +5959,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestIndexExpression()
         {
             var code = TestSources.Index + @"
@@ -6105,7 +5984,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestRangeExpression_None()
         {
             var code = TestSources.Index + TestSources.Range + @"
@@ -6130,7 +6009,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestRangeExpression_Right()
         {
             var code = TestSources.Index + TestSources.Range + @"
@@ -6155,7 +6034,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestRangeExpression_Left()
         {
             var code = TestSources.Index + TestSources.Range + @"
@@ -6180,7 +6059,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestRangeExpression_Both()
         {
             var code = TestSources.Index + TestSources.Range + @"
@@ -6205,8 +6084,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
         public async Task TestImplicitRecursiveInstanceMemberAccess_ForAllOccurrences()
         {
             var code =
@@ -6233,8 +6111,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
         public async Task TestExplicitRecursiveInstanceMemberAccess_ForAllOccurrences()
         {
             var code =
@@ -6261,8 +6138,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
         public async Task TestExplicitInstanceMemberAccess_ForAllOccurrences()
         {
             var code =
@@ -6289,8 +6165,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
         public async Task TestImplicitInstanceMemberAccess_ForAllOccurrences()
         {
             var code =
@@ -6317,8 +6192,7 @@ class Program
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
         public async Task TestExpressionOfUndeclaredType()
         {
             var code =
@@ -6335,8 +6209,7 @@ class Program
             await TestMissingAsync(code);
         }
 
-        [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_Method()
         {
             await TestInRegularAndScriptAsync(
@@ -6369,8 +6242,7 @@ class Program
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_Property()
         {
             await TestInRegularAndScriptAsync(
@@ -6413,8 +6285,7 @@ class Program
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_ForLoop()
         {
             await TestInRegularAndScriptAsync(
@@ -6463,8 +6334,7 @@ class Program
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_NestedLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -6505,8 +6375,7 @@ class Program
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
         public async Task TestIntroduceFromStaticLocalFunction_AllOccurences_NestedLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -6547,8 +6416,7 @@ class Program
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
         public async Task TestIntroduceFromStaticLocalFunction_AllOccurences_Method()
         {
             await TestInRegularAndScriptAsync(
@@ -6595,8 +6463,7 @@ class Program
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_SingleMatch()
         {
             await TestInRegularAndScriptAsync(
@@ -6627,8 +6494,7 @@ class Program
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleMatches()
         {
             await TestInRegularAndScriptAsync(
@@ -6661,8 +6527,7 @@ class Program
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleMatches2()
         {
             await TestInRegularAndScriptAsync(
@@ -6695,8 +6560,7 @@ class Program
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_LocalFunctionCall()
         {
             await TestInRegularAndScriptAsync(
@@ -6741,8 +6605,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_LocalFunctionCall2()
         {
             await TestInRegularAndScriptAsync(
@@ -6787,8 +6650,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_LocalFunctionCall3()
         {
             await TestInRegularAndScriptAsync(
@@ -6837,8 +6699,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleLocalFunctionCalls()
         {
             await TestInRegularAndScriptAsync(
@@ -6889,8 +6750,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_NestedLocalFunctionCalls()
         {
             await TestInRegularAndScriptAsync(
@@ -6947,8 +6807,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleLocalFunctions()
         {
             await TestInRegularAndScriptAsync(
@@ -7013,8 +6872,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleLocalFunctions2()
         {
             await TestInRegularAndScriptAsync(
@@ -7075,8 +6933,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_NoLocalFunctionCall()
         {
             await TestInRegularAndScriptAsync(
@@ -7123,8 +6980,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_ExpressionBodiedLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -7167,8 +7023,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_ExpressionBodiedLocalFunction2()
         {
             await TestInRegularAndScriptAsync(
@@ -7211,8 +7066,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_SameMethodNames()
         {
             await TestInRegularAndScriptAsync(
@@ -7287,8 +7141,7 @@ class C
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40381, "https://github.com/dotnet/roslyn/issues/40381")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40381, "https://github.com/dotnet/roslyn/issues/40381")]
         public async Task TestIntroduceFromMethod_AllOccurences_DontIncludeStaticLocalFunctionReferences()
         {
             await TestInRegularAndScriptAsync(
@@ -7333,8 +7186,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40381, "https://github.com/dotnet/roslyn/issues/40381")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40381, "https://github.com/dotnet/roslyn/issues/40381")]
         public async Task TestIntroduceFromMethod_AllOccurences_DontIncludeStaticLocalFunctionReferences2()
         {
             await TestInRegularAndScriptAsync(
@@ -7377,8 +7229,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(40381, "https://github.com/dotnet/roslyn/issues/40381")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40381, "https://github.com/dotnet/roslyn/issues/40381")]
         public async Task TestIntroduceFromMethod_AllOccurences_IncludeNonStaticLocalFunctionReferences()
         {
             await TestInRegularAndScriptAsync(
@@ -7423,8 +7274,7 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
-        [WorkItem(561, "https://github.com/dotnet/roslyn/issues/561")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(561, "https://github.com/dotnet/roslyn/issues/561")]
         public async Task DoNotGenerateBetweenElseAndIf()
         {
             await TestInRegularAndScriptAsync(
@@ -7455,8 +7305,7 @@ class Bug
 }");
         }
 
-        [WorkItem(12591, "https://github.com/dotnet/roslyn/issues/12591")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(12591, "https://github.com/dotnet/roslyn/issues/12591")]
         public async Task TestWhitespaceSelection1()
         {
             await TestInRegularAndScriptAsync(
@@ -7493,8 +7342,7 @@ class Bug
 }");
         }
 
-        [WorkItem(56, "https://github.com/dotnet/roslyn/issues/56")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(56, "https://github.com/dotnet/roslyn/issues/56")]
         public async Task TestGenerateNameForForeachExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -7535,8 +7383,7 @@ class Program
 }");
         }
 
-        [WorkItem(15770, "https://github.com/dotnet/roslyn/issues/15770")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(15770, "https://github.com/dotnet/roslyn/issues/15770")]
         public async Task TestKeepReplacementIndentation1()
         {
             await TestInRegularAndScriptAsync(
@@ -7560,8 +7407,7 @@ class Program
                 index: 3);
         }
 
-        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
         public async Task TestKeepExistingNonTrivialCodeInLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -7591,8 +7437,7 @@ class C
 }");
         }
 
-        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
         public async Task TestIntroVarInActionSelectingInsideParens()
         {
             await TestInRegularAndScriptAsync(
@@ -7619,8 +7464,7 @@ class Program
 }");
         }
 
-        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
         public async Task TestIntroVarInActionSelectingParens()
         {
             await TestInRegularAndScriptAsync(
@@ -7647,8 +7491,7 @@ class Program
 }");
         }
 
-        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
         public async Task TestMissingReturnStatementInAsyncTaskMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -7686,8 +7529,7 @@ class Program
 }");
         }
 
-        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
         public async Task TestMissingReturnStatementInAsyncValueTaskMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -7737,7 +7579,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestReturnStatementInAsyncTaskTypeMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -7777,8 +7619,7 @@ class Program
 }");
         }
 
-        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
         public async Task TestReturnStatementInAsyncValueTaskTypeMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -7830,8 +7671,7 @@ class Program
 }");
         }
 
-        [WorkItem(44291, "https://github.com/dotnet/roslyn/issues/44291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(44291, "https://github.com/dotnet/roslyn/issues/44291")]
         public async Task TestIntroduceWithAmbiguousExtensionClass()
         {
             await TestInRegularAndScriptAsync(
@@ -7877,8 +7717,7 @@ public class P
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(44656, "https://github.com/dotnet/roslyn/issues/44656")]
+        [Fact, WorkItem(44656, "https://github.com/dotnet/roslyn/issues/44656")]
         public async Task ImplicitObjectCreation()
         {
             await TestInRegularAndScriptAsync(@"
@@ -7913,8 +7752,7 @@ class B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(52833, "https://github.com/dotnet/roslyn/issues/52833")]
+        [Fact, WorkItem(52833, "https://github.com/dotnet/roslyn/issues/52833")]
         public async Task UniqueParameterName()
         {
             await TestInRegularAndScriptAsync(@"
@@ -7950,8 +7788,7 @@ public class SomeClass
 }", 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        [Fact, WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
         public async Task DoNotIntroduceConstantForConstant_Local()
         {
             await TestMissingAsync(
@@ -7966,8 +7803,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        [Fact, WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
         public async Task DoNotIntroduceConstantForConstant_Member()
         {
             await TestMissingAsync(
@@ -7979,8 +7815,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        [Fact, WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
         public async Task DoNotIntroduceConstantForConstant_Parentheses()
         {
             await TestMissingAsync(
@@ -7992,8 +7827,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        [Fact, WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
         public async Task DoNotIntroduceConstantForConstant_NotForSubExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -8017,6 +7851,126 @@ class C
 }
 ",
             index: 2);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [WorkItem(61796, "https://github.com/dotnet/roslyn/issues/61796")]
+        [InlineData("Task")]
+        [InlineData("ValueTask")]
+        public async Task IntroduceLocal_DoNotReturnForVoidTaskLikeTypes(string taskType)
+        {
+            await TestInRegularAndScriptAsync(
+$$"""
+using System;
+using System.Threading.Tasks;
+
+namespace ConsoleApp1
+{
+    internal class Example1
+    {
+        private async {{taskType}} DoStuff() => await ConsumeAsync([|await TransformAsync("abc")|]);
+
+        private Task<object> TransformAsync(string v) => throw new NotImplementedException();
+
+        private Task ConsumeAsync(object value) => throw new NotImplementedException();
+    }
+}
+""" + ValueTaskDeclaration,
+$$"""
+using System;
+using System.Threading.Tasks;
+
+namespace ConsoleApp1
+{
+    internal class Example1
+    {
+        private async {{taskType}} DoStuff()
+        {
+            object {|Rename:value|} = await TransformAsync("abc");
+            await ConsumeAsync(value);
+        }
+
+        private Task<object> TransformAsync(string v) => throw new NotImplementedException();
+
+        private Task ConsumeAsync(object value) => throw new NotImplementedException();
+    }
+}
+""" + ValueTaskDeclaration);
+        }
+
+        [Fact, WorkItem(28730, "https://github.com/dotnet/roslyn/issues/28730")]
+        public async Task TestOnThis1()
+        {
+            await TestMissingAsync(
+@"
+sealed class C {
+    readonly string s;
+    public C(string s) {
+        [||]this.s = s;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task Lambda_OptionalParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        H((int x = 1, int y = 2) [||]=> x + y);
+    }
+
+    static void H(Delegate d) { }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        var {|Rename:d|} = (int x = 1, int y = 2) => x + y;
+        H(d);
+    }
+
+    static void H(Delegate d) { }
+}");
+        }
+
+        [Fact]
+        public async Task Lambda_ParamsArray()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        H((int x, params int[] xs) [||]=> xs.Length + x);
+    }
+
+    static void H(Delegate d) { }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        var {|Rename:d|} = (int x, params int[] xs) => xs.Length + x;
+        H(d);
+    }
+
+    static void H(Delegate d) { }
+}");
         }
     }
 }

@@ -22,7 +22,7 @@
         "*.yml": "azure-pipelines"
     },
     // ms-dotnettools.csharp settings
-    "omnisharp.defaultLaunchSolution": "Compilers.sln",
+    "omnisharp.defaultLaunchSolution": "Roslyn.sln",
     "omnisharp.disableMSBuildDiagnosticWarning": true,
     "omnisharp.enableEditorConfigSupport": true,
     "omnisharp.enableImportCompletion": true,

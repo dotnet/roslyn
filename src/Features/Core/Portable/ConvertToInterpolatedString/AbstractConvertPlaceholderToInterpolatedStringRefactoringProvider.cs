@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             {
                 var argumentExpression = syntaxFacts.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFacts));
                 var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
-                if (convertedType == null)
+                if (convertedType is null)
                 {
                     builder.Add((TExpressionSyntax)syntaxGenerator.AddParentheses(argumentExpression));
                 }
@@ -341,8 +341,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         {
             if (expression != null)
             {
-                var formatMethodsAcceptingParamsArray = formatMethods
-                        .Where(x => x.Parameters.Length > 1 && x.Parameters[1].Type.Kind == SymbolKind.ArrayType);
+                var formatMethodsAcceptingParamsArray = formatMethods.Where(
+                    x => x.Parameters is [_, { Type.Kind: SymbolKind.ArrayType }, ..]);
                 if (formatMethodsAcceptingParamsArray.Contains(invocationSymbol))
                 {
                     return semanticModel.GetTypeInfo(expression, cancellationToken).Type?.Kind != SymbolKind.ArrayType;

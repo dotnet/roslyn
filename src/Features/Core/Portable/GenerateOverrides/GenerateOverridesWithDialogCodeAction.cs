@@ -21,10 +21,6 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
     {
         private sealed class GenerateOverridesWithDialogCodeAction : CodeActionWithOptions
         {
-            public static readonly Option2<bool> s_globalOption = new(
-                "GenerateOverridesOptions", "SelectAll", defaultValue: true,
-                storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.GenerateOverridesOptions.SelectAll"));
-
             private readonly GenerateOverridesCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
@@ -52,14 +48,14 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var services = _document.Project.Solution.Workspace.Services;
+                var services = _document.Project.Solution.Services;
                 var pickMembersService = _service._pickMembersService_forTestingPurposes ?? services.GetRequiredService<IPickMembersService>();
                 var globalOptionService = services.GetService<ILegacyGlobalOptionsWorkspaceService>();
 
                 return pickMembersService.PickMembers(
                     FeaturesResources.Pick_members_to_override,
                     _viableMembers,
-                    selectAll: globalOptionService?.GlobalOptions.GetOption(s_globalOption) ?? s_globalOption.DefaultValue);
+                    selectAll: globalOptionService?.GenerateOverrides ?? true);
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -120,7 +116,10 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {
                     var service = workspace.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
-                    service?.GlobalOptions.SetGlobalOption(new OptionKey(s_globalOption), _selectedAll);
+                    if (service != null)
+                    {
+                        service.GenerateOverrides = _selectedAll;
+                    }
                 }
             }
         }

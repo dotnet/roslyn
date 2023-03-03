@@ -177,6 +177,38 @@ Module Module1
             Assert.Equal(expected: 2, actual: references.ElementAt(0).Locations.Count());
         }
 
+        [Fact, WorkItem(1744118, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1744118")]
+        public async Task TestSymbolWithEmptyIdentifier()
+        {
+            var tree = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(
+                @"
+Imports System
+Public Class C
+    private readonly property
+End Class
+            ");
+
+            var prj1Id = ProjectId.CreateNewId();
+            var docId = DocumentId.CreateNewId(prj1Id);
+
+            var sln = CreateWorkspace().CurrentSolution
+                .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.VisualBasic)
+                .AddMetadataReference(prj1Id, MscorlibRef)
+                .AddDocument(docId, "testFile", tree.GetText());
+
+            var prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
+            tree = await prj.GetDocument(docId).GetSyntaxTreeAsync();
+            var comp = await prj.GetCompilationAsync();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+
+            var propertyStatement = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.VisualBasic.Syntax.PropertyStatementSyntax>().FirstOrDefault();
+            var symbol = semanticModel.GetDeclaredSymbol(propertyStatement);
+            var references = await SymbolFinder.FindReferencesAsync(symbol, prj.Solution);
+
+            Assert.Equal(expected: 0, actual: references.ElementAt(0).Locations.Count());
+        }
+
         [Fact]
         public async Task PinvokeMethodReferences_CS()
         {
@@ -401,8 +433,7 @@ namespace N2
             Assert.Equal(5, references.Count());
         }
 
-        [WorkItem(4936, "https://github.com/dotnet/roslyn/issues/4936")]
-        [Fact]
+        [Fact, WorkItem(4936, "https://github.com/dotnet/roslyn/issues/4936")]
         public async Task OverriddenMethodsFromPortableToDesktop()
         {
             var solution = CreateWorkspace().CurrentSolution;

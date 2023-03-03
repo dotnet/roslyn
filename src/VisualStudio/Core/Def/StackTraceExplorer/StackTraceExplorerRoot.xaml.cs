@@ -27,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     {
         public string CloseTab => ServicesVSResources.Close_tab;
         public string Clear_Text => ServicesVSResources.Clear;
+        public string StackTrace => ServicesVSResources.Stack_Trace;
 
         public readonly StackTraceExplorerRootViewModel ViewModel;
 

@@ -39,8 +39,38 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Full_Solution_Tag
             => BackgroundAnalysisScope.FullSolution;
 
+        public static string Option_Show_compiler_errors_and_warnings_for
+            => ServicesVSResources.Show_compiler_errors_and_warnings_for_colon;
+
+        public static string Option_Compiler_Diagnostics_Scope_None
+            => ServicesVSResources.None;
+
+        public static string Option_Compiler_Diagnostics_Scope_Visible_Files
+            => ServicesVSResources.Current_document; // We show "Current document" to users for consistency with term used elsewhere.
+
+        public static string Option_Compiler_Diagnostics_Scope_Open_Files
+            => ServicesVSResources.Open_documents;
+
+        public static string Option_Compiler_Diagnostics_Scope_Full_Solution
+            => ServicesVSResources.Entire_solution;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_None_Tag
+            => CompilerDiagnosticsScope.None;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Visible_Files_Tag
+            => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Open_Files_Tag
+            => CompilerDiagnosticsScope.OpenFiles;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Full_Solution_Tag
+            => CompilerDiagnosticsScope.FullSolution;
+
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
+
+        public static string Option_Enable_navigation_to_sourcelink_and_embedded_sources
+            => ServicesVSResources.Enable_navigation_to_sourcelink_and_embedded_sources;
 
         public static string Option_Always_use_default_symbol_servers_for_navigation
             => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
@@ -53,6 +83,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_run_code_analysis_in_separate_process
             => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
+
+        public static string Option_analyze_source_generated_files
+            => ServicesVSResources.Analyze_source_generated_files;
 
         public static string Option_Inline_Hints
             => ServicesVSResources.Inline_Hints;
@@ -204,8 +237,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Collapse_usings_on_file_open
             => CSharpVSResources.Collapse_usings_on_file_open;
 
-        public static string Option_Collapse_metadata_on_file_open
-            => ServicesVSResources.Collapse_metadata_on_file_open;
+        public static string Option_Collapse_sourcelink_embedded_decompiled_files_on_open
+            => ServicesVSResources.Collapse_sourcelink_embedded_decompiled_files_on_open;
+
+        public static string Option_Collapse_metadata_signature_files_on_open
+            => ServicesVSResources.Collapse_metadata_signature_files_on_open;
 
         public static string Option_Show_outlining_for_declaration_level_constructs
             => ServicesVSResources.Show_outlining_for_declaration_level_constructs;
@@ -321,14 +357,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Include_global_imports
             => ServicesVSResources.Include_global_imports;
 
-        public static string Option_JSON_strings =>
-            ServicesVSResources.JSON_strings;
+        public static string Option_JSON_strings
+            => ServicesVSResources.JSON_strings;
 
-        public static string Option_Colorize_JSON_strings =>
-            ServicesVSResources.Colorize_JSON_strings;
+        public static string Option_Colorize_JSON_strings
+            => ServicesVSResources.Colorize_JSON_strings;
 
-        public static string Option_Report_invalid_JSON_strings =>
-            ServicesVSResources.Report_invalid_JSON_strings;
+        public static string Option_Report_invalid_JSON_strings
+            => ServicesVSResources.Report_invalid_JSON_strings;
 
         public static string Inheritance_Margin
             => ServicesVSResources.Inheritance_Margin;
@@ -347,5 +383,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Navigate_asynchronously_exerimental
             => ServicesVSResources.Navigate_asynchronously_exerimental;
+
+        public static string Option_Rename
+            => ServicesVSResources.Rename;
+
+        public static string Option_Rename_asynchronously_experimental
+            => ServicesVSResources.Rename_asynchronously_experimental;
+
+        public static string Where_should_the_rename_UI_be_shown
+            => ServicesVSResources.Where_should_the_rename_UI_be_shown;
+
+        public static string Option_Show_UI_inline
+            => ServicesVSResources.Show_UI_inline;
+
+        public static string Option_Show_UI_as_dashboard_in_top_right
+            => ServicesVSResources.Show_UI_as_dashboard_in_top_right;
     }
 }

@@ -109,12 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAutoProperty: isAutoProperty,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
-                syntax.Type.GetRefKind(),
+                syntax.Type.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                 memberName,
                 syntax.AttributeLists,
                 location,
                 diagnostics)
         {
+            Debug.Assert(syntax.Type is not ScopedTypeSyntax);
+
             if (IsAutoProperty)
             {
                 Binder.CheckFeatureAvailability(
@@ -129,6 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.GetExpressionBodySyntax(),
                 syntax,
                 diagnostics);
+
+            if (syntax is PropertyDeclarationSyntax { Initializer: { } initializer })
+                MessageID.IDS_FeatureAutoPropertyInitializer.CheckFeatureAvailability(diagnostics, syntax, initializer.EqualsToken.GetLocation());
         }
 
         private TypeSyntax GetTypeSyntax(SyntaxNode syntax) => ((BasePropertyDeclarationSyntax)syntax).Type;
@@ -241,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static AccessorDeclarationSyntax GetSetAccessorDeclaration(BasePropertyDeclarationSyntax syntax)
@@ -256,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static DeclarationModifiers MakeModifiers(
@@ -292,6 +297,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!isInterface)
                 {
                     allowedModifiers |= DeclarationModifiers.Override;
+
+                    if (!isIndexer)
+                    {
+                        allowedModifiers |= DeclarationModifiers.Required;
+                    }
                 }
                 else
                 {
@@ -315,7 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     allowedModifiers |= DeclarationModifiers.Abstract;
                 }
-                else if (!isIndexer)
+
+                if (!isIndexer)
                 {
                     allowedModifiers |= DeclarationModifiers.Static;
                 }
@@ -328,7 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allowedModifiers |= DeclarationModifiers.Extern;
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
 
@@ -348,6 +360,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isIndexer)
             {
                 mods |= DeclarationModifiers.Indexer;
+            }
+
+            if ((mods & DeclarationModifiers.Static) != 0 && (mods & DeclarationModifiers.Required) != 0)
+            {
+                // The modifier 'required' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
+                mods &= ~DeclarationModifiers.Required;
             }
 
             return mods;
@@ -426,8 +445,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeWithAnnotations ComputeType(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
-            RefKind refKind;
-            var typeSyntax = GetTypeSyntax(syntax).SkipRef(out refKind);
+            var typeSyntax = GetTypeSyntax(syntax);
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax);
+
+            typeSyntax = typeSyntax.SkipScoped(out _).SkipRef();
             var type = binder.BindType(typeSyntax, diagnostics);
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -436,6 +457,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
                 // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
                 diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), Location, this, type.Type);
+            }
+
+            if (type.Type.HasFileLocalTypes() && !ContainingType.HasFileLocalTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, type.Type, ContainingType);
             }
 
             diagnostics.Add(Location, useSiteInfo);
@@ -474,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: false,
                 allowThis: false,
                 addRefReadOnlyModifier: addRefReadOnlyModifier,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             if (arglistToken.Kind() != SyntaxKind.None)
             {
@@ -515,6 +541,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, param.Type);
                 }
+                else if (param.Type.HasFileLocalTypes() && !this.ContainingType.HasFileLocalTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, param.Type, this.ContainingType);
+                }
                 else if (SetMethod is object && param.Name == ParameterSymbol.ValueParameterName)
                 {
                     diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.Locations.FirstOrDefault() ?? Location, param.Name);
@@ -528,7 +558,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var typeSyntax = GetTypeSyntax(CSharpSyntaxNode).SkipRef(out _);
+                var typeSyntax = GetTypeSyntax(CSharpSyntaxNode);
+                Debug.Assert(typeSyntax is not ScopedTypeSyntax);
+                typeSyntax = typeSyntax.SkipScoped(out _).SkipRef();
                 return typeSyntax.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false };
             }
         }

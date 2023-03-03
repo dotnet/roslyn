@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -87,6 +88,7 @@ class Test : MyBase
                         expected2,
                     }
                 },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -191,8 +193,346 @@ partial class Test
                         expected3,
                     }
                 },
-                FileName = "/0/Test2.cs",
+                FileName = "Test2.cs",
                 DialogSelection = MakeSelection("Method", "Method2")
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRecord_Method()
+        {
+            var input = """
+                record R(string S)
+                {
+                    void $$M()
+                    {
+                    }
+                }
+                """;
+
+            var expected1 = """
+                record R(string S) : MyBase
+                {
+                }
+                """;
+
+            var expected2 = """
+                internal record MyBase
+                {
+                    void M()
+                    {
+                    }
+                }
+
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                LanguageVersion = LanguageVersion.CSharp9,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                FileName = "Test1.cs",
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestClass_Method()
+        {
+            var input = """
+                class R(string S)
+                {
+                    void $$M()
+                    {
+                    }
+                }
+                """;
+
+            var expected1 = """
+                class R(string S) : MyBase
+                {
+                }
+                """;
+
+            var expected2 = """
+                internal class MyBase
+                {
+                    void M()
+                    {
+                    }
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                FileName = "Test1.cs",
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRecord_Property()
+        {
+            var input = """
+                record R
+                {
+                    public string $$S { get; set; }
+                }
+                """;
+
+            var expected1 = """
+                record R : MyBase
+                {
+                }
+                """;
+
+            var expected2 = """
+                internal record MyBase
+                {
+                    public string S { get; set; }
+                }
+
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                LanguageVersion = LanguageVersion.CSharp9,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                FileName = "Test1.cs",
+            }.RunAsync();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/62415")]
+        public async Task TestRecord_PropertyAndImplicitField()
+        {
+            var input = """
+                record R(string S)
+                {
+                    public string $$S { get; set; } = S;
+                }
+                """;
+
+            var expected1 = """
+                record R(string S) : MyBase(S)
+                {
+                }
+                """;
+
+            var expected2 = """
+                record MyBase(string S)
+                {
+                    public string S { get; set; } = S;
+                }
+
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                LanguageVersion = LanguageVersion.CSharp9,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+            }.RunAsync();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/62415")]
+        public async Task TestClass_PropertyAndImplicitField()
+        {
+            var input = """
+                class R(string S)
+                {
+                    public string $$S { get; set; } = S;
+                }
+                """;
+
+            var expected1 = """
+                class R(string S) : MyBase(S)
+                {
+                }
+                """;
+
+            var expected2 = """
+                class MyBase(string S)
+                {
+                    public string S { get; set; } = S;
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRecordParam()
+        {
+            // https://github.com/dotnet/roslyn/issues/62415 to make this scenario work
+            var input = """
+                record R(string $$S)
+                {
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.CSharp9,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestClassParam1()
+        {
+            var input = """
+                class R(string $$S)
+                {
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestClassParam2()
+        {
+            var input = """
+                class R(string $$S);
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestStructParam1()
+        {
+            var input = """
+                struct R(string $$S)
+                {
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestStructParam2()
+        {
+            var input = """
+                struct R(string $$S);
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRecordStruct()
+        {
+            var input = """
+                record struct R(string S)
+                {
+                    void $$M()
+                    {
+                    }
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.CSharp10,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestStruct()
+        {
+            var input = """
+                struct R(string S)
+                {
+                    void $$M()
+                    {
+                    }
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.Preview,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
 
@@ -240,6 +580,7 @@ namespace MyNamespace
                         expected2,
                     }
                 },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -290,7 +631,8 @@ internal class MyBase
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -342,7 +684,8 @@ namespace MyNamespace
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -394,7 +737,8 @@ namespace MyNamespace
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -431,8 +775,9 @@ public class Test : MyBase
                     {
                         expected1,
                         expected2
-                    }
-                }
+                    },
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -470,7 +815,8 @@ internal class MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -502,7 +848,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -534,7 +881,175 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldSelectInKeywords()
+        {
+            var input = @"
+class Test
+{
+    priva[||]te int MyField;
+}";
+
+            var expected1 = @"
+class Test : MyBase
+{
+}";
+            var expected2 = @"internal class MyBase
+{
+    private int MyField;
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                FileName = "Test1.cs",
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldSelectAfterSemicolon()
+        {
+            var input = @"
+class Test
+{
+    private int MyField;[||]
+}";
+
+            var expected1 = @"
+class Test : MyBase
+{
+}";
+            var expected2 = @"internal class MyBase
+{
+    private int MyField;
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                FileName = "Test1.cs",
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldSelectEntireDeclaration()
+        {
+            var input = @"
+class Test
+{
+    [|private int MyField;|]
+}";
+
+            var expected1 = @"
+class Test : MyBase
+{
+}";
+            var expected2 = @"internal class MyBase
+{
+    private int MyField;
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                FileName = "Test1.cs",
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldSelectMultipleVariables1()
+        {
+            var input = @"
+class Test
+{
+    [|private int MyField1, MyField2;|]
+}";
+
+            var expected1 = @"
+class Test : MyBase
+{
+}";
+            var expected2 = @"internal class MyBase
+{
+    private int MyField1;
+    private int MyField2;
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                FileName = "Test1.cs",
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldSelectMultipleVariables2()
+        {
+            var input = @"
+class Test
+{
+    private int MyField1, [|MyField2;|]
+}";
+
+            var expected1 = @"
+class Test : MyBase
+{
+    private int MyField1;
+}";
+            var expected2 = @"internal class MyBase
+{
+    private int MyField2;
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -579,7 +1094,8 @@ internal class MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -627,12 +1143,12 @@ internal class MyBase
                 Options =
                 {
                     { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace()
         {
             var input = @"// this is my document header
@@ -693,12 +1209,12 @@ internal class MyBase
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error },
                     { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" },
                     { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace_FileScopedNamespace()
         {
             var input = @"// this is my document header
@@ -760,12 +1276,12 @@ namespace ConsoleApp185
                 Options = {
                     { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" },
                     { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace_NoNamespace()
         {
             var input = @"
@@ -813,12 +1329,12 @@ internal class MyBase
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options = {
                     { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
         public async Task TestUsingsInsideNamespace_MultipleNamespaces()
         {
             var input = @"
@@ -881,7 +1397,8 @@ namespace N1
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options = {
                     { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -889,7 +1406,7 @@ namespace N1
         public async Task TestWithInterface()
         {
             var input = @"
-interface ITest 
+interface ITest
 {
     int Method();
 }
@@ -903,7 +1420,7 @@ class Test : ITest
 }";
 
             var expected1 = @"
-interface ITest 
+interface ITest
 {
     int Method();
 }
@@ -929,7 +1446,8 @@ class Test : MyBase, ITest
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1019,7 +1537,8 @@ class Test : MyBase
                         expected2
                     }
                 },
-                DialogSelection = MakeAbstractSelection("Method")
+                DialogSelection = MakeAbstractSelection("Method"),
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1067,7 +1586,8 @@ class Test : MyBase
                         expected2
                     }
                 },
-                DialogSelection = MakeAbstractSelection("Method", "Method2", "Method3")
+                DialogSelection = MakeAbstractSelection("Method", "Method2", "Method3"),
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1110,7 +1630,8 @@ class Test : MyBase
                         expected2
                     }
                 },
-                DialogSelection = MakeSelection("Method", "Method2")
+                DialogSelection = MakeSelection("Method", "Method2"),
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1153,7 +1674,8 @@ class Test : MyBase
                         expected2
                     }
                 },
-                DialogSelection = MakeSelection("Method2")
+                DialogSelection = MakeSelection("Method2"),
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1197,7 +1719,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1241,7 +1764,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1285,7 +1809,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1329,7 +1854,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1383,7 +1909,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1441,7 +1968,8 @@ class Test : MyBase
                         expected1,
                         expected2
                     }
-                }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1628,6 +2156,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1667,6 +2196,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1706,6 +2236,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1745,6 +2276,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1794,6 +2326,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1843,6 +2376,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1892,6 +2426,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1942,6 +2477,7 @@ internal class MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -1981,6 +2517,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -2020,6 +2557,7 @@ class Test : MyBase
                     }
                 },
                 IsClassDeclarationSelection = true,
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -2064,7 +2602,263 @@ internal class MyBase<T1, T3>
                         expected2
                     }
                 },
-                DialogSelection = MakeSelection("Field1", "Method")
+                DialogSelection = MakeSelection("Field1", "Method"),
+                FileName = "Test1.cs",
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestIncompleteFieldSelection_NoAction1()
+        {
+            var input = @"
+class C
+{
+    pub[||] {|CS1519:int|} Foo = 0;
+}
+";
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestIncompleteMethodSelection_NoAction()
+        {
+            var input = @"
+class C
+{
+    pub[||] {|CS1519:int|} Foo()
+    {
+        return 5;
+    }
+}
+";
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTopLevelStatementSelection_NoAction()
+        {
+            var input = @"
+[||]_ = 42;
+";
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.CSharp10,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestSealed()
+        {
+            var input = """
+                internal sealed class MyClass
+                {
+                    public void [||]M()
+                    {
+                    }
+                }
+                """;
+
+            var expected1 = """
+                internal sealed class MyClass : MyBase
+                {
+                }
+                """;
+
+            var expected2 = """
+                internal class MyBase
+                {
+                    public void M()
+                    {
+                    }
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                FileName = "Test1.cs"
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(63315, "https://github.com/dotnet/roslyn/issues/63315")]
+        public async Task TestMethodInsideNamespace_NoException()
+        {
+            var code = """
+                namespace N
+                {
+                    class C
+                    {
+                    }
+
+                    public void $$N
+                    {
+                    }
+                }
+                """;
+
+            await new Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(7,17): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                    DiagnosticResult.CompilerError("CS0116").WithSpan(7, 17, 7, 18),
+                    // /0/Test0.cs(7,17): error CS0547: '<invalid-global-code>.N': property or indexer cannot have void type
+                    DiagnosticResult.CompilerError("CS0547").WithSpan(7, 17, 7, 18).WithArguments("N.<invalid-global-code>.N"),
+                    // /0/Test0.cs(7,17): error CS0548: '<invalid-global-code>.N': property or indexer must have at least one accessor
+                    DiagnosticResult.CompilerError("CS0548").WithSpan(7, 17, 7, 18).WithArguments("N.<invalid-global-code>.N"),
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(55610, "https://github.com/dotnet/roslyn/issues/55610")]
+        public async Task TestMultipleMethodsSelected_WithTypeContainingBaseClass()
+        {
+            var code = """
+                class Base
+                {
+                }
+
+                class Derived : Base
+                {
+                    [|public void M() { }
+                    public void N() { }|]
+                }
+                """;
+
+            await new Test()
+            {
+                TestCode = code,
+                FixedCode = code
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(55610, "https://github.com/dotnet/roslyn/issues/55610")]
+        public async Task TestClassSelected_WithTypeContainingBaseClass()
+        {
+            var code = """
+                class Base
+                {
+                }
+
+                class $$Derived : Base
+                {
+                    public void M() { }
+                    public void N() { }
+                }
+                """;
+
+            await new Test()
+            {
+                TestCode = code,
+                FixedCode = code
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestMultipleMethodsSelected_HighlightedMembersAreSelected()
+        {
+            var code = """
+                class C
+                {
+                    [|public void M() { }
+                    public void N() { }|]
+                    public void O() { }
+                }
+                """;
+
+            var expected1 = """
+                class C : MyBase
+                {
+                    public void O() { }
+                }
+                """;
+
+            var expected2 = """
+                internal class MyBase
+                {
+                    public void M() { }
+                    public void N() { }
+                }
+                """;
+
+            await new Test()
+            {
+                TestCode = code,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                FileName = "Test1.cs"
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(55402, "https://github.com/dotnet/roslyn/issues/55402")]
+        public async Task TestMemberKeyword()
+        {
+            var code = """
+                class C
+                {
+                    $$public void M() { }
+                }
+                """;
+
+            var expected1 = """
+                class C : MyBase
+                {
+                }
+                """;
+
+            var expected2 = """
+                internal class MyBase
+                {
+                    public void M() { }
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = code,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                FileName = "Test1.cs",
             }.RunAsync();
         }
 
@@ -2078,19 +2872,19 @@ internal class MyBase<T1, T3>
         {
             private readonly IEnumerable<(string name, bool makeAbstract)>? _dialogSelection;
             private readonly bool _sameFile;
-            private readonly bool isClassDeclarationSelection;
+            private readonly bool _isClassDeclarationSelection;
 
             public TestExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)>? dialogSelection = null, bool sameFile = false, bool isClassDeclarationSelection = false)
             {
                 _dialogSelection = dialogSelection;
                 _sameFile = sameFile;
-                this.isClassDeclarationSelection = isClassDeclarationSelection;
+                _isClassDeclarationSelection = isClassDeclarationSelection;
             }
 
             public string FileName { get; set; } = "MyBase.cs";
             public string BaseName { get; set; } = "MyBase";
 
-            public Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ISymbol? selectedMember, CancellationToken cancellationToken)
+            public Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken)
             {
                 var availableMembers = originalSymbol.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
 
@@ -2098,15 +2892,15 @@ internal class MyBase<T1, T3>
 
                 if (_dialogSelection == null)
                 {
-                    if (selectedMember is null)
+                    if (selectedMembers.IsEmpty)
                     {
-                        Assert.True(isClassDeclarationSelection);
+                        Assert.True(_isClassDeclarationSelection);
                         selections = availableMembers.Select(member => (member, makeAbstract: false));
                     }
                     else
                     {
-                        Assert.False(isClassDeclarationSelection);
-                        selections = new[] { (selectedMember, false) };
+                        Assert.False(_isClassDeclarationSelection);
+                        selections = selectedMembers.Select(m => (m, makeAbstract: false));
                     }
                 }
                 else

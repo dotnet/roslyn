@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.UseIsNullCheck
 {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
             var semanticModel = context.SemanticModel;
 
-            var option = context.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
+            var option = context.GetAnalyzerOptions().PreferIsNullCheckOverReferenceEqualityMethod;
             if (!option.Value)
             {
                 return;

@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim generatedTree = Await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim generatedNode = generatedTree.GetAnnotatedNodes(GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
-            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
-            Dim indentSize = documentOptions.GetOption(FormattingOptions.IndentationSize)
+            Dim formattingOptions = Await document.GetLineFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(False)
+            Dim indentSize = formattingOptions.IndentationSize
 
             Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
 

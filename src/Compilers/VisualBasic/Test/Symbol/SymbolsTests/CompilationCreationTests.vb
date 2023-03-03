@@ -1660,7 +1660,6 @@ Public Class C4
 End Class
 </s4>
 
-
             Dim c4_V1_Name = New AssemblyIdentity("c4", New Version("1.0.0.0"))
 
             Dim c4_V1 As VisualBasicCompilation = CreateEmptyCompilation(c4_V1_Name,
@@ -1691,7 +1690,6 @@ End Class
                                {Net451.mscorlib})
 
             Dim asm7 = c7.SourceAssembly
-
 
             Dim source3 =
         <s3>
@@ -1771,7 +1769,6 @@ End Namespace
             Dim asm3 = c3.SourceAssembly
 
             Dim localC3Foo2 = asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetMembers("Foo2").OfType(Of MethodSymbol)().Single()
-
 
             Dim source5 =
         <s5>
@@ -2063,8 +2060,6 @@ End Class
             Assert.False(HasSingleTypeOfKind(c, TypeKind.Structure, "System.Int32"))
         End Sub
 
-
-
         <Fact()>
         Public Sub SyntaxTreeOrderConstruct()
             Dim tree1 = CreateSyntaxTree("A")
@@ -2192,7 +2187,6 @@ End Class
             Assert.IsType(Of SourceNamedTypeSymbol)(sourceType)
             Assert.Equal(lib2, sourceType.DeclaringCompilation)
 
-
             Dim addedModule = sourceAssembly.Modules(1)
             Dim addedModuleAssembly = addedModule.ContainingAssembly
             Dim addedModuleType = addedModule.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C1")
@@ -2235,6 +2229,41 @@ End Class
                     Assert.Equal(Math.Sign(compilation.CompareSourceLocations(types(i).Locations(0), types(j).Locations(0))), Math.Sign(i.CompareTo(j)))
                 Next
             Next
+        End Sub
+
+        <Fact>
+        Public Sub RuntimeCapabilitiesSupported()
+            Dim compilation = VisualBasicCompilation.Create("Compilation")
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
+
+            compilation = VisualBasicCompilation.Create("Compilation", references:=TargetFrameworkUtil.GetReferences(TargetFramework.Net50, Nothing))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
+
+            compilation = VisualBasicCompilation.Create("Compilation", references:=TargetFrameworkUtil.GetReferences(TargetFramework.Net60, Nothing))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
+
+            compilation = VisualBasicCompilation.Create("Compilation", references:=TargetFrameworkUtil.GetReferences(TargetFramework.Net70, Nothing))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
         End Sub
     End Class
 End Namespace

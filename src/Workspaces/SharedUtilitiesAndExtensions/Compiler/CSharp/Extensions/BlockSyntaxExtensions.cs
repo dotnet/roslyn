@@ -4,8 +4,8 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -62,6 +62,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 block.TryConvertToExpressionBody(languageVersion, preference, out var expression, out semicolonToken))
             {
                 arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
+
+                var parent = block.GetRequiredParent();
+
+                if (parent.Kind() == SyntaxKind.GetAccessorDeclaration)
+                {
+                    var comments = parent.GetLeadingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine());
+                    if (!comments.IsEmpty())
+                    {
+                        arrowExpression = arrowExpression.WithLeadingTrivia(
+                            parent.GetLeadingTrivia());
+                    }
+                }
+
                 return true;
             }
 

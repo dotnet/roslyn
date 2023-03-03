@@ -3,9 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
@@ -143,6 +145,9 @@ End Class
                 </Workspace>, host)
 
                 Dim view = workspace.Documents.Single().GetTextView()
+
+                view.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
+
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
                 Dim commandHandler = CreateCommandHandler(workspace)
@@ -227,6 +232,11 @@ End Class
                     </Project>
                 </Workspace>, host)
 
+                ' This test specifically matters for the case where a user is typing in the editor
+                ' and is not intended to test the rename flyout tab behavior
+                Dim optionsService = workspace.GetService(Of IGlobalOptionService)()
+                optionsService.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, False)
+
                 Dim view = workspace.Documents.Single().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
@@ -296,8 +306,7 @@ Goo f;
             End Using
         End Function
 
-        <WpfTheory>
-        <WorkItem(851629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851629")>
+        <WpfTheory, WorkItem(851629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851629")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function WordDeleteDuringRename(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -326,7 +335,7 @@ class [|$$Goo|] // comment
                 commandHandler.ExecuteCommand(New WordDeleteToEndCommandArgs(view, view.TextBuffer),
                                               Sub() AssertEx.Fail("Command should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
-                Await VerifyTagsAreCorrect(workspace, "")
+                Await VerifyTagsAreCorrect(workspace)
 
                 editorOperations.InsertText("this")
                 Await WaitForRename(workspace)
@@ -339,7 +348,7 @@ class [|$$Goo|] // comment
                 commandHandler.ExecuteCommand(New WordDeleteToStartCommandArgs(view, view.TextBuffer),
                                               Sub() AssertEx.Fail("Command should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
-                Await VerifyTagsAreCorrect(workspace, "s")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
@@ -469,7 +478,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("$"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Goo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Cancel()
             End Using
@@ -515,7 +524,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -525,8 +534,7 @@ Goo f;
             End Using
         End Function
 
-        <WpfTheory()>
-        <WorkItem(820248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820248")>
+        <WpfTheory, WorkItem(820248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820248")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function DeletingInEditSpanPropagatesEdit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -556,15 +564,14 @@ Goo f;
                                               Sub() editorOperations.Delete(),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "oo")
+                Await VerifyTagsAreCorrect(workspace)
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
                 session.Cancel()
             End Using
         End Function
 
-        <WpfTheory>
-        <WorkItem(820248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820248")>
+        <WpfTheory, WorkItem(820248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820248")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function BackspacingInEditSpanPropagatesEdit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -594,7 +601,7 @@ Goo f;
                                               Sub() editorOperations.Backspace(),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Go")
+                Await VerifyTagsAreCorrect(workspace)
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
                 session.Cancel()
@@ -641,7 +648,7 @@ Goo f;
                                               Sub() editorOperations.Delete(),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -695,7 +702,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -760,7 +767,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BB")
+                Await VerifyTagsAreCorrect(workspace)
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -801,7 +808,7 @@ class Program
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "Z"c), Sub() editorOperations.InsertText("Z"), Utilities.TestCommandExecutionContext.Create())
                 commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Z")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
@@ -842,12 +849,11 @@ partial class [|Program|]
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Z")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
-        <WpfTheory>
-        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
+        <WpfTheory, WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlEnterDuringRenameCSharp(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -883,8 +889,7 @@ partial class [|Program|]
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
+        <WpfTheory, WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlEnterOutsideSpansDuringRenameCSharp(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -923,8 +928,7 @@ partial class [|Program|]
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
+        <WpfTheory, WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlShiftEnterDuringRenameCSharp(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -960,8 +964,7 @@ partial class [|Program|]
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
+        <WpfTheory, WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlEnterDuringRenameBasic(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -994,8 +997,7 @@ partial class [|Program|]
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
+        <WpfTheory, WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlShiftEnterDuringRenameBasic(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1028,8 +1030,7 @@ partial class [|Program|]
             End Using
         End Sub
 
-        <WpfTheory>
-        <WorkItem(1142095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142095")>
+        <WpfTheory, WorkItem(1142095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142095")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function SaveDuringRenameCommits(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1061,15 +1062,14 @@ partial class [|Program|]
                 ' Now save the document, which should commit Rename
                 commandHandler.ExecuteCommand(New SaveCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
             End Using
         End Function
 
-        <WpfTheory>
-        <WorkItem(1142701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
+        <WpfTheory, WorkItem(1142701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MoveSelectedLinesUpDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1079,8 +1079,7 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        <WpfTheory>
-        <WorkItem(1142701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
+        <WpfTheory, WorkItem(1142701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MoveSelectedLinesDownDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1090,8 +1089,7 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        <WpfTheory>
-        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
+        <WpfTheory, WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ReorderParametersDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1101,8 +1099,7 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        <WpfTheory>
-        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
+        <WpfTheory, WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RemoveParametersDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1112,8 +1109,7 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        <WpfTheory>
-        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
+        <WpfTheory, WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ExtractInterfaceDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1123,8 +1119,7 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        <WpfTheory>
-        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
+        <WpfTheory, WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EncapsulateFieldDuringRename(host As RenameTestHost)
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1244,7 +1239,7 @@ class [|C$$|]
 
                 ' Verify rename session is still active
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, commandInvokedString)
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 

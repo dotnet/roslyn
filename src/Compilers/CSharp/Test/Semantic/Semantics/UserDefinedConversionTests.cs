@@ -362,7 +362,6 @@ Diagnostic(ErrorCode.ERR_AmbigUDConv, "default(N?)").WithArguments("N.implicit o
 Diagnostic(ErrorCode.ERR_AmbigUDConv, "default(P?)").WithArguments("P.implicit operator G(P)", "P.implicit operator G(P?)", "P?", "G?")
                 );
 
-
             // More cases where the specification indicates that a conversion should be legal,
             // but the native compiler disallows it. Roslyn follows the native compiler in these cases.
 
@@ -664,7 +663,6 @@ class Z
   }
 }
 ";
-
 
             var comp = CreateCompilation(source1 + source3);
             comp.VerifyDiagnostics();
@@ -1283,7 +1281,6 @@ class D<T> : C<T>
     }
 }";
 
-
             var verifier = CompileAndVerify(source, expectedOutput: "23");
         }
 
@@ -1705,7 +1702,16 @@ namespace System
     public ref struct Int32 {}
     public struct Nullable<T> where T : struct { public Nullable(T value) {} }
     public struct Int64 {}
-    public class Attribute {}
+    public struct Boolean { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 ";
 
@@ -1749,7 +1755,16 @@ namespace System
     public struct Int32 {}
     public struct Nullable<T> where T : struct { public T Value { get => throw null; } }
     public ref struct Int64 {}
-    public class Attribute {}
+    public struct Boolean { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 ";
 
@@ -1797,7 +1812,16 @@ namespace System
     public ref struct Int32 {}
     public struct Nullable<T> where T : struct { public Nullable(T value) {} }
     public struct Int64 {}
-    public class Attribute {}
+    public struct Boolean { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 ";
 

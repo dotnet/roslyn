@@ -15,7 +15,7 @@
              Foreground="{DynamicResource {x:Static vs:VsBrushes.ToolboxGradientKey}}"
              d:DesignHeight="300" d:DesignWidth="300"
              SizeToContent="Height"
-             MaxWidth="768"
+             Width="768"
              MinWidth="300"
              MinHeight="300">
     <Grid>

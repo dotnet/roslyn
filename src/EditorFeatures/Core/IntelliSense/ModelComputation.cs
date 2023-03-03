@@ -182,10 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             this.ThreadingContext.ThrowIfNotOnUIThread();
 
             // Store the first result so that anyone who cares knows we've computed something
-            if (_initialUnfilteredModel == null)
-            {
-                _initialUnfilteredModel = result;
-            }
+            _initialUnfilteredModel ??= result;
 
             _controller.OnModelUpdated(result, updateController);
         }

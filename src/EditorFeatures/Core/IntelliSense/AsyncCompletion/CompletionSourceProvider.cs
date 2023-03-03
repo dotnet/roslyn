@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
         private readonly IAsynchronousOperationListener _listener;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -34,21 +34,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-            IGlobalOptionService globalOptions)
+            EditorOptionsService editorOptionsService)
         {
             _threadingContext = threadingContext;
             _operationExecutor = operationExecutor;
             _streamingPresenter = streamingPresenter;
             _listener = listenerProvider.GetListener(FeatureAttribute.CompletionSet);
-            _globalOptions = globalOptions;
+            _editorOptionsService = editorOptionsService;
         }
 
         public IAsyncCompletionSource? GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.IsInLspEditorContext())
+            if (textView.IsInLspEditorContext())
                 return null;
 
-            return new CompletionSource(textView, _streamingPresenter, _threadingContext, _operationExecutor, _listener, _globalOptions);
+            return new CompletionSource(textView, _streamingPresenter, _threadingContext, _operationExecutor, _listener, _editorOptionsService);
         }
     }
 }

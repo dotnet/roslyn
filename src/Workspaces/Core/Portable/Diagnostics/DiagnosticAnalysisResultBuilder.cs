@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             _lazyOthers = null;
         }
 
-        public ImmutableHashSet<DocumentId> DocumentIds => _lazyDocumentsWithDiagnostics == null ? ImmutableHashSet<DocumentId>.Empty : _lazyDocumentsWithDiagnostics.ToImmutableHashSet();
-        public ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SyntaxLocals => Convert(_lazySyntaxLocals);
-        public ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SemanticLocals => Convert(_lazySemanticLocals);
-        public ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
-        public ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? ImmutableArray<DiagnosticData>.Empty : _lazyOthers.ToImmutableArray();
+        public readonly ImmutableHashSet<DocumentId> DocumentIds => _lazyDocumentsWithDiagnostics == null ? ImmutableHashSet<DocumentId>.Empty : _lazyDocumentsWithDiagnostics.ToImmutableHashSet();
+        public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SyntaxLocals => Convert(_lazySyntaxLocals);
+        public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SemanticLocals => Convert(_lazySemanticLocals);
+        public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
+        public readonly ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? ImmutableArray<DiagnosticData>.Empty : _lazyOthers.ToImmutableArray();
 
         public void AddExternalSyntaxDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
         {
@@ -85,14 +85,14 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                             else
                             {
                                 // non local diagnostics without location
-                                AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                                AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                             }
 
                             break;
                         }
 
                     case LocationKind.None:
-                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                        AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                         break;
 
                     case LocationKind.SourceFile:
@@ -159,13 +159,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     }
                     else
                     {
-                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                        AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                     }
 
                     break;
 
                 case LocationKind.None:
-                    AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                    AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                     break;
 
                 case LocationKind.SourceFile:
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     else
                     {
                         // non local diagnostics without location
-                        AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                        AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                     }
 
                     break;
@@ -207,9 +207,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private static ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Convert(Dictionary<DocumentId, List<DiagnosticData>>? map)
         {
-            return map == null ?
-                ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty :
-                map.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
+            return map == null
+                ? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty
+                : map.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
         }
     }
 }

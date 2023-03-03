@@ -6,7 +6,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace></RootNamespace>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
-    <PackageId>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.NewNameSinceWeReferenceTheAnalyzersAndNuGetCannotFigureItOut</PackageId>
+
+    <!-- Package used for symbol publishing. The assembly ships in analyzer packages Microsoft.CodeAnalysis.(CSharp|VisualBasic).CodeStyle -->
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\DefaultOperationProvider.vb" Link="Formatting\DefaultOperationProvider.vb" />
@@ -32,7 +34,6 @@
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\NodeBasedFormattingRule.vb" Link="Formatting\Rules\NodeBasedFormattingRule.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\StructuredTriviaFormattingRule.vb" Link="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\VisualBasicSyntaxFormatting.vb" Link="Formatting\VisualBasicSyntaxFormatting.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\VisualBasicSyntaxFormattingOptions.vb" Link="Formatting\VisualBasicSyntaxFormattingOptions.vb" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />

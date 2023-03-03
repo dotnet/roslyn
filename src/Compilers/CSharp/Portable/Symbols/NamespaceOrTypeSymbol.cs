@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -236,17 +239,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Simple type name, possibly with generic name mangling.
         /// </param>
         /// <returns>
-        /// Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        /// Symbol for the type, or null if the type isn't found.
         /// </returns>
-        internal virtual NamedTypeSymbol LookupMetadataType(ref MetadataTypeName emittedTypeName)
+        internal virtual NamedTypeSymbol? LookupMetadataType(ref MetadataTypeName emittedTypeName)
         {
             Debug.Assert(!emittedTypeName.IsNull);
 
             NamespaceOrTypeSymbol scope = this;
+            Debug.Assert(scope is not MergedNamespaceSymbol);
 
             if (scope.Kind == SymbolKind.ErrorType)
             {
-                return new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)scope, ref emittedTypeName);
+                return null;
             }
 
             NamedTypeSymbol? namedType = null;
@@ -326,15 +330,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 Done:
-            if ((object?)namedType == null)
+            if (isTopLevel
+                && (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
+                && GeneratedNameParser.TryParseFileTypeName(
+                    emittedTypeName.UnmangledTypeName,
+                    out string? displayFileName,
+                    out byte[]? checksum,
+                    out string? sourceName))
             {
-                if (isTopLevel)
+                // also do a lookup for file types from source.
+                namespaceOrTypeMembers = scope.GetTypeMembers(sourceName);
+                foreach (var named in namespaceOrTypeMembers)
                 {
-                    return new MissingMetadataTypeSymbol.TopLevel(scope.ContainingModule, ref emittedTypeName);
-                }
-                else
-                {
-                    return new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)scope, ref emittedTypeName);
+                    if (named.AssociatedFileIdentifier is FileIdentifier identifier
+                        && identifier.DisplayFilePath == displayFileName
+                        && !identifier.FilePathChecksumOpt.IsDefault
+                        && identifier.FilePathChecksumOpt.SequenceEqual(checksum)
+                        && named.Arity == emittedTypeName.InferredArity)
+                    {
+                        if ((object?)namedType != null)
+                        {
+                            namedType = null;
+                            break;
+                        }
+
+                        namedType = named;
+                    }
                 }
             }
 

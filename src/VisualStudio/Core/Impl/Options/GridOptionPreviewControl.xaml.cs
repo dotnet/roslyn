@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
-        private readonly ImmutableArray<(string feature, ImmutableArray<IOption> options)> _groupedEditorConfigOptions;
+        private readonly ImmutableArray<(string feature, ImmutableArray<IOption2> options)> _groupedEditorConfigOptions;
         private readonly string _language;
 
         public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(UseEditorConfigUrl);
@@ -41,11 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public static string SeverityHeader => ServicesVSResources.Severity;
         public static string GenerateEditorConfigFileFromSettingsText => ServicesVSResources.Generate_dot_editorconfig_file_from_settings;
 
-        internal GridOptionPreviewControl(IServiceProvider serviceProvider,
+        internal GridOptionPreviewControl(
+            IServiceProvider serviceProvider,
             OptionStore optionStore,
             Func<OptionStore, IServiceProvider,
             AbstractOptionPreviewViewModel> createViewModel,
-            ImmutableArray<(string feature, ImmutableArray<IOption> options)> groupedEditorConfigOptions,
+            ImmutableArray<(string feature, ImmutableArray<IOption2> options)> groupedEditorConfigOptions,
             string language)
             : base(optionStore)
         {
@@ -57,10 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _groupedEditorConfigOptions = groupedEditorConfigOptions;
         }
 
-        internal static IEnumerable<(string feature, ImmutableArray<IOption> options)> GetLanguageAgnosticEditorConfigOptions()
+        internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions()
         {
             yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions).As<IOption>());
+            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions));
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -107,18 +108,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             base.Close();
 
-            if (this.ViewModel != null)
-            {
-                this.ViewModel.Dispose();
-            }
+            this.ViewModel?.Dispose();
         }
 
         internal void Generate_Save_EditorConfig(object sender, System.Windows.RoutedEventArgs e)
         {
             Logger.Log(FunctionId.ToolsOptions_GenerateEditorconfig);
 
-            var optionSet = this.OptionStore.GetOptions();
-            var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, optionSet, _language);
+            var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, OptionStore, _language);
             using (var sfd = new System.Windows.Forms.SaveFileDialog
             {
                 Filter = "All files (*.*)|",

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
         private const string LeftName = "left";
         private const string RightName = "right";
 
-        private static ImmutableArray<CodeGenerationOperatorKind> s_operatorKinds =
+        private static readonly ImmutableArray<CodeGenerationOperatorKind> s_operatorKinds =
             ImmutableArray.Create(
                 CodeGenerationOperatorKind.LessThan,
                 CodeGenerationOperatorKind.LessThanOrEqual,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                     nameof(FeaturesResources.Generate_for_0) + "_" + displayString));
             }
 
-            context.RegisterRefactoring(CodeAction.CodeActionWithNestedActions.Create(
+            context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Generate_comparison_operators,
                 nestedActions.ToImmutable(),
                 isInlinable: false));
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 CodeGenerationOperatorKind.LessThanOrEqual => generator.LessThanOrEqualExpression(compareToCall, zero),
                 CodeGenerationOperatorKind.GreaterThan => generator.GreaterThanExpression(compareToCall, zero),
                 CodeGenerationOperatorKind.GreaterThanOrEqual => generator.GreaterThanOrEqualExpression(compareToCall, zero),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             return generator.ReturnStatement(comparison);
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 CodeGenerationOperatorKind.LessThanOrEqual => WellKnownMemberNames.LessThanOrEqualOperatorName,
                 CodeGenerationOperatorKind.GreaterThan => WellKnownMemberNames.GreaterThanOperatorName,
                 CodeGenerationOperatorKind.GreaterThanOrEqual => WellKnownMemberNames.GreaterThanOrEqualOperatorName,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
     }
 }

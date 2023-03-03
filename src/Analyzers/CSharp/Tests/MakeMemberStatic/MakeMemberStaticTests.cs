@@ -16,118 +16,132 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMemberStatic
         EmptyDiagnosticAnalyzer,
         CSharpMakeMemberStaticCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
     public class MakeMemberStaticTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        [Fact]
         public async Task TestField()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"
-public static class Foo
-{
-    int {|CS0708:i|};
-}",
-@"
-public static class Foo
-{
-    static int i;
-}");
+                """
+                public static class Foo
+                {
+                    int {|CS0708:i|};
+                }
+                """,
+                """
+                public static class Foo
+                {
+                    static int i;
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
-        [WorkItem(54202, "https://github.com/dotnet/roslyn/issues/54202")]
+        [Fact, WorkItem(54202, "https://github.com/dotnet/roslyn/issues/54202")]
         public async Task TestTrivia()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"
-public static class Foo
-{
-    // comment
-    readonly int {|CS0708:i|};
-}",
-@"
-public static class Foo
-{
-    // comment
-    static readonly int i;
-}");
+                """
+                public static class Foo
+                {
+                    // comment
+                    readonly int {|CS0708:i|};
+                }
+                """,
+                """
+                public static class Foo
+                {
+                    // comment
+                    static readonly int i;
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        [Fact]
         public async Task TestMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"
-public static class Foo
-{
-    void {|CS0708:M|}() { }
-}",
-@"
-public static class Foo
-{
-    static void M() { }
-}");
+                """
+                public static class Foo
+                {
+                    void {|CS0708:M|}() { }
+                }
+                """,
+                """
+                public static class Foo
+                {
+                    static void M() { }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        [Fact]
         public async Task TestProperty()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"
-public static class Foo
-{
-    object {|CS0708:P|} { get; set; }
-}",
-@"
-public static class Foo
-{
-    static object P { get; set; }
-}");
+                """
+                public static class Foo
+                {
+                    object {|CS0708:P|} { get; set; }
+                }
+                """,
+                """
+                public static class Foo
+                {
+                    static object P { get; set; }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        [Fact]
         public async Task TestEventField()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"
-public static class Foo
-{
-    event System.Action {|CS0708:E|};
-}",
-@"
-public static class Foo
-{
-    static event System.Action E;
-}");
+                """
+                public static class Foo
+                {
+                    event System.Action {|CS0708:E|};
+                }
+                """,
+                """
+                public static class Foo
+                {
+                    static event System.Action E;
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        [Fact]
         public async Task FixAll()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"namespace NS
-{
-    public static class Foo
-    {
-        int {|CS0708:i|};
-        void {|CS0708:M|}() { }
-        object {|CS0708:P|} { get; set; }
-        event System.Action {|CS0708:E|};
-    }
-}",
-@"namespace NS
-{
-    public static class Foo
-    {
-        static int i;
+                """
+                namespace NS
+                {
+                    public static class Foo
+                    {
+                        int {|CS0708:i|};
+                        void {|CS0708:M|}() { }
+                        object {|CS0708:P|} { get; set; }
+                        event System.Action {|CS0708:E|};
+                    }
+                }
+                """,
+                """
+                namespace NS
+                {
+                    public static class Foo
+                    {
+                        static int i;
 
-        static void M() { }
+                        static void M() { }
 
-        static object P { get; set; }
+                        static object P { get; set; }
 
-        static event System.Action E;
-    }
-}");
+                        static event System.Action E;
+                    }
+                }
+                """);
         }
     }
 }

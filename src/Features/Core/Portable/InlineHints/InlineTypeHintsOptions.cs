@@ -4,20 +4,19 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.InlineHints
-{
-    [DataContract]
-    internal readonly record struct InlineTypeHintsOptions(
-        [property: DataMember(Order = 0)] bool EnabledForTypes = false,
-        [property: DataMember(Order = 1)] bool ForImplicitVariableTypes = true,
-        [property: DataMember(Order = 2)] bool ForLambdaParameterTypes = true,
-        [property: DataMember(Order = 3)] bool ForImplicitObjectCreation = true)
-    {
-        public InlineTypeHintsOptions()
-            : this(EnabledForTypes: false)
-        {
-        }
+namespace Microsoft.CodeAnalysis.InlineHints;
 
-        public static readonly InlineTypeHintsOptions Default = new();
+[DataContract]
+internal readonly record struct InlineTypeHintsOptions
+{
+    [DataMember] public bool EnabledForTypes { get; init; } = false;
+    [DataMember] public bool ForImplicitVariableTypes { get; init; } = true;
+    [DataMember] public bool ForLambdaParameterTypes { get; init; } = true;
+    [DataMember] public bool ForImplicitObjectCreation { get; init; } = true;
+
+    public InlineTypeHintsOptions()
+    {
     }
+
+    public static readonly InlineTypeHintsOptions Default = new();
 }

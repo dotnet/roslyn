@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
@@ -194,7 +195,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
             var linePositionSpan = RangeToLinePositionSpan(range);
-            return text.Lines.GetTextSpan(linePositionSpan);
+
+            try
+            {
+                return text.Lines.GetTextSpan(linePositionSpan);
+            }
+            // Temporary exception reporting to investigate https://github.com/dotnet/roslyn/issues/66258.
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            {
+                throw;
+            }
         }
 
         public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText oldText)
@@ -656,8 +666,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var delimiter = projectContext.Id.IndexOf('|');
 
             return ProjectId.CreateFromSerialized(
-                Guid.Parse(projectContext.Id.Substring(0, delimiter)),
-                debugName: projectContext.Id.Substring(delimiter + 1));
+                Guid.Parse(projectContext.Id[..delimiter]),
+                debugName: projectContext.Id[(delimiter + 1)..]);
+        }
+
+        public static LSP.VSProjectContext ProjectToProjectContext(Project project)
+        {
+            var projectContext = new LSP.VSProjectContext
+            {
+                Id = ProjectIdToProjectContextId(project.Id),
+                Label = project.Name
+            };
+
+            if (project.Language == LanguageNames.CSharp)
+            {
+                projectContext.Kind = LSP.VSProjectKind.CSharp;
+            }
+            else if (project.Language == LanguageNames.VisualBasic)
+            {
+                projectContext.Kind = LSP.VSProjectKind.VisualBasic;
+            }
+
+            return projectContext;
         }
 
         public static async Task<SyntaxFormattingOptions> GetFormattingOptionsAsync(
@@ -672,11 +702,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 // LSP doesn't currently support indent size as an option. However, except in special
                 // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
-                formattingOptions = formattingOptions.With(new LineFormattingOptions(
-                    UseTabs: !options.InsertSpaces,
-                    TabSize: options.TabSize,
-                    IndentationSize: options.TabSize,
-                    NewLine: formattingOptions.NewLine));
+                formattingOptions = formattingOptions with
+                {
+                    LineFormatting = new()
+                    {
+                        UseTabs = !options.InsertSpaces,
+                        TabSize = options.TabSize,
+                        IndentationSize = options.TabSize,
+                        NewLine = formattingOptions.NewLine
+                    }
+                };
             }
 
             return formattingOptions;

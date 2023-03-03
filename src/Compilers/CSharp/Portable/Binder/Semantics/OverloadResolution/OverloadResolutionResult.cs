@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // first such method is the best bad method
 
             if (isMethodGroupConversion && returnRefKind != null &&
-                HadReturnMismatch(location, diagnostics, returnRefKind.GetValueOrDefault(), delegateOrFunctionPointerType))
+                HadReturnMismatch(location, diagnostics, delegateOrFunctionPointerType))
             {
                 return;
             }
@@ -350,7 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssertNone(MemberResolutionKind.TypeInferenceFailed);
             AssertNone(MemberResolutionKind.TypeInferenceExtensionInstanceArgument);
 
-
             //// PHASE 3: Use site errors ////
 
             // Overload resolution checks for use site errors between argument analysis and applicability testing.
@@ -365,7 +364,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Since we didn't return...
             AssertNone(MemberResolutionKind.UseSiteError);
-
 
             //// PHASE 4: Argument analysis failures and unsupported metadata ////
 
@@ -632,47 +630,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Symbol symbol = staticInstanceMismatch.Member;
+            if (receiverOpt?.HasErrors != true)
+            {
+                Symbol symbol = staticInstanceMismatch.Member;
 
-            // Certain compiler-generated invocations produce custom diagnostics.
-            if (receiverOpt?.Kind == BoundKind.QueryClause)
-            {
-                // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
-                diagnostics.Add(ErrorCode.ERR_QueryNoProvider, location, receiverOpt.Type, symbol.Name);
-            }
-            else if (binder.Flags.Includes(BinderFlags.CollectionInitializerAddMethod))
-            {
-                diagnostics.Add(ErrorCode.ERR_InitializerAddHasWrongSignature, location, symbol);
-            }
-            else if (nodeOpt?.Kind() == SyntaxKind.AwaitExpression && symbol.Name == WellKnownMemberNames.GetAwaiter)
-            {
-                diagnostics.Add(ErrorCode.ERR_BadAwaitArg, location, receiverOpt.Type);
-            }
-            else if (delegateOrFunctionPointerType is FunctionPointerTypeSymbol)
-            {
-                diagnostics.Add(ErrorCode.ERR_FuncPtrMethMustBeStatic, location, symbol);
-            }
-            else
-            {
-                ErrorCode errorCode =
-                    symbol.RequiresInstanceReceiver()
-                    ? Binder.WasImplicitReceiver(receiverOpt) && binder.InFieldInitializer && !binder.BindingTopLevelScriptCode
-                        ? ErrorCode.ERR_FieldInitRefNonstatic
-                        : ErrorCode.ERR_ObjectRequired
-                    : ErrorCode.ERR_ObjectProhibited;
-                // error CS0176: Member 'Program.M(B)' cannot be accessed with an instance reference; qualify it with a type name instead
-                //     -or-
-                // error CS0120: An object reference is required for the non-static field, method, or property 'Program.M(B)'
-                diagnostics.Add(new DiagnosticInfoWithSymbols(
-                    errorCode,
-                    new object[] { symbol },
-                    symbols), location);
+                // Certain compiler-generated invocations produce custom diagnostics.
+                if (receiverOpt?.Kind == BoundKind.QueryClause)
+                {
+                    // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
+                    diagnostics.Add(ErrorCode.ERR_QueryNoProvider, location, receiverOpt.Type, symbol.Name);
+                }
+                else if (binder.Flags.Includes(BinderFlags.CollectionInitializerAddMethod))
+                {
+                    diagnostics.Add(ErrorCode.ERR_InitializerAddHasWrongSignature, location, symbol);
+                }
+                else if (nodeOpt?.Kind() == SyntaxKind.AwaitExpression && symbol.Name == WellKnownMemberNames.GetAwaiter)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadAwaitArg, location, receiverOpt.Type);
+                }
+                else if (delegateOrFunctionPointerType is FunctionPointerTypeSymbol)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FuncPtrMethMustBeStatic, location, symbol);
+                }
+                else
+                {
+                    ErrorCode errorCode =
+                        symbol.RequiresInstanceReceiver()
+                        ? Binder.WasImplicitReceiver(receiverOpt) && binder.InFieldInitializer && !binder.BindingTopLevelScriptCode
+                            ? ErrorCode.ERR_FieldInitRefNonstatic
+                            : ErrorCode.ERR_ObjectRequired
+                        : ErrorCode.ERR_ObjectProhibited;
+                    // error CS0176: Member 'Program.M(B)' cannot be accessed with an instance reference; qualify it with a type name instead
+                    //     -or-
+                    // error CS0120: An object reference is required for the non-static field, method, or property 'Program.M(B)'
+                    diagnostics.Add(new DiagnosticInfoWithSymbols(
+                        errorCode,
+                        new object[] { symbol },
+                        symbols), location);
+                }
             }
 
             return true;
         }
 
-        private bool HadReturnMismatch(Location location, BindingDiagnosticBag diagnostics, RefKind refKind, TypeSymbol delegateOrFunctionPointerType)
+        private bool HadReturnMismatch(Location location, BindingDiagnosticBag diagnostics, TypeSymbol delegateOrFunctionPointerType)
         {
             var mismatch = GetFirstMemberKind(MemberResolutionKind.WrongRefKind);
             if (!mismatch.IsNull)
@@ -887,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 badParamName = parameters[badParamIndex].Name;
             }
 
-            // There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'
+            // There is no argument given that corresponds to the required parameter '{0}' of '{1}'
 
             object obj = (object)delegateTypeBeingInvoked ?? badMember;
 
@@ -1104,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var arg in badArg.Result.BadArgumentsOpt)
             {
-                ReportBadArgumentError(diagnostics, binder, name, arguments, symbols, location, badArg, method, arg);
+                ReportBadArgumentError(diagnostics, binder, name, arguments, symbols, badArg, method, arg);
             }
 
             return true;
@@ -1116,7 +1117,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols,
-            Location location,
             MemberResolutionResult<TMember> badArg,
             TMember method,
             int arg)
@@ -1207,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols,
                         arg + 1,
                         argument.Display, //'<null>' doesn't need refkind
-                        UnwrapIfParamsArray(parameter, isLastParameter));
+                        new FormattedSymbol(UnwrapIfParamsArray(parameter, isLastParameter), SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
                 }
             }
             else if (refArg != refParameter && !(refArg == RefKind.None && refParameter == RefKind.In))
@@ -1253,7 +1253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argument.Display,
                         name,
                         method,
-                        parameter);
+                        new FormattedSymbol(parameter, SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
                     Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter, isLastParameter), "If they ever differ, just call the method when constructing the diagnostic.");
                 }
                 else
@@ -1289,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             symbols,
                             arg + 1,
                             argument.Display,
-                            UnwrapIfParamsArray(parameter, isLastParameter));
+                            new FormattedSymbol(UnwrapIfParamsArray(parameter, isLastParameter), SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
                     }
                 }
             }

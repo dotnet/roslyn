@@ -76,9 +76,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// and should not be part of the supported scopes.
         /// </param>
         public static FixAllProvider Create(
-            Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync!!,
+            Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
             ImmutableArray<FixAllScope> supportedFixAllScopes)
         {
+            if (fixAllAsync is null)
+                throw new ArgumentNullException(nameof(fixAllAsync));
+
             if (supportedFixAllScopes.IsDefault)
                 throw new ArgumentNullException(nameof(supportedFixAllScopes));
 

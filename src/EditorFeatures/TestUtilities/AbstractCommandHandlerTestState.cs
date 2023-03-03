@@ -124,6 +124,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             this.EditorOperations = GetService<IEditorOperationsFactoryService>().GetEditorOperations(_textView);
             this.UndoHistoryRegistry = GetService<ITextUndoHistoryRegistry>();
+
+            _textView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart);
         }
 
         public void Dispose()
@@ -213,8 +215,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var lineCaretPosition = bufferCaretPosition - line.Start.Position;
 
             var text = line.GetText();
-            var textBeforeCaret = text.Substring(0, lineCaretPosition);
-            var textAfterCaret = text.Substring(lineCaretPosition, text.Length - lineCaretPosition);
+            var textBeforeCaret = text[..lineCaretPosition];
+            var textAfterCaret = text[lineCaretPosition..];
 
             return (textBeforeCaret, textAfterCaret);
         }

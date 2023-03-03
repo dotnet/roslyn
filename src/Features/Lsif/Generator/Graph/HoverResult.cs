@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     /// <summary>
-    /// Represents a foverResult vertex for serialization. See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#more-about-request-textdocumenthover for further details.
+    /// Represents a hoverResult vertex for serialization. See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#more-about-request-textdocumenthover for further details.
     /// </summary>
     internal sealed class HoverResult : Vertex
     {

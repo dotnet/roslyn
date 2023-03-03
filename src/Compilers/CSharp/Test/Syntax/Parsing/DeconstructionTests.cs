@@ -3378,7 +3378,7 @@ class C
     }
 }
 ";
-            UsingTree(source).GetDiagnostics().Verify(
+            UsingTree(source,
                 // (7,10): error CS1525: Invalid expression term 'int'
                 //         (int* x1, int y1) = e;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 10)

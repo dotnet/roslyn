@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         int ICompilerOptionsHostObject.SetCompilerOptions(string compilerOptions, out bool supported)
         {
 #pragma warning disable CS0618 // Type or member is obsolete (Legacy API that cannot be changed)
-            VisualStudioProjectOptionsProcessor.SetCommandLine(compilerOptions);
+            ProjectSystemProjectOptionsProcessor.SetCommandLine(compilerOptions);
 #pragma warning restore CS0618
             supported = true;
             return VSConstants.S_OK;

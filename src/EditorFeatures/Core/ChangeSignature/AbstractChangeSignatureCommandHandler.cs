@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 var cancellationToken = context.OperationContext.UserCancellationToken;
 
+                // TODO: Make asynchronous and avoid expensive semantic operations on UI thread:
+                // https://github.com/dotnet/roslyn/issues/62135
+
                 // Async operation to determine the change signature
                 var changeSignatureContext = changeSignatureService.GetChangeSignatureContextAsync(
                     document,

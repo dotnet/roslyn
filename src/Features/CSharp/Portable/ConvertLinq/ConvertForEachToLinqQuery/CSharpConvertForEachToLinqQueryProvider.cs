@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             var identifiersBuilder = ArrayBuilder<SyntaxToken>.GetInstance();
             identifiersBuilder.Add(forEachStatement.Identifier);
             var convertingNodesBuilder = ArrayBuilder<ExtendedSyntaxNode>.GetInstance();
-            IEnumerable<StatementSyntax> statementsCannotBeConverted = null;
+            IEnumerable<StatementSyntax>? statementsCannotBeConverted = null;
             var trailingTokensBuilder = ArrayBuilder<SyntaxToken>.GetInstance();
             var currentLeadingTokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
@@ -213,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             SemanticModel semanticModel,
             StatementSyntax statementCannotBeConverted,
             CancellationToken cancellationToken,
-            out IConverter<ForEachStatementSyntax, StatementSyntax> converter)
+            [NotNullWhen(true)] out IConverter<ForEachStatementSyntax, StatementSyntax>? converter)
         {
             switch (statementCannotBeConverted.Kind())
             {
@@ -248,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             // Check that there is 'list.Add(item)'.
                             if (invocationExpression.Expression is MemberAccessExpressionSyntax memberAccessExpression &&
                                 semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is IMethodSymbol methodSymbol &&
-                                TypeSymbolOptIsList(methodSymbol.ContainingType, semanticModel) &&
+                                TypeSymbolIsList(methodSymbol.ContainingType, semanticModel) &&
                                 methodSymbol.Name == nameof(IList.Add) &&
                                 methodSymbol.Parameters.Length == 1 &&
                                 invocationExpression.ArgumentList.Arguments.Count == 1)
@@ -281,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
                 case SyntaxKind.YieldReturnStatement:
                     var memberDeclarationSymbol = semanticModel.GetEnclosingSymbol(
-                        forEachInfo.ForEachStatement.SpanStart, cancellationToken);
+                        forEachInfo.ForEachStatement.SpanStart, cancellationToken)!;
 
                     // Using Single() is valid even for partial methods.
                     var memberDeclarationSyntax = memberDeclarationSymbol.DeclaringSyntaxReferences.Single().GetSyntax();
@@ -291,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         .Where(statement => Equals(semanticModel.GetEnclosingSymbol(
                             statement.SpanStart, cancellationToken), memberDeclarationSymbol)).Count();
 
-                    if (forEachInfo.ForEachStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax block) &&
+                    if (forEachInfo.ForEachStatement?.Parent is BlockSyntax block &&
                         block.Parent == memberDeclarationSyntax)
                     {
                         // Check that 
@@ -352,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             return root;
         }
 
-        internal static bool TypeSymbolOptIsList(ITypeSymbol typeSymbol, SemanticModel semanticModel)
-            => Equals(typeSymbol?.OriginalDefinition, semanticModel.Compilation.GetTypeByMetadataName(typeof(List<>).FullName));
+        internal static bool TypeSymbolIsList(ITypeSymbol typeSymbol, SemanticModel semanticModel)
+            => Equals(typeSymbol?.OriginalDefinition, semanticModel.Compilation.ListOfTType());
     }
 }

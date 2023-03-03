@@ -16,6 +16,7 @@ using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class ConversionCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
@@ -24,8 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         private static string FormatExplicitConversionDescription(string fromType, string toType)
             => string.Format(WorkspacesResources.Predefined_conversion_from_0_to_1, fromType, toType);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIndexerCompletionItemsShouldBePlacedLastInCompletionList()
         {
             var castCompletionItem = (await GetCompletionItemsAsync(@"
@@ -70,8 +70,7 @@ public class Program
                 });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionIsNotOfferedAfterNumberLiteral()
         {
             // User may want to type a floating point literal.
@@ -91,8 +90,7 @@ public class Program
 ", SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionIsSuggestedAfterDot()
         {
             await VerifyItemExistsAsync(@"
@@ -112,8 +110,7 @@ public class Program
 ", "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionIsSuggestedIfMemberNameIsPartiallyWritten()
         {
             await VerifyItemExistsAsync(@"
@@ -134,8 +131,7 @@ public class Program
 ", "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Theory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("c.$$", true)]
         [InlineData("c.fl$$", true)]
         [InlineData("c.  $$", true)]
@@ -170,8 +166,7 @@ public class Program
 ", "float");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionIsNotSuggestedOnStaticAccess()
         {
             await VerifyNoItemsExistAsync(@"
@@ -190,8 +185,7 @@ public class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionIsNotSuggestedInNameofContext()
         {
             await VerifyNoItemsExistAsync(@"
@@ -211,8 +205,7 @@ public class Program
 ");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Theory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("", "Nested1.C", "Nested2.C")]
         [InlineData("using N1.Nested1;", "C", "Nested2.C")]
         [InlineData("using N1.Nested2;", "C", "Nested1.C")]
@@ -259,8 +252,7 @@ namespace N1
                 i => Assert.Equal(displayText2, i.DisplayText));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionIsSuggestedForAllExplicitConversionsToOtherTypesAndNotForImplicitConversions()
         {
             var items = await GetCompletionItemsAsync(@"
@@ -288,8 +280,7 @@ public class Program
                 i => Assert.Equal("int", i.DisplayText));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionIgnoresConversionLikeMethods()
         {
             await VerifyNoItemsExistAsync(@"
@@ -309,8 +300,7 @@ public class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionIgnoreMalformedOperators()
         {
             await VerifyNoItemsExistAsync(@"
@@ -330,8 +320,7 @@ public class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionFromOtherTypeToTargetIsNotSuggested()
         {
             await VerifyNoItemsExistAsync(@"
@@ -354,8 +343,7 @@ public class Program
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitConversionOfNullableStructToNullableStructIsOffered()
         {
             // Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
@@ -374,8 +362,7 @@ public class Program
 ", "int?", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitConversionDescriptionIsIsGiven()
         {
             const string Markup = @"
@@ -404,8 +391,7 @@ public class Program
 Explicit conversion of S to int.");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitConversionDescriptionIsIsGivenLifted()
         {
             const string Markup = @"
@@ -434,8 +420,7 @@ public class Program
 Explicit conversion of S to int.");
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("sbyte", "byte", "char", "uint", "ulong", "ushort")]
         [InlineData("byte", "char", "sbyte")]
         [InlineData("short", "byte", "char", "sbyte", "uint", "ulong", "ushort")]
@@ -465,8 +450,7 @@ public class Program
             AssertEx.SetEqual(items.Select(i => i.DisplayText), toTypes);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInNumericConversionDescriptionIsLikeAConversionOperatorDescription()
         {
             const string Markup = @"
@@ -487,8 +471,7 @@ $@"int.explicit operator byte(int value)
 {(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInNumericConversionDescriptionIsLikeAConversionOperatorDescriptionLifted()
         {
             const string Markup = @"
@@ -509,8 +492,7 @@ $@"int.explicit operator byte?(int? value)
 {(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInEnumConversionsAreSortedAndComplete()
         {
             // built-in enum conversions:
@@ -530,8 +512,7 @@ public class Program
             AssertEx.SetEqual(items.Select(i => i.DisplayText), expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInEnumConversionDescriptionIsLikeAConversionOperatorDescription()
         {
             const string Markup = @"
@@ -553,8 +534,7 @@ $@"E.explicit operator int(E value)
 {FormatExplicitConversionDescription("E", "int")}");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInEnumConversionDescriptionIsLikeAConversionOperatorDescriptionLifted()
         {
             const string Markup = @"
@@ -576,8 +556,7 @@ $@"E.explicit operator int?(E? value)
 {(FormatExplicitConversionDescription(fromType: "E", toType: "int"))}");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInEnumConversionDescriptionIsLikeAConversionOperatorDescriptionUnimportedNamespaceMinimalName()
         {
             const string Markup = @"
@@ -605,8 +584,7 @@ namespace A.C
 {FormatExplicitConversionDescription("B.E", "int")}");
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("e.$$", true)]
         [InlineData("e. $$", true)]
         [InlineData("e.in$$", true)]
@@ -630,8 +608,7 @@ public class Program
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionInheritedConversions()
         {
             // Base class lookup rule: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#processing-of-user-defined-explicit-conversions
@@ -653,8 +630,7 @@ public class Program
 ", "int", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("C", "byte")]
         [InlineData("byte", "C")]
         public async Task ExplicitBuiltinConversionWithAlias(string fromType, string expected)
@@ -672,8 +648,7 @@ public class Program
 ", expected, displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnConversionIsRespected_EditorBrowsableStateNever()
         {
             var markup = @"
@@ -712,8 +687,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnConversionIsRespected_EditorBrowsableStateNever_InheritedConversion_1()
         {
             var markup = @"
@@ -754,8 +728,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnConversionIsRespected_EditorBrowsableStateNever_InheritedConversion_2()
         {
             var markup = @"
@@ -796,8 +769,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnConversionIsRespected_EditorBrowsableStateAdvanced()
         {
             var markup = @"
@@ -849,8 +821,7 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionOfDerefenrencedPointerIsNotOffered()
         {
             await VerifyNoItemsExistAsync(@"

@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [Export(typeof(SuggestedActionsSourceProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
+    // ContentType("text") requires DeferCreationAttribute(...).
+    // See https://github.com/dotnet/roslyn/issues/62877#issuecomment-1271493105 for more details.
+    // TODO: Uncomment the below attribute, tracked with https://github.com/dotnet/roslyn/issues/64567
+    // [ContentType("text")]
+    [DeferCreation(OptionName = EditorOption.OptionName)]
     [Name("Roslyn Code Fix")]
     [Order]
     [SuggestedActionPriority(DefaultOrderings.Highest)]
@@ -45,11 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private static readonly Guid s_visualBasicSourceGuid = new Guid("4de30e93-3e0c-40c2-a4ba-1124da4539f6");
         private static readonly Guid s_xamlSourceGuid = new Guid("a0572245-2eab-4c39-9f61-06a6d8c5ddda");
 
-        private const int InvalidSolutionVersion = -1;
-
         private readonly IThreadingContext _threadingContext;
         private readonly ICodeRefactoringService _codeRefactoringService;
-        private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeFixService _codeFixService;
         private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
         private readonly IGlobalOptionService _globalOptions;
@@ -64,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public SuggestedActionsSourceProvider(
             IThreadingContext threadingContext,
             ICodeRefactoringService codeRefactoringService,
-            IDiagnosticAnalyzerService diagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandler,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
@@ -75,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             _threadingContext = threadingContext;
             _codeRefactoringService = codeRefactoringService;
-            _diagnosticService = diagnosticService;
             _codeFixService = codeFixService;
             _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
             _globalOptions = globalOptions;
@@ -98,10 +98,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             // if user has explicitly set the option defer to that.  otherwise, we are enabled by default (unless our
             // A/B escape hatch disables us).
-            var asyncEnabled = _globalOptions.GetOption(SuggestionsOptions.Asynchronous) is bool b ? b : !_globalOptions.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
+            var asyncEnabled = _globalOptions.GetOption(SuggestionsOptionsStorage.Asynchronous) is bool b ? b : !_globalOptions.GetOption(SuggestionsOptionsStorage.AsynchronousQuickActionsDisableFeatureFlag);
 
             return asyncEnabled
-                ? new AsyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry)
+                ? new AsyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry, this.OperationListener)
                 : new SyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }
 

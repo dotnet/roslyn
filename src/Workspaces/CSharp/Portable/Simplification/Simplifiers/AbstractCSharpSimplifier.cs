@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -35,8 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         /// </summary>
         /// <param name="specialType">The <see cref="SpecialType"/> of this type.</param>
         /// <returns>The keyword kind for a given special type, or SyntaxKind.None if the type name is not a predefined type.</returns>
-        protected static SyntaxKind GetPredefinedKeywordKind(SpecialType specialType)
-            => specialType switch
+        protected static SyntaxToken? TryGetPredefinedKeywordToken(SemanticModel semanticModel, SpecialType specialType)
+        {
+            var kind = specialType switch
             {
                 SpecialType.System_Boolean => SyntaxKind.BoolKeyword,
                 SpecialType.System_Byte => SyntaxKind.ByteKeyword,
@@ -56,6 +58,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 SpecialType.System_Void => SyntaxKind.VoidKeyword,
                 _ => SyntaxKind.None,
             };
+
+            if (kind != SyntaxKind.None)
+                return SyntaxFactory.Token(kind);
+
+            if (specialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr &&
+                semanticModel.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9 &&
+                    semanticModel.Compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            {
+                return SyntaxFactory.Identifier(specialType == SpecialType.System_IntPtr ? "nint" : "nuint");
+            }
+
+            return null;
+        }
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
@@ -142,11 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     var type = semanticModel.GetTypeInfo(node, cancellationToken).Type;
                     if (type != null)
                     {
-                        var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
-                        if (keywordKind != SyntaxKind.None)
-                        {
+                        var keywordToken = TryGetPredefinedKeywordToken(semanticModel, type.SpecialType);
+                        if (keywordToken != null)
                             preferAliasToQualifiedName = false;
-                        }
                     }
                 }
             }
@@ -158,11 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     var type = semanticModel.GetTypeInfo(node, cancellationToken).Type;
                     if (type != null)
                     {
-                        var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
-                        if (keywordKind != SyntaxKind.None)
-                        {
+                        var keywordToken = TryGetPredefinedKeywordToken(semanticModel, type.SpecialType);
+                        if (keywordToken != null)
                             preferAliasToQualifiedName = false;
-                        }
                     }
                 }
             }
@@ -178,16 +189,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
             {
                 var current = expression;
-                while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
+                while (current is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) currentMember)
                 {
                     current = currentMember.Expression;
                     continue;
                 }
 
-                return current.IsKind(SyntaxKind.AliasQualifiedName,
-                                      SyntaxKind.IdentifierName,
-                                      SyntaxKind.GenericName,
-                                      SyntaxKind.QualifiedName);
+                return current.Kind() is SyntaxKind.AliasQualifiedName or SyntaxKind.IdentifierName or SyntaxKind.GenericName or SyntaxKind.QualifiedName;
             }
         }
 
@@ -366,8 +374,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return token.Parent;
         }
 
-        protected static TypeSyntax CreatePredefinedTypeSyntax(ExpressionSyntax expression, SyntaxKind keywordKind)
-            => SyntaxFactory.PredefinedType(SyntaxFactory.Token(expression.GetLeadingTrivia(), keywordKind, expression.GetTrailingTrivia()));
+        protected static TypeSyntax CreatePredefinedTypeSyntax(SyntaxNode nodeToReplace, SyntaxToken token)
+        {
+            TypeSyntax node = token.Kind() == SyntaxKind.IdentifierToken
+                ? SyntaxFactory.IdentifierName(token)
+                : SyntaxFactory.PredefinedType(token);
+            return node.WithTriviaFrom(nodeToReplace);
+        }
 
         protected static bool InsideNameOfExpression(ExpressionSyntax expression, SemanticModel semanticModel)
         {
@@ -399,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 !SyntaxFacts.IsInNamespaceOrTypeContext(expression))
             {
                 var symbols = semanticModel.LookupSymbols(expression.SpanStart, name: identifierName.Identifier.ValueText);
-                return symbols.Any(s => s is ILocalSymbol);
+                return symbols.Any(static s => s is ILocalSymbol);
             }
 
             return false;

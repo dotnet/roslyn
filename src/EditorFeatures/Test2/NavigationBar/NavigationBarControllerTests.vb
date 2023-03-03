@@ -9,8 +9,9 @@ Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.NavigationBar)>
     Public Class NavigationBarControllerTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
+        <WpfFact, WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Async Function TestDoNotRecomputeAfterFullRecompute() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -45,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24754"), Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24754"), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Async Function ProjectionBuffersWork() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -75,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact>
         Public Async Function TestNavigationBarInCSharpLinkedFiles() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -133,7 +134,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact>
         Public Async Function TestNavigationBarInVisualBasicLinkedFiles() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -194,7 +195,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact>
         Public Async Function TestProjectItemsAreSortedCSharp() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -231,7 +232,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact>
         Public Async Function TestProjectItemsAreSortedVisualBasic() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -264,7 +265,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact>
         Public Async Function TestNavigationBarRefreshesAfterProjectRename() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>

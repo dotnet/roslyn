@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -109,29 +110,31 @@ namespace Microsoft.CodeAnalysis.Extensions
             return defaultValue;
         }
 
+        [SuppressMessage("Style", "IDE0039:Use local function", Justification = "Avoid per-call delegate allocation")]
         public static Func<SyntaxNode, ImmutableArray<TExtension>> CreateNodeExtensionGetter<TExtension>(
             this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, ImmutableArray<Type>> nodeTypeGetter)
         {
             var map = new ConcurrentDictionary<Type, ImmutableArray<TExtension>>();
 
-            ImmutableArray<TExtension> GetExtensions(Type t1)
+            Func<Type, ImmutableArray<TExtension>> getExtensions = (Type t1) =>
             {
                 var query = from e in extensions
                             let types = extensionManager.PerformFunction(e, () => nodeTypeGetter(e), ImmutableArray<Type>.Empty)
-                            where !types.Any() || types.Any(t2 => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2))
+                            where !types.Any() || types.Any(static (t2, t1) => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2), t1)
                             select e;
 
                 return query.ToImmutableArray();
-            }
+            };
 
-            return n => map.GetOrAdd(n.GetType(), GetExtensions);
+            return n => map.GetOrAdd(n.GetType(), getExtensions);
         }
 
+        [SuppressMessage("Style", "IDE0039:Use local function", Justification = "Avoid per-call delegate allocation")]
         public static Func<SyntaxToken, ImmutableArray<TExtension>> CreateTokenExtensionGetter<TExtension>(
             this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, ImmutableArray<int>> tokenKindGetter)
         {
             var map = new ConcurrentDictionary<int, ImmutableArray<TExtension>>();
-            ImmutableArray<TExtension> GetExtensions(int k)
+            Func<int, ImmutableArray<TExtension>> getExtensions = (int k) =>
             {
                 var query = from e in extensions
                             let kinds = extensionManager.PerformFunction(e, () => tokenKindGetter(e), ImmutableArray<int>.Empty)
@@ -139,9 +142,9 @@ namespace Microsoft.CodeAnalysis.Extensions
                             select e;
 
                 return query.ToImmutableArray();
-            }
+            };
 
-            return t => map.GetOrAdd(t.RawKind, GetExtensions);
+            return t => map.GetOrAdd(t.RawKind, getExtensions);
         }
     }
 }

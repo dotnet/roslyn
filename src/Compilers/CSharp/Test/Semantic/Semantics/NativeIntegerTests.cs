@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -22,6 +23,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NativeIntegerTests : CSharpTestBase
     {
+        internal static readonly ConversionKind[] Identity = new[] { ConversionKind.Identity };
+        internal static readonly ConversionKind[] NoConversion = new[] { ConversionKind.NoConversion };
+        internal static readonly ConversionKind[] Boxing = new[] { ConversionKind.Boxing };
+        internal static readonly ConversionKind[] Unboxing = new[] { ConversionKind.Unboxing };
+        internal static readonly ConversionKind[] IntPtrConversion = new[] { ConversionKind.IntPtr };
+        internal static readonly ConversionKind[] ImplicitNumeric = new[] { ConversionKind.ImplicitNumeric };
+        internal static readonly ConversionKind[] ExplicitIntegerToPointer = new[] { ConversionKind.ExplicitIntegerToPointer };
+        internal static readonly ConversionKind[] ExplicitPointerToInteger = new[] { ConversionKind.ExplicitPointerToInteger };
+        internal static readonly ConversionKind[] ExplicitEnumeration = new[] { ConversionKind.ExplicitEnumeration };
+        internal static readonly ConversionKind[] ExplicitNumeric = new[] { ConversionKind.ExplicitNumeric };
+
+        internal static readonly ConversionKind[] ImplicitNullableNumeric = new[] { ConversionKind.ImplicitNullable, ConversionKind.ImplicitNumeric };
+        internal static readonly ConversionKind[] ImplicitNullableIdentity = new[] { ConversionKind.ImplicitNullable, ConversionKind.Identity };
+
+        internal static readonly ConversionKind[] ExplicitNullableEnumeration = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitEnumeration };
+        internal static readonly ConversionKind[] ExplicitNullableImplicitNumeric = new[] { ConversionKind.ExplicitNullable, ConversionKind.ImplicitNumeric };
+        internal static readonly ConversionKind[] ExplicitNullableNumeric = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitNumeric };
+        internal static readonly ConversionKind[] ExplicitNullablePointerToInteger = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitPointerToInteger };
+        internal static readonly ConversionKind[] ExplicitNullableIdentity = new[] { ConversionKind.ExplicitNullable, ConversionKind.Identity };
+
+        internal static bool IsNoConversion(ConversionKind[] conversionKinds)
+        {
+            return conversionKinds is [ConversionKind.NoConversion];
+        }
+
+        internal static void AssertMatches(ConversionKind[] expected, Conversion conversion)
+        {
+            IEnumerable<ConversionKind> actualConversionKinds = new[] { conversion.Kind };
+            if (!conversion.UnderlyingConversions.IsDefault)
+            {
+                actualConversionKinds = actualConversionKinds.Concat(conversion.UnderlyingConversions.Select(c => c.Kind));
+            }
+            Assert.Equal(expected, actualConversionKinds);
+        }
+
         [Fact]
         public void LanguageVersion()
         {
@@ -32,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
+
             comp.VerifyDiagnostics(
                 // (3,5): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     nint Add(nint x, nuint y);
@@ -44,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(3, 22));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
         }
 
@@ -131,20 +172,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     void F1(System.IntPtr x, nint y);
     void F2(System.UIntPtr x, nuint y);
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 
-            comp = CreateEmptyCompilation(sourceA);
+            comp = CreateEmptyCompilation(sourceA, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -174,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Equal(SymbolKind.NamedType, type.Kind);
             Assert.Equal(TypeKind.Struct, type.TypeKind);
             Assert.Same(type, type.ConstructedFrom);
-            Assert.Equal(isNativeInt, type.IsNativeIntegerType);
+            Assert.Equal(isNativeInt, type.IsNativeIntegerWrapperType);
             Assert.Equal(signed ? "IntPtr" : "UIntPtr", type.Name);
 
             if (isNativeInt)
@@ -553,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             bool containsType(TypeWithAnnotations type, bool useNativeInteger)
             {
-                return type.Type.VisitType((type, unused1, unused2) => type.SpecialType == specialType && useNativeInteger == type.IsNativeIntegerType, (object)null) is { };
+                return type.Type.VisitType((type, unused1, unused2) => type.SpecialType == specialType && useNativeInteger == type.IsNativeIntegerWrapperType, (object)null) is { };
             }
 
             static Symbol getUnderlyingMember(Symbol nativeIntegerMember)
@@ -643,20 +692,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint").WithArguments("System.UIntPtr").WithLocation(4, 31)
             };
 
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(diagnostics);
             verify(comp);
 
-            comp = CreateEmptyCompilation(sourceA);
+            comp = CreateEmptyCompilation(sourceA, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(diagnostics);
             verify(comp);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(diagnostics);
             verify(comp);
 
@@ -676,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         {
             Assert.Equal(SymbolKind.ErrorType, type.Kind);
             Assert.Equal(TypeKind.Error, type.TypeKind);
-            Assert.Equal(isNativeInt, type.IsNativeIntegerType);
+            Assert.Equal(isNativeInt, type.IsNativeIntegerWrapperType);
             Assert.Equal(specialType, type.SpecialType);
         }
 
@@ -762,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
                 Assert.Equal(expectedSymbol, field.ToTestDisplayString());
                 var type = (NamedTypeSymbol)field.Type;
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<NativeIntegerTypeSymbol>(type);
                 Assert.Equal(expectedAssembly, type.NativeIntegerUnderlyingType.ContainingAssembly);
             }
@@ -782,6 +831,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public struct Int32 { }
     public struct IntPtr { }
     public struct UIntPtr { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 }";
             var assemblyName = GetUniqueName();
             var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
@@ -812,6 +870,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 }";
             comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), new[] { source2 }, references: null);
             var ref2 = comp.EmitToImageReference();
@@ -857,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
                 Assert.Equal(expectedSymbol, field.ToTestDisplayString());
                 var type = (NamedTypeSymbol)field.Type;
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(type);
                 Assert.Equal(expectedAssembly, type.NativeIntegerUnderlyingType.ContainingAssembly);
             }
@@ -875,6 +942,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 }";
             var assemblyName = GetUniqueName();
             var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
@@ -911,6 +987,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public struct Int32 { }
     public struct IntPtr { }
     public struct UIntPtr { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 }";
             comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), new[] { source2 }, references: null);
             var ref2 = comp.EmitToImageReference();
@@ -946,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
                 Assert.Equal(expectedSymbol, field.ToTestDisplayString());
                 var type = (NamedTypeSymbol)field.Type;
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(type);
                 Assert.Equal(expectedAssembly, type.NativeIntegerUnderlyingType.ContainingAssembly);
             }
@@ -1018,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
                 Assert.Equal(expectedSymbol, field.ToTestDisplayString());
                 var type = (NamedTypeSymbol)field.Type;
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<NativeIntegerTypeSymbol>(type);
             }
         }
@@ -1066,7 +1151,7 @@ public class B : A<nint>
             var refA = AsReference(comp, useCompilationReference);
 
             var type1 = getConstraintType(comp);
-            Assert.True(type1.IsNativeIntegerType);
+            Assert.True(type1.IsNativeIntegerWrapperType);
             Assert.False(type1.IsErrorType());
 
             var sourceB =
@@ -1087,7 +1172,7 @@ public class B : A<nint>
 
             var type2 = getConstraintType(comp);
             Assert.True(type2.ContainingAssembly.IsMissing);
-            Assert.False(type2.IsNativeIntegerType);
+            Assert.False(type2.IsNativeIntegerWrapperType);
             Assert.True(type2.IsErrorType());
 
             static TypeSymbol getConstraintType(CSharpCompilation comp) =>
@@ -1141,7 +1226,7 @@ public class B : A<nint>
 
             var refA = comp.ToMetadataReference();
             var typeA = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
-            Assert.True(typeA.IsNativeIntegerType);
+            Assert.True(typeA.IsNativeIntegerWrapperType);
             Assert.False(typeA.IsErrorType());
 
             var sourceB =
@@ -1159,7 +1244,7 @@ public class B : A<nint>
 
             var typeB = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
             Assert.True(typeB.ContainingAssembly.IsMissing);
-            Assert.False(typeB.IsNativeIntegerType);
+            Assert.False(typeB.IsNativeIntegerWrapperType);
             Assert.True(typeB.IsErrorType());
         }
 
@@ -1212,6 +1297,8 @@ class Program
         [Fact]
         public void IEquatable()
         {
+            var parseOptions = TestOptions.Regular9.WithNoRefSafetyRulesAttribute();
+
             // Minimal definitions.
             verifyAll(includesIEquatable: true,
 @"namespace System
@@ -1379,7 +1466,7 @@ namespace System
     public struct IntPtr : IEquatable<nint> { }
     public struct UIntPtr : IEquatable<nuint> { }
 }",
-                parseOptions: TestOptions.Regular9);
+                parseOptions: parseOptions);
             verifyReference(comp.EmitToImageReference(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0")), includesIEquatable: true);
 
             // IEquatable<nuint> and  IEquatable<nint>.
@@ -1405,10 +1492,10 @@ namespace System
     public struct IntPtr : IEquatable<nuint> { }
     public struct UIntPtr : IEquatable<nint> { }
 }",
-                parseOptions: TestOptions.Regular9);
+                parseOptions: parseOptions);
             verifyReference(comp.EmitToImageReference(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0")), includesIEquatable: false);
 
-            static void verifyAll(bool includesIEquatable, string sourceA)
+            void verifyAll(bool includesIEquatable, string sourceA)
             {
                 var sourceB =
 @"interface I
@@ -1416,25 +1503,25 @@ namespace System
     nint F1();
     nuint F2();
 }";
-                var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
+                var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: parseOptions);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
 
-                comp = CreateEmptyCompilation(sourceA);
+                comp = CreateEmptyCompilation(sourceA, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
                 comp.VerifyDiagnostics();
                 var ref1 = comp.ToMetadataReference();
                 var ref2 = comp.EmitToImageReference();
 
-                comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
+                comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: parseOptions);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
 
-                comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
+                comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: parseOptions);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
             }
 
-            static void verifyReference(MetadataReference reference, bool includesIEquatable)
+            void verifyReference(MetadataReference reference, bool includesIEquatable)
             {
                 var sourceB =
 @"interface I
@@ -1442,7 +1529,7 @@ namespace System
     nint F1();
     nuint F2();
 }";
-                var comp = CreateEmptyCompilation(sourceB, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+                var comp = CreateEmptyCompilation(sourceB, references: new[] { reference }, parseOptions: parseOptions);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
             }
@@ -1457,7 +1544,7 @@ namespace System
             {
                 var underlyingType = type.NativeIntegerUnderlyingType;
 
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.Equal(specialType, underlyingType.SpecialType);
 
                 var interfaces = type.InterfacesNoUseSiteDiagnostics(null);
@@ -1625,6 +1712,15 @@ namespace System
             return false;
         }
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
@@ -1704,7 +1800,7 @@ namespace System
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -1784,6 +1880,15 @@ namespace System
         public string ToString(IFormatProvider provider) => default;
         public string ToString(string format, IFormatProvider provider) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
@@ -1860,7 +1965,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -1938,6 +2043,15 @@ class Program
         public static bool operator==(UIntPtr x, UIntPtr y) => default;
         public static bool operator!=(UIntPtr x, UIntPtr y) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
@@ -2021,7 +2135,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2079,6 +2193,15 @@ class Program
         public override int GetHashCode() => 0;
         public override bool Equals(object obj) => false;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
@@ -2108,7 +2231,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2162,6 +2285,15 @@ class Program
         UIntPtr I<UIntPtr>.P => this;
         UIntPtr I<UIntPtr>.F() => this;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
@@ -2226,7 +2358,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2346,7 +2478,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2452,6 +2584,15 @@ class Program
         internal UIntPtr F2() => default;
         public static UIntPtr F3() => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
@@ -2493,7 +2634,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2541,6 +2682,14 @@ class Program
         public UIntPtr this[int index] => default;
     }
     public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 namespace System.Reflection
 {
@@ -2587,7 +2736,7 @@ namespace System.Reflection
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2727,7 +2876,7 @@ namespace System.Reflection
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -3492,9 +3641,9 @@ interface I
                 var underlyingType0 = method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>();
                 var underlyingType1 = method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>();
                 Assert.Equal(SpecialType.None, underlyingType0.SpecialType);
-                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.False(underlyingType0.IsNativeIntegerWrapperType);
                 Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
-                Assert.True(underlyingType1.IsNativeIntegerType);
+                Assert.True(underlyingType1.IsNativeIntegerWrapperType);
             }
         }
 
@@ -3534,9 +3683,9 @@ System.Object");
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
-                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.False(underlyingType0.IsNativeIntegerWrapperType);
                 Assert.Equal(SpecialType.System_Object, underlyingType1.SpecialType);
-                Assert.False(underlyingType1.IsNativeIntegerType);
+                Assert.False(underlyingType1.IsNativeIntegerWrapperType);
             }
         }
 
@@ -3568,9 +3717,9 @@ class Program
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
-                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.False(underlyingType0.IsNativeIntegerWrapperType);
                 Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
-                Assert.True(underlyingType1.IsNativeIntegerType);
+                Assert.True(underlyingType1.IsNativeIntegerWrapperType);
             }
         }
 
@@ -3602,9 +3751,9 @@ class Program
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
-                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.False(underlyingType0.IsNativeIntegerWrapperType);
                 Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
-                Assert.True(underlyingType1.IsNativeIntegerType);
+                Assert.True(underlyingType1.IsNativeIntegerWrapperType);
             }
         }
 
@@ -4244,15 +4393,14 @@ class Program
             var verifier = CompileAndVerify(source, expectedOutput: @"1");
             verifier.VerifyIL("Program.F",
 @"{
-  // Code size       17 (0x11)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  volatile.
   IL_0002:  ldsfld     ""nint Program.F1""
   IL_0007:  volatile.
   IL_0009:  ldsfld     ""nuint Program.F2""
-  IL_000e:  conv.i
-  IL_000f:  add
-  IL_0010:  ret
+  IL_000e:  add
+  IL_000f:  ret
 }");
         }
 
@@ -4320,6 +4468,15 @@ class Program
         public static UIntPtr MaxValue => default;
         public static UIntPtr MinValue => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
@@ -4563,7 +4720,7 @@ False
 
                 static bool isNativeInt(TypeSymbol type, bool signed)
                 {
-                    return type.IsNativeIntegerType &&
+                    return type.IsNativeIntegerWrapperType &&
                         type.SpecialType == (signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr);
                 }
 
@@ -7302,6 +7459,15 @@ $@"{{
   IL_0001:  {conversion}
   IL_0002:  ret
 }}";
+            static string convRUn(string conversion) =>
+$@"{{
+      // Code size        4 (0x4)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.r.un
+  IL_0002:  {conversion}
+  IL_0003:  ret
+}}";
             static string convFromNullableT(string conversion, string sourceType) =>
 $@"{{
   // Code size        9 (0x9)
@@ -7311,6 +7477,16 @@ $@"{{
   IL_0007:  {conversion}
   IL_0008:  ret
 }}";
+            static string convRUnFromNullableT(string conversion, string sourceType) =>
+$@"{{
+  // Code size       10 (0xa)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""{sourceType} {sourceType}?.Value.get""
+  IL_0007:  conv.r.un
+  IL_0008:  {conversion}
+  IL_0009:  ret
+}}";
             static string convToNullableT(string conversion, string destType) =>
 $@"{{
   // Code size        8 (0x8)
@@ -7319,6 +7495,16 @@ $@"{{
   IL_0001:  {conversion}
   IL_0002:  newobj     ""{destType}?..ctor({destType})""
   IL_0007:  ret
+}}";
+            static string convRUnToNullableT(string conversion, string destType) =>
+$@"{{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.r.un
+  IL_0002:  {conversion}
+  IL_0003:  newobj     ""{destType}?..ctor({destType})""
+  IL_0008:  ret
 }}";
             static string convFromToNullableT(string conversion, string sourceType, string destType) =>
 $@"{{
@@ -7340,6 +7526,28 @@ $@"{{
   IL_001c:  {conversion}
   IL_001d:  newobj     ""{destType}?..ctor({destType})""
   IL_0022:  ret
+}}";
+            static string convRUnFromToNullableT(string conversion, string sourceType, string destType) =>
+$@"{{
+  // Code size       36 (0x24)
+  .maxstack  1
+  .locals init ({sourceType}? V_0,
+                {destType}? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool {sourceType}?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""{destType}?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""{sourceType} {sourceType}?.GetValueOrDefault()""
+  IL_001c:  conv.r.un
+  IL_001d:  {conversion}
+  IL_001e:  newobj     ""{destType}?..ctor({destType})""
+  IL_0023:  ret
 }}";
             static string convAndExplicit(string method, string conv = null) => conv is null ?
 $@"{{
@@ -7491,8 +7699,13 @@ $@"{{
   IL_0021:  newobj     ""{destType}?..ctor({destType})""
   IL_0026:  ret
 }}";
-            void conversions(string sourceType, string destType, string expectedImplicitIL, string expectedExplicitIL, string expectedCheckedIL = null)
+            void conversions(string sourceType, string destType, ConversionKind[] expectedConversions, string expectedImplicitIL, string expectedExplicitIL, string expectedCheckedIL = null)
             {
+                if (expectedExplicitIL is not null)
+                {
+                    Assert.False(IsNoConversion(expectedConversions));
+                }
+
                 // https://github.com/dotnet/roslyn/issues/42834: Invalid code generated for nullable conversions
                 // involving System.[U]IntPtr: the conversion is dropped. And when converting from System.[U]IntPtr,
                 // an assert in LocalRewriter.MakeLiftedUserDefinedConversionConsequence fails.
@@ -7511,6 +7724,7 @@ $@"{{
                     useExplicitCast: false,
                     useChecked: false,
                     verify: verify,
+                    expectedConversions,
                     expectedImplicitIL is null ?
                         expectedExplicitIL is null ? ErrorCode.ERR_NoImplicitConv : ErrorCode.ERR_NoImplicitConvCast :
                         0);
@@ -7522,6 +7736,7 @@ $@"{{
                     useExplicitCast: true,
                     useChecked: false,
                     verify: verify,
+                    expectedConversions: null,
                     expectedExplicitIL is null ? ErrorCode.ERR_NoExplicitConv : 0);
                 expectedCheckedIL ??= expectedExplicitIL;
                 convert(
@@ -7532,12 +7747,13 @@ $@"{{
                     useExplicitCast: true,
                     useChecked: true,
                     verify: verify,
+                    expectedConversions: null,
                     expectedCheckedIL is null ? ErrorCode.ERR_NoExplicitConv : 0);
 
                 static bool usesIntPtrOrUIntPtr(string underlyingType) => underlyingType.Contains("IntPtr");
             }
 
-            conversions(sourceType: "object", destType: "nint", expectedImplicitIL: null,
+            conversions(sourceType: "object", destType: "nint", Unboxing, expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -7545,25 +7761,25 @@ $@"{{
   IL_0001:  unbox.any  ""System.IntPtr""
   IL_0006:  ret
 }");
-            conversions(sourceType: "string", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "void*", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
-            conversions(sourceType: "delegate*<void>", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
-            conversions(sourceType: "E", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"));
-            conversions(sourceType: "bool", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char", destType: "nint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "sbyte", destType: "nint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
-            conversions(sourceType: "byte", destType: "nint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "short", destType: "nint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
-            conversions(sourceType: "ushort", destType: "nint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "int", destType: "nint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
-            conversions(sourceType: "uint", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.i.un"));
-            conversions(sourceType: "long", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
-            conversions(sourceType: "ulong", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
-            conversions(sourceType: "nint", destType: "nint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nuint", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
-            conversions(sourceType: "float", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
-            conversions(sourceType: "double", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
-            conversions(sourceType: "decimal", destType: "nint", expectedImplicitIL: null,
+            conversions(sourceType: "string", destType: "nint", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "void*", destType: "nint", ExplicitPointerToInteger, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "delegate*<void>", destType: "nint", ExplicitPointerToInteger, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "E", destType: "nint", ExplicitEnumeration, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"));
+            conversions(sourceType: "bool", destType: "nint", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "nint", ImplicitNumeric, expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "sbyte", destType: "nint", ImplicitNumeric, expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
+            conversions(sourceType: "byte", destType: "nint", ImplicitNumeric, expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "short", destType: "nint", ImplicitNumeric, expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
+            conversions(sourceType: "ushort", destType: "nint", ImplicitNumeric, expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "int", destType: "nint", ImplicitNumeric, expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
+            conversions(sourceType: "uint", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "long", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
+            conversions(sourceType: "ulong", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "nint", destType: "nint", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "float", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
+            conversions(sourceType: "double", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
+            conversions(sourceType: "decimal", destType: "nint", ExplicitNumeric, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -7580,20 +7796,20 @@ $@"{{
   IL_0006:  conv.ovf.i
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "nint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "System.UIntPtr", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "E?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "E"));
-            conversions(sourceType: "bool?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "char"));
-            conversions(sourceType: "sbyte?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "sbyte"));
-            conversions(sourceType: "byte?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "byte"));
-            conversions(sourceType: "short?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "short"));
-            conversions(sourceType: "ushort?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ushort"));
-            conversions(sourceType: "int?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "int"));
-            conversions(sourceType: "uint?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "uint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "uint"));
-            conversions(sourceType: "long?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "long"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "long"));
-            conversions(sourceType: "ulong?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "ulong"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "ulong"));
-            conversions(sourceType: "nint?", destType: "nint", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr", destType: "nint", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "System.UIntPtr", destType: "nint", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "E?", destType: "nint", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "E"));
+            conversions(sourceType: "bool?", destType: "nint", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "nint", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "char"));
+            conversions(sourceType: "sbyte?", destType: "nint", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "sbyte"));
+            conversions(sourceType: "byte?", destType: "nint", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "byte"));
+            conversions(sourceType: "short?", destType: "nint", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "short"));
+            conversions(sourceType: "ushort?", destType: "nint", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ushort"));
+            conversions(sourceType: "int?", destType: "nint", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "int"));
+            conversions(sourceType: "uint?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "uint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "uint"));
+            conversions(sourceType: "long?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "long"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "long"));
+            conversions(sourceType: "ulong?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "ulong"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "ulong"));
+            conversions(sourceType: "nint?", destType: "nint", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -7601,10 +7817,19 @@ $@"{{
   IL_0002:  call       ""nint nint?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "nuint?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
-            conversions(sourceType: "float?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "float"));
-            conversions(sourceType: "double?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "double"));
-            conversions(sourceType: "decimal?", destType: "nint", expectedImplicitIL: null,
+            conversions(sourceType: "nuint?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0007:  ret
+}",
+                expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
+            conversions(sourceType: "float?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "float"));
+            conversions(sourceType: "double?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "double"));
+            conversions(sourceType: "decimal?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null,
 @"{
   // Code size       14 (0xe)
   .maxstack  1
@@ -7623,7 +7848,7 @@ $@"{{
   IL_000c:  conv.ovf.i
   IL_000d:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "nint", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr?", destType: "nint", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -7631,8 +7856,8 @@ $@"{{
   IL_0002:  call       ""System.IntPtr System.IntPtr?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.UIntPtr?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "object", destType: "nint?", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr?", destType: "nint", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "object", destType: "nint?", Unboxing, expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -7640,8 +7865,8 @@ $@"{{
   IL_0001:  unbox.any  ""nint?""
   IL_0006:  ret
 }");
-            conversions(sourceType: "string", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "void*", destType: "nint?", expectedImplicitIL: null,
+            conversions(sourceType: "string", destType: "nint?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "void*", destType: "nint?", ExplicitNullablePointerToInteger, expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -7657,7 +7882,7 @@ $@"{{
   IL_0002:  newobj     ""nint?..ctor(nint)""
   IL_0007:  ret
 }");
-            conversions(sourceType: "delegate*<void>", destType: "nint?", expectedImplicitIL: null,
+            conversions(sourceType: "delegate*<void>", destType: "nint?", ExplicitNullablePointerToInteger, expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -7673,18 +7898,18 @@ $@"{{
   IL_0002:  newobj     ""nint?..ctor(nint)""
   IL_0007:  ret
 }");
-            conversions(sourceType: "E", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"));
-            conversions(sourceType: "bool", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char", destType: "nint?", expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
-            conversions(sourceType: "sbyte", destType: "nint?", expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
-            conversions(sourceType: "byte", destType: "nint?", expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
-            conversions(sourceType: "short", destType: "nint?", expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
-            conversions(sourceType: "ushort", destType: "nint?", expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
-            conversions(sourceType: "int", destType: "nint?", expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
-            conversions(sourceType: "uint", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
-            conversions(sourceType: "long", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
-            conversions(sourceType: "ulong", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
-            conversions(sourceType: "nint", destType: "nint?",
+            conversions(sourceType: "E", destType: "nint?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"));
+            conversions(sourceType: "bool", destType: "nint?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
+            conversions(sourceType: "sbyte", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
+            conversions(sourceType: "byte", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
+            conversions(sourceType: "short", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
+            conversions(sourceType: "ushort", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
+            conversions(sourceType: "int", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
+            conversions(sourceType: "uint", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "long", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
+            conversions(sourceType: "ulong", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "nint", destType: "nint?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -7699,10 +7924,19 @@ $@"{{
   IL_0001:  newobj     ""nint?..ctor(nint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "nuint", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
-            conversions(sourceType: "float", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
-            conversions(sourceType: "double", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
-            conversions(sourceType: "decimal", destType: "nint?", expectedImplicitIL: null,
+            conversions(sourceType: "nuint", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nint?..ctor(nint)""
+  IL_0006:  ret
+}",
+                        expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "float", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
+            conversions(sourceType: "double", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
+            conversions(sourceType: "decimal", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null,
 @"{
   // Code size       13 (0xd)
   .maxstack  1
@@ -7721,7 +7955,7 @@ $@"{{
   IL_0007:  newobj     ""nint?..ctor(nint)""
   IL_000c:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "nint?",
+            conversions(sourceType: "System.IntPtr", destType: "nint?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -7736,23 +7970,44 @@ $@"{{
   IL_0001:  newobj     ""nint?..ctor(nint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "E?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "E", "nint"));
-            conversions(sourceType: "bool?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.u", "char", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nint"));
-            conversions(sourceType: "sbyte?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.i", "sbyte", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nint"));
-            conversions(sourceType: "byte?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.u", "byte", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "byte", "nint"));
-            conversions(sourceType: "short?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.i", "short", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "short", "nint"));
-            conversions(sourceType: "ushort?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.u", "ushort", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "ushort", "nint"));
-            conversions(sourceType: "int?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.i", "int", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "int", "nint"));
-            conversions(sourceType: "uint?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "uint", "nint"));
-            conversions(sourceType: "long?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "long", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "long", "nint"));
-            conversions(sourceType: "ulong?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "ulong", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "ulong", "nint"));
-            conversions(sourceType: "nint?", destType: "nint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nuint?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "nuint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
-            conversions(sourceType: "float?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "float", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "float", "nint"));
-            conversions(sourceType: "double?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "double", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "double", "nint"));
-            conversions(sourceType: "decimal?", destType: "nint?", null,
+            conversions(sourceType: "System.UIntPtr", destType: "nint?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "E?", destType: "nint?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "E", "nint"));
+            conversions(sourceType: "bool?", destType: "nint?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u", "char", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nint"));
+            conversions(sourceType: "sbyte?", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.i", "sbyte", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nint"));
+            conversions(sourceType: "byte?", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u", "byte", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "byte", "nint"));
+            conversions(sourceType: "short?", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.i", "short", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "short", "nint"));
+            conversions(sourceType: "ushort?", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u", "ushort", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "ushort", "nint"));
+            conversions(sourceType: "int?", destType: "nint?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.i", "int", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "int", "nint"));
+            conversions(sourceType: "uint?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "uint", "nint"));
+            conversions(sourceType: "long?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "long", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "long", "nint"));
+            conversions(sourceType: "ulong?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "ulong", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "ulong", "nint"));
+            conversions(sourceType: "nint?", destType: "nint?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nint?..ctor(nint)""
+  IL_0021:  ret
+}",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
+            conversions(sourceType: "float?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "float", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "float", "nint"));
+            conversions(sourceType: "double?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "double", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "double", "nint"));
+            conversions(sourceType: "decimal?", destType: "nint?", ExplicitNullableNumeric, null,
 @"{
   // Code size       40 (0x28)
   .maxstack  1
@@ -7795,9 +8050,9 @@ $@"{{
   IL_0022:  newobj     ""nint?..ctor(nint)""
   IL_0027:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "nint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "System.UIntPtr?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint", destType: "object",
+            conversions(sourceType: "System.IntPtr?", destType: "nint?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "System.UIntPtr?", destType: "nint?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint", destType: "object", Boxing,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -7812,23 +8067,23 @@ $@"{{
   IL_0001:  box        ""System.IntPtr""
   IL_0006:  ret
 }");
-            conversions(sourceType: "nint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
-            conversions(sourceType: "nint", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
-            conversions(sourceType: "nint", destType: "E", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4"));
-            conversions(sourceType: "nint", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint", destType: "char", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2"));
-            conversions(sourceType: "nint", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1"));
-            conversions(sourceType: "nint", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u1"), expectedCheckedIL: conv("conv.ovf.u1"));
-            conversions(sourceType: "nint", destType: "short", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i2"), expectedCheckedIL: conv("conv.ovf.i2"));
-            conversions(sourceType: "nint", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2"));
-            conversions(sourceType: "nint", destType: "int", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4"));
-            conversions(sourceType: "nint", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4"));
-            conversions(sourceType: "nint", destType: "long", expectedImplicitIL: conv("conv.i8"), expectedExplicitIL: conv("conv.i8"));
-            conversions(sourceType: "nint", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i8"), expectedCheckedIL: conv("conv.ovf.u8"));
-            conversions(sourceType: "nint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
-            conversions(sourceType: "nint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
-            conversions(sourceType: "nint", destType: "decimal",
+            conversions(sourceType: "nint", destType: "string", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint", destType: "void*", ExplicitIntegerToPointer, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "nint", destType: "delegate*<void>", ExplicitIntegerToPointer, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "nint", destType: "E", ExplicitEnumeration, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4"));
+            conversions(sourceType: "nint", destType: "bool", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint", destType: "char", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2"));
+            conversions(sourceType: "nint", destType: "sbyte", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1"));
+            conversions(sourceType: "nint", destType: "byte", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u1"), expectedCheckedIL: conv("conv.ovf.u1"));
+            conversions(sourceType: "nint", destType: "short", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i2"), expectedCheckedIL: conv("conv.ovf.i2"));
+            conversions(sourceType: "nint", destType: "ushort", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2"));
+            conversions(sourceType: "nint", destType: "int", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4"));
+            conversions(sourceType: "nint", destType: "uint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4"));
+            conversions(sourceType: "nint", destType: "long", ImplicitNumeric, expectedImplicitIL: conv("conv.i8"), expectedExplicitIL: conv("conv.i8"));
+            conversions(sourceType: "nint", destType: "ulong", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i8"), expectedCheckedIL: conv("conv.ovf.u8"));
+            conversions(sourceType: "nint", destType: "float", ImplicitNumeric, expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
+            conversions(sourceType: "nint", destType: "double", ImplicitNumeric, expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
+            conversions(sourceType: "nint", destType: "decimal", ImplicitNumeric,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -7845,22 +8100,22 @@ $@"{{
   IL_0002:  call       ""decimal decimal.op_Implicit(long)""
   IL_0007:  ret
 }");
-            conversions(sourceType: "nint", destType: "System.IntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nint", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null); // https://github.com/dotnet/roslyn/issues/42560: Allow explicitly casting nint to UIntPtr.
-            conversions(sourceType: "nint", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "E"), expectedCheckedIL: convToNullableT("conv.ovf.i4", "E"));
-            conversions(sourceType: "nint", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "char"), expectedCheckedIL: convToNullableT("conv.ovf.u2", "char"));
-            conversions(sourceType: "nint", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i1", "sbyte"), expectedCheckedIL: convToNullableT("conv.ovf.i1", "sbyte"));
-            conversions(sourceType: "nint", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u1", "byte"), expectedCheckedIL: convToNullableT("conv.ovf.u1", "byte"));
-            conversions(sourceType: "nint", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i2", "short"), expectedCheckedIL: convToNullableT("conv.ovf.i2", "short"));
-            conversions(sourceType: "nint", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "ushort"), expectedCheckedIL: convToNullableT("conv.ovf.u2", "ushort"));
-            conversions(sourceType: "nint", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "int"), expectedCheckedIL: convToNullableT("conv.ovf.i4", "int"));
-            conversions(sourceType: "nint", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u4", "uint"), expectedCheckedIL: convToNullableT("conv.ovf.u4", "uint"));
-            conversions(sourceType: "nint", destType: "long?", expectedImplicitIL: convToNullableT("conv.i8", "long"), expectedExplicitIL: convToNullableT("conv.i8", "long"));
-            conversions(sourceType: "nint", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i8", "ulong"), expectedCheckedIL: convToNullableT("conv.ovf.u8", "ulong"));
-            conversions(sourceType: "nint", destType: "float?", expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
-            conversions(sourceType: "nint", destType: "double?", expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
-            conversions(sourceType: "nint", destType: "decimal?",
+            conversions(sourceType: "nint", destType: "System.IntPtr", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nint", destType: "System.UIntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint", destType: "E?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "E"), expectedCheckedIL: convToNullableT("conv.ovf.i4", "E"));
+            conversions(sourceType: "nint", destType: "bool?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint", destType: "char?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "char"), expectedCheckedIL: convToNullableT("conv.ovf.u2", "char"));
+            conversions(sourceType: "nint", destType: "sbyte?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i1", "sbyte"), expectedCheckedIL: convToNullableT("conv.ovf.i1", "sbyte"));
+            conversions(sourceType: "nint", destType: "byte?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u1", "byte"), expectedCheckedIL: convToNullableT("conv.ovf.u1", "byte"));
+            conversions(sourceType: "nint", destType: "short?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i2", "short"), expectedCheckedIL: convToNullableT("conv.ovf.i2", "short"));
+            conversions(sourceType: "nint", destType: "ushort?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "ushort"), expectedCheckedIL: convToNullableT("conv.ovf.u2", "ushort"));
+            conversions(sourceType: "nint", destType: "int?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "int"), expectedCheckedIL: convToNullableT("conv.ovf.i4", "int"));
+            conversions(sourceType: "nint", destType: "uint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u4", "uint"), expectedCheckedIL: convToNullableT("conv.ovf.u4", "uint"));
+            conversions(sourceType: "nint", destType: "long?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.i8", "long"), expectedExplicitIL: convToNullableT("conv.i8", "long"));
+            conversions(sourceType: "nint", destType: "ulong?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i8", "ulong"), expectedCheckedIL: convToNullableT("conv.ovf.u8", "ulong"));
+            conversions(sourceType: "nint", destType: "float?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
+            conversions(sourceType: "nint", destType: "double?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
+            conversions(sourceType: "nint", destType: "decimal?", ImplicitNullableNumeric,
 @"{
   // Code size       13 (0xd)
   .maxstack  1
@@ -7879,7 +8134,7 @@ $@"{{
   IL_0007:  newobj     ""decimal?..ctor(decimal)""
   IL_000c:  ret
 }");
-            conversions(sourceType: "nint", destType: "System.IntPtr?",
+            conversions(sourceType: "nint", destType: "System.IntPtr?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -7894,8 +8149,8 @@ $@"{{
   IL_0001:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "nint", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null); // https://github.com/dotnet/roslyn/issues/42560: Allow explicitly casting nint to UIntPtr.
-            conversions(sourceType: "nint?", destType: "object",
+            conversions(sourceType: "nint", destType: "System.UIntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "object", Boxing,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -7910,23 +8165,23 @@ $@"{{
   IL_0001:  box        ""nint?""
   IL_0006:  ret
 }");
-            conversions(sourceType: "nint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint?", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint?", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint?", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4", "nint"));
-            conversions(sourceType: "nint?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2", "nint"));
-            conversions(sourceType: "nint?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1", "nint"));
-            conversions(sourceType: "nint?", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u1", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u1", "nint"));
-            conversions(sourceType: "nint?", destType: "short", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i2", "nint"));
-            conversions(sourceType: "nint?", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2", "nint"));
-            conversions(sourceType: "nint?", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4", "nint"));
-            conversions(sourceType: "nint?", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u4", "nint"));
-            conversions(sourceType: "nint?", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i8", "nint"));
-            conversions(sourceType: "nint?", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i8", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u8", "nint"));
-            conversions(sourceType: "nint?", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nint"));
-            conversions(sourceType: "nint?", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nint"));
-            conversions(sourceType: "nint?", destType: "decimal", expectedImplicitIL: null,
+            conversions(sourceType: "nint?", destType: "string", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "void*", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "delegate*<void>", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "E", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4", "nint"));
+            conversions(sourceType: "nint?", destType: "bool", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "char", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2", "nint"));
+            conversions(sourceType: "nint?", destType: "sbyte", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1", "nint"));
+            conversions(sourceType: "nint?", destType: "byte", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u1", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u1", "nint"));
+            conversions(sourceType: "nint?", destType: "short", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i2", "nint"));
+            conversions(sourceType: "nint?", destType: "ushort", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2", "nint"));
+            conversions(sourceType: "nint?", destType: "int", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4", "nint"));
+            conversions(sourceType: "nint?", destType: "uint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u4", "nint"));
+            conversions(sourceType: "nint?", destType: "long", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i8", "nint"));
+            conversions(sourceType: "nint?", destType: "ulong", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i8", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u8", "nint"));
+            conversions(sourceType: "nint?", destType: "float", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nint"));
+            conversions(sourceType: "nint?", destType: "double", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nint"));
+            conversions(sourceType: "nint?", destType: "decimal", ExplicitNullableImplicitNumeric, expectedImplicitIL: null,
 @"{
   // Code size       14 (0xe)
   .maxstack  1
@@ -7936,7 +8191,7 @@ $@"{{
   IL_0008:  call       ""decimal decimal.op_Implicit(long)""
   IL_000d:  ret
 }");
-            conversions(sourceType: "nint?", destType: "System.IntPtr", expectedImplicitIL: null,
+            conversions(sourceType: "nint?", destType: "System.IntPtr", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -7944,21 +8199,21 @@ $@"{{
   IL_0002:  call       ""nint nint?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "nint?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null); // https://github.com/dotnet/roslyn/issues/42560: Allow explicitly casting nint to UIntPtr.
-            conversions(sourceType: "nint?", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nint", "E"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4", "nint", "E"));
-            conversions(sourceType: "nint?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nint", "char"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2", "nint", "char"));
-            conversions(sourceType: "nint?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i1", "nint", "sbyte"), expectedCheckedIL: convFromToNullableT("conv.ovf.i1", "nint", "sbyte"));
-            conversions(sourceType: "nint?", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u1", "nint", "byte"), expectedCheckedIL: convFromToNullableT("conv.ovf.u1", "nint", "byte"));
-            conversions(sourceType: "nint?", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i2", "nint", "short"), expectedCheckedIL: convFromToNullableT("conv.ovf.i2", "nint", "short"));
-            conversions(sourceType: "nint?", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nint", "ushort"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2", "nint", "ushort"));
-            conversions(sourceType: "nint?", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nint", "int"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4", "nint", "int"));
-            conversions(sourceType: "nint?", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4", "nint", "uint"));
-            conversions(sourceType: "nint?", destType: "long?", expectedImplicitIL: convFromToNullableT("conv.i8", "nint", "long"), expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "long"));
-            conversions(sourceType: "nint?", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "ulong"), expectedCheckedIL: convFromToNullableT("conv.ovf.u8", "nint", "ulong"));
-            conversions(sourceType: "nint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nint", "float"), null);
-            conversions(sourceType: "nint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nint", "double"), null);
-            conversions(sourceType: "nint?", destType: "decimal?",
+            conversions(sourceType: "nint?", destType: "System.UIntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "E?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nint", "E"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4", "nint", "E"));
+            conversions(sourceType: "nint?", destType: "bool?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "char?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nint", "char"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2", "nint", "char"));
+            conversions(sourceType: "nint?", destType: "sbyte?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i1", "nint", "sbyte"), expectedCheckedIL: convFromToNullableT("conv.ovf.i1", "nint", "sbyte"));
+            conversions(sourceType: "nint?", destType: "byte?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u1", "nint", "byte"), expectedCheckedIL: convFromToNullableT("conv.ovf.u1", "nint", "byte"));
+            conversions(sourceType: "nint?", destType: "short?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i2", "nint", "short"), expectedCheckedIL: convFromToNullableT("conv.ovf.i2", "nint", "short"));
+            conversions(sourceType: "nint?", destType: "ushort?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nint", "ushort"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2", "nint", "ushort"));
+            conversions(sourceType: "nint?", destType: "int?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nint", "int"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4", "nint", "int"));
+            conversions(sourceType: "nint?", destType: "uint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4", "nint", "uint"));
+            conversions(sourceType: "nint?", destType: "long?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.i8", "nint", "long"), expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "long"));
+            conversions(sourceType: "nint?", destType: "ulong?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "ulong"), expectedCheckedIL: convFromToNullableT("conv.ovf.u8", "nint", "ulong"));
+            conversions(sourceType: "nint?", destType: "float?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.r4", "nint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nint", "float"), null);
+            conversions(sourceType: "nint?", destType: "double?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.r8", "nint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nint", "double"), null);
+            conversions(sourceType: "nint?", destType: "decimal?", ImplicitNullableNumeric,
 @"{
   // Code size       40 (0x28)
   .maxstack  1
@@ -8001,9 +8256,9 @@ $@"{{
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
   IL_0027:  ret
 }");
-            conversions(sourceType: "nint?", destType: "System.IntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nint?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null); // https://github.com/dotnet/roslyn/issues/42560: Allow explicitly casting nint to UIntPtr.
-            conversions(sourceType: "object", destType: "nuint", expectedImplicitIL: null,
+            conversions(sourceType: "nint?", destType: "System.IntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nint?", destType: "System.UIntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "object", destType: "nuint", Unboxing, expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8011,25 +8266,25 @@ $@"{{
   IL_0001:  unbox.any  ""System.UIntPtr""
   IL_0006:  ret
 }");
-            conversions(sourceType: "string", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "void*", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convNone);
-            conversions(sourceType: "delegate*<void>", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convNone);
-            conversions(sourceType: "E", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
-            conversions(sourceType: "bool", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "sbyte", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
-            conversions(sourceType: "byte", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "short", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
-            conversions(sourceType: "ushort", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "int", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
-            conversions(sourceType: "uint", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "long", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
-            conversions(sourceType: "ulong", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u.un"));
-            conversions(sourceType: "nint", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
-            conversions(sourceType: "nuint", destType: "nuint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "float", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
-            conversions(sourceType: "double", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
-            conversions(sourceType: "decimal", destType: "nuint", expectedImplicitIL: null,
+            conversions(sourceType: "string", destType: "nuint", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "void*", destType: "nuint", ExplicitPointerToInteger, expectedImplicitIL: null, expectedExplicitIL: convNone);
+            conversions(sourceType: "delegate*<void>", destType: "nuint", ExplicitPointerToInteger, expectedImplicitIL: null, expectedExplicitIL: convNone);
+            conversions(sourceType: "E", destType: "nuint", ExplicitEnumeration, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "bool", destType: "nuint", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "nuint", ImplicitNumeric, expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "sbyte", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "byte", destType: "nuint", ImplicitNumeric, expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "short", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "ushort", destType: "nuint", ImplicitNumeric, expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "int", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "uint", destType: "nuint", ImplicitNumeric, expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "long", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "ulong", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u.un"));
+            conversions(sourceType: "nint", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "nuint", destType: "nuint", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "float", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "double", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "decimal", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -8046,21 +8301,30 @@ $@"{{
   IL_0006:  conv.ovf.u.un
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr", destType: "nuint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "E?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "E"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "E"));
-            conversions(sourceType: "bool?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "char"));
-            conversions(sourceType: "sbyte?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "sbyte"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "sbyte"));
-            conversions(sourceType: "byte?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "byte"));
-            conversions(sourceType: "short?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "short"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "short"));
-            conversions(sourceType: "ushort?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ushort"));
-            conversions(sourceType: "int?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "int"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "int"));
-            conversions(sourceType: "uint?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "uint"));
-            conversions(sourceType: "long?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "long"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "long"));
-            conversions(sourceType: "ulong?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ulong"), expectedCheckedIL: convFromNullableT("conv.ovf.u.un", "ulong"));
-            conversions(sourceType: "nint?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
-            conversions(sourceType: "nuint?", destType: "nuint", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr", destType: "nuint", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr", destType: "nuint", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "E?", destType: "nuint", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "E"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "E"));
+            conversions(sourceType: "bool?", destType: "nuint", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "nuint", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "char"));
+            conversions(sourceType: "sbyte?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "sbyte"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "sbyte"));
+            conversions(sourceType: "byte?", destType: "nuint", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "byte"));
+            conversions(sourceType: "short?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "short"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "short"));
+            conversions(sourceType: "ushort?", destType: "nuint", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ushort"));
+            conversions(sourceType: "int?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "int"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "int"));
+            conversions(sourceType: "uint?", destType: "nuint", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "uint"));
+            conversions(sourceType: "long?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "long"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "long"));
+            conversions(sourceType: "ulong?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ulong"), expectedCheckedIL: convFromNullableT("conv.ovf.u.un", "ulong"));
+            conversions(sourceType: "nint?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0007:  ret
+}",
+                expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
+            conversions(sourceType: "nuint?", destType: "nuint", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -8068,9 +8332,9 @@ $@"{{
   IL_0002:  call       ""nuint nuint?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "float?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "float"));
-            conversions(sourceType: "double?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "double"));
-            conversions(sourceType: "decimal?", destType: "nuint", expectedImplicitIL: null,
+            conversions(sourceType: "float?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "float"));
+            conversions(sourceType: "double?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "double"));
+            conversions(sourceType: "decimal?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null,
 @"{
   // Code size       14 (0xe)
   .maxstack  1
@@ -8089,8 +8353,8 @@ $@"{{
   IL_000c:  conv.ovf.u.un
   IL_000d:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr?", destType: "nuint", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr?", destType: "nuint", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr?", destType: "nuint", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -8098,7 +8362,7 @@ $@"{{
   IL_0002:  call       ""System.UIntPtr System.UIntPtr?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "object", destType: "nuint?", expectedImplicitIL: null,
+            conversions(sourceType: "object", destType: "nuint?", Unboxing, expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8106,8 +8370,8 @@ $@"{{
   IL_0001:  unbox.any  ""nuint?""
   IL_0006:  ret
 }");
-            conversions(sourceType: "string", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "void*", destType: "nuint?", expectedImplicitIL: null,
+            conversions(sourceType: "string", destType: "nuint?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "void*", destType: "nuint?", ExplicitNullablePointerToInteger, expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8115,7 +8379,7 @@ $@"{{
   IL_0001:  newobj     ""nuint?..ctor(nuint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "delegate*<void>", destType: "nuint?", expectedImplicitIL: null,
+            conversions(sourceType: "delegate*<void>", destType: "nuint?", ExplicitNullablePointerToInteger, expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8123,19 +8387,29 @@ $@"{{
   IL_0001:  newobj     ""nuint?..ctor(nuint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "E", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            conversions(sourceType: "bool", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            conversions(sourceType: "sbyte", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            conversions(sourceType: "byte", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            conversions(sourceType: "short", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            conversions(sourceType: "ushort", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            conversions(sourceType: "int", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            conversions(sourceType: "uint", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            conversions(sourceType: "long", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            conversions(sourceType: "ulong", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u.un", "nuint"));
-            conversions(sourceType: "nint", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            conversions(sourceType: "nuint", destType: "nuint?",
+            conversions(sourceType: "E", destType: "nuint?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "bool", destType: "nuint?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "nuint?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
+            conversions(sourceType: "sbyte", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "byte", destType: "nuint?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
+            conversions(sourceType: "short", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "ushort", destType: "nuint?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
+            conversions(sourceType: "int", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "uint", destType: "nuint?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
+            conversions(sourceType: "long", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "ulong", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u.un", "nuint"));
+            conversions(sourceType: "nint", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nuint?..ctor(nuint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "nuint", destType: "nuint?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8150,9 +8424,9 @@ $@"{{
   IL_0001:  newobj     ""nuint?..ctor(nuint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "float", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            conversions(sourceType: "double", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            conversions(sourceType: "decimal", destType: "nuint?", expectedImplicitIL: null,
+            conversions(sourceType: "float", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "double", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "decimal", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null,
 @"{
   // Code size       13 (0xd)
   .maxstack  1
@@ -8171,8 +8445,8 @@ $@"{{
   IL_0007:  newobj     ""nuint?..ctor(nuint)""
   IL_000c:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr", destType: "nuint?",
+            conversions(sourceType: "System.IntPtr", destType: "nuint?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr", destType: "nuint?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8187,22 +8461,44 @@ $@"{{
   IL_0001:  newobj     ""nuint?..ctor(nuint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "E?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "E", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "E", "nuint"));
-            conversions(sourceType: "bool?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "char", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nuint"));
-            conversions(sourceType: "sbyte?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "sbyte", "nuint"));
-            conversions(sourceType: "byte?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "byte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "byte", "nuint"));
-            conversions(sourceType: "short?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "short", "nuint"));
-            conversions(sourceType: "ushort?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"));
-            conversions(sourceType: "int?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "int", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "int", "nuint"));
-            conversions(sourceType: "uint?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "uint", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nuint"));
-            conversions(sourceType: "long?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "long", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "long", "nuint"));
-            conversions(sourceType: "ulong?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "ulong", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u.un", "ulong", "nuint"));
-            conversions(sourceType: "nint?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "nint", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
-            conversions(sourceType: "nuint?", destType: "nuint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "float?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "float", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "float", "nuint"));
-            conversions(sourceType: "double?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "double", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "double", "nuint"));
-            conversions(sourceType: "decimal?", destType: "nuint?", null,
+            conversions(sourceType: "E?", destType: "nuint?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "E", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "E", "nuint"));
+            conversions(sourceType: "bool?", destType: "nuint?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "nuint?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u", "char", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nuint"));
+            conversions(sourceType: "sbyte?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "sbyte", "nuint"));
+            conversions(sourceType: "byte?", destType: "nuint?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u", "byte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "byte", "nuint"));
+            conversions(sourceType: "short?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "short", "nuint"));
+            conversions(sourceType: "ushort?", destType: "nuint?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"));
+            conversions(sourceType: "int?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "int", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "int", "nuint"));
+            conversions(sourceType: "uint?", destType: "nuint?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u", "uint", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nuint"));
+            conversions(sourceType: "long?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "long", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "long", "nuint"));
+            conversions(sourceType: "ulong?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "ulong", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u.un", "ulong", "nuint"));
+            conversions(sourceType: "nint?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nuint?..ctor(nuint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
+            conversions(sourceType: "nuint?", destType: "nuint?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "float?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "float", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "float", "nuint"));
+            conversions(sourceType: "double?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "double", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "double", "nuint"));
+            conversions(sourceType: "decimal?", destType: "nuint?", ExplicitNullableNumeric, null,
 @"{
   // Code size       40 (0x28)
   .maxstack  1
@@ -8245,9 +8541,9 @@ $@"{{
   IL_0022:  newobj     ""nuint?..ctor(nuint)""
   IL_0027:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr?", destType: "nuint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nuint", destType: "object",
+            conversions(sourceType: "System.IntPtr?", destType: "nuint?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr?", destType: "nuint?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "object", Boxing,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8262,23 +8558,23 @@ $@"{{
   IL_0001:  box        ""System.UIntPtr""
   IL_0006:  ret
 }");
-            conversions(sourceType: "nuint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convNone);
-            conversions(sourceType: "nuint", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convNone);
-            conversions(sourceType: "nuint", destType: "E", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4.un"));
-            conversions(sourceType: "nuint", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint", destType: "char", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2.un"));
-            conversions(sourceType: "nuint", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1.un"));
-            conversions(sourceType: "nuint", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u1"), expectedCheckedIL: conv("conv.ovf.u1.un"));
-            conversions(sourceType: "nuint", destType: "short", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i2"), expectedCheckedIL: conv("conv.ovf.i2.un"));
-            conversions(sourceType: "nuint", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2.un"));
-            conversions(sourceType: "nuint", destType: "int", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4.un"));
-            conversions(sourceType: "nuint", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4.un"));
-            conversions(sourceType: "nuint", destType: "long", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u8"), expectedCheckedIL: conv("conv.ovf.i8.un"));
-            conversions(sourceType: "nuint", destType: "ulong", expectedImplicitIL: conv("conv.u8"), expectedExplicitIL: conv("conv.u8"));
-            conversions(sourceType: "nuint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
-            conversions(sourceType: "nuint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
-            conversions(sourceType: "nuint", destType: "decimal",
+            conversions(sourceType: "nuint", destType: "string", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint", destType: "void*", ExplicitIntegerToPointer, expectedImplicitIL: null, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "delegate*<void>", ExplicitIntegerToPointer, expectedImplicitIL: null, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "E", ExplicitEnumeration, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4.un"));
+            conversions(sourceType: "nuint", destType: "bool", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint", destType: "char", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2.un"));
+            conversions(sourceType: "nuint", destType: "sbyte", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1.un"));
+            conversions(sourceType: "nuint", destType: "byte", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u1"), expectedCheckedIL: conv("conv.ovf.u1.un"));
+            conversions(sourceType: "nuint", destType: "short", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i2"), expectedCheckedIL: conv("conv.ovf.i2.un"));
+            conversions(sourceType: "nuint", destType: "ushort", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2.un"));
+            conversions(sourceType: "nuint", destType: "int", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4.un"));
+            conversions(sourceType: "nuint", destType: "uint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4.un"));
+            conversions(sourceType: "nuint", destType: "long", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u8"), expectedCheckedIL: conv("conv.ovf.i8.un"));
+            conversions(sourceType: "nuint", destType: "ulong", ImplicitNumeric, expectedImplicitIL: conv("conv.u8"), expectedExplicitIL: conv("conv.u8"));
+            conversions(sourceType: "nuint", destType: "float", ImplicitNumeric, expectedImplicitIL: convRUn("conv.r4"), expectedExplicitIL: convRUn("conv.r4"));
+            conversions(sourceType: "nuint", destType: "double", ImplicitNumeric, expectedImplicitIL: convRUn("conv.r8"), expectedExplicitIL: convRUn("conv.r8"));
+            conversions(sourceType: "nuint", destType: "decimal", ImplicitNumeric,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -8295,22 +8591,22 @@ $@"{{
   IL_0002:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_0007:  ret
 }");
-            conversions(sourceType: "nuint", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null); // https://github.com/dotnet/roslyn/issues/42560: Allow explicitly casting nuint to IntPtr.
-            conversions(sourceType: "nuint", destType: "System.UIntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nuint", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "E"), expectedCheckedIL: convToNullableT("conv.ovf.i4.un", "E"));
-            conversions(sourceType: "nuint", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "char"), expectedCheckedIL: convToNullableT("conv.ovf.u2.un", "char"));
-            conversions(sourceType: "nuint", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i1", "sbyte"), expectedCheckedIL: convToNullableT("conv.ovf.i1.un", "sbyte"));
-            conversions(sourceType: "nuint", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u1", "byte"), expectedCheckedIL: convToNullableT("conv.ovf.u1.un", "byte"));
-            conversions(sourceType: "nuint", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i2", "short"), expectedCheckedIL: convToNullableT("conv.ovf.i2.un", "short"));
-            conversions(sourceType: "nuint", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "ushort"), expectedCheckedIL: convToNullableT("conv.ovf.u2.un", "ushort"));
-            conversions(sourceType: "nuint", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "int"), expectedCheckedIL: convToNullableT("conv.ovf.i4.un", "int"));
-            conversions(sourceType: "nuint", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u4", "uint"), expectedCheckedIL: convToNullableT("conv.ovf.u4.un", "uint"));
-            conversions(sourceType: "nuint", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u8", "long"), expectedCheckedIL: convToNullableT("conv.ovf.i8.un", "long"));
-            conversions(sourceType: "nuint", destType: "ulong?", expectedImplicitIL: convToNullableT("conv.u8", "ulong"), expectedExplicitIL: convToNullableT("conv.u8", "ulong"));
-            conversions(sourceType: "nuint", destType: "float?", expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
-            conversions(sourceType: "nuint", destType: "double?", expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
-            conversions(sourceType: "nuint", destType: "decimal?",
+            conversions(sourceType: "nuint", destType: "System.IntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint", destType: "System.UIntPtr", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "E?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "E"), expectedCheckedIL: convToNullableT("conv.ovf.i4.un", "E"));
+            conversions(sourceType: "nuint", destType: "bool?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint", destType: "char?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "char"), expectedCheckedIL: convToNullableT("conv.ovf.u2.un", "char"));
+            conversions(sourceType: "nuint", destType: "sbyte?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i1", "sbyte"), expectedCheckedIL: convToNullableT("conv.ovf.i1.un", "sbyte"));
+            conversions(sourceType: "nuint", destType: "byte?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u1", "byte"), expectedCheckedIL: convToNullableT("conv.ovf.u1.un", "byte"));
+            conversions(sourceType: "nuint", destType: "short?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i2", "short"), expectedCheckedIL: convToNullableT("conv.ovf.i2.un", "short"));
+            conversions(sourceType: "nuint", destType: "ushort?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "ushort"), expectedCheckedIL: convToNullableT("conv.ovf.u2.un", "ushort"));
+            conversions(sourceType: "nuint", destType: "int?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "int"), expectedCheckedIL: convToNullableT("conv.ovf.i4.un", "int"));
+            conversions(sourceType: "nuint", destType: "uint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u4", "uint"), expectedCheckedIL: convToNullableT("conv.ovf.u4.un", "uint"));
+            conversions(sourceType: "nuint", destType: "long?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u8", "long"), expectedCheckedIL: convToNullableT("conv.ovf.i8.un", "long"));
+            conversions(sourceType: "nuint", destType: "ulong?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.u8", "ulong"), expectedExplicitIL: convToNullableT("conv.u8", "ulong"));
+            conversions(sourceType: "nuint", destType: "float?", ImplicitNullableNumeric, expectedImplicitIL: convRUnToNullableT("conv.r4", "float"), expectedExplicitIL: convRUnToNullableT("conv.r4", "float"), null);
+            conversions(sourceType: "nuint", destType: "double?", ImplicitNullableNumeric, expectedImplicitIL: convRUnToNullableT("conv.r8", "double"), expectedExplicitIL: convRUnToNullableT("conv.r8", "double"), null);
+            conversions(sourceType: "nuint", destType: "decimal?", ImplicitNullableNumeric,
 @"{
   // Code size       13 (0xd)
   .maxstack  1
@@ -8329,8 +8625,8 @@ $@"{{
   IL_0007:  newobj     ""decimal?..ctor(decimal)""
   IL_000c:  ret
 }");
-            conversions(sourceType: "nuint", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null); // https://github.com/dotnet/roslyn/issues/42560: Allow explicitly casting nuint to IntPtr.
-            conversions(sourceType: "nuint", destType: "System.UIntPtr?",
+            conversions(sourceType: "nuint", destType: "System.IntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint", destType: "System.UIntPtr?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8345,7 +8641,7 @@ $@"{{
   IL_0001:  newobj     ""System.UIntPtr?..ctor(System.UIntPtr)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "nuint?", destType: "object",
+            conversions(sourceType: "nuint?", destType: "object", Boxing,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8360,23 +8656,23 @@ $@"{{
   IL_0001:  box        ""nuint?""
   IL_0006:  ret
 }");
-            conversions(sourceType: "nuint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint?", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint?", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint?", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4.un", "nuint"));
-            conversions(sourceType: "nuint?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2.un", "nuint"));
-            conversions(sourceType: "nuint?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1.un", "nuint"));
-            conversions(sourceType: "nuint?", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u1", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u1.un", "nuint"));
-            conversions(sourceType: "nuint?", destType: "short", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i2.un", "nuint"));
-            conversions(sourceType: "nuint?", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2.un", "nuint"));
-            conversions(sourceType: "nuint?", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4.un", "nuint"));
-            conversions(sourceType: "nuint?", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u4.un", "nuint"));
-            conversions(sourceType: "nuint?", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i8.un", "nuint"));
-            conversions(sourceType: "nuint?", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"));
-            conversions(sourceType: "nuint?", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nuint"));
-            conversions(sourceType: "nuint?", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nuint"));
-            conversions(sourceType: "nuint?", destType: "decimal", expectedImplicitIL: null,
+            conversions(sourceType: "nuint?", destType: "string", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "void*", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "delegate*<void>", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "E", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "bool", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "char", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "sbyte", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "byte", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u1", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u1.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "short", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i2.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "ushort", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "int", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "uint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u4.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "long", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i8.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "ulong", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"));
+            conversions(sourceType: "nuint?", destType: "float", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convRUnFromNullableT("conv.r4", "nuint"));
+            conversions(sourceType: "nuint?", destType: "double", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convRUnFromNullableT("conv.r8", "nuint"));
+            conversions(sourceType: "nuint?", destType: "decimal", ExplicitNullableImplicitNumeric, expectedImplicitIL: null,
 @"{
   // Code size       14 (0xe)
   .maxstack  1
@@ -8386,8 +8682,8 @@ $@"{{
   IL_0008:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_000d:  ret
 }");
-            conversions(sourceType: "nuint?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null); // https://github.com/dotnet/roslyn/issues/42560: Allow explicitly casting nuint to IntPtr.
-            conversions(sourceType: "nuint?", destType: "System.UIntPtr", expectedImplicitIL: null,
+            conversions(sourceType: "nuint?", destType: "System.IntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "System.UIntPtr", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -8395,20 +8691,20 @@ $@"{{
   IL_0002:  call       ""nuint nuint?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "nuint?", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nuint", "E"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4.un", "nuint", "E"));
-            conversions(sourceType: "nuint?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nuint", "char"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2.un", "nuint", "char"));
-            conversions(sourceType: "nuint?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i1", "nuint", "sbyte"), expectedCheckedIL: convFromToNullableT("conv.ovf.i1.un", "nuint", "sbyte"));
-            conversions(sourceType: "nuint?", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u1", "nuint", "byte"), expectedCheckedIL: convFromToNullableT("conv.ovf.u1.un", "nuint", "byte"));
-            conversions(sourceType: "nuint?", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i2", "nuint", "short"), expectedCheckedIL: convFromToNullableT("conv.ovf.i2.un", "nuint", "short"));
-            conversions(sourceType: "nuint?", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nuint", "ushort"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2.un", "nuint", "ushort"));
-            conversions(sourceType: "nuint?", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nuint", "int"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4.un", "nuint", "int"));
-            conversions(sourceType: "nuint?", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nuint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4.un", "nuint", "uint"));
-            conversions(sourceType: "nuint?", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "long"), expectedCheckedIL: convFromToNullableT("conv.ovf.i8.un", "nuint", "long"));
-            conversions(sourceType: "nuint?", destType: "ulong?", expectedImplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"), expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"));
-            conversions(sourceType: "nuint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), null);
-            conversions(sourceType: "nuint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), null);
-            conversions(sourceType: "nuint?", destType: "decimal?",
+            conversions(sourceType: "nuint?", destType: "E?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nuint", "E"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4.un", "nuint", "E"));
+            conversions(sourceType: "nuint?", destType: "bool?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "char?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nuint", "char"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2.un", "nuint", "char"));
+            conversions(sourceType: "nuint?", destType: "sbyte?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i1", "nuint", "sbyte"), expectedCheckedIL: convFromToNullableT("conv.ovf.i1.un", "nuint", "sbyte"));
+            conversions(sourceType: "nuint?", destType: "byte?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u1", "nuint", "byte"), expectedCheckedIL: convFromToNullableT("conv.ovf.u1.un", "nuint", "byte"));
+            conversions(sourceType: "nuint?", destType: "short?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i2", "nuint", "short"), expectedCheckedIL: convFromToNullableT("conv.ovf.i2.un", "nuint", "short"));
+            conversions(sourceType: "nuint?", destType: "ushort?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nuint", "ushort"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2.un", "nuint", "ushort"));
+            conversions(sourceType: "nuint?", destType: "int?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nuint", "int"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4.un", "nuint", "int"));
+            conversions(sourceType: "nuint?", destType: "uint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nuint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4.un", "nuint", "uint"));
+            conversions(sourceType: "nuint?", destType: "long?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "long"), expectedCheckedIL: convFromToNullableT("conv.ovf.i8.un", "nuint", "long"));
+            conversions(sourceType: "nuint?", destType: "ulong?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"), expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"));
+            conversions(sourceType: "nuint?", destType: "float?", ImplicitNullableNumeric, expectedImplicitIL: convRUnFromToNullableT("conv.r4", "nuint", "float"), expectedExplicitIL: convRUnFromToNullableT("conv.r4", "nuint", "float"), null);
+            conversions(sourceType: "nuint?", destType: "double?", ImplicitNullableNumeric, expectedImplicitIL: convRUnFromToNullableT("conv.r8", "nuint", "double"), expectedExplicitIL: convRUnFromToNullableT("conv.r8", "nuint", "double"), null);
+            conversions(sourceType: "nuint?", destType: "decimal?", ImplicitNullableNumeric,
 @"{
   // Code size       40 (0x28)
   .maxstack  1
@@ -8451,9 +8747,9 @@ $@"{{
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
   IL_0027:  ret
 }");
-            conversions(sourceType: "nuint?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null); // https://github.com/dotnet/roslyn/issues/42560: Allow explicitly casting nuint to IntPtr.
-            conversions(sourceType: "nuint?", destType: "System.UIntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "System.IntPtr", destType: "object",
+            conversions(sourceType: "nuint?", destType: "System.IntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "System.UIntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "System.IntPtr", destType: "object", Boxing,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8468,23 +8764,23 @@ $@"{{
   IL_0001:  box        ""System.IntPtr""
   IL_0006:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.IntPtr", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.IntPtr", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
-            conversions(sourceType: "System.IntPtr", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
-            conversions(sourceType: "System.IntPtr", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u1"));
-            conversions(sourceType: "System.IntPtr", destType: "short", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i2"));
-            conversions(sourceType: "System.IntPtr", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
-            conversions(sourceType: "System.IntPtr", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u4"));
-            conversions(sourceType: "System.IntPtr", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("long System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("long System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicit("long System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u8"));
-            conversions(sourceType: "System.IntPtr", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r4"));
-            conversions(sourceType: "System.IntPtr", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r8"));
-            conversions(sourceType: "System.IntPtr", destType: "decimal", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr", destType: "string", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.IntPtr", destType: "void*", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr", destType: "delegate*<void>", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr", destType: "E", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr", destType: "bool", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.IntPtr", destType: "char", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
+            conversions(sourceType: "System.IntPtr", destType: "sbyte", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
+            conversions(sourceType: "System.IntPtr", destType: "byte", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u1"));
+            conversions(sourceType: "System.IntPtr", destType: "short", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i2"));
+            conversions(sourceType: "System.IntPtr", destType: "ushort", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
+            conversions(sourceType: "System.IntPtr", destType: "int", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr", destType: "uint", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u4"));
+            conversions(sourceType: "System.IntPtr", destType: "long", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("long System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr", destType: "ulong", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("long System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicit("long System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u8"));
+            conversions(sourceType: "System.IntPtr", destType: "float", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r4"));
+            conversions(sourceType: "System.IntPtr", destType: "double", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r8"));
+            conversions(sourceType: "System.IntPtr", destType: "decimal", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       12 (0xc)
   .maxstack  1
@@ -8493,22 +8789,22 @@ $@"{{
   IL_0006:  call       ""decimal decimal.op_Implicit(long)""
   IL_000b:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "System.IntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.IntPtr", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("E", "int System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.IntPtr", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitToNullableT("char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
-            conversions(sourceType: "System.IntPtr", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitToNullableT("sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
-            conversions(sourceType: "System.IntPtr", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("byte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitToNullableT("byte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u1"));
-            conversions(sourceType: "System.IntPtr", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("short", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitToNullableT("short", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i2"));
-            conversions(sourceType: "System.IntPtr", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("ushort", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitToNullableT("ushort", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
-            conversions(sourceType: "System.IntPtr", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("int", "int System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("uint", "int System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitToNullableT("uint", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u4"));
-            conversions(sourceType: "System.IntPtr", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("long", "long System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("ulong", "long System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitToNullableT("ulong", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u8"));
-            conversions(sourceType: "System.IntPtr", destType: "float?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("float", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r4"));
-            conversions(sourceType: "System.IntPtr", destType: "double?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("double", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r8"));
-            conversions(sourceType: "System.IntPtr", destType: "decimal?", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr", destType: "System.IntPtr", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.IntPtr", destType: "E?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("E", "int System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr", destType: "bool?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.IntPtr", destType: "char?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitToNullableT("char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
+            conversions(sourceType: "System.IntPtr", destType: "sbyte?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitToNullableT("sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
+            conversions(sourceType: "System.IntPtr", destType: "byte?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("byte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitToNullableT("byte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u1"));
+            conversions(sourceType: "System.IntPtr", destType: "short?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("short", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitToNullableT("short", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i2"));
+            conversions(sourceType: "System.IntPtr", destType: "ushort?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("ushort", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitToNullableT("ushort", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
+            conversions(sourceType: "System.IntPtr", destType: "int?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("int", "int System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr", destType: "uint?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("uint", "int System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitToNullableT("uint", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u4"));
+            conversions(sourceType: "System.IntPtr", destType: "long?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("long", "long System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr", destType: "ulong?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("ulong", "long System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitToNullableT("ulong", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u8"));
+            conversions(sourceType: "System.IntPtr", destType: "float?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("float", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r4"));
+            conversions(sourceType: "System.IntPtr", destType: "double?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("double", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r8"));
+            conversions(sourceType: "System.IntPtr", destType: "decimal?", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       17 (0x11)
   .maxstack  1
@@ -8518,7 +8814,7 @@ $@"{{
   IL_000b:  newobj     ""decimal?..ctor(decimal)""
   IL_0010:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "System.IntPtr?",
+            conversions(sourceType: "System.IntPtr", destType: "System.IntPtr?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8533,21 +8829,21 @@ $@"{{
   IL_0001:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.IntPtr?", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.IntPtr?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
-            conversions(sourceType: "System.IntPtr?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
-            conversions(sourceType: "System.IntPtr?", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u1"));
-            conversions(sourceType: "System.IntPtr?", destType: "short", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i2"));
-            conversions(sourceType: "System.IntPtr?", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
-            conversions(sourceType: "System.IntPtr?", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr?", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u4"));
-            conversions(sourceType: "System.IntPtr?", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "long System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr?", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "long System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u8"));
-            conversions(sourceType: "System.IntPtr?", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r4"));
-            conversions(sourceType: "System.IntPtr?", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r8"));
-            conversions(sourceType: "System.IntPtr?", destType: "decimal", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.IntPtr?", destType: "E", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr?", destType: "bool", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.IntPtr?", destType: "char", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
+            conversions(sourceType: "System.IntPtr?", destType: "sbyte", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
+            conversions(sourceType: "System.IntPtr?", destType: "byte", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u1"));
+            conversions(sourceType: "System.IntPtr?", destType: "short", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i2"));
+            conversions(sourceType: "System.IntPtr?", destType: "ushort", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
+            conversions(sourceType: "System.IntPtr?", destType: "int", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr?", destType: "uint", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u4"));
+            conversions(sourceType: "System.IntPtr?", destType: "long", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "long System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr?", destType: "ulong", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "long System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u8"));
+            conversions(sourceType: "System.IntPtr?", destType: "float", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r4"));
+            conversions(sourceType: "System.IntPtr?", destType: "double", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r8"));
+            conversions(sourceType: "System.IntPtr?", destType: "decimal", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       18 (0x12)
   .maxstack  1
@@ -8557,7 +8853,7 @@ $@"{{
   IL_000c:  call       ""decimal decimal.op_Implicit(long)""
   IL_0011:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL:
+            conversions(sourceType: "System.IntPtr?", destType: "System.IntPtr", ExplicitNullableIdentity, expectedImplicitIL: null, expectedExplicitIL:
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -8565,21 +8861,21 @@ $@"{{
   IL_0002:  call       ""System.IntPtr System.IntPtr?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.IntPtr?", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "E", "int System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.IntPtr?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
-            conversions(sourceType: "System.IntPtr?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
-            conversions(sourceType: "System.IntPtr?", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "byte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "byte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u1"));
-            conversions(sourceType: "System.IntPtr?", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "short", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "short", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i2"));
-            conversions(sourceType: "System.IntPtr?", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "ushort", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "ushort", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
-            conversions(sourceType: "System.IntPtr?", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "int", "int System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr?", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "uint", "int System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "uint", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u4"));
-            conversions(sourceType: "System.IntPtr?", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "long", "long System.IntPtr.op_Explicit(System.IntPtr)"));
-            conversions(sourceType: "System.IntPtr?", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "ulong", "long System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "ulong", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u8"));
-            conversions(sourceType: "System.IntPtr?", destType: "float?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "float", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r4"));
-            conversions(sourceType: "System.IntPtr?", destType: "double?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "double", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r8"));
-            conversions(sourceType: "System.IntPtr?", destType: "decimal?", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.IntPtr?", destType: "E?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "E", "int System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr?", destType: "bool?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.IntPtr?", destType: "char?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
+            conversions(sourceType: "System.IntPtr?", destType: "sbyte?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
+            conversions(sourceType: "System.IntPtr?", destType: "byte?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "byte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "byte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u1"));
+            conversions(sourceType: "System.IntPtr?", destType: "short?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "short", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "short", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i2"));
+            conversions(sourceType: "System.IntPtr?", destType: "ushort?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "ushort", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "ushort", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
+            conversions(sourceType: "System.IntPtr?", destType: "int?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "int", "int System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr?", destType: "uint?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "uint", "int System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "uint", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u4"));
+            conversions(sourceType: "System.IntPtr?", destType: "long?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "long", "long System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr?", destType: "ulong?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "ulong", "long System.IntPtr.op_Explicit(System.IntPtr)"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "ulong", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u8"));
+            conversions(sourceType: "System.IntPtr?", destType: "float?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "float", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r4"));
+            conversions(sourceType: "System.IntPtr?", destType: "double?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "double", "long System.IntPtr.op_Explicit(System.IntPtr)", "conv.r8"));
+            conversions(sourceType: "System.IntPtr?", destType: "decimal?", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       39 (0x27)
   .maxstack  1
@@ -8600,9 +8896,9 @@ $@"{{
   IL_0021:  newobj     ""decimal?..ctor(decimal)""
   IL_0026:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "System.IntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "object", destType: "System.IntPtr", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr?", destType: "System.IntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "object", destType: "System.IntPtr", Unboxing, expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8610,23 +8906,23 @@ $@"{{
   IL_0001:  unbox.any  ""System.IntPtr""
   IL_0006:  ret
 }");
-            conversions(sourceType: "string", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "void*", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(void*)"));
-            conversions(sourceType: "delegate*<void>", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(void*)"));
-            conversions(sourceType: "E", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "bool", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "sbyte", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "byte", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "short", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "ushort", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "int", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "uint", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.u8"));
-            conversions(sourceType: "long", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)"));
-            conversions(sourceType: "ulong", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)"), expectedCheckedIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8.un"));
-            conversions(sourceType: "float", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
-            conversions(sourceType: "double", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
-            conversions(sourceType: "decimal", destType: "System.IntPtr", expectedImplicitIL: null,
+            conversions(sourceType: "string", destType: "System.IntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "void*", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(void*)"));
+            conversions(sourceType: "delegate*<void>", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(void*)"));
+            conversions(sourceType: "E", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "bool", destType: "System.IntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "sbyte", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "byte", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "short", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "ushort", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "int", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "uint", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.u8"));
+            conversions(sourceType: "long", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)"));
+            conversions(sourceType: "ulong", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)"), expectedCheckedIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8.un"));
+            conversions(sourceType: "float", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
+            conversions(sourceType: "double", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
+            conversions(sourceType: "decimal", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       12 (0xc)
   .maxstack  1
@@ -8635,20 +8931,20 @@ $@"{{
   IL_0006:  call       ""System.IntPtr System.IntPtr.op_Explicit(long)""
   IL_000b:  ret
 }");
-            conversions(sourceType: "E", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "bool", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "sbyte", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "byte", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "short", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "ushort", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "int", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "uint", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.u8"));
-            conversions(sourceType: "long", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)"));
-            conversions(sourceType: "ulong", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)"), expectedCheckedIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8.un"));
-            conversions(sourceType: "float", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
-            conversions(sourceType: "double", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
-            conversions(sourceType: "decimal", destType: "System.IntPtr?", expectedImplicitIL: null,
+            conversions(sourceType: "E", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "bool", destType: "System.IntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "sbyte", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "byte", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "short", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "ushort", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "int", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "uint", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.u8"));
+            conversions(sourceType: "long", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)"));
+            conversions(sourceType: "ulong", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)"), expectedCheckedIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8.un"));
+            conversions(sourceType: "float", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
+            conversions(sourceType: "double", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
+            conversions(sourceType: "decimal", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       17 (0x11)
   .maxstack  1
@@ -8658,20 +8954,20 @@ $@"{{
   IL_000b:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
   IL_0010:  ret
 }");
-            conversions(sourceType: "E?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("E", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "bool?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("char", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "sbyte?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("sbyte", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "byte?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("byte", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "short?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("short", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "ushort?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("ushort", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "int?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("int", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "uint?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("uint", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.u8"));
-            conversions(sourceType: "long?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("long", "System.IntPtr System.IntPtr.op_Explicit(long)"));
-            conversions(sourceType: "ulong?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("ulong", "System.IntPtr System.IntPtr.op_Explicit(long)"), expectedCheckedIL: explicitAndConvFromNullableT("ulong", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8.un"));
-            conversions(sourceType: "float?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("float", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("float", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
-            conversions(sourceType: "double?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("double", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("double", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
-            conversions(sourceType: "decimal?", destType: "System.IntPtr", expectedImplicitIL: null,
+            conversions(sourceType: "E?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("E", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "bool?", destType: "System.IntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("char", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "sbyte?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("sbyte", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "byte?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("byte", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "short?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("short", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "ushort?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("ushort", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "int?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("int", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "uint?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("uint", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.u8"));
+            conversions(sourceType: "long?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("long", "System.IntPtr System.IntPtr.op_Explicit(long)"));
+            conversions(sourceType: "ulong?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("ulong", "System.IntPtr System.IntPtr.op_Explicit(long)"), expectedCheckedIL: explicitAndConvFromNullableT("ulong", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8.un"));
+            conversions(sourceType: "float?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("float", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("float", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
+            conversions(sourceType: "double?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("double", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("double", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
+            conversions(sourceType: "decimal?", destType: "System.IntPtr", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       18 (0x12)
   .maxstack  1
@@ -8681,20 +8977,20 @@ $@"{{
   IL_000c:  call       ""System.IntPtr System.IntPtr.op_Explicit(long)""
   IL_0011:  ret
 }");
-            conversions(sourceType: "E?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("E", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "bool?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("char", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "sbyte?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("sbyte", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "byte?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("byte", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "short?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("short", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "ushort?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("ushort", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "int?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("int", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
-            conversions(sourceType: "uint?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("uint", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.u8"));
-            conversions(sourceType: "long?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("long", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)"));
-            conversions(sourceType: "ulong?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("ulong", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)"), expectedCheckedIL: explicitAndConvFromToNullableT("ulong", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8.un"));
-            conversions(sourceType: "float?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("float", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("float", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
-            conversions(sourceType: "double?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("double", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("double", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
-            conversions(sourceType: "decimal?", destType: "System.IntPtr?", expectedImplicitIL: null,
+            conversions(sourceType: "E?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("E", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "bool?", destType: "System.IntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("char", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "sbyte?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("sbyte", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "byte?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("byte", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "short?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("short", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "ushort?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("ushort", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "int?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("int", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
+            conversions(sourceType: "uint?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("uint", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.u8"));
+            conversions(sourceType: "long?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("long", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)"));
+            conversions(sourceType: "ulong?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("ulong", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)"), expectedCheckedIL: explicitAndConvFromToNullableT("ulong", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8.un"));
+            conversions(sourceType: "float?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("float", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("float", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
+            conversions(sourceType: "double?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("double", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("double", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(long)", "conv.ovf.i8"));
+            conversions(sourceType: "decimal?", destType: "System.IntPtr?", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       39 (0x27)
   .maxstack  1
@@ -8715,7 +9011,7 @@ $@"{{
   IL_0021:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
   IL_0026:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "object",
+            conversions(sourceType: "System.UIntPtr", destType: "object", Boxing,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8730,21 +9026,21 @@ $@"{{
   IL_0001:  box        ""System.UIntPtr""
   IL_0006:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.UIntPtr.op_Explicit(System.UIntPtr)"));
-            conversions(sourceType: "System.UIntPtr", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.UIntPtr.op_Explicit(System.UIntPtr)"));
-            conversions(sourceType: "System.UIntPtr", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u1.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "short", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i2.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)"));
-            conversions(sourceType: "System.UIntPtr", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("ulong System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicit("ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i8.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("ulong System.UIntPtr.op_Explicit(System.UIntPtr)"));
-            conversions(sourceType: "System.UIntPtr", destType: "float", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr", destType: "string", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr", destType: "void*", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr", destType: "delegate*<void>", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr", destType: "E", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "bool", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr", destType: "char", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "sbyte", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "byte", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u1.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "short", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i2.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "ushort", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "int", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "uint", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr", destType: "long", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("ulong System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicit("ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i8.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "ulong", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("ulong System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr", destType: "float", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size        9 (0x9)
   .maxstack  1
@@ -8754,7 +9050,7 @@ $@"{{
   IL_0007:  conv.r4
   IL_0008:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "double", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr", destType: "double", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size        9 (0x9)
   .maxstack  1
@@ -8764,7 +9060,7 @@ $@"{{
   IL_0007:  conv.r8
   IL_0008:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "decimal", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr", destType: "decimal", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       12 (0xc)
   .maxstack  1
@@ -8773,20 +9069,20 @@ $@"{{
   IL_0006:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_000b:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr", destType: "System.UIntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "System.UIntPtr", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitToNullableT("E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitToNullableT("char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitToNullableT("sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("byte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitToNullableT("byte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u1.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("short", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitToNullableT("short", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i2.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("ushort", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitToNullableT("ushort", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("int", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitToNullableT("int", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("uint", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"));
-            conversions(sourceType: "System.UIntPtr", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("long", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitToNullableT("long", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i8.un"));
-            conversions(sourceType: "System.UIntPtr", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("ulong", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"));
-            conversions(sourceType: "System.UIntPtr", destType: "float?", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr", destType: "System.UIntPtr", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "System.UIntPtr", destType: "E?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitToNullableT("E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "bool?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr", destType: "char?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitToNullableT("char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "sbyte?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitToNullableT("sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "byte?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("byte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitToNullableT("byte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u1.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "short?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("short", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitToNullableT("short", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i2.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "ushort?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("ushort", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitToNullableT("ushort", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "int?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("int", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitToNullableT("int", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "uint?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("uint", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr", destType: "long?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("long", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitToNullableT("long", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i8.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "ulong?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("ulong", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr", destType: "float?", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       14 (0xe)
   .maxstack  1
@@ -8797,7 +9093,7 @@ $@"{{
   IL_0008:  newobj     ""float?..ctor(float)""
   IL_000d:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "double?", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr", destType: "double?", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       14 (0xe)
   .maxstack  1
@@ -8808,7 +9104,7 @@ $@"{{
   IL_0008:  newobj     ""double?..ctor(double)""
   IL_000d:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "decimal?", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr", destType: "decimal?", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       17 (0x11)
   .maxstack  1
@@ -8818,8 +9114,8 @@ $@"{{
   IL_000b:  newobj     ""decimal?..ctor(decimal)""
   IL_0010:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr", destType: "System.UIntPtr?",
+            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr", destType: "System.UIntPtr?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8834,18 +9130,18 @@ $@"{{
   IL_0001:  newobj     ""System.UIntPtr?..ctor(System.UIntPtr)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "System.UIntPtr?", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u1.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "short", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i2.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"));
-            conversions(sourceType: "System.UIntPtr?", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i8.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"));
-            conversions(sourceType: "System.UIntPtr?", destType: "float", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr?", destType: "E", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "bool", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr?", destType: "char", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "sbyte", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "byte", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u1.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "short", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i2.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "ushort", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "int", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "uint", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr?", destType: "long", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i8.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "ulong", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr?", destType: "float", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       15 (0xf)
   .maxstack  1
@@ -8856,7 +9152,7 @@ $@"{{
   IL_000d:  conv.r4
   IL_000e:  ret
 }");
-            conversions(sourceType: "System.UIntPtr?", destType: "double", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr?", destType: "double", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       15 (0xf)
   .maxstack  1
@@ -8867,7 +9163,7 @@ $@"{{
   IL_000d:  conv.r8
   IL_000e:  ret
 }");
-            conversions(sourceType: "System.UIntPtr?", destType: "decimal", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr?", destType: "decimal", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       18 (0x12)
   .maxstack  1
@@ -8877,8 +9173,8 @@ $@"{{
   IL_000c:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_0011:  ret
 }");
-            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL:
+            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr?", destType: "System.UIntPtr", ExplicitNullableIdentity, expectedImplicitIL: null, expectedExplicitIL:
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -8886,20 +9182,20 @@ $@"{{
   IL_0002:  call       ""System.UIntPtr System.UIntPtr?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.UIntPtr?", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "byte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "byte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u1.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "short", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "short", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i2.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "ushort", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "ushort", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "int", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "int", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "uint", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"));
-            conversions(sourceType: "System.UIntPtr?", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "long", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "long", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i8.un"));
-            conversions(sourceType: "System.UIntPtr?", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "ulong", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"));
-            conversions(sourceType: "System.UIntPtr?", destType: "float?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "float", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.r4"));
-            conversions(sourceType: "System.UIntPtr?", destType: "double?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "double", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.r8"));
-            conversions(sourceType: "System.UIntPtr?", destType: "decimal?", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr?", destType: "E?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "bool?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr?", destType: "char?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "sbyte?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "byte?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "byte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u1"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "byte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u1.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "short?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "short", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "short", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i2.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "ushort?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "ushort", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "ushort", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "int?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "int", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "int", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "uint?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "uint", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr?", destType: "long?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "long", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "long", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i8.un"));
+            conversions(sourceType: "System.UIntPtr?", destType: "ulong?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "ulong", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr?", destType: "float?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "float", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.r4"));
+            conversions(sourceType: "System.UIntPtr?", destType: "double?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "double", "ulong System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.r8"));
+            conversions(sourceType: "System.UIntPtr?", destType: "decimal?", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       39 (0x27)
   .maxstack  1
@@ -8920,9 +9216,9 @@ $@"{{
   IL_0021:  newobj     ""decimal?..ctor(decimal)""
   IL_0026:  ret
 }");
-            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "System.UIntPtr?", destType: "System.UIntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "object", destType: "System.UIntPtr", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr?", destType: "System.UIntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "object", destType: "System.UIntPtr", Unboxing, expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -8930,23 +9226,23 @@ $@"{{
   IL_0001:  unbox.any  ""System.UIntPtr""
   IL_0006:  ret
 }");
-            conversions(sourceType: "string", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "void*", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(void*)"));
-            conversions(sourceType: "delegate*<void>", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(void*)"));
-            conversions(sourceType: "E", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "bool", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "sbyte", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "byte", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "short", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "ushort", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "int", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "uint", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "long", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "ulong", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)"));
-            conversions(sourceType: "float", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "double", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "decimal", destType: "System.UIntPtr", expectedImplicitIL: null,
+            conversions(sourceType: "string", destType: "System.UIntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "void*", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(void*)"));
+            conversions(sourceType: "delegate*<void>", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(void*)"));
+            conversions(sourceType: "E", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "bool", destType: "System.UIntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "sbyte", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "byte", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "short", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "ushort", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "int", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "uint", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "long", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "ulong", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)"));
+            conversions(sourceType: "float", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "double", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "decimal", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       12 (0xc)
   .maxstack  1
@@ -8955,20 +9251,20 @@ $@"{{
   IL_0006:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
   IL_000b:  ret
 }");
-            conversions(sourceType: "E", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "bool", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "sbyte", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "byte", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "short", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "ushort", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "int", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "uint", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "long", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "ulong", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)"));
-            conversions(sourceType: "float", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "double", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "decimal", destType: "System.UIntPtr?", expectedImplicitIL: null,
+            conversions(sourceType: "E", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "bool", destType: "System.UIntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "sbyte", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "byte", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "short", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "ushort", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "int", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "uint", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "long", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "ulong", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)"));
+            conversions(sourceType: "float", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "double", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "decimal", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       17 (0x11)
   .maxstack  1
@@ -8978,20 +9274,20 @@ $@"{{
   IL_000b:  newobj     ""System.UIntPtr?..ctor(System.UIntPtr)""
   IL_0010:  ret
 }");
-            conversions(sourceType: "E?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("E", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("E", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "bool?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("char", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "sbyte?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("sbyte", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("sbyte", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "byte?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("byte", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "short?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("short", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("short", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "ushort?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("ushort", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "int?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("int", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("int", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "uint?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("uint", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "long?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("long", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)"), expectedCheckedIL: explicitAndConvFromNullableT("long", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "ulong?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("ulong", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)"));
-            conversions(sourceType: "float?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("float", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvFromNullableT("float", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "double?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("double", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvFromNullableT("double", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "decimal?", destType: "System.UIntPtr", expectedImplicitIL: null,
+            conversions(sourceType: "E?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("E", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("E", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "bool?", destType: "System.UIntPtr", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("char", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "sbyte?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("sbyte", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("sbyte", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "byte?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("byte", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "short?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("short", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("short", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "ushort?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("ushort", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "int?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("int", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("int", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "uint?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("uint", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "long?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("long", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)"), expectedCheckedIL: explicitAndConvFromNullableT("long", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "ulong?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("ulong", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)"));
+            conversions(sourceType: "float?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("float", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvFromNullableT("float", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "double?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("double", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvFromNullableT("double", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "decimal?", destType: "System.UIntPtr", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       18 (0x12)
   .maxstack  1
@@ -9001,22 +9297,22 @@ $@"{{
   IL_000c:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
   IL_0011:  ret
 }");
-            conversions(sourceType: "E?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("E", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("E", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "bool?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "char?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("char", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "sbyte?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("sbyte", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("sbyte", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "byte?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("byte", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "short?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("short", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("short", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "ushort?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("ushort", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "int?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("int", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("int", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "uint?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("uint", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
-            conversions(sourceType: "long?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("long", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("long", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "ulong?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("ulong", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)"));
-            conversions(sourceType: "float?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("float", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvFromToNullableT("float", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
-            conversions(sourceType: "double?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("double", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvFromToNullableT("double", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "E?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("E", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("E", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "bool?", destType: "System.UIntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("char", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "sbyte?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("sbyte", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("sbyte", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "byte?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("byte", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "short?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("short", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("short", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "ushort?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("ushort", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "int?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("int", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("int", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "uint?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("uint", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
+            conversions(sourceType: "long?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("long", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("long", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "ulong?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("ulong", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)"));
+            conversions(sourceType: "float?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("float", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvFromToNullableT("float", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
+            conversions(sourceType: "double?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("double", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.u8"), expectedCheckedIL: explicitAndConvFromToNullableT("double", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
             // https://github.com/dotnet/roslyn/issues/42834: Invalid code generated for nullable conversions
             // involving System.[U]IntPtr: the conversion ulong decimal.op_Explicit(decimal) is dropped.
-            conversions(sourceType: "decimal?", destType: "System.UIntPtr?", expectedImplicitIL: null,
+            conversions(sourceType: "decimal?", destType: "System.UIntPtr?", IntPtrConversion, expectedImplicitIL: null,
 @"{
   // Code size       39 (0x27)
   .maxstack  1
@@ -9038,6 +9334,8 @@ $@"{{
   IL_0026:  ret
 }");
 
+            return;
+
             void convert(string sourceType,
                 string destType,
                 string expectedIL,
@@ -9045,6 +9343,7 @@ $@"{{
                 bool useExplicitCast,
                 bool useChecked,
                 bool verify,
+                ConversionKind[] expectedConversions,
                 ErrorCode expectedErrorCode)
             {
                 bool useUnsafeContext = useUnsafe(sourceType) || useUnsafe(destType);
@@ -9077,6 +9376,12 @@ enum E {{ }}
                 var model = comp.GetSemanticModel(tree);
                 var expr = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
                 var typeInfo = model.GetTypeInfo(expr);
+
+                if (!useExplicitCast)
+                {
+                    var destTypeSymbol = ((MethodSymbol)comp.GetMember("Program.Convert")).ReturnType.GetPublicSymbol();
+                    AssertMatches(expectedConversions, model.ClassifyConversion(expr, destTypeSymbol));
+                }
 
                 if (!skipTypeChecks)
                 {
@@ -12163,21 +12468,33 @@ False
 }");
             verifier.VerifyIL("Program.ShiftLeft",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shl
-  IL_0003:  ret
+  IL_0002:  sizeof     ""System.IntPtr""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shl
+  IL_000e:  ret
 }");
             verifier.VerifyIL("Program.ShiftRight",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shr
-  IL_0003:  ret
+  IL_0002:  sizeof     ""System.IntPtr""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shr
+  IL_000e:  ret
 }");
         }
 
@@ -12376,21 +12693,33 @@ False
 }");
             verifier.VerifyIL("Program.ShiftLeft",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shl
-  IL_0003:  ret
+  IL_0002:  sizeof     ""System.UIntPtr""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shl
+  IL_000e:  ret
 }");
             verifier.VerifyIL("Program.ShiftRight",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shr.un
-  IL_0003:  ret
+  IL_0002:  sizeof     ""System.UIntPtr""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shr.un
+  IL_000e:  ret
 }");
         }
 
@@ -13299,11 +13628,11 @@ class B : A
         {
             convert(fromType: "nint", toType: "ulong", "int.MinValue", "18446744071562067968", "conv.i8", "System.OverflowException", "conv.ovf.u8");
             convert(fromType: "nint", toType: "ulong", "int.MaxValue", "2147483647", "conv.i8", "2147483647", "conv.ovf.u8");
-            convert(fromType: "nint", toType: "nuint", "int.MinValue", IntPtr.Size == 4 ? "2147483648" : "18446744071562067968", "conv.u", "System.OverflowException", "conv.ovf.u");
-            convert(fromType: "nint", toType: "nuint", "int.MaxValue", "2147483647", "conv.u", "2147483647", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", "int.MinValue", IntPtr.Size == 4 ? "2147483648" : "18446744071562067968", null, "System.OverflowException", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", "int.MaxValue", "2147483647", null, "2147483647", "conv.ovf.u");
 
             convert(fromType: "nuint", toType: "long", "uint.MaxValue", "4294967295", "conv.u8", "4294967295", "conv.ovf.i8.un");
-            convert(fromType: "nuint", toType: "nint", "uint.MaxValue", IntPtr.Size == 4 ? "-1" : "4294967295", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "4294967295", "conv.ovf.i.un");
+            convert(fromType: "nuint", toType: "nint", "uint.MaxValue", IntPtr.Size == 4 ? "-1" : "4294967295", null, IntPtr.Size == 4 ? "System.OverflowException" : "4294967295", "conv.ovf.i.un");
 
             string nintMinValue = IntPtr.Size == 4 ? int.MinValue.ToString() : long.MinValue.ToString();
             string nintMaxValue = IntPtr.Size == 4 ? int.MaxValue.ToString() : long.MaxValue.ToString();
@@ -13311,11 +13640,11 @@ class B : A
 
             convert(fromType: "nint", toType: "ulong", nintMinValue, IntPtr.Size == 4 ? "18446744071562067968" : "9223372036854775808", "conv.i8", "System.OverflowException", "conv.ovf.u8");
             convert(fromType: "nint", toType: "ulong", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.i8", IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u8");
-            convert(fromType: "nint", toType: "nuint", nintMinValue, IntPtr.Size == 4 ? "2147483648" : "9223372036854775808", "conv.u", "System.OverflowException", "conv.ovf.u");
-            convert(fromType: "nint", toType: "nuint", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.u", IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", nintMinValue, IntPtr.Size == 4 ? "2147483648" : "9223372036854775808", null, "System.OverflowException", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", null, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u");
 
             convert(fromType: "nuint", toType: "long", nuintMaxValue, IntPtr.Size == 4 ? "4294967295" : "-1", "conv.u8", IntPtr.Size == 4 ? "4294967295" : "System.OverflowException", "conv.ovf.i8.un");
-            convert(fromType: "nuint", toType: "nint", nuintMaxValue, "-1", "conv.i", "System.OverflowException", "conv.ovf.i.un");
+            convert(fromType: "nuint", toType: "nint", nuintMaxValue, "-1", null, "System.OverflowException", "conv.ovf.i.un");
 
             void convert(string fromType, string toType, string fromValue, string toValueUnchecked, string toConvUnchecked, string toValueChecked, string toConvChecked)
             {
@@ -13346,8 +13675,15 @@ class Program
                 var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
 $@"{toValueUnchecked}
 {toValueChecked}");
-                verifier.VerifyIL("Program.Convert",
-    $@"{{
+                verifier.VerifyIL("Program.Convert", toConvUnchecked is null ?
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}" :
+$@"{{
   // Code size        3 (0x3)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -14360,6 +14696,13 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 }";
             var comp = CreateCompilation(source);
             var verifier = CompileAndVerify(source);
+            string expectedExplicitILNop =
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}";
             string expectedExplicitILA =
 @"{
   // Code size        3 (0x3)
@@ -14388,7 +14731,7 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             verifier.VerifyIL("NativeInts.Explicit2", expectedExplicitILA);
             verifier.VerifyIL("NativeInts.Explicit3", expectedExplicitILA);
             verifier.VerifyIL("NativeInts.Explicit4", expectedExplicitILB);
-            verifier.VerifyIL("NativeInts.Explicit5", expectedExplicitILB);
+            verifier.VerifyIL("NativeInts.Explicit5", expectedExplicitILNop);
             verifier.VerifyIL("NativeInts.Checked1", expectedCheckedIL);
             verifier.VerifyIL("NativeInts.Checked2", expectedCheckedIL);
             verifier.VerifyIL("NativeInts.Checked3", expectedCheckedIL);
@@ -14494,7 +14837,6 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             verify(sourceType: "nuint", destType: "nuint");
             verify(sourceType: "nuint", destType: "System.IntPtr", noConversion: true);
             verify(sourceType: "nuint", destType: "System.UIntPtr");
-
 
             // type to System.IntPtr
             verify(sourceType: "object", destType: "System.IntPtr", isExplicit: true);
@@ -14626,6 +14968,805 @@ enum E { }
                     comp.VerifyDiagnostics();
                 }
             }
+        }
+
+        [Fact, WorkItem(60714, "https://github.com/dotnet/roslyn/issues/60714")]
+        public void ConversionFromNuintToDouble()
+        {
+            var source = """
+nuint x = (System.IntPtr.Size == 4)
+    ? uint.MaxValue
+    : unchecked((nuint)ulong.MaxValue);
+
+ulong y = (System.IntPtr.Size == 4)
+    ? uint.MaxValue
+    : ulong.MaxValue;
+
+double a = x;
+double b = y;
+
+if (a == b)
+{
+    System.Console.Write("RAN");
+}
+return;
+
+class C
+{
+    double M(nuint i)
+    {
+        return i;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  conv.r.un
+  IL_0002:  conv.r8
+  IL_0003:  ret
+}");
+        }
+
+        [Fact, WorkItem(60714, "https://github.com/dotnet/roslyn/issues/60714")]
+        public void ConversionFromNuintToFloat()
+        {
+            var source = """
+nuint x = (System.IntPtr.Size == 4)
+    ? uint.MaxValue
+    : unchecked((nuint)ulong.MaxValue);
+
+ulong y = (System.IntPtr.Size == 4)
+    ? uint.MaxValue
+    : ulong.MaxValue;
+
+float a = x;
+float b = y;
+
+if (a == b)
+{
+    System.Console.Write("RAN");
+}
+return;
+
+class C
+{
+    float M(nuint i)
+    {
+        return i;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  conv.r.un
+  IL_0002:  conv.r4
+  IL_0003:  ret
+}");
+        }
+
+        [Theory, CombinatorialData]
+        public void BetterConversionTarget(bool nullable1, bool nullable2)
+        {
+            // Given two types T1 and T2, T1 is a better conversion target than T2 if one of the following holds:
+            // 1. An implicit conversion from T1 to T2 exists and no implicit conversion from T2 to T1 exists
+            // ...
+            // 3. T1 is S1 or S1? where S1 is a signed integral type, and T2 is S2 or S2? where S2 is an unsigned integral type.
+
+            string s1Nullable = nullable1 ? "?" : "";
+            string s2Nullable = nullable2 ? "?" : "";
+
+            string source = $$"""
+using static System.Console;
+
+C.M1(0);
+C.M2(0);
+C.M3(0);
+C.M4(0);
+C.M5(0);
+C.M6(0);
+C.M7(0);
+C.M8(0);
+C.M9(0);
+
+public class C
+{
+    public static void M1(sbyte{{s1Nullable}} x) { Write("M1 ");  }
+    public static void M1(nuint{{s2Nullable}} x) { }
+
+    public static void M2(short{{s1Nullable}} x) { Write("M2 "); }
+    public static void M2(nuint{{s2Nullable}} x) { }
+
+    public static void M3(int{{s1Nullable}} x) { Write("M3 "); }
+    public static void M3(nuint{{s2Nullable}} x) { }
+
+    public static void M4(long{{s1Nullable}} x) { Write("M4 "); }
+    public static void M4(nuint{{s2Nullable}} x) { }
+
+    public static void M5(nint{{s1Nullable}} x) { Write("M5(nint) "); }
+    public static void M5(ushort{{s2Nullable}} x) { Write("M5(ushort) ");  }
+
+    public static void M6(nint{{s1Nullable}} x) { Write("M6 "); }
+    public static void M6(uint{{s2Nullable}} x) { }
+
+    public static void M7(nint{{s1Nullable}} x) { Write("M7 "); }
+    public static void M7(ulong{{s2Nullable}} x) { }
+
+    public static void M8(nint{{s1Nullable}} x) { Write("M8 "); }
+    public static void M8(nuint{{s2Nullable}} x) { }
+
+    public static void M9(nint{{s1Nullable}} x) { Write("M9(nint)"); }
+    public static void M9(byte{{s2Nullable}} x) { Write("M9(byte)"); }
+}
+""";
+            var comp = CreateCompilation(source);
+
+            // Note: conversions ushort->nint, ushort?->nint?, ushort->nint? are implicit (so rule 1 kicks in), but ushort?->nint is explicit (so rule 3 kicks in)
+            var expected = (nullable1, nullable2) is (false, true)
+                ? "M1 M2 M3 M4 M5(nint) M6 M7 M8 M9(nint)"
+                : "M1 M2 M3 M4 M5(ushort) M6 M7 M8 M9(byte)";
+            CompileAndVerify(comp, expectedOutput: expected);
+        }
+
+        [Theory, CombinatorialData]
+        public void BetterConversionTarget_IntPtr(bool nullable1, bool nullable2)
+        {
+            // Given two types T1 and T2, T1 is a better conversion target than T2 if one of the following holds:
+            // 1. An implicit conversion from T1 to T2 exists and no implicit conversion from T2 to T1 exists
+            // ...
+            // 3. T1 is S1 or S1? where S1 is a signed integral type, and T2 is S2 or S2? where S2 is an unsigned integral type.
+
+            string s1Nullable = nullable1 ? "?" : "";
+            string s2Nullable = nullable2 ? "?" : "";
+
+            string source = $$"""
+using System;
+using static System.Console;
+
+C.M1(0);
+C.M2(0);
+C.M3(0);
+C.M4(0);
+C.M5(0);
+C.M6(0);
+C.M7(0);
+C.M8(0);
+C.M9(0);
+C.M10(0);
+
+public class C
+{
+    public static void M1(sbyte{{s1Nullable}} x) { Write("M1 ");  }
+    public static void M1(UIntPtr{{s2Nullable}} x) { }
+
+    public static void M2(short{{s1Nullable}} x) { Write("M2 "); }
+    public static void M2(UIntPtr{{s2Nullable}} x) { }
+
+    public static void M3(int{{s1Nullable}} x) { Write("M3 "); }
+    public static void M3(UIntPtr{{s2Nullable}} x) { }
+
+    public static void M4(long{{s1Nullable}} x) { Write("M4 "); }
+    public static void M4(UIntPtr{{s2Nullable}} x) { }
+
+    public static void M5(nint{{s1Nullable}} x) { Write("M5 "); }
+    public static void M5(UIntPtr{{s2Nullable}} x) { }
+
+    public static void M6(IntPtr{{s1Nullable}} x) { }
+    public static void M6(ushort{{s2Nullable}} x) { Write("M6 "); }
+
+    public static void M7(IntPtr{{s1Nullable}} x) { }
+    public static void M7(uint{{s2Nullable}} x) { Write("M7 "); }
+
+    public static void M8(IntPtr{{s1Nullable}} x) { }
+    public static void M8(ulong{{s2Nullable}} x) { Write("M8 "); }
+
+    public static void M9(IntPtr{{s1Nullable}} x) { }
+    public static void M9(nuint{{s2Nullable}} x) { Write("M9 "); }
+
+    public static void M10(IntPtr{{s1Nullable}} x) { }
+    public static void M10(byte{{s2Nullable}} x) { Write("M10"); }
+}
+""";
+            var comp = CreateCompilation(source);
+
+            CompileAndVerify(comp, expectedOutput: "M1 M2 M3 M4 M5 M6 M7 M8 M9 M10");
+        }
+
+        [Theory]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        public void XmlDoc_Cref(string type)
+        {
+            var src = $$"""
+/// <summary>Summary <see cref="{{type}}"/>.</summary>
+class C { }
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal(type, cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nintSymbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.True(nintSymbol.IsNativeIntegerType);
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_IntPtr()
+        {
+            var src = """
+/// <summary>Summary <see cref="System.IntPtr"/>.</summary>
+class C { }
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("System.IntPtr", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nintSymbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.False(nintSymbol.IsNativeIntegerType);
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_Alias()
+        {
+            var src = """
+using @nint = System.String;
+
+/// <summary>Summary <see cref="nint"/>.</summary>
+class C { }
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("nint", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.False(symbol.IsNativeIntegerType);
+            Assert.Equal("System.String", symbol.ToTestDisplayString());
+        }
+
+        [Theory]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        public void XmlDoc_Cref_Member(string fieldName)
+        {
+            var src = $$"""
+/// <summary>Summary <see cref="{{fieldName}}"/>.</summary>
+public class C
+{
+    /// <summary></summary>
+    public int {{fieldName}};
+}
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal(fieldName, cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (IFieldSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.Equal($"System.Int32 C.{fieldName}", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_NamedType()
+        {
+            var src = """
+interface @nint { }
+
+/// <summary>Summary <see cref="nint"/>.</summary>
+class C { }
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("nint", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.False(symbol.IsNativeIntegerType);
+            Assert.Equal("nint", symbol.ToTestDisplayString());
+            Assert.Equal(TypeKind.Interface, symbol.TypeKind);
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_TypeParameter()
+        {
+            var src = """
+struct Outer<@nint>
+{
+    /// <summary>Summary <see cref="nint"/>.</summary>
+    class C { }
+}
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (3,37): warning CS1723: XML comment has cref attribute 'nint' that refers to a type parameter
+                //     /// <summary>Summary <see cref="nint"/>.</summary>
+                Diagnostic(ErrorCode.WRN_BadXMLRefTypeVar, "nint").WithArguments("nint").WithLocation(3, 37)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("nint", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (ITypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.False(symbol.IsNativeIntegerType);
+            Assert.Equal("nint", symbol.ToTestDisplayString());
+            Assert.Equal(TypeKind.TypeParameter, symbol.TypeKind);
+        }
+
+        [Fact, WorkItem(43347, "https://github.com/dotnet/roslyn/issues/43347")]
+        public void MaskShiftCount()
+        {
+            // positive nint shift right
+            validate("nint", "NIntMaxValue", ">> 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr(0));
+            validate("nint", "NIntMaxValue", ">> 1", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", nint_shr(1));
+            validate("nint", "NIntMaxValue", ">> 31", "0x0", "0xFFFF_FFFF", nint_shr(31));
+            validate("nint", "NIntMaxValue", ">> 32", "0x7FFF_FFFF", "0x7FFF_FFFF", nint_shr(32));
+            validate("nint", "NIntMaxValue", ">> 33", "0x3FFF_FFFF", "0x3FFF_FFFF", nint_shr(33));
+            validate("nint", "NIntMaxValue", ">> 63", "0x0", "0x0", nint_shr(63));
+            validate("nint", "NIntMaxValue", ">> 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr(64));
+            validate("nint", "NIntMaxValue", ">> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", nint_shr(65));
+
+            // negative nint shift right
+            validate("nint", "NIntNegativeValue", ">> 1", "0xE000_0000", "0xE000_0000_0000_0000", nint_shr(1));
+            validate("nint", "NIntNegativeValue", ">> 31", "0xFFFF_FFFF", "0xFFFF_FFFF_8000_0000", nint_shr(31));
+            validate("nint", "NIntNegativeValue", ">> 32", "0xC000_0001", "0xFFFF_FFFF_C000_0000", nint_shr(32));
+            validate("nint", "NIntNegativeValue", ">> 33", "0xE000_0000", "0xFFFF_FFFF_E000_0000", nint_shr(33));
+            validate("nint", "NIntNegativeValue", ">> 63", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nint_shr(63));
+            validate("nint", "NIntNegativeValue", ">> 64", "0xC000_0001", "0xC000_0000_0000_0001", nint_shr(64));
+
+            // positive nint shift left
+            validate("nint", "NIntMaxValue", "<< 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shl(0));
+            validate("nint", "NIntMaxValue", "<< 1", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", nint_shl(1));
+            validate("nint", "NIntMaxValue", "<< 31", "0x8000_0000", "0xFFFF_FFFF_8000_0000", nint_shl(31));
+            validate("nint", "NIntMaxValue", "<< 32", "0x7FFF_FFFF", "0xFFFF_FFFF_0000_0000", nint_shl(32));
+            validate("nint", "NIntMaxValue", "<< 63", "0x8000_0000", "0x8000_0000_0000_0000", nint_shl(63));
+            validate("nint", "NIntMaxValue", "<< 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shl(64));
+
+            // negative nint shift left
+            validate("nint", "NIntNegativeValue", "<< 63", "0x8000_0000", "0x8000_0000_0000_0000", nint_shl(63));
+
+            // nuint shift right
+            validate("nuint", "NUintMaxValue", ">> 0", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(0));
+            validate("nuint", "NUintMaxValue", ">> 1", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nuint_shr_un(1));
+            validate("nuint", "NUintMaxValue", ">> 31", "0x0000_0001", "0x0000_0001_FFFF_FFFF", nuint_shr_un(31));
+            validate("nuint", "NUintMaxValue", ">> 32", "0xFFFF_FFFF", "0x0000_0000_FFFF_FFFF", nuint_shr_un(32));
+            validate("nuint", "NUintMaxValue", ">> 63", "0x0000_0001", "0x0000_0000_0000_0001", nuint_shr_un(63));
+            validate("nuint", "NUintMaxValue", ">> 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(64));
+
+            // nuint shift left
+            validate("nuint", "NUintMaxValue", "<< 0", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shl(0));
+            validate("nuint", "NUintMaxValue", "<< 1", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", nuint_shl(1));
+            validate("nuint", "NUintMaxValue", "<< 31", "0x8000_0000", "0xFFFF_FFFF_8000_0000", nuint_shl(31));
+            validate("nuint", "NUintMaxValue", "<< 32", "0xFFFF_FFFF", "0xFFFF_FFFF_0000_0000", nuint_shl(32));
+            validate("nuint", "NUintMaxValue", "<< 63", "0x8000_0000", "0x8000_0000_0000_0000", nuint_shl(63));
+            validate("nuint", "NUintMaxValue", "<< 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shl(64));
+
+            // positive nint unsigned shift right
+            validate("nint", "NIntMaxValue", ">>> 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr_un(0));
+            validate("nint", "NIntMaxValue", ">>> 1", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", nint_shr_un(1));
+            validate("nint", "NIntMaxValue", ">>> 31", "0x0", "0xFFFF_FFFF", nint_shr_un(31));
+            validate("nint", "NIntMaxValue", ">>> 32", "0x7FFF_FFFF", "0x7FFF_FFFF", nint_shr_un(32));
+            validate("nint", "NIntMaxValue", ">>> 63", "0x0", "0x0", nint_shr_un(63));
+            validate("nint", "NIntMaxValue", ">>> 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr_un(64));
+
+            // negative nint unsigned shift right
+            validate("nint", "NIntNegativeValue", ">>> 0", "0xC000_0001", "0xC000_0000_0000_0001", nint_shr_un(0));
+            validate("nint", "NIntNegativeValue", ">>> 1", "0x6000_0000", "0x6000_0000_0000_0000", nint_shr_un(1));
+            validate("nint", "NIntNegativeValue", ">>> 31", "0x1", "0x0000_0001_8000_0000", nint_shr_un(31));
+            validate("nint", "NIntNegativeValue", ">>> 32", "0xC000_0001", "0x0000_0000_C000_0000", nint_shr_un(32));
+            validate("nint", "NIntNegativeValue", ">>> 63", "0x1", "0x1", nint_shr_un(63));
+            validate("nint", "NIntNegativeValue", ">>> 64", "0xC000_0001", "0xC000_0000_0000_0001", nint_shr_un(64));
+
+            // nuint unsigned shift right
+            validate("nuint", "NUintMaxValue", ">>> 0", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(0));
+            validate("nuint", "NUintMaxValue", ">>> 1", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nuint_shr_un(1));
+            validate("nuint", "NUintMaxValue", ">>> 31", "0x0000_0001", "0x0000_0001_FFFF_FFFF", nuint_shr_un(31));
+            validate("nuint", "NUintMaxValue", ">>> 32", "0xFFFF_FFFF", "0x0000_0000_FFFF_FFFF", nuint_shr_un(32));
+            validate("nuint", "NUintMaxValue", ">>> 63", "0x0000_0001", "0x0000_0000_0000_0001", nuint_shr_un(63));
+            validate("nuint", "NUintMaxValue", ">>> 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(64));
+
+            // lifted value
+            validate("nint?", "NIntMaxValue", ">> 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(0, "nint?", "shr"));
+            validate("nint?", "NIntMaxValue", ">> 1", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(1, "nint?", "shr"));
+            validate("nint?", "NIntMaxValue", ">> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(65, "nint?", "shr"));
+            validate("nint?", "NIntNegativeValue", ">> 65", "0xE000_0000", "0xE000_0000_0000_0000", liftedValue(65, "nint?", "shr"));
+            validate("nint?", "NIntMaxValue", "<< 65", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", liftedValue(65, "nint?", "shl"));
+            validate("nint?", "NIntNegativeValue", "<< 65", "0x8000_0002", "0x8000_0000_0000_0002", liftedValue(65, "nint?", "shl"));
+
+            validate("nuint?", "NUintMaxValue", ">> 65", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(65, "nuint?", "shr.un"));
+            validate("nuint?", "NUintMaxValue", "<< 65", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", liftedValue(65, "nuint?", "shl"));
+
+            validate("nint?", "NIntMaxValue", ">>> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(65, "nint?", "shr.un"));
+            validate("nint?", "NIntNegativeValue", ">>> 65", "0x6000_0000", "0x6000_0000_0000_0000", liftedValue(65, "nint?", "shr.un"));
+            validate("nuint?", "NUintMaxValue", ">>> 65", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(65, "nuint?", "shr.un"));
+
+            // lifted count
+            CompileAndVerify("""
+class C
+{
+    nint? M(nint value, int? count) => value >> count;
+}
+""")
+                .VerifyIL("C.M", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  4
+  .locals init (System.IntPtr V_0,
+                int? V_1,
+                nint? V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.2
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_1
+  IL_0006:  call       ""bool int?.HasValue.get""
+  IL_000b:  brtrue.s   IL_0017
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  initobj    ""nint?""
+  IL_0015:  ldloc.2
+  IL_0016:  ret
+  IL_0017:  ldloc.0
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  call       ""int int?.GetValueOrDefault()""
+  IL_001f:  sizeof     ""System.IntPtr""
+  IL_0025:  ldc.i4.8
+  IL_0026:  mul
+  IL_0027:  ldc.i4.1
+  IL_0028:  sub
+  IL_0029:  and
+  IL_002a:  shr
+  IL_002b:  newobj     ""nint?..ctor(nint)""
+  IL_0030:  ret
+}
+");
+
+            // lifted value and lifted count
+            CompileAndVerify("""
+class C
+{
+    nint? M(nint? value, int? count) => value >> count;
+}
+""")
+                .VerifyIL("C.M", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  4
+  .locals init (nint? V_0,
+                int? V_1,
+                nint? V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.2
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  call       ""bool nint?.HasValue.get""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  call       ""bool int?.HasValue.get""
+  IL_0012:  and
+  IL_0013:  brtrue.s   IL_001f
+  IL_0015:  ldloca.s   V_2
+  IL_0017:  initobj    ""nint?""
+  IL_001d:  ldloc.2
+  IL_001e:  ret
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  call       ""int int?.GetValueOrDefault()""
+  IL_002d:  sizeof     ""System.IntPtr""
+  IL_0033:  ldc.i4.8
+  IL_0034:  mul
+  IL_0035:  ldc.i4.1
+  IL_0036:  sub
+  IL_0037:  and
+  IL_0038:  shr
+  IL_0039:  newobj     ""nint?..ctor(nint)""
+  IL_003e:  ret
+}
+");
+            return;
+
+            static string nint_shr(int count) => shift(count, "System.IntPtr", "shr");
+            static string nint_shr_un(int count) => shift(count, "System.IntPtr", "shr.un");
+            static string nint_shl(int count) => shift(count, "System.IntPtr", "shl");
+            static string nuint_shr_un(int count) => shift(count, "System.UIntPtr", "shr.un");
+            static string nuint_shl(int count) => shift(count, "System.UIntPtr", "shl");
+
+            static string shift(int count, string type, string op)
+            {
+                if (count == 0)
+                {
+                    return $@"
+{{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}}
+";
+                }
+
+                if (count == 1)
+                {
+                    return $@"
+{{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  {op}
+  IL_0003:  ret
+}}
+";
+                }
+
+                if (count <= 31)
+                {
+                    return $@"
+{{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   {count}
+  IL_0003:  {op}
+  IL_0004:  ret
+}}
+";
+                }
+
+                return $@"
+{{
+  // Code size       16 (0x10)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   {count}
+  IL_0003:  sizeof     ""{type}""
+  IL_0009:  ldc.i4.8
+  IL_000a:  mul
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  and
+  IL_000e:  {op}
+  IL_000f:  ret
+}}
+";
+            }
+
+            static string liftedValue(int count, string type, string op)
+            {
+                var strippedType = type.Trim('?');
+                if (count == 0)
+                {
+                    return $@"
+{{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init ({type} V_0,
+                {type} V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool {type}.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""{type}""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""{strippedType} {type}.GetValueOrDefault()""
+  IL_001c:  newobj     ""{type}..ctor({strippedType})""
+  IL_0021:  ret
+}}";
+                }
+
+                if (count == 1)
+                {
+                    return $@"
+{{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init ({type} V_0,
+                {type} V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool {type}.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""{type}""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""{strippedType} {type}.GetValueOrDefault()""
+  IL_001c:  ldc.i4.1
+  IL_001d:  {op}
+  IL_001e:  newobj     ""{type}..ctor({strippedType})""
+  IL_0023:  ret
+}}
+";
+                }
+
+                Assert.True(count == 65);
+                var systemType = strippedType == "nint" ? "System.IntPtr" : "System.UIntPtr";
+
+                return $@"
+{{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init ({type} V_0,
+                {type} V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool {type}.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""{type}""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""{strippedType} {type}.GetValueOrDefault()""
+  IL_001c:  ldc.i4.s   {count}
+  IL_001e:  sizeof     ""{systemType}""
+  IL_0024:  ldc.i4.8
+  IL_0025:  mul
+  IL_0026:  ldc.i4.1
+  IL_0027:  sub
+  IL_0028:  and
+  IL_0029:  {op}
+  IL_002a:  newobj     ""{type}..ctor({strippedType})""
+  IL_002f:  ret
+}}
+";
+            }
+
+            void validate(string type, string value, string binaryOp, string result32Bits, string result64Bits, string expectedIL)
+            {
+                validateWithCheckedOrUnchecked(type, value, binaryOp, expectedIL, result32Bits, result64Bits, isChecked: true);
+                validateWithCheckedOrUnchecked(type, value, binaryOp, expectedIL, result32Bits, result64Bits, isChecked: false);
+            }
+
+            void validateWithCheckedOrUnchecked(string type, string value, string binaryOp, string expectedIL, string result32Bits, string result64Bits, bool isChecked)
+            {
+                var checkedKeyword = isChecked ? "checked" : "unchecked";
+                var strippedType = type.Trim('?');
+
+                var source = $$"""
+class C
+{
+    public static unsafe nint NIntMaxValue
+        => (sizeof(nint) == 4) ? (nint)0x7FFF_FFFF : (nint)0x7FFF_FFFF_FFFF_FFFF;
+
+    public static unsafe nint NIntNegativeValue
+        => (sizeof(nint) == 4) ? (nint)0xC000_0001 : unchecked((nint)0xC000_0000_0000_0001);
+
+    public static unsafe nuint NUintMaxValue
+        => (sizeof(nint) == 4) ? (nuint)0xFFFF_FFFF : (nuint)0xFFFF_FFFF_FFFF_FFFF;
+
+    public static {{type}} M({{type}} value)
+    {
+        return {{checkedKeyword}}(value {{binaryOp}});
+    }
+    public static unsafe void Main()
+    {
+        if (sizeof(nint) == 4)
+        {
+            if (unchecked(({{type}}){{result32Bits}}) == ({{value}} {{binaryOp}}))
+            {
+                System.Console.Write("RAN");
+            }
+            else
+            {
+                System.Console.Write($"Actual for '{{value}} {{binaryOp}}' (32-bit): {{{value}} {{binaryOp}}}");
+            }
+        }
+        else if (sizeof(nint) == 8)
+        {
+            if (unchecked(({{type}}){{result64Bits}}) == ({{value}} {{binaryOp}}))
+            {
+                System.Console.Write("RAN");
+            }
+            else
+            {
+                System.Console.Write($"Actual for '{{value}} {{binaryOp}}' (64-bit): {{{value}} {{binaryOp}}}");
+            }
+        }
+    }
+}
+""";
+                var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+                var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
+                verifier.VerifyIL("C.M", expectedIL);
+            }
+        }
+
+        [Theory, WorkItem(43347, "https://github.com/dotnet/roslyn/issues/43347")]
+        [InlineData("System.IntPtr", ">>")]
+        [InlineData("System.IntPtr", ">>>")]
+        [InlineData("System.IntPtr", "<<")]
+        [InlineData("System.UIntPtr", ">>")]
+        [InlineData("System.UIntPtr", ">>>")]
+        [InlineData("System.UIntPtr", "<<")]
+        public void MaskShiftCount_NotOnIntPtr(string type, string op)
+        {
+            var source = $$"""
+class C
+{
+    {{type}} M({{type}} x, int count)
+    {
+        return x {{op}} count;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0019: Operator 'op' cannot be applied to operands of type 'type' and 'int'
+                //         return x op count;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} count").WithArguments(op, type, "int").WithLocation(5, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60944, "https://github.com/dotnet/roslyn/issues/60944")]
+        public void NopConversions([CombinatorialValues("nint", "nuint")] string inputType, [CombinatorialValues("nint", "nuint")] string outputType)
+        {
+            var source =
+@"class Program
+{
+    static " + outputType + @" F1(" + inputType + @" x)
+    {
+        return unchecked((" + outputType + @")x);
+    }
+}";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+            verifier.VerifyIL("Program.F1",
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+");
         }
     }
 }

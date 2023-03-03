@@ -4,17 +4,19 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Precedence;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 {
     internal abstract class AbstractAddRequiredParenthesesDiagnosticAnalyzer<
         TExpressionSyntax, TBinaryLikeExpressionSyntax, TLanguageKindEnum>
-        : AbstractParenthesesDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TExpressionSyntax : SyntaxNode
         where TBinaryLikeExpressionSyntax : TExpressionSyntax
         where TLanguageKindEnum : struct
@@ -26,15 +28,9 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         static AbstractAddRequiredParenthesesDiagnosticAnalyzer()
         {
-            var options = new[]
-            {
-                CodeStyleOptions2.ArithmeticBinaryParentheses, CodeStyleOptions2.OtherBinaryParentheses,
-                CodeStyleOptions2.OtherParentheses, CodeStyleOptions2.RelationalBinaryParentheses
-            };
-
             var includeArray = new[] { false, true };
 
-            foreach (var option in options)
+            foreach (var equivalenceKey in GetAllEquivalenceKeys())
             {
                 foreach (var includeInFixAll in includeArray)
                 {
@@ -44,15 +40,24 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                         properties = properties.Add(AddRequiredParenthesesConstants.IncludeInFixAll, "");
                     }
 
-                    var equivalenceKey = GetEquivalenceKey(option);
                     properties = properties.Add(AddRequiredParenthesesConstants.EquivalenceKey, equivalenceKey);
                     s_cachedProperties.Add((includeInFixAll, equivalenceKey), properties);
                 }
             }
         }
 
-        private static string GetEquivalenceKey(PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> parentPrecedence)
-            => parentPrecedence.Name;
+        protected static string GetEquivalenceKey(PrecedenceKind precedenceKind)
+            => precedenceKind switch
+            {
+                PrecedenceKind.Arithmetic or PrecedenceKind.Shift or PrecedenceKind.Bitwise => "ArithmeticBinary",
+                PrecedenceKind.Relational or PrecedenceKind.Equality => "RelationalBinary",
+                PrecedenceKind.Logical or PrecedenceKind.Coalesce => "OtherBinary",
+                PrecedenceKind.Other => "Other",
+                _ => throw ExceptionUtilities.UnexpectedValue(precedenceKind),
+            };
+
+        protected static ImmutableArray<string> GetAllEquivalenceKeys()
+            => ImmutableArray.Create("ArithmeticBinary", "RelationalBinary", "OtherBinary", "Other");
 
         private static ImmutableDictionary<string, string?> GetProperties(bool includeInFixAll, string equivalenceKey)
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];
@@ -65,6 +70,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         protected AbstractAddRequiredParenthesesDiagnosticAnalyzer(IPrecedenceService precedenceService)
             : base(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId,
                    EnforceOnBuildValues.AddRequiredParentheses,
+                   options: ParenthesesDiagnosticAnalyzersHelper.Options,
                    new LocalizableResourceString(nameof(AnalyzersResources.Add_parentheses_for_clarity), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_should_be_added_for_clarity), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -94,16 +100,20 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var childPrecedence = GetLanguageOption(_precedenceService.GetPrecedenceKind(binaryLike));
-            var parentPrecedence = GetLanguageOption(_precedenceService.GetPrecedenceKind(parentBinaryLike));
+            var options = context.GetAnalyzerOptions();
+            var childPrecedenceKind = _precedenceService.GetPrecedenceKind(binaryLike);
+            var parentPrecedenceKind = _precedenceService.GetPrecedenceKind(parentBinaryLike);
+
+            var childEquivalenceKey = GetEquivalenceKey(childPrecedenceKind);
+            var parentEquivalenceKey = GetEquivalenceKey(parentPrecedenceKind);
 
             // only add parentheses within the same precedence band.
-            if (parentPrecedence != childPrecedence)
+            if (childEquivalenceKey != parentEquivalenceKey)
             {
                 return;
             }
 
-            var preference = context.GetOption(parentPrecedence, binaryLike.Language);
+            var preference = ParenthesesDiagnosticAnalyzersHelper.GetLanguageOption(options, childPrecedenceKind);
             if (preference.Value != ParenthesesPreference.AlwaysForClarity)
             {
                 return;
@@ -111,14 +121,13 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
             var additionalLocations = ImmutableArray.Create(binaryLike.GetLocation());
             var precedence = GetPrecedence(binaryLike);
-            var equivalenceKey = GetEquivalenceKey(parentPrecedence);
 
             // In a case like "a + b * c * d", we'll add parens to make "a + (b * c * d)".
             // To make this user experience more pleasant, we will place the diagnostic on
             // both *'s.
             AddDiagnostics(
                 context, binaryLike, precedence, preference.Notification.Severity,
-                additionalLocations, equivalenceKey, includeInFixAll: true);
+                additionalLocations, childEquivalenceKey, includeInFixAll: true);
         }
 
         private void AddDiagnostics(

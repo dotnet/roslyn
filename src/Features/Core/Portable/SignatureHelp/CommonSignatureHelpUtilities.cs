@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,25 +20,25 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 {
     internal static class CommonSignatureHelpUtilities
     {
-        internal static SignatureHelpState GetSignatureHelpState<TArgumentList>(
+        internal static SignatureHelpState? GetSignatureHelpState<TArgumentList>(
             TArgumentList argumentList,
             int position,
             Func<TArgumentList, SyntaxToken> getOpenToken,
             Func<TArgumentList, SyntaxToken> getCloseToken,
-            Func<TArgumentList, IEnumerable<SyntaxNodeOrToken>> getArgumentsWithSeparators,
-            Func<TArgumentList, IEnumerable<string>> getArgumentNames)
+            Func<TArgumentList, SyntaxNodeOrTokenList> getArgumentsWithSeparators,
+            Func<TArgumentList, IEnumerable<string?>> getArgumentNames)
             where TArgumentList : SyntaxNode
         {
             if (TryGetCurrentArgumentIndex(argumentList, position, getOpenToken, getCloseToken, getArgumentsWithSeparators, out var argumentIndex))
             {
-                var argumentNames = getArgumentNames(argumentList).ToList();
-                var argumentCount = argumentNames.Count;
+                var argumentNames = getArgumentNames(argumentList).ToImmutableArray();
+                var argumentCount = argumentNames.Length;
 
                 return new SignatureHelpState(
                     argumentIndex,
                     argumentCount,
-                    argumentIndex < argumentNames.Count ? argumentNames[argumentIndex] : null,
-                    argumentNames.Where(s => s != null).ToList());
+                    argumentIndex < argumentCount ? argumentNames[argumentIndex] : null,
+                    argumentNames.WhereNotNull().ToImmutableArray());
             }
 
             return null;
@@ -50,28 +49,21 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             int position,
             Func<TArgumentList, SyntaxToken> getOpenToken,
             Func<TArgumentList, SyntaxToken> getCloseToken,
-            Func<TArgumentList, IEnumerable<SyntaxNodeOrToken>> getArgumentsWithSeparators,
+            Func<TArgumentList, SyntaxNodeOrTokenList> getArgumentsWithSeparators,
             out int index) where TArgumentList : SyntaxNode
         {
             index = 0;
             if (position < getOpenToken(argumentList).Span.End)
-            {
                 return false;
-            }
 
             var closeToken = getCloseToken(argumentList);
-            if (!closeToken.IsMissing &&
-                position > closeToken.SpanStart)
-            {
+            if (!closeToken.IsMissing && position > closeToken.SpanStart)
                 return false;
-            }
 
             foreach (var element in getArgumentsWithSeparators(argumentList))
             {
                 if (element.IsToken && position >= element.Span.End)
-                {
                     index++;
-                }
             }
 
             return true;
@@ -82,7 +74,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             Func<TArgumentList, SyntaxToken> getCloseToken)
             where TArgumentList : SyntaxNode
         {
-            return GetSignatureHelpSpan(argumentList, argumentList.Parent.SpanStart, getCloseToken);
+            return GetSignatureHelpSpan(argumentList, argumentList.GetRequiredParent().SpanStart, getCloseToken);
         }
 
         internal static TextSpan GetSignatureHelpSpan<TArgumentList>(
@@ -116,7 +108,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             Func<SyntaxToken, bool> isTriggerToken,
             Func<TSyntax, SyntaxToken, bool> isArgumentListToken,
             CancellationToken cancellationToken,
-            out TSyntax expression)
+            [NotNullWhen(true)] out TSyntax? expression)
             where TSyntax : SyntaxNode
         {
             var token = root.FindTokenOnLeftOfPosition(position);
@@ -126,7 +118,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     !syntaxFacts.IsInNonUserCode(root.SyntaxTree, position, cancellationToken))
                 {
                     expression = token.GetAncestor<TSyntax>();
-                    return true;
+                    return expression != null;
                 }
             }
             else if (triggerReason == SignatureHelpTriggerReason.InvokeSignatureHelpCommand)
@@ -155,31 +147,23 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public static async Task<ImmutableArray<IMethodSymbol>> GetCollectionInitializerAddMethodsAsync(
             Document document, SyntaxNode initializer, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
-            if (initializer == null || initializer.Parent == null)
-            {
+            if (initializer is not { Parent: not null })
                 return default;
-            }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
-            var ienumerableType = compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
+            var ienumerableType = compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
             if (ienumerableType == null)
-            {
                 return default;
-            }
 
             // get the regular signature help items
             var parentOperation = semanticModel.GetOperation(initializer.Parent, cancellationToken) as IObjectOrCollectionInitializerOperation;
             var parentType = parentOperation?.Type;
             if (parentType == null)
-            {
                 return default;
-            }
 
             if (!parentType.AllInterfaces.Contains(ienumerableType))
-            {
                 return default;
-            }
 
             var position = initializer.SpanStart;
             var addSymbols = semanticModel.LookupSymbols(

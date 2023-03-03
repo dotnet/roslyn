@@ -7,6 +7,16 @@
         <target state="translated">MSB3883: непредвиденное исключение: </target>
         <note>{StrBegin="MSB3883: "}</note>
       </trans-unit>
+      <trans-unit id="CopyRefAssembly_Changed">
+        <source>Source reference assembly "{0}" (timestamp "{1}", MVID "{2}") differs from destination "{3}" (timestamp "{4}", MVID "{5}").</source>
+        <target state="translated">Исходная базовая сборка "{0}" (метка времени "{1}", MVID "{2}") отличается от целевой "{3}" (метка времени "{4}", MVID "{5}").</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_Copying">
+        <source>Copying reference assembly from "{0}" to "{1}".</source>
+        <target state="translated">Копирование эталонной сборки из "{0}" в "{1}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Csc_AssemblyAliasContainsIllegalCharacters">
         <source>MSB3053: The assembly alias "{1}" on reference "{0}" contains illegal characters.</source>
         <target state="translated">MSB3053: псевдоним сборки "{1}" для ссылки "{0}" содержит недопустимые знаки.</target>

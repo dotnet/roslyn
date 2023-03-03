@@ -5,10 +5,15 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -352,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                         out var errorMessages);
                     Assert.Null(assembly);
                     AssertEx.Equal(
-                        new[] { $"(1,11): error CS8185: { CSharpResources.ERR_DeclarationExpressionNotPermitted }" },
+                        new[] { $"(1,11): error CS8185: {CSharpResources.ERR_DeclarationExpressionNotPermitted}" },
                         errorMessages);
                     Assert.True(methodTokens.IsEmpty);
                 });
@@ -471,8 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 });
         }
 
-        [WorkItem(482753, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=482753")]
-        [Fact]
+        [Fact, WorkItem(482753, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=482753")]
         public void LocalsInAsync()
         {
             var source =
@@ -703,6 +707,834 @@ class C
   IL_0006:  ldfld      ""object C.<M>d__3.x""
   IL_000b:  ret
 }");
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_01()
+        {
+            var source =
+@"file class C
+{
+    public static int X = 42;
+}
+
+class Program
+{
+    public static void F()
+    {
+    }
+}";
+            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular11, path: "path/to/MyFile.cs", Encoding.Default), options: TestOptions.DebugDll);
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.F");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "C.X",
+                        out var error,
+                        testData);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'C' does not exist in the current context", error);
+                    }
+                    else
+                    {
+                        Assert.NotNull(result.Assembly);
+                        Assert.Null(error);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  ldsfld     "int C.X"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_02()
+        {
+            var source1 =
+@"file class C
+{
+    public static int X = 42;
+}
+
+class Program
+{
+    public static void F()
+    {
+    }
+}";
+            var source2 =
+@"file class C
+{
+    public static int X = 43;
+}
+";
+            var comp = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Regular11, path: "path/to/Source1.cs", Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.Regular11, path: "path/to/Source2.cs", Encoding.Default)
+                }, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.F");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "C.X",
+                        out var error,
+                        testData);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'C' does not exist in the current context", error);
+                    }
+                    else
+                    {
+                        Assert.Null(error);
+                        Assert.NotNull(result.Assembly);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  ldsfld     "int C.X"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_03()
+        {
+            var source1 =
+@"file class Outer
+{
+    public class Inner
+    {
+        public static int X = 42;
+    }
+}
+
+class Program
+{
+    public static void F()
+    {
+    }
+}";
+            var source2 =
+@"file class Outer
+{
+    public class Inner
+    {
+        public static int X = 43;
+    }
+}
+";
+            var comp = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Regular11, path: "path/to/Source1.cs", Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.Regular11, path: "path/to/Source2.cs", Encoding.Default)
+                }, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.F");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "Outer.Inner.X",
+                        out var error,
+                        testData);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'Outer' does not exist in the current context", error);
+                    }
+                    else
+                    {
+                        Assert.Null(error);
+                        Assert.NotNull(result.Assembly);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  ldsfld     "int Outer.Inner.X"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_04()
+        {
+            var source1 =
+@"class Program
+{
+    public static void F()
+    {
+    }
+}";
+            var source2 =
+@"file class C
+{
+    public static int X = 43;
+}
+";
+            var comp = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Regular11, path: "path/to/Source1.cs", Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.Regular11, path: "path/to/Source2.cs", Encoding.Default)
+                }, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.F");
+                    var assembly = context.CompileExpressions(
+                        ImmutableArray.Create("C.X"),
+                        out var methodTokens,
+                        out var errorMessages);
+                    Assert.Equal(new[] { "(1,1): error CS0103: The name 'C' does not exist in the current context" }, errorMessages);
+                    Assert.Null(assembly);
+                    Assert.Empty(methodTokens);
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_05()
+        {
+            var source =
+@"file class C
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+    }
+}";
+            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular11, path: "path/to/MyFile.cs", Encoding.Default), options: TestOptions.DebugDll);
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.Main");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "new C()",
+                        out var error,
+                        testData);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)", error);
+                    }
+                    else
+                    {
+                        Assert.NotNull(result.Assembly);
+                        Assert.Null(error);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  1
+                              IL_0000:  newobj     "C..ctor()"
+                              IL_0005:  ret
+                            }
+                            """);
+                    }
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_06()
+        {
+            var source =
+@"file class C
+{
+    int F = 1;
+    void M()
+    {
+    }
+}";
+            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular11, path: "path/to/MyFile.cs", Encoding.Default), options: TestOptions.DebugDll);
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "C.M");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "F",
+                        out var error,
+                        testData);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS0103: The name 'F' does not exist in the current context", error);
+                    }
+                    else
+                    {
+                        Assert.NotNull(result.Assembly);
+                        Assert.Null(error);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  1
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      "int C.F"
+                              IL_0006:  ret
+                            }
+                            """);
+                    }
+                });
+        }
+
+        [WorkItem(66109, "https://github.com/dotnet/roslyn/issues/66109")]
+        [WorkItem(64098, "https://github.com/dotnet/roslyn/issues/64098")]
+        [Fact]
+        public void FileLocalType_07()
+        {
+            var sourceA = """
+                file class A
+                {
+                    public int F1() => 1;
+                    public int F2() => 2;
+                }
+                class Program
+                {
+                    static void M1()
+                    {
+                        A x = new A();
+                    }
+                    static void M2()
+                    {
+                #line 100 "B.cs"
+                        A y = new A();
+                #line 200 "C.cs"
+                        A z = new A();
+                    }
+                }
+                """;
+            var sourceB = """
+                class B
+                {
+                }
+                """;
+            var sourceC = """
+                class C
+                {
+                }
+                """;
+            var comp = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(sourceA, path: "path/to/A.cs", encoding: Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(sourceB, path: "path/to/B.cs", encoding: Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(sourceC, path: "path/to/C.cs", encoding: Encoding.Default),
+                },
+                options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.M1");
+                    var testData = new CompilationTestData();
+                    ResultProperties resultProperties;
+                    string error;
+                    ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                    var result = context.CompileExpression(
+                        "x.F1() + (new A()).F2()",
+                        DkmEvaluationFlags.TreatAsExpression,
+                        NoAliases,
+                        DebuggerDiagnosticFormatter.Instance,
+                        out resultProperties,
+                        out error,
+                        out missingAssemblyIdentities,
+                        EnsureEnglishUICulture.PreferredOrNull,
+                        testData);
+                    if (runtime.DebugFormat == DebugInformationFormat.Pdb)
+                    {
+                        Assert.Null(result);
+                        Assert.Equal("error CS1061: 'A' does not contain a definition for 'F1' and no accessible extension method 'F1' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)", error);
+                    }
+                    else
+                    {
+                        Assert.NotNull(result.Assembly);
+                        Assert.Null(error);
+                        testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                            {
+                              // Code size       18 (0x12)
+                              .maxstack  2
+                              .locals init (A V_0) //x
+                              IL_0000:  ldloc.0
+                              IL_0001:  callvirt   "int A.F1()"
+                              IL_0006:  newobj     "A..ctor()"
+                              IL_000b:  call       "int A.F2()"
+                              IL_0010:  add
+                              IL_0011:  ret
+                            }
+                            """);
+                    }
+
+                    // https://github.com/dotnet/roslyn/issues/64098: EE doesn't handle methods that span multiple documents correctly
+                    context = CreateMethodContext(runtime, "Program.M2");
+                    testData = new CompilationTestData();
+                    result = context.CompileExpression(
+                        "y.F1() + (new A()).F2()",
+                        DkmEvaluationFlags.TreatAsExpression,
+                        NoAliases,
+                        DebuggerDiagnosticFormatter.Instance,
+                        out resultProperties,
+                        out error,
+                        out missingAssemblyIdentities,
+                        EnsureEnglishUICulture.PreferredOrNull,
+                        testData);
+                    Assert.Null(result);
+                    Assert.Equal("error CS1061: 'A' does not contain a definition for 'F1' and no accessible extension method 'F1' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)", error);
+                });
+        }
+
+        [Fact]
+        public void IllFormedFilePath_01()
+        {
+            var source =
+@"class C
+{
+    public static int X = 42;
+}
+
+class Program
+{
+    public static void F()
+    {
+    }
+}";
+            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular11, path: "path/to/\uD800.cs", Encoding.Default), options: TestOptions.DebugDll);
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.F");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "C.X",
+                        out var error,
+                        testData);
+                    Assert.NotNull(result.Assembly);
+                    Assert.Null(error);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "int C.X"
+                          IL_0005:  ret
+                        }
+                        """);
+                });
+        }
+
+        [WorkItem(66109, "https://github.com/dotnet/roslyn/issues/66109")]
+        [Fact]
+        public void SequencePointsMultipleDocuments_01()
+        {
+            var sourceA =
+@"partial class Program
+{
+    private int x = 1;
+    private void F()
+    {
+    }
+}";
+            var sourceB =
+@"partial class Program
+{
+    private int y = 2;
+    public Program()
+    {
+        F();
+        int z = x + y;
+    }
+}";
+            var comp = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(sourceA, path: "A.cs", encoding: Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(sourceB, path: "B.cs", encoding: Encoding.Default)
+                },
+                options: TestOptions.DebugDll);
+
+            comp.VerifyPdb("""
+                <symbols>
+                  <files>
+                    <file id="1" name="A.cs" language="C#" checksumAlgorithm="SHA1" checksum="09-65-32-19-5F-F8-8A-58-BF-BC-0C-D3-68-2C-2C-7B-15-33-18-E4" />
+                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="62-4B-E2-91-A3-E9-43-48-4F-A0-E6-E8-22-74-EB-90-24-C3-05-A5" />
+                  </files>
+                  <methods>
+                    <method containingType="Program" name="F">
+                      <customDebugInfo>
+                        <using>
+                          <namespace usingCount="0" />
+                        </using>
+                      </customDebugInfo>
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="6" document="1" />
+                        <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="6" document="1" />
+                      </sequencePoints>
+                    </method>
+                    <method containingType="Program" name=".ctor">
+                      <customDebugInfo>
+                        <forward declaringType="Program" methodName="F" />
+                        <encLocalSlotMap>
+                          <slot kind="0" offset="29" />
+                        </encLocalSlotMap>
+                      </customDebugInfo>
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="23" document="1" />
+                        <entry offset="0x7" startLine="3" startColumn="5" endLine="3" endColumn="23" document="2" />
+                        <entry offset="0xe" startLine="4" startColumn="5" endLine="4" endColumn="21" document="2" />
+                        <entry offset="0x15" startLine="5" startColumn="5" endLine="5" endColumn="6" document="2" />
+                        <entry offset="0x16" startLine="6" startColumn="9" endLine="6" endColumn="13" document="2" />
+                        <entry offset="0x1d" startLine="7" startColumn="9" endLine="7" endColumn="23" document="2" />
+                        <entry offset="0x2b" startLine="8" startColumn="5" endLine="8" endColumn="6" document="2" />
+                      </sequencePoints>
+                      <scope startOffset="0x0" endOffset="0x2c">
+                        <scope startOffset="0x15" endOffset="0x2c">
+                          <local name="z" il_index="0" il_start="0x15" il_end="0x2c" attributes="0" />
+                        </scope>
+                      </scope>
+                    </method>
+                  </methods>
+                </symbols>
+                """,
+                format: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.Pdb);
+            comp.VerifyPdb("""
+                <symbols>
+                  <files>
+                    <file id="1" name="A.cs" language="C#" checksumAlgorithm="SHA1" checksum="09-65-32-19-5F-F8-8A-58-BF-BC-0C-D3-68-2C-2C-7B-15-33-18-E4" />
+                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="62-4B-E2-91-A3-E9-43-48-4F-A0-E6-E8-22-74-EB-90-24-C3-05-A5" />
+                  </files>
+                  <methods>
+                    <method containingType="Program" name="F">
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="6" document="1" />
+                        <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="6" document="1" />
+                      </sequencePoints>
+                    </method>
+                    <method containingType="Program" name=".ctor">
+                      <customDebugInfo>
+                        <encLocalSlotMap>
+                          <slot kind="0" offset="29" />
+                        </encLocalSlotMap>
+                      </customDebugInfo>
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="23" document="1" />
+                        <entry offset="0x7" startLine="3" startColumn="5" endLine="3" endColumn="23" document="2" />
+                        <entry offset="0xe" startLine="4" startColumn="5" endLine="4" endColumn="21" document="2" />
+                        <entry offset="0x15" startLine="5" startColumn="5" endLine="5" endColumn="6" document="2" />
+                        <entry offset="0x16" startLine="6" startColumn="9" endLine="6" endColumn="13" document="2" />
+                        <entry offset="0x1d" startLine="7" startColumn="9" endLine="7" endColumn="23" document="2" />
+                        <entry offset="0x2b" startLine="8" startColumn="5" endLine="8" endColumn="6" document="2" />
+                      </sequencePoints>
+                      <scope startOffset="0x0" endOffset="0x2c">
+                        <scope startOffset="0x15" endOffset="0x2c">
+                          <local name="z" il_index="0" il_start="0x15" il_end="0x2c" attributes="0" />
+                        </scope>
+                      </scope>
+                    </method>
+                  </methods>
+                </symbols>
+                """,
+                format: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb);
+
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    GetContextState(runtime, "Program..ctor", out var blocks, out var moduleVersionId, out var symReader, out var methodToken, out var localSignatureToken);
+
+                    var appDomain = new AppDomain();
+                    uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
+                    var context = CreateMethodContext(
+                        appDomain,
+                        blocks,
+                        symReader,
+                        moduleVersionId,
+                        methodToken: methodToken,
+                        methodVersion: 1,
+                        ilOffset: 0x15, // offset matches startOffset of "z" scope
+                        localSignatureToken: localSignatureToken,
+                        kind: MakeAssemblyReferencesKind.AllAssemblies);
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "z",
+                        out var error,
+                        testData);
+                    Assert.Null(error);
+                    Assert.NotNull(result.Assembly);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                        {
+                            // Code size        2 (0x2)
+                            .maxstack  1
+                            .locals init (int V_0) //z
+                            IL_0000:  ldloc.0
+                            IL_0001:  ret
+                        }
+                        """);
+
+                    testData = new CompilationTestData();
+                    var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                    string typeName;
+                    var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                    Assert.Equal(2, locals.Count);
+                    VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt: """
+                        {
+                            // Code size        2 (0x2)
+                            .maxstack  1
+                            .locals init (int V_0) //z
+                            IL_0000:  ldarg.0
+                            IL_0001:  ret
+                        }
+                        """);
+                    VerifyLocal(testData, typeName, locals[1], "<>m1", "z", expectedILOpt: """
+                        {
+                            // Code size        2 (0x2)
+                            .maxstack  1
+                            .locals init (int V_0) //z
+                            IL_0000:  ldloc.0
+                            IL_0001:  ret
+                        }
+                        """);
+                    locals.Free();
+                });
+        }
+
+        [WorkItem(66109, "https://github.com/dotnet/roslyn/issues/66109")]
+        [Fact]
+        public void SequencePointsMultipleDocuments_02()
+        {
+            var sourceA = """
+                class A
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                #line 100 "B.cs"
+                        int y = 2;
+                #line 200 "C.cs"
+                        int z = 3;
+                    }
+                }
+                """;
+            var sourceB = """
+                class B
+                {
+                }
+                """;
+            var sourceC = """
+                class C
+                {
+                }
+                """;
+            var comp = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(sourceA, path: "A.cs", encoding: Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(sourceB, path: "B.cs", encoding: Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(sourceC, path: "C.cs", encoding: Encoding.Default),
+                },
+                options: TestOptions.DebugDll);
+
+            comp.VerifyPdb("""
+                <symbols>
+                  <files>
+                    <file id="1" name="A.cs" language="C#" checksumAlgorithm="SHA1" checksum="8E-FF-02-A2-A9-6A-80-AA-31-CC-19-BE-FA-C4-84-88-5B-C8-09-08" />
+                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="29-99-77-37-69-95-33-C4-02-3B-65-8D-5F-61-43-CF-F0-04-61-C2" />
+                    <file id="3" name="C.cs" language="C#" checksumAlgorithm="SHA1" checksum="A2-ED-D2-5C-84-2F-E1-0E-AB-C5-11-C8-51-E6-76-03-C8-5A-6D-06" />
+                  </files>
+                  <methods>
+                    <method containingType="A" name="Main">
+                      <customDebugInfo>
+                        <using>
+                          <namespace usingCount="0" />
+                        </using>
+                        <encLocalSlotMap>
+                          <slot kind="0" offset="15" />
+                          <slot kind="0" offset="53" />
+                          <slot kind="0" offset="91" />
+                        </encLocalSlotMap>
+                      </customDebugInfo>
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="6" document="1" />
+                        <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="19" document="1" />
+                        <entry offset="0x3" startLine="100" startColumn="9" endLine="100" endColumn="19" document="2" />
+                        <entry offset="0x5" startLine="200" startColumn="9" endLine="200" endColumn="19" document="3" />
+                        <entry offset="0x7" startLine="201" startColumn="5" endLine="201" endColumn="6" document="3" />
+                      </sequencePoints>
+                      <scope startOffset="0x0" endOffset="0x8">
+                        <local name="x" il_index="0" il_start="0x0" il_end="0x8" attributes="0" />
+                        <local name="y" il_index="1" il_start="0x0" il_end="0x8" attributes="0" />
+                        <local name="z" il_index="2" il_start="0x0" il_end="0x8" attributes="0" />
+                      </scope>
+                    </method>
+                  </methods>
+                </symbols>
+                """,
+                format: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.Pdb);
+            comp.VerifyPdb("""
+                <symbols>
+                  <files>
+                    <file id="1" name="A.cs" language="C#" checksumAlgorithm="SHA1" checksum="8E-FF-02-A2-A9-6A-80-AA-31-CC-19-BE-FA-C4-84-88-5B-C8-09-08" />
+                    <file id="2" name="B.cs" language="C#" checksumAlgorithm="SHA1" checksum="29-99-77-37-69-95-33-C4-02-3B-65-8D-5F-61-43-CF-F0-04-61-C2" />
+                    <file id="3" name="C.cs" language="C#" checksumAlgorithm="SHA1" checksum="A2-ED-D2-5C-84-2F-E1-0E-AB-C5-11-C8-51-E6-76-03-C8-5A-6D-06" />
+                  </files>
+                  <methods>
+                    <method containingType="A" name="Main">
+                      <customDebugInfo>
+                        <using>
+                          <namespace usingCount="0" />
+                        </using>
+                        <encLocalSlotMap>
+                          <slot kind="0" offset="15" />
+                          <slot kind="0" offset="53" />
+                          <slot kind="0" offset="91" />
+                        </encLocalSlotMap>
+                      </customDebugInfo>
+                      <sequencePoints>
+                        <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="6" document="1" />
+                        <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="19" document="1" />
+                        <entry offset="0x3" startLine="100" startColumn="9" endLine="100" endColumn="19" document="2" />
+                        <entry offset="0x5" startLine="200" startColumn="9" endLine="200" endColumn="19" document="3" />
+                        <entry offset="0x7" startLine="201" startColumn="5" endLine="201" endColumn="6" document="3" />
+                      </sequencePoints>
+                      <scope startOffset="0x0" endOffset="0x8">
+                        <local name="x" il_index="0" il_start="0x0" il_end="0x8" attributes="0" />
+                        <local name="y" il_index="1" il_start="0x0" il_end="0x8" attributes="0" />
+                        <local name="z" il_index="2" il_start="0x0" il_end="0x8" attributes="0" />
+                      </scope>
+                    </method>
+                  </methods>
+                </symbols>
+                """,
+                format: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb);
+
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "A.Main");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "x + y + z",
+                        out var error,
+                        testData);
+                    Assert.Null(error);
+                    Assert.NotNull(result.Assembly);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  2
+                          .locals init (int V_0, //x
+                                        int V_1, //y
+                                        int V_2) //z
+                          IL_0000:  ldloc.0
+                          IL_0001:  ldloc.1
+                          IL_0002:  add
+                          IL_0003:  ldloc.2
+                          IL_0004:  add
+                          IL_0005:  ret
+                        }
+                        """);
+
+                    testData = new CompilationTestData();
+                    var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                    string typeName;
+                    var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                    Assert.Equal(3, locals.Count);
+                    VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: """
+                        {
+                          // Code size        2 (0x2)
+                          .maxstack  1
+                          .locals init (int V_0, //x
+                                        int V_1, //y
+                                        int V_2) //z
+                          IL_0000:  ldloc.0
+                          IL_0001:  ret
+                        }
+                        """);
+                    VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: """
+                        {
+                          // Code size        2 (0x2)
+                          .maxstack  1
+                          .locals init (int V_0, //x
+                                        int V_1, //y
+                                        int V_2) //z
+                          IL_0000:  ldloc.1
+                          IL_0001:  ret
+                        }
+                        """);
+                    VerifyLocal(testData, typeName, locals[2], "<>m2", "z", expectedILOpt: """
+                        {
+                          // Code size        2 (0x2)
+                          .maxstack  1
+                          .locals init (int V_0, //x
+                                        int V_1, //y
+                                        int V_2) //z
+                          IL_0000:  ldloc.2
+                          IL_0001:  ret
+                        }
+                        """);
+                    locals.Free();
                 });
         }
     }

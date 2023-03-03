@@ -5,7 +5,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
-    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging" 
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
     xmlns:movestaticmembers="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers" 
     d:DataContext="{d:DesignInstance Type=movestaticmembers:MoveStaticMembersDialogViewModel}"
     x:Uid="MoveStaticMembersDialog"
@@ -14,7 +15,7 @@
     x:ClassModifier="internal"
     mc:Ignorable="d"
     WindowStartupLocation="CenterOwner"
-    Height="398"
+    Height="498"
     Width="500"
     MinHeight="298"
     MinWidth="210"
@@ -36,22 +37,62 @@
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Vertical" Grid.Row="0">
-            <Label 
-                x:Uid="DestinationLabel" 
-                x:Name="DestinationLabel"
-                Margin="{StaticResource verticalLabelMargin}"
-                Content="{Binding ElementName=dialog, Path=DestinationLabelText}"
-                Target="{Binding ElementName=DestinationTextBox}" />
-            <TextBox 
+        <StackPanel
+            Orientation="Vertical"
+            Grid.Row="0">
+            <Label x:Uid="DestinationLabel" 
+                       x:Name="DestinationLabel"
+                       Margin="{StaticResource verticalLabelMargin}"
+                       Content="{Binding ElementName=dialog, Path=DestinationLabelText}"
+                       Target="{Binding ElementName=DestinationTextBox}" />
+            <ComboBox
                 x:Uid="DestinationBox"
                 Name="DestinationBox"
-                AutomationProperties.Name="DestinationName"
-                Text="{Binding DestinationName, UpdateSourceTrigger=PropertyChanged}"
-                Margin="2 0 2 0"/>
+                IsEditable="True"
+                IsReadOnly="False"
+                AutomationProperties.LabeledBy="{Binding ElementName=DestinationLabel}"
+                Text="{Binding SearchText, Mode=TwoWay}"
+                SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                ItemsSource="{Binding AvailableTypes, Mode=OneTime}"
+                BorderThickness="1" 
+                Margin="0 0 20 0"
+                MaxDropDownHeight="120">
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ComboBoxItem}">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    </Style>
+                </ComboBox.ItemContainerStyle>
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.TypeNameItem">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <imaging:CrispImage
+                                Grid.Column="0"
+                                Visibility="{Binding IsFromHistory, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                Margin="0 0 5 0" 
+                                Moniker="{x:Static imagecatalog:KnownMonikers.History}" />
+                            <TextBlock
+                                Grid.Column="3"
+                                HorizontalAlignment="Left"
+                                TextTrimming="CharacterEllipsis"
+                                Text="{Binding TypeName}"/>
+                            <TextBlock
+                                Grid.Column="4"
+                                HorizontalAlignment="Right"
+                                Text="{Binding DeclarationFile}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
 
 
-            <GroupBox>
+            <GroupBox
+                BorderThickness="0">
                 <GroupBox.Header>
                     <StackPanel 
                     Orientation="Horizontal"  
@@ -89,12 +130,10 @@
                     <vs:LiveTextBlock 
                         Grid.Column="1"
                         x:Name="TypeName"
-                        Text="{Binding DestinationName}"/>
+                        Text="{Binding DestinationName.TypeName}"/>
                 </Grid>
             </GroupBox>
         </StackPanel>
-
-
 
         <GroupBox 
             x:Uid="MemberSelectionGroupBox"

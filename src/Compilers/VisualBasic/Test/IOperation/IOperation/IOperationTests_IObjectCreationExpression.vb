@@ -1252,6 +1252,36 @@ IObjectCreationOperation (Constructor: Sub S..ctor()) (OperationKind.ObjectCreat
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ObjectCreationCollectionWithInaccessibleStructureConstructor()
+            Dim source = <![CDATA[
+Class C
+    Protected Structure S
+    End Structure
+End Class
+Class D
+    Shared Sub M(o)
+        M(New C.S())'BIND:"New C.S()"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30389: 'C.S' is not accessible in this context because it is 'Protected'.
+        M(New C.S())'BIND:"New C.S()"
+              ~~~
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: <null>) (OperationKind.ObjectCreation, Type: C.S, IsInvalid) (Syntax: 'New C.S()')
+  Arguments(0)
+  Initializer:
+    null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub ObjectCreationFlow_01()

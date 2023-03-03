@@ -2,5 +2,8 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
   <PropertyGroup>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+
+    <!-- NuGet: Package might not work without long file path support. -->
+    <NoWarn>$(NoWarn);NU5123</NoWarn>
   </PropertyGroup>
 </Project>

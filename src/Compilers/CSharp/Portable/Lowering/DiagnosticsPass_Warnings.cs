@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, method);
                     }
-                    else if (method.IsAbstract && method.IsStatic)
+                    else if ((method.IsAbstract || method.IsVirtual) && method.IsStatic)
                     {
                         Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                     }
@@ -314,25 +314,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is doing something like "if (0xFFFFFFFFU == 0)" -- these are likely to be machine-
             // generated code. 
 
-            if (node.Left.ConstantValue != null && node.Right.ConstantValue == null && node.Right.Kind == BoundKind.Conversion)
+            if (node.Left.ConstantValueOpt != null && node.Right.ConstantValueOpt == null && node.Right.Kind == BoundKind.Conversion)
             {
-                CheckVacuousComparisons(node, node.Left.ConstantValue, node.Right);
+                CheckVacuousComparisons(node, node.Left.ConstantValueOpt, node.Right);
             }
 
-            if (node.Right.ConstantValue != null && node.Left.ConstantValue == null && node.Left.Kind == BoundKind.Conversion)
+            if (node.Right.ConstantValueOpt != null && node.Left.ConstantValueOpt == null && node.Left.Kind == BoundKind.Conversion)
             {
-                CheckVacuousComparisons(node, node.Right.ConstantValue, node.Left);
+                CheckVacuousComparisons(node, node.Right.ConstantValueOpt, node.Left);
             }
 
             if (node.OperatorKind == BinaryOperatorKind.ObjectEqual || node.OperatorKind == BinaryOperatorKind.ObjectNotEqual)
             {
                 TypeSymbol t;
-                if (node.Left.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Left) && !(node.Left.ConstantValue != null && node.Left.ConstantValue.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Right, out t))
+                if (node.Left.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Left) && !(node.Left.ConstantValueOpt != null && node.Left.ConstantValueOpt.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Right, out t))
                 {
                     // Possible unintended reference comparison; to get a value comparison, cast the left hand side to type '{0}'
                     _diagnostics.Add(ErrorCode.WRN_BadRefCompareLeft, node.Syntax.Location, t);
                 }
-                else if (node.Right.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Right) && !(node.Right.ConstantValue != null && node.Right.ConstantValue.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Left, out t))
+                else if (node.Right.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Right) && !(node.Right.ConstantValueOpt != null && node.Right.ConstantValueOpt.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Left, out t))
                 {
                     // Possible unintended reference comparison; to get a value comparison, cast the right hand side to type '{0}'
                     _diagnostics.Add(ErrorCode.WRN_BadRefCompareRight, node.Syntax.Location, t);
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // when they are non-constants, or when one is a constant, that we would similarly warn 
             // when both are constants.
 
-            if (node.ConstantValue != null)
+            if (node.ConstantValueOpt != null)
             {
                 return;
             }
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ConstantValue constVal = operand.ConstantValue;
+            ConstantValue constVal = operand.ConstantValueOpt;
 
             if (constVal == null || !constVal.IsIntegral)
             {

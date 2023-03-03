@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,7 +61,11 @@ namespace Microsoft.CodeAnalysis.Classification
             var sourceLine = sourceText.Lines.GetLineFromPosition(referenceSpan.Start);
             var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
 
-            return TextSpan.FromBounds(firstNonWhitespacePosition, sourceLine.End);
+            // Get the span of the line from the first non-whitespace character to the end of it. Note: the reference
+            // span might actually start in the leading whitespace of the line (nothing prevents any of our
+            // languages/providers from doing that), so ensure that the line snap we clip out at least starts at that
+            // position so that our span math will be correct.
+            return TextSpan.FromBounds(Math.Min(firstNonWhitespacePosition, referenceSpan.Start), sourceLine.End);
         }
 
         private static async Task<ClassifiedSpansAndHighlightSpan> GetTaggedTextForDocumentRegionAsync(
@@ -78,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Classification
         private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document, TextSpan narrowSpan, TextSpan widenedSpan, ClassificationOptions options, CancellationToken cancellationToken)
         {
+            // We don't present things like static/assigned variables differently.  So pass `includeAdditiveSpans:
+            // false` as we don't need that data.
             var result = await ClassifierHelper.GetClassifiedSpansAsync(
-                document, widenedSpan, options, cancellationToken).ConfigureAwait(false);
+                document, widenedSpan, options, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefault)
-            {
                 return result;
-            }
 
             // For languages that don't expose a classification service, we show the entire
             // item as plain text. Break the text into three spans so that we can properly

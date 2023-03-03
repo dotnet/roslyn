@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
-    internal struct ParentHandle<T>
+    internal readonly struct ParentHandle<T>
     {
         private readonly ComHandle<object, object> _comHandle;
 

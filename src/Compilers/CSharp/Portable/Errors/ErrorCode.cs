@@ -1523,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
         ERR_InExtensionMustBeValueType = 8338,
-        // ERR_BadParameterModifiersOrder = 8339, // Modifier ordering is relaxed
+        // ERR_BadParameterModifiersOrder = 8339,
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeOther = 8349,
         ERR_CallArgMixing = 8350,
         ERR_MismatchedRefEscapeInTernary = 8351,
-        ERR_EscapeLocal = 8352,
+        ERR_EscapeVariable = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
         ERR_OutAttrOnInParam = 8355,
@@ -1610,6 +1610,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarianceInterfaceNesting = 8427,
         ERR_ImplicitIndexIndexerWithName = 8428,
         ERR_ImplicitRangeIndexerWithName = 8429,
+        // available range
+
+        WRN_ManagedAddr = 8500,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1723,7 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidModifierForLanguageVersion = 8703,
         ERR_ImplicitImplementationOfNonPublicInterfaceMember = 8704,
         ERR_MostSpecificImplementationIsNotFound = 8705,
-        ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
+        ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember = 8706,
 
         ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember = 8707,
         //ERR_NotBaseOrImplementedInterface = 8708,
@@ -2021,12 +2024,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncUpdateFailedDelegateTypeChanged = 8984,
 
         ERR_ListPatternRequiresLength = 8985,
-        ERR_DiscardCannotBeNullChecked = 8990,
-        ERR_MustNullCheckInImplementation = 8991,
-        ERR_NonNullableValueTypeIsNullChecked = 8992,
-        WRN_NullCheckedHasDefaultNull = 8993,
-        ERR_NullCheckingOnOutParameter = 8994,
-        WRN_NullCheckingOnNullableType = 8995,
+        ERR_ScopedMismatchInParameterOfTarget = 8986,
+        ERR_ScopedMismatchInParameterOfOverrideOrImplementation = 8987,
+        ERR_ScopedMismatchInParameterOfPartial = 8988,
+
+        // param-nullchecking feature removed from C# 11
+        ERR_ParameterNullCheckingNotSupported = 8989,
+        // ERR_DiscardCannotBeNullChecked = 8990,
+        // ERR_MustNullCheckInImplementation = 8991,
+        // ERR_NonNullableValueTypeIsNullChecked = 8992,
+        // WRN_NullCheckedHasDefaultNull = 8993,
+        // ERR_NullCheckingOnOutParameter = 8994,
+        // WRN_NullCheckingOnNullableType = 8995,
 
         ERR_RawStringNotInDirectives = 8996,
         ERR_UnterminatedRawString = 8997,
@@ -2066,11 +2075,116 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitConversionOperatorCantBeChecked = 9024,
         ERR_CheckedOperatorNeedsMatch = 9025,
 
-        ERR_CannotBeConvertedToUTF8 = 9026,
-        ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
+        ERR_CannotBeConvertedToUtf8 = 9026,
+        ERR_MisplacedUnchecked = 9027,
+        ERR_LineSpanDirectiveRequiresSpace = 9028,
+
+        ERR_RequiredNameDisallowed = 9029,
+        ERR_OverrideMustHaveRequired = 9030,
+        ERR_RequiredMemberCannotBeHidden = 9031,
+        ERR_RequiredMemberCannotBeLessVisibleThanContainingType = 9032,
+        ERR_ExplicitRequiredMember = 9033,
+        ERR_RequiredMemberMustBeSettable = 9034,
+        ERR_RequiredMemberMustBeSet = 9035,
+        ERR_RequiredMembersMustBeAssignedValue = 9036,
+        ERR_RequiredMembersInvalid = 9037,
+        ERR_RequiredMembersBaseTypeInvalid = 9038,
+        ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers = 9039,
+        ERR_NewConstraintCannotHaveRequiredMembers = 9040,
+        ERR_UnsupportedCompilerFeature = 9041,
+        WRN_ObsoleteMembersShouldNotBeRequired = 9042,
+        ERR_RefReturningPropertiesCannotBeRequired = 9043,
+        ERR_ImplicitImplementationOfInaccessibleInterfaceMember = 9044,
+        ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers = 9045,
+        ERR_BadAbstractEqualityOperatorSignature = 9046,
+        ERR_BadBinaryReadOnlySpanConcatenation = 9047,
+        ERR_ScopedRefAndRefStructOnly = 9048,
+        ERR_FixedFieldMustNotBeRef = 9049,
+        ERR_RefFieldCannotReferToRefStruct = 9050,
+
+        ERR_FileTypeDisallowedInSignature = 9051,
+        ERR_FileTypeNoExplicitAccessibility = 9052,
+        ERR_FileTypeBase = 9053,
+        ERR_FileTypeNested = 9054,
+        ERR_GlobalUsingStaticFileType = 9055,
+        ERR_FileTypeNameDisallowed = 9056,
+        WRN_AnalyzerReferencesNewerCompiler = 9057,
+        ERR_FeatureNotAvailableInVersion11 = 9058,
+        ERR_RefFieldInNonRefStruct = 9059,
+        ERR_CannotMatchOnINumberBase = 9060,
+        ERR_ScopedDiscard = 9061,
+        ERR_ScopedTypeNameDisallowed = 9062,
+        ERR_UnscopedRefAttributeUnsupportedTarget = 9063,
+        ERR_RuntimeDoesNotSupportRefFields = 9064,
+        ERR_ExplicitScopedRef = 9065,
+        ERR_UnscopedScoped = 9066,
+        WRN_DuplicateAnalyzerReference = 9067,
+        ERR_FileTypeNonUniquePath = 9068,
+        ERR_FilePathCannotBeConvertedToUtf8 = 9069,
+        ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
+        ERR_FileLocalDuplicateNameInNS = 9071,
+        ERR_DeconstructVariableCannotBeByRef = 9072,
+        WRN_ScopedMismatchInParameterOfTarget = 9073,
+        WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9074,
+        ERR_RefReturnScopedParameter = 9075,
+        ERR_RefReturnScopedParameter2 = 9076,
+        ERR_RefReturnOnlyParameter = 9077,
+        ERR_RefReturnOnlyParameter2 = 9078,
+        ERR_RefAssignReturnOnly = 9079,
+
+        WRN_EscapeVariable = 9080,
+        WRN_EscapeStackAlloc = 9081,
+        WRN_RefReturnNonreturnableLocal = 9082,
+        WRN_RefReturnNonreturnableLocal2 = 9083,
+        WRN_RefReturnStructThis = 9084,
+        WRN_RefAssignNarrower = 9085,
+        WRN_MismatchedRefEscapeInTernary = 9086,
+        WRN_RefReturnParameter = 9087,
+        WRN_RefReturnScopedParameter = 9088,
+        WRN_RefReturnParameter2 = 9089,
+        WRN_RefReturnScopedParameter2 = 9090,
+        WRN_RefReturnLocal = 9091,
+        WRN_RefReturnLocal2 = 9092,
+        WRN_RefAssignReturnOnly = 9093,
+        WRN_RefReturnOnlyParameter = 9094,
+        WRN_RefReturnOnlyParameter2 = 9095,
+        ERR_RefAssignValEscapeWider = 9096,
+        WRN_RefAssignValEscapeWider = 9097,
 
         #endregion
 
-        // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
+        #region diagnostics introduced for C# 12.0
+
+        ERR_ImplicitlyTypedDefaultParameter = 9098,
+        WRN_OptionalParamValueMismatch = 9099,
+        WRN_ParamsArrayInLambdaOnly = 9100,
+        ERR_UnscopedRefAttributeUnsupportedMemberTarget = 9101,
+        ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
+        ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
+        ERR_BadSpecialByRefUsing = 9104,
+
+        ERR_InvalidPrimaryConstructorParameterReference = 9105,
+        ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver = 9106,
+        WRN_CapturedPrimaryConstructorParameterPassedToBase = 9107,
+        ERR_AnonDelegateCantUseRefLike = 9108,
+        ERR_UnsupportedPrimaryConstructorParameterCapturingRef = 9109,
+        ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike = 9110,
+        ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember = 9111,
+        ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured = 9112,
+        WRN_UnreadPrimaryConstructorParameter = 9113,
+        ERR_AssgReadonlyPrimaryConstructorParameter = 9114,
+        ERR_RefReturnReadonlyPrimaryConstructorParameter = 9115,
+        ERR_RefReadonlyPrimaryConstructorParameter = 9116,
+        ERR_AssgReadonlyPrimaryConstructorParameter2 = 9117,
+        ERR_RefReturnReadonlyPrimaryConstructorParameter2 = 9118,
+        ERR_RefReadonlyPrimaryConstructorParameter2 = 9119,
+        ERR_RefReturnPrimaryConstructorParameter = 9120,
+        ERR_StructLayoutCyclePrimaryConstructorParameter = 9121,
+        ERR_UnexpectedParameterList = 9122,
+
+        #endregion
+
+        // Note: you will need to do the following after adding warnings:
+        //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
     }
 }

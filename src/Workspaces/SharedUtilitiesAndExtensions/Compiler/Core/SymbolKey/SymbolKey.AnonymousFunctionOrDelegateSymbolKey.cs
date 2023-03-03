@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis
                 // If this was a key for an anonymous delegate type, then go find the
                 // associated delegate for this lambda and return that instead of the 
                 // lambda function symbol itself.
-                if (isAnonymousDelegateType && symbol != null)
+                if (isAnonymousDelegateType && symbol is IMethodSymbol methodSymbol)
                 {
-                    var anonymousDelegate = ((IMethodSymbol)symbol).AssociatedAnonymousDelegate;
+                    var anonymousDelegate = methodSymbol.AssociatedAnonymousDelegate;
                     symbol = anonymousDelegate;
                 }
 

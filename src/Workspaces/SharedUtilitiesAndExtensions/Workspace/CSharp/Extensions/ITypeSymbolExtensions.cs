@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool TryGetRecordPrimaryConstructor(this INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
         {
-            if (typeSymbol.IsRecord)
+            if (typeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct)
             {
                 Debug.Assert(typeSymbol.GetParameters().IsDefaultOrEmpty, "If GetParameters extension handles record, we can remove the handling here.");
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // of the extension method and make sure the change is applicable to all these usages.
 
                 primaryConstructor = typeSymbol.InstanceConstructors.FirstOrDefault(
-                    c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is RecordDeclarationSyntax);
+                    c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is RecordDeclarationSyntax or ClassDeclarationSyntax or StructDeclarationSyntax);
                 return primaryConstructor is not null;
             }
 

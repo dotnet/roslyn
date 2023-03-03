@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// whether to emit an executable or a library, whether to optimize
     /// generated code, and so on.
     /// </summary>
+#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode().
     public sealed class CSharpCompilationOptions : CompilationOptions, IEquatable<CSharpCompilationOptions>
+#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode().
     {
         /// <summary>
         /// Allow unsafe regions (i.e. unsafe modifiers on members and unsafe blocks).
@@ -705,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(WarningLevel), WarningLevel));
             }
 
-            if (Usings != null && Usings.Any(u => !u.IsValidClrNamespaceName()))
+            if (Usings != null && Usings.Any(static u => !u.IsValidClrNamespaceName()))
             {
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(Usings), Usings.Where(u => !u.IsValidClrNamespaceName()).First() ?? "null"));
             }
@@ -748,12 +750,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Equals(obj as CSharpCompilationOptions);
         }
 
-        public override int GetHashCode()
+        protected override int ComputeHashCode()
         {
-            return Hash.Combine(base.GetHashCodeHelper(),
+            return Hash.Combine(GetHashCodeHelper(),
                    Hash.Combine(this.AllowUnsafe,
                    Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal),
-                   Hash.Combine(TopLevelBinderFlags.GetHashCode(), this.NullableContextOptions.GetHashCode()))));
+                   Hash.Combine(((uint)TopLevelBinderFlags).GetHashCode(), ((int)this.NullableContextOptions).GetHashCode()))));
         }
 
         internal override Diagnostic? FilterDiagnostic(Diagnostic diagnostic, CancellationToken cancellationToken)
@@ -847,7 +849,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-
         // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
         public CSharpCompilationOptions(
@@ -893,7 +894,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         [EditorBrowsable(EditorBrowsableState.Never)]
         public CSharpCompilationOptions(
             OutputKind outputKind,
+#pragma warning disable IDE0060 // Remove unused parameter
             bool reportSuppressedDiagnostics,
+#pragma warning restore IDE0060 // Remove unused parameter
             string? moduleName,
             string? mainTypeName,
             string? scriptClassName,

@@ -30,34 +30,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
 
+        public MemberSelection MemberSelectionControl { get; }
+
         // Use C# Extract Interface helpTopic for C# and VB.
         internal ExtractInterfaceDialog(ExtractInterfaceDialogViewModel viewModel)
             : base(helpTopic: "vs.csharp.refactoring.extractinterface")
         {
             ViewModel = viewModel;
-            SetCommandBindings();
+            MemberSelectionControl = new MemberSelection(ViewModel.MemberSelectionViewModel);
 
             Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
 
             InitializeComponent();
             DataContext = viewModel;
-        }
-
-        private void SetCommandBindings()
-        {
-            CommandBindings.Add(new CommandBinding(
-                new RoutedCommand(
-                    "SelectAllClickCommand",
-                    typeof(ExtractInterfaceDialog),
-                    new InputGestureCollection(new List<InputGesture> { new KeyGesture(Key.S, ModifierKeys.Alt) })),
-                Select_All_Click));
-
-            CommandBindings.Add(new CommandBinding(
-                new RoutedCommand(
-                    "DeselectAllClickCommand",
-                    typeof(ExtractInterfaceDialog),
-                    new InputGestureCollection(new List<InputGesture> { new KeyGesture(Key.D, ModifierKeys.Alt) })),
-                Deselect_All_Click));
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
@@ -70,40 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
             => DialogResult = false;
-
-        private void Select_All_Click(object sender, RoutedEventArgs e)
-            => ViewModel.SelectAll();
-
-        private void Deselect_All_Click(object sender, RoutedEventArgs e)
-            => ViewModel.DeselectAll();
-
-        private void OnListViewPreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
-            {
-                ToggleCheckSelection();
-                e.Handled = true;
-            }
-        }
-
-        private void OnListViewDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                ToggleCheckSelection();
-                e.Handled = true;
-            }
-        }
-
-        private void ToggleCheckSelection()
-        {
-            var selectedItems = Members.SelectedItems.OfType<ExtractInterfaceDialogViewModel.MemberSymbolViewModel>().ToArray();
-            var allChecked = selectedItems.All(m => m.IsChecked);
-            foreach (var item in selectedItems)
-            {
-                item.IsChecked = !allChecked;
-            }
-        }
 
         internal TestAccessor GetTestAccessor()
             => new(this);
@@ -119,9 +70,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             public Button CancelButton => _dialog.CancelButton;
 
-            public Button SelectAllButton => _dialog.SelectAllButton;
+            public Button SelectAllButton => _dialog.MemberSelectionControl.SelectAllButton;
 
-            public Button DeselectAllButton => _dialog.DeselectAllButton;
+            public Button DeselectAllButton => _dialog.MemberSelectionControl.DeselectAllButton;
 
             public RadioButton DestinationCurrentFileSelectionRadioButton => _dialog.DestinationControl.DestinationCurrentFileSelectionRadioButton;
 
@@ -129,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             public TextBox FileNameTextBox => _dialog.DestinationControl.fileNameTextBox;
 
-            public ListView Members => _dialog.Members;
+            public DataGrid Members => _dialog.MemberSelectionControl.MemberSelectionGrid;
         }
     }
 }

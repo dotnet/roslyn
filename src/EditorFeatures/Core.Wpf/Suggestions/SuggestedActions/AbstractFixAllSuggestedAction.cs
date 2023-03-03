@@ -28,12 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
+            Solution originalSolution,
             ITextBuffer subjectBuffer,
             IFixAllState fixAllState,
             CodeAction originalCodeAction,
             AbstractFixAllCodeAction fixAllCodeAction)
-            : base(threadingContext, sourceProvider, workspace, subjectBuffer,
-                   fixAllState.FixAllProvider, fixAllCodeAction)
+            : base(threadingContext,
+                   sourceProvider,
+                   workspace,
+                   originalSolution,
+                   subjectBuffer,
+                   fixAllState.FixAllProvider,
+                   fixAllCodeAction)
         {
             OriginalCodeAction = originalCodeAction;
             FixAllState = fixAllState;

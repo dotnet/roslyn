@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // if we are trying to format whole document, there is no reason to get initial context. just set
                 // initial indentation.
-                var data = new RootIndentationData(rootNode);
+                var data = new SimpleIndentationData(rootNode.FullSpan, indentation: 0);
                 _indentationTree.AddIntervalInPlace(data);
                 _indentationMap.Add(data.TextSpan);
                 return;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
                     initialOperation,
-                    t => _tokenStream.GetCurrentColumn(t), cancellationToken);
+                    _tokenStream.GetCurrentColumn, cancellationToken);
 
                 var data = new SimpleIndentationData(initialOperation.TextSpan, initialIndentation);
                 _indentationTree.AddIntervalInPlace(data);
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _initialIndentBlockOperations = indentationOperations;
             }
 
-            suppressOperations?.Do(o => this.AddInitialSuppressOperation(o));
+            suppressOperations?.Do(this.AddInitialSuppressOperation);
         }
 
         public void AddIndentBlockOperations(
@@ -190,23 +190,23 @@ namespace Microsoft.CodeAnalysis.Formatting
             // relative indentation case where indentation depends on other token
             if (operation.IsRelativeIndentation)
             {
-                var effectiveBaseToken = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ? _tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken) : operation.BaseToken;
-                var inseparableRegionStartingPosition = effectiveBaseToken.FullSpan.Start;
-                var relativeIndentationGetter = new Lazy<int>(() =>
+                Func<FormattingContext, IndentBlockOperation, SyntaxToken> effectiveBaseTokenGetter = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine)
+                    ? static (self, operation) => self._tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken)
+                    : static (self, operation) => operation.BaseToken;
+
+                Func<FormattingContext, IndentBlockOperation, SyntaxToken, int> relativeIndentationDeltaGetter = static (self, operation, effectiveBaseToken) =>
                 {
-                    var baseIndentationDelta = operation.GetAdjustedIndentationDelta(_engine.HeaderFacts, TreeData.Root, effectiveBaseToken);
-                    var indentationDelta = baseIndentationDelta * Options.IndentationSize;
+                    var baseIndentationDelta = operation.GetAdjustedIndentationDelta(self._engine.HeaderFacts, self.TreeData.Root, effectiveBaseToken);
+                    return baseIndentationDelta * self.Options.IndentationSize;
+                };
 
-                    // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
-                    var baseIndentation = _tokenStream.GetCurrentColumn(operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ?
-                                                                            _tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken) :
-                                                                            operation.BaseToken);
-
-                    return baseIndentation + indentationDelta;
-                }, isThreadSafe: true);
+                // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
+                Func<FormattingContext, SyntaxToken, int> relativeIndentationBaseIndentationGetter =
+                    static (self, effectiveBaseToken) => self._tokenStream.GetCurrentColumn(effectiveBaseToken);
 
                 // set new indentation
-                var relativeIndentationData = new RelativeIndentationData(inseparableRegionStartingPosition, intervalTreeSpan, operation, relativeIndentationGetter);
+                var inseparableRegionStartingPosition = effectiveBaseTokenGetter(this, operation).FullSpan.Start;
+                var relativeIndentationData = new RelativeIndentationData(this, inseparableRegionStartingPosition, intervalTreeSpan, operation, effectiveBaseTokenGetter, relativeIndentationDeltaGetter, relativeIndentationBaseIndentationGetter);
 
                 _indentationTree.AddIntervalInPlace(relativeIndentationData);
                 _relativeIndentationTree.AddIntervalInPlace(relativeIndentationData);
@@ -235,15 +235,29 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // get indentation based on its previous indentation
-            var indentationGetter = new Lazy<int>(() =>
+            if (indentationData is not AdjustedIndentationData { BaseIndentationData: var baseIndentationData, Adjustment: var totalAdjustment })
             {
-                var indentationDelta = operation.IndentationDeltaOrPosition * Options.IndentationSize;
+                (baseIndentationData, totalAdjustment) = (indentationData, 0);
+            }
 
-                return indentationData.Indentation + indentationDelta;
-            }, isThreadSafe: true);
+            totalAdjustment += operation.IndentationDeltaOrPosition * Options.IndentationSize;
+
+            IndentationData derived;
+            if (totalAdjustment == 0)
+            {
+                derived = baseIndentationData.WithTextSpan(intervalTreeSpan);
+            }
+            else if (baseIndentationData is SimpleIndentationData { Indentation: var baseIndentation })
+            {
+                derived = new SimpleIndentationData(intervalTreeSpan, baseIndentation + totalAdjustment);
+            }
+            else
+            {
+                derived = new AdjustedIndentationData(intervalTreeSpan, baseIndentationData, totalAdjustment);
+            }
 
             // set new indentation
-            _indentationTree.AddIntervalInPlace(new LazyIndentationData(intervalTreeSpan, indentationGetter));
+            _indentationTree.AddIntervalInPlace(derived);
             _indentationMap.Add(intervalTreeSpan);
         }
 

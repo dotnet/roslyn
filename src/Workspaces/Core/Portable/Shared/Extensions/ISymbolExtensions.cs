@@ -16,6 +16,7 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -25,17 +26,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ISymbolExtensions
     {
-        public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
-        {
-            return new DeclarationModifiers(
-                isStatic: symbol.IsStatic,
-                isAbstract: symbol.IsAbstract,
-                isUnsafe: symbol.RequiresUnsafeModifier(),
-                isVirtual: symbol.IsVirtual,
-                isOverride: symbol.IsOverride,
-                isSealed: symbol.IsSealed);
-        }
-
         /// <summary>
         /// Checks a given symbol for browsability based on its declaration location, attributes 
         /// explicitly limiting browsability, and whether showing of advanced members is enabled. 
@@ -144,29 +134,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, IMethodSymbol? constructor)
         {
             if (constructor == null)
-            {
                 return (isProhibited: false, isEditorBrowsableStateAdvanced: false);
-            }
 
             foreach (var attribute in attributes)
             {
                 if (Equals(attribute.AttributeConstructor, constructor) &&
-                    attribute.ConstructorArguments.Length == 1 &&
-                    attribute.ConstructorArguments.First().Value is int)
+                    attribute.ConstructorArguments is [{ Value: int value }])
                 {
-#nullable disable // Should use unboxed value from previous 'is int' https://github.com/dotnet/roslyn/issues/39166
-                    var state = (EditorBrowsableState)attribute.ConstructorArguments.First().Value;
-#nullable enable
-
+                    var state = (EditorBrowsableState)value;
                     if (EditorBrowsableState.Never == state)
-                    {
                         return (isProhibited: true, isEditorBrowsableStateAdvanced: false);
-                    }
 
                     if (EditorBrowsableState.Advanced == state)
-                    {
                         return (isProhibited: hideAdvancedMembers, isEditorBrowsableStateAdvanced: true);
-                    }
                 }
             }
 
@@ -452,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var typeParameterRefs = document.Descendants(DocumentationCommentXmlNames.TypeParameterReferenceElementName).ToImmutableArray();
                 foreach (var typeParameterRef in typeParameterRefs)
                 {
-                    if (typeParameterRef.Attribute(DocumentationCommentXmlNames.NameAttributeName) is var typeParamName)
+                    if (typeParameterRef.Attribute(DocumentationCommentXmlNames.NameAttributeName) is XAttribute typeParamName)
                     {
                         var index = symbol.OriginalDefinition.GetAllTypeParameters().IndexOf(p => p.Name == typeParamName.Value);
                         if (index >= 0)
@@ -678,7 +658,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // check to see if we're referencing a symbol defined in source.
             static bool isSymbolDefinedInSource(Location l) => l.IsInSource;
             return symbols.WhereAsArray((s, arg) =>
-                (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
+                // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
+                // of each namespace symbol, which might end up allocating in LOH
+                (s.IsNamespace() || s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
                     arg.hideAdvancedMembers,
@@ -689,7 +671,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
         {
-            var overriddenSymbols = new HashSet<ISymbol>();
+            var overriddenSymbols = new MetadataUnifyingSymbolHashSet();
 
             foreach (var symbol in symbols)
             {

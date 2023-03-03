@@ -16,14 +16,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [Export(typeof(DefaultCapabilitiesProvider)), Shared]
-    internal class DefaultCapabilitiesProvider : ICapabilitiesProvider
+    [Export(typeof(ExperimentalCapabilitiesProvider)), Shared]
+    internal class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
     {
         private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultCapabilitiesProvider(
+        public ExperimentalCapabilitiesProvider(
             [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
         {
             _completionProviders = completionProviders
@@ -44,9 +44,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true }
-                ? GetVSServerCapabilities()
-                : new ServerCapabilities();
+            var supportsVsExtensions = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true };
+            var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new ServerCapabilities();
 
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
             var triggerCharacters = _completionProviders.SelectMany(
@@ -69,7 +68,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             capabilities.DocumentFormattingProvider = true;
             capabilities.DocumentRangeFormattingProvider = true;
             capabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } };
-            capabilities.ReferencesProvider = true;
+            capabilities.ReferencesProvider = new ReferenceOptions
+            {
+                WorkDoneProgress = true,
+            };
+
             capabilities.FoldingRangeProvider = true;
             capabilities.ExecuteCommandProvider = new ExecuteCommandOptions();
             capabilities.TextDocumentSync = new TextDocumentSyncOptions
@@ -95,6 +98,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
             };
 
+            capabilities.CodeLensProvider = new CodeLensOptions
+            {
+                ResolveProvider = true,
+                // TODO - Code lens should support streaming
+                // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730465
+                WorkDoneProgress = false,
+            };
+
+            if (!supportsVsExtensions)
+            {
+                capabilities.DiagnosticOptions = new DiagnosticOptions
+                {
+                    InterFileDependencies = true,
+                    WorkDoneProgress = true,
+                    WorkspaceDiagnostics = true,
+                };
+            }
+
             return capabilities;
         }
 
@@ -105,7 +126,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 DocumentHighlightProvider = true,
                 ProjectContextProvider = true,
                 BreakableRangeProvider = true,
-                SpellCheckingProvider = true,
 
                 // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
                 SupportsDiagnosticRequests = false,

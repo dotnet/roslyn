@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public MetadataConstant CompileTimeValue
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public ImmutableArray<Cci.ICustomModifier> CustomModifiers
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsConstant
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public bool IsModified => false;

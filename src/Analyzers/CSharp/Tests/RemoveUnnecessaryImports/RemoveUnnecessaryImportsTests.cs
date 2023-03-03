@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -19,176 +18,199 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
         CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer,
         CSharpRemoveUnnecessaryImportsCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     public class RemoveUnnecessaryImportsTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestNoReferences()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using System;
-using System.Collections.Generic;
-using System.Linq;|}|]
+                """
+                [|{|IDE0005:using System;
+                using System.Collections.Generic;
+                using System.Linq;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}",
-@"class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """,
+                """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestNoReferencesWithCopyright()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"// Copyright (c) Somebody.
+                """
+                // Copyright (c) Somebody.
 
-[|{|IDE0005:using System;
-using System.Collections.Generic;
-using System.Linq;|}|]
+                [|{|IDE0005:using System;
+                using System.Collections.Generic;
+                using System.Linq;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}",
-@"// Copyright (c) Somebody.
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """,
+                """
+                // Copyright (c) Somebody.
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """);
         }
 
-        [WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
         public async Task TestReferencesWithCopyrightAndPreservableTrivia()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"// Copyright (c) Somebody.
+                """
+                // Copyright (c) Somebody.
 
-[|using System;
+                [|using System;
 
-{|IDE0005:using System.Collections.Generic;
-// This is important
-using System.Linq;|}|]
+                {|IDE0005:using System.Collections.Generic;
+                // This is important
+                using System.Linq;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action a;
-    }
-}",
-@"// Copyright (c) Somebody.
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Action a;
+                    }
+                }
+                """,
+                """
+                // Copyright (c) Somebody.
 
-using System;
-// This is important
+                using System;
+                // This is important
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action a;
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Action a;
+                    }
+                }
+                """);
         }
 
-        [WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
         public async Task TestReferencesWithCopyrightAndGroupings()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"// Copyright (c) Somebody.
+                """
+                // Copyright (c) Somebody.
 
-[|using System;
+                [|using System;
 
-{|IDE0005:using System.Collections.Generic;
+                {|IDE0005:using System.Collections.Generic;
 
-using System.Linq;|}|]
+                using System.Linq;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action a;
-    }
-}",
-@"// Copyright (c) Somebody.
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Action a;
+                    }
+                }
+                """,
+                """
+                // Copyright (c) Somebody.
 
-using System;
+                using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action a;
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Action a;
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestIdentifierReferenceInTypeContext()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|using System;
-{|IDE0005:using System.Collections.Generic;
-using System.Linq;|}|]
+                """
+                [|using System;
+                {|IDE0005:using System.Collections.Generic;
+                using System.Linq;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        DateTime d;
-    }
-}",
-@"using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        DateTime d;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        DateTime d;
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        DateTime d;
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestGeneratedCode()
         {
-            var source = @"// <auto-generated/>
+            var source = """
+                // <auto-generated/>
 
-[|{|IDE0005_gen:using System;|}
-using System.Collections.Generic;
-{|IDE0005_gen:using System.Linq;|}|]
+                [|{|IDE0005_gen:using System;|}
+                using System.Collections.Generic;
+                {|IDE0005_gen:using System.Linq;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        List<int> d;
-    }
-}";
-            var fixedSource = @"// <auto-generated/>
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        List<int> d;
+                    }
+                }
+                """;
+            var fixedSource = """
+                // <auto-generated/>
 
-using System.Collections.Generic;
+                using System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        List<int> d;
-    }
-}";
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        List<int> d;
+                    }
+                }
+                """;
 
             // Fix All operations in generated code do not apply changes
             var batchFixedSource = source;
@@ -205,751 +227,823 @@ class Program
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestGenericReferenceInTypeContext()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using System;|}
-using System.Collections.Generic;
-{|IDE0005:using System.Linq;|}|]
+                """
+                [|{|IDE0005:using System;|}
+                using System.Collections.Generic;
+                {|IDE0005:using System.Linq;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        List<int> list;
-    }
-}",
-@"using System.Collections.Generic;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        List<int> list;
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        List<int> list;
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        List<int> list;
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestMultipleReferences()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|using System;
-using System.Collections.Generic;
-{|IDE0005:using System.Linq;|}|]
+                """
+                [|using System;
+                using System.Collections.Generic;
+                {|IDE0005:using System.Linq;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        List<int> list;
-        DateTime d;
-    }
-}",
-@"using System;
-using System.Collections.Generic;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        List<int> list;
+                        DateTime d;
+                    }
+                }
+                """,
+                """
+                using System;
+                using System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        List<int> list;
-        DateTime d;
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        List<int> list;
+                        DateTime d;
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestExtensionMethodReference()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using System;
-using System.Collections.Generic;|}
-using System.Linq;|]
+                """
+                [|{|IDE0005:using System;
+                using System.Collections.Generic;|}
+                using System.Linq;|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        args.Where(a => a.Length > 10);
-    }
-}",
-@"using System.Linq;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        args.Where(a => a.Length > 10);
+                    }
+                }
+                """,
+                """
+                using System.Linq;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        args.Where(a => a.Length > 10);
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        args.Where(a => a.Length > 10);
+                    }
+                }
+                """);
         }
 
-        [WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
         public async Task TestExtensionMethodLinq()
         {
             // NOTE: Intentionally not running this test with Script options, because in Script,
             // NOTE: class "Goo" is placed inside the script class, and can't be seen by the extension
             // NOTE: method Select, which is not inside the script class.
-            var code = @"using System;
-using System.Collections;
-using SomeNS;
+            var code = """
+                using System;
+                using System.Collections;
+                using SomeNS;
 
-class Program
-{
-    static void Main()
-    {
-        Goo qq = new Goo();
-        IEnumerable x = from q in qq
-                        select q;
-    }
-}
+                class Program
+                {
+                    static void Main()
+                    {
+                        Goo qq = new Goo();
+                        IEnumerable x = from q in qq
+                                        select q;
+                    }
+                }
 
-public class Goo
-{
-    public Goo()
-    {
-    }
-}
+                public class Goo
+                {
+                    public Goo()
+                    {
+                    }
+                }
 
-namespace SomeNS
-{
-    public static class SomeClass
-    {
-        public static IEnumerable Select(this Goo o, Func<object, object> f)
-        {
-            return null;
-        }
-    }
-}";
+                namespace SomeNS
+                {
+                    public static class SomeClass
+                    {
+                        public static IEnumerable Select(this Goo o, Func<object, object> f)
+                        {
+                            return null;
+                        }
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestAliasQualifiedAliasReference()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using System;|}
-using G = System.Collections.Generic;
-{|IDE0005:using System.Linq;|}|]
+                """
+                [|{|IDE0005:using System;|}
+                using G = System.Collections.Generic;
+                {|IDE0005:using System.Linq;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        G::List<int> list;
-    }
-}",
-@"using G = System.Collections.Generic;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        G::List<int> list;
+                    }
+                }
+                """,
+                """
+                using G = System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        G::List<int> list;
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        G::List<int> list;
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestQualifiedAliasReference()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using System;|}
-using G = System.Collections.Generic;|]
+                """
+                [|{|IDE0005:using System;|}
+                using G = System.Collections.Generic;|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        G.List<int> list;
-    }
-}",
-@"using G = System.Collections.Generic;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        G.List<int> list;
+                    }
+                }
+                """,
+                """
+                using G = System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        G.List<int> list;
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        G.List<int> list;
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestNestedUnusedUsings()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using System;
-using System.Collections.Generic;
-using System.Linq;|}|]
+                """
+                [|{|IDE0005:using System;
+                using System.Collections.Generic;
+                using System.Linq;|}|]
 
-namespace N
-{
-    using System;
+                namespace N
+                {
+                    using System;
 
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            DateTime d;
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            DateTime d;
+                        }
+                    }
+                }
+                """,
+                """
+                namespace N
+                {
+                    using System;
+
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            DateTime d;
+                        }
+                    }
+                }
+                """);
         }
-    }
-}",
-@"namespace N
-{
-    using System;
 
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            DateTime d;
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestNestedUnusedUsings_FileScopedNamespace()
         {
             await new VerifyCS.Test
             {
                 TestCode =
-@"[|{|IDE0005:using System;
-using System.Collections.Generic;
-using System.Linq;|}|]
+                """
+                [|{|IDE0005:using System;
+                using System.Collections.Generic;
+                using System.Linq;|}|]
 
-namespace N;
+                namespace N;
 
-using System;
+                using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        DateTime d;
-    }
-}
-",
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        DateTime d;
+                    }
+                }
+                """,
                 FixedCode =
-@"namespace N;
+                """
+                namespace N;
 
-using System;
+                using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        DateTime d;
-    }
-}
-",
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        DateTime d;
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestNestedUsedUsings()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|using System;
-{|IDE0005:using System.Collections.Generic;
-using System.Linq;|}|]
+                """
+                [|using System;
+                {|IDE0005:using System.Collections.Generic;
+                using System.Linq;|}|]
 
-namespace N
-{
-    using System;
+                namespace N
+                {
+                    using System;
 
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            DateTime d;
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            DateTime d;
+                        }
+                    }
+                }
+
+                class F
+                {
+                    DateTime d;
+                }
+                """,
+                """
+                using System;
+
+                namespace N
+                {
+                    using System;
+
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            DateTime d;
+                        }
+                    }
+                }
+
+                class F
+                {
+                    DateTime d;
+                }
+                """);
         }
-    }
-}
 
-class F
-{
-    DateTime d;
-}",
-@"using System;
-
-namespace N
-{
-    using System;
-
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            DateTime d;
-        }
-    }
-}
-
-class F
-{
-    DateTime d;
-}");
-        }
-
-        [WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
         public async Task TestNestedUsedUsings2()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|using System;
-{|IDE0005:using System.Collections.Generic;
-using System.Linq;|}|]
+                """
+                [|using System;
+                {|IDE0005:using System.Collections.Generic;
+                using System.Linq;|}|]
 
-namespace N
-{
-    [|using System;
-    {|IDE0005:using System.Collections.Generic;|}|]
+                namespace N
+                {
+                    [|using System;
+                    {|IDE0005:using System.Collections.Generic;|}|]
 
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            DateTime d;
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            DateTime d;
+                        }
+                    }
+                }
+
+                class F
+                {
+                    DateTime d;
+                }
+                """,
+                """
+                using System;
+
+                namespace N
+                {
+                    using System;
+
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            DateTime d;
+                        }
+                    }
+                }
+
+                class F
+                {
+                    DateTime d;
+                }
+                """);
         }
-    }
-}
 
-class F
-{
-    DateTime d;
-}",
-@"using System;
-
-namespace N
-{
-    using System;
-
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            DateTime d;
-        }
-    }
-}
-
-class F
-{
-    DateTime d;
-}");
-        }
-
-        [WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
         public async Task TestNestedUsedUsings2_FileScopedNamespace()
         {
             await new VerifyCS.Test
             {
                 TestCode =
-@"[|{|IDE0005:using System;
-using System.Collections.Generic;
-using System.Linq;|}|]
+                """
+                [|{|IDE0005:using System;
+                using System.Collections.Generic;
+                using System.Linq;|}|]
 
-namespace N;
+                namespace N;
 
-[|using System;
-{|IDE0005:using System.Collections.Generic;|}|]
+                [|using System;
+                {|IDE0005:using System.Collections.Generic;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        DateTime d;
-    }
-}
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        DateTime d;
+                    }
+                }
 
-class F
-{
-    DateTime d;
-}",
+                class F
+                {
+                    DateTime d;
+                }
+                """,
                 FixedCode =
-@"namespace N;
+                """
+                namespace N;
 
-using System;
+                using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        DateTime d;
-    }
-}
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        DateTime d;
+                    }
+                }
 
-class F
-{
-    DateTime d;
-}",
+                class F
+                {
+                    DateTime d;
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestAttribute()
         {
-            var code = @"using SomeNamespace;
+            var code = """
+                using SomeNamespace;
 
-[SomeAttr]
-class Goo
-{
-}
+                [SomeAttr]
+                class Goo
+                {
+                }
 
-namespace SomeNamespace
-{
-    public class SomeAttrAttribute : System.Attribute
-    {
-    }
-}";
+                namespace SomeNamespace
+                {
+                    public class SomeAttrAttribute : System.Attribute
+                    {
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestAttributeArgument()
         {
-            var code = @"using goo;
+            var code = """
+                using goo;
 
-[SomeAttribute(typeof(SomeClass))]
-class Program
-{
-    static void Main()
-    {
-    }
-}
+                [SomeAttribute(typeof(SomeClass))]
+                class Program
+                {
+                    static void Main()
+                    {
+                    }
+                }
 
-public class SomeAttribute : System.Attribute
-{
-    public SomeAttribute(object f)
-    {
-    }
-}
+                public class SomeAttribute : System.Attribute
+                {
+                    public SomeAttribute(object f)
+                    {
+                    }
+                }
 
-namespace goo
-{
-    public class SomeClass
-    {
-    }
-}";
+                namespace goo
+                {
+                    public class SomeClass
+                    {
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestRemoveAllWithSurroundingPreprocessor()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"#if true
+                """
+                #if true
 
-[|{|IDE0005:using System;
-using System.Collections.Generic;|}|]
+                [|{|IDE0005:using System;
+                using System.Collections.Generic;|}|]
 
-#endif
+                #endif
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}",
-@"#if true
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """,
+                """
+                #if true
 
 
-#endif
+                #endif
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestRemoveFirstWithSurroundingPreprocessor()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"#if true
+                """
+                #if true
 
-[|{|IDE0005:using System;|}
-using System.Collections.Generic;|]
+                [|{|IDE0005:using System;|}
+                using System.Collections.Generic;|]
 
-#endif
+                #endif
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        List<int> list;
-    }
-}",
-@"#if true
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        List<int> list;
+                    }
+                }
+                """,
+                """
+                #if true
 
-using System.Collections.Generic;
+                using System.Collections.Generic;
 
-#endif
+                #endif
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        List<int> list;
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        List<int> list;
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestRemoveAllWithSurroundingPreprocessor2()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"namespace N
-{
-#if true
+                """
+                namespace N
+                {
+                #if true
 
-    [|{|IDE0005:using System;
-    using System.Collections.Generic;|}|]
+                    [|{|IDE0005:using System;
+                    using System.Collections.Generic;|}|]
 
-#endif
+                #endif
 
-    class Program
-    {
-        static void Main(string[] args)
-        {
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                        }
+                    }
+                }
+                """,
+                """
+                namespace N
+                {
+                #if true
+
+
+                #endif
+
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                        }
+                    }
+                }
+                """);
         }
-    }
-}",
-@"namespace N
-{
-#if true
 
-
-#endif
-
-    class Program
-    {
-        static void Main(string[] args)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestRemoveOneWithSurroundingPreprocessor2()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"namespace N
-{
-#if true
+                """
+                namespace N
+                {
+                #if true
 
-    [|{|IDE0005:using System;|}
-    using System.Collections.Generic;|]
+                    [|{|IDE0005:using System;|}
+                    using System.Collections.Generic;|]
 
-#endif
+                #endif
 
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            List<int> list;
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            List<int> list;
+                        }
+                    }
+                }
+                """,
+                """
+                namespace N
+                {
+                #if true
+
+                    using System.Collections.Generic;
+
+                #endif
+
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            List<int> list;
+                        }
+                    }
+                }
+                """);
         }
-    }
-}",
-@"namespace N
-{
-#if true
 
-    using System.Collections.Generic;
-
-#endif
-
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            List<int> list;
-        }
-    }
-}");
-        }
-
-        [WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
         public async Task TestComments8718()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|using Goo; {|IDE0005:using System.Collections.Generic; /*comment*/|} using Goo2;|]
+                """
+                [|using Goo; {|IDE0005:using System.Collections.Generic; /*comment*/|} using Goo2;|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Bar q;
-        Bar2 qq;
-    }
-}
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Bar q;
+                        Bar2 qq;
+                    }
+                }
 
-namespace Goo
-{
-    public class Bar
-    {
-    }
-}
+                namespace Goo
+                {
+                    public class Bar
+                    {
+                    }
+                }
 
-namespace Goo2
-{
-    public class Bar2
-    {
-    }
-}",
-@"using Goo;
-using Goo2;
+                namespace Goo2
+                {
+                    public class Bar2
+                    {
+                    }
+                }
+                """,
+                """
+                using Goo;
+                using Goo2;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Bar q;
-        Bar2 qq;
-    }
-}
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Bar q;
+                        Bar2 qq;
+                    }
+                }
 
-namespace Goo
-{
-    public class Bar
-    {
-    }
-}
+                namespace Goo
+                {
+                    public class Bar
+                    {
+                    }
+                }
 
-namespace Goo2
-{
-    public class Bar2
-    {
-    }
-}");
+                namespace Goo2
+                {
+                    public class Bar2
+                    {
+                    }
+                }
+                """);
         }
 
-        [WorkItem(528609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528609")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(528609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528609")]
         public async Task TestComments()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"//c1
-/*c2*/
-{|IDE0005:[|using/*c3*/ System/*c4*/;|] //c5|}
-//c6
+                """
+                //c1
+                /*c2*/
+                {|IDE0005:[|using/*c3*/ System/*c4*/;|] //c5|}
+                //c6
 
-class Program
-{
-}
-",
-@"//c1
-/*c2*/
-//c6
+                class Program
+                {
+                }
+                """,
+                """
+                //c1
+                /*c2*/
+                //c6
 
-class Program
-{
-}
-");
+                class Program
+                {
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestUnusedUsing()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using System.Collections.Generic;|}|]
+                """
+                [|{|IDE0005:using System.Collections.Generic;|}|]
 
-class Program
-{
-    static void Main()
-    {
-    }
-}",
-@"class Program
-{
-    static void Main()
-    {
-    }
-}");
+                class Program
+                {
+                    static void Main()
+                    {
+                    }
+                }
+                """,
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                    }
+                }
+                """);
         }
 
-        [WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
         public async Task TestSimpleQuery()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using System;
-using System.Collections.Generic;|}
-using System.Linq;|]
+                """
+                [|{|IDE0005:using System;
+                using System.Collections.Generic;|}
+                using System.Linq;|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var q = from a in args
-                where a.Length > 21
-                select a;
-    }
-}",
-@"using System.Linq;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var q = from a in args
+                                where a.Length > 21
+                                select a;
+                    }
+                }
+                """,
+                """
+                using System.Linq;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var q = from a in args
-                where a.Length > 21
-                select a;
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var q = from a in args
+                                where a.Length > 21
+                                select a;
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestUsingStaticClassAccessField1()
         {
             // Test intentionally uses 'using' instead of 'using static'
-            var testCode = @"[|{|IDE0005:using {|CS0138:SomeNS.Goo|};|}|]
+            var testCode = """
+                [|{|IDE0005:using {|CS0138:SomeNS.Goo|};|}|]
 
-class Program
-{
-    static void Main()
-    {
-        var q = {|CS0103:x|};
-    }
-}
+                class Program
+                {
+                    static void Main()
+                    {
+                        var q = {|CS0103:x|};
+                    }
+                }
 
-namespace SomeNS
-{
-    static class Goo
-    {
-        public static int x;
-    }
-}";
-            var fixedCode = @"class Program
-{
-    static void Main()
-    {
-        var q = {|CS0103:x|};
-    }
-}
+                namespace SomeNS
+                {
+                    static class Goo
+                    {
+                        public static int x;
+                    }
+                }
+                """;
+            var fixedCode = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        var q = {|CS0103:x|};
+                    }
+                }
 
-namespace SomeNS
-{
-    static class Goo
-    {
-        public static int x;
-    }
-}";
+                namespace SomeNS
+                {
+                    static class Goo
+                    {
+                        public static int x;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -959,72 +1053,78 @@ namespace SomeNS
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestUsingStaticClassAccessField2()
         {
-            var code = @"using static SomeNS.Goo;
+            var code = """
+                using static SomeNS.Goo;
 
-class Program
-{
-    static void Main()
-    {
-        var q = x;
-    }
-}
+                class Program
+                {
+                    static void Main()
+                    {
+                        var q = x;
+                    }
+                }
 
-namespace SomeNS
-{
-    static class Goo
-    {
-        public static int x;
-    }
-}";
+                namespace SomeNS
+                {
+                    static class Goo
+                    {
+                        public static int x;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestUsingStaticClassAccessMethod1()
         {
             // Test intentionally uses 'using' instead of 'using static'
-            var testCode = @"[|{|IDE0005:using {|CS0138:SomeNS.Goo|};|}|]
+            var testCode = """
+                [|{|IDE0005:using {|CS0138:SomeNS.Goo|};|}|]
 
-class Program
-{
-    static void Main()
-    {
-        var q = {|CS0103:X|}();
-    }
-}
+                class Program
+                {
+                    static void Main()
+                    {
+                        var q = {|CS0103:X|}();
+                    }
+                }
 
-namespace SomeNS
-{
-    static class Goo
-    {
-        public static int X()
-        {
-            return 42;
-        }
-    }
-}";
-            var fixedCode = @"[|class Program
-{
-    static void Main()
-    {
-        var q = {|CS0103:X|}();
-    }
-}
+                namespace SomeNS
+                {
+                    static class Goo
+                    {
+                        public static int X()
+                        {
+                            return 42;
+                        }
+                    }
+                }
+                """;
+            var fixedCode = """
+                [|class Program
+                {
+                    static void Main()
+                    {
+                        var q = {|CS0103:X|}();
+                    }
+                }
 
-namespace SomeNS
-{
-    static class Goo
-    {
-        public static int X()
-        {
-            return 42;
-        }
-    }
-}|]";
+                namespace SomeNS
+                {
+                    static class Goo
+                    {
+                        public static int X()
+                        {
+                            return 42;
+                        }
+                    }
+                }|]
+                """;
 
             await new VerifyCS.Test
             {
@@ -1034,279 +1134,304 @@ namespace SomeNS
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestUsingStaticClassAccessMethod2()
         {
-            var code = @"using static SomeNS.Goo;
+            var code = """
+                using static SomeNS.Goo;
 
-class Program
-{
-    static void Main()
-    {
-        var q = X();
-    }
-}
+                class Program
+                {
+                    static void Main()
+                    {
+                        var q = X();
+                    }
+                }
 
-namespace SomeNS
-{
-    static class Goo
-    {
-        public static int X()
-        {
-            return 42;
-        }
-    }
-}";
+                namespace SomeNS
+                {
+                    static class Goo
+                    {
+                        public static int X()
+                        {
+                            return 42;
+                        }
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(8846, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(8846, "DevDiv_Projects/Roslyn")]
         public async Task TestUnusedTypeImportIsRemoved1()
         {
             // Test intentionally uses 'using' instead of 'using static'
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using {|CS0138:SomeNS.Goo|};|}|]
+                """
+                [|{|IDE0005:using {|CS0138:SomeNS.Goo|};|}|]
 
-class Program
-{
-    static void Main()
-    {
-    }
-}
+                class Program
+                {
+                    static void Main()
+                    {
+                    }
+                }
 
-namespace SomeNS
-{
-    static class Goo
-    {
-    }
-}",
-@"class Program
-{
-    static void Main()
-    {
-    }
-}
+                namespace SomeNS
+                {
+                    static class Goo
+                    {
+                    }
+                }
+                """,
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                    }
+                }
 
-namespace SomeNS
-{
-    static class Goo
-    {
-    }
-}");
+                namespace SomeNS
+                {
+                    static class Goo
+                    {
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestUnusedTypeImportIsRemoved2()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using static SomeNS.Goo;|}|]
+                """
+                [|{|IDE0005:using static SomeNS.Goo;|}|]
 
-class Program
-{
-    static void Main()
-    {
-    }
-}
+                class Program
+                {
+                    static void Main()
+                    {
+                    }
+                }
 
-namespace SomeNS
-{
-    static class Goo
-    {
-    }
-}",
-@"class Program
-{
-    static void Main()
-    {
-    }
-}
+                namespace SomeNS
+                {
+                    static class Goo
+                    {
+                    }
+                }
+                """,
+                """
+                class Program
+                {
+                    static void Main()
+                    {
+                    }
+                }
 
-namespace SomeNS
-{
-    static class Goo
-    {
-    }
-}");
+                namespace SomeNS
+                {
+                    static class Goo
+                    {
+                    }
+                }
+                """);
         }
 
-        [WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
         public async Task TestRemoveTrailingComment()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"{|IDE0005:[|using System.Collections.Generic;|] // comment|}
+                """
+                {|IDE0005:[|using System.Collections.Generic;|] // comment|}
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}
-
-",
-@"class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}
-
-");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """,
+                """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """);
         }
 
-        [WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
         public async Task TestRemovingUnbindableUsing()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using {|CS0246:gibberish|};|}|]
+                """
+                [|{|IDE0005:using {|CS0246:gibberish|};|}|]
 
-public static class Program
-{
-}",
-@"public static class Program
-{
-}");
+                public static class Program
+                {
+                }
+                """,
+                """
+                public static class Program
+                {
+                }
+                """);
         }
 
-        [WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
         public async Task TestAliasInUse()
         {
-            var code = @"using GIBBERISH = Goo.Bar;
+            var code = """
+                using GIBBERISH = Goo.Bar;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        GIBBERISH x;
-    }
-}
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        GIBBERISH x;
+                    }
+                }
 
-namespace Goo
-{
-    public class Bar
-    {
-    }
-}";
+                namespace Goo
+                {
+                    public class Bar
+                    {
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
         public async Task TestRemoveUnboundUsing()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using {|CS0246:gibberish|};|}|]
+                """
+                [|{|IDE0005:using {|CS0246:gibberish|};|}|]
 
-public static class Program
-{
-}",
-@"public static class Program
-{
-}");
+                public static class Program
+                {
+                }
+                """,
+                """
+                public static class Program
+                {
+                }
+                """);
         }
 
-        [WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
         public async Task TestLeadingNewlines1()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using System;
-using System.Collections.Generic;
-using System.Linq;|}|]
+                """
+                [|{|IDE0005:using System;
+                using System.Collections.Generic;
+                using System.Linq;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
 
-    }
-}",
-@"class Program
-{
-    static void Main(string[] args)
-    {
+                    }
+                }
+                """,
+                """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
 
-    }
-}");
+                    }
+                }
+                """);
         }
 
-        [WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
         public async Task TestRemoveLeadingNewLines2()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"namespace N
-{
-    [|{|IDE0005:using System;
-    using System.Collections.Generic;
-    using System.Linq;|}|]
+                """
+                namespace N
+                {
+                    [|{|IDE0005:using System;
+                    using System.Collections.Generic;
+                    using System.Linq;|}|]
 
-    class Program
-    {
-        static void Main(string[] args)
-        {
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
 
+                        }
+                    }
+                }
+                """,
+                """
+                namespace N
+                {
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+
+                        }
+                    }
+                }
+                """);
         }
-    }
-}",
-@"namespace N
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
 
-        }
-    }
-}");
-        }
-
-        [WorkItem(542134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542134")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(542134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542134")]
         public async Task TestImportedTypeUsedAsGenericTypeArgument()
         {
-            var code = @"using GenericThingie;
+            var code = """
+                using GenericThingie;
 
-public class GenericType<T>
-{
-}
+                public class GenericType<T>
+                {
+                }
 
-namespace GenericThingie
-{
-    public class Something
-    {
-    }
-}
+                namespace GenericThingie
+                {
+                    public class Something
+                    {
+                    }
+                }
 
-public class Program
-{
-    void goo()
-    {
-        GenericType<Something> type;
-    }
-}";
+                public class Program
+                {
+                    void goo()
+                    {
+                        GenericType<Something> type;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
         public async Task TestRemoveCorrectUsing1()
         {
-            var source = @"using System.Collections.Generic;
+            var source = """
+                using System.Collections.Generic;
 
-namespace Goo
-{
-    [|{|IDE0005:using Bar = Dictionary<string, string>;|}|]
-}";
-            var fixedSource = @"namespace Goo
-{
-}";
+                namespace Goo
+                {
+                    [|{|IDE0005:using Bar = Dictionary<string, string>;|}|]
+                }
+                """;
+            var fixedSource = """
+                namespace Goo
+                {
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1319,284 +1444,295 @@ namespace Goo
             }.RunAsync();
         }
 
-        [WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
         public async Task TestRemoveCorrectUsing2()
         {
-            var code = @"using System.Collections.Generic;
+            var code = """
+                using System.Collections.Generic;
 
-namespace Goo
-{
-    using Bar = Dictionary<string, string>;
+                namespace Goo
+                {
+                    using Bar = Dictionary<string, string>;
 
-    class C
-    {
-        Bar b;
-    }
-}";
+                    class C
+                    {
+                        Bar b;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact]
         public async Task TestSpan()
         {
-            var code = @"namespace N
-{
-    [|{|IDE0005:using System;|}|]
-}";
-            var fixedCode = @"namespace N
-{
-}";
+            var code = """
+                namespace N
+                {
+                    [|{|IDE0005:using System;|}|]
+                }
+                """;
+            var fixedCode = """
+                namespace N
+                {
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
 
-        [WorkItem(543000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543000")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(543000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543000")]
         public async Task TestMissingWhenErrorsWouldBeGenerated()
         {
-            var code = @"using System;
-using X;
-using Y;
+            var code = """
+                using System;
+                using X;
+                using Y;
 
-class B
-{
-    static void Main()
-    {
-        Bar(x => x.Goo());
-    }
+                class B
+                {
+                    static void Main()
+                    {
+                        Bar(x => x.Goo());
+                    }
 
-    static void Bar(Action<int> x)
-    {
-    }
+                    static void Bar(Action<int> x)
+                    {
+                    }
 
-    static void Bar(Action<string> x)
-    {
-    }
-}
+                    static void Bar(Action<string> x)
+                    {
+                    }
+                }
 
-namespace X
-{
-    public static class A
-    {
-        public static void Goo(this int x)
-        {
-        }
+                namespace X
+                {
+                    public static class A
+                    {
+                        public static void Goo(this int x)
+                        {
+                        }
 
-        public static void Goo(this string x)
-        {
-        }
-    }
-}
+                        public static void Goo(this string x)
+                        {
+                        }
+                    }
+                }
 
-namespace Y
-{
-    public static class B
-    {
-        public static void Goo(this int x)
-        {
-        }
-    }
-}";
+                namespace Y
+                {
+                    public static class B
+                    {
+                        public static void Goo(this int x)
+                        {
+                        }
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
         public async Task TestMissingWhenMeaningWouldChangeInLambda()
         {
-            var code = @"using System;
-using X;
-using Y;
+            var code = """
+                using System;
+                using X;
+                using Y;
 
-class B
-{
-    static void Main()
-    {
-        Bar(x => x.Goo(), null); // Prints 1
-    }
+                class B
+                {
+                    static void Main()
+                    {
+                        Bar(x => x.Goo(), null); // Prints 1
+                    }
 
-    static void Bar(Action<string> x, object y)
-    {
-        Console.WriteLine(1);
-    }
+                    static void Bar(Action<string> x, object y)
+                    {
+                        Console.WriteLine(1);
+                    }
 
-    static void Bar(Action<int> x, string y)
-    {
-        Console.WriteLine(2);
-    }
-}
+                    static void Bar(Action<int> x, string y)
+                    {
+                        Console.WriteLine(2);
+                    }
+                }
 
-namespace X
-{
-    public static class A
-    {
-        public static void Goo(this int x)
-        {
-        }
+                namespace X
+                {
+                    public static class A
+                    {
+                        public static void Goo(this int x)
+                        {
+                        }
 
-        public static void Goo(this string x)
-        {
-        }
-    }
-}
+                        public static void Goo(this string x)
+                        {
+                        }
+                    }
+                }
 
-namespace Y
-{
-    public static class B
-    {
-        public static void Goo(this int x)
-        {
-        }
-    }
-}";
+                namespace Y
+                {
+                    public static class B
+                    {
+                        public static void Goo(this int x)
+                        {
+                        }
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
         public async Task TestCasesWithLambdas1()
         {
             // NOTE: Y is used when speculatively binding "x => x.Goo()".  As such, it is marked as
             // used even though it isn't in the final bind, and could be removed.  However, as we do
             // not know if it was necessary to eliminate a speculative lambda bind, we must leave
             // it.
-            var code = @"using System;
-using X;
-using Y;
+            var code = """
+                using System;
+                using X;
+                using Y;
 
-class B
-{
-    static void Main()
-    {
-        Bar(x => x.Goo(), null); // Prints 1
-    }
+                class B
+                {
+                    static void Main()
+                    {
+                        Bar(x => x.Goo(), null); // Prints 1
+                    }
 
-    static void Bar(Action<string> x, object y)
-    {
-    }
-}
+                    static void Bar(Action<string> x, object y)
+                    {
+                    }
+                }
 
-namespace X
-{
-    public static class A
-    {
-        public static void Goo(this string x)
-        {
-        }
-    }
-}
+                namespace X
+                {
+                    public static class A
+                    {
+                        public static void Goo(this string x)
+                        {
+                        }
+                    }
+                }
 
-namespace Y
-{
-    public static class B
-    {
-        public static void Goo(this int x)
-        {
-        }
-    }
-}";
+                namespace Y
+                {
+                    public static class B
+                    {
+                        public static void Goo(this int x)
+                        {
+                        }
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(545646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545646")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(545646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545646")]
         public async Task TestCasesWithLambdas2()
         {
-            var code = @"using System;
-using N; // Falsely claimed as unnecessary
+            var code = """
+                using System;
+                using N; // Falsely claimed as unnecessary
 
-static class C
-{
-    static void Ex(this string x)
-    {
-    }
+                static class C
+                {
+                    static void Ex(this string x)
+                    {
+                    }
 
-    static void Inner(Action<string> x, string y)
-    {
-    }
+                    static void Inner(Action<string> x, string y)
+                    {
+                    }
 
-    static void Inner(Action<string> x, int y)
-    {
-    }
+                    static void Inner(Action<string> x, int y)
+                    {
+                    }
 
-    static void Inner(Action<int> x, int y)
-    {
-    }
+                    static void Inner(Action<int> x, int y)
+                    {
+                    }
 
-    static void Outer(Action<string> x, object y)
-    {
-        Console.WriteLine(1);
-    }
+                    static void Outer(Action<string> x, object y)
+                    {
+                        Console.WriteLine(1);
+                    }
 
-    static void Outer(Action<int> x, string y)
-    {
-        Console.WriteLine(2);
-    }
+                    static void Outer(Action<int> x, string y)
+                    {
+                        Console.WriteLine(2);
+                    }
 
-    static void Main()
-    {
-        Outer(y => Inner(x => x.Ex(), y), null);
-    }
-}
+                    static void Main()
+                    {
+                        Outer(y => Inner(x => x.Ex(), y), null);
+                    }
+                }
 
-namespace N
-{
-    static class E
-    {
-        public static void Ex(this int x)
-        {
-        }
-    }
-}";
+                namespace N
+                {
+                    static class E
+                    {
+                        public static void Ex(this int x)
+                        {
+                        }
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(545741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545741")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(545741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545741")]
         public async Task TestMissingOnAliasedVar()
         {
-            var code = @"using var = var;
+            var code = """
+                using var = var;
 
-class var
-{
-}
+                class var
+                {
+                }
 
-class B
-{
-    static void Main()
-    {
-        var a = 1;
-    }
-}";
+                class B
+                {
+                    static void Main()
+                    {
+                        var a = 1;
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
-        [WorkItem(546115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546115")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(546115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546115")]
         public async Task TestBrokenCode()
         {
-            var code = @"using System.Linq;
+            var code = """
+                using System.Linq;
 
-public class QueryExpressionTest
-{
-    public static void Main()
-    {
-        var expr1 = new[] { };
-        var expr2 = new[] { };
-        var query8 = from int i in expr1
-                     join int fixed in expr2 on i equals fixed select new { i, fixed };
+                public class QueryExpressionTest
+                {
+                    public static void Main()
+                    {
+                        var expr1 = new[] { };
+                        var expr2 = new[] { };
+                        var query8 = from int i in expr1
+                                     join int fixed in expr2 on i equals fixed select new { i, fixed };
 
-    var query9 = from object i in expr1
-                 join object fixed in expr2 on i equals fixed select new { i, fixed };
-  }
-}";
+                    var query9 = from object i in expr1
+                                 join object fixed in expr2 on i equals fixed select new { i, fixed };
+                  }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -1804,17 +1940,18 @@ public class QueryExpressionTest
             }.RunAsync();
         }
 
-        [WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
         public async Task TestReferenceInCref()
         {
             // Parsing doc comments as simple trivia; we don't know System is unnecessary, but CS8019 is disabled so
             // no diagnostics are reported.
-            var code = @"using System;
-/// <summary><see cref=""String"" /></summary>
-class C
-{
-}";
+            var code = """
+                using System;
+                /// <summary><see cref="String" /></summary>
+                class C
+                {
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestState =
@@ -1845,47 +1982,49 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(751283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751283")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, WorkItem(751283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751283")]
         public async Task TestUnusedUsingOverLinq()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|using System;
-{|IDE0005:using System.Linq;
-using System.Threading.Tasks;|}|]
+                """
+                [|using System;
+                {|IDE0005:using System.Linq;
+                using System.Threading.Tasks;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.WriteLine();
-    }
-}",
-@"using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Console.WriteLine();
+                    }
+                }
+                """,
+                """
+                using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.WriteLine();
-    }
-}");
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Console.WriteLine();
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
-        [WorkItem(1323, "https://github.com/dotnet/roslyn/issues/1323")]
+        [Fact, WorkItem(1323, "https://github.com/dotnet/roslyn/issues/1323")]
         public async Task TestUsingsInPPRegionWithoutOtherMembers()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"
-#if true
-[|{|IDE0005:using System;|}|]
-#endif
-",
-@"
-#if true
-#endif
-");
+                """
+                #if true
+                [|{|IDE0005:using System;|}|]
+                #endif
+                """,
+                """
+                #if true
+                #endif
+                """);
         }
 
         [Theory]
@@ -1895,29 +2034,32 @@ class Program
         [InlineData(3)]
         [InlineData(4)]
         [InlineData(5)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
         public async Task TestWarningLevel(int warningLevel)
         {
-            var code = @"[|{|IDE0005:using System;
-using System.Collections.Generic;
-using System.Linq;|}|]
+            var code = """
+                [|{|IDE0005:using System;
+                using System.Collections.Generic;
+                using System.Linq;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}";
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """;
             var fixedCode = warningLevel switch
             {
                 0 => code,
-                _ => @"class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}",
+                _ => """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """,
             };
 
             var markupMode = warningLevel switch
@@ -1941,186 +2083,191 @@ class Program
                 {
                     (solution, projectId) =>
                     {
-                        var compilationOptions = (CSharpCompilationOptions)solution.GetProject(projectId).CompilationOptions;
+                        var compilationOptions = (CSharpCompilationOptions)solution.GetRequiredProject(projectId).CompilationOptions!;
                         return solution.WithProjectCompilationOptions(projectId, compilationOptions.WithWarningLevel(warningLevel));
                     },
                 },
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
-        [WorkItem(58972, "https://github.com/dotnet/roslyn/issues/58972")]
+        [Fact, WorkItem(58972, "https://github.com/dotnet/roslyn/issues/58972")]
         public async Task TestWhitespaceBeforeUnusedUsings_FileScopedNamespace()
         {
             await new VerifyCS.Test
             {
                 TestCode =
-@"namespace N;
+                """
+                namespace N;
 
-[|{|IDE0005:using System;|}
-using System.Collections.Generic;|]
+                [|{|IDE0005:using System;|}
+                using System.Collections.Generic;|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var argList = new List<string>(args);
-    }
-}
-",
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var argList = new List<string>(args);
+                    }
+                }
+                """,
                 FixedCode =
-@"namespace N;
+                """
+                namespace N;
 
-using System.Collections.Generic;
+                using System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var argList = new List<string>(args);
-    }
-}
-",
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var argList = new List<string>(args);
+                    }
+                }
+                """,
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_SingleUsing()
         {
             await new VerifyCS.Test
             {
                 TestCode =
-@"[|{|IDE0005:using System;|}
+                """
+                [|{|IDE0005:using System;|}
 
-using System.Collections.Generic;|]
+                using System.Collections.Generic;|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var argList = new List<string>(args);
-    }
-}
-",
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var argList = new List<string>(args);
+                    }
+                }
+                """,
                 FixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var argList = new List<string>(args);
-    }
-}
-"
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var argList = new List<string>(args);
+                    }
+                }
+                """
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_MultipleUsings()
         {
             await new VerifyCS.Test
             {
                 TestCode =
-@"[|{|IDE0005:using System;
-using System.Threading.Tasks;|}
+                """
+                [|{|IDE0005:using System;
+                using System.Threading.Tasks;|}
 
-using System.Collections.Generic;|]
+                using System.Collections.Generic;|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var argList = new List<string>(args);
-    }
-}
-",
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var argList = new List<string>(args);
+                    }
+                }
+                """,
                 FixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var argList = new List<string>(args);
-    }
-}
-"
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var argList = new List<string>(args);
+                    }
+                }
+                """
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_NotAllFirstGroupIsDeleted()
         {
             await new VerifyCS.Test
             {
                 TestCode =
-@"[|{|IDE0005:using System;|}
-using System.Threading.Tasks;
+                """
+                [|{|IDE0005:using System;|}
+                using System.Threading.Tasks;
 
-using System.Collections.Generic;|]
+                using System.Collections.Generic;|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var argList = new List<string>(args);
-        Task task = null;
-    }
-}
-",
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var argList = new List<string>(args);
+                        Task task = null;
+                    }
+                }
+                """,
                 FixedCode =
-@"using System.Threading.Tasks;
+                """
+                using System.Threading.Tasks;
 
-using System.Collections.Generic;
+                using System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var argList = new List<string>(args);
-        Task task = null;
-    }
-}
-"
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var argList = new List<string>(args);
+                        Task task = null;
+                    }
+                }
+                """
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
-        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        [Fact, WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
         public async Task TestUsingGroups_AllLastGroupIsDeleted()
         {
             await new VerifyCS.Test
             {
                 TestCode =
-@"[|using System.Collections.Generic;
+                """
+                [|using System.Collections.Generic;
 
-{|IDE0005:using System;
-using System.Threading.Tasks;|}|]
+                {|IDE0005:using System;
+                using System.Threading.Tasks;|}|]
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var argList = new List<string>(args);
-    }
-}
-",
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var argList = new List<string>(args);
+                    }
+                }
+                """,
                 FixedCode =
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var argList = new List<string>(args);
-    }
-}
-"
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var argList = new List<string>(args);
+                    }
+                }
+                """
             }.RunAsync();
         }
     }

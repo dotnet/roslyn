@@ -4,8 +4,10 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.InlineHints;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -15,19 +17,65 @@ namespace Microsoft.CodeAnalysis.Options
     [ExportWorkspaceService(typeof(ILegacyGlobalOptionsWorkspaceService)), Shared]
     internal sealed class LegacyGlobalOptionsWorkspaceService : ILegacyGlobalOptionsWorkspaceService
     {
-        public IGlobalOptionService GlobalOptions { get; }
+        private readonly IGlobalOptionService _globalOptions;
+
+        private static readonly Option2<bool> s_generateOverridesOption = new(
+            "dotnet_generate_overrides_for_all_members", defaultValue: true);
+
+        private static readonly PerLanguageOption2<bool> s_generateOperators = new(
+            "dotnet_generate_equality_operators",
+            defaultValue: false);
+
+        private static readonly PerLanguageOption2<bool> s_implementIEquatable = new(
+            "dotnet_generate_iequatable_implementation",
+            defaultValue: false);
+
+        internal static readonly PerLanguageOption2<bool> s_addNullChecks = new(
+            "dotnet_generate_constructor_parameter_null_checks",
+            defaultValue: false);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LegacyGlobalOptionsWorkspaceService(IGlobalOptionService globalOptions)
         {
-            GlobalOptions = globalOptions;
+            _globalOptions = globalOptions;
+        }
+
+        public bool GenerateOverrides
+        {
+            get => _globalOptions.GetOption(s_generateOverridesOption);
+            set => _globalOptions.SetGlobalOption(s_generateOverridesOption, value);
         }
 
         public bool RazorUseTabs
-            => GlobalOptions.GetOption(RazorLineFormattingOptionsStorage.UseTabs);
+            => _globalOptions.GetOption(RazorLineFormattingOptionsStorage.UseTabs);
 
         public int RazorTabSize
-            => GlobalOptions.GetOption(RazorLineFormattingOptionsStorage.TabSize);
+            => _globalOptions.GetOption(RazorLineFormattingOptionsStorage.TabSize);
+
+        /// TODO: remove. https://github.com/dotnet/roslyn/issues/57283
+        public bool InlineHintsOptionsDisplayAllOverride
+        {
+            get => _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
+            set => _globalOptions.SetGlobalOption(InlineHintsGlobalStateOption.DisplayAllOverride, value);
+        }
+
+        public bool GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language)
+            => _globalOptions.GetOption(s_implementIEquatable, language);
+
+        public void SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language, bool value)
+            => _globalOptions.SetGlobalOption(s_generateOperators, language, value);
+
+        public bool GetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language)
+            => _globalOptions.GetOption(s_implementIEquatable, language);
+
+        public void SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language, bool value)
+            => _globalOptions.SetGlobalOption(s_implementIEquatable, language, value);
+
+        public bool GetGenerateConstructorFromMembersOptionsAddNullChecks(string language)
+            => _globalOptions.GetOption(s_addNullChecks, language);
+
+        public void SetGenerateConstructorFromMembersOptionsAddNullChecks(string language, bool value)
+            => _globalOptions.SetGlobalOption(s_addNullChecks, language, value);
     }
 }

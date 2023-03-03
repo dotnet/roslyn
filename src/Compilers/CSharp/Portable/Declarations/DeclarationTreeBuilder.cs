@@ -345,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasUsings = false;
             bool hasGlobalUsings = false;
             bool reportedGlobalUsingOutOfOrder = false;
+
             var diagnostics = DiagnosticBag.GetInstance();
 
             foreach (var directive in compilationUnit.Usings)
@@ -367,6 +368,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var globalAliasedQuickAttributes = GetQuickAttributes(compilationUnit.Usings, global: true);
 
+            CheckFeatureAvailabilityForUsings(diagnostics, compilationUnit.Usings);
+            CheckFeatureAvailabilityForExterns(diagnostics, compilationUnit.Externs);
+
             return new RootSingleNamespaceDeclaration(
                 hasGlobalUsings: hasGlobalUsings,
                 hasUsings: hasUsings,
@@ -377,6 +381,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAssemblyAttributes: compilationUnit.AttributeLists.Any(),
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
                 globalAliasedQuickAttributes);
+        }
+
+        private static void CheckFeatureAvailabilityForUsings(DiagnosticBag diagnostics, SyntaxList<UsingDirectiveSyntax> usings)
+        {
+            foreach (var usingDirective in usings)
+            {
+                if (usingDirective.StaticKeyword != default)
+                    MessageID.IDS_FeatureUsingStatic.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.StaticKeyword.GetLocation());
+
+                if (usingDirective.GlobalKeyword != default)
+                    MessageID.IDS_FeatureGlobalUsing.CheckFeatureAvailability(diagnostics, usingDirective, usingDirective.GlobalKeyword.GetLocation());
+            }
+        }
+
+        private static void CheckFeatureAvailabilityForExterns(DiagnosticBag diagnostics, SyntaxList<ExternAliasDirectiveSyntax> externs)
+        {
+            foreach (var externAlias in externs)
+                MessageID.IDS_FeatureExternAlias.CheckFeatureAvailability(diagnostics, externAlias, externAlias.ExternKeyword.GetLocation());
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
@@ -393,8 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasExterns = node.Externs.Any();
             NameSyntax name = node.Name;
             CSharpSyntaxNode currentNode = node;
-            QualifiedNameSyntax dotted;
-            while ((dotted = name as QualifiedNameSyntax) != null)
+            while (name is QualifiedNameSyntax dotted)
             {
                 var ns = SingleNamespaceDeclaration.Create(
                     name: dotted.Right.Identifier.ValueText,
@@ -405,8 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     children: children,
                     diagnostics: ImmutableArray<Diagnostic>.Empty);
 
-                var nsDeclaration = new[] { ns };
-                children = nsDeclaration.AsImmutableOrNull<SingleNamespaceOrTypeDeclaration>();
+                children = ImmutableArray.Create<SingleNamespaceOrTypeDeclaration>(ns);
                 currentNode = name = dotted.Left;
                 hasUsings = false;
                 hasExterns = false;
@@ -416,6 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node is FileScopedNamespaceDeclarationSyntax)
             {
+                MessageID.IDS_FeatureFileScopedNamespace.CheckFeatureAvailability(diagnostics, node, node.NamespaceKeyword.GetLocation());
+
                 if (node.Parent is FileScopedNamespaceDeclarationSyntax)
                 {
                     // Happens when user writes:
@@ -494,6 +516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            CheckFeatureAvailabilityForUsings(diagnostics, node.Usings);
+            CheckFeatureAvailabilityForExterns(diagnostics, node.Externs);
+
             // NOTE: *Something* has to happen for alias-qualified names.  It turns out that we
             // just grab the part after the colons (via GetUnqualifiedName, below).  This logic
             // must be kept in sync with NamespaceSymbol.GetNestedNamespace.
@@ -568,9 +593,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
-            SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
-                SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes :
-                SingleTypeDeclaration.TypeDeclarationFlags.None;
+            var declFlags = node.AttributeLists.Any()
+                ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes
+                : SingleTypeDeclaration.TypeDeclarationFlags.None;
 
             if (node.BaseList != null)
             {
@@ -583,18 +608,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
             }
 
-            var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
-                                                    ref declFlags);
-
-            // A record with parameters at least has a primary constructor
-            if (((declFlags & SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers) == 0) &&
-                node is RecordDeclarationSyntax { ParameterList: { } })
+            // A type with parameters at least has a primary constructor
+            bool hasPrimaryCtor = node is TypeDeclarationSyntax { ParameterList: { } };
+            if (hasPrimaryCtor)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
-            var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
+            var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
+                                                    ref declFlags, hasPrimaryCtor: hasPrimaryCtor);
+
+            // If we have `record class` or `record struct` check that this is supported in the language. Note: we don't
+            // have to do any check for the simple `record` case as the parser itself would never produce such a node
+            // unless the language version was sufficient (since it actually will not produce the node at all on
+            // previous versions).
+            if (node is RecordDeclarationSyntax record)
+            {
+                if (record.ClassOrStructKeyword.Kind() != SyntaxKind.None)
+                {
+                    MessageID.IDS_FeatureRecordStructs.CheckFeatureAvailability(diagnostics, record, record.ClassOrStructKeyword.GetLocation());
+                }
+            }
+            else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.InterfaceDeclaration)
+            {
+                if (node.ParameterList != null)
+                {
+                    if (node.Kind() is SyntaxKind.InterfaceDeclaration)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedParameterList, node.ParameterList.GetLocation());
+                    }
+                    else
+                    {
+                        MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node.ParameterList);
+                    }
+                }
+                else if (node.OpenBraceToken == default && node.CloseBraceToken == default && node.SemicolonToken != default)
+                {
+                    MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node, node.SemicolonToken.GetLocation());
+                }
+            }
+
+            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
+            var quickAttributes = GetQuickAttributes(node.AttributeLists);
+
+            foreach (var modifier in node.Modifiers)
+            {
+                if (modifier.IsKind(SyntaxKind.StaticKeyword) && kind == DeclarationKind.Class)
+                {
+                    MessageID.IDS_FeatureStaticClasses.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                }
+                else if (modifier.IsKind(SyntaxKind.ReadOnlyKeyword) && kind is DeclarationKind.Struct or DeclarationKind.RecordStruct)
+                {
+                    MessageID.IDS_FeatureReadOnlyStructs.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                }
+                else if (modifier.IsKind(SyntaxKind.RefKeyword) && kind is DeclarationKind.Struct or DeclarationKind.RecordStruct)
+                {
+                    MessageID.IDS_FeatureRefStructs.CheckFeatureAvailability(diagnostics, node, modifier.GetLocation());
+                }
+            }
 
             return new SingleTypeDeclaration(
                 kind: kind,
@@ -641,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(
@@ -674,8 +745,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableSegmentedDictionary<string, VoidResult> memberNames = GetEnumMemberNames(members, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
+
+            if (node.OpenBraceToken == default && node.CloseBraceToken == default && node.SemicolonToken != default)
+            {
+                MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node, node.SemicolonToken.GetLocation());
+            }
 
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Enum,
@@ -745,13 +821,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static ImmutableSegmentedDictionary<string, VoidResult> GetNonTypeMemberNames(
-            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags, bool skipGlobalStatements = false)
+            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags, bool skipGlobalStatements = false, bool hasPrimaryCtor = false)
         {
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
+            bool anyRequiredMembers = false;
 
             var memberNameBuilder = s_memberNameBuilderPool.Allocate();
+
+            if (hasPrimaryCtor)
+            {
+                memberNameBuilder.TryAdd(WellKnownMemberNames.InstanceConstructorName);
+            }
 
             foreach (var member in members)
             {
@@ -768,6 +850,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!anyMemberHasAttributes && CheckMemberForAttributes(member))
                 {
                     anyMemberHasAttributes = true;
+                }
+
+                if (!anyRequiredMembers && checkPropertyOrFieldMemberForRequiredModifier(member))
+                {
+                    anyRequiredMembers = true;
                 }
             }
 
@@ -786,7 +873,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
+            if (anyRequiredMembers)
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasRequiredMembers;
+            }
+
             return ToImmutableAndFree(memberNameBuilder);
+
+            static bool checkPropertyOrFieldMemberForRequiredModifier(Syntax.InternalSyntax.CSharpSyntaxNode member)
+            {
+                var modifiers = member switch
+                {
+                    Syntax.InternalSyntax.FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers,
+                    Syntax.InternalSyntax.PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers,
+                    _ => default
+                };
+
+                return modifiers.Any((int)SyntaxKind.RequiredKeyword);
+            }
         }
 
         private static bool CheckMethodMemberForExtensionSyntax(Syntax.InternalSyntax.CSharpSyntaxNode member)

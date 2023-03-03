@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private readonly Document _document;
             private readonly State _state;
             private readonly string _equivalenceKey;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public GenerateTypeCodeAction(
                 TService service,
                 Document document,
                 State state,
-                CodeAndImportGenerationOptionsProvider fallbackOptions,
+                CleanCodeGenerationOptionsProvider fallbackOptions,
                 bool intoNamespace,
                 bool inNewFile)
             {
@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private readonly TService _service;
             private readonly Document _document;
             private readonly State _state;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
-            internal GenerateTypeCodeActionWithOption(TService service, Document document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
+            internal GenerateTypeCodeActionWithOption(TService service, Document document, State state, CleanCodeGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var generateTypeOptionsService = _document.Project.Solution.Workspace.Services.GetRequiredService<IGenerateTypeOptionsService>();
-                var notificationService = _document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-                var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
+                var generateTypeOptionsService = _document.Project.Solution.Services.GetRequiredService<IGenerateTypeOptionsService>();
+                var notificationService = _document.Project.Solution.Services.GetService<INotificationService>();
+                var projectManagementService = _document.Project.Solution.Services.GetService<IProjectManagementService>();
                 var syntaxFactsService = _document.GetLanguageService<ISyntaxFactsService>();
                 var typeKindValue = GetTypeKindOption(_state);
                 var isPublicOnlyAccessibility = IsPublicOnlyAccessibility(_state, _document.Project);

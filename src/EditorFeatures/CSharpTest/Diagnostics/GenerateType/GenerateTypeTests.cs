@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
@@ -25,6 +23,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTypeTests
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
     public partial class GenerateTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public GenerateTypeTests(ITestOutputHelper logger)
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateTypeCodeFixProvider());
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> codeActions)
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
 
         #region Generics
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateTypeParameterFromArgumentInferT()
         {
             await TestInRegularAndScriptAsync(
@@ -73,7 +72,7 @@ internal class Goo<T>
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromTypeParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -92,7 +91,7 @@ index: 1);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateInternalClassFromASingleConstraintClause()
         {
             await TestInRegularAndScriptAsync(
@@ -109,8 +108,7 @@ internal class Employee
 index: 1);
         }
 
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
         public async Task TestGeneratePublicClassFromASingleConstraintClause()
         {
             await TestInRegularAndScriptAsync(
@@ -127,7 +125,7 @@ public class Employee
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task NegativeTestGenerateClassFromConstructorConstraint()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -136,7 +134,7 @@ index: 1);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateInternalClassFromMultipleTypeConstraintClauses()
         {
             await TestInRegularAndScriptAsync(
@@ -157,7 +155,7 @@ internal class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGeneratePublicClassFromMultipleTypeConstraintClauses()
         {
             await TestInRegularAndScriptAsync(
@@ -178,7 +176,7 @@ public class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task NegativeTestGenerateClassFromClassOrStructConstraint()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -189,7 +187,7 @@ index: 1);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestAbsenceOfGenerateIntoInvokingTypeForConstraintList()
         {
             await TestActionCountAsync(
@@ -200,8 +198,7 @@ count: 3,
 parameters: new TestParameters(Options.Regular));
         }
 
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseInterface()
         {
             await TestInRegularAndScriptAsync(
@@ -218,8 +215,7 @@ internal class Employee
 index: 1);
         }
 
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
         public async Task TestGeneratePublicClassFromASingleConstraintClausePublicInterface()
         {
             await TestInRegularAndScriptAsync(
@@ -236,8 +232,7 @@ public class Employee
 index: 1);
         }
 
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalDelegate()
         {
             await TestInRegularAndScriptAsync(
@@ -256,8 +251,7 @@ internal class Command
 index: 1);
         }
 
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
         public async Task TestGenerateInternalClassFromASingleConstraintClausePublicDelegate()
         {
             await TestInRegularAndScriptAsync(
@@ -276,8 +270,7 @@ internal class Command
 index: 1);
         }
 
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -296,8 +289,7 @@ internal class Command
 index: 1);
         }
 
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
         public async Task TestGenerateInternalClassFromASingleConstraintClausePublicMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -316,8 +308,7 @@ internal class Command
 index: 1);
         }
 
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -336,8 +327,7 @@ internal class Command
 index: 1);
         }
 
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseMethodInInterface()
         {
             await TestInRegularAndScriptAsync(
@@ -356,8 +346,7 @@ internal class Command
 index: 1);
         }
 
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Theory, WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
         [InlineData("public", "internal", "internal")]
         [InlineData("public", "private", "internal")]
         [InlineData("internal", "protected", "internal")]
@@ -400,7 +389,7 @@ index: 1);
 
         #region Lambdas
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromParenthesizedLambdaExpressionsParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -419,7 +408,7 @@ index: 1);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromParenthesizedLambdaExpressionsBody()
         {
             await TestInRegularAndScriptAsync(
@@ -444,7 +433,7 @@ index: 2);
 
         #endregion
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromFieldDeclarationIntoSameType()
         {
             await TestInRegularAndScriptAsync(
@@ -463,7 +452,7 @@ index: 2);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromNullableFieldDeclarationIntoSameType()
         {
             await TestInRegularAndScriptAsync(
@@ -484,7 +473,7 @@ class Class
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestGenerateClassFromFieldDeclarationIntoGlobalNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -496,7 +485,7 @@ expectedContainers: ImmutableArray<string>.Empty,
 expectedDocumentName: "Goo.cs");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestGenerateClassFromFieldDeclarationIntoCustomNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -511,7 +500,7 @@ expectedContainers: ImmutableArray.Create("TestNamespace"),
 expectedDocumentName: "Goo.cs");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromFieldDeclarationIntoSameNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -530,7 +519,7 @@ internal class Goo
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassWithCtorFromObjectCreation()
         {
             await TestInRegularAndScriptAsync(
@@ -552,7 +541,7 @@ index: 1);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassWithCtorFromObjectCreationWithTuple()
         {
             await TestInRegularAndScriptAsync(
@@ -577,7 +566,7 @@ index: 2);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassWithCtorFromObjectCreationWithTupleWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -602,7 +591,7 @@ index: 2);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromBaseList()
         {
             await TestInRegularAndScriptAsync(
@@ -619,7 +608,7 @@ internal class BaseClass
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromMethodParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -642,7 +631,7 @@ index: 1);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromMethodReturnType()
         {
             await TestInRegularAndScriptAsync(
@@ -665,7 +654,7 @@ index: 2);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromAttribute()
         {
             await TestInRegularAndScriptAsync(
@@ -692,7 +681,7 @@ class Class
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromExpandedAttribute()
         {
             await TestInRegularAndScriptAsync(
@@ -719,7 +708,7 @@ class Class
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromCatchClause()
         {
             await TestInRegularAndScriptAsync(
@@ -773,7 +762,7 @@ class Class
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromThrowStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -817,7 +806,7 @@ class Class
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromThrowStatementWithDifferentArg()
         {
             await TestInRegularAndScriptAsync(
@@ -868,7 +857,7 @@ class Class
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromThrowStatementWithMatchingArg()
         {
             await TestInRegularAndScriptAsync(
@@ -912,7 +901,7 @@ class Class
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestAbsenceOfGenerateIntoInvokingTypeForBaseList()
         {
             await TestActionCountAsync(
@@ -923,7 +912,7 @@ count: 3,
 parameters: new TestParameters(Options.Regular));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromUsingStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -952,7 +941,7 @@ parameters: new TestParameters(Options.Regular));
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateClassFromForeachStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -981,8 +970,7 @@ index: 2);
 index: 2);
         }
 
-        [WorkItem(538346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538346")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538346")]
         public async Task TestGenerateClassWhereKeywordBecomesTypeName()
         {
             await TestInRegularAndScriptAsync(
@@ -1001,7 +989,7 @@ index: 2);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task NegativeTestGenerateClassOnContextualKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -1020,7 +1008,7 @@ index: 2);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task NegativeTestGenerateClassOnFrameworkTypes()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1051,8 +1039,7 @@ index: 2);
 }");
         }
 
-        [WorkItem(538409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538409")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538409")]
         public async Task GenerateIntoRightPart()
         {
             await TestInRegularAndScriptAsync(
@@ -1079,8 +1066,7 @@ partial class Class
 index: 2);
         }
 
-        [WorkItem(538408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538408")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538408")]
         public async Task GenerateTypeIntoCompilationUnit()
         {
             await TestInRegularAndScriptAsync(
@@ -1107,8 +1093,7 @@ internal class C
 index: 1);
         }
 
-        [WorkItem(538408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538408")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538408")]
         public async Task GenerateTypeIntoNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -1141,8 +1126,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(538115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
         public async Task GenerateTypeWithPreprocessor()
         {
             await TestInRegularAndScriptAsync(
@@ -1167,8 +1151,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(538495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538495")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538495")]
         public async Task GenerateTypeIntoContainingNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -1194,7 +1177,7 @@ index: 1);
         }
 
         [WorkItem(538516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestGenerateClassFromIntoNewNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -1209,8 +1192,7 @@ expectedContainers: ImmutableArray.Create("N"),
 expectedDocumentName: "C.cs");
         }
 
-        [WorkItem(538558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538558")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538558")]
         public async Task NegativeTestGlobalAlias()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1232,8 +1214,7 @@ expectedDocumentName: "C.cs");
 }");
         }
 
-        [WorkItem(538069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
         public async Task GenerateTypeFromArrayCreation1()
         {
             await TestAsync(
@@ -1259,8 +1240,7 @@ index: 1,
 parseOptions: null);
         }
 
-        [WorkItem(538069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
         public async Task GenerateTypeFromArrayCreation2()
         {
             await TestAsync(
@@ -1286,8 +1266,7 @@ index: 1,
 parseOptions: null);
         }
 
-        [WorkItem(538069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
         public async Task GenerateTypeFromArrayCreation3()
         {
             await TestAsync(
@@ -1313,8 +1292,7 @@ index: 1,
 parseOptions: null);
         }
 
-        [WorkItem(539329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539329")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539329")]
         public async Task NegativeTestNotInUsingDirective()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1333,7 +1311,7 @@ parseOptions: null);
 @"using X = [|A|];");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateSimpleConstructor()
         {
             await TestInRegularAndScriptAsync(
@@ -1361,7 +1339,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithValueParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -1392,7 +1370,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithTwoValueParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -1425,7 +1403,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithNullableParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -1460,7 +1438,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithNullableParameterThatIsNotNull()
         {
             await TestInRegularAndScriptAsync(
@@ -1495,7 +1473,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithNamedParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -1526,7 +1504,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithRefParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -1557,7 +1535,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithOutParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -1591,7 +1569,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithOutParameters1()
         {
             await TestInRegularAndScriptAsync(
@@ -1620,7 +1598,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithOutParameters2_CSharp7()
         {
             await TestInRegularAndScriptAsync(
@@ -1654,7 +1632,7 @@ index: 1,
 parseOptions: TestOptions.Regular7);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithOutParameters2()
         {
             await TestInRegularAndScriptAsync(
@@ -1687,7 +1665,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithOutParameters3()
         {
             await TestInRegularAndScriptAsync(
@@ -1720,7 +1698,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithOutParameters4()
         {
             await TestInRegularAndScriptAsync(
@@ -1749,7 +1727,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithOutParameters5()
         {
             await TestInRegularAndScriptAsync(
@@ -1778,7 +1756,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithOutParameters6_CSharp7()
         {
             await TestInRegularAndScriptAsync(
@@ -1808,7 +1786,7 @@ index: 2,
 parseOptions: TestOptions.Regular7);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithOutParameters6()
         {
             await TestInRegularAndScriptAsync(
@@ -1837,7 +1815,7 @@ parseOptions: TestOptions.Regular7);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithOutParameters7()
         {
             await TestInRegularAndScriptAsync(
@@ -1866,7 +1844,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithOutParameters8()
         {
             await TestInRegularAndScriptAsync(
@@ -1895,7 +1873,7 @@ index: 1);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -1928,7 +1906,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -1961,7 +1939,7 @@ internal class T
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithDelegatingConstructor1()
         {
             await TestInRegularAndScriptAsync(
@@ -2003,7 +1981,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithDelegatingConstructor2()
         {
             await TestInRegularAndScriptAsync(
@@ -2045,7 +2023,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithDelegatingConstructor3()
         {
             await TestInRegularAndScriptAsync(
@@ -2091,7 +2069,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithDelegatingConstructor4()
         {
             await TestInRegularAndScriptAsync(
@@ -2133,7 +2111,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithDelegatingConstructor5()
         {
             await TestInRegularAndScriptAsync(
@@ -2177,7 +2155,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithDelegatingConstructor6()
         {
             await TestInRegularAndScriptAsync(
@@ -2219,7 +2197,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithDelegatingConstructorAssigningToNullableField()
         {
             await TestInRegularAndScriptAsync(
@@ -2254,7 +2232,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithNonDelegatingConstructor1()
         {
             await TestInRegularAndScriptAsync(
@@ -2299,7 +2277,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithNonDelegatingConstructor2()
         {
             await TestInRegularAndScriptAsync(
@@ -2344,7 +2322,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithNonDelegatingConstructor3()
         {
             await TestInRegularAndScriptAsync(
@@ -2388,7 +2366,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithNonDelegatingConstructor4()
         {
             await TestInRegularAndScriptAsync(
@@ -2433,7 +2411,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToField1()
         {
             await TestInRegularAndScriptAsync(
@@ -2472,7 +2450,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToField2()
         {
             await TestInRegularAndScriptAsync(
@@ -2511,7 +2489,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToField3()
         {
             await TestInRegularAndScriptAsync(
@@ -2552,7 +2530,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToField4()
         {
             await TestInRegularAndScriptAsync(
@@ -2593,7 +2571,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToField5()
         {
             await TestInRegularAndScriptAsync(
@@ -2634,7 +2612,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToField6()
         {
             await TestInRegularAndScriptAsync(
@@ -2675,7 +2653,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToField7()
         {
             await TestInRegularAndScriptAsync(
@@ -2714,7 +2692,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToField7WithQualification()
         {
             await TestInRegularAndScriptAsync(
@@ -2754,7 +2732,7 @@ index: 1,
 options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToField8()
         {
             await TestInRegularAndScriptAsync(
@@ -2795,7 +2773,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToField9()
         {
             await TestInRegularAndScriptAsync(
@@ -2836,7 +2814,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToField10()
         {
             await TestInRegularAndScriptAsync(
@@ -2883,8 +2861,7 @@ class B
 index: 1);
         }
 
-        [WorkItem(49924, "https://github.com/dotnet/roslyn/issues/49924")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(49924, "https://github.com/dotnet/roslyn/issues/49924")]
         public async Task GenerateCorrectFieldNaming()
         {
             var options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
@@ -2917,7 +2894,7 @@ internal class D
     index: 1, options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToProperty1()
         {
             await TestInRegularAndScriptAsync(
@@ -2958,7 +2935,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToProperty2()
         {
             await TestInRegularAndScriptAsync(
@@ -2997,7 +2974,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToProperty2WithQualification()
         {
             await TestInRegularAndScriptAsync(
@@ -3037,7 +3014,7 @@ index: 1,
 options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToProperty3()
         {
             await TestInRegularAndScriptAsync(
@@ -3076,7 +3053,7 @@ class Base
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task GenerateWithCallToProperty3WithQualification()
         {
             await TestInRegularAndScriptAsync(
@@ -3116,8 +3093,7 @@ index: 1,
 options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
-        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         public async Task GenerateTypeWithPreferIntrinsicPredefinedKeywordFalse()
         {
             await TestInRegularAndScriptAsync(
@@ -3151,7 +3127,7 @@ options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclarat
 
         #region Generate Interface
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateInterfaceFromTypeConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -3168,7 +3144,7 @@ internal interface IEmployee
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateInterfaceFromTypeConstraints()
         {
             await TestInRegularAndScriptAsync(
@@ -3185,7 +3161,7 @@ internal interface IComparable<T> where T : Employee, IEmployee, IComparable<T>,
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task NegativeTestGenerateInterfaceFromTypeConstraint()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3196,7 +3172,7 @@ class EmployeeList<T> where T : Employee, IEmployee, [|IComparable<T>|], new()
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateInterfaceFromBaseList1()
         {
             await TestInRegularAndScriptAsync(
@@ -3213,8 +3189,7 @@ internal interface B
 index: 1);
         }
 
-        [WorkItem(538519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538519")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538519")]
         public async Task TestGenerateInterfaceFromBaseList2()
         {
             await TestInRegularAndScriptAsync(
@@ -3231,8 +3206,7 @@ internal interface ITest
 index: 1);
         }
 
-        [WorkItem(538519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538519")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(538519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538519")]
         public async Task TestGenerateInterfaceFromTypeConstraints2()
         {
             await TestInRegularAndScriptAsync(
@@ -3249,7 +3223,7 @@ internal interface ITest
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateInterfaceFromBaseList3()
         {
             await TestInRegularAndScriptAsync(
@@ -3268,8 +3242,7 @@ index: 1);
 
         #endregion
 
-        [WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
         public async Task NotInLeftSideOfAssignment()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3282,8 +3255,7 @@ index: 1);
 }");
         }
 
-        [WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
         public async Task InLeftSideOfAssignment()
         {
             await TestInRegularAndScriptAsync(
@@ -3308,8 +3280,7 @@ internal class Goo
 index: 1);
         }
 
-        [WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
         public async Task NotInRightSideOfAssignment()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3322,8 +3293,7 @@ index: 1);
 }");
         }
 
-        [WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
         public async Task InRightSideOfAssignment()
         {
             await TestInRegularAndScriptAsync(
@@ -3348,8 +3318,7 @@ internal class Goo
 index: 1);
         }
 
-        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         public async Task TestEscapedName()
         {
             await TestInRegularAndScriptAsync(
@@ -3368,8 +3337,7 @@ internal class Goo
 index: 1);
         }
 
-        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         public async Task TestEscapedKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -3389,7 +3357,7 @@ index: 1);
         }
 
         [WorkItem(539535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539535")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestGenerateIntoNewFile()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -3407,7 +3375,7 @@ expectedContainers: ImmutableArray.Create("Goo"),
 expectedDocumentName: "Bar.cs");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestGenerateIntoNewFileWithUsings1()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -3430,7 +3398,7 @@ expectedContainers: ImmutableArray.Create("Goo"),
 expectedDocumentName: "Bar.cs");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestGenerateIntoNewFileWithUsings2()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -3454,8 +3422,7 @@ expectedDocumentName: "Bar.cs",
 parameters: new TestParameters(options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
         }
 
-        [WorkItem(539620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539620")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539620")]
         public async Task TestDeclarationSpan()
         {
             await TestSpansAsync(
@@ -3468,8 +3435,7 @@ parameters: new TestParameters(options: Option(CSharpCodeStyleOptions.PreferredU
 }");
         }
 
-        [WorkItem(539674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539674")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539674")]
         public async Task TestNotInEnumBaseList()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3478,8 +3444,7 @@ parameters: new TestParameters(options: Option(CSharpCodeStyleOptions.PreferredU
 }");
         }
 
-        [WorkItem(539681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539681")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539681")]
         public async Task TestNotInConditional()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3494,7 +3459,7 @@ parameters: new TestParameters(options: Option(CSharpCodeStyleOptions.PreferredU
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestInUsing()
         {
             await TestInRegularAndScriptAsync(
@@ -3531,8 +3496,7 @@ internal class Goo
 index: 1);
         }
 
-        [WorkItem(54493, "https://github.com/dotnet/roslyn/pull/54493")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(54493, "https://github.com/dotnet/roslyn/pull/54493")]
         public async Task TestInLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -3561,7 +3525,7 @@ internal class Goo
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestNotInDelegateConstructor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3576,8 +3540,7 @@ class C
 }");
         }
 
-        [WorkItem(539754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539754")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539754")]
         public async Task TestMissingOnVar()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3594,8 +3557,7 @@ class Program
 }");
         }
 
-        [WorkItem(539765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539765")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539765")]
         public async Task TestElideDefaultConstructor()
         {
             await TestInRegularAndScriptAsync(
@@ -3628,8 +3590,7 @@ internal class C
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        [WorkItem(539783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539783")]
+        [Fact, WorkItem(539783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539783")]
         public async Task RegressionFor5867ErrorToleranceTopLevel()
         {
             await TestMissingAsync(
@@ -3637,8 +3598,7 @@ index: 1);
 new TestParameters(GetScriptOptions()));
         }
 
-        [WorkItem(539799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539799")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539799")]
         public async Task TestOnInaccessibleType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3658,8 +3618,7 @@ class A
 }");
         }
 
-        [WorkItem(539794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539794")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539794")]
         public async Task TestDefaultConstructorInTypeDerivingFromInterface()
         {
             await TestInRegularAndScriptAsync(
@@ -3692,7 +3651,7 @@ interface I
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateWithThrow()
         {
             await TestInRegularAndScriptAsync(
@@ -3738,7 +3697,7 @@ internal class NotFoundException : Exception
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestGenerateInTryCatch()
         {
             await TestInRegularAndScriptAsync(
@@ -3794,8 +3753,8 @@ internal class NotFoundException : Exception
 index: 1);
         }
 
-        [WorkItem(539739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539739")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(539739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539739")]
         public async Task TestNotGenerateInDelegateConstructor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3812,7 +3771,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestInStructBaseList()
         {
             await TestInRegularAndScriptAsync(
@@ -3829,8 +3788,7 @@ internal interface A
 index: 1);
         }
 
-        [WorkItem(539870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539870")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539870")]
         public async Task TestGenericWhenNonGenericExists()
         {
             await TestInRegularAndScriptAsync(
@@ -3863,8 +3821,7 @@ class A
 index: 1);
         }
 
-        [WorkItem(539930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539930")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539930")]
         public async Task TestInheritedTypeParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -3897,8 +3854,7 @@ interface I<T, R>
 index: 1);
         }
 
-        [WorkItem(539971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539971")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539971")]
         public async Task TestDoNotUseOuterTypeParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -3923,8 +3879,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(539970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539970")]
         public async Task TestReferencingTypeParameters1()
         {
             await TestInRegularAndScriptAsync(
@@ -3957,8 +3912,7 @@ interface I<T, R>
 index: 1);
         }
 
-        [WorkItem(539970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539970")]
         public async Task TestReferencingTypeParameters2()
         {
             await TestInRegularAndScriptAsync(
@@ -3991,8 +3945,7 @@ interface I<T, R>
 index: 2);
         }
 
-        [WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
         public async Task TestReferencingTypeParameters3()
         {
             await TestInRegularAndScriptAsync(
@@ -4025,8 +3978,7 @@ internal class A
 index: 1);
         }
 
-        [WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
         public async Task TestReferencingTypeParameters4()
         {
             await TestInRegularAndScriptAsync(
@@ -4059,8 +4011,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(539992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539992")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539992")]
         public async Task TestNotPassingEmptyIssueListToCtor()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4074,8 +4025,7 @@ class Program
 }");
         }
 
-        [WorkItem(540644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540644")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(540644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540644")]
         public async Task TestGenerateWithVoidArg()
         {
             await TestInRegularAndScriptAsync(
@@ -4106,8 +4056,7 @@ internal class C
 index: 1);
         }
 
-        [WorkItem(540989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540989")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(540989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540989")]
         public async Task TestMissingOnInaccessibleType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4124,8 +4073,7 @@ class A
 }");
         }
 
-        [WorkItem(540766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540766")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(540766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540766")]
         public async Task TestOnInvalidGlobalCode()
         {
             await TestInRegularAndScriptAsync(
@@ -4136,8 +4084,7 @@ class A
 index: 1);
         }
 
-        [WorkItem(539985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539985")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(539985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539985")]
         public async Task TestDoNotInferTypeWithWrongArity()
         {
             await TestInRegularAndScriptAsync(
@@ -4165,7 +4112,7 @@ internal class C
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestMissingOnInvalidConstructorToExistingType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4178,8 +4125,7 @@ index: 1);
 }");
         }
 
-        [WorkItem(541263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541263")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(541263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541263")]
         public async Task TestAccessibilityConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -4204,7 +4150,7 @@ public class D
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestBaseTypeAccessibilityConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -4221,7 +4167,7 @@ public class D
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestBaseInterfaceAccessibilityConstraint1()
         {
             await TestInRegularAndScriptAsync(
@@ -4238,7 +4184,7 @@ internal interface IGoo
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestAccessibilityConstraint2()
         {
             await TestInRegularAndScriptAsync(
@@ -4255,7 +4201,7 @@ public interface IBar
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestAccessibilityConstraint3()
         {
             await TestInRegularAndScriptAsync(
@@ -4272,7 +4218,7 @@ public interface IGoo
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestDelegateReturnTypeAccessibilityConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -4285,7 +4231,7 @@ public class D
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestDelegateParameterAccessibilityConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -4298,7 +4244,7 @@ public class S
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestMethodParameterAccessibilityConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -4317,7 +4263,7 @@ public class F
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestMethodReturnTypeAccessibilityConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -4336,7 +4282,7 @@ index: 1);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestPropertyTypeAccessibilityConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -4355,7 +4301,7 @@ index: 2);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestFieldEventTypeAccessibilityConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -4374,7 +4320,7 @@ index: 2);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestEventTypeAccessibilityConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -4411,8 +4357,7 @@ public class F
 index: 1);
         }
 
-        [WorkItem(541654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541654")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(541654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541654")]
         public async Task TestGenerateVarType()
         {
             await TestInRegularAndScriptAsync(
@@ -4437,8 +4382,7 @@ internal class var
 index: 1);
         }
 
-        [WorkItem(541641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541641")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(541641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541641")]
         public async Task TestOnBadAttribute()
         {
             await TestInRegularAndScriptAsync(
@@ -4467,8 +4411,7 @@ internal class AttClassAttribute
 index: 1);
         }
 
-        [WorkItem(542528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(542528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
         public async Task TestGenerateStruct1()
         {
             await TestInRegularAndScriptAsync(
@@ -4505,8 +4448,7 @@ internal struct S
 index: 1);
         }
 
-        [WorkItem(542480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(542480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542480")]
         public async Task TestCopyConstraints1()
         {
             await TestInRegularAndScriptAsync(
@@ -4539,8 +4481,7 @@ internal class B<T> : A<T> where T : class
 index: 1);
         }
 
-        [WorkItem(542528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(542528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
         public async Task TestGenerateStruct2()
         {
             await TestInRegularAndScriptAsync(
@@ -4576,8 +4517,7 @@ class Program
 }");
         }
 
-        [WorkItem(542528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(542528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
         public async Task TestGenerateStruct3()
         {
             await TestInRegularAndScriptAsync(
@@ -4613,8 +4553,7 @@ class Program
 }");
         }
 
-        [WorkItem(542761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542761")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(542761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542761")]
         public async Task TestGenerateOpenType1()
         {
             await TestInRegularAndScriptAsync(
@@ -4639,8 +4578,7 @@ internal class C<T1, T2>
 index: 1);
         }
 
-        [WorkItem(542766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542766")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(542766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542766")]
         public async Task TestGenerateAttributeInGenericType()
         {
             await TestActionCountAsync(
@@ -4656,8 +4594,7 @@ class A<T>
 count: 6);
         }
 
-        [WorkItem(543061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543061")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(543061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543061")]
         public async Task TestNestedGenericAccessibility()
         {
             await TestInRegularAndScriptAsync(
@@ -4684,8 +4621,7 @@ public class NewClass
 index: 1);
         }
 
-        [WorkItem(543493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543493")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(543493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543493")]
         public async Task MissingIfNotInTypeStatementOrExpressionContext()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4711,8 +4647,7 @@ index: 1);
 }");
         }
 
-        [WorkItem(542641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542641")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(542641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542641")]
         public async Task TestAttributeSuffixOnAttributeSubclasses()
         {
             await TestInRegularAndScriptAsync(
@@ -4741,8 +4676,7 @@ internal class GooAttribute : CustomConstantAttribute
 index: 1);
         }
 
-        [WorkItem(543853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(543853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
         public async Task TestDisplayStringForGlobalNamespace()
         {
             await TestSmartTagTextAsync(
@@ -4751,7 +4685,7 @@ string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"));
         }
 
         [WorkItem(543853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestAddDocumentForGlobalNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -4763,8 +4697,7 @@ ImmutableArray<string>.Empty,
 "Goo.cs");
         }
 
-        [WorkItem(543886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543886")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(543886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543886")]
         public async Task TestVerbatimAttribute()
         {
             await TestInRegularAndScriptAsync(
@@ -4785,8 +4718,7 @@ internal class X : Attribute
 index: 1);
         }
 
-        [WorkItem(531220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531220")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(531220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531220")]
         public async Task CompareIncompleteMembersToEqual()
         {
             await TestInRegularAndScriptAsync(
@@ -4815,8 +4747,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(544168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544168")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(544168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544168")]
         public async Task TestNotOnAbstractClassCreation()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4833,8 +4764,7 @@ class SomeClass
 }");
         }
 
-        [WorkItem(545362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545362")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(545362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545362")]
         public async Task TestGenerateInVenus1()
         {
             var code = @"
@@ -4879,8 +4809,7 @@ class Program
 ", index: 1);
         }
 
-        [WorkItem(869506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(869506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")]
         public async Task TestGenerateTypeOutsideCurrentProject()
         {
             var code = @"<Workspace>
@@ -4929,7 +4858,7 @@ namespace A
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestGenerateTypeInFolderNotDefaultNamespace_0()
         {
             var code = @"<Workspace>
@@ -4958,7 +4887,7 @@ namespace Namespace1.Namespace2
                 expectedDocumentName: "ClassB.cs");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestGenerateTypeInFolderNotDefaultNamespace_0_FileScopedNamespace()
         {
             var code = @"<Workspace>
@@ -4989,7 +4918,7 @@ public class ClassB
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestGenerateTypeInFolderNotDefaultNamespace_1()
         {
             var code = @"<Workspace>
@@ -5018,8 +4947,7 @@ namespace Namespace1.Namespace2.Namespace3
                 expectedDocumentName: "ClassB.cs");
         }
 
-        [WorkItem(612700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612700")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(612700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612700")]
         public async Task TestGenerateTypeWithNoBraces()
         {
             var code = @"class Test : [|Base|]";
@@ -5032,8 +4960,7 @@ internal class Base
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
         public async Task TestWithProperties1()
         {
             var code = @"using System;
@@ -5074,8 +5001,7 @@ internal class Customer
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
         public async Task TestWithProperties2()
         {
             var code = @"using System;
@@ -5116,8 +5042,7 @@ internal class Customer
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
         public async Task TestWithProperties3()
         {
             var code = @"using System;
@@ -5158,8 +5083,7 @@ internal class Customer
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(1082031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082031")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(1082031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082031")]
         public async Task TestWithProperties4()
         {
             var code = @"using System;
@@ -5191,8 +5115,7 @@ internal class Customer
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         public async Task TestWithNameOf()
         {
             var code = @"class C
@@ -5219,8 +5142,7 @@ internal class Z
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
-        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         public async Task TestWithNameOf2()
         {
             var code = @"class C
@@ -5246,7 +5168,7 @@ internal class Z
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestWithUsingStatic()
         {
             await TestInRegularAndScriptAsync(
@@ -5259,15 +5181,14 @@ internal class Sample
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact]
         public async Task TestWithUsingStatic2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using [|Sample|];");
         }
 
-        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         public async Task TestAccessibilityForPublicFields()
         {
             await TestInRegularAndScriptAsync(
@@ -5283,8 +5204,7 @@ index: 1);
 }");
         }
 
-        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         public async Task TestAccessibilityForPublicFields2()
         {
             await TestInRegularAndScriptAsync(
@@ -5306,8 +5226,7 @@ public class B
 index: 1);
         }
 
-        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         public async Task TestAccessibilityForPublicFields3()
         {
             await TestInRegularAndScriptAsync(
@@ -5329,8 +5248,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         public async Task TestAccessibilityForPublicFields4()
         {
             await TestInRegularAndScriptAsync(
@@ -5346,8 +5264,7 @@ index: 2);
 }");
         }
 
-        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         public async Task TestAccessibilityForPublicFields5()
         {
             await TestInRegularAndScriptAsync(
@@ -5369,8 +5286,7 @@ public class B<T>
 index: 1);
         }
 
-        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         public async Task TestAccessibilityForPublicFields6()
         {
             await TestInRegularAndScriptAsync(
@@ -5393,7 +5309,7 @@ index: 2);
         }
 
         [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestPreserveFileBanner1()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -5416,7 +5332,7 @@ expectedDocumentName: "Goo.cs");
         }
 
         [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestPreserveFileBanner2()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -5436,7 +5352,7 @@ expectedDocumentName: "Goo.cs");
         }
 
         [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestPreserveFileBanner3()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -5467,7 +5383,7 @@ internal class Goo
         }
 
         [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public async Task TestPreserveFileBanner4()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -5488,8 +5404,7 @@ expectedDocumentName: "Goo.cs",
 new TestParameters(options: Option(CodeStyleOptions2.FileHeaderTemplate, "I am a banner")));
         }
 
-        [WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Theory, WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]
         [InlineData("void")]
         [InlineData("int")]
         public async Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
@@ -5497,7 +5412,7 @@ new TestParameters(options: Option(CodeStyleOptions2.FileHeaderTemplate, "I am a
             await TestInRegularAndScriptAsync(
     $@"
 <Workspace>
-    <Project Language=""C#"" CommonReferences=""false"">
+    <Project Language=""C#"" CommonReferencesMinCorlib=""true"">
         <Document><![CDATA[
 class C
 {{
@@ -5529,9 +5444,9 @@ class C
 
 internal class Class
 {{
-    private global::System.Object method;
+    private object method;
 
-    public Class(global::System.Object method)
+    public Class(object method)
     {{
         this.method = method;
     }}
@@ -5539,8 +5454,7 @@ internal class Class
     index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        [WorkItem(270, "https://github.com/dotnet/roslyn/issues/270")]
+        [Fact, WorkItem(270, "https://github.com/dotnet/roslyn/issues/270")]
         public async Task TestGenerateInIsExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -5586,8 +5500,7 @@ internal class SampleType : Exception
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
         public async Task TestGenerateUnsafe()
         {
             await TestInRegularAndScriptAsync(
@@ -5614,6 +5527,35 @@ internal class D
     {
         this.x = x;
     }
+}", index: 1);
+        }
+
+        [Fact, WorkItem(40605, "https://github.com/dotnet/roslyn/issues/40605")]
+        public async Task DoNoInferArrayBaseType1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Array.Sort(new[] { ""a"", ""b"", ""c"" }, new [|MyComparer|]());
+    }
+}",
+@"using System;
+using System.Collections;
+
+class C
+{
+    void M()
+    {
+        Array.Sort(new[] { ""a"", ""b"", ""c"" }, new MyComparer());
+    }
+}
+
+internal class MyComparer : IComparer
+{
 }", index: 1);
         }
     }

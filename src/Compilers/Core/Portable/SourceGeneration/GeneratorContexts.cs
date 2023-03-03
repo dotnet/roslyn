@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
@@ -85,6 +86,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
+        /// <remarks>
+        /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
+        /// </remarks>
         public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText);
 
         /// <summary>
@@ -115,7 +119,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Context passed to a source generator when <see cref="ISourceGenerator.Initialize(GeneratorInitializationContext)"/> is called
     /// </summary>
-    public struct GeneratorInitializationContext
+    public readonly struct GeneratorInitializationContext
     {
         internal GeneratorInitializationContext(CancellationToken cancellationToken = default)
         {
@@ -215,10 +219,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorSyntaxContext
     {
-        internal GeneratorSyntaxContext(SyntaxNode node, SemanticModel semanticModel)
+        internal readonly ISyntaxHelper SyntaxHelper;
+        private readonly Lazy<SemanticModel>? _semanticModel;
+
+        internal GeneratorSyntaxContext(SyntaxNode node, Lazy<SemanticModel>? semanticModel, ISyntaxHelper syntaxHelper)
         {
             Node = node;
-            SemanticModel = semanticModel;
+            _semanticModel = semanticModel;
+            SyntaxHelper = syntaxHelper;
         }
 
         /// <summary>
@@ -229,7 +237,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <see cref="CodeAnalysis.SemanticModel" /> that can be queried to obtain information about <see cref="Node"/>.
         /// </summary>
-        public SemanticModel SemanticModel { get; }
+        public SemanticModel SemanticModel => _semanticModel!.Value;
     }
 
     /// <summary>
@@ -262,6 +270,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
+        /// <remarks>
+        /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
+        /// </remarks>
         public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText);
     }
 }

@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class CSharpOutlining : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -27,7 +28,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact]
         public void Outlining()
         {
             var input = @"
@@ -50,7 +51,7 @@ namespace ConsoleApplication1[|
             Assert.Equal(spans.OrderBy(s => s.Start), VisualStudio.Editor.GetOutliningSpans());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact]
         public void OutliningConfigChange()
         {
             var input = @"
@@ -59,17 +60,21 @@ namespace ClassLibrary1[|
     public class Class1[|
     {
 #if DEBUG
-{|Release:        void Goo(){|Debug:
+{|Debug:{|Release:
+        void Goo(){|Debug:
         {
         }|}
         
         void Goo2(){|Debug:
         {
-        }|}|}
+        }|}
+|}|}
 #else
-{|Debug:        void Bar(){|Release:
+{|Release:{|Debug:
+        void Bar(){|Release:
         {
-        }|}|}
+        }|}
+|}|}
 #endif
     }|]
 }|]";

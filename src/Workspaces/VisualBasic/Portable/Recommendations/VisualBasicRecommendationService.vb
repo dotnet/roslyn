@@ -7,11 +7,12 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
     <ExportLanguageService(GetType(IRecommendationService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicRecommendationService
-        Inherits AbstractRecommendationService(Of VisualBasicSyntaxContext)
+        Inherits AbstractRecommendationService(Of VisualBasicSyntaxContext, LambdaExpressionSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

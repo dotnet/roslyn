@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -40,11 +41,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             AssertAnalyzerProviders(_analyzerProviders);
 
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
-            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
+            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy);
         }
 
-        public void Register(Workspace workspace)
-            => EnsureRegistration(workspace, initializeLazily: true);
+        void ISolutionCrawlerRegistrationService.Register(Workspace workspace)
+            => Register(workspace);
+
+        public bool Register(Workspace workspace)
+        {
+            // Do not crawl the preview workspace.  It's pure overhead and serves no purpose.  Diagnostics for the
+            // preview workspace are provided either through Roslyn-Native-Pull-Tagging (which does not need solution
+            // crawler).  Or will be something LSP needs to handle if Native-Pull-Tagging is off and
+            // LSP-Pull-Diagnostics is on.
+            if (workspace.Kind == WorkspaceKind.Preview)
+                return false;
+
+            EnsureRegistration(workspace, initializeLazily: true);
+            return true;
+        }
 
         /// <summary>
         /// make sure solution cralwer is registered for the given workspace.
@@ -62,7 +76,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             Contract.ThrowIfNull(workspace.Kind);
 
-            var correlationId = LogAggregator.GetNextId();
+            var correlationId = CorrelationIdFactory.GetNextId();
 
             lock (_gate)
             {

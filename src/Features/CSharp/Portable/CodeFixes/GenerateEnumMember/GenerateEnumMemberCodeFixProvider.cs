@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -24,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
     internal class GenerateEnumMemberCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
         private const string CS0117 = nameof(CS0117); // error CS0117: 'Color' does not contain a definition for 'Red'
+        private const string CS1061 = nameof(CS1061); // error CS1061: 'Color' does not contain a definition for 'Red' and no accessible extension method 'Red' accepting a first argument of type 'Color' could be found
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -31,14 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(CS0117); }
-        }
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(CS0117, CS1061);
 
-        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var service = document.GetLanguageService<IGenerateEnumMemberService>();
+            var service = document.GetRequiredLanguageService<IGenerateEnumMemberService>();
             return service.GenerateEnumMemberAsync(document, node, fallbackOptions, cancellationToken);
         }
 

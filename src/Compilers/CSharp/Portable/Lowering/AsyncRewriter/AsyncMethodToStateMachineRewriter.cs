@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// of rewritten return expressions. The return-handling code then uses <c>SetResult</c> on the async method builder
         /// to make the result available to the caller.
         /// </summary>
-        private readonly LocalSymbol _exprRetValue;
+        private readonly LocalSymbol? _exprRetValue;
 
         private readonly LoweredDynamicOperationFactory _dynamicFactory;
 
@@ -71,13 +69,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory F,
             FieldSymbol state,
             FieldSymbol builder,
-            IReadOnlySet<Symbol> hoistedVariables,
+            FieldSymbol? instanceIdField,
+            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
-            VariableSlotAllocator slotAllocatorOpt,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
+            VariableSlotAllocator? slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
-            : base(F, method, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics, useFinalizerBookkeeping: false)
+            : base(F, method, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             _method = method;
             _asyncMethodBuilderMemberCollection = asyncMethodBuilderMemberCollection;
@@ -95,6 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
         }
+
+#nullable disable
 
         private FieldSymbol GetAwaiterField(TypeSymbol awaiterType)
         {
@@ -120,6 +122,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        protected sealed override string EncMissingStateMessage
+            => CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod;
+
+        protected sealed override StateMachineState FirstIncreasingResumableState
+            => StateMachineState.FirstResumableAsyncState;
+
         /// <summary>
         /// Generate the body for <c>MoveNext()</c>.
         /// </summary>
@@ -143,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Block(ImmutableArray<LocalSymbol>.Empty,
                         // switch (state) ...
                         F.HiddenSequencePoint(),
-                        Dispatch(),
+                        Dispatch(isOutermost: true),
                         // [body]
                         rewrittenBody
                     ),
@@ -154,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(F.Label(_exprReturnLabel));
 
             // this.state = finishedState
-            var stateDone = F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine));
+            var stateDone = F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState));
             var block = body.Syntax as BlockSyntax;
             if (block == null)
             {
@@ -195,6 +203,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newBody = MakeStateMachineScope(rootScopeHoistedLocals, newBody);
             }
 
+            if (instrumentation != null)
+            {
+                newBody = F.Block(
+                    ImmutableArray.Create(instrumentation.Local),
+                    instrumentation.Prologue,
+                    F.Try(F.Block(newBody), ImmutableArray<BoundCatchBlock>.Empty, F.Block(instrumentation.Epilogue)));
+            }
+
             F.CloseMethod(newBody);
         }
 
@@ -228,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // _state = finishedState;
             BoundStatement assignFinishedState =
-                F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)));
+                F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)));
 
             // builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex);
             BoundStatement callSetException = GenerateSetExceptionCall(exceptionLocal);
@@ -314,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             // await expressions must, by now, have been moved to the top level.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override BoundNode VisitBadExpression(BoundBadExpression node)
@@ -436,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBlock GenerateAwaitForIncompleteTask(LocalSymbol awaiterTemp)
         {
-            AddState(out int stateNumber, out GeneratedLabelSymbol resumeLabel);
+            AddResumableState(awaiterTemp.GetDeclaratorSyntax(), out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
 
             TypeSymbol awaiterFieldType = awaiterTemp.Type.IsVerifierReference()
                 ? F.SpecialType(SpecialType.System_Object)
@@ -490,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                     // this.state = cachedState = NotStartedStateMachine
-                    GenerateSetBothStates(StateMachineStates.NotStartedStateMachine));
+                    GenerateSetBothStates(StateMachineState.NotStartedOrRunningState));
 
             return F.Block(blockBuilder.ToImmutableAndFree());
         }

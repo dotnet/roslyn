@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -131,15 +131,13 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
                 sortMembers: false,
                 autoInsertionLocation: false);
 
-            var codeGenOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await document.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-            var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
 
             // Then, actually insert the new class in the appropriate container.
             var container = anonymousObject.GetAncestor<TNamespaceDeclarationSyntax>() ?? root;
             editor.ReplaceNode(container, (currentContainer, _) =>
-                codeGenService.AddNamedType(currentContainer, namedTypeSymbol, codeGenOptions.GetInfo(context, document.Project), cancellationToken));
+                info.Service.AddNamedType(currentContainer, namedTypeSymbol, info, cancellationToken));
 
             var updatedDocument = document.WithSyntaxRoot(editor.GetChangedRoot());
 

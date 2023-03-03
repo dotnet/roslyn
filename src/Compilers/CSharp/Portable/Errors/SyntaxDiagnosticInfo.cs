@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -46,6 +44,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxDiagnosticInfo WithOffset(int offset)
         {
             return new SyntaxDiagnosticInfo(offset, this.Width, (ErrorCode)this.Code, this.Arguments);
+        }
+
+        protected SyntaxDiagnosticInfo(SyntaxDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            Offset = original.Offset;
+            Width = original.Width;
+        }
+
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new SyntaxDiagnosticInfo(this, severity);
         }
 
         #region Serialization

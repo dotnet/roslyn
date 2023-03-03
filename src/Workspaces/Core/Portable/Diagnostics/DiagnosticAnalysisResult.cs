@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
     /// This holds onto diagnostics for a specific version of project snapshot
     /// in a way each kind of diagnostics can be queried fast.
     /// </summary>
-    internal struct DiagnosticAnalysisResult
+    internal readonly struct DiagnosticAnalysisResult
     {
         public readonly bool FromBuild;
         public readonly ProjectId ProjectId;

@@ -2,10 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
@@ -16,9 +18,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
         Public Sub New()
             MyBase.New(unusedValueExpressionStatementOption:=VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
-                       unusedValueAssignmentOption:=VisualBasicCodeStyleOptions.UnusedValueAssignment,
-                       LanguageNames.VisualBasic)
+                       unusedValueAssignmentOption:=VisualBasicCodeStyleOptions.UnusedValueAssignment)
         End Sub
+
+        Protected Overrides Function GetUnusedValueExpressionStatementOption(provider As AnalyzerOptionsProvider) As CodeStyleOption2(Of UnusedValuePreference)
+            Return CType(provider, VisualBasicAnalyzerOptionsProvider).UnusedValueExpressionStatement
+        End Function
+
+        Protected Overrides Function GetUnusedValueAssignmentOption(provider As AnalyzerOptionsProvider) As CodeStyleOption2(Of UnusedValuePreference)
+            Return CType(provider, VisualBasicAnalyzerOptionsProvider).UnusedValueAssignment
+        End Function
 
         Protected Overrides Function IsRecordDeclaration(node As SyntaxNode) As Boolean
             Return False
@@ -40,6 +49,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
         Protected Overrides Function IsCallStatement(expressionStatement As IExpressionStatementOperation) As Boolean
             Return TryCast(expressionStatement.Syntax, CallStatementSyntax) IsNot Nothing
+        End Function
+
+        Protected Overrides Function ReturnsThrow(node As SyntaxNode) As Boolean
+            Dim methodStatementSyntax = TryCast(node, MethodBaseSyntax)
+            If methodStatementSyntax IsNot Nothing Then
+                Dim methodSyntax = TryCast(node.Parent, MethodBlockBaseSyntax)
+                If methodSyntax.BlockStatement Is Nothing Then
+                    Return False
+                End If
+
+                If methodSyntax.Statements.Count = 1 Then
+                    Return TryCast(methodSyntax.Statements.First(), ThrowStatementSyntax) IsNot Nothing
+                End If
+            End If
+
+            Return False
         End Function
 
         Protected Overrides Function IsExpressionOfExpressionBody(expressionStatementOperation As IExpressionStatementOperation) As Boolean

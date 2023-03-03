@@ -87,5 +87,13 @@ namespace Microsoft.CodeAnalysis.Remote
             Project project,
             Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
+
+        // multiple solution, no callback
+
+        public abstract ValueTask<bool> TryInvokeAsync(
+            Solution solution1,
+            Solution solution2,
+            Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken);
     }
 }

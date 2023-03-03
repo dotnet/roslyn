@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
     public class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private static readonly ParseOptions CSharp9 = TestOptions.RegularPreview.WithLanguageVersion(LanguageVersion.CSharp9);
@@ -96,7 +97,7 @@ class C
         [InlineData("o != null")]
         [InlineData("!(o is null)")]
         [InlineData("o is int ii || o is long jj")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Theory]
         public async Task TestMissingOnExpression(string expression)
         {
             await TestAllMissingOnExpressionAsync(expression);
@@ -120,32 +121,32 @@ class C
         [InlineData("(int.MaxValue - 1D) < i && i > 0", "i is > (int)(int.MaxValue - 1D) and > 0")]
         [InlineData("ch < ' ' || ch >= 0x100 || 'a' == ch", "ch is < ' ' or >= (char)0x100 or 'a'")]
         [InlineData("ch == 'a' || 'b' == ch", "ch is 'a' or 'b'")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Theory]
         public async Task TestOnExpression(string expression, string expected)
         {
             await TestAllOnExpressionAsync(expression, expected);
         }
 
         [InlineData("nullable == 1 || 2 == nullable", "nullable is 1 or 2")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Theory]
         public async Task TestOnNullableExpression(string expression, string expected)
         {
             await TestAllOnExpressionAsync(expression, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Fact]
         public async Task TestMissingIfDisabled()
         {
             await TestAllMissingOnExpressionAsync("o == 1 || o == 2", enabled: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Fact]
         public async Task TestMissingOnCSharp8()
         {
             await TestAllMissingOnExpressionAsync("o == 1 || o == 2", parseOptions: TestOptions.Regular8);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Fact]
         public async Task TestMultilineTrivia_01()
         {
             await TestAllAsync(
@@ -181,7 +182,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Fact]
         public async Task TestMultilineTrivia_02()
         {
             await TestAllAsync(
@@ -217,7 +218,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Fact]
         public async Task TestParenthesized()
         {
             await TestAllAsync(
@@ -245,7 +246,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Fact]
         public async Task TestMissingInExpressionTree()
         {
             await TestMissingAsync(
@@ -259,8 +260,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        [WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        [Fact, WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
         public async Task TestMissingInPropertyAccess_NullCheckOnLeftSide()
         {
             await TestMissingAsync(
@@ -281,8 +281,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        [WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        [Fact, WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
         public async Task TestMissingInPropertyAccess_NullCheckOnRightSide()
         {
             await TestMissingAsync(
@@ -303,8 +302,7 @@ public class C
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        [WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [Theory, WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheck(string logicalOperator)
@@ -324,8 +322,7 @@ public class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        [WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [Theory, WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheckOnOtherType(string logicalOperator)
@@ -345,8 +342,7 @@ public class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        [WorkItem(51693, "https://github.com/dotnet/roslyn/issues/51693")]
+        [Theory, WorkItem(51693, "https://github.com/dotnet/roslyn/issues/51693")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_IsCheckAndNullCheck(string logicalOperator)
@@ -366,8 +362,7 @@ public class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        [WorkItem(52573, "https://github.com/dotnet/roslyn/issues/52573")]
+        [Theory, WorkItem(52573, "https://github.com/dotnet/roslyn/issues/52573")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingIntegerAndStringIndex(string logicalOperator)
@@ -384,7 +379,7 @@ public class C
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Fact]
         public async Task TestOnSideEffects1()
         {
             await TestInRegularAndScriptAsync(
@@ -433,7 +428,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Fact]
         public async Task TestOnSideEffects2()
         {
             await TestInRegularAndScriptAsync(
@@ -482,8 +477,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestMissingInNonConvertibleTypePattern1()
         {
             await TestMissingAsync(
@@ -503,8 +497,7 @@ class Test<T>
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestMissingInNonConvertibleTypePattern2()
         {
             await TestMissingAsync(
@@ -527,8 +520,7 @@ class Test<T>
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestMissingInNonConvertibleTypePattern3()
         {
             await TestMissingAsync(
@@ -549,8 +541,7 @@ class Test<T>
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestInConvertibleTypePattern()
         {
             await TestInRegularAndScriptAsync(
@@ -583,8 +574,7 @@ class Test<T>
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
-        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestInConvertibleTypePattern2()
         {
             await TestInRegularAndScriptAsync(

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.False(string.IsNullOrEmpty(engine.Log));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void SourceNotAssemblyNoDestination()
         {
             var dir = TempRoot.CreateDirectory();
@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             };
 
             Assert.True(task.Execute());
-            Assert.True(string.IsNullOrEmpty(engine.Log));
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""Copying reference assembly from "{{file.Path}}" to "{{dest}}".""", engine.Log);
             Assert.Equal("test", File.ReadAllText(dest));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void SourceNotAssemblyWithDestination()
         {
             var dir = TempRoot.CreateDirectory();
@@ -94,8 +94,43 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             };
 
             Assert.True(task.Execute());
-            Assert.False(string.IsNullOrEmpty(engine.Log));
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""
+                Could not extract the MVID from "{{source.Path}}". Are you sure it is a reference assembly?
+                Copying reference assembly from "{{source.Path}}" to "{{dest}}".
+                """,
+                engine.Log);
+
             Assert.Equal("test", File.ReadAllText(dest.Path));
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public void SourceAssemblyWithDifferentDestinationAssembly()
+        {
+            var dir = TempRoot.CreateDirectory();
+            var source = dir.CreateFile("mvid1.dll");
+            File.WriteAllBytes(source.Path, TestResources.General.MVID1);
+            var sourceTimestamp = File.GetLastWriteTimeUtc(source.Path).ToString("O");
+
+            var dest = dir.CreateFile("mvid2.dll");
+            File.WriteAllBytes(dest.Path, TestResources.General.MVID2);
+            var destTimestamp = File.GetLastWriteTimeUtc(dest.Path).ToString("O");
+
+            var engine = new MockEngine();
+            var task = new CopyRefAssembly()
+            {
+                BuildEngine = engine,
+                SourcePath = source.Path,
+                DestinationPath = dest.Path,
+            };
+
+            Assert.True(task.Execute());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""
+                Source reference assembly "{{source.Path}}" (timestamp "{{sourceTimestamp}}", MVID "f851dda2-6ea3-475e-8c0d-19bd3c4d9437") differs from destination "{{dest.Path}}" (timestamp "{{destTimestamp}}", MVID "8e1ed25b-2980-4f32-9dee-c1e3b0a57c4b").
+                Copying reference assembly from "{{source.Path}}" to "{{dest.Path}}".
+                """,
+                engine.Log);
         }
     }
 }

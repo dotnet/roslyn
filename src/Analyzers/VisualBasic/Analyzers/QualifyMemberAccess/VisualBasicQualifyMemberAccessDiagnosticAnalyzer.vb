@@ -6,19 +6,18 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.QualifyMemberAccess
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
+Imports Microsoft.CodeAnalysis.Simplification
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicQualifyMemberAccessDiagnosticAnalyzer
-        Inherits AbstractQualifyMemberAccessDiagnosticAnalyzer(Of SyntaxKind, ExpressionSyntax, SimpleNameSyntax, VisualBasicSimplifierOptions)
+        Inherits AbstractQualifyMemberAccessDiagnosticAnalyzer(Of SyntaxKind, ExpressionSyntax, SimpleNameSyntax)
 
-        Protected Overrides Function GetLanguageName() As String
-            Return LanguageNames.VisualBasic
-        End Function
-
-        Protected Overrides Function GetSimplifierOptions(options As AnalyzerOptions, syntaxTree As SyntaxTree) As VisualBasicSimplifierOptions
-            Return options.GetVisualBasicSimplifierOptions(syntaxTree)
-        End Function
+        Protected Overrides ReadOnly Property Simplification As ISimplification
+            Get
+                Return VisualBasicSimplification.Instance
+            End Get
+        End Property
 
         Protected Overrides Function IsAlreadyQualifiedMemberAccess(node As ExpressionSyntax) As Boolean
             Return node.IsKind(SyntaxKind.MeExpression)

@@ -60,10 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // added (anonymous types, for instance).
             Debug.Assert(Compilation != compilation);
 
+            // Binder.IsInScopeOfAssociatedSyntaxTree() expects a non-null AssociatedFileIdentifier when
+            // looking up file-local types. If there is no document name, use an invalid FilePathChecksumOpt.
+            FileIdentifier fileIdentifier = methodDebugInfo.ContainingDocumentName is { } documentName
+                ? FileIdentifier.Create(documentName)
+                : new FileIdentifier { EncoderFallbackErrorMessage = null, FilePathChecksumOpt = ImmutableArray<byte>.Empty, DisplayFilePath = string.Empty };
+
             NamespaceBinder = CreateBinderChain(
                 Compilation,
                 currentFrame.ContainingNamespace,
-                methodDebugInfo.ImportRecordGroups);
+                methodDebugInfo.ImportRecordGroups,
+                fileIdentifier: fileIdentifier);
 
             if (_methodNotType)
             {
@@ -193,9 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         _methodNotType,
                         out declaredLocals);
 
-                    return (syntax is StatementSyntax statementSyntax) ?
-                        BindStatement(binder, statementSyntax, diags, out properties) :
-                        BindExpression(binder, (ExpressionSyntax)syntax, diags, out properties);
+                    return (syntax is StatementSyntax statementSyntax)
+                        ? BindStatement(binder, statementSyntax, diags, out properties)
+                        : BindExpression(binder, (ExpressionSyntax)syntax, diags, out properties);
                 });
 
             return synthesizedType;
@@ -642,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             else if (expressionType.SpecialType == SpecialType.System_Void)
             {
                 flags |= DkmClrCompilationResultFlags.ReadOnlyResult;
-                Debug.Assert(expression.ConstantValue == null);
+                Debug.Assert(expression.ConstantValueOpt == null);
                 resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, isConstant: false);
                 return new BoundExpressionStatement(syntax, expression) { WasCompilerGenerated = true };
             }
@@ -656,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 flags |= DkmClrCompilationResultFlags.ReadOnlyResult;
             }
 
-            resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValue != null);
+            resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValueOpt != null);
             return new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
         }
 
@@ -697,7 +704,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static Binder CreateBinderChain(
             CSharpCompilation compilation,
             NamespaceSymbol @namespace,
-            ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups)
+            ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups,
+            FileIdentifier? fileIdentifier)
         {
             var stack = ArrayBuilder<string>.GetInstance();
             while (@namespace is object)
@@ -706,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 @namespace = @namespace.ContainingNamespace;
             }
 
-            Binder binder = new BuckStopsHereBinder(compilation);
+            Binder binder = new BuckStopsHereBinder(compilation, fileIdentifier);
             var hasImports = !importRecordGroups.IsDefaultOrEmpty;
             var numImportStringGroups = hasImports ? importRecordGroups.Length : 0;
             var currentStringGroup = numImportStringGroups - 1;

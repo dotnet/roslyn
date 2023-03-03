@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -796,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void ReportBinaryOperatorError(ExpressionSyntax node, BindingDiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
+        private void ReportBinaryOperatorError(ExpressionSyntax node, BindingDiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
             bool isEquality = operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken;
             switch (left.Kind, right.Kind)
@@ -825,11 +826,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
             }
 
-            ErrorCode errorCode = resultKind == LookupResultKind.Ambiguous ?
-                ErrorCode.ERR_AmbigBinaryOps : // Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'
-                ErrorCode.ERR_BadBinaryOps;    // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'
+#nullable enable
+            ErrorCode errorCode;
+
+            switch (resultKind)
+            {
+                case LookupResultKind.Ambiguous:
+                    errorCode = ErrorCode.ERR_AmbigBinaryOps; // Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'
+                    break;
+
+                case LookupResultKind.OverloadResolutionFailure when operatorToken.Kind() is SyntaxKind.PlusToken && isReadOnlySpanOfByte(left.Type) && isReadOnlySpanOfByte(right.Type):
+                    errorCode = ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation; // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations
+                    break;
+
+                default:
+                    errorCode = ErrorCode.ERR_BadBinaryOps;    // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'
+                    break;
+            }
 
             Error(diagnostics, errorCode, node, operatorToken.Text, left.Display, right.Display);
+
+            bool isReadOnlySpanOfByte(TypeSymbol? type)
+            {
+                return type is NamedTypeSymbol namedType && Compilation.IsReadOnlySpanType(namedType) &&
+                    namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type.SpecialType is SpecialType.System_Byte;
+
+            }
+#nullable disable
         }
 
         private BoundExpression BindConditionalLogicalOperator(BinaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -1103,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool typesAreSame = TypeSymbol.Equals(signature.LeftType, signature.RightType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(signature.LeftType, signature.ReturnType, TypeCompareKind.ConsiderEverything2);
             MethodSymbol definition;
             bool typeMatchesContainer = TypeSymbol.Equals(signature.ReturnType.StrippedType(), t, TypeCompareKind.ConsiderEverything2) ||
-                                        (t.IsInterface && signature.Method.IsAbstract &&
+                                        (t.IsInterface && (signature.Method.IsAbstract || signature.Method.IsVirtual) &&
                                          SourceUserDefinedOperatorSymbol.IsSelfConstrainedTypeParameter((definition = signature.Method.OriginalDefinition).ReturnType.StrippedType(), definition.ContainingType));
 
             if (!typesAreSame || !typeMatchesContainer)
@@ -1394,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (kind == UnaryOperatorKind.UnaryMinus &&
                         (object)operand.Type != null &&
-                        (operand.Type.SpecialType == SpecialType.System_UInt64 || (operand.Type.SpecialType == SpecialType.System_UIntPtr && operand.Type.IsNativeIntegerType)))
+                        (operand.Type.SpecialType == SpecialType.System_UInt64 || isNuint(operand.Type)))
                     {
                         resultKind = LookupResultKind.OverloadResolutionFailure;
                     }
@@ -1422,6 +1445,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             result.Free();
             return possiblyBest;
+
+            static bool isNuint(TypeSymbol type)
+            {
+                return type.SpecialType == SpecialType.System_UIntPtr
+                    && type.IsNativeIntegerType;
+            }
         }
 
         private static object FoldDecimalBinaryOperators(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
@@ -1742,8 +1771,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return nullableEqualityResult;
             }
 
-            var valueLeft = left.ConstantValue;
-            var valueRight = right.ConstantValue;
+            var valueLeft = left.ConstantValueOpt;
+            var valueRight = right.ConstantValueOpt;
             if (valueLeft == null || valueRight == null)
             {
                 return null;
@@ -1887,8 +1916,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BoundConversion leftConv = (BoundConversion)left;
                         BoundConversion rightConv = (BoundConversion)right;
-                        ConstantValue? leftConstant = leftConv.Operand.ConstantValue;
-                        ConstantValue? rightConstant = rightConv.Operand.ConstantValue;
+                        ConstantValue? leftConstant = leftConv.Operand.ConstantValueOpt;
+                        ConstantValue? rightConstant = rightConv.Operand.ConstantValueOpt;
 
                         if (leftConstant != null && rightConstant != null)
                         {
@@ -2159,7 +2188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        private static BinaryOperatorKind SyntaxKindToBinaryOperatorKind(SyntaxKind kind)
+        public static BinaryOperatorKind SyntaxKindToBinaryOperatorKind(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -2323,7 +2352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (methodOpt?.ContainingType?.IsInterface == true && methodOpt.IsStatic)
             {
-                if (methodOpt.IsAbstract)
+                if (methodOpt.IsAbstract || methodOpt.IsVirtual)
                 {
                     if (constrainedToTypeOpt is not TypeParameterSymbol)
                     {
@@ -2378,6 +2407,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureNullableReferenceTypes.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
             var expr = BindExpression(node.Operand, diagnostics);
             switch (expr.Kind)
             {
@@ -2473,30 +2504,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             ManagedKind managedKind = operandType.GetManagedKind(ref useSiteInfo);
             diagnostics.Add(node.Location, useSiteInfo);
 
-            bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
-            if (!allowManagedAddressOf)
+            if (!hasErrors)
             {
-                if (!hasErrors)
-                {
-                    hasErrors = CheckManagedAddr(Compilation, operandType, managedKind, node.Location, diagnostics);
-                }
+                hasErrors = CheckManagedAddr(Compilation, operandType, managedKind, node.Location, diagnostics);
+            }
 
-                if (!hasErrors)
+            bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowMoveableAddressOf);
+            if (!hasErrors && !allowManagedAddressOf)
+            {
+                if (IsMoveableVariable(operand, accessedLocalOrParameterOpt: out _) != isFixedStatementAddressOfExpression)
                 {
-                    Symbol accessedLocalOrParameterOpt;
-                    if (IsMoveableVariable(operand, out accessedLocalOrParameterOpt) != isFixedStatementAddressOfExpression)
-                    {
-                        Error(diagnostics, isFixedStatementAddressOfExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedNeeded, node);
-                        hasErrors = true;
-                    }
+                    Error(diagnostics, isFixedStatementAddressOfExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedNeeded, node);
+                    hasErrors = true;
                 }
             }
 
-            TypeSymbol pointedAtType = managedKind == ManagedKind.Managed && allowManagedAddressOf
-                ? GetSpecialType(SpecialType.System_IntPtr, diagnostics, node)
-                : operandType ?? CreateErrorType();
-            TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(pointedAtType));
-
+            TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(operandType));
             return new BoundAddressOfOperator(node, operand, pointerType, hasErrors);
         }
 
@@ -2505,7 +2528,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// variables have underlying memory which may be moved by the runtime. The spec defines anything
         /// not fixed as moveable and specifies the expressions which are fixed.
         /// </summary>
-
         internal bool IsMoveableVariable(BoundExpression expr, out Symbol accessedLocalOrParameterOpt)
         {
             accessedLocalOrParameterOpt = null;
@@ -2575,7 +2597,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundParameter parameterAccess = (BoundParameter)expr;
                             ParameterSymbol parameterSymbol = parameterAccess.ParameterSymbol;
                             accessedLocalOrParameterOpt = parameterSymbol;
-                            return parameterSymbol.RefKind != RefKind.None;
+
+                            if (parameterSymbol.RefKind != RefKind.None)
+                            {
+                                return true;
+                            }
+
+                            if (parameterSymbol.ContainingSymbol is SynthesizedPrimaryConstructor primaryConstructor &&
+                                primaryConstructor.GetCapturedParameters().ContainsKey(parameterSymbol))
+                            {
+                                // See 'case BoundKind.FieldAccess' above. Receiver in our case is 'this' parameter.
+                                // If we are in a class, its type is reference type.
+                                // If we are in a struct, 'this' RefKind is not None.
+                                // Therefore, movable in either case. 
+                                return true;
+                            }
+
+                            return false;
                         }
                     case BoundKind.ThisReference:
                     case BoundKind.BaseReference:
@@ -2773,7 +2811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var value = operand.ConstantValue;
+            var value = operand.ConstantValueOpt;
             if (value == null || value.IsBad)
             {
                 return value;
@@ -2924,7 +2962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static UnaryOperatorKind SyntaxKindToUnaryOperatorKind(SyntaxKind kind)
+        public static UnaryOperatorKind SyntaxKindToUnaryOperatorKind(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -3158,7 +3196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 bool hasErrors = node.Right.HasErrors;
-                var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression);
+                var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, out _);
                 if (wasExpression)
                 {
                     hasErrors |= constantValueOpt is null;
@@ -3204,7 +3242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            if (operand.ConstantValue == ConstantValue.Null ||
+            if (operand.ConstantValueOpt == ConstantValue.Null ||
                 operand.Kind == BoundKind.MethodGroup ||
                 operand.Type.IsVoidType())
             {
@@ -3246,7 +3284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
-            ReportIsOperatorConstantWarnings(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValue);
+            ReportIsOperatorDiagnostics(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValueOpt);
             return new BoundIsOperator(node, operand, typeExpression, conversion.Kind, resultType);
 
             bool tryBindAsType(
@@ -3264,7 +3302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        private static void ReportIsOperatorConstantWarnings(
+        private static void ReportIsOperatorDiagnostics(
             CSharpSyntaxNode syntax,
             BindingDiagnosticBag diagnostics,
             TypeSymbol operandType,
@@ -3280,13 +3318,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValue = GetIsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue);
             if (constantValue != null)
             {
-                Debug.Assert(constantValue == ConstantValue.True || constantValue == ConstantValue.False);
+                if (constantValue.IsBad)
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadBinaryOps, syntax, "is", operandType, targetType);
+                }
+                else
+                {
+                    Debug.Assert(constantValue == ConstantValue.True || constantValue == ConstantValue.False);
 
-                ErrorCode errorCode = constantValue == ConstantValue.True ? ErrorCode.WRN_IsAlwaysTrue : ErrorCode.WRN_IsAlwaysFalse;
-                Error(diagnostics, errorCode, syntax, targetType);
+                    ErrorCode errorCode = constantValue == ConstantValue.True ? ErrorCode.WRN_IsAlwaysTrue : ErrorCode.WRN_IsAlwaysFalse;
+                    Error(diagnostics, errorCode, syntax, targetType);
+                }
             }
         }
 
+        /// <summary>
+        /// Possible return values:
+        ///  - <see cref="ConstantValue.False"/>
+        ///  - <see cref="ConstantValue.True"/>
+        ///  - <see cref="ConstantValue.Bad"/> - compiler doesn't support the type check, i.e. cannot perform it, even at runtime
+        ///  - 'null' value - result is not known at compile time    
+        /// </summary>
         internal static ConstantValue GetIsOperatorConstantResult(
             TypeSymbol operandType,
             TypeSymbol targetType,
@@ -3416,10 +3468,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ConstantValue.False;
                     }
 
-                    // * Otherwise, if the other type is a restricted type, we know no conversion is possible.
+                    // * If either type is a restricted type, the type check isn't supported because
+                    //   a restricted type cannot be boxed or unboxed into.
                     if (targetType.IsRestrictedType() || operandType.IsRestrictedType())
                     {
-                        return ConstantValue.False;
+                        return ConstantValue.Bad;
                     }
 
                     // * Otherwise, we give up. Though there are other situations in which we can deduce that
@@ -3698,7 +3751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
-            bool hasErrors = ReportAsOperatorConversionDiagnostics(node, diagnostics, this.Compilation, operandType, targetType, conversion.Kind, operand.ConstantValue);
+            bool hasErrors = ReportAsOperatorConversionDiagnostics(node, diagnostics, this.Compilation, operandType, targetType, conversion.Kind, operand.ConstantValueOpt);
 
             if (conversion.Exists)
             {
@@ -3773,13 +3826,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!hasErrors)
             {
-                ReportAsOperatorConstantWarnings(node, diagnostics, operandType, targetType, conversionKind, operandConstantValue);
+                ReportAsOperatorDiagnostics(node, diagnostics, operandType, targetType, conversionKind, operandConstantValue);
             }
 
             return hasErrors;
         }
 
-        private static void ReportAsOperatorConstantWarnings(
+        private static void ReportAsOperatorDiagnostics(
             CSharpSyntaxNode node,
             BindingDiagnosticBag diagnostics,
             TypeSymbol operandType,
@@ -3795,11 +3848,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValue = GetAsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue);
             if (constantValue != null)
             {
-                Debug.Assert(constantValue.IsNull);
-                Error(diagnostics, ErrorCode.WRN_AlwaysNull, node, targetType);
+                if (constantValue.IsBad)
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, "as", operandType, targetType);
+                }
+                else
+                {
+                    Debug.Assert(constantValue.IsNull);
+                    Error(diagnostics, ErrorCode.WRN_AlwaysNull, node, targetType);
+                }
             }
         }
 
+        /// <summary>
+        /// Possible return values:
+        ///  - <see cref="ConstantValue.Null"/>
+        ///  - <see cref="ConstantValue.Bad"/> - compiler doesn't support the type check, i.e. cannot perform it, even at runtime
+        ///  - 'null' value - result is not known at compile time    
+        /// </summary>
         internal static ConstantValue GetAsOperatorConstantResult(TypeSymbol operandType, TypeSymbol targetType, ConversionKind conversionKind, ConstantValue operandConstantValue)
         {
             // NOTE:    Even though BoundIsOperator and BoundAsOperator will always have no ConstantValue
@@ -3808,9 +3874,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE:    and during rewriting for optimized codegen.
 
             ConstantValue isOperatorConstantResult = GetIsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue);
-            if (isOperatorConstantResult != null && !isOperatorConstantResult.BooleanValue)
+            if (isOperatorConstantResult != null)
             {
-                return ConstantValue.Null;
+                if (isOperatorConstantResult.IsBad)
+                {
+                    return isOperatorConstantResult;
+                }
+
+                if (!isOperatorConstantResult.BooleanValue)
+                {
+                    return ConstantValue.Null;
+                }
             }
 
             return null;
@@ -4015,6 +4089,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindNullCoalescingAssignmentOperator(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+
             BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
@@ -4216,50 +4292,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(Conversions.HasIdentityConversion(falseType, type));
             }
 
-            if (!hasErrors)
-            {
-                var currentScope = this.LocalScopeDepth;
-
-                // val-escape must agree on both branches.
-                uint whenTrueEscape = GetValEscape(trueExpr, currentScope);
-                uint whenFalseEscape = GetValEscape(falseExpr, currentScope);
-
-                if (whenTrueEscape != whenFalseEscape)
-                {
-                    // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
-                    if (whenTrueEscape < whenFalseEscape)
-                        CheckValEscape(falseExpr.Syntax, falseExpr, currentScope, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
-                    else
-                        CheckValEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
-
-                    diagnostics.Add(ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
-                    hasErrors = true;
-                }
-            }
-
             trueExpr = BindToNaturalType(trueExpr, diagnostics, reportNoTargetType: false);
             falseExpr = BindToNaturalType(falseExpr, diagnostics, reportNoTargetType: false);
             return new BoundConditionalOperator(node, isRef: true, condition, trueExpr, falseExpr, constantValueOpt: null, type, wasTargetTyped: false, type, hasErrors);
         }
+    }
 
+    partial class RefSafetyAnalysis
+    {
+        private void ValidateRefConditionalOperator(SyntaxNode node, BoundExpression trueExpr, BoundExpression falseExpr, BindingDiagnosticBag diagnostics)
+        {
+            var currentScope = _localScopeDepth;
+
+            // val-escape must agree on both branches.
+            uint whenTrueEscape = GetValEscape(trueExpr, currentScope);
+            uint whenFalseEscape = GetValEscape(falseExpr, currentScope);
+
+            if (whenTrueEscape != whenFalseEscape)
+            {
+                // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
+                if (whenTrueEscape < whenFalseEscape)
+                    CheckValEscape(falseExpr.Syntax, falseExpr, currentScope, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
+                else
+                    CheckValEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
+
+                diagnostics.Add(_inUnsafeRegion ? ErrorCode.WRN_MismatchedRefEscapeInTernary : ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
+            }
+        }
+    }
+
+    partial class Binder
+    {
         /// <summary>
         /// Constant folding for conditional (aka ternary) operators.
         /// </summary>
         private static ConstantValue FoldConditionalOperator(BoundExpression condition, BoundExpression trueExpr, BoundExpression falseExpr)
         {
-            ConstantValue trueValue = trueExpr.ConstantValue;
+            ConstantValue trueValue = trueExpr.ConstantValueOpt;
             if (trueValue == null || trueValue.IsBad)
             {
                 return trueValue;
             }
 
-            ConstantValue falseValue = falseExpr.ConstantValue;
+            ConstantValue falseValue = falseExpr.ConstantValueOpt;
             if (falseValue == null || falseValue.IsBad)
             {
                 return falseValue;
             }
 
-            ConstantValue conditionValue = condition.ConstantValue;
+            ConstantValue conditionValue = condition.ConstantValueOpt;
             if (conditionValue == null || conditionValue.IsBad)
             {
                 return conditionValue;
@@ -4278,8 +4359,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void CheckNativeIntegerFeatureAvailability(BinaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        private void CheckNativeIntegerFeatureAvailability(BinaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
+            if (Compilation.Assembly.RuntimeSupportsNumericIntPtr)
+            {
+                return;
+            }
+
             switch (operatorKind & BinaryOperatorKind.TypeMask)
             {
                 case BinaryOperatorKind.NInt:
@@ -4289,8 +4375,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void CheckNativeIntegerFeatureAvailability(UnaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        private void CheckNativeIntegerFeatureAvailability(UnaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
+            if (Compilation.Assembly.RuntimeSupportsNumericIntPtr)
+            {
+                return;
+            }
+
             switch (operatorKind & UnaryOperatorKind.TypeMask)
             {
                 case UnaryOperatorKind.NInt:

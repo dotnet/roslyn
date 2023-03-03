@@ -7,6 +7,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -315,7 +316,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
                 return VSConstants.E_INVALIDARG;
 
             // Fire and forget
-            _ = GoToSourceAsync(index, srcType);
+            var asynchronousOperationListener = LibraryManager.ComponentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.LibraryManager);
+            var asyncToken = asynchronousOperationListener.BeginAsyncOperation(nameof(IVsSimpleObjectList2) + "." + nameof(IVsSimpleObjectList2.GoToSource));
+
+            GoToSourceAsync(index, srcType).CompletesAsyncOperation(asyncToken);
             return VSConstants.S_OK;
         }
 

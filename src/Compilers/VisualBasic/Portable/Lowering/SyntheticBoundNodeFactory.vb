@@ -173,7 +173,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
-
         Public Function Base() As BoundMyBaseReference
             Debug.Assert(Me.CurrentMethod IsNot Nothing AndAlso Not Me.CurrentMethod.IsShared)
             Dim boundNode = New BoundMyBaseReference(_syntax, Me.CurrentMethod.MeParameter.Type.BaseTypeNoUseSiteDiagnostics)
@@ -446,6 +445,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundNode = New BoundLiteral(_syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             boundNode.SetWasCompilerGenerated()
             Return boundNode
+        End Function
+
+        Public Function Literal(value As StateMachineState) As BoundLiteral
+            Return Literal(CType(value, Integer))
         End Function
 
         Public Function BadExpression(ParamArray subExpressions As BoundExpression()) As BoundExpression
@@ -1090,7 +1093,7 @@ nextm:
             If body.Kind <> BoundKind.Block Then
                 body = Me.Block(body)
             End If
-            CompilationState.AddSynthesizedMethod(Me.CurrentMethod, body)
+            CompilationState.AddSynthesizedMethod(Me.CurrentMethod, body, stateMachineType:=Nothing, ImmutableArray(Of StateMachineStateDebugInfo).Empty)
             Me.CurrentMethod = Nothing
         End Sub
 

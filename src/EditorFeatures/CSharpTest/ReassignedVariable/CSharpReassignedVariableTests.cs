@@ -511,6 +511,24 @@ class C
         }
 
         [Fact]
+        public async Task AssignmentThroughScopedRefLocal()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(ref int [|p|])
+    {
+        scoped ref var [|local|] = ref [|p|];
+        [|local|] = 0;
+        [|local|] = 1;
+        Console.WriteLine([|local|]);
+    }
+}");
+        }
+
+        [Fact]
         public async Task TestRefLocalReassignment()
         {
             await TestAsync(
@@ -654,6 +672,23 @@ class C
         }
 
         [Fact]
+        public async Task TestScopedReadonlyRefLocalWithNoReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        int p = 0;
+        scoped ref readonly int refP = ref p;
+        Console.WriteLine(p);
+    }
+}");
+        }
+
+        [Fact]
         public async Task TestReadonlyRefLocalWithNoReassignment1()
         {
             await TestAsync(
@@ -665,6 +700,23 @@ class C
     {
         int p = 0;
         ref readonly int refP = ref p!;
+        Console.WriteLine(p);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestScopedReadonlyRefLocalWithNoReassignment1()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M1()
+    {
+        int p = 0;
+        scoped ref readonly int refP = ref p!;
         Console.WriteLine(p);
     }
 }");
@@ -854,6 +906,93 @@ record X(int [|x|]) : Y([|x|]++)
 
 record Y(int x)
 {
+}
+");
+        }
+
+        [Fact]
+        public async Task TestRecord2()
+        {
+            await TestAsync(
+@"
+record X(int [|x|])
+{
+    int Y = [|x|]++;
+}
+");
+        }
+
+        [Fact]
+        public async Task TestRecord3()
+        {
+            await TestAsync(
+@"
+record struct X(int [|x|])
+{
+    int Y = [|x|]++;
+}
+");
+        }
+
+        [Fact]
+        public async Task TestClass1()
+        {
+            await TestAsync(
+@"
+class X(int [|x|]) : Y([|x|]++)
+{
+}
+
+class Y(int x)
+{
+}
+");
+        }
+
+        [Fact]
+        public async Task TestClass2()
+        {
+            await TestAsync(
+@"
+class X(int [|x|])
+{
+    int Y = [|x|]++;
+}
+");
+        }
+
+        [Fact]
+        public async Task TestClass3()
+        {
+            await TestAsync(
+@"
+class X(int [|x|])
+{
+    int Y() => [|x|]++;
+}
+");
+        }
+
+        [Fact]
+        public async Task TestStruct2()
+        {
+            await TestAsync(
+@"
+struct X(int [|x|])
+{
+    int Y = [|x|]++;
+}
+");
+        }
+
+        [Fact]
+        public async Task TestStruct3()
+        {
+            await TestAsync(
+@"
+struct X(int [|x|])
+{
+    int Y() => [|x|]++;
 }
 ");
         }

@@ -144,11 +144,24 @@ class MyClass
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
-        public async Task ExtractInterface_Invocation_FromInterface()
+        public async Task ExtractInterface_Invocation_FromInterface_01()
         {
             var markup = @"
 using System;
 interface IMyInterface
+{
+    $$void Goo();
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Goo", expectedInterfaceName: "IMyInterface1");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task ExtractInterface_Invocation_FromInterface_02()
+        {
+            var markup = @"
+using System;
+interface IMyInterface()
 {
     $$void Goo();
 }";
@@ -623,6 +636,7 @@ using System;
 
 abstract class MyClass$$
 {
+    public required int RequiredProperty { get; set; }
     public void ExtractableMethod_Normal() { }
     public void ExtractableMethod_ParameterTypes(System.Diagnostics.CorrelationManager x, Nullable<Int32> y = 7, string z = ""42"") { }
     public abstract void ExtractableMethod_Abstract();
@@ -634,6 +648,8 @@ abstract class MyClass$$
 
 interface IMyClass
 {
+    int RequiredProperty { get; set; }
+
     void ExtractableMethod_Abstract();
     void ExtractableMethod_Normal();
     void ExtractableMethod_ParameterTypes(CorrelationManager x, int? y = 7, string z = ""42"");
@@ -954,7 +970,7 @@ abstract class MyClass$$
                 markup, LanguageNames.CSharp,
                 options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Silent }
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always, NotificationOption2.Silent }
                 });
 
             var result = await testState.ExtractViaCommandAsync();
@@ -1594,6 +1610,34 @@ public interface IA
                 expectedInterfaceCode: expectedInterfaceCode);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestClass1()
+        {
+            var markup =
+@"namespace Test
+{
+    class $$Whatever(int X, string Y);
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestStruct1()
+        {
+            var markup =
+@"namespace Test
+{
+    struct $$Whatever(int X, string Y);
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
+        }
+
         [WorkItem(49739, "https://github.com/dotnet/roslyn/issues/49739")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task TestRecord2()
@@ -1631,6 +1675,34 @@ public interface IA
                 expectedSuccess: true,
                 expectedUpdatedOriginalDocumentCode: updatedMarkup,
                 expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestClass2()
+        {
+            var markup =
+@"namespace Test
+{
+    class $$Whatever(int X, string Y) { }
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestStruct2()
+        {
+            var markup =
+@"namespace Test
+{
+    struct $$Whatever(int X, string Y) { }
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
         }
 
         [WorkItem(49739, "https://github.com/dotnet/roslyn/issues/49739")]
@@ -1672,6 +1744,36 @@ public interface IA
                 expectedSuccess: true,
                 expectedUpdatedOriginalDocumentCode: updatedMarkup,
                 expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestClass3()
+        {
+            var markup =
+@"namespace Test
+{
+    /// <summary></summary>
+    class $$Whatever(int X, string Y);
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestStruct3()
+        {
+            var markup =
+@"namespace Test
+{
+    /// <summary></summary>
+    struct $$Whatever(int X, string Y);
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
         }
     }
 }

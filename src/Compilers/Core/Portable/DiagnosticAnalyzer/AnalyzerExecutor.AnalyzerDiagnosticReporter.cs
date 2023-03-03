@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Compilation compilation,
                 DiagnosticAnalyzer analyzer,
                 bool isSyntaxDiagnostic,
-                Action<Diagnostic>? addNonCategorizedDiagnostic,
-                Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
-                Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
+                Action<Diagnostic, CancellationToken>? addNonCategorizedDiagnostic,
+                Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic,
+                Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic,
                 Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
                 CancellationToken cancellationToken)
             {
@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private Compilation _compilation;
             private DiagnosticAnalyzer _analyzer;
             private bool _isSyntaxDiagnostic;
-            private Action<Diagnostic>? _addNonCategorizedDiagnostic;
-            private Action<Diagnostic, DiagnosticAnalyzer, bool>? _addCategorizedLocalDiagnostic;
-            private Action<Diagnostic, DiagnosticAnalyzer>? _addCategorizedNonLocalDiagnostic;
+            private Action<Diagnostic, CancellationToken>? _addNonCategorizedDiagnostic;
+            private Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? _addCategorizedLocalDiagnostic;
+            private Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? _addCategorizedNonLocalDiagnostic;
             private Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
             private CancellationToken _cancellationToken;
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (_addCategorizedLocalDiagnostic == null)
                 {
                     Debug.Assert(_addNonCategorizedDiagnostic != null);
-                    _addNonCategorizedDiagnostic(diagnostic);
+                    _addNonCategorizedDiagnostic(diagnostic, _cancellationToken);
                     return;
                 }
 
@@ -104,11 +104,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (isLocalDiagnostic(diagnostic) &&
                     (!_span.HasValue || _span.Value.IntersectsWith(diagnostic.Location.SourceSpan)))
                 {
-                    _addCategorizedLocalDiagnostic(diagnostic, _analyzer, _isSyntaxDiagnostic);
+                    _addCategorizedLocalDiagnostic(diagnostic, _analyzer, _isSyntaxDiagnostic, _cancellationToken);
                 }
                 else
                 {
-                    _addCategorizedNonLocalDiagnostic(diagnostic, _analyzer);
+                    _addCategorizedNonLocalDiagnostic(diagnostic, _analyzer, _cancellationToken);
                 }
 
                 return;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (_contextFile?.AdditionalFile != null &&
                         diagnostic.Location is ExternalFileLocation externalFileLocation)
                     {
-                        return PathUtilities.Comparer.Equals(_contextFile.Value.AdditionalFile.Path, externalFileLocation.FilePath);
+                        return PathUtilities.Comparer.Equals(_contextFile.Value.AdditionalFile.Path, externalFileLocation.GetLineSpan().Path);
                     }
 
                     return false;

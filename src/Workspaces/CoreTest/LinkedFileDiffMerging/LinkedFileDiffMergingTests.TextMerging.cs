@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
 {
+    [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
     public partial class LinkedFileDiffMergingTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestIdenticalChanges()
         {
             TestLinkedFileSet(
@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestChangesInOnlyOneFile()
         {
             TestLinkedFileSet(
@@ -36,7 +35,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestIsolatedChangesInBothFiles()
         {
             TestLinkedFileSet(
@@ -46,9 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestIdenticalEditAfterIsolatedChanges()
         {
             TestLinkedFileSet(
@@ -59,7 +55,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestOneConflict()
         {
             TestLinkedFileSet(
@@ -77,7 +72,6 @@ a b y d e",
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestTwoConflictsOnSameLine()
         {
             TestLinkedFileSet(
@@ -95,7 +89,6 @@ a q1 c z1 e",
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestTwoConflictsOnAdjacentLines()
         {
             TestLinkedFileSet(
@@ -130,9 +123,7 @@ Four",
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestTwoConflictsOnSeparatedLines()
         {
             TestLinkedFileSet(
@@ -177,7 +168,6 @@ Five;",
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestManyLinkedFilesWithOverlappingChange()
         {
             TestLinkedFileSet(
@@ -206,7 +196,6 @@ B",
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestCommentsAddedCodeCSharp()
         {
             TestLinkedFileSet(
@@ -226,7 +215,6 @@ A",
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestCommentsAddedCodeVB()
         {
             TestLinkedFileSet(
@@ -245,7 +233,6 @@ A",
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestCommentsRemovedCodeCSharp()
         {
             TestLinkedFileSet(
@@ -265,7 +252,6 @@ B",
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestCommentsRemovedCodeVB()
         {
             TestLinkedFileSet(

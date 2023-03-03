@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -67,12 +67,10 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 if (info != null)
                 {
-                    var state = await State.GenerateAsync(info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
+                    var state = await State.GenerateAsync(info.SelectedMembers, document, fallbackOptions, cancellationToken).ConfigureAwait(false);
                     if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
                     {
-                        var codeGenOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-                        var contextInfo = codeGenOptions.GetInfo(CodeGenerationContext.Default, document.Project);
-
+                        var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
                         return CreateCodeActions(document, contextInfo, state);
                     }
                 }
@@ -88,13 +86,13 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 if (!result.RequiredParameterActions.IsDefaultOrEmpty)
                 {
-                    actions.Add(CodeAction.CodeActionWithNestedActions.Create(
+                    actions.Add(CodeAction.Create(
                         FeaturesResources.Add_parameter_to_constructor,
                         result.RequiredParameterActions.Cast<AddConstructorParametersCodeAction, CodeAction>(),
                         isInlinable: false));
                 }
 
-                actions.Add(CodeAction.CodeActionWithNestedActions.Create(
+                actions.Add(CodeAction.Create(
                     FeaturesResources.Add_optional_parameter_to_constructor,
                     result.OptionalParameterActions.Cast<AddConstructorParametersCodeAction, CodeAction>(),
                     isInlinable: false));
@@ -182,7 +180,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
             foreach (var action in actions)
             {
-                var changedSolution = await action.GetChangedSolutionInternalAsync(postProcessChanges: true, cancellationToken).ConfigureAwait(false);
+                var changedSolution = await action.GetChangedSolutionInternalAsync(
+                    priorDocument.Project.Solution, postProcessChanges: true, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(changedSolution);
                 var intent = new IntentProcessorResult(changedSolution, ImmutableArray.Create(priorDocument.Id), action.Title, action.ActionName);
                 results.Add(intent);

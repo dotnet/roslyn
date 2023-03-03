@@ -2,9 +2,49 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../WorkspaceExtensionsResources.resx">
     <body>
+      <trans-unit id="Cannot_generate_code_for_unsupported_operator_0">
+        <source>Cannot generate code for unsupported operator '{0}'</source>
+        <target state="new">Cannot generate code for unsupported operator '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
         <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
         <target state="translated">必須編譯才能完成工作，但專案 {0} 並不支援。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_location_to_generation_symbol_into">
+        <source>Could not find location to generation symbol into.</source>
+        <target state="new">Could not find location to generation symbol into.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_location_was_from_a_different_tree">
+        <source>Destination location was from a different tree.</source>
+        <target state="new">Destination location was from a different tree.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_location_was_not_in_source">
+        <source>Destination location was not in source.</source>
+        <target state="new">Destination location was not in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
+        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
+        <target state="new">Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3">
+        <source>Destination type must be a {0}, {1} or {2}, but given one is {3}.</source>
+        <target state="new">Destination type must be a {0}, {1} or {2}, but given one is {3}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_but_given_one_is_1">
+        <source>Destination type must be a {0}, but given one is {1}.</source>
+        <target state="new">Destination type must be a {0}, but given one is {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_or_a_1_but_given_one_is_2">
+        <source>Destination type must be a {0} or a {1}, but given one is {2}.</source>
+        <target state="new">Destination type must be a {0} or a {1}, but given one is {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_0">
@@ -19,12 +59,12 @@
       </trans-unit>
       <trans-unit id="Fix_all_0_in_Containing_member">
         <source>Fix all '{0}' in Containing member</source>
-        <target state="new">Fix all '{0}' in Containing member</target>
+        <target state="translated">修正包含成員的所有 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_0_in_Containing_type">
         <source>Fix all '{0}' in Containing type</source>
-        <target state="new">Fix all '{0}' in Containing type</target>
+        <target state="translated">修正包含類型中的所有 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_0_in_Solution">
@@ -34,12 +74,42 @@
       </trans-unit>
       <trans-unit id="Fix_all_0_in_containing_member_for_1">
         <source>Fix all '{0}' in containing member for '{1}'</source>
-        <target state="new">Fix all '{0}' in containing member for '{1}'</target>
+        <target state="translated">修正包含 '{1}' 成員的所有 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_0_in_containing_type_for_1">
         <source>Fix all '{0}' in containing type for '{1}'</source>
-        <target state="new">Fix all '{0}' in containing type for '{1}'</target>
+        <target state="translated">修正包含 '{1}' 類型中的所有 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_number_of_parameters_for_binary_operator">
+        <source>Invalid number of parameters for binary operator.</source>
+        <target state="new">Invalid number of parameters for binary operator.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_number_of_parameters_for_unary_operator">
+        <source>Invalid number of parameters for unary operator.</source>
+        <target state="new">Invalid number of parameters for unary operator.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Location_must_be_null_or_from_source">
+        <source>Location must be null or from source.</source>
+        <target state="new">Location must be null or from source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_can_not_be_added_in_this_destination">
+        <source>Namespace can not be added in this destination.</source>
+        <target state="new">Namespace can not be added in this destination.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_available_location_found_to_add_statements_to">
+        <source>No available location found to add statements to.</source>
+        <target state="new">No available location found to add statements to.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_location_provided_to_add_statements_to">
+        <source>No location provided to add statements to.</source>
+        <target state="new">No location provided to add statements to.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">

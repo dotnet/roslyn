@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
@@ -46,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
                    EnforceOnBuildValues.UseIndexOperator,
                    CSharpCodeStyleOptions.PreferIndexOperator,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_index_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Indexing_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
 
             // Don't bother analyzing if the user doesn't like using Index/Range operators.
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferIndexOperator, binaryExpression.SyntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferIndexOperator;
             if (!option.Value)
                 return;
 
@@ -195,7 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            if (CSharpSemanticFacts.Instance.IsInExpressionTree(instance.SemanticModel, instance.Syntax, infoCache.ExpressionOfTType, cancellationToken))
+            var semanticModel = instance.SemanticModel;
+            Contract.ThrowIfNull(semanticModel);
+
+            if (CSharpSemanticFacts.Instance.IsInExpressionTree(semanticModel, instance.Syntax, infoCache.ExpressionOfTType, cancellationToken))
                 return;
 
             // Everything looks good.  We can update this to use the System.Index member instead.

@@ -409,10 +409,8 @@ class C
             a = newTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().ElementAt(2);
             Assert.Equal("A", a.Identifier.Text);
 
-            // If we aren't using the right binder here, the compiler crashes going through the binder factory
             var info = model.GetSymbolInfo(a);
-            // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
-            Assert.Equal(attrType, info.Symbol);
+            Assert.Equal(attrCtor, info.Symbol);
         }
 
         [Theory]
@@ -1713,7 +1711,7 @@ class C
                 // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
@@ -1754,7 +1752,7 @@ class C
                 // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27),
                 // (7,14): warning CS8321: The local function 'Local' is declared but never used
@@ -1829,7 +1827,7 @@ class C
                 // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local([A]int x, [CLSCompliant]int y) { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
-                // (7,31): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,31): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local([A]int x, [CLSCompliant]int y) { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 31),
                 // (7,14): warning CS8321: The local function 'Local' is declared but never used
@@ -1919,7 +1917,7 @@ class C
                 // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A, B, CLSCompliant, D]T>() { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A, B, CLSCompliant, D]T>() { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
@@ -1969,7 +1967,7 @@ class C
                 // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
-                // (7,34): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,34): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 34));
 
@@ -2368,8 +2366,22 @@ class C
             })();
     }
 }";
-            CreateCompilation(src, options: TestOptions.UnsafeDebugDll)
-                .VerifyDiagnostics(
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never"));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            LocalFunctionStatementSyntax declaration = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().First();
+            var local = model.GetDeclaredSymbol(declaration).GetSymbol<MethodSymbol>();
+
+            Assert.True(local.IsIterator);
+            Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
+            model.GetOperation(declaration.Body);
+
+            Assert.True(local.IsIterator);
+            Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
+            comp.VerifyDiagnostics(
                 // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
@@ -2542,6 +2554,32 @@ class Program
     //         void Params(params int x)
     Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(8, 21)
     );
+        }
+
+        [Fact]
+        public void ParamsArray_Symbol_MultipleParamsArrays()
+        {
+            var source = """
+                int Method1(params int[] xs, params int[] ys, int[] zs) => xs.Length + ys.Length + zs.Length;
+                int Method2(params int[] xs, int[] ys, params int[] zs) => xs.Length + ys.Length + zs.Length;
+                """;
+            var comp = CreateCompilation(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToImmutableArray();
+            var methods = exprs.SelectAsArray(e => (IMethodSymbol)model.GetDeclaredSymbol(e));
+            Assert.Equal(2, methods.Length);
+            // Method1
+            Assert.Equal(3, methods[0].Parameters.Length);
+            Assert.True(methods[0].Parameters[0].IsParams);
+            Assert.True(methods[0].Parameters[1].IsParams);
+            Assert.False(methods[0].Parameters[2].IsParams);
+            // Method2
+            Assert.Equal(3, methods[1].Parameters.Length);
+            Assert.True(methods[1].Parameters[0].IsParams);
+            Assert.False(methods[1].Parameters[1].IsParams);
+            Assert.True(methods[1].Parameters[2].IsParams);
         }
 
         [Fact]
@@ -4579,23 +4617,6 @@ namespace System
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
-        public void RecursiveParameterDefault()
-        {
-            var text = @"
-class C
-{
-    public static void Main(int arg)
-    {
-        int Local(int x = Local()) => 2;
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(text);
-            compilation.VerifyDiagnostics(
-                );
-        }
-
         [Fact]
         [WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")]
         public void LocalFunctionParameterDefaultUsingConst()
@@ -4615,12 +4636,7 @@ class C
             CompileAndVerify(source, expectedOutput: "23", sourceSymbolValidator: m =>
             {
                 var compilation = m.DeclaringCompilation;
-                // See https://github.com/dotnet/roslyn/issues/16454; this should actually produce no errors
-                compilation.VerifyDiagnostics(
-                    // (6,19): warning CS0219: The variable 'N' is assigned but its value is never used
-                    //         const int N = 2;
-                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N").WithArguments("N").WithLocation(6, 19)
-                    );
+                compilation.VerifyDiagnostics();
                 var tree = compilation.SyntaxTrees[0];
                 var model = compilation.GetSemanticModel(tree);
                 var descendents = tree.GetRoot().DescendantNodes();
@@ -4638,6 +4654,18 @@ class C
                 Assert.Equal(1, refs.Length);
                 Assert.Same(symbol, model.GetSymbolInfo(refs[0]).Symbol);
             });
+        }
+
+        [Fact, WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
+        public void LocalFunction_ParameterDefaultValue_NameOfLocalFunction()
+        {
+            var source = """
+                using System;
+                void Local() {}
+                void Local2(string s = nameof(Local)) => Console.WriteLine(s);
+                Local2();
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4843,10 +4871,7 @@ class Test : System.Attribute
             compilation.VerifyDiagnostics(
                 // (10,23): error CS0103: The name 'b2' does not exist in the current context
                 //             [Test(p = b2)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23),
-                // (6,20): warning CS0219: The variable 'b1' is assigned but its value is never used
-                //         const bool b1 = true;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -7119,8 +7144,8 @@ class Program
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(23, 30));
         }
 
-        [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
-        public void TypeParameterScope_InMethodAttributeNameOf()
+        [Theory, CombinatorialData, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
+        public void TypeParameterScope_InMethodAttributeNameOf(bool useCSharp10)
         {
             var source = @"
 class C
@@ -7142,28 +7167,15 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (8,20): error CS0103: The name 'TParameter' does not exist in the current context
-                //         [My(nameof(TParameter))] // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(8, 20),
-                // (12,16): error CS0103: The name 'TParameter' does not exist in the current context
-                //     [My(nameof(TParameter))] // 2
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(12, 16)
-                );
-
-            VerifyTParameter(comp, 0, null);
-            VerifyTParameter(comp, 1, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyTParameter(comp, 0, "void local<TParameter>()");
             VerifyTParameter(comp, 1, "void C.M2<TParameter>()");
         }
 
-        [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
-        public void TypeParameterScope_InMethodAttributeNameOfNameOf()
+        [Theory, CombinatorialData, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
+        public void TypeParameterScope_InMethodAttributeNameOfNameOf(bool useCSharp10)
         {
             var source = @"
 class C
@@ -7185,20 +7197,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (8,27): error CS0103: The name 'TParameter' does not exist in the current context
-                //         [My(nameof(nameof(TParameter)))] // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(8, 27),
-                // (12,23): error CS0103: The name 'TParameter' does not exist in the current context
-                //     [My(nameof(nameof(TParameter)))] // 2
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(12, 23)
-                );
-
-            VerifyTParameter(comp, 0, null);
-            VerifyTParameter(comp, 1, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (8,20): error CS8081: Expression does not have a name.
                 //         [My(nameof(nameof(TParameter)))] // 1
@@ -7212,8 +7211,8 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, "void C.M2<TParameter>()");
         }
 
-        [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
-        public void TypeParameterScope_InMethodAttributeNameOf_TopLevel()
+        [Theory, CombinatorialData, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
+        public void TypeParameterScope_InMethodAttributeNameOf_TopLevel(bool useCSharp10)
         {
             var source = @"
 local<object>();
@@ -7226,23 +7225,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (4,12): error CS0103: The name 'TParameter' does not exist in the current context
-                // [My(nameof(TParameter))] // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(4, 12)
-                );
-
-            VerifyTParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyTParameter(comp, 0, "void local<TParameter>()");
         }
 
-        [Fact]
-        public void TypeParameterScope_InMethodAttributeNameOf_SpeculatingWithNewAttribute()
+        [Theory, CombinatorialData]
+        public void TypeParameterScope_InMethodAttributeNameOf_SpeculatingWithNewAttribute(bool useCSharp10)
         {
             var source = @"
 class C
@@ -7264,35 +7254,20 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            // C# 10
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
+            var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
-
             var tree = comp.SyntaxTrees.Single();
-            var parentModel = comp.GetSemanticModel(tree);
             // Note: offset by one to the left to get away from return type
             var localFuncPosition = tree.GetText().ToString().IndexOf("void local<TParameter>()", StringComparison.Ordinal) - 1;
             var methodPosition = tree.GetText().ToString().IndexOf("void M2<TParameter>()", StringComparison.Ordinal) - 1;
+            var parentModel = comp.GetSemanticModel(tree);
 
-            var attr = parseAttributeSyntax("[My(nameof(TParameter))]", TestOptions.Regular10);
+            var attr = parseAttributeSyntax("[My(nameof(TParameter))]", parseOptions);
             VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
             VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
 
-            attr = parseAttributeSyntax("[My(TParameter)]", TestOptions.Regular10);
-            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
-            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
-
-            // C# 11
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
-            comp.VerifyDiagnostics();
-            tree = comp.SyntaxTrees.Single();
-            parentModel = comp.GetSemanticModel(tree);
-
-            attr = parseAttributeSyntax("[My(nameof(TParameter))]", TestOptions.RegularNext);
-            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
-            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
-
-            attr = parseAttributeSyntax("[My(TParameter)]", TestOptions.RegularNext);
+            attr = parseAttributeSyntax("[My(TParameter)]", parseOptions);
             VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
             VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
 
@@ -7327,8 +7302,8 @@ public class MyAttribute : System.Attribute
             }
         }
 
-        [Fact]
-        public void TypeParameterScope_InMethodAttributeNameOf_SpeculatingWithinAttribute()
+        [Theory, CombinatorialData]
+        public void TypeParameterScope_InMethodAttributeNameOf_SpeculatingWithinAttribute(bool useCSharp10)
         {
             var source = @"
 class C
@@ -7352,8 +7327,9 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            // C# 10
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
+            var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'a' does not exist in the current context
                 //         [My(a)]
@@ -7373,51 +7349,17 @@ public class MyAttribute : System.Attribute
             var parentModel = comp.GetSemanticModel(tree);
 
             var aPosition = getIdentifierPosition("a");
-            var newNameOf = parseNameof("nameof(TParameter)", parseOptions: TestOptions.Regular10);
+            var newNameOf = parseNameof("nameof(TParameter)", parseOptions: parseOptions);
             Assert.Equal("System.String", parentModel.GetSpeculativeTypeInfo(aPosition, newNameOf, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
 
             var bPosition = getIdentifierPosition("b");
-            var newNameOfArgument = parseIdentifier("TParameter", parseOptions: TestOptions.Regular10);
-            Assert.True(parentModel.GetSpeculativeTypeInfo(bPosition, newNameOfArgument, SpeculativeBindingOption.BindAsExpression).Type.IsErrorType());
+            var newNameOfArgument = parseIdentifier("TParameter", parseOptions: parseOptions);
+            Assert.Equal("TParameter", parentModel.GetSpeculativeTypeInfo(bPosition, newNameOfArgument, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
 
             var cPosition = getIdentifierPosition("c");
             Assert.Equal("System.String", parentModel.GetSpeculativeTypeInfo(cPosition, newNameOf, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
 
             var dPosition = getIdentifierPosition("d");
-            Assert.True(parentModel.GetSpeculativeTypeInfo(dPosition, newNameOfArgument, SpeculativeBindingOption.BindAsExpression).Type.IsErrorType());
-
-            // C# 11
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
-            comp.VerifyDiagnostics(
-                // (8,13): error CS0103: The name 'a' does not exist in the current context
-                //         [My(a)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 13),
-                // (9,20): error CS0103: The name 'b' does not exist in the current context
-                //         [My(nameof(b))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(9, 20),
-                // (13,9): error CS0103: The name 'c' does not exist in the current context
-                //     [My(c)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(13, 9),
-                // (14,16): error CS0103: The name 'd' does not exist in the current context
-                //     [My(nameof(d))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(14, 16)
-                );
-
-            tree = comp.SyntaxTrees.Single();
-            parentModel = comp.GetSemanticModel(tree);
-
-            aPosition = getIdentifierPosition("a");
-            newNameOf = parseNameof("nameof(TParameter)", parseOptions: TestOptions.RegularNext);
-            Assert.Equal("System.String", parentModel.GetSpeculativeTypeInfo(aPosition, newNameOf, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
-
-            bPosition = getIdentifierPosition("b");
-            newNameOfArgument = parseIdentifier("TParameter", parseOptions: TestOptions.RegularNext);
-            Assert.Equal("TParameter", parentModel.GetSpeculativeTypeInfo(bPosition, newNameOfArgument, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
-
-            cPosition = getIdentifierPosition("c");
-            Assert.Equal("System.String", parentModel.GetSpeculativeTypeInfo(cPosition, newNameOf, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
-
-            dPosition = getIdentifierPosition("d");
             Assert.Equal("TParameter", parentModel.GetSpeculativeTypeInfo(dPosition, newNameOfArgument, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
 
             return;
@@ -7482,7 +7424,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
 
             // C# 11
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'a' does not exist in the current context
                 //         [My(a)]
@@ -7508,8 +7450,8 @@ public class MyAttribute : System.Attribute
                 => SyntaxFactory.ParseCompilationUnit($@"class X {{ {source} void M() {{ }} }}", options: parseOptions).DescendantNodes().OfType<AttributeSyntax>().Single();
         }
 
-        [Fact]
-        public void TypeParameterScope_InMethodAttributeNameOf_SpeculatingWithReplacementAttributeInsideExisting()
+        [Theory, CombinatorialData]
+        public void TypeParameterScope_InMethodAttributeNameOf_SpeculatingWithReplacementAttributeInsideExisting(bool useCSharp10)
         {
             var source = @"
 class C
@@ -7531,8 +7473,8 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            // C# 10
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
+            var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'positionA' does not exist in the current context
                 //         [My(positionA)]
@@ -7547,33 +7489,11 @@ public class MyAttribute : System.Attribute
             var localFuncPosition = tree.GetText().ToString().IndexOf("positionA", StringComparison.Ordinal);
             var methodPosition = tree.GetText().ToString().IndexOf("positionB", StringComparison.Ordinal);
 
-            var attr = parseAttributeSyntax("[My(nameof(TParameter))]", TestOptions.Regular10);
-            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
-            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
-
-            attr = parseAttributeSyntax("[My(TParameter)]", TestOptions.Regular10);
-            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
-            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
-
-            // C# 11
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
-            comp.VerifyDiagnostics(
-                // (8,13): error CS0103: The name 'positionA' does not exist in the current context
-                //         [My(positionA)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionA").WithArguments("positionA").WithLocation(8, 13),
-                // (12,9): error CS0103: The name 'positionB' does not exist in the current context
-                //     [My(positionB)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionB").WithArguments("positionB").WithLocation(12, 9)
-                );
-
-            tree = comp.SyntaxTrees.Single();
-            parentModel = comp.GetSemanticModel(tree);
-
-            attr = parseAttributeSyntax("[My(nameof(TParameter))]", TestOptions.Regular10);
+            var attr = parseAttributeSyntax("[My(nameof(TParameter))]", parseOptions);
             VerifyTParameterSpeculation(parentModel, localFuncPosition, attr);
             VerifyTParameterSpeculation(parentModel, methodPosition, attr);
 
-            attr = parseAttributeSyntax("[My(TParameter)]", TestOptions.Regular10);
+            attr = parseAttributeSyntax("[My(TParameter)]", parseOptions);
             VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
             VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
 
@@ -7583,9 +7503,9 @@ public class MyAttribute : System.Attribute
                 => SyntaxFactory.ParseCompilationUnit($@"class X {{ {source} void M() {{ }} }}", options: parseOptions).DescendantNodes().OfType<AttributeSyntax>().Single();
         }
 
-        [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
+        [Theory, CombinatorialData, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
         [WorkItem(60194, "https://github.com/dotnet/roslyn/issues/60194")]
-        public void TypeParameterScope_InMethodAttributeNameOf_CompatBreak()
+        public void TypeParameterScope_InMethodAttributeNameOf_CompatBreak(bool useCSharp10)
         {
             var source = @"
 class C
@@ -7612,23 +7532,15 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            // The break will also apply to C# 10 and earlier when .NET 7 ships,
-            // but is currently scoped down to users of LangVer=preview.
-            // Tracked by https://github.com/dotnet/roslyn/issues/60640
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics();
 
-            VerifyTParameter(comp, 0, "C", symbolKind: SymbolKind.NamedType, lookupFinds: "C.TParameter");
-            VerifyTParameter(comp, 1, "C", symbolKind: SymbolKind.NamedType, lookupFinds: "C.TParameter");
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (13,20): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (13,20): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 //         [My(nameof(TParameter.Constant))] // 1
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(13, 20),
-                // (17,16): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(13, 20),
+                // (17,16): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 //     [My(nameof(TParameter.Constant))] // 2
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(17, 16)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(17, 16)
                 );
 
             VerifyTParameter(comp, 0, "void local<TParameter>()");
@@ -8473,9 +8385,9 @@ public class MyAttribute : System.Attribute
 ", targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
-                // (2,5): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (2,5): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(TParameter.Constant)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 5)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 5)
                 );
 
             VerifyTParameter(comp, 0, "C<TParameter>");
@@ -8519,7 +8431,7 @@ public class MyAttribute : System.Attribute
             comp.VerifyDiagnostics();
             VerifyTParameter(comp, 0, "R<TParameter>");
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics();
             VerifyTParameter(comp, 0, "R<TParameter>");
         }
@@ -8539,7 +8451,7 @@ public class MyAttribute : System.Attribute
             comp.VerifyDiagnostics();
             VerifyTParameter(comp, 0, "R<TParameter>");
 
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics();
             VerifyTParameter(comp, 0, "R<TParameter>");
         }
@@ -8563,9 +8475,9 @@ public class MyAttribute : System.Attribute
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (2,12): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (2,12): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(nameof(TParameter.Constant))]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 12)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 12)
                 );
             VerifyTParameter(comp, 0, "R<TParameter>");
         }
@@ -8643,15 +8555,15 @@ public interface I
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (2,5): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // (2,5): error CS0704: Cannot do non-virtual member lookup in 'TParameter' because it is a type parameter
                 // [My(TParameter.Constant)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 5)
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "TParameter").WithArguments("TParameter").WithLocation(2, 5)
                 );
             VerifyTParameter(comp, 0, "R<TParameter>");
         }
 
-        [Fact]
-        public void ParameterScope_InMethodAttributeNameOf()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InMethodAttributeNameOf(bool useCSharp10)
         {
             var source = @"
 class C
@@ -8673,20 +8585,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (8,20): error CS0103: The name 'parameter' does not exist in the current context
-                //         [My(nameof(parameter))] // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 20),
-                // (12,16): error CS0103: The name 'parameter' does not exist in the current context
-                //     [My(nameof(parameter))] // 2
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 16)
-                );
-
-            VerifyParameter(comp, 0, null);
-            VerifyParameter(comp, 1, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void local(System.Int32 parameter)");
@@ -8725,6 +8624,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
+        [WorkItem(60801, "https://github.com/dotnet/roslyn/issues/60801")]
         public void ParameterScope_InMethodAttributeNameOf_GetSymbolInfoOnSpeculativeMethodBodySemanticModel()
         {
             var source = @"
@@ -8743,7 +8643,7 @@ public class MyAttribute : System.Attribute
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8321: The local function 'local' is declared but never used
                 //         void local(int parameter) { }
@@ -8782,7 +8682,7 @@ public class MyAttribute : System.Attribute
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0103: The name 'nameof' does not exist in the current context
                 //         [My(nameof())]
@@ -8800,8 +8700,8 @@ public class MyAttribute : System.Attribute
             Assert.False(model.LookupSymbols(nameofExpression.ArgumentList.CloseParenToken.SpanStart).ToTestDisplayStrings().Contains("parameter"));
         }
 
-        [Fact]
-        public void ParameterScope_InMethodAttributeNameOf_ConflictingNames()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InMethodAttributeNameOf_ConflictingNames(bool useCSharp10)
         {
             var source = @"
 class C
@@ -8823,26 +8723,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (8,20): error CS0103: The name 'parameter' does not exist in the current context
-                //         [My(nameof(parameter))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 20),
-                // (9,36): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //         void local<@parameter>(int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "parameter").WithArguments("parameter").WithLocation(9, 36),
-                // (12,16): error CS0103: The name 'parameter' does not exist in the current context
-                //     [My(nameof(parameter))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 16),
-                // (13,29): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //     void M2<@parameter>(int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "parameter").WithArguments("parameter").WithLocation(13, 29)
-                );
-
-            VerifyParameter(comp, 0, null);
-            VerifyParameter(comp, 1, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (9,36): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //         void local<@parameter>(int parameter) => throw null;
@@ -8856,8 +8737,8 @@ public class MyAttribute : System.Attribute
             VerifyParameter(comp, 1, "void C.M2<parameter>(System.Int32 parameter)");
         }
 
-        [Fact]
-        public void ParameterScope_InMethodAttributeNameOf_CompatBreak()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InMethodAttributeNameOf_CompatBreak(bool useCSharp10)
         {
             var source = @"
 class C
@@ -8884,13 +8765,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            // The break will also apply to C# 10 and earlier when .NET 7 ships,
-            // but is currently scoped down to users of LangVer=preview.
-            // Tracked by https://github.com/dotnet/roslyn/issues/60640
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (13,30): error CS1061: 'int' does not contain a definition for 'Constant' and no accessible extension method 'Constant' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         [My(nameof(parameter.Constant))] // 1
@@ -8901,8 +8776,8 @@ public class MyAttribute : System.Attribute
                 );
         }
 
-        [Fact]
-        public void ParameterScope_InMethodAttributeNameOf_WithReturnTarget()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InMethodAttributeNameOf_WithReturnTarget(bool useCSharp10)
         {
             var source = @"
 class C
@@ -8924,28 +8799,15 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (8,28): error CS0103: The name 'parameter' does not exist in the current context
-                //         [return: My(nameof(parameter))] // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 28),
-                // (12,24): error CS0103: The name 'parameter' does not exist in the current context
-                //     [return: My(nameof(parameter))] // 2
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 24)
-                );
-
-            VerifyParameter(comp, 0, null);
-            VerifyParameter(comp, 1, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void local(System.Int32 parameter)");
             VerifyParameter(comp, 1, "void C.M2(System.Int32 parameter)");
         }
 
-        [Fact]
-        public void ParameterScope_InMethodAttributeNameOf_SpeculatingWithReplacementAttributeInsideExisting()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InMethodAttributeNameOf_SpeculatingWithReplacementAttributeInsideExisting(bool useCSharp10)
         {
             var source = @"
 class C
@@ -8967,8 +8829,8 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            // C# 10
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
+            var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0103: The name 'positionA' does not exist in the current context
                 //         [My(positionA)]
@@ -8983,33 +8845,11 @@ public class MyAttribute : System.Attribute
             var localFuncPosition = tree.GetText().ToString().IndexOf("positionA", StringComparison.Ordinal);
             var methodPosition = tree.GetText().ToString().IndexOf("positionB", StringComparison.Ordinal);
 
-            var attr = parseAttributeSyntax("[My(nameof(parameter))]", TestOptions.Regular10);
-            VerifyParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
-            VerifyParameterSpeculation(parentModel, methodPosition, attr, found: false);
-
-            attr = parseAttributeSyntax("[My(parameter)]", TestOptions.Regular10);
-            VerifyParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
-            VerifyParameterSpeculation(parentModel, methodPosition, attr, found: false);
-
-            // C# 11
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
-            comp.VerifyDiagnostics(
-                // (8,13): error CS0103: The name 'positionA' does not exist in the current context
-                //         [My(positionA)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionA").WithArguments("positionA").WithLocation(8, 13),
-                // (12,9): error CS0103: The name 'positionB' does not exist in the current context
-                //     [My(positionB)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionB").WithArguments("positionB").WithLocation(12, 9)
-                );
-
-            tree = comp.SyntaxTrees.Single();
-            parentModel = comp.GetSemanticModel(tree);
-
-            attr = parseAttributeSyntax("[My(nameof(parameter))]", TestOptions.Regular10);
+            var attr = parseAttributeSyntax("[My(nameof(parameter))]", parseOptions);
             VerifyParameterSpeculation(parentModel, localFuncPosition, attr);
             VerifyParameterSpeculation(parentModel, methodPosition, attr);
 
-            attr = parseAttributeSyntax("[My(parameter)]", TestOptions.Regular10);
+            attr = parseAttributeSyntax("[My(parameter)]", parseOptions);
             VerifyParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
             VerifyParameterSpeculation(parentModel, methodPosition, attr, found: false);
 
@@ -9043,8 +8883,8 @@ public class MyAttribute : System.Attribute
             }
         }
 
-        [Fact]
-        public void ParameterScope_InIndexerAttributeNameOf()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InIndexerAttributeNameOf(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9058,23 +8898,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (4,16): error CS0103: The name 'parameter' does not exist in the current context
-                //     [My(nameof(parameter))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(4, 16)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter] { get; }");
         }
 
-        [Fact]
-        public void ParameterScope_InIndexerAttributeNameOf_SetterOnly()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InIndexerAttributeNameOf_SetterOnly(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9088,23 +8919,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (4,16): error CS0103: The name 'parameter' does not exist in the current context
-                //     [My(nameof(parameter))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(4, 16)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter] { set; }");
         }
 
-        [Fact]
-        public void ParameterScope_InIndexerGetterAttributeNameOf()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InIndexerGetterAttributeNameOf(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9121,23 +8943,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (6,20): error CS0103: The name 'parameter' does not exist in the current context
-                //         [My(nameof(parameter))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(6, 20)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter].get");
         }
 
-        [Fact]
-        public void ParameterScope_InIndexerSetterAttributeNameOf()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InIndexerSetterAttributeNameOf(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9154,23 +8967,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (6,20): error CS0103: The name 'parameter' does not exist in the current context
-                //         [My(nameof(parameter))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(6, 20)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void C.this[System.Int32 parameter].set");
         }
 
-        [Fact]
-        public void ParameterScope_InIndexerInitSetterAttributeNameOf()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InIndexerInitSetterAttributeNameOf(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9187,23 +8991,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (6,20): error CS0103: The name 'parameter' does not exist in the current context
-                //         [My(nameof(parameter))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(6, 20)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.this[System.Int32 parameter].init");
         }
 
-        [Fact]
-        public void ParameterScope_InMethodAttributeNameOf_Lambda()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InMethodAttributeNameOf_Lambda(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9219,16 +9014,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (6,28): error CS0103: The name 'parameter' does not exist in the current context
-                //         var x = [My(nameof(parameter))] int (int parameter) => 0;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(6, 28)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "lambda expression");
@@ -9271,8 +9057,8 @@ public class MyAttribute : System.Attribute
                 );
         }
 
-        [Fact]
-        public void ParameterScope_InMethodAttributeNameOf_Delegate()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InMethodAttributeNameOf_Delegate(bool useCSharp10)
         {
             var source = @"
 [My(nameof(parameter))] delegate int MyDelegate(int parameter);
@@ -9282,23 +9068,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (2,12): error CS0103: The name 'parameter' does not exist in the current context
-                // [My(nameof(parameter))] delegate int MyDelegate(int parameter);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(2, 12)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 MyDelegate.Invoke(System.Int32 parameter)");
         }
 
-        [Fact]
-        public void ParameterScope_InMethodAttributeNameOf_Delegate_ConflictingName()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InMethodAttributeNameOf_Delegate_ConflictingName(bool useCSharp10)
         {
             var source = @"
 [My(nameof(TParameter))] delegate int MyDelegate<TParameter>(int TParameter);
@@ -9308,19 +9085,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics();
-
-            VerifyTParameter(comp, 0, "MyDelegate<TParameter>");
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 MyDelegate<TParameter>.Invoke(System.Int32 TParameter)", parameterName: "TParameter");
         }
 
-        [Fact]
-        public void ParameterScope_InMethodAttributeNameOf_Constructor()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InMethodAttributeNameOf_Constructor(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9333,16 +9105,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (4,16): error CS0103: The name 'parameter' does not exist in the current context
-                //     [My(nameof(parameter))] C(int parameter) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(4, 16)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "C..ctor(System.Int32 parameter)");
@@ -9490,8 +9253,8 @@ public class MyAttribute : System.Attribute
             VerifyParameter(comp, 1, null);
         }
 
-        [Fact]
-        public void ParameterScope_InParameterAttributeNameOf()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InParameterAttributeNameOf(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9511,28 +9274,15 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (8,31): error CS0103: The name 'parameter' does not exist in the current context
-                //         void local([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 31),
-                // (11,24): error CS0103: The name 'parameter' does not exist in the current context
-                //     void M2([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(11, 24)
-                );
-
-            VerifyParameter(comp, 0, null);
-            VerifyParameter(comp, 1, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void local(System.Int32 parameter)");
             VerifyParameter(comp, 1, "void C.M2(System.Int32 parameter)");
         }
 
-        [Fact]
-        public void ParameterScope_InParameterAttributeNameOf_ConflictingNames()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InParameterAttributeNameOf_ConflictingNames(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9552,20 +9302,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (8,61): error CS0412: 'TParameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //         void local<TParameter>([My(nameof(TParameter))] int TParameter) => throw null;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "TParameter").WithArguments("TParameter").WithLocation(8, 61),
-                // (11,54): error CS0412: 'TParameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //     void M2<TParameter>([My(nameof(TParameter))] int TParameter) => throw null;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "TParameter").WithArguments("TParameter").WithLocation(11, 54)
-                );
-
-            VerifyTParameter(comp, 0, "void local<TParameter>(System.Int32 TParameter)");
-            VerifyTParameter(comp, 1, "void C.M2<TParameter>(System.Int32 TParameter)");
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (8,61): error CS0412: 'TParameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //         void local<TParameter>([My(nameof(TParameter))] int TParameter) => throw null;
@@ -9579,8 +9316,8 @@ public class MyAttribute : System.Attribute
             VerifyParameter(comp, 1, "void C.M2<TParameter>(System.Int32 TParameter)", parameterName: "TParameter");
         }
 
-        [Fact]
-        public void ParameterScope_InParameterAttributeNameOf_SpeculatingWithReplacementAttributeInsideExisting()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InParameterAttributeNameOf_SpeculatingWithReplacementAttributeInsideExisting(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9600,8 +9337,8 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            // C# 10
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
+            var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // (8,24): error CS0103: The name 'positionA' does not exist in the current context
                 //         void local([My(positionA)] int parameter) { }
@@ -9617,28 +9354,6 @@ public class MyAttribute : System.Attribute
             var methodPosition = tree.GetText().ToString().IndexOf("positionB", StringComparison.Ordinal);
 
             var attr = parseAttributeSyntax("[My(nameof(parameter))]", TestOptions.Regular10);
-            VerifyParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
-            VerifyParameterSpeculation(parentModel, methodPosition, attr, found: false);
-
-            attr = parseAttributeSyntax("[My(parameter)]", TestOptions.Regular10);
-            VerifyParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
-            VerifyParameterSpeculation(parentModel, methodPosition, attr, found: false);
-
-            // C# 11
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
-            comp.VerifyDiagnostics(
-                // (8,24): error CS0103: The name 'positionA' does not exist in the current context
-                //         void local([My(positionA)] int parameter) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionA").WithArguments("positionA").WithLocation(8, 24),
-                // (11,17): error CS0103: The name 'positionB' does not exist in the current context
-                //     void M2([My(positionB)] int parameter) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionB").WithArguments("positionB").WithLocation(11, 17)
-                );
-
-            tree = comp.SyntaxTrees.Single();
-            parentModel = comp.GetSemanticModel(tree);
-
-            attr = parseAttributeSyntax("[My(nameof(parameter))]", TestOptions.Regular10);
             VerifyParameterSpeculation(parentModel, localFuncPosition, attr);
             VerifyParameterSpeculation(parentModel, methodPosition, attr);
 
@@ -9652,8 +9367,8 @@ public class MyAttribute : System.Attribute
                 => SyntaxFactory.ParseCompilationUnit($@"class X {{ {source} void M() {{ }} }}", options: parseOptions).DescendantNodes().OfType<AttributeSyntax>().Single();
         }
 
-        [Fact]
-        public void ParameterScope_InParameterAttributeNameOf_Indexer()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InParameterAttributeNameOf_Indexer(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9666,23 +9381,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (4,25): error CS0103: The name 'parameter' does not exist in the current context
-                //     int this[[My(nameof(parameter))] int parameter] => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(4, 25)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter] { get; }");
         }
 
-        [Fact]
-        public void ParameterScope_InParameterAttributeNameOf_Indexer_SetterOnly()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InParameterAttributeNameOf_Indexer_SetterOnly(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9695,16 +9401,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (4,25): error CS0103: The name 'parameter' does not exist in the current context
-                //     int this[[My(nameof(parameter))] int parameter] => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(4, 25)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter] { set; }");
@@ -9748,8 +9445,42 @@ public class MyAttribute : System.Attribute
                 );
         }
 
-        [Fact]
-        public void ParameterScope_InParameterAttributeNameOf_Constructor()
+        [Fact, WorkItem(1556927, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1556927")]
+        public void ParameterScope_ValueLocalNotInPropertyOrAccessorAttributeNameOf_UnknownAccessor()
+        {
+            var source = @"
+class C
+{
+    int Property4 { [My(nameof(value))] unknown => throw null; }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(
+                // (4,9): error CS0548: 'C.Property4': property or indexer must have at least one accessor
+                //     int Property4 { [My(nameof(value))] unknown => throw null; }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Property4").WithArguments("C.Property4").WithLocation(4, 9),
+                // (4,41): error CS1014: A get or set accessor expected
+                //     int Property4 { [My(nameof(value))] unknown => throw null; }
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "unknown").WithLocation(4, 41)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "value")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute)))
+                .Single();
+
+            Assert.Null(model.GetSymbolInfo(node).Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        public void ParameterScope_InParameterAttributeNameOf_Constructor(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9762,23 +9493,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (4,18): error CS0103: The name 'parameter' does not exist in the current context
-                //     C([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(4, 18)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "C..ctor(System.Int32 parameter)");
         }
 
-        [Fact]
-        public void ParameterScope_InParameterAttributeNameOf_Delegate()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InParameterAttributeNameOf_Delegate(bool useCSharp10)
         {
             var source = @"
 delegate void MyDelegate([My(nameof(parameter))] int parameter);
@@ -9788,23 +9510,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (2,37): error CS0103: The name 'parameter' does not exist in the current context
-                // delegate void MyDelegate([My(nameof(parameter))] int parameter);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(2, 37)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void MyDelegate.Invoke(System.Int32 parameter)");
         }
 
-        [Fact]
-        public void ParameterScope_InParameterAttributeNameOf_ConversionOperator()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InParameterAttributeNameOf_ConversionOperator(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9817,23 +9530,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (4,50): error CS0103: The name 'parameter' does not exist in the current context
-                //     public static implicit operator C([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(4, 50)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "C C.op_Implicit(System.Int32 parameter)");
         }
 
-        [Fact]
-        public void ParameterScope_InParameterAttributeNameOf_Operator()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InParameterAttributeNameOf_Operator(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9846,23 +9550,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (4,43): error CS0103: The name 'parameter' does not exist in the current context
-                //     public static C operator +([My(nameof(parameter))] int parameter, C other) => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(4, 43)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "C C.op_Addition(System.Int32 parameter, C other)");
         }
 
-        [Fact]
-        public void ParameterScope_InParameterAttributeNameOf_Lambda()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InParameterAttributeNameOf_Lambda(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9878,16 +9573,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (6,29): error CS0103: The name 'parameter' does not exist in the current context
-                //         var x = ([My(nameof(parameter))] int parameter) => 0;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(6, 29)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "lambda expression");
@@ -9920,8 +9606,8 @@ public class MyAttribute : System.Attribute
             VerifyParameter(comp, 0, "lambda expression");
         }
 
-        [Fact]
-        public void ParameterScope_InTypeParameterAttributeNameOf()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InTypeParameterAttributeNameOf(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9941,28 +9627,15 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (8,31): error CS0103: The name 'parameter' does not exist in the current context
-                //         void local<[My(nameof(parameter))] T>(int parameter) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 31),
-                // (11,24): error CS0103: The name 'parameter' does not exist in the current context
-                //     void M2<[My(nameof(parameter))] T>(int parameter) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(11, 24)
-                );
-
-            VerifyParameter(comp, 0, null);
-            VerifyParameter(comp, 1, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "void local<T>(System.Int32 parameter)");
             VerifyParameter(comp, 1, "void C.M2<T>(System.Int32 parameter)");
         }
 
-        [Fact]
-        public void ParameterScope_InTypeParameterAttributeNameOf_SpeculatingWithReplacementAttributeInsideExisting()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InTypeParameterAttributeNameOf_SpeculatingWithReplacementAttributeInsideExisting(bool useCSharp10)
         {
             var source = @"
 class C
@@ -9982,8 +9655,8 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            // C# 10
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var parseOptions = useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11;
+            var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // (8,24): error CS0103: The name 'positionA' does not exist in the current context
                 //         void local([My(positionA)] int parameter) { }
@@ -9999,28 +9672,6 @@ public class MyAttribute : System.Attribute
             var methodPosition = tree.GetText().ToString().IndexOf("positionB", StringComparison.Ordinal);
 
             var attr = parseAttributeSyntax("[My(nameof(parameter))]", TestOptions.Regular10);
-            VerifyParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
-            VerifyParameterSpeculation(parentModel, methodPosition, attr, found: false);
-
-            attr = parseAttributeSyntax("[My(parameter)]", TestOptions.Regular10);
-            VerifyParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
-            VerifyParameterSpeculation(parentModel, methodPosition, attr, found: false);
-
-            // C# 11
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
-            comp.VerifyDiagnostics(
-                // (8,24): error CS0103: The name 'positionA' does not exist in the current context
-                //         void local([My(positionA)] int parameter) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionA").WithArguments("positionA").WithLocation(8, 24),
-                // (11,17): error CS0103: The name 'positionB' does not exist in the current context
-                //     void M2([My(positionB)] int parameter) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionB").WithArguments("positionB").WithLocation(11, 17)
-                );
-
-            tree = comp.SyntaxTrees.Single();
-            parentModel = comp.GetSemanticModel(tree);
-
-            attr = parseAttributeSyntax("[My(nameof(parameter))]", TestOptions.Regular10);
             VerifyParameterSpeculation(parentModel, localFuncPosition, attr);
             VerifyParameterSpeculation(parentModel, methodPosition, attr);
 
@@ -10034,8 +9685,8 @@ public class MyAttribute : System.Attribute
                 => SyntaxFactory.ParseCompilationUnit($@"class X {{ {source} void M() {{ }} }}", options: parseOptions).DescendantNodes().OfType<AttributeSyntax>().Single();
         }
 
-        [Fact]
-        public void ParameterScope_InTypeParameterAttributeNameOf_Delegate()
+        [Theory, CombinatorialData]
+        public void ParameterScope_InTypeParameterAttributeNameOf_Delegate(bool useCSharp10)
         {
             var source = @"
 delegate int MyDelegate<[My(nameof(parameter))] T>(int parameter);
@@ -10045,16 +9696,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (2,36): error CS0103: The name 'parameter' does not exist in the current context
-                // delegate int MyDelegate<[My(nameof(parameter))] T>(int parameter);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(2, 36)
-                );
-
-            VerifyParameter(comp, 0, null);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: useCSharp10 ? TestOptions.Regular10 : TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             VerifyParameter(comp, 0, "System.Int32 MyDelegate<T>.Invoke(System.Int32 parameter)");
@@ -10428,6 +10070,217 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(1556927, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1556927")]
+        public void LambdaOutsideMemberModel()
+        {
+            var text = @"
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+
+int P
+{
+    badAccessorName
+    {
+        M([My(nameof(P))] env => env);
+";
+            var comp = CreateCompilation(text);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "P")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute)))
+                .Single();
+
+            Assert.Null(model.GetSymbolInfo(node).Symbol);
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_01()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+
+public class C
+{
+    public void M()
+    {
+        bool a;
+        M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (14,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(14, 27)
+                );
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_02()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void M()
+    {
+        bool a;
+        M1();
+        Console.WriteLine(a);
+        Task M1()
+        {
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+
+            return null;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_03()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+
+public class C
+{
+    public void M()
+    {
+        bool a;
+        M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            await Task.Yield();
+
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (13,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
+                );
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_04()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+
+public class C
+{
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (13,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
+                );
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_05()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            await Task.Yield();
+
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27)
+                );
         }
     }
 }

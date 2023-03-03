@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="new">Add 'await'</target>
+        <target state="translated">Ajouter 'await'</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
@@ -20,11 +20,6 @@
       <trans-unit id="Add_required_braces_for_single_line_control_statements">
         <source>Add required braces for single-line control statements</source>
         <target state="translated">Ajout des accolades nécessaires pour les instructions de contrôle sur une seule ligne</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Autoriser du code unsafe dans ce projet</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
@@ -102,6 +97,11 @@
         <target state="translated">Appliquer les préférences de plage</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_readonly_struct_preferences">
+        <source>Apply 'readonly struct' preferences</source>
+        <target state="translated">Appliquer les préférences 'readonly struct'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
         <source>Apply static local function preferences</source>
         <target state="translated">Appliquer les préférences de fonction locale statique</target>
@@ -117,25 +117,10 @@
         <target state="translated">Appliquer les préférences d’instruction using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_utf8_string_literal_preferences">
-        <source>Apply UTF-8 string literal preferences</source>
-        <target state="new">Apply UTF-8 string literal preferences</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_var_preferences">
         <source>Apply 'var' preferences</source>
         <target state="translated">Appliquer les préférences 'var'</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Assign_out_parameters">
-        <source>Assign 'out' parameters</source>
-        <target state="translated">Assigner des paramètres 'out'</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_out_parameters_at_start">
-        <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">Assigner des paramètres 'out' (au début)</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
@@ -151,6 +136,11 @@
         <source>Change to cast</source>
         <target state="translated">Changer en cast</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Convert_0_to_record">
+        <source>Convert '{0}' to record</source>
+        <target state="translated">Convertir '{0}' en record</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
@@ -187,14 +177,14 @@
         <target state="translated">Activer les types de référence nullables dans le projet</target>
         <note />
       </trans-unit>
-      <trans-unit id="Global_using_directives">
-        <source>Global 'using' directives</source>
-        <target state="new">Global 'using' directives</target>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">Activer les types référence Nullable dans la solution</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Variable temporaire inline</target>
+      <trans-unit id="Global_using_directives">
+        <source>Global 'using' directives</source>
+        <target state="translated">Directives « using » globales</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -207,25 +197,15 @@
         <target state="translated">Configurer les champs privés en lecture seule quand cela est possible</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_ref_struct">
-        <source>Make 'ref struct'</source>
-        <target state="translated">Définir 'ref struct'</target>
-        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">Supprimer le mot clé 'in'</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">Supprimer le modificateur 'new'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">Inverser l'instruction 'for'</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="translated">La sélection ne peut pas se trouver dans l’initialiseur du constructeur</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>
@@ -265,6 +245,11 @@
       <trans-unit id="extern_alias">
         <source>extern alias</source>
         <target state="translated">alias externe</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="init_only_property">
+        <source>init-only property</source>
+        <target state="new">init-only property</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -405,11 +390,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">Organiser les instructions Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_0_return_Task_instead_of_void">
-        <source>Make {0} return Task instead of void.</source>
-        <target state="translated">{0} doit retourner Task au lieu de void.</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -672,16 +652,6 @@
         <target state="translated">Sélection automatique désactivée en raison d'une déclaration de déconstruction possible.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Mettre à niveau ce projet vers la version de langage C# '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Mettre à niveau tous les projets C# vers la version de langage '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;nom de la classe&gt;</target>
@@ -702,16 +672,6 @@
         <target state="translated">&lt;nom du struct&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">Rendre la méthode async</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">Rendre la méthode asynchrone (rester void)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;Nom&gt;</target>
@@ -725,16 +685,6 @@
       <trans-unit id="Suggested_name">
         <source>(Suggested name)</source>
         <target state="translated">(Nom suggéré)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">Supprimer la fonction inutilisée</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
-        <source>Add parentheses</source>
-        <target state="translated">Ajouter des parenthèses</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_foreach">
@@ -752,11 +702,6 @@
         <target state="translated">Inverser si</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">Utiliser '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">Introduire l’instruction 'using'</target>
@@ -764,7 +709,7 @@
       </trans-unit>
       <trans-unit id="without_leading_whitespace_may_change_semantics">
         <source>... without leading whitespace (may change semantics)</source>
-        <target state="new">... without leading whitespace (may change semantics)</target>
+        <target state="translated">... sans espace blanc de début (peut modifier la sémantique)</target>
         <note>This clause is a follow up to the "Convert to raw string" loc string.
     The intent is that the user sees "Convert to raw string" as an option to select,
     and that is then followed with this clause.  This is so we don't have a huge string

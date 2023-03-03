@@ -5,13 +5,16 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
 
@@ -273,8 +276,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 uiVisibleOnly As Boolean,
                 options As FindReferencesSearchOptions) As Task
 
-            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host))
-                workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
+            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host).AddParts(GetType(WorkspaceTestLogger)))
+                workspace.Services.SolutionServices.SetWorkspaceTestOutput(_outputHelper)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -511,6 +514,77 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         Private Shared Function GetFilePathAndProjectLabel(hostDocument As TestHostDocument) As String
             Return $"{hostDocument.Project.Name}: {hostDocument.FilePath}"
+        End Function
+
+        <Fact>
+        Public Async Function LinkedFilesWhereContentHasChangedInOneLink() As Task
+            Using workspace = TestWorkspace.Create("
+<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj1' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+partial class C
+{
+    int i;
+
+    public int P { get { return i; } }
+
+    public C()
+    {
+        this.i = 0;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj2' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>")
+
+                Dim solution = workspace.CurrentSolution
+                Dim document1 = solution.Projects.Single(Function(p) p.Name = "CSProj.1").Documents.Single()
+                Dim text1 = Await document1.GetTextAsync()
+
+                Dim linkedDocuments = document1.GetLinkedDocumentIds()
+                Assert.Equal(1, linkedDocuments.Length)
+
+                Dim document2 = solution.GetDocument(linkedDocuments.Single())
+                Assert.NotSame(document1, document2)
+
+                ' ensure we normally have two linked symbols when the files are the same.
+                Await LinkedFileTestHelper(solution, expectedLinkedSymbolCount:=2)
+
+                ' now change the linked file and run again.
+                solution = solution.WithDocumentText(document2.Id, SourceText.From(""))
+                Await LinkedFileTestHelper(solution, expectedLinkedSymbolCount:=1)
+
+                ' changing the contents back to the original should return us to two symbols
+                solution = solution.WithDocumentText(document2.Id, text1)
+                Await LinkedFileTestHelper(solution, expectedLinkedSymbolCount:=2)
+
+                ' changing `int i` to `int j` should give us 1 symbol.  the text lengths are the same, but the symbols
+                ' have changed.
+                solution = solution.WithDocumentText(document2.Id, SourceText.From(text1.ToString().Replace("int i", "int j")))
+                Await LinkedFileTestHelper(solution, expectedLinkedSymbolCount:=1)
+            End Using
+        End Function
+
+        Private Shared Async Function LinkedFileTestHelper(solution As Solution, expectedLinkedSymbolCount As Integer) As Task
+            Dim document1 = solution.Projects.Single(Function(p) p.Name = "CSProj.1").Documents.Single()
+
+            Dim linkedDocuments = document1.GetLinkedDocumentIds()
+            Assert.Equal(1, linkedDocuments.Length)
+
+            Dim document2 = solution.GetDocument(linkedDocuments.Single())
+            Assert.NotSame(document1, document2)
+
+            Dim semanticModel1 = Await document1.GetSemanticModelAsync()
+            Dim root1 = Await semanticModel1.SyntaxTree.GetRootAsync()
+            Dim declarator1 = root1.DescendantNodes().OfType(Of VariableDeclaratorSyntax).First()
+            Dim symbol1 = semanticModel1.GetDeclaredSymbol(declarator1)
+            Assert.NotNull(symbol1)
+
+            Dim linkedSymbols = Await SymbolFinder.FindLinkedSymbolsAsync(symbol1, solution, cancellationToken:=Nothing)
+            Assert.Equal(expectedLinkedSymbolCount, linkedSymbols.Length)
         End Function
     End Class
 End Namespace

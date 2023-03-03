@@ -6,17 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic.Formatting;
 using Roslyn.Test.Utilities;
@@ -46,7 +45,7 @@ public class FormatterTests
     [Fact]
     public async Task FormatAsync_ForeignLanguageWithFormattingSupport()
     {
-        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageServiceFactory), typeof(TestFormattingService) }).GetHostServices();
+        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageService), typeof(TestFormattingService) }).GetHostServices();
         using var workspace = new AdhocWorkspace(hostServices);
 
         var project = workspace.AddProject("Dummy", NoCompilationConstants.LanguageName);
@@ -64,7 +63,7 @@ public class FormatterTests
     [CombinatorialData]
     public async Task FormatAsync_ForeignLanguageWithFormattingSupport_Options(bool passExplicitOptions)
     {
-        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageServiceFactory), typeof(TestFormattingService) }).GetHostServices();
+        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageService), typeof(TestFormattingService) }).GetHostServices();
 
         using var workspace = new AdhocWorkspace(hostServices);
 
@@ -79,10 +78,12 @@ public class FormatterTests
 
         document = document.Project.Solution.WithOptions(solutionOptions).GetRequiredDocument(document.Id);
 
+#pragma warning disable RS0030 // Do not used banned APIs
         var documentOptions = await document.GetOptionsAsync();
         Assert.Equal(7, documentOptions.GetOption(FormattingOptions.IndentationSize));
+#pragma warning restore
 
-        var options = passExplicitOptions ? new OptionValueSet(ImmutableDictionary<OptionKey, object?>.Empty.
+        var options = passExplicitOptions ? new TestOptionSet(ImmutableDictionary<OptionKey, object?>.Empty.
             Add(new OptionKey(FormattingOptions.UseTabs, NoCompilationConstants.LanguageName), true).
             Add(new OptionKey(FormattingOptions.TabSize, NoCompilationConstants.LanguageName), 5).
             Add(new OptionKey(FormattingOptions.IndentationSize, NoCompilationConstants.LanguageName), 6).
@@ -90,7 +91,7 @@ public class FormatterTests
 
 #pragma warning disable RS0030 // Do not used banned APIs
         var formattedDocument = await Formatter.FormatAsync(document, spans: null, options, CancellationToken.None);
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore
 
         var formattedText = await formattedDocument.GetTextAsync();
 
@@ -115,94 +116,23 @@ public class FormatterTests
         var csDocument = workspace.AddDocument(csProject.Id, "File.cs", SourceText.From("class C { }"));
         var vbDocument = workspace.AddDocument(vbProject.Id, "File.vb", SourceText.From("Class C : End Class"));
 
-        var updatedOptions = GetOptionSetWithChangedPublicOptions(workspace.CurrentSolution.Options);
-
         // Validate that options are read from specified OptionSet:
 
-        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(csDocument, updatedOptions, CancellationToken.None)).Syntax!);
-        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(vbDocument, updatedOptions, CancellationToken.None)).Syntax!);
+        var updatedOptions = OptionsTestHelpers.GetOptionSetWithChangedOptions(TestOptionSet.Empty, OptionsTestHelpers.PublicFormattingOptionsWithNonDefaultValues);
+        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(csDocument, updatedOptions, CancellationToken.None)).Syntax!);
+        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(vbDocument, updatedOptions, CancellationToken.None)).Syntax!);
 
         // Validate that options are read from solution snapshot as a fallback (we have no editorconfig file, so all options should fall back):
 
-        var solutionWithUpdatedOptions = workspace.CurrentSolution.WithOptions(updatedOptions);
+        var updatedSolutionOptions = OptionsTestHelpers.GetOptionSetWithChangedOptions(workspace.CurrentSolution.Options, OptionsTestHelpers.PublicFormattingOptionsWithNonDefaultValues);
+        var solutionWithUpdatedOptions = workspace.CurrentSolution.WithOptions(updatedSolutionOptions);
         var csDocumentWithUpdatedOptions = solutionWithUpdatedOptions.GetRequiredDocument(csDocument.Id);
         var vbDocumentWithUpdatedOptions = solutionWithUpdatedOptions.GetRequiredDocument(vbDocument.Id);
 
-        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(csDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
-        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(vbDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
-
-        static OptionSet GetOptionSetWithChangedPublicOptions(OptionSet options)
-        {
-            // all public options and their non-default values:
-
-            var publicOptions = new (IOption, object)[]
-            {
-                (FormattingOptions.UseTabs, true),
-                (FormattingOptions.TabSize, 5),
-                (FormattingOptions.IndentationSize, 7),
-                (FormattingOptions.NewLine, "\r"),
-                (CSharpFormattingOptions.IndentBlock, false),
-                (CSharpFormattingOptions.IndentBraces, true),
-                (CSharpFormattingOptions.IndentSwitchCaseSection, false),
-                (CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock, false),
-                (CSharpFormattingOptions.IndentSwitchSection, false),
-                (CSharpFormattingOptions.LabelPositioning, LabelPositionOptions.LeftMost),
-                (CSharpFormattingOptions.NewLineForCatch, false),
-                (CSharpFormattingOptions.NewLineForClausesInQuery, false),
-                (CSharpFormattingOptions.NewLineForElse, false),
-                (CSharpFormattingOptions.NewLineForFinally, false),
-                (CSharpFormattingOptions.NewLineForMembersInAnonymousTypes, false),
-                (CSharpFormattingOptions.NewLineForMembersInObjectInit, false),
-                (CSharpFormattingOptions.NewLinesForBracesInAccessors, false),
-                (CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, false),
-                (CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, false),
-                (CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false),
-                (CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, false),
-                (CSharpFormattingOptions.NewLinesForBracesInMethods, false),
-                (CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false),
-                (CSharpFormattingOptions.NewLinesForBracesInProperties, false),
-                (CSharpFormattingOptions.NewLinesForBracesInTypes, false),
-                (CSharpFormattingOptions.SpaceAfterCast, true),
-                (CSharpFormattingOptions.SpaceAfterColonInBaseTypeDeclaration, false),
-                (CSharpFormattingOptions.SpaceAfterComma, false),
-                (CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword, false),
-                (CSharpFormattingOptions.SpaceAfterDot, true),
-                (CSharpFormattingOptions.SpaceAfterMethodCallName, true),
-                (CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement, false),
-                (CSharpFormattingOptions.SpaceBeforeColonInBaseTypeDeclaration, false),
-                (CSharpFormattingOptions.SpaceBeforeComma, true),
-                (CSharpFormattingOptions.SpaceBeforeDot, true),
-                (CSharpFormattingOptions.SpaceBeforeOpenSquareBracket, true),
-                (CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement, true),
-                (CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true),
-                (CSharpFormattingOptions.SpaceBetweenEmptyMethodDeclarationParentheses, true),
-                (CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, true),
-                (CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true),
-                (CSharpFormattingOptions.SpaceWithinCastParentheses, true),
-                (CSharpFormattingOptions.SpaceWithinExpressionParentheses, true),
-                (CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true),
-                (CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis, true),
-                (CSharpFormattingOptions.SpaceWithinOtherParentheses, true),
-                (CSharpFormattingOptions.SpaceWithinSquareBrackets, true),
-                (CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true),
-                (CSharpFormattingOptions.SpacingAroundBinaryOperator, BinaryOperatorSpacingOptions.Remove),
-                (CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false),
-                (CSharpFormattingOptions.WrappingPreserveSingleLine, false),
-            };
-
-            var updatedOptions = options;
-            foreach (var (option, newValue) in publicOptions)
-            {
-                var languages = (option is IPerLanguageOption) ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
-
-                foreach (var language in languages)
-                {
-                    updatedOptions = updatedOptions.WithChangedOption(new OptionKey(option, language), newValue);
-                }
-            }
-
-            return updatedOptions;
-        }
+        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(csDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
+        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(vbDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
+        ValidateOrganizeImportsOptions(await Formatter.GetOrganizeImportsOptionsAsync(csDocumentWithUpdatedOptions, CancellationToken.None));
+        ValidateOrganizeImportsOptions(await Formatter.GetOrganizeImportsOptionsAsync(vbDocumentWithUpdatedOptions, CancellationToken.None));
 
         static void ValidateCommonOptions(SyntaxFormattingOptions formattingOptions)
         {
@@ -273,6 +203,11 @@ public class FormatterTests
         static void ValidateVisualBasicOptions(VisualBasicSyntaxFormattingOptions simplifierOptions)
         {
             ValidateCommonOptions(simplifierOptions);
+        }
+
+        static void ValidateOrganizeImportsOptions(OrganizeImportsOptions options)
+        {
+            Assert.Equal("\r", options.NewLine);
         }
     }
 }

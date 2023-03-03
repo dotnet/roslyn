@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag;
@@ -14,12 +12,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDocCommentTextWithTag
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
     public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpReplaceDocCommentTextWithTagCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestStartOfKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -36,7 +35,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestEndOfKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -53,7 +52,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestEndOfKeyword_NewLineFollowing()
         {
             await TestInRegularAndScriptAsync(
@@ -70,7 +69,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestSelectedKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -87,7 +86,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestInsideKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -104,7 +103,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestNotInsideKeywordIfNonEmptySpan()
         {
             await TestMissingAsync(
@@ -115,7 +114,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestStartOfFullyQualifiedTypeName_Start()
         {
             await TestInRegularAndScriptAsync(
@@ -132,7 +131,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestStartOfFullyQualifiedTypeName_Mid1()
         {
             await TestInRegularAndScriptAsync(
@@ -149,7 +148,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestStartOfFullyQualifiedTypeName_Mid2()
         {
             await TestInRegularAndScriptAsync(
@@ -166,7 +165,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestStartOfFullyQualifiedTypeName_End()
         {
             await TestInRegularAndScriptAsync(
@@ -183,7 +182,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestStartOfFullyQualifiedTypeName_Selected()
         {
             await TestInRegularAndScriptAsync(
@@ -200,7 +199,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestTypeParameterReference()
         {
             await TestInRegularAndScriptAsync(
@@ -217,7 +216,7 @@ class C<TKey>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestTypeParameterReference_EmptyClassBody()
         {
             await TestInRegularAndScriptAsync(
@@ -230,7 +229,7 @@ class C<TKey>{}",
 class C<TKey>{}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestCanSeeInnerMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -249,7 +248,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestNotOnMispelledName()
         {
             await TestMissingAsync(
@@ -261,7 +260,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestMethodTypeParameterSymbol()
         {
             await TestInRegularAndScriptAsync(
@@ -280,7 +279,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestMethodTypeParameterSymbol_EmptyBody()
         {
             await TestInRegularAndScriptAsync(
@@ -299,7 +298,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestMethodTypeParameterSymbol_ExpressionBody()
         {
             await TestInRegularAndScriptAsync(
@@ -318,7 +317,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestMethodTypeParameter_SemicolonBody()
         {
             await TestInRegularAndScriptAsync(
@@ -337,7 +336,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestMethodParameterSymbol()
         {
             await TestInRegularAndScriptAsync(
@@ -356,7 +355,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestMethodParameterSymbol_EmptyBody()
         {
             await TestInRegularAndScriptAsync(
@@ -375,7 +374,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestMethodParameterSymbol_ExpressionBody()
         {
             await TestInRegularAndScriptAsync(
@@ -394,7 +393,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact]
         public async Task TestMethodParameterSymbol_SemicolonBody()
         {
             await TestInRegularAndScriptAsync(
@@ -413,20 +412,25 @@ class C
 }");
         }
 
+        [Fact]
         [WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
-        public async Task TestNonApplicableKeyword()
+        [WorkItem(31208, "https://github.com/dotnet/roslyn/issues/31208")]
+        public async Task TestApplicableKeyword()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"
 /// Testing keyword interfa[||]ce.
+class C<TKey>
+{
+}",
+@"
+/// Testing keyword <see langword=""interface""/>.
 class C<TKey>
 {
 }");
         }
 
-        [WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
         public async Task TestInXMLAttribute()
         {
             await TestMissingAsync(
@@ -438,8 +442,7 @@ class C
 }");
         }
 
-        [WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact, WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
         public async Task TestInXMLAttribute2()
         {
             await TestMissingAsync(
@@ -451,8 +454,7 @@ class C
 }");
         }
 
-        [WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
         public async Task TestBaseKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -469,8 +471,7 @@ class C<TKey>
 }");
         }
 
-        [WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        [Fact, WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
         public async Task TestThisKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -482,6 +483,40 @@ class C<TKey>
 
 @"
 /// Testing keyword <see langword=""this""/>.
+class C<TKey>
+{
+}");
+        }
+
+        [Fact, WorkItem(31208, "https://github.com/dotnet/roslyn/issues/31208")]
+        public async Task TestArbitraryKeyword()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+/// Testing keyword [||]delegate.
+class C<TKey>
+{
+}",
+
+@"
+/// Testing keyword <see langword=""delegate""/>.
+class C<TKey>
+{
+}");
+        }
+
+        [Fact, WorkItem(31208, "https://github.com/dotnet/roslyn/issues/31208")]
+        public async Task TestContextualKeyword()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+/// Testing keyword [||]yield.
+class C<TKey>
+{
+}",
+
+@"
+/// Testing keyword <see langword=""yield""/>.
 class C<TKey>
 {
 }");

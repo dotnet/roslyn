@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Collections
             get { return _dictionary is null ? s_emptyDictionary.Keys : _dictionary.Keys; }
         }
 
-        public struct ValueSet : IEnumerable<V>
+        public readonly struct ValueSet : IEnumerable<V>
         {
             /// <summary>
             /// Each value is either a single V or an <see cref="ArrayBuilder{V}"/>.

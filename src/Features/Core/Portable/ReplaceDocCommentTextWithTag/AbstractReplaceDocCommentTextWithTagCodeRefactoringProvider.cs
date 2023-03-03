@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -11,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,32 +25,24 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start, findInsideTrivia: true);
 
             if (!IsXmlTextToken(token))
-            {
                 return;
-            }
 
             if (!token.FullSpan.Contains(span))
-            {
                 return;
-            }
 
             if (IsInXMLAttribute(token))
-            {
                 return;
-            }
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var singleWordSpan = ExpandSpan(sourceText, span, fullyQualifiedName: false);
             var singleWordText = sourceText.ToString(singleWordSpan);
             if (singleWordText == "")
-            {
                 return;
-            }
 
             // First see if they're on an appropriate keyword. 
             if (IsKeyword(singleWordText))
@@ -62,12 +52,10 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             }
 
             // Not a keyword, see if it semantically means anything in the current context.
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = GetEnclosingSymbol(semanticModel, span.Start, cancellationToken);
             if (symbol == null)
-            {
                 return;
-            }
 
             // See if we can expand the term out to a fully qualified name. Do this
             // first in case the user has something like X.memberName.  We don't want 
@@ -86,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
 
             // Check if the single word could be binding to a type parameter or parameter
             // for the current symbol.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var parameter = symbol.GetParameters().FirstOrDefault(p => syntaxFacts.StringComparer.Equals(p.Name, singleWordText));
             if (parameter != null)
             {
@@ -136,7 +124,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return true;
         }
 
-        private static ISymbol GetEnclosingSymbol(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static ISymbol? GetEnclosingSymbol(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             var token = root.FindToken(position);
@@ -144,9 +132,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             for (var node = token.Parent; node != null; node = node.Parent)
             {
                 if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is ISymbol declaration)
-                {
                     return declaration;
-                }
             }
 
             return null;

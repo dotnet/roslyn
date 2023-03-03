@@ -306,14 +306,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var project = GetProject(hierarchy);
             var solution = _workspace.CurrentSolution;
             var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
-            var analysisScope = project != null ? _globalOptions.GetBackgroundAnalysisScope(project.Language) : SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption.DefaultValue;
+
+            // Handle multi-tfm projects - we want to run code analysis for all tfm flavors of the project.
+            ImmutableArray<Project> otherProjectsForMultiTfmProject;
+            if (project != null)
+            {
+                otherProjectsForMultiTfmProject = solution.Projects.Where(
+                    p => p != project && p.FilePath == project.FilePath && p.State.NameAndFlavor.name == project.State.NameAndFlavor.name).ToImmutableArray();
+                if (!otherProjectsForMultiTfmProject.IsEmpty)
+                    projectOrSolutionName = project.State.NameAndFlavor.name;
+            }
+            else
+            {
+                otherProjectsForMultiTfmProject = ImmutableArray<Project>.Empty;
+            }
+
+            bool isAnalysisDisabled;
+            if (project != null)
+            {
+                isAnalysisDisabled = _globalOptions.IsAnalysisDisabled(project.Language);
+            }
+            else
+            {
+                isAnalysisDisabled = true;
+                foreach (var language in solution.Projects.Select(p => p.Language).Distinct())
+                {
+                    isAnalysisDisabled = isAnalysisDisabled && _globalOptions.IsAnalysisDisabled(language);
+                }
+            }
 
             // Add a message to VS status bar that we are running code analysis.
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
-            var totalProjectCount = project != null ? 1 : (uint)solution.ProjectIds.Count;
-            var statusBarUpdater = statusBar != null ?
-                new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, totalProjectCount) :
-                null;
+            var totalProjectCount = project != null ? (1 + otherProjectsForMultiTfmProject.Length) : solution.ProjectIds.Count;
+            var statusBarUpdater = statusBar != null
+                ? new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, (uint)totalProjectCount)
+                : null;
 
             // Force complete analyzer execution in background.
             var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
@@ -323,6 +350,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 {
                     var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
                     await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
+
+                    foreach (var otherProject in otherProjectsForMultiTfmProject)
+                        await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, otherProject.Id, CancellationToken.None).ConfigureAwait(false);
 
                     // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
                     // then ForceAnalyzeAsync will not cause analyzers to execute.
@@ -342,14 +372,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 RoslynDebug.Assert(solution != null);
 
                 // First clear all special host diagostics for all involved projects.
-                var projects = project != null ? SpecializedCollections.SingletonEnumerable(project) : solution.Projects;
+                var projects = project != null ? otherProjectsForMultiTfmProject.Add(project) : solution.Projects;
                 foreach (var project in projects)
                 {
                     _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(project.Id, key: this);
                 }
 
                 // Now compute the new host diagostics for all projects with disabled analysis.
-                var projectsWithDisabledAnalysis = analysisScope == BackgroundAnalysisScope.None
+                var projectsWithDisabledAnalysis = isAnalysisDisabled
                     ? projects.ToImmutableArray()
                     : projects.Where(p => !p.State.RunAnalyzers).ToImmutableArrayOrEmpty();
                 if (!projectsWithDisabledAnalysis.IsEmpty)

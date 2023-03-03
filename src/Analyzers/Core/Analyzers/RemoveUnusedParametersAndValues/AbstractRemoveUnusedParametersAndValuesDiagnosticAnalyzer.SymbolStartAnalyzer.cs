@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
-    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         private sealed partial class SymbolStartAnalyzer
         {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 foreach (var (parameter, hasReference) in _unusedParameters)
                 {
-                    ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+                    ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options);
                 }
             }
 
@@ -129,8 +129,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 IParameterSymbol parameter,
                 bool hasReference,
                 Action<Diagnostic> reportDiagnostic,
-                AnalyzerOptions analyzerOptions,
-                CancellationToken cancellationToken)
+                AnalyzerOptions analyzerOptions)
             {
                 if (!IsUnusedParameterCandidate(parameter))
                 {
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
 
                 var location = parameter.Locations[0];
-                var option = analyzerOptions.GetOption(CodeStyleOptions2.UnusedParameters, parameter.Language, location.SourceTree, cancellationToken);
+                var option = analyzerOptions.GetAnalyzerOptions(location.SourceTree).UnusedParameters;
                 if (option.Notification.Severity == ReportDiagnostic.Suppress ||
                     !ShouldReportUnusedParameters(parameter.ContainingSymbol, option.Value, option.Notification.Severity))
                 {
@@ -218,6 +217,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsVirtual ||
                     method.IsOverride ||
                     method.PartialImplementationPart != null ||
+                    method.PartialDefinitionPart != null ||
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
                     method.IsAccessor() ||
                     method.IsAnonymousFunction() ||
@@ -229,8 +229,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 // Ignore parameters of record primary constructors since they map to public properties
                 // TODO: Remove this when implicit operations are synthesised: https://github.com/dotnet/roslyn/issues/47829 
+                var methodSyntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
                 if (method.IsConstructor() &&
-                    _compilationAnalyzer.IsRecordDeclaration(method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()))
+                    _compilationAnalyzer.IsRecordDeclaration(methodSyntax))
                 {
                     return false;
                 }
@@ -239,16 +240,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // as event handlers are required to match this signature
                 // regardless of whether or not the parameters are used.
                 if (_eventArgsTypeOpt != null &&
-                    method.Parameters.Length == 2 &&
-                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-                    method.Parameters[1].Type.InheritsFromOrEquals(_eventArgsTypeOpt))
+                    method.Parameters is [{ Type.SpecialType: SpecialType.System_Object }, var secondParam] &&
+                    secondParam.Type.InheritsFromOrEquals(_eventArgsTypeOpt))
                 {
                     return false;
                 }
 
                 // Ignore flagging parameters for methods with certain well-known attributes,
                 // which are known to have unused parameters in real world code.
-                if (method.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass)))
+                if (method.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), this))
                 {
                     return false;
                 }
@@ -266,6 +266,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // We ignore parameter names that start with an underscore and are optionally followed by an integer,
                 // such as '_', '_1', '_2', etc.
                 if (parameter.IsSymbolWithSpecialDiscardName())
+                {
+                    return false;
+                }
+
+                if (_compilationAnalyzer.ReturnsThrow(methodSyntax))
                 {
                     return false;
                 }

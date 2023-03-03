@@ -159,9 +159,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.ContainingType;
         }
 
-        public static bool IsPointerType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is IPointerTypeSymbol;
-
         public static bool IsErrorType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => (symbol as ITypeSymbol)?.TypeKind == TypeKind.Error;
 
@@ -205,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsReducedExtension([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is IMethodSymbol method && method.MethodKind == MethodKind.ReducedExtension;
+            => symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension };
 
         public static bool IsEnumMember([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol?.Kind == SymbolKind.Field && symbol.ContainingType.IsEnumType();
@@ -240,22 +237,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsOrdinaryMethod([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => (symbol as IMethodSymbol)?.MethodKind == MethodKind.Ordinary;
 
-        public static bool IsOrdinaryMethodOrLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            if (symbol is not IMethodSymbol method)
-            {
-                return false;
-            }
-
-            return method.MethodKind is MethodKind.Ordinary
-                or MethodKind.LocalFunction;
-        }
+        public static bool IsOrdinaryMethodOrLocalFunction([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol is IMethodSymbol { MethodKind: MethodKind.Ordinary or MethodKind.LocalFunction };
 
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is ITypeSymbol && ((ITypeSymbol)symbol).TypeKind == TypeKind.Delegate;
+            => symbol is ITypeSymbol { TypeKind: TypeKind.Delegate };
 
         public static bool IsAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is INamedTypeSymbol && ((INamedTypeSymbol)symbol).IsAnonymousType;
+            => symbol is INamedTypeSymbol { IsAnonymousType: true };
 
         public static bool IsNormalAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol.IsAnonymousType() && !symbol.IsDelegateType();
@@ -280,7 +269,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _ => false,
             };
 
-        public static ITypeSymbol? GetMemberType(this ISymbol symbol)
+        public static bool IsRequired([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+            => symbol is IFieldSymbol { IsRequired: true } or IPropertySymbol { IsRequired: true };
+
+        public static ITypeSymbol? GetMemberType(this ISymbol? symbol)
             => symbol switch
             {
                 IFieldSymbol fieldSymbol => fieldSymbol.Type,
@@ -298,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _ => 0,
             };
 
-        [return: NotNullIfNotNull(parameterName: "symbol")]
+        [return: NotNullIfNotNull(parameterName: nameof(symbol))]
         public static ISymbol? GetOriginalUnreducedDefinition(this ISymbol? symbol)
         {
             if (symbol.IsTupleField())
@@ -348,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsThisParameter([NotNullWhen(true)] this ISymbol? symbol)
             => symbol is IParameterSymbol { IsThis: true };
 
-        [return: NotNullIfNotNull(parameterName: "symbol")]
+        [return: NotNullIfNotNull(parameterName: nameof(symbol))]
         public static ISymbol? ConvertThisParameterToType(this ISymbol? symbol)
         {
             if (symbol.IsThisParameter())
@@ -359,11 +351,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol;
         }
 
-        public static bool IsParams([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            var parameters = symbol.GetParameters();
-            return parameters.Length > 0 && parameters[^1].IsParams;
-        }
+        public static bool IsParams([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol.GetParameters() is [.., { IsParams: true }];
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)
             => symbol switch
@@ -560,13 +549,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => (symbol as IMethodSymbol)?.MethodKind.IsPropertyAccessor() == true;
 
         public static bool IsEventAccessor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            var method = symbol as IMethodSymbol;
-            return method != null &&
-                (method.MethodKind == MethodKind.EventAdd ||
-                 method.MethodKind == MethodKind.EventRaise ||
-                 method.MethodKind == MethodKind.EventRemove);
-        }
+            => symbol is IMethodSymbol { MethodKind: MethodKind.EventAdd or MethodKind.EventRaise or MethodKind.EventRemove };
 
         public static bool IsFromSource(this ISymbol symbol)
             => symbol.Locations.Any() && symbol.Locations.All(location => location.IsInSource);
@@ -647,10 +630,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // void OnCompleted(Action) 
             // Actions are delegates, so we'll just check for delegates.
-            if (!methods.Any(x => x.Name == WellKnownMemberNames.OnCompleted && x.ReturnsVoid && x.Parameters.Length == 1 && x.Parameters.First().Type.TypeKind == TypeKind.Delegate))
-            {
+            if (!methods.Any(x => x.Name == WellKnownMemberNames.OnCompleted && x.ReturnsVoid && x.Parameters is [{ Type.TypeKind: TypeKind.Delegate }]))
                 return false;
-            }
 
             // void GetResult() || T GetResult()
             return methods.Any(m => m.Name == WellKnownMemberNames.GetResult && !m.Parameters.Any());
@@ -758,7 +739,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <param name="symbol"></param>
         /// <returns><see langword="true"/> if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.</returns>
         public static bool IsObsolete(this ISymbol symbol)
-            => symbol.GetAttributes().Any(x => x.AttributeClass is
+            => symbol.GetAttributes().Any(static x => x.AttributeClass is
             {
                 MetadataName: nameof(ObsoleteAttribute),
                 ContainingNamespace.Name: nameof(System),

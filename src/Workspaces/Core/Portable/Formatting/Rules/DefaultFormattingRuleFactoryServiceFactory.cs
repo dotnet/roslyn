@@ -11,31 +11,25 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
-    [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), ServiceLayer.Default), Shared]
-    internal sealed class DefaultFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceService(typeof(IHostDependentFormattingRuleFactoryService), ServiceLayer.Default), Shared]
+    internal sealed class DefaultFormattingRuleFactoryService : IHostDependentFormattingRuleFactoryService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultFormattingRuleFactoryServiceFactory()
+        public DefaultFormattingRuleFactoryService()
         {
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new Factory();
+        public bool ShouldNotFormatOrCommitOnPaste(DocumentId documentId)
+            => false;
 
-        private sealed class Factory : IHostDependentFormattingRuleFactoryService
-        {
-            public bool ShouldUseBaseIndentation(Document document)
-                => false;
+        public bool ShouldUseBaseIndentation(DocumentId documentId)
+            => false;
 
-            public AbstractFormattingRule CreateRule(Document document, int position)
-                => NoOpFormattingRule.Instance;
+        public AbstractFormattingRule CreateRule(ParsedDocument document, int position)
+            => NoOpFormattingRule.Instance;
 
-            public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)
-                => changes;
-
-            public bool ShouldNotFormatOrCommitOnPaste(Document document)
-                => false;
-        }
+        public IEnumerable<TextChange> FilterFormattedChanges(DocumentId document, TextSpan span, IList<TextChange> changes)
+            => changes;
     }
 }

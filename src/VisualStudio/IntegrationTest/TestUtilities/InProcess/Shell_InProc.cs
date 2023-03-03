@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 if (firstSpace >= 0)
                 {
                     // e.g. "17.1.31907.60 MAIN"
-                    fullVersion = fullVersion.Substring(0, firstSpace);
+                    fullVersion = fullVersion[..firstSpace];
                 }
 
                 if (Version.TryParse(fullVersion, out var version))

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var analyzer = document.Project.LanguageServices.GetService<FSharpSimplifyNameDiagnosticAnalyzerService>();
+            var analyzer = document.Project.Services.GetService<FSharpSimplifyNameDiagnosticAnalyzerService>();
             if (analyzer == null)
             {
                 return Task.FromResult(ImmutableArray<Diagnostic>.Empty);

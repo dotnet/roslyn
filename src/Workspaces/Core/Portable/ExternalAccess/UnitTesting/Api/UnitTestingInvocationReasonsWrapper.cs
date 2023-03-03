@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public static readonly UnitTestingInvocationReasonsWrapper PredefinedSyntaxChanged = new(PredefinedInvocationReasons.SyntaxChanged);
         public static readonly UnitTestingInvocationReasonsWrapper PredefinedProjectConfigurationChanged = new(PredefinedInvocationReasons.ProjectConfigurationChanged);
         public static readonly UnitTestingInvocationReasonsWrapper PredefinedDocumentOpened = new(PredefinedInvocationReasons.DocumentOpened);
-        public static readonly UnitTestingInvocationReasonsWrapper PredefinedDocumentRemoved = new(PredefinedInvocationReasons.DocumentRemoved);
         public static readonly UnitTestingInvocationReasonsWrapper PredefinedDocumentClosed = new(PredefinedInvocationReasons.DocumentClosed);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedDocumentRemoved = new(PredefinedInvocationReasons.DocumentRemoved);
         public static readonly UnitTestingInvocationReasonsWrapper PredefinedHighPriority = new(PredefinedInvocationReasons.HighPriority);
         public static readonly UnitTestingInvocationReasonsWrapper PredefinedProjectParseOptionsChanged = new(PredefinedInvocationReasons.ProjectParseOptionsChanged);
         public static readonly UnitTestingInvocationReasonsWrapper PredefinedSolutionRemoved = new(PredefinedInvocationReasons.SolutionRemoved);

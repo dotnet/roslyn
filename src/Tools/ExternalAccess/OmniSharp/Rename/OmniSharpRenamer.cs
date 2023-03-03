@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Rename;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
 {
     internal static class OmniSharpRenamer
     {
-        public readonly record struct RenameResult(Solution Solution, string? ErrorMessage);
+        public readonly record struct RenameResult(Solution? Solution, string? ErrorMessage);
 
         public static async Task<RenameResult> RenameSymbolAsync(
             Solution solution,
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
             ImmutableHashSet<ISymbol>? nonConflictSymbols,
             CancellationToken cancellationToken)
         {
-            var resolution = await Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), CodeActionOptions.DefaultProvider, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+            var nonConflictSymbolsKeys = nonConflictSymbols is null ? default : nonConflictSymbols.SelectAsArray(s => s.GetSymbolKey(cancellationToken));
+            var resolution = await Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), CodeActionOptions.DefaultProvider, nonConflictSymbolsKeys, cancellationToken).ConfigureAwait(false);
             return new RenameResult(resolution.NewSolution, resolution.ErrorMessage);
         }
     }

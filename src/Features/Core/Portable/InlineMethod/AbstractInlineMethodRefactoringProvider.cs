@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 callerDeclarationNode,
                 inlineExpression, invocationOperation);
 
-            var nestedCodeAction = CodeAction.CodeActionWithNestedActions.Create(
+            var nestedCodeAction = CodeAction.Create(
                 string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
                 codeActions,
                 isInlinable: true);
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         _semanticFactsService.GenerateUniqueLocalName(
                             semanticModel,
                             calleeInvocationNode,
-                            containerOpt: null,
+                            container: null,
                             TemporaryName,
                             cancellationToken);
 

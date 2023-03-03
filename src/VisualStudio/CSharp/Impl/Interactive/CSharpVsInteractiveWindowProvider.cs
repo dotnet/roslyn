@@ -16,7 +16,9 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids;
 
@@ -27,7 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _listener;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly ITextDocumentFactoryService _textDocumentFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -40,13 +43,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             IContentTypeRegistryService contentTypeRegistry,
             IInteractiveWindowCommandsFactory commandsFactory,
             [ImportMany] IInteractiveWindowCommand[] commands,
-            IGlobalOptionService globalOptions,
+            ITextDocumentFactoryService textDocumentFactoryService,
+            EditorOptionsService editorOptionsService,
             VisualStudioWorkspace workspace)
             : base(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, workspace)
         {
             _threadingContext = threadingContext;
             _listener = listenerProvider.GetListener(FeatureAttribute.InteractiveEvaluator);
-            _globalOptions = globalOptions;
+            _textDocumentFactoryService = textDocumentFactoryService;
+            _editorOptionsService = editorOptionsService;
         }
 
         protected override Guid LanguageServiceGuid => LanguageServiceGuids.CSharpLanguageServiceId;
@@ -65,7 +70,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             VisualStudioWorkspace workspace)
         {
             return new CSharpInteractiveEvaluator(
-                _globalOptions,
                 _threadingContext,
                 _listener,
                 contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType),
@@ -73,6 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
                 classifierAggregator,
                 CommandsFactory,
                 Commands,
+                _textDocumentFactoryService,
+                _editorOptionsService,
                 CSharpInteractiveEvaluatorLanguageInfoProvider.Instance,
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
         }

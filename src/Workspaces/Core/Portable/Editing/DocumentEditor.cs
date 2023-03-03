@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editing
         private readonly SemanticModel _model;
 
         private DocumentEditor(Document document, SemanticModel model, SyntaxNode root)
-            : base(root, document.Project.Solution.Workspace.Services)
+            : base(root, document.Project.Solution.Services)
         {
             _document = document;
             _model = model;

@@ -153,20 +153,21 @@ namespace Roslyn.Utilities
 
             Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
 
-            TResult outerFunction(Task t)
+            static TResult outerFunction(Task t, object? state)
             {
                 try
                 {
+                    var continuationFunction = (Func<Task, TResult>)state!;
                     return continuationFunction(t);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
             // This is the only place in the code where we're allowed to call ContinueWith.
-            return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
+            return task.ContinueWith(outerFunction, continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
         }
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]

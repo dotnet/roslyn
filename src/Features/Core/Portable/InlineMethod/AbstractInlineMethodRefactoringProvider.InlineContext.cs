@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .GenerateUniqueLocalName(
                         callerSemanticModel,
                         calleeInvocationNode,
-                        containerOpt: null,
+                        container: null,
                         symbol.Name,
                         usedNames,
                         cancellationToken).Text;

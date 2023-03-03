@@ -71,18 +71,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
                 // Next, we'll check to see if there is actually a DataTip for this candidate.
                 // If there is, we'll map this span back to the DataBuffer and return it.
-                pSpan[0] = candidateSpan.ToVsTextSpan();
-                var hr = base.GetDataTipTextImpl(_subjectBuffer, pSpan, out pbstrText);
+                var subjectBufferSpanData = new TextSpan[] { candidateSpan.ToVsTextSpan() };
+                var hr = GetDataTipTextImpl(_subjectBuffer, subjectBufferSpanData, out pbstrText);
                 if (ErrorHandler.Succeeded(hr))
                 {
-                    var subjectSpan = _subjectBuffer.CurrentSnapshot.GetSpan(pSpan[0]);
+                    var subjectSpan = _subjectBuffer.CurrentSnapshot.GetSpan(subjectBufferSpanData[0]);
 
                     // When mapping back up to the surface buffer, if we get more than one span,
                     // take the span that intersects with the input span, since that's probably
                     // the one we care about.
                     // If there are no such spans, just return.
                     var surfaceSpan = WpfTextView.BufferGraph.MapUpToBuffer(subjectSpan, SpanTrackingMode.EdgeInclusive, textViewModel.DataBuffer)
-                                        .SingleOrDefault(x => x.IntersectsWith(span));
+                        .SingleOrDefault(x => x.IntersectsWith(span));
 
                     if (surfaceSpan == default)
                     {
@@ -92,7 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
                     // pSpan is an in/out parameter
                     pSpan[0] = surfaceSpan.ToVsTextSpan();
-
                     return hr;
                 }
             }

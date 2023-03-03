@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // into, and if it's valid then proceed.
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!TryDetermineTypeToGenerateIn(semanticDocument, ContainingType, SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
-                    out var typeToGenerateIn, out var isStatic))
+                        out var typeToGenerateIn, out var isStatic, out _))
                 {
                     return false;
                 }
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     index++;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             private void DetermineFieldType(
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // If we're in an lambda/local function we're not actually 'in' the constructor.
                 // i.e. we can't actually write to read-only fields here.
                 var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                if (simpleName.AncestorsAndSelf().Any(n => syntaxFacts.IsAnonymousOrLocalFunction(n)))
+                if (simpleName.AncestorsAndSelf().Any(syntaxFacts.IsAnonymousOrLocalFunction))
                     return false;
 
                 return syntaxFacts.IsInConstructor(simpleName);

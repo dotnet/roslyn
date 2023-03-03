@@ -38,7 +38,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
+        {
+            if (_globalOptions.IsLspPullDiagnostics())
+            {
+                // We rely on LSP to query us for diagnostics when things have changed and poll us for changes that might
+                // have happened to the project or closed files outside of VS.
+                return NoOpIncrementalAnalyzer.Instance;
+            }
+
+            return new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
+        }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
@@ -55,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
             => DiagnosticsUpdated?.Invoke(this, state);
 
-        private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
+        private sealed class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
         {
             private readonly DefaultDiagnosticAnalyzerService _service;
             private readonly Workspace _workspace;
@@ -68,16 +77,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache);
             }
 
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
+            public void Shutdown()
             {
-                if (e.Option == InternalRuntimeDiagnosticOptions.Syntax ||
-                    e.Option == InternalRuntimeDiagnosticOptions.Semantic ||
-                    e.Option == InternalRuntimeDiagnosticOptions.ScriptSemantic)
-                {
-                    return true;
-                }
-
-                return false;
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -91,8 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Debug.Assert(textDocument.Project.Solution.Workspace == _workspace);
 
                 // right now, there is no way to observe diagnostics for closed file.
-                if (!_workspace.IsDocumentOpen(textDocument.Id) ||
-                    !_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Syntax))
+                if (!_workspace.IsDocumentOpen(textDocument.Id))
                 {
                     return;
                 }
@@ -115,16 +115,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // right now, there is no way to observe diagnostics for closed file.
                     if (!_workspace.IsDocumentOpen(document.Id))
-                    {
                         return false;
-                    }
 
-                    if (_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Semantic))
-                    {
-                        return true;
-                    }
+                    // Misc and cloud workspaces never supports semantics.
+                    if (_workspace.Kind is WorkspaceKind.MiscellaneousFiles or WorkspaceKind.CloudEnvironmentClientWorkspace)
+                        return false;
 
-                    return _workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.ScriptSemantic) && document.SourceCodeKind == SourceCodeKind.Script;
+                    return true;
                 }
             }
 

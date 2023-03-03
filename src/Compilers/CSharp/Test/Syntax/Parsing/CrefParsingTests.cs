@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected override CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options)
         {
             var commentText = string.Format(@"/// <see cref=""{0}""/>", text);
-            var trivia = SyntaxFactory.ParseLeadingTrivia(commentText).Single();
+            var trivia = SyntaxFactory.ParseLeadingTrivia(commentText, options ?? CSharpParseOptions.Default).Single();
             var structure = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
             var attr = structure.DescendantNodes().OfType<XmlCrefAttributeSyntax>().Single();
             return attr.Cref;
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnqualifiedUnsignedRightShift_01()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingNode("operator >>>", options);
 
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnqualifiedUnsignedRightShift_02()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingNode("operator > >>", options);
 
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnqualifiedUnsignedRightShift_03()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingNode("operator >> >", options);
 
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnqualifiedUnsignedRightShift_04()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingNode("operator >>>=", options);
 
@@ -430,6 +430,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.CheckedKeyword);
                 N(SyntaxKind.PlusToken);
             }
+        }
+
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        public void UnqualifiedOperatorMember1_Unchecked()
+        {
+            UsingNode("operator unchecked +", TestOptions.RegularWithDocumentationComments,
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator unchecked +'
+                // /// <see cref="operator unchecked +"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator unchecked +").WithArguments("operator unchecked +").WithLocation(1, 16),
+                // (1,25): error CS9027: Unexpected keyword 'unchecked'
+                // /// <see cref="operator unchecked +"/>
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 25));
+
+            N(SyntaxKind.OperatorMemberCref);
+            {
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.PlusToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -481,6 +500,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        public void UnqualifiedOperatorMember2_Unchecked()
+        {
+            UsingNode("operator unchecked +(A)", TestOptions.RegularWithDocumentationComments,
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator unchecked +(A)'
+                // /// <see cref="operator unchecked +(A)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator unchecked +(A)").WithArguments("operator unchecked +(A)").WithLocation(1, 16),
+                // (1,25): error CS9027: Unexpected keyword 'unchecked'
+                // /// <see cref="operator unchecked +(A)"/>
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 25));
+
+            N(SyntaxKind.OperatorMemberCref);
+            {
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
         #endregion Unqualified
 
         #region Qualified
@@ -524,6 +574,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.PlusToken);
                 }
             }
+        }
+
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        public void QualifiedOperatorMember1_Unchecked()
+        {
+            UsingNode("T.operator unchecked +", TestOptions.RegularWithDocumentationComments,
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'T.operator unchecked +'
+                // /// <see cref="T.operator unchecked +"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.operator unchecked +").WithArguments("T.operator unchecked +").WithLocation(1, 16),
+                // (1,27): error CS9027: Unexpected keyword 'unchecked'
+                // /// <see cref="T.operator unchecked +"/>
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 27)
+                );
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "T");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PlusToken);
+                }
+            }
+            EOF();
         }
 
         [Fact]
@@ -683,6 +761,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        public void GreaterThanGreaterThan_Unchecked()
+        {
+            UsingNode("operator unchecked }}(A{A{T}})", TestOptions.RegularWithDocumentationComments,
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator unchecked }}(A{A{T}})'
+                // /// <see cref="operator unchecked }}(A{A{T}})"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator unchecked }}(A{A{T}})").WithArguments("operator unchecked }}(A{A{T}})").WithLocation(1, 16),
+                // (1,25): error CS9027: Unexpected keyword 'unchecked'
+                // /// <see cref="operator unchecked }}(A{A{T}})"/>
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 25)
+                );
+
+            N(SyntaxKind.OperatorMemberCref);
+            {
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.GreaterThanGreaterThanToken);
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "T");
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
         [WorkItem(546992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546992")]
         [Fact]
         public void GreaterThanGreaterThanGreaterThan()
@@ -768,6 +896,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        public void UnqualifiedConversionOperatorMember1_Unchecked()
+        {
+            UsingNode("implicit operator unchecked A", TestOptions.RegularWithDocumentationComments,
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'implicit operator unchecked A'
+                // /// <see cref="implicit operator unchecked A"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "implicit operator unchecked A").WithArguments("implicit operator unchecked A").WithLocation(1, 16),
+                // (1,34): error CS9027: Unexpected keyword 'unchecked'
+                // /// <see cref="implicit operator unchecked A"/>
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 34)
+                );
+
+            N(SyntaxKind.ConversionOperatorMemberCref);
+            {
+                N(SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+            }
+            EOF();
+        }
+
         [Fact]
         public void UnqualifiedConversionOperatorMember2()
         {
@@ -806,6 +958,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.ExplicitKeyword);
                 N(SyntaxKind.OperatorKeyword);
                 N(SyntaxKind.CheckedKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+        }
+
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        public void UnqualifiedConversionOperatorMember2_Unchecked()
+        {
+            UsingNode("explicit operator unchecked A(B)", TestOptions.RegularWithDocumentationComments,
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'explicit operator unchecked A(B)'
+                // /// <see cref="explicit operator unchecked A(B)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "explicit operator unchecked A(B)").WithArguments("explicit operator unchecked A(B)").WithLocation(1, 16),
+                // (1,34): error CS9027: Unexpected keyword 'unchecked'
+                // /// <see cref="explicit operator unchecked A(B)"/>
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 34)
+                );
+
+            N(SyntaxKind.ConversionOperatorMemberCref);
+            {
+                N(SyntaxKind.ExplicitKeyword);
+                N(SyntaxKind.OperatorKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken);
@@ -878,6 +1065,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        public void QualifiedConversionOperatorMember1_Unchecked()
+        {
+            UsingNode("T.implicit operator unchecked A", TestOptions.RegularWithDocumentationComments,
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'T.implicit operator unchecked A'
+                // /// <see cref="T.implicit operator unchecked A"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.implicit operator unchecked A").WithArguments("T.implicit operator unchecked A").WithLocation(1, 16),
+                // (1,36): error CS9027: Unexpected keyword 'unchecked'
+                // /// <see cref="T.implicit operator unchecked A"/>
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 36)
+                );
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.ConversionOperatorMemberCref);
+                {
+                    N(SyntaxKind.ImplicitKeyword);
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                }
+            }
+        }
+
         [Fact]
         public void QualifiedConversionOperatorMember2()
         {
@@ -931,6 +1149,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.ExplicitKeyword);
                     N(SyntaxKind.OperatorKeyword);
                     N(SyntaxKind.CheckedKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CrefParameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+        }
+
+        [Fact, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        public void QualifiedConversionOperatorMember2_Unchecked()
+        {
+            UsingNode("T.explicit operator unchecked A(B)", TestOptions.RegularWithDocumentationComments,
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'T.explicit operator unchecked A(B)'
+                // /// <see cref="T.explicit operator unchecked A(B)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "T.explicit operator unchecked A(B)").WithArguments("T.explicit operator unchecked A(B)").WithLocation(1, 16),
+                // (1,36): error CS9027: Unexpected keyword 'unchecked'
+                // /// <see cref="T.explicit operator unchecked A(B)"/>
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 36)
+                );
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.ConversionOperatorMemberCref);
+                {
+                    N(SyntaxKind.ExplicitKeyword);
+                    N(SyntaxKind.OperatorKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken);

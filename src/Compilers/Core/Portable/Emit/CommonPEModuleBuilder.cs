@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,6 +16,7 @@ using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -27,13 +26,13 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IEnumerable<ResourceDescription> ManifestResources;
         internal readonly Cci.ModulePropertiesForSerialization SerializationProperties;
         internal readonly OutputKind OutputKind;
-        internal Stream RawWin32Resources;
-        internal IEnumerable<Cci.IWin32Resource> Win32Resources;
-        internal Cci.ResourceSection Win32ResourceSection;
-        internal Stream SourceLinkStreamOpt;
+        internal Stream? RawWin32Resources;
+        internal IEnumerable<Cci.IWin32Resource>? Win32Resources;
+        internal Cci.ResourceSection? Win32ResourceSection;
+        internal Stream? SourceLinkStreamOpt;
 
-        internal Cci.IMethodReference PEEntryPoint;
-        internal Cci.IMethodReference DebugEntryPoint;
+        internal Cci.IMethodReference? PEEntryPoint;
+        internal Cci.IMethodReference? DebugEntryPoint;
 
         private readonly ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody> _methodBodyMap;
         private readonly TokenMap _referencesInILMap = new();
@@ -44,13 +43,10 @@ namespace Microsoft.CodeAnalysis.Emit
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
         private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
 
-        // Only set when running tests to allow realized IL for a given method to be looked up by method.
-        internal ConcurrentDictionary<IMethodSymbolInternal, CompilationTestData.MethodData> TestData { get; private set; }
+        // Only set when running tests to allow inspection of the emitted data.
+        internal CompilationTestData? TestData { get; private set; }
 
         internal EmitOptions EmitOptions { get; }
-
-        internal DebugInformationFormat DebugInformationFormat => EmitOptions.DebugInformationFormat;
-        internal HashAlgorithmName PdbChecksumAlgorithm => EmitOptions.PdbChecksumAlgorithm;
 
         public CommonPEModuleBuilder(
             IEnumerable<ResourceDescription> manifestResources,
@@ -71,7 +67,9 @@ namespace Microsoft.CodeAnalysis.Emit
             EmitOptions = emitOptions;
         }
 
-#nullable enable
+        internal DebugInformationFormat DebugInformationFormat => EmitOptions.DebugInformationFormat;
+        internal HashAlgorithmName PdbChecksumAlgorithm => EmitOptions.PdbChecksumAlgorithm;
+
         /// <summary>
         /// Symbol changes when emitting EnC delta.
         /// </summary>
@@ -131,10 +129,10 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         /// <remarks>
         /// The PDB content for custom debug information is different between Visual Basic and CSharp.
-        /// E.g. C# always includes a CustomMetadata Header (MD2) that contains the namespace scope counts, where 
-        /// as VB only outputs namespace imports into the namespace scopes. 
+        /// E.g. C# always includes a CustomMetadata Header (MD2) that contains the namespace scope counts, where
+        /// as VB only outputs namespace imports into the namespace scopes.
         /// C# defines forwards in that header, VB includes them into the scopes list.
-        /// 
+        ///
         /// Currently the compiler doesn't allow mixing C# and VB method bodies. Thus this flag can be per module.
         /// It is possible to move this flag to per-method basis but native PDB CDI forwarding would need to be adjusted accordingly.
         /// </remarks>
@@ -218,9 +216,9 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Builds a list of types, and their documents, that would otherwise not be referenced by any document info
         /// of any methods in those types, or any nested types. This data is helpful for navigating to the source of
         /// types that have no methods in one or more of the source files they are contained in.
-        /// 
+        ///
         /// For example:
-        /// 
+        ///
         /// First.cs:
         /// <code>
         /// partial class Outer
@@ -233,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Emit
         ///     }
         /// }
         /// </code>
-        /// 
+        ///
         /// /// Second.cs:
         /// <code>
         /// partial class Outer
@@ -243,10 +241,10 @@ namespace Microsoft.CodeAnalysis.Emit
         ///     }
         /// }
         /// </code>
-        /// 
+        ///
         /// When navigating to the definition of "Outer" we know about First.cs because of the MethodDebugInfo for Outer.Inner.Method()
         /// but there would be no document information for Second.cs so this method would return that information.
-        /// 
+        ///
         /// When navigating to "Inner" we likewise know about First.cs because of the MethodDebugInfo, and we know about Second.cs because
         /// of the document info for its containing type, so this method would not return information for Inner. In fact this method
         /// will never return information for any nested type.
@@ -256,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract IEnumerable<(Cci.ITypeDefinition, ImmutableArray<Cci.DebugSourceDocument>)> GetTypeToDebugDocumentMap(EmitContext context);
 
         /// <summary>
-        /// Number of debug documents in the module. 
+        /// Number of debug documents in the module.
         /// Used to determine capacities of lists and indices when emitting debug info.
         /// </summary>
         public int DebugDocumentCount => DebugDocumentsBuilder.DebugDocumentCount;
@@ -346,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Returns User Strings referenced from the IL in the module. 
+        /// Returns User Strings referenced from the IL in the module.
         /// </summary>
         public IEnumerable<string> GetStrings()
         {
@@ -476,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 foreach (ResourceDescription r in ManifestResources)
                 {
-                    builder.Add(r.ToManagedResource(this));
+                    builder.Add(r.ToManagedResource());
                 }
 
                 if (OutputKind != OutputKind.NetModule)
@@ -504,17 +502,11 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        internal bool SaveTestData => TestData != null;
-
-        internal void SetMethodTestData(IMethodSymbolInternal method, ILBuilder builder)
-        {
-            TestData.Add(method, new CompilationTestData.MethodData(builder, method));
-        }
-
-        internal void SetMethodTestData(ConcurrentDictionary<IMethodSymbolInternal, CompilationTestData.MethodData> methods)
+        internal void SetTestData(CompilationTestData testData)
         {
             Debug.Assert(TestData == null);
-            TestData = methods;
+            TestData = testData;
+            testData.Module = this;
         }
 
         public int GetTypeDefinitionGeneration(Cci.INamedTypeDefinition typeDef)
@@ -618,7 +610,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Returns all top-level (not nested) types defined in the module. 
+        /// Returns all top-level (not nested) types defined in the module.
         /// </summary>
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context)
         {
@@ -691,7 +683,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             static void AddTopLevelType(HashSet<string> names, Cci.INamespaceTypeDefinition type)
                 // _namesOfTopLevelTypes are only used to generated exported types, which are not emitted in EnC deltas (hence generation 0):
-                => names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type, generation: 0)));
+                => names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMetadataName(type, generation: 0)));
         }
 
         public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes()
@@ -981,14 +973,27 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #region Token Mapping
 
-        Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(this.SupportsPrivateImplClass);
+            Debug.Assert(SupportsPrivateImplClass);
+            Debug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
 
-            var privateImpl = this.GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
+            var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
             // map a field to the block (that makes it addressable via a token)
-            return privateImpl.CreateDataField(data);
+            return privateImpl.CreateDataField(data, alignment);
+        }
+
+        Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(SupportsPrivateImplClass);
+
+            var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
+
+            var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
+
+            // map a field to the block (that makes it addressable via a token)
+            return privateImpl.CreateArrayCachingField(data, arrayType, emitContext);
         }
 
         public abstract Cci.IMethodReference GetInitArrayHelper();

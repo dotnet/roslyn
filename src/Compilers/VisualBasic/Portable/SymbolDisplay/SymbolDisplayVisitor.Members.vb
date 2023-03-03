@@ -160,18 +160,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Sub AddAccessor([property] As ISymbol, method As IMethodSymbol, keyword As SyntaxKind)
-            If method IsNot Nothing Then
-                AddSpace()
-                If method.DeclaredAccessibility <> [property].DeclaredAccessibility Then
-                    AddAccessibilityIfRequired(method)
-                End If
-
-                AddKeyword(keyword)
-                AddPunctuation(SyntaxKind.SemicolonToken)
-            End If
-        End Sub
-
         Public Overrides Sub VisitMethod(symbol As IMethodSymbol)
             If IsDeclareMethod(symbol) Then
                 VisitDeclareMethod(symbol)
@@ -254,24 +242,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                     Case MethodKind.Conversion
-                        If format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+
+                        Dim tokenKind As SyntaxKind = TryGetConversionTokenKind(symbol)
+
+                        If tokenKind = SyntaxKind.None OrElse format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
                             AddKeyword(SyntaxKind.FunctionKeyword)
                             AddSpace()
                         Else
-                            If CaseInsensitiveComparison.Equals(symbol.Name, WellKnownMemberNames.ImplicitConversionName) Then
-                                AddKeyword(SyntaxKind.WideningKeyword)
-                                AddSpace()
-                            Else
-                                AddKeyword(SyntaxKind.NarrowingKeyword)
-                                AddSpace()
-                            End If
+                            AddKeyword(tokenKind)
+                            AddSpace()
 
                             AddKeyword(SyntaxKind.OperatorKeyword)
                             AddSpace()
                         End If
 
                     Case MethodKind.UserDefinedOperator, MethodKind.BuiltinOperator
-                        If format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+                        Dim tokenKind As SyntaxKind = TryGetOperatorTokenKind(symbol)
+
+                        If tokenKind = SyntaxKind.None OrElse format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
                             AddKeyword(SyntaxKind.FunctionKeyword)
                             AddSpace()
                         Else
@@ -355,14 +343,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case MethodKind.UserDefinedOperator, MethodKind.BuiltinOperator
-                    If format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+
+                    Dim tokenKind As SyntaxKind = TryGetOperatorTokenKind(symbol)
+
+                    If tokenKind = SyntaxKind.None OrElse format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
                         builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name, visitedParents))
+                    ElseIf SyntaxFacts.IsKeywordKind(tokenKind) Then
+                        ' Prefer to add the operator token as a keyword if it considered both a keyword and an operator.
+                        ' For example 'And' is both a keyword and operator, but we prefer 'keyword' here to match VB
+                        ' classification behavior since inception.
+                        AddKeyword(tokenKind)
                     Else
-                        AddKeyword(OverloadResolution.GetOperatorTokenKind(symbol.Name))
+                        ' Otherwise, if it's an operator and not a keyword (like '+'), then add it as an operator.
+                        AddOperator(tokenKind)
                     End If
 
                 Case MethodKind.Conversion
-                    If format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+                    Dim tokenKind As SyntaxKind = TryGetConversionTokenKind(symbol)
+
+                    If tokenKind = SyntaxKind.None OrElse format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
                         builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name, visitedParents))
                     Else
                         AddKeyword(SyntaxKind.CTypeKeyword)
@@ -377,6 +376,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             End Select
         End Sub
+
+        Private Shared Function TryGetOperatorTokenKind(symbol As IMethodSymbol) As SyntaxKind
+            Dim nameToCheck As String = symbol.Name
+
+            If symbol.MethodKind = MethodKind.BuiltinOperator Then
+                Select Case nameToCheck
+                    Case WellKnownMemberNames.CheckedAdditionOperatorName
+                        nameToCheck = WellKnownMemberNames.AdditionOperatorName
+                    Case WellKnownMemberNames.CheckedDivisionOperatorName
+                        nameToCheck = WellKnownMemberNames.IntegerDivisionOperatorName
+                    Case WellKnownMemberNames.CheckedMultiplyOperatorName
+                        nameToCheck = WellKnownMemberNames.MultiplyOperatorName
+                    Case WellKnownMemberNames.CheckedSubtractionOperatorName
+                        nameToCheck = WellKnownMemberNames.SubtractionOperatorName
+                    Case WellKnownMemberNames.CheckedUnaryNegationOperatorName
+                        nameToCheck = WellKnownMemberNames.UnaryNegationOperatorName
+                End Select
+            End If
+
+            Dim opInfo As OverloadResolution.OperatorInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
+
+            If (opInfo.IsUnary AndAlso opInfo.UnaryOperatorKind <> UnaryOperatorKind.Error) OrElse
+               (opInfo.IsBinary AndAlso opInfo.BinaryOperatorKind <> BinaryOperatorKind.Error) Then
+                Return OverloadResolution.GetOperatorTokenKind(opInfo)
+            Else
+                Return SyntaxKind.None
+            End If
+        End Function
+
+        Private Shared Function TryGetConversionTokenKind(symbol As IMethodSymbol) As SyntaxKind
+            If CaseInsensitiveComparison.Equals(symbol.Name, WellKnownMemberNames.ImplicitConversionName) Then
+                Return SyntaxKind.WideningKeyword
+            ElseIf CaseInsensitiveComparison.Equals(symbol.Name, WellKnownMemberNames.ExplicitConversionName) Then
+                Return SyntaxKind.NarrowingKeyword
+            Else
+                Return SyntaxKind.None
+            End If
+        End Function
 
         Private Sub AddMethodGenericParameters(method As IMethodSymbol)
             If method.Arity > 0 AndAlso format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters) Then

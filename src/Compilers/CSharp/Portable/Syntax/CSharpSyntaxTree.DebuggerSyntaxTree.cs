@@ -8,7 +8,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpSyntaxTree
     {
-        private class DebuggerSyntaxTree : ParsedSyntaxTree
+        /// <summary>
+        /// Use by Expression Evaluator.
+        /// </summary>
+        private sealed class DebuggerSyntaxTree : ParsedSyntaxTree
         {
             public DebuggerSyntaxTree(CSharpSyntaxNode root, SourceText text, CSharpParseOptions options)
                 : base(

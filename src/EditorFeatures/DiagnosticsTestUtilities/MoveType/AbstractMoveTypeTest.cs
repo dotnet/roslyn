@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     if (actions.Length > 0)
                     {
-                        var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameTypeCodeActionTitle));
+                        var renameFileAction = actions.Any(static (action, self) => action.Title.StartsWith(self.RenameTypeCodeActionTitle), this);
                         Assert.False(renameFileAction, "Rename Type to match file name code action was not expected, but shows up.");
                     }
                 }
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     if (actions.Length > 0)
                     {
-                        var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameFileCodeActionTitle));
+                        var renameFileAction = actions.Any(static (action, self) => action.Title.StartsWith(self.RenameFileCodeActionTitle), this);
                         Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
                     }
                 }
@@ -133,7 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
         {
             var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
             var action = actions.Single(a => a.Title.Equals(operation, StringComparison.CurrentCulture));
-            var operations = await action.GetOperationsAsync(CancellationToken.None);
+            var operations = await action.GetOperationsAsync(
+                workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
 
             return await TestOperationsAsync(workspace,
                 expectedText: expectedCode,
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 expectedChangedDocumentId: null);
         }
 
-        protected async Task TestMoveTypeToNewFileAsync(
+        private protected async Task TestMoveTypeToNewFileAsync(
             string originalCode,
             string expectedSourceTextAfterRefactoring,
             string expectedDocumentName,
@@ -153,14 +155,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             ImmutableArray<string> destinationDocumentContainers = default,
             bool expectedCodeAction = true,
             int index = 0,
-            Action<Workspace> onAfterWorkspaceCreated = null)
+            OptionsCollection options = null)
         {
-            var testOptions = new TestParameters(index: index);
+            var testOptions = new TestParameters(index: index, options: options);
             if (expectedCodeAction)
             {
                 using var workspace = CreateWorkspaceFromOptions(originalCode, testOptions);
-
-                onAfterWorkspaceCreated?.Invoke(workspace);
 
                 // replace with default values on null.
                 destinationDocumentContainers = destinationDocumentContainers.NullToEmpty();

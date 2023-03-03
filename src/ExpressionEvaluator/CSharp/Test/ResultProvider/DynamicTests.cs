@@ -264,8 +264,8 @@ class Derived<T, U> : Base<T, U, object, dynamic>
                 EvalResult("V", "dynamic[]", "dynamic[]", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
         }
 
-        [WorkItem(13554, "https://github.com/dotnet/roslyn/issues/13554")]
         [Fact(Skip = "13554")]
+        [WorkItem(13554, "https://github.com/dotnet/roslyn/issues/13554")]
         public void DynamicBaseTypeArgument()
         {
             var source =

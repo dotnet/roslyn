@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -743,24 +744,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundNameOfOperator(node, argument, ConstantValue.Create(value), GetSpecialType(SpecialType.System_String, node, diagnostics))
         End Function
 
-        Private Shared Sub VerifyNameOfLookupResult(container As NamespaceOrTypeSymbol, member As SimpleNameSyntax, lookupResult As LookupResult, diagnostics As BindingDiagnosticBag)
-            If lookupResult.HasDiagnostic Then
-
-                ' Ambiguous result is Ok
-                If Not lookupResult.IsAmbiguous Then
-                    ReportDiagnostic(diagnostics, member, lookupResult.Diagnostic)
-                End If
-
-            ElseIf lookupResult.HasSymbol Then
-                Debug.Assert(lookupResult.IsGood)
-
-            ElseIf container IsNot Nothing Then
-                ReportDiagnostic(diagnostics, member, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, member.Identifier.ValueText, container))
-            Else
-                ReportDiagnostic(diagnostics, member, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotDeclared1, member.Identifier.ValueText))
-            End If
-        End Sub
-
         Private Function BindTypeOfExpression(node As TypeOfExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
 
             Dim operand = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
@@ -926,7 +909,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return receiver
         End Function
-
 
         ''' <summary>
         ''' Adjusts receiver of a call or a member access if it is a value
@@ -1096,7 +1078,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 "End Class" & vbCrLf
 
             ' It looks like Dev11 ignores project level conditional compilation here, which makes sense since expression cannot contain #If directives.
-            Dim tree = VisualBasicSyntaxTree.ParseText(codeToParse)
+            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(codeToParse))
             Dim root As CompilationUnitSyntax = tree.GetCompilationUnitRoot()
             Dim hasErrors As Boolean = False
 
@@ -1793,7 +1775,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ReportDiagnostic(diagnostics, expr.Syntax, err)
         End Sub
-
 
         Public Shared Function ExpressionRefersToReadonlyVariable(
             node As BoundExpression,
@@ -3961,7 +3942,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim expressionType As TypeSymbol = GetExpressionType(symbolReference, symbols(i), constantFieldsInProgress, discardedDiagnostics)
 
-
                 If expressionType IsNot Nothing Then
                     If commonType Is Nothing Then
                         commonType = expressionType
@@ -4482,7 +4462,6 @@ lElseClause:
             ' "Winner" information might be useful if you are calculating the dominant type of "{}" and "{Nothing}"
             ' and you need to know who the winner is so you can report appropriate warnings on him.
 
-
             ' The dominant type of a list of elements means:
             ' (1) for each element, attempt to classify it as a value in a context where the target
             ' type is unknown. So unbound lambdas get classified as anonymous delegates, and array literals get
@@ -4563,7 +4542,6 @@ lElseClause:
                     ' this will pick up AddressOf expressions.
                 End If
             Next
-
 
             ' Here we calculate the dominant type.
             ' Note: if there were no candidate types in the list, this will fail with errorReason = NoneBest.

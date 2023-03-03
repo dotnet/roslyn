@@ -42,7 +42,7 @@ class Program
     }
 }";
 
-            CreateCompilation(code).VerifyEmitDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute()).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -190,7 +190,7 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, verify: Verification.Passes, expectedOutput: "3");
+            CompileAndVerify(code, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), verify: Verification.Passes, expectedOutput: "3");
         }
 
         [Fact]
@@ -267,7 +267,7 @@ class Test
         [Fact]
         public void CompilerShouldIgnorePublicEmbeddedAttributesInReferencedAssemblies()
         {
-            var reference = CreateCompilation(assemblyName: "testRef", source: @"
+            var reference = CreateCompilation(assemblyName: "testRef", parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), source: @"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
@@ -309,6 +309,8 @@ namespace System
 {
     public class Object {}
     public class Void {}
+    public class ValueType {}
+    public struct Int32 { }
 }
 public class Test
 {
@@ -319,7 +321,15 @@ public class Test
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1));
         }
 
         [Fact]
@@ -329,7 +339,18 @@ public class Test
 namespace System
 {
     public class Attribute {}
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class ValueType { }
+    public struct Enum { }
+    public enum AttributeTargets { }
     public class Void {}
+    public struct Int32 { }
+    public struct Boolean { }
 }
 public class Test
 {
@@ -337,30 +358,39 @@ public class Test
 }";
 
             CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // (5,18): error CS0518: Predefined type 'System.Object' is not defined or imported
-                //     public class Void {}
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Void").WithArguments("System.Object").WithLocation(5, 18),
-                // (7,14): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // public class Test
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Object").WithLocation(7, 14),
                 // (4,18): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     public class Attribute {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Attribute").WithArguments("System.Object").WithLocation(4, 18),
-                // (9,24): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // (11,18): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     public class ValueType { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ValueType").WithArguments("System.Object").WithLocation(11, 18),
+                // (14,18): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     public class Void {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Void").WithArguments("System.Object").WithLocation(14, 18),
+                // (18,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // public class Test
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Object").WithLocation(18, 14),
+                // (20,24): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     public object M(in object x) { return x; } // should trigger synthesizing IsReadOnly
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(9, 24),
-                // (9,12): error CS0518: Predefined type 'System.Object' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(20, 24),
+                // (20,12): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     public object M(in object x) { return x; } // should trigger synthesizing IsReadOnly
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(9, 12),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(20, 12),
+                // (7,40): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //         public AttributeUsageAttribute(AttributeTargets t) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "AttributeTargets").WithArguments("System.Object").WithLocation(7, 40),
+                // (14,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                //     public class Void {}
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Void").WithArguments("object", "0").WithLocation(14, 18),
                 // (4,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
                 //     public class Attribute {}
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Attribute").WithArguments("object", "0").WithLocation(4, 18),
-                // (5,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
-                //     public class Void {}
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Void").WithArguments("object", "0").WithLocation(5, 18),
-                // (7,14): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // (11,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                //     public class ValueType { }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "ValueType").WithArguments("object", "0").WithLocation(11, 18),
+                // (18,14): error CS1729: 'object' does not contain a constructor that takes 0 arguments
                 // public class Test
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("object", "0").WithLocation(7, 14));
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("object", "0").WithLocation(18, 14));
         }
 
         [Fact]
@@ -370,6 +400,17 @@ public class Test
 namespace System
 {
     public class Attribute {}
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public struct Enum { }
+    public enum AttributeTargets { }
     public class Object {}
 }
 public class Test
@@ -378,12 +419,29 @@ public class Test
 }";
 
             CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // (8,42): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //         public bool AllowMultiple { get; set; }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set;").WithArguments("System.Void").WithLocation(8, 42),
+                // (9,38): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //         public bool Inherited { get; set; }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set;").WithArguments("System.Void").WithLocation(9, 38),
+                // (7,9): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //         public AttributeUsageAttribute(AttributeTargets t) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public AttributeUsageAttribute(AttributeTargets t) { }").WithArguments("System.Void").WithLocation(7, 9),
                 // (4,18): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     public class Attribute {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Attribute").WithArguments("System.Void").WithLocation(4, 18),
-                // (7,14): error CS0518: Predefined type 'System.Void' is not defined or imported
+                // (11,18): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     public class ValueType { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ValueType").WithArguments("System.Void").WithLocation(11, 18),
+                // (18,14): error CS0518: Predefined type 'System.Void' is not defined or imported
                 // public class Test
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Void").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Void").WithLocation(18, 14),
+                // (7,16): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //         public AttributeUsageAttribute(AttributeTargets t) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "AttributeUsageAttribute").WithArguments("System.Void").WithLocation(7, 16),
+                // error CS0518: Predefined type 'System.Void' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Void' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Void' is not defined or imported
@@ -398,10 +456,21 @@ namespace System
 {
     public class Object {}
     public class Void {}
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Boolean { }
     public class Attribute
     {
         public Attribute(object p) { }
     }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) : base(null) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 public class Test
 {
@@ -412,13 +481,15 @@ public class Test
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
         }
 
         [Fact]
         public void EmbeddedTypesInAnAssemblyAreNotExposedExternally()
         {
-            var compilation1 = CreateCompilation(@"
+            var compilation1 = CreateCompilation(parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), source: @"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }

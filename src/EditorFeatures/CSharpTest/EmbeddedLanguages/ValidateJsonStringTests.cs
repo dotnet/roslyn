@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 {
+    [Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
     public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public ValidateJsonStringTests(ITestOutputHelper logger) : base(logger)
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         private OptionsCollection OptionOn()
             => Option(IdeAnalyzerOptionsStorage.ReportInvalidJsonPatterns, true);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestWarning1()
         {
             await TestDiagnosticInfoAsync(@"
@@ -45,7 +46,7 @@ class Program
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestWarningInRawString1()
         {
             await TestDiagnosticInfoAsync(@"
@@ -62,7 +63,7 @@ class Program
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestWarning2()
         {
             await TestDiagnosticInfoAsync(@"
@@ -80,7 +81,7 @@ class Program
                     string.Format(FeaturesResources._0_unexpected, '}')));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentWithTrailingComma()
         {
             await TestDiagnosticInfoAsync(@"<Workspace>
@@ -105,7 +106,7 @@ class Program
                     FeaturesResources.Trailing_comma_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentTrailingCommaDisallowed()
         {
             await TestDiagnosticInfoAsync(@"<Workspace>
@@ -130,7 +131,7 @@ class Program
                     FeaturesResources.Trailing_comma_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentTrailingCommaAllowed()
         {
             await TestDiagnosticMissingAsync(@"<Workspace>
@@ -150,7 +151,7 @@ class Program
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentTrailingCommaAllowedImplicitObject()
         {
             await TestDiagnosticMissingAsync(@"<Workspace>
@@ -170,7 +171,7 @@ class Program
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentWithComments()
         {
             await TestDiagnosticInfoAsync(@"<Workspace>
@@ -195,7 +196,7 @@ class Program
                     FeaturesResources.Comments_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsDisallowed()
         {
             await TestDiagnosticInfoAsync(@"<Workspace>
@@ -220,7 +221,7 @@ class Program
                     FeaturesResources.Comments_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsAllowed()
         {
             await TestDiagnosticMissingAsync(@"<Workspace>
@@ -240,7 +241,7 @@ class Program
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsAllowedImplicitObject()
         {
             await TestDiagnosticMissingAsync(@"<Workspace>
@@ -260,7 +261,7 @@ class Program
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsDisallowed_StringSyntaxAttribute_NoOptionsProvided()
         {
             await TestDiagnosticInfoAsync($@"<Workspace>
@@ -291,7 +292,7 @@ class Program
                     FeaturesResources.Comments_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsDisallowed_StringSyntaxAttribute_OptionsProvided()
         {
             await TestDiagnosticInfoAsync($@"<Workspace>
@@ -322,7 +323,7 @@ class Program
                     FeaturesResources.Comments_not_allowed));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestJsonDocumentCommentsAllowed_StringSyntaxAttribute_OptionsProvided()
         {
             await TestDiagnosticMissingAsync($@"<Workspace>
@@ -348,7 +349,7 @@ class Program
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestNotOnUnlikelyJson()
         {
             await TestDiagnosticMissingAsync($@"
@@ -370,7 +371,7 @@ class Program
 </Workspace>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        [Fact]
         public async Task TestNotOnLikelyJson()
         {
             await TestDiagnosticMissingAsync($@"

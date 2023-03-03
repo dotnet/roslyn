@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -20,7 +21,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             ExpressionSyntax expression,
             CancellationToken cancellationToken)
         {
-            if (expression is TypeSyntax && expression.IsParentKind(SyntaxKind.TypeArgumentList, out TypeArgumentListSyntax typeArgumentList))
+            if (expression is TypeSyntax typeSyntax && expression.Parent is TypeArgumentListSyntax typeArgumentList)
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(typeArgumentList.Parent, cancellationToken);
                 var symbol = symbolInfo.GetAnySymbol();
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     symbol = symbol.ContainingType;
                 }
 
-                var parameterIndex = typeArgumentList.Arguments.IndexOf((TypeSyntax)expression);
+                var parameterIndex = typeArgumentList.Arguments.IndexOf(typeSyntax);
                 if (symbol is INamedTypeSymbol type)
                 {
                     type = type.OriginalDefinition;
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         {
             if (expression is TypeSyntax &&
                 expression.Parent is BaseTypeSyntax baseType &&
-                baseType.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                baseType.Parent is BaseListSyntax baseList &&
                 baseType.Type == expression)
             {
                 // If it's after the first item, then it's definitely an interface.
@@ -100,12 +101,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
                 // If it's in the base list of an interface or struct, then it's definitely an
                 // interface.
-                return baseList.IsParentKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration);
+                return baseList?.Parent.Kind() is
+                    SyntaxKind.InterfaceDeclaration or
+                    SyntaxKind.StructDeclaration or
+                    SyntaxKind.RecordStructDeclaration;
             }
 
             if (expression is TypeSyntax &&
-                expression.IsParentKind(SyntaxKind.TypeConstraint, out TypeConstraintSyntax typeConstraint) &&
-                typeConstraint.IsParentKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
+                expression.Parent is TypeConstraintSyntax typeConstraint &&
+                typeConstraint.Parent is TypeParameterConstraintClauseSyntax constraintClause)
             {
                 var index = constraintClause.Constraints.IndexOf(typeConstraint);
 
@@ -163,12 +167,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 // If we're on the right side of a dot, then the left side better be a name (and
                 // not an arbitrary expression).
                 var leftSideExpression = simpleName.GetLeftSideOfDot();
-                if (!leftSideExpression.IsKind(
-                    SyntaxKind.QualifiedName,
-                    SyntaxKind.IdentifierName,
-                    SyntaxKind.AliasQualifiedName,
-                    SyntaxKind.GenericName,
-                    SyntaxKind.SimpleMemberAccessExpression))
+                if (leftSideExpression.Kind() is not (
+                        SyntaxKind.QualifiedName or
+                        SyntaxKind.IdentifierName or
+                        SyntaxKind.AliasQualifiedName or
+                        SyntaxKind.GenericName or
+                        SyntaxKind.SimpleMemberAccessExpression))
                 {
                     return false;
                 }
@@ -198,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 var syntaxTree = semanticModel.SyntaxTree;
                 var start = nameOrMemberAccessExpression.SpanStart;
                 var tokenOnLeftOfStart = syntaxTree.FindTokenOnLeftOfPosition(start, cancellationToken);
-                var isExpressionContext = syntaxTree.IsExpressionContext(start, tokenOnLeftOfStart, attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel);
+                var isExpressionContext = syntaxTree.IsExpressionContext(start, tokenOnLeftOfStart, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel);
                 var isStatementContext = syntaxTree.IsStatementContext(start, tokenOnLeftOfStart, cancellationToken);
                 var isExpressionOrStatementContext = isExpressionContext || isStatementContext;
 
@@ -317,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                                 return true;
                             }
 
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                         else
                         {
@@ -386,10 +390,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
                     // Get the Method symbol for the Delegate to be created
                     if (generateTypeServiceStateOptions.IsDelegateAllowed &&
-                        objectCreationExpressionOpt.ArgumentList.Arguments.Count == 1 &&
-                        objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression.Kind() != SyntaxKind.DeclarationExpression)
+                        objectCreationExpressionOpt.ArgumentList.Arguments is [{ Expression: (kind: not SyntaxKind.DeclarationExpression) expression }])
                     {
-                        generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression, cancellationToken);
+                        generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, expression, cancellationToken);
                     }
                     else
                     {
@@ -419,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             if (generateTypeServiceStateOptions.IsDelegateAllowed)
             {
                 // MyD1 z1 = goo;
-                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
+                if (nameOrMemberAccessExpression.Parent is VariableDeclarationSyntax variableDeclaration &&
                     variableDeclaration.Variables.Count != 0)
                 {
                     var firstVarDeclWithInitializer = variableDeclaration.Variables.FirstOrDefault(var => var.Initializer != null && var.Initializer.Value != null);
@@ -430,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 }
 
                 // var w1 = (MyD1)goo;
-                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression) &&
+                if (nameOrMemberAccessExpression.Parent is CastExpressionSyntax castExpression &&
                     castExpression.Expression != null)
                 {
                     generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, castExpression.Expression, cancellationToken);
@@ -667,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 if (node is BaseListSyntax)
                 {
-                    if (node.Parent.IsKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration))
+                    if (node.Parent.Kind() is SyntaxKind.InterfaceDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.RecordStructDeclaration)
                     {
                         typeKindValue = TypeKindOptions.Interface;
                         return true;
@@ -686,14 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         internal override bool IsPublicOnlyAccessibility(ExpressionSyntax expression, Project project)
         {
             if (expression == null)
-            {
                 return false;
-            }
-
-            if (GeneratedTypesMustBePublic(project))
-            {
-                return true;
-            }
 
             var node = expression as SyntaxNode;
             SyntaxNode previousNode = null;
@@ -718,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                         }
                     }
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 if ((node is EventDeclarationSyntax || node is EventFieldDeclarationSyntax) &&
@@ -767,7 +763,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         internal override bool IsSimpleName(ExpressionSyntax expression)
             => expression is SimpleNameSyntax;
 
-        internal override async Task<Solution> TryAddUsingsOrImportToDocumentAsync(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken)
+        internal override async Task<Solution> TryAddUsingsOrImportToDocumentAsync(
+            Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, AddImportPlacementOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Nothing to include
             if (string.IsNullOrWhiteSpace(includeUsingsOrImports))
@@ -803,9 +800,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     return updatedSolution;
                 }
 
-                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-                var addedCompilationRoot = compilationRoot.AddUsingDirectives(new[] { usingDirective }, placeSystemNamespaceFirst, Formatter.Annotation);
+                var addImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var addedCompilationRoot = compilationRoot.AddUsingDirectives(new[] { usingDirective }, addImportOptions.PlaceSystemNamespaceFirst, Formatter.Annotation);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity);
             }
 

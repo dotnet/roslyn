@@ -13,14 +13,13 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
 {
@@ -33,19 +32,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
         }
 
-        internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, CancellationToken cancellationToken)
+        protected override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var rule = await document.GetApplicableNamingRuleAsync(
-                new SymbolKindOrTypeKind(SymbolKind.Field),
+                new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
                 property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None,
                 Accessibility.Private,
+                fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
             var fieldName = rule.NamingStyle.MakeCompliant(property.Name).First();
-            return NameGenerator.GenerateUniqueName(fieldName, n => !property.ContainingType.GetMembers(n).Any());
+            return NameGenerator.GenerateUniqueName(fieldName, n => !(property.ContainingType.Name == n || property.ContainingType.GetMembers(n).Any()));
         }
 
-        internal override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
+        protected override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
             CSharpCodeGenerationContextInfo info, SyntaxNode property,
             string fieldName, SyntaxGenerator generator)
         {
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return ((AccessorDeclarationSyntax)accessor).WithBody(blockSyntax);
         }
 
-        internal override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(
+        protected override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(
             CSharpCodeGenerationContextInfo info, SyntaxNode property)
         {
             var propertyDeclaration = (PropertyDeclarationSyntax)property;
@@ -139,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return propertyDeclaration.WithSemicolonToken(default);
         }
 
-        internal override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
+        protected override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
             => syntaxNode;
 
-        internal override SyntaxNode GetInitializerValue(SyntaxNode property)
+        protected override SyntaxNode GetInitializerValue(SyntaxNode property)
             => ((PropertyDeclarationSyntax)property).Initializer?.Value;
 
-        internal override SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property)
+        protected override SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property)
             => ((PropertyDeclarationSyntax)property).WithInitializer(null);
     }
 }

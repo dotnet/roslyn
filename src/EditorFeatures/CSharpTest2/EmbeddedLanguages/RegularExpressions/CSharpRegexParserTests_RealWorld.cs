@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Assert.Empty(tree.Diagnostics);
         }
 
-        private static IEnumerable<object[]> GetRealWorldCases()
+        public static IEnumerable<object[]> GetRealWorldCases()
         {
             using var stream = typeof(CSharpRegexParserTests).Assembly.GetManifestResourceStream("Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions.Regex_RealWorldPatterns.json");
             using var streamReader = new StreamReader(stream);

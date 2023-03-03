@@ -44,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             tableControl.ShowGroupingLine = true;
             tableControl.DoColumnsAutoAdjust = true;
             tableControl.DoSortingAndGroupingWhileUnstable = true;
+            tableControl.DoNotLoseFocusOnBucketExpandOrCollapse();
 
             return tableControl;
 

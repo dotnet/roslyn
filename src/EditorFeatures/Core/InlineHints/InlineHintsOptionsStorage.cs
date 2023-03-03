@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.InlineHints
@@ -10,105 +10,85 @@ namespace Microsoft.CodeAnalysis.InlineHints
     internal static class InlineHintsOptionsStorage
     {
         public static InlineHintsOptions GetInlineHintsOptions(this IGlobalOptionService globalOptions, string language)
-            => new(
-                ParameterOptions: globalOptions.GetInlineParameterHintsOptions(language),
-                TypeOptions: globalOptions.GetInlineTypeHintsOptions(language),
-                DisplayOptions: globalOptions.GetSymbolDescriptionOptions(language));
+            => new()
+            {
+                ParameterOptions = globalOptions.GetInlineParameterHintsOptions(language),
+                TypeOptions = globalOptions.GetInlineTypeHintsOptions(language),
+                DisplayOptions = globalOptions.GetSymbolDescriptionOptions(language),
+            };
 
         public static InlineParameterHintsOptions GetInlineParameterHintsOptions(this IGlobalOptionService globalOptions, string language)
-            => new(
-                EnabledForParameters: globalOptions.GetOption(EnabledForParameters, language),
-                ForLiteralParameters: globalOptions.GetOption(ForLiteralParameters, language),
-                ForIndexerParameters: globalOptions.GetOption(ForIndexerParameters, language),
-                ForObjectCreationParameters: globalOptions.GetOption(ForObjectCreationParameters, language),
-                ForOtherParameters: globalOptions.GetOption(ForOtherParameters, language),
-                SuppressForParametersThatDifferOnlyBySuffix: globalOptions.GetOption(SuppressForParametersThatDifferOnlyBySuffix, language),
-                SuppressForParametersThatMatchMethodIntent: globalOptions.GetOption(SuppressForParametersThatMatchMethodIntent, language),
-                SuppressForParametersThatMatchArgumentName: globalOptions.GetOption(SuppressForParametersThatMatchArgumentName, language));
+            => new()
+            {
+                EnabledForParameters = globalOptions.GetOption(EnabledForParameters, language),
+                ForLiteralParameters = globalOptions.GetOption(ForLiteralParameters, language),
+                ForIndexerParameters = globalOptions.GetOption(ForIndexerParameters, language),
+                ForObjectCreationParameters = globalOptions.GetOption(ForObjectCreationParameters, language),
+                ForOtherParameters = globalOptions.GetOption(ForOtherParameters, language),
+                SuppressForParametersThatDifferOnlyBySuffix = globalOptions.GetOption(SuppressForParametersThatDifferOnlyBySuffix, language),
+                SuppressForParametersThatMatchMethodIntent = globalOptions.GetOption(SuppressForParametersThatMatchMethodIntent, language),
+                SuppressForParametersThatMatchArgumentName = globalOptions.GetOption(SuppressForParametersThatMatchArgumentName, language),
+            };
 
         public static InlineTypeHintsOptions GetInlineTypeHintsOptions(this IGlobalOptionService globalOptions, string language)
-          => new(
-                EnabledForTypes: globalOptions.GetOption(EnabledForTypes, language),
-                ForImplicitVariableTypes: globalOptions.GetOption(ForImplicitVariableTypes, language),
-                ForLambdaParameterTypes: globalOptions.GetOption(ForLambdaParameterTypes, language),
-                ForImplicitObjectCreation: globalOptions.GetOption(ForImplicitObjectCreation, language));
-
-        private const string FeatureName = "InlineHintsOptions";
+          => new()
+          {
+              EnabledForTypes = globalOptions.GetOption(EnabledForTypes, language),
+              ForImplicitVariableTypes = globalOptions.GetOption(ForImplicitVariableTypes, language),
+              ForLambdaParameterTypes = globalOptions.GetOption(ForLambdaParameterTypes, language),
+              ForImplicitObjectCreation = globalOptions.GetOption(ForImplicitObjectCreation, language),
+          };
 
         //  Parameter hints
 
         public static readonly PerLanguageOption2<bool> EnabledForParameters =
-            new(FeatureName,
-                nameof(EnabledForParameters),
-                InlineParameterHintsOptions.Default.EnabledForParameters,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints"));
+            new("dotnet_enable_inline_hints_for_parameters",
+                InlineParameterHintsOptions.Default.EnabledForParameters);
 
         public static readonly PerLanguageOption2<bool> ForLiteralParameters =
-            new(FeatureName,
-                nameof(ForLiteralParameters),
-                InlineParameterHintsOptions.Default.ForLiteralParameters,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForLiteralParameters"));
+            new("dotnet_enable_inline_hints_for_literal_parameters",
+                InlineParameterHintsOptions.Default.ForLiteralParameters);
 
         public static readonly PerLanguageOption2<bool> ForIndexerParameters =
-            new(FeatureName,
-                nameof(ForIndexerParameters),
-                InlineParameterHintsOptions.Default.ForIndexerParameters,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForArrayIndexers"));
+            new("dotnet_enable_inline_hints_for_indexer_parameters",
+                InlineParameterHintsOptions.Default.ForIndexerParameters);
 
         public static readonly PerLanguageOption2<bool> ForObjectCreationParameters =
-            new(FeatureName,
-                nameof(ForObjectCreationParameters),
-                InlineParameterHintsOptions.Default.ForObjectCreationParameters,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForObjectCreationParameters"));
+            new("dotnet_enable_inline_hints_for_object_creation_parameters",
+                InlineParameterHintsOptions.Default.ForObjectCreationParameters);
 
         public static readonly PerLanguageOption2<bool> ForOtherParameters =
-            new(FeatureName,
-                nameof(ForOtherParameters),
-                InlineParameterHintsOptions.Default.ForOtherParameters,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForOtherParameters"));
+            new("dotnet_enable_inline_hints_for_other_parameters",
+                InlineParameterHintsOptions.Default.ForOtherParameters);
 
         public static readonly PerLanguageOption2<bool> SuppressForParametersThatDifferOnlyBySuffix =
-            new(FeatureName,
-                nameof(SuppressForParametersThatDifferOnlyBySuffix),
-                InlineParameterHintsOptions.Default.SuppressForParametersThatDifferOnlyBySuffix,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatDifferOnlyBySuffix"));
+            new("dotnet_suppress_inline_hints_for_parameters_that_differ_only_by_suffix",
+                InlineParameterHintsOptions.Default.SuppressForParametersThatDifferOnlyBySuffix);
 
         public static readonly PerLanguageOption2<bool> SuppressForParametersThatMatchMethodIntent =
-            new(FeatureName,
-                nameof(SuppressForParametersThatMatchMethodIntent),
-                InlineParameterHintsOptions.Default.SuppressForParametersThatMatchMethodIntent,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent"));
+            new("dotnet_suppress_inline_hints_for_parameters_that_match_method_intent",
+                InlineParameterHintsOptions.Default.SuppressForParametersThatMatchMethodIntent);
 
         public static readonly PerLanguageOption2<bool> SuppressForParametersThatMatchArgumentName =
-            new(FeatureName,
-                nameof(SuppressForParametersThatMatchArgumentName),
-                InlineParameterHintsOptions.Default.SuppressForParametersThatMatchArgumentName,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchArgumentName"));
+            new("dotnet_suppress_inline_hints_for_parameters_that_match_argument_name",
+                InlineParameterHintsOptions.Default.SuppressForParametersThatMatchArgumentName);
 
         // Type Hints
 
         public static readonly PerLanguageOption2<bool> EnabledForTypes =
-            new(FeatureName,
-                nameof(EnabledForTypes),
-                defaultValue: InlineTypeHintsOptions.Default.EnabledForTypes,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints"));
+            new("csharp_enable_inline_hints_for_types",
+                defaultValue: InlineTypeHintsOptions.Default.EnabledForTypes);
 
         public static readonly PerLanguageOption2<bool> ForImplicitVariableTypes =
-            new(FeatureName,
-                nameof(ForImplicitVariableTypes),
-                defaultValue: InlineTypeHintsOptions.Default.ForImplicitVariableTypes,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitVariableTypes"));
+            new("csharp_enable_inline_hints_for_implicit_variable_types",
+                defaultValue: InlineTypeHintsOptions.Default.ForImplicitVariableTypes);
 
         public static readonly PerLanguageOption2<bool> ForLambdaParameterTypes =
-            new(FeatureName,
-                nameof(ForLambdaParameterTypes),
-                defaultValue: InlineTypeHintsOptions.Default.ForLambdaParameterTypes,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForLambdaParameterTypes"));
+            new("csharp_enable_inline_hints_for_lambda_parameter_types",
+                defaultValue: InlineTypeHintsOptions.Default.ForLambdaParameterTypes);
 
         public static readonly PerLanguageOption2<bool> ForImplicitObjectCreation =
-            new(FeatureName,
-                nameof(ForImplicitObjectCreation),
-                defaultValue: InlineTypeHintsOptions.Default.ForImplicitObjectCreation,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitObjectCreation"));
+            new("csharp_enable_inline_hints_for_implicit_object_creation",
+                defaultValue: InlineTypeHintsOptions.Default.ForImplicitObjectCreation);
     }
 }

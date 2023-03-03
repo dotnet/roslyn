@@ -29,14 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
+            var organizedDocument = await organizeImportsService.OrganizeImportsAsync(document, options.GetOrganizeImportsOptions(), cancellationToken).ConfigureAwait(false);
 
-            var organizeOptions = await OrganizeImportsOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var codeStyleOption = documentOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
-
-            var organizedDocument = await organizeImportsService.OrganizeImportsAsync(document, organizeOptions, cancellationToken).ConfigureAwait(false);
-
-            return await MisplacedUsingDirectivesCodeFixProvider.TransformDocumentIfRequiredAsync(organizedDocument, options.SimplifierOptions, codeStyleOption, cancellationToken).ConfigureAwait(false);
+            return await MisplacedUsingDirectivesCodeFixProvider.TransformDocumentIfRequiredAsync(
+                organizedDocument, options.SimplifierOptions, options.AddImportOptions.UsingDirectivePlacement, cancellationToken).ConfigureAwait(false);
         }
     }
 }

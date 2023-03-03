@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -45,11 +46,53 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 // If we are extracting a local function and are within a local function, then we want the new function to be created within the
                 // existing local function instead of the overarching method.
-                var localFunctionNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>(node => (node.Body != null && node.Body.Span.Contains(OriginalSelectionResult.OriginalSpan)) ||
-                                                                                                       (node.ExpressionBody != null && node.ExpressionBody.Span.Contains(OriginalSelectionResult.OriginalSpan)));
-                if (localFunctionNode is object)
+                SyntaxNode functionNode = null;
+
+                var currentNode = basePosition.Parent;
+                while (currentNode is not null)
                 {
-                    return await InsertionPoint.CreateAsync(document, localFunctionNode, cancellationToken).ConfigureAwait(false);
+                    if (currentNode is AnonymousFunctionExpressionSyntax anonymousFunction)
+                    {
+                        if (OriginalSelectionWithin(anonymousFunction.Body) || OriginalSelectionWithin(anonymousFunction.ExpressionBody))
+                        {
+                            functionNode = currentNode;
+                            break;
+                        }
+
+                        if (!OriginalSelectionResult.OriginalSpan.Contains(anonymousFunction.Span))
+                        {
+                            // If we encountered a function but the selection isn't within the body, it's likely the user
+                            // is attempting to move the function (which is behavior that is supported). Stop looking up the 
+                            // tree and assume the encapsulating member is the right place to put the local function. This is to help
+                            // maintain the behavior introduced with https://github.com/dotnet/roslyn/pull/41377
+                            break;
+                        }
+                    }
+
+                    if (currentNode is LocalFunctionStatementSyntax localFunction)
+                    {
+                        if (OriginalSelectionWithin(localFunction.ExpressionBody) || OriginalSelectionWithin(localFunction.Body))
+                        {
+                            functionNode = currentNode;
+                            break;
+                        }
+
+                        if (!OriginalSelectionResult.OriginalSpan.Contains(localFunction.Span))
+                        {
+                            // If we encountered a function but the selection isn't within the body, it's likely the user
+                            // is attempting to move the function (which is behavior that is supported). Stop looking up the 
+                            // tree and assume the encapsulating member is the right place to put the local function. This is to help
+                            // maintain the behavior introduced with https://github.com/dotnet/roslyn/pull/41377
+                            break;
+                        }
+                    }
+
+                    currentNode = currentNode.Parent;
+                }
+
+                if (functionNode is not null)
+                {
+                    return await InsertionPoint.CreateAsync(document, functionNode, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -87,6 +130,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return await InsertionPoint.CreateAsync(document, memberNode, cancellationToken).ConfigureAwait(false);
         }
 
+        private bool OriginalSelectionWithin(SyntaxNode node)
+        {
+            if (node is null)
+            {
+                return false;
+            }
+
+            return node.Span.Contains(OriginalSelectionResult.OriginalSpan);
+        }
+
         protected override async Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
             => await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
 
@@ -102,8 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
         }
 
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, NamingStylePreferencesProvider namingPreferences, CancellationToken cancellationToken)
-            => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, (CSharpCodeGenerationOptions)options, namingPreferences, LocalFunction, cancellationToken);
+        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken)
+            => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, (CSharpCodeGenerationOptions)options, LocalFunction, cancellationToken);
 
         protected override ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document)
             => ImmutableArray.Create<AbstractFormattingRule>(new FormattingRule());
@@ -139,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var typeName = SyntaxFactory.ParseTypeName(typeParameter.Name);
                 var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
-                if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, typeParameter))
+                if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)))
                 {
                     return new OperationStatus(OperationStatusFlag.BestEffort,
                         string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
@@ -162,13 +215,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)) && !methodDefinition.FindTokenOnLeftOfPosition(methodDefinition.SpanStart).IsKind(SyntaxKind.OpenBraceToken))
             {
                 var originalMethodDefinition = methodDefinition;
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(options.GetOption(FormattingOptions2.NewLine))));
+                var newLine = Options.LineFormattingOptions.NewLine;
+                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
 
                 if (!originalMethodDefinition.FindTokenOnLeftOfPosition(originalMethodDefinition.SpanStart).TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
                 {
                     // Add a second new line since there were no line endings in the original form
-                    methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(options.GetOption(FormattingOptions2.NewLine))));
+                    methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
                 }
 
                 // Generating the new document and associated variables.

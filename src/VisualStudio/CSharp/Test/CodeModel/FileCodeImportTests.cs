@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
+    [Trait(Traits.Feature, Traits.Features.CodeModel)]
     public class FileCodeImportTests : AbstractFileCodeElementTests
     {
         public FileCodeImportTests()
@@ -28,7 +29,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Name()
         {
             var import = GetCodeImport(1);
@@ -36,7 +36,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void FullName()
         {
             var import = GetCodeImport(1);
@@ -44,7 +43,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Kind()
         {
             var import = GetCodeImport(1);
@@ -53,7 +51,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Namespace()
         {
             var import = GetCodeImport(1);
@@ -62,7 +59,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Alias()
         {
             var import = GetCodeImport(2);
@@ -71,7 +67,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Attributes()
         {
             var import = GetCodeImport(2);
@@ -79,7 +74,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_AttributesWithDelimiter()
         {
             var import = GetCodeImport(2);
@@ -87,7 +81,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Body()
         {
             var import = GetCodeImport(2);
@@ -95,7 +88,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_BodyWithDelimiter()
         {
             var import = GetCodeImport(2);
@@ -103,7 +95,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Header()
         {
             var import = GetCodeImport(2);
@@ -111,7 +102,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_HeaderWithAttributes()
         {
             var import = GetCodeImport(2);
@@ -119,7 +109,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Name()
         {
             var import = GetCodeImport(2);
@@ -127,7 +116,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Navigate()
         {
             var import = GetCodeImport(2);
@@ -138,7 +126,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Whole()
         {
             var import = GetCodeImport(2);
@@ -146,7 +133,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_WholeWithAttributes()
         {
             var import = GetCodeImport(2);
@@ -157,7 +143,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Attributes()
         {
             var import = GetCodeImport(2);
@@ -165,7 +150,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_AttributesWithDelimiter()
         {
             var import = GetCodeImport(2);
@@ -173,7 +157,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body()
         {
             var import = GetCodeImport(2);
@@ -181,7 +164,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_BodyWithDelimiter()
         {
             var import = GetCodeImport(2);
@@ -189,7 +171,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Header()
         {
             var import = GetCodeImport(2);
@@ -197,7 +178,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_HeaderWithAttributes()
         {
             var import = GetCodeImport(2);
@@ -205,7 +185,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Name()
         {
             var import = GetCodeImport(2);
@@ -213,7 +192,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Navigate()
         {
             var import = GetCodeImport(2);
@@ -225,7 +203,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Whole()
         {
             var import = GetCodeImport(2);
@@ -233,7 +210,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_WholeWithAttributes()
         {
             var import = GetCodeImport(2);
@@ -245,7 +221,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void StartPoint()
         {
             var import = GetCodeImport(2);
@@ -257,7 +232,6 @@ using Goo = System.Data;")
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void EndPoint()
         {
             var import = GetCodeImport(2);

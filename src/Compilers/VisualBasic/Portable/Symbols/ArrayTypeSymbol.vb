@@ -369,14 +369,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Check type.
             Dim elementUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(Me.ElementType)
 
-            If elementUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedType1 Then
+            If elementUseSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(elementUseSiteInfo.DiagnosticInfo.Code) Then
                 Return elementUseSiteInfo
             End If
 
             ' Check custom modifiers.
             Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(Me.CustomModifiers)
 
-            Return MergeUseSiteInfo(elementUseSiteInfo, modifiersUseSiteInfo)
+            MergeUseSiteInfo(elementUseSiteInfo, modifiersUseSiteInfo)
+            Return elementUseSiteInfo
         End Function
 
         Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo

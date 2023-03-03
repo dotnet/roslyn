@@ -2,21 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AliasAmbiguousType;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AliasAmbiguousType
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
     public class AliasAmbiguousTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public AliasAmbiguousTypeTests(ITestOutputHelper logger)
@@ -24,24 +26,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AliasAmbiguousType
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAliasAmbiguousTypeCodeFixProvider());
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        private static string GetAmbiguousDefinition(string typeDefinion)
+        private static string GetAmbiguousDefinition(string typeDefinion, string ns1Name = "N1", string ns2Name = "N2")
             => $@"
-namespace N1
+namespace {ns1Name}
 {{
-    { typeDefinion }
+    {typeDefinion}
 }}
-namespace N2
+namespace {ns2Name}
 {{
-    { typeDefinion }
+    {typeDefinion}
 }}";
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassObjectCreationUsingsInNamespace()
         {
             var classDef = GetAmbiguousDefinition("public class Ambiguous { }");
@@ -93,7 +95,7 @@ namespace Test
             await TestSmartTagTextAsync(initialMarkup, "using Ambiguous = N1.Ambiguous;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassObjectCreationUsingsInCompilationUnit()
         {
             var classDef = GetAmbiguousDefinition("public class Ambiguous { }");
@@ -127,7 +129,7 @@ namespace Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassObjectCreationGenericsDontOfferDiagnostic()
         {
             var genericAmbiguousClassDefinition = GetAmbiguousDefinition("public class Ambiguous<T> { }");
@@ -147,7 +149,7 @@ namespace Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousAttribute()
         {
             var classDef = GetAmbiguousDefinition("public class AmbiguousAttribute: System.Attribute { }");
@@ -175,7 +177,7 @@ namespace Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestNamespaceAndTypenameIdenticalOffersNoDiagnostics()
         {
             // This gives CS0433: The type 'Ambiguous' exists in both 'Assembly1' and 'Assembly2'
@@ -223,7 +225,7 @@ namespace N1
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousAliasNoDiagnostics()
         {
             await TestMissingAsync(@"
@@ -235,7 +237,7 @@ class myClass : [|alias|]::Uri
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousNestedClass()
         {
             var initialMarkup = @"
@@ -305,7 +307,7 @@ class D
             await TestSmartTagTextAsync(initialMarkup, "using Nested = Static<string>.Nested;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtBaseList()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -331,7 +333,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtTypeConstraint()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -357,7 +359,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousEnumDiagnosedAtFieldDeclaration()
         {
             var enumDef = GetAmbiguousDefinition(@"public enum AmbiguousEnum { }");
@@ -389,7 +391,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousStructDiagnosedAtPropertyDeclaration()
         {
             var strcutDef = GetAmbiguousDefinition(@"public struct AmbiguousStruct { }");
@@ -421,7 +423,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtTypeArgument()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -459,7 +461,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtIdentifierOfIncompleteExpression()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -497,7 +499,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtMethodParameter()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -533,7 +535,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtFromClauseTypeIdentifier()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -573,6 +575,112 @@ namespace NTest
 }
 ";
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
+        }
+
+        [Fact, WorkItem(30838, "https://github.com/dotnet/roslyn/issues/30838")]
+        public async Task TestSortSystemFirst1()
+        {
+            var classDef = GetAmbiguousDefinition("public class Ambiguous { }", "Microsoft", "System");
+            var initialMarkup = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    class C
+    {
+        void M()
+        {
+            var a = new [|Ambiguous|]();
+        }
+    }
+}";
+            var expectedMarkup0 = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    using Ambiguous = System.Ambiguous;
+
+    class C
+    {
+        void M()
+        {
+            var a = new Ambiguous();
+        }
+    }
+}";
+            var expectedMarkup1 = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    using Ambiguous = Microsoft.Ambiguous;
+
+    class C
+    {
+        void M()
+        {
+            var a = new Ambiguous();
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
+        }
+
+        [Fact, WorkItem(30838, "https://github.com/dotnet/roslyn/issues/30838")]
+        public async Task TestSortSystemFirst2()
+        {
+            var classDef = GetAmbiguousDefinition("public class Ambiguous { }", "Microsoft", "System");
+            var initialMarkup = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    class C
+    {
+        void M()
+        {
+            var a = new [|Ambiguous|]();
+        }
+    }
+}";
+            var expectedMarkup0 = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    using Ambiguous = Microsoft.Ambiguous;
+
+    class C
+    {
+        void M()
+        {
+            var a = new Ambiguous();
+        }
+    }
+}";
+            var expectedMarkup1 = classDef + @"
+namespace Test
+{
+    using System;
+    using Microsoft;
+    using Ambiguous = System.Ambiguous;
+
+    class C
+    {
+        void M()
+        {
+            var a = new Ambiguous();
+        }
+    }
+}";
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { GenerationOptions.PlaceSystemNamespaceFirst, false }
+            };
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, options: options, index: 0);
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, options: options, index: 1);
         }
     }
 }

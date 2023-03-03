@@ -28,9 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     SelectionResult selectionResult,
                     AnalyzerResult analyzerResult,
                     CSharpCodeGenerationOptions options,
-                    NamingStylePreferencesProvider namingPreferences,
                     bool localFunction)
-                    : base(insertionPoint, selectionResult, analyzerResult, options, namingPreferences, localFunction)
+                    : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
                 {
                 }
 

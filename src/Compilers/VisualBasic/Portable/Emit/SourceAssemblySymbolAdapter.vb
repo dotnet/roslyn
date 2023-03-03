@@ -3,15 +3,17 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend Class SourceAssemblySymbol
 
-        Friend Function GetAssemblyCustomAttributesToEmit(compilationState As ModuleCompilationState,
+        Friend Function GetAssemblyCustomAttributesToEmit(moduleBuilder As PEModuleBuilder,
                                                           emittingRefAssembly As Boolean,
                                                           emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
 
             Dim synthesized As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
-            AddSynthesizedAttributes(compilationState, synthesized)
+            AddSynthesizedAttributes(moduleBuilder, synthesized)
 
             If emittingRefAssembly AndAlso Not HasReferenceAssemblyAttribute Then
                 Dim referenceAssemblyAttribute = Me.DeclaringCompilation.

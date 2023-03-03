@@ -12,15 +12,16 @@ Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class MiscellaneousTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DoesNothingOnEmptyFile()
             VerifyStatementEndConstructNotApplied(
                 text:="",
                 caret:={0, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DoesNothingOnFileWithNoStatement()
             VerifyStatementEndConstructNotApplied(
                 text:="'Goo
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 caret:={0, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyLineContinuationMark()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -41,7 +42,7 @@ End Class",
                 caret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyImplicitLineContinuation()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -53,7 +54,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyNestedDo()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -68,7 +69,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyMultilinesChar()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -89,7 +90,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyInlineComments()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -108,7 +109,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyNotAppliedWithJunkAtEndOfLine()
             ' Try this without a newline at the end of the file
             VerifyStatementEndConstructNotApplied(
@@ -116,7 +117,7 @@ End Class",
                 caret:={0, "Class C".Length})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyNotAppliedWithJunkAtEndOfLine2()
             ' Try this with a newline at the end of the file
             VerifyStatementEndConstructNotApplied(
@@ -125,8 +126,7 @@ End Class",
                 caret:={0, "Class C".Length})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        <WorkItem(539727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>
+        <WpfFact, WorkItem(539727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>
         Public Sub DeletesSelectedText()
             Using workspace = TestWorkspace.CreateVisualBasic("Interface IGoo ~~")
                 Dim textView = workspace.Documents.Single().GetTextView()

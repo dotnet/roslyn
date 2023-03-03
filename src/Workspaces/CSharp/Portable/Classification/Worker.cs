@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     /// artifacts T T is normally either ClassificationSpan or a Tuple (for testing purposes) 
     /// and constructed via provided factory.
     /// </summary>
-    internal ref partial struct Worker
+    internal readonly ref partial struct Worker
     {
         private readonly TextSpan _textSpan;
         private readonly ArrayBuilder<ClassifiedSpan> _result;
@@ -96,11 +98,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 if (type != null)
                 {
-                    AddClassification(span, type);
+                    if (token.Kind() is
+                            SyntaxKind.Utf8StringLiteralToken or
+                            SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                            SyntaxKind.Utf8MultiLineRawStringLiteralToken &&
+                        token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
+                    {
+                        AddClassification(TextSpan.FromBounds(token.Span.Start, token.Span.End - "u8".Length), type);
+                        AddClassification(TextSpan.FromBounds(token.Span.End - "u8".Length, token.Span.End), ClassificationTypeNames.Keyword);
+                    }
+                    else
+                    {
+                        AddClassification(span, type);
+                    }
 
                     // Additionally classify static symbols
-                    if (token.Kind() == SyntaxKind.IdentifierToken
-                        && ClassificationHelpers.IsStaticallyDeclared(token))
+                    if (token.Kind() == SyntaxKind.IdentifierToken &&
+                        ClassificationHelpers.IsStaticallyDeclared(token))
                     {
                         AddClassification(span, ClassificationTypeNames.StaticSymbol);
                     }

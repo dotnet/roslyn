@@ -9,18 +9,16 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     internal static class SymbolSearchOptionsStorage
     {
         internal static SymbolSearchOptions GetSymbolSearchOptions(this IGlobalOptionService globalOptions, string language)
-            => new(
-                SearchReferenceAssemblies: globalOptions.GetOption(SearchReferenceAssemblies, language),
-                SearchNuGetPackages: globalOptions.GetOption(SearchNuGetPackages, language));
-
-        private const string FeatureName = "SymbolSearchOptions";
+            => new()
+            {
+                SearchReferenceAssemblies = globalOptions.GetOption(SearchReferenceAssemblies, language),
+                SearchNuGetPackages = globalOptions.GetOption(SearchNuGetPackages, language)
+            };
 
         public static PerLanguageOption2<bool> SearchReferenceAssemblies =
-            new(FeatureName, "SuggestForTypesInReferenceAssemblies", SymbolSearchOptions.Default.SearchReferenceAssemblies,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
+            new("dotnet_search_reference_assemblies", SymbolSearchOptions.Default.SearchReferenceAssemblies);
 
         public static PerLanguageOption2<bool> SearchNuGetPackages =
-            new(FeatureName, "SuggestForTypesInNuGetPackages", SymbolSearchOptions.Default.SearchNuGetPackages,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
+            new("dotnet_search_nuget_packages", SymbolSearchOptions.Default.SearchNuGetPackages);
     }
 }

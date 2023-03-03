@@ -7,19 +7,22 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
+    [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
     public class AutomaticBraceCompletionTests : AbstractAutomaticBraceCompletionTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void WithExpressionBracesSameLine()
         {
             var code = @"
@@ -46,8 +49,7 @@ class C
             CheckText(session.Session, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        [WorkItem(47381, "https://github.com/dotnet/roslyn/issues/47381")]
+        [WpfFact, WorkItem(47381, "https://github.com/dotnet/roslyn/issues/47381")]
         public void ImplicitObjectCreationExpressionBracesSameLine()
         {
             var code = @"
@@ -74,7 +76,7 @@ class C
             CheckText(session.Session, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void WithExpressionBracesSameLine_Enter()
         {
             var code = @"
@@ -101,14 +103,14 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Creation()
         {
             using var session = CreateSession("$$");
             Assert.NotNull(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_String()
         {
             var code = @"class C
@@ -119,7 +121,7 @@ class C
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_String2()
         {
             var code = @"class C
@@ -131,7 +133,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ValidLocation_InterpolatedString1()
         {
             var code = @"class C
@@ -143,7 +145,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ValidLocation_InterpolatedString2()
         {
             var code = @"class C
@@ -155,7 +157,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ValidLocation_InterpolatedString3()
         {
             var code = @"class C
@@ -168,7 +170,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ValidLocation_InterpolatedString4()
         {
             var code = @"class C
@@ -181,7 +183,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ValidLocation_InterpolatedString5()
         {
             var code = @"class C
@@ -193,7 +195,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ValidLocation_InterpolatedString6()
         {
             var code = @"class C
@@ -205,7 +207,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ValidLocation_InterpolatedString7()
         {
             var code = @"class C
@@ -225,7 +227,7 @@ $$
             CheckReturn(session.Session, 0, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_InterpolatedString1()
         {
             var code = @"class C
@@ -236,7 +238,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_InterpolatedString2()
         {
             var code = @"class C
@@ -247,7 +249,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment()
         {
             var code = @"class C
@@ -258,7 +260,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment2()
         {
             var code = @"class C
@@ -269,7 +271,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment3()
         {
             var code = @"class C
@@ -280,7 +282,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void InvalidLocation_Comment4()
         {
             var code = @"class C
@@ -291,7 +293,7 @@ $$
             Assert.Null(session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void MultiLine_Comment()
         {
             var code = @"class C
@@ -306,7 +308,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void MultiLine_DocComment()
         {
             var code = @"class C
@@ -322,7 +324,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void String1()
         {
             var code = @"class C
@@ -338,7 +340,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void String2()
         {
             var code = @"class C
@@ -354,7 +356,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Class_OpenBrace()
         {
             var code = @"class C $$";
@@ -365,7 +367,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Class_Delete()
         {
             var code = @"class C $$";
@@ -377,7 +379,7 @@ $$
             CheckBackspace(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Class_Tab()
         {
             var code = @"class C $$";
@@ -389,7 +391,7 @@ $$
             CheckTab(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Class_CloseBrace()
         {
             var code = @"class C $$";
@@ -401,7 +403,7 @@ $$
             CheckOverType(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Method_OpenBrace_Multiple()
         {
             var code = @"class C
@@ -414,7 +416,7 @@ $$
             CheckStart(session.Session);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Class_OpenBrace_Enter()
         {
             var code = @"class C $$";
@@ -426,8 +428,7 @@ $$
             CheckReturn(session.Session, 4);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        [WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [WpfFact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
         public void WithExpression()
         {
             var code = @"
@@ -467,7 +468,7 @@ record C
             CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void RecursivePattern()
         {
             var code = @"
@@ -507,7 +508,7 @@ class C
             CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void RecursivePattern_Nested()
         {
             var code = @"
@@ -547,7 +548,7 @@ class C
             CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void RecursivePattern_Parentheses1()
         {
             var code = @"
@@ -574,7 +575,7 @@ class C
             CheckText(session.Session, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void RecursivePattern_Parentheses2()
         {
             var code = @"
@@ -601,7 +602,7 @@ class C
             CheckText(session.Session, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void RecursivePattern_FollowedByInvocation()
         {
             var code = @"
@@ -644,7 +645,7 @@ class C
             CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void RecursivePattern_WithInvocation_FollowedByInvocation()
         {
             var code = @"
@@ -687,7 +688,7 @@ class C
             CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void SwitchExpression()
         {
             var code = @"
@@ -727,7 +728,7 @@ class C
             CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Class_ObjectInitializer_OpenBrace_Enter()
         {
             var code = @"using System.Collections.Generic;
@@ -760,7 +761,7 @@ class C
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Collection_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"using System.Collections.Generic;
@@ -784,11 +785,12 @@ class C
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -796,7 +798,7 @@ class C
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Collection_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"using System.Collections.Generic;
@@ -829,7 +831,7 @@ class C
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Object_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -859,11 +861,12 @@ class Goo
 {
     public int bar;
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -871,7 +874,7 @@ class Goo
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Object_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -910,7 +913,7 @@ class Goo
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ArrayImplicit_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -930,11 +933,12 @@ class Goo
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -942,7 +946,7 @@ class Goo
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ArrayImplicit_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -971,7 +975,7 @@ class Goo
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ArrayExplicit1_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -991,11 +995,12 @@ class Goo
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1003,7 +1008,7 @@ class Goo
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ArrayExplicit1_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -1032,7 +1037,7 @@ class Goo
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ArrayExplicit2_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -1052,11 +1057,11 @@ class Goo
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1064,7 +1069,7 @@ class Goo
         }
 
         [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ArrayExplicit2_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -1094,7 +1099,7 @@ class Goo
 
         [WorkItem(3447, "https://github.com/dotnet/roslyn/issues/3447")]
         [WorkItem(850540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850540")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void BlockIndentationWithAutomaticBraceFormattingDisabled()
         {
             var code = @"class C
@@ -1116,12 +1121,14 @@ class Goo
 
     }
 }";
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { AutoFormattingOptionsStorage.FormatOnCloseBrace, false },
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.Block },
+            };
 
-            using var session = CreateSession(code);
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
-
-            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(AutoFormattingOptionsStorage.FormatOnCloseBrace, LanguageNames.CSharp), false);
-            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
@@ -1130,7 +1137,7 @@ class Goo
         }
 
         [WorkItem(2224, "https://github.com/dotnet/roslyn/issues/2224")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void NoSmartOrBlockIndentationWithAutomaticBraceFormattingDisabled()
         {
             var code = @"namespace NS1
@@ -1145,17 +1152,20 @@ $$
 { }
 }";
 
-            using var session = CreateSession(code);
-            Assert.NotNull(session);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.None },
+            };
 
-            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None);
+            using var session = CreateSession(code, globalOptions);
+            Assert.NotNull(session);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
         }
 
         [WorkItem(2330, "https://github.com/dotnet/roslyn/issues/2330")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void BlockIndentationWithAutomaticBraceFormatting()
         {
             var code = @"namespace NS1
@@ -1178,10 +1188,13 @@ $$
         }
 }";
 
-            using var session = CreateSession(code);
-            Assert.NotNull(session);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.Block },
+            };
 
-            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
+            using var session = CreateSession(code, globalOptions);
+            Assert.NotNull(session);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
@@ -1190,7 +1203,7 @@ $$
         }
 
         [WorkItem(2330, "https://github.com/dotnet/roslyn/issues/2330")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void BlockIndentationWithAutomaticBraceFormattingSecondSet()
         {
             var code = @"namespace NS1
@@ -1219,10 +1232,13 @@ $$
         }
 }";
 
-            using var session = CreateSession(code);
-            Assert.NotNull(session);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.Block },
+            };
 
-            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
+            using var session = CreateSession(code, globalOptions);
+            Assert.NotNull(session);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
@@ -1230,7 +1246,7 @@ $$
             CheckReturn(session.Session, 8, expectedAfterReturn);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void DoesNotFormatInsideBracePairInInitializers()
         {
             var code = @"class C
@@ -1255,7 +1271,7 @@ $$
             CheckText(session.Session, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void DoesNotFormatOnReturnWithNonWhitespaceInBetween()
         {
             var code = @"class C $$";
@@ -1271,7 +1287,7 @@ $$
             CheckReturn(session.Session, 0, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void CurlyBraceFormattingInsideLambdaInsideInterpolation()
         {
             var code = @"class C
@@ -1296,7 +1312,7 @@ $$
             Assert.Equal(expectedAfterStart, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void CurlyBraceFormatting_DoesNotAddNewLineWhenAlreadyExists()
         {
             var code = @"class C $$";
@@ -1318,16 +1334,16 @@ $$
             CheckReturn(session.Session, 4, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void CurlyBraceFormatting_InsertsCorrectNewLine()
         {
             var code = @"class C $$";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(FormattingOptions2.NewLine, LanguageNames.CSharp), "\r" }
+                { FormattingOptions2.NewLine, "\r" }
             };
-            using var session = CreateSession(code, optionSet);
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1335,7 +1351,7 @@ $$
         }
 
         [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
-        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfTheory, CombinatorialData]
         public void WithInitializer_Enter(bool bracesOnNewLine)
         {
             var code = @"
@@ -1366,11 +1382,11 @@ record R
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, bracesOnNewLine) }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1378,7 +1394,7 @@ record R
         }
 
         [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
-        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfTheory, CombinatorialData]
         public void PropertyPatternClause_Enter(bool bracesOnNewLine)
         {
             var code = @"
@@ -1410,11 +1426,11 @@ class C
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, bracesOnNewLine) }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1422,7 +1438,7 @@ class C
         }
 
         [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
-        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfTheory, CombinatorialData]
         public void Accessor_Enter(bool bracesOnNewLine)
         {
             var code = @"
@@ -1454,11 +1470,11 @@ class C
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.Accessors, bracesOnNewLine) }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1466,7 +1482,7 @@ class C
         }
 
         [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
-        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfTheory, CombinatorialData]
         public void AnonymousMethod_Enter(bool bracesOnNewLine)
         {
             var code = @"
@@ -1498,11 +1514,11 @@ class C
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.AnonymousMethods, bracesOnNewLine) }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1510,7 +1526,7 @@ class C
         }
 
         [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
-        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfTheory, CombinatorialData]
         public void AnonymousType_Enter(bool bracesOnNewLine)
         {
             var code = @"
@@ -1542,11 +1558,11 @@ class C
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.AnonymousTypes, bracesOnNewLine) }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1554,7 +1570,7 @@ class C
         }
 
         [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
-        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfTheory, CombinatorialData]
         public void If_OpenBraceOnSameLine_Enter(bool bracesOnNewLine)
         {
             var code = @"
@@ -1587,11 +1603,11 @@ class C
     }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, bracesOnNewLine) }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1599,7 +1615,7 @@ class C
         }
 
         [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
-        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfTheory, CombinatorialData]
         public void Else_OpenBraceOnSameLine_Enter(bool bracesOnNewLine)
         {
             var code = @"
@@ -1638,22 +1654,22 @@ class C
     }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ControlBlocks, bracesOnNewLine) }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
             CheckReturn(session.Session, 12, expected);
         }
 
-        internal static Holder CreateSession(string code, Dictionary<OptionKey2, object>? optionSet = null)
+        internal static Holder CreateSession(string code, OptionsCollection? globalOptions = null)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, optionSet);
+                CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, globalOptions);
         }
     }
 }

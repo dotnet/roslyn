@@ -524,5 +524,33 @@ class {|Identifier:C|}
     }
 }");
         }
+
+        [Fact]
+        public async Task TestIdentifier31()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}() { }");
+        }
+
+        [Fact]
+        public async Task TestIdentifier32()
+        {
+            await TestAsync(@"
+struct {|Identifier:C|}() { }");
+        }
+
+        [Fact]
+        public async Task TestIdentifier33()
+        {
+            await TestAsync(@"
+class {|Identifier:C|};");
+        }
+
+        [Fact]
+        public async Task TestIdentifier34()
+        {
+            await TestAsync(@"
+struct {|Identifier:C|};");
+        }
     }
 }

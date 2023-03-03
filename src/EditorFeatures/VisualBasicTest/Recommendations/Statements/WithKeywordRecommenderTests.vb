@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class WithKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "With")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithInLambdaTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
@@ -22,7 +21,6 @@ Dim x = Sub()
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithAfterStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x
@@ -30,7 +28,6 @@ Dim x
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithNotAfterExitKeywordTest()
             VerifyRecommendationsMissing(<MethodBody>
 With
@@ -39,7 +36,6 @@ Loop</MethodBody>, "With")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithNotAfterContinueKeywordTest()
             VerifyRecommendationsMissing(<MethodBody>
 With
@@ -48,7 +44,6 @@ Loop</MethodBody>, "With")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithNotAfterContinueKeywordOutsideLoopTest()
             VerifyRecommendationsMissing(<MethodBody>
 Continue |
@@ -56,7 +51,6 @@ Continue |
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithNotAfterExitKeywordOutsideLoopTest()
             VerifyRecommendationsMissing(<MethodBody>
 Exit |
@@ -64,7 +58,6 @@ Exit |
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithNotAfterExitInsideLambdaInsideWithBlockTest()
             VerifyRecommendationsMissing(<MethodBody>
 While
@@ -76,7 +69,6 @@ Loop
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithAfterExitInsideWhileLoopInsideLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub()

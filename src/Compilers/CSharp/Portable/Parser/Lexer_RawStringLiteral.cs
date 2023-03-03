@@ -103,16 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             Debug.Assert(info.Kind is (SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken));
 
-            if (!inDirective && ScanUTF8Suffix())
+            if (!inDirective && ScanUtf8Suffix())
             {
                 switch (info.Kind)
                 {
                     case SyntaxKind.SingleLineRawStringLiteralToken:
-                        info.Kind = SyntaxKind.UTF8SingleLineRawStringLiteralToken;
+                        info.Kind = SyntaxKind.Utf8SingleLineRawStringLiteralToken;
                         break;
 
                     case SyntaxKind.MultiLineRawStringLiteralToken:
-                        info.Kind = SyntaxKind.UTF8MultiLineRawStringLiteralToken;
+                        info.Kind = SyntaxKind.Utf8MultiLineRawStringLiteralToken;
                         break;
 
                     default:

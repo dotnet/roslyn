@@ -4,8 +4,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Editor;
@@ -18,13 +16,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal sealed class SmartIndentProvider : ISmartIndentProvider
     {
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SmartIndentProvider(IGlobalOptionService globalOptions)
+        public SmartIndentProvider(EditorOptionsService editorOptionsService)
         {
-            _globalOptions = globalOptions;
+            _editorOptionsService = editorOptionsService;
         }
 
         public ISmartIndent? CreateSmartIndent(ITextView textView)
@@ -34,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
+            if (!_editorOptionsService.GlobalOptions.GetOption(SmartIndenterOptionsStorage.SmartIndenter))
             {
                 return null;
             }
 
-            return new SmartIndent(textView, _globalOptions);
+            return new SmartIndent(textView, _editorOptionsService);
         }
     }
 }

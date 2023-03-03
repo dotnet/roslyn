@@ -33,6 +33,12 @@ namespace Roslyn.Test.Utilities
                 var name = metadataReader.GetTypeReference((TypeReferenceHandle)container).Name;
                 return metadataReader.GetString(name);
             }
+            else if (ctorHandle.Kind == HandleKind.MethodDefinition)
+            {
+                var container = metadataReader.GetMethodDefinition((MethodDefinitionHandle)ctorHandle).GetDeclaringType();
+                var name = metadataReader.GetTypeDefinition(container).Name;
+                return metadataReader.GetString(name);
+            }
             else
             {
                 Assert.True(false, "not impl");

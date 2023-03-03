@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
@@ -13,11 +13,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public static bool TryMatchPattern(
             ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
+            out bool isRef,
             [NotNullWhen(true)] out IOperation trueStatement,
             [NotNullWhen(true)] out IOperation? falseStatement,
             out ISimpleAssignmentOperation? trueAssignment,
             out ISimpleAssignmentOperation? falseAssignment)
         {
+            isRef = false;
             falseAssignment = null;
 
             trueStatement = ifOperation.WhenTrue;
@@ -47,6 +49,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
+            isRef = trueAssignment?.IsRef == true;
             return UseConditionalExpressionHelpers.CanConvert(
                 syntaxFacts, ifOperation, trueStatement, falseStatement);
         }
