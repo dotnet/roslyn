@@ -2,12 +2,38 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class SymbolDisplayPartKindTags
     {
+        public static SymbolDisplayPartKind GetSymbolDisplayPartKind(this INamedTypeSymbol namedType)
+        {
+            if (namedType.IsEnumType())
+                return SymbolDisplayPartKind.EnumName;
+
+            if (namedType.IsDelegateType())
+                return SymbolDisplayPartKind.DelegateName;
+
+            if (namedType.IsInterfaceType())
+                return SymbolDisplayPartKind.InterfaceName;
+
+            if (namedType.IsRecord)
+                return namedType.IsValueType ? SymbolDisplayPartKind.RecordStructName : SymbolDisplayPartKind.RecordClassName;
+
+            if (namedType.IsStructType())
+                return SymbolDisplayPartKind.StructName;
+
+            if (namedType.IsModuleType())
+                return SymbolDisplayPartKind.ModuleName;
+
+            if (namedType.IsErrorType())
+                return SymbolDisplayPartKind.ErrorTypeName;
+
+            return SymbolDisplayPartKind.ClassName;
+        }
+
         public static string GetTag(SymbolDisplayPartKind kind)
             => kind switch
             {

@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,32 +14,32 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitBlock(BoundBlock node)
         {
+            if (Instrument)
+            {
+                Instrumenter.PreInstrumentBlock(node, this);
+            }
+
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
             VisitStatementSubList(builder, node.Statements);
 
-            if (!this.Instrument || (node != _rootStatement && (node.WasCompilerGenerated || node.Syntax.Kind() != SyntaxKind.Block)))
+            var additionalLocals = TemporaryArray<LocalSymbol>.Empty;
+
+            BoundBlockInstrumentation? instrumentation = null;
+            if (Instrument)
             {
-                return node.Update(node.Locals, node.LocalFunctions, node.HasUnsafeModifier, builder.ToImmutableAndFree());
+                Instrumenter.InstrumentBlock(node, this, ref additionalLocals, out var prologue, out var epilogue, out instrumentation);
+                if (prologue != null)
+                {
+                    builder.Insert(0, prologue);
+                }
+
+                if (epilogue != null)
+                {
+                    builder.Add(epilogue);
+                }
             }
 
-            LocalSymbol? synthesizedLocal;
-            BoundStatement? prologue = _instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
-            if (prologue != null)
-            {
-                builder.Insert(0, prologue);
-            }
-            else if (node == _rootStatement && _factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
-            {
-                builder.Insert(0, _factory.HiddenSequencePoint());
-            }
-
-            BoundStatement? epilogue = _instrumenter.CreateBlockEpilogue(node);
-            if (epilogue != null)
-            {
-                builder.Add(epilogue);
-            }
-
-            return new BoundBlock(node.Syntax, synthesizedLocal == null ? node.Locals : node.Locals.Add(synthesizedLocal), node.LocalFunctions, node.HasUnsafeModifier, builder.ToImmutableAndFree(), node.HasErrors);
+            return new BoundBlock(node.Syntax, node.Locals.AddRange(additionalLocals), node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
         }
 
         /// <summary>
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (node.WasCompilerGenerated || !this.Instrument)
                 ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
-                : _instrumenter.InstrumentNoOpStatement(node, node);
+                : Instrumenter.InstrumentNoOpStatement(node, node);
         }
     }
 }

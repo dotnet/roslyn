@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document,
             SyntaxNode functionDeclaration,
             IMethodSymbol method,
-            IBlockOperation? blockStatementOpt,
+            IBlockOperation? blockStatement,
             ImmutableArray<SyntaxNode> listOfParameterNodes,
             TextSpan parameterSpan,
             CleanCodeGenerationOptionsProvider fallbackOptions,
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IParameterSymbol parameter,
             SyntaxNode functionDeclaration,
             IMethodSymbol methodSymbol,
-            IBlockOperation? blockStatementOpt,
+            IBlockOperation? blockStatement,
             CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected bool CanOfferRefactoring(
             SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts,
-            CancellationToken cancellationToken, out IBlockOperation? blockStatementOpt)
+            CancellationToken cancellationToken, out IBlockOperation? blockStatement)
         {
-            blockStatementOpt = null;
+            blockStatement = null;
 
             var functionBody = GetBody(functionDeclaration);
             if (functionBody == null)
@@ -167,17 +167,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 cancellationToken);
 
             if (operation == null)
-            {
                 return false;
-            }
 
             switch (operation.Kind)
             {
                 case OperationKind.AnonymousFunction:
-                    blockStatementOpt = ((IAnonymousFunctionOperation)operation).Body;
+                    blockStatement = ((IAnonymousFunctionOperation)operation).Body;
                     break;
                 case OperationKind.Block:
-                    blockStatementOpt = (IBlockOperation)operation;
+                    blockStatement = (IBlockOperation)operation;
                     break;
                 default:
                     return false;
@@ -236,8 +234,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (operation is IMemberReferenceOperation memberReference &&
                 memberReference.Member.ContainingType.Equals(containingType))
             {
-                if (memberReference.Member is IFieldSymbol or
-                    IPropertySymbol)
+                if (memberReference.Member is IFieldSymbol or IPropertySymbol)
                 {
                     fieldOrProperty = memberReference.Member;
                     return true;

@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement expressionStatement = new BoundExpressionStatement(expressionSyntax, tempAssignment);
             if (this.Instrument)
             {
-                expressionStatement = _instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
+                expressionStatement = Instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
             }
 
             BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, usingSyntax, tryBlock, boundTemp, usingSyntax.AwaitKeyword, node.AwaitOpt, node.PatternDisposeInfoOpt);

@@ -18540,5 +18540,328 @@ System.Console.Write(1);
         }
 
         #endregion
+
+        #region Primary Constructors
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_01([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C() { void M() { } }";
+            var src2 = keyword + " C() { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, keyword + " C", FeaturesResources.method));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_02([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C() { }";
+            var src2 = keyword + " C() { void M() { } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "void M()", FeaturesResources.method));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_03([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C() { void M() { } }";
+            var src2 = keyword + " C() { void M() { ToString(); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "void M()", FeaturesResources.method));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_04([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int a) { }";
+            var src2 = keyword + " C(int a, int b) { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "int b", FeaturesResources.parameter));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_05([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int a, int b) { }";
+            var src2 = keyword + " C(int a) { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, keyword + " C", FeaturesResources.parameter));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_06([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C { }";
+            var src2 = keyword + " C() { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_07([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C() { }";
+            var src2 = keyword + " C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_08([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C() { }";
+            var src2 = keyword + " C(int b) { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "int b", FeaturesResources.parameter));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_09([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int b) { }";
+            var src2 = keyword + " C() { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, keyword + " C", FeaturesResources.parameter));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_10([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C { }";
+            var src2 = keyword + " C(int b) { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "int b", FeaturesResources.parameter));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_11([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int b) { }";
+            var src2 = keyword + " C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, keyword + " C", FeaturesResources.parameter));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_12([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = "partial " + keyword + " C(); partial " + keyword + " C { void M() { } }";
+            var src2 = "partial " + keyword + " C(); partial " + keyword + " C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "partial " + keyword + " C", FeaturesResources.method));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_13([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = "partial " + keyword + " C(); partial " + keyword + " C { }";
+            var src2 = "partial " + keyword + " C(); partial " + keyword + " C { void M() { } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "void M()", FeaturesResources.method));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_14([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = "partial " + keyword + " C(); partial " + keyword + " C { void M() { } }";
+            var src2 = "partial " + keyword + " C(); partial " + keyword + " C { void M() { ToString(); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "void M()", FeaturesResources.method));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_15([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = "partial " + keyword + " C(); partial " + keyword + " C { void M() { } }";
+            var src2 = "partial " + keyword + " C {} partial " + keyword + " C { void M() { ToString(); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "void M()", FeaturesResources.method));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_16([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = "partial " + keyword + " C {} partial " + keyword + " C { void M() { } }";
+            var src2 = "partial " + keyword + " C(); partial " + keyword + " C { void M() { ToString(); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "void M()", FeaturesResources.method));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_17([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int a) { }";
+            var src2 = keyword + " C(long a) { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "long a", FeaturesResources.parameter));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_18([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x, int y) { void M() { x++; } System.Func<int> z = () => y; }";
+            var src2 = keyword + " C(int x, int y) { void M() { x++; } System.Func<int> z = () => x + y; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "z = () => x + y", FeaturesResources.field));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_19([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x, int y) { void M() { x++; } System.Func<int> z = () => x + y; }";
+            var src2 = keyword + " C(int x, int y) { void M() { x++; } System.Func<int> z = () => y; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "z = () => y", FeaturesResources.field));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_20([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x) { void M() { x++; } }";
+            var src2 = keyword + " C(int x) { void M() { x++; } System.Func<int> z = () => x; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "z = () => x", FeaturesResources.field));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_21([CombinatorialValues("class", "struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x) { void M() { x++; } System.Func<int> z = () => x; }";
+            var src2 = keyword + " C(int x) { void M() { x++; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, keyword + " C", FeaturesResources.field));
+        }
+
+        [Fact]
+        public void PrimaryConstructors_22()
+        {
+            var src1 = "class C2(int x, int y) : C1(() => y) { void M() { x++; } } class C1(System.Func<int> x);";
+            var src2 = "class C2(int x, int y) : C1(() => x + y) { void M() { x++; } } class C1(System.Func<int> x);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "class C2", FeaturesResources.class_));
+        }
+
+        [Fact]
+        public void PrimaryConstructors_23()
+        {
+            var src1 = "class C2(int x, int y) : C1(() => x + y) { void M() { x++; } } class C1(System.Func<int> x);";
+            var src2 = "class C2(int x, int y) : C1(() => y) { void M() { x++; } } class C1(System.Func<int> x);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "class C2", FeaturesResources.class_));
+        }
+
+        [Fact]
+        public void PrimaryConstructors_24()
+        {
+            var src1 = "class C2(int x) : C1(null) { void M() { x++; } } class C1(System.Func<int> x);";
+            var src2 = "class C2(int x) : C1(() => x) { void M() { x++; } } class C1(System.Func<int> x);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "class C2", FeaturesResources.class_));
+        }
+
+        [Fact]
+        public void PrimaryConstructors_25()
+        {
+            var src1 = "class C2(int x) : C1(() => x) { void M() { x++; } } class C1(System.Func<int> x);";
+            var src2 = "class C2(int x) : C1(null) { void M() { x++; } } class C1(System.Func<int> x);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Update, "class C2", FeaturesResources.class_));
+        }
+
+        #endregion
     }
 }

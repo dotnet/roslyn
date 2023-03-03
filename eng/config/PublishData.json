@@ -137,6 +137,15 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.5]"
     },
+    "release/dev17.6": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.6P2]"
+    },
     "main": {
       "nugetKind": [
         "Shipping",
@@ -145,9 +154,19 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.6P1]"
+      "insertionTitlePrefix": "[d17.6P3]"
     },
     "dev/jorobich/fix-pr-val": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
+    },
+    "dev/jjonescz/razor-ea": {
       "nugetKind": [
         "Shipping",
         "NonShipping"

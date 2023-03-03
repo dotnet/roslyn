@@ -36,8 +36,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         /// each project in the solution, as the CWT does not seem to drop entries until ForceGC happens, leading to significant memory
         /// pressure when there are large number of open documents across different projects to be analyzed by background analysis.
         /// </summary>
-        private static readonly WeakReference<CompilationWithAnalyzersCacheEntry?> s_compilationWithAnalyzersCache = new(null);
+        private static CompilationWithAnalyzersCacheEntry? s_compilationWithAnalyzersCache = null;
         private static readonly object s_gate = new();
+
+        /// <summary>
+        /// Solution checksum for the diagnostic request.
+        /// We use this checksum and the <see cref="ProjectId"/> of the diagnostic request as the key
+        /// to the <see cref="s_compilationWithAnalyzersCache"/>.
+        /// </summary>
+        private readonly Checksum _solutionChecksum;
 
         private readonly TextDocument? _document;
         private readonly Project _project;
@@ -48,9 +55,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
         private readonly HostWorkspaceServices _hostWorkspaceServices;
 
-        public DiagnosticComputer(
+        private DiagnosticComputer(
             TextDocument? document,
             Project project,
+            Checksum solutionChecksum,
             IdeAnalyzerOptions ideOptions,
             TextSpan? span,
             AnalysisKind? analysisKind,
@@ -59,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         {
             _document = document;
             _project = project;
+            _solutionChecksum = solutionChecksum;
             _ideOptions = ideOptions;
             _span = span;
             _analysisKind = analysisKind;
@@ -67,7 +76,47 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
         }
 
-        public async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
+        public static Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
+            TextDocument? document,
+            Project project,
+            Checksum solutionChecksum,
+            IdeAnalyzerOptions ideOptions,
+            TextSpan? span,
+            IEnumerable<string> analyzerIds,
+            AnalysisKind? analysisKind,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            HostWorkspaceServices hostWorkspaceServices,
+            bool reportSuppressedDiagnostics,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+        {
+            // PERF: Due to the concept of InFlight solution snapshots in OOP process, we might have been
+            //       handed a Project instance that does not match the Project instance corresponding to our
+            //       cached CompilationWithAnalyzers instance, while the underlying Solution checksum matches
+            //       for our cached entry and the incoming request.
+            //       We detect this case upfront here and re-use the cached CompilationWithAnalyzers and Project
+            //       instance for diagnostic computation, thus improving the performance of analyzer execution.
+            //       This is an important performance optimization for lightbulb diagnostic computation.
+            //       See https://github.com/dotnet/roslyn/issues/66968 for details.
+            lock (s_gate)
+            {
+                if (s_compilationWithAnalyzersCache?.SolutionChecksum == solutionChecksum &&
+                    s_compilationWithAnalyzersCache.Project.Id == project.Id &&
+                    s_compilationWithAnalyzersCache.Project != project)
+                {
+                    project = s_compilationWithAnalyzersCache.Project;
+                    if (document != null)
+                        document = project.GetTextDocument(document.Id);
+                }
+            }
+
+            var diagnosticsComputer = new DiagnosticComputer(document, project,
+                solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
+            return diagnosticsComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+        }
+
+        private async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
             IEnumerable<string> analyzerIds,
             bool reportSuppressedDiagnostics,
             bool logPerformanceInfo,
@@ -90,25 +139,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
 
-            try
-            {
-                return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
-                    reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
-            }
-            catch
-            {
-                // Do not re-use cached CompilationWithAnalyzers instance in presence of an exception, as the underlying analysis state might be corrupt.
-                lock (s_gate)
-                {
-                    if (s_compilationWithAnalyzersCache.TryGetTarget(out var target) &&
-                        target?.Project == _project)
-                    {
-                        s_compilationWithAnalyzersCache.SetTarget(null);
-                    }
-                }
-
-                throw;
-            }
+            return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
+                reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<SerializableDiagnosticAnalysisResults> AnalyzeAsync(
@@ -248,10 +280,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
                 lock (s_gate)
                 {
-                    if (s_compilationWithAnalyzersCache.TryGetTarget(out var target) &&
-                        target?.Project == _project)
+                    if (s_compilationWithAnalyzersCache?.SolutionChecksum == _solutionChecksum &&
+                        s_compilationWithAnalyzersCache.Project == _project)
                     {
-                        return target;
+                        return s_compilationWithAnalyzersCache;
                     }
                 }
 
@@ -259,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
                 lock (s_gate)
                 {
-                    s_compilationWithAnalyzersCache.SetTarget(entry);
+                    s_compilationWithAnalyzersCache = entry;
                 }
 
                 return entry;
@@ -291,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var compilationWithAnalyzers = await CreateCompilationWithAnalyzerAsync(analyzerBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false);
             var analyzerToIdMap = new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMapBuilder);
 
-            return new CompilationWithAnalyzersCacheEntry(_project, compilationWithAnalyzers, analyzerToIdMap);
+            return new CompilationWithAnalyzersCacheEntry(_solutionChecksum, _project, compilationWithAnalyzers, analyzerToIdMap);
         }
 
         private async Task<CompilationWithAnalyzers> CreateCompilationWithAnalyzerAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
@@ -324,12 +356,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private sealed class CompilationWithAnalyzersCacheEntry
         {
+            public Checksum SolutionChecksum { get; }
             public Project Project { get; }
             public CompilationWithAnalyzers CompilationWithAnalyzers { get; }
             public BidirectionalMap<string, DiagnosticAnalyzer> AnalyzerToIdMap { get; }
 
-            public CompilationWithAnalyzersCacheEntry(Project project, CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
+            public CompilationWithAnalyzersCacheEntry(Checksum solutionChecksum, Project project, CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
             {
+                SolutionChecksum = solutionChecksum;
                 Project = project;
                 CompilationWithAnalyzers = compilationWithAnalyzers;
                 AnalyzerToIdMap = analyzerToIdMap;

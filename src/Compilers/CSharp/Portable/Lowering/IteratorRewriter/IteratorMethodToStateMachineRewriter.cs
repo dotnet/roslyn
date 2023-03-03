@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,7 +11,6 @@ using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -27,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Tells us if a particular try contains yield returns
         /// </summary>
-        private YieldsInTryAnalysis _yieldsInTryAnalysis;
+        private YieldsInTryAnalysis? _yieldsInTryAnalysis;
 
         /// <summary>
         /// When this is more that 0, returns are emitted as "methodValue = value; goto exitLabel;"
         /// </summary>
         private int _tryNestingLevel;
-        private LabelSymbol _exitLabel;
-        private LocalSymbol _methodValue;
+        private LabelSymbol? _exitLabel;
+        private LocalSymbol? _methodValue;
 
         /// <summary>
         /// The current iterator finally frame in the tree of finally frames.
@@ -47,11 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Finally state of the next Finally frame if such created.
         /// Finally state is a negative decreasing number starting with -3. (-2 is used for something else).
         /// Root frame has finally state -1.
-        /// 
+        ///
         /// The Finally state is the state that we are in when "between states".
         /// Regular states are positive and are the only states that can be resumed to.
-        /// The purpose of distinct finally states is to have enough information about 
-        /// which finally handlers must run when we need to finalize iterator after a fault. 
+        /// The purpose of distinct finally states is to have enough information about
+        /// which finally handlers must run when we need to finalize iterator after a fault.
         /// </summary>
         private StateMachineState _nextFinalizeState;
 
@@ -60,20 +57,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol originalMethod,
             FieldSymbol state,
             FieldSymbol current,
-            IReadOnlySet<Symbol> hoistedVariables,
+            FieldSymbol? instanceIdField,
+            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
-            : base(F, originalMethod, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+            : base(F, originalMethod, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             _current = current;
 
             _nextFinalizeState = slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing: false) ?? StateMachineState.FirstIteratorFinalizeState;
         }
 
+#nullable disable
         protected override string EncMissingStateMessage
             => CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod;
 
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _tryNestingLevel++;
             }
 
-            /////////////////////////////////// 
+            ///////////////////////////////////
             // Generate the body for MoveNext()
             ///////////////////////////////////
 
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             // state_0:
             // state = -1;
-            // [optional: cachedThis = capturedThis;] 
+            // [optional: cachedThis = capturedThis;]
             // [[rewritten body]]
             newBody = F.Block((object)cachedThis == null ?
                                 ImmutableArray.Create(cachedState) :
@@ -134,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             if (_yieldsInTryAnalysis.ContainsYieldsInTrys())
             {
-                // try 
+                // try
                 // {
                 //    body;
                 // }
@@ -147,10 +146,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newBody = F.Fault((BoundBlock)newBody, faultBlock);
             }
 
-            newBody = HandleReturn(newBody);
-            F.CloseMethod(F.SequencePoint(body.Syntax, newBody));
+            newBody = F.SequencePoint(body.Syntax, HandleReturn(newBody));
 
-            /////////////////////////////////// 
+            if (instrumentation != null)
+            {
+                newBody = F.Block(
+                    ImmutableArray.Create(instrumentation.Local),
+                    instrumentation.Prologue,
+                    F.Try(F.Block(newBody), ImmutableArray<BoundCatchBlock>.Empty, F.Block(instrumentation.Epilogue)));
+            }
+
+            F.CloseMethod(newBody);
+
+            ///////////////////////////////////
             // Generate the body for Dispose().
             ///////////////////////////////////
             F.CurrentFunction = disposeMethod;
@@ -176,15 +184,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement HandleReturn(BoundStatement newBody)
+        private BoundBlock HandleReturn(BoundStatement newBody)
         {
-            if ((object)_exitLabel == null)
+            if (_exitLabel is null)
             {
                 //   body;
                 //   return false;
-                newBody = F.Block(
-                        newBody,
-                        F.Return(F.Literal(false)));
+                return F.Block(
+                    newBody,
+                    F.Return(F.Literal(false)));
             }
             else
             {
@@ -192,24 +200,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   methodValue = false;
                 // exitLabel:
                 //   return methodValue;
-                newBody = F.Block(
-                        ImmutableArray.Create<LocalSymbol>(_methodValue),
-                        newBody,
-                        F.Assignment(this.F.Local(_methodValue), this.F.Literal(true)),
-                        F.Label(_exitLabel),
-                        F.Return(this.F.Local(_methodValue)));
+                return F.Block(
+                    ImmutableArray.Create<LocalSymbol>(_methodValue),
+                    newBody,
+                    F.Assignment(this.F.Local(_methodValue), this.F.Literal(true)),
+                    F.Label(_exitLabel),
+                    F.Return(this.F.Local(_methodValue)));
             }
-
-            return newBody;
         }
 
         /// <summary>
         /// Produces a Try/Finally if frame has a handler (otherwise a regular block).
         /// Handler goes into the Finally.
         /// If there are nested frames, they are emitted into the try block.
-        /// This way the handler for the current frame is guaranteed to run even if 
+        /// This way the handler for the current frame is guaranteed to run even if
         /// nested handlers throw exceptions.
-        /// 
+        ///
         /// {
         ///     switch(state)
         ///     {
@@ -241,13 +247,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///                 handler_1_2()
         ///             }
         ///             break;
-        ///             
+        ///
         ///         case state5:
         ///             ... another dispatch of nested states to their finally blocks ...
         ///             break;
         ///     }
         /// }
-        /// 
+        ///
         /// </summary>
         private BoundStatement EmitFinallyFrame(IteratorFinallyFrame frame, BoundLocal state)
         {

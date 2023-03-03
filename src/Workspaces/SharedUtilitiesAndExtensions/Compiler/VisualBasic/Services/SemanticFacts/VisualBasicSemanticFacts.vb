@@ -172,7 +172,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetForEachSymbols(model As SemanticModel, forEachStatement As SyntaxNode) As ForEachSymbols Implements ISemanticFacts.GetForEachSymbols
-
             Dim vbForEachStatement = TryCast(forEachStatement, ForEachStatementSyntax)
             If vbForEachStatement IsNot Nothing Then
                 Dim info = model.GetForEachStatementInfo(vbForEachStatement)
@@ -196,6 +195,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return Nothing
+        End Function
+
+        Public Function GetCollectionInitializerSymbolInfo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As SymbolInfo Implements ISemanticFacts.GetCollectionInitializerSymbolInfo
+            Return semanticModel.GetCollectionInitializerSymbolInfo(DirectCast(node, ExpressionSyntax), cancellationToken)
         End Function
 
         Public Function GetGetAwaiterMethod(model As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFacts.GetGetAwaiterMethod
@@ -277,6 +280,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInExpressionTree
             Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
+        End Function
+
+        Public Function GenerateNameForExpression(semanticModel As SemanticModel,
+                                                  expression As SyntaxNode,
+                                                  capitalize As Boolean,
+                                                  cancellationToken As CancellationToken) As String Implements ISemanticFacts.GenerateNameForExpression
+            Return semanticModel.GenerateNameForExpression(
+                DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
         End Function
     End Class
 End Namespace

@@ -2897,6 +2897,283 @@ End Class
         End Sub
 
         <Fact()>
+        Public Sub TestOptionalParameterValue_Enum()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+Imports Microsoft.VisualBasic
+
+Enum E
+    A = 1
+    B = 2
+    C = 4
+End Enum
+
+Class C
+    Sub M(Optional a As E = 0, Optional b As E = 1, Optional c As E = 2)
+    End Sub
+End Class
+            </file>
+</compilation>
+
+            Dim findSymbol =
+                Function(globalns As NamespaceSymbol) globalns _
+                    .GetMember(Of NamedTypeSymbol)("C") _
+                    .GetMember(Of MethodSymbol)("M")
+
+            Dim format = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters,
+                parameterOptions:=
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut Or
+                    SymbolDisplayParameterOptions.IncludeType Or
+                    SymbolDisplayParameterOptions.IncludeName Or
+                    SymbolDisplayParameterOptions.IncludeDefaultValue)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "M(a As E = 0, b As E = A, c As E = B)",
+                {
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NumericLiteral,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation
+                })
+        End Sub
+
+        <Fact()>
+        Public Sub TestOptionalParameterValue_FlagsEnum()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+Imports Microsoft.VisualBasic
+&lt;System.FlagsAttribute&gt;
+Enum E
+    A = 1
+    B = 2
+    C = 4
+    D = A Or B Or C
+End Enum
+
+Class C
+    Sub M(Optional a As E = 0, Optional b As E = E.A, Optional c As E = E.A Or E.B, Optional d As E = E.A Or E.B Or E.C)
+    End Sub
+End Class
+            </file>
+</compilation>
+
+            Dim findSymbol =
+                Function(globalns As NamespaceSymbol) globalns _
+                    .GetMember(Of NamedTypeSymbol)("C") _
+                    .GetMember(Of MethodSymbol)("M")
+
+            Dim format = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters,
+                parameterOptions:=
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut Or
+                    SymbolDisplayParameterOptions.IncludeType Or
+                    SymbolDisplayParameterOptions.IncludeName Or
+                    SymbolDisplayParameterOptions.IncludeDefaultValue)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "M(a As E = 0, b As E = A, c As E = A Or B, d As E = D)",
+                {
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NumericLiteral,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation
+                })
+        End Sub
+
+        <Fact()>
+        Public Sub TestOptionalParameterValue_NullableEnum()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+Imports Microsoft.VisualBasic
+&lt;System.FlagsAttribute&gt;
+Enum E
+    A = 1
+    B = 2
+    C = 4
+    D = A Or B Or C
+End Enum
+
+Class C
+    Sub M(Optional a As E? = 0, Optional b As E? = E.A, Optional c As E? = E.A Or E.B, Optional d As E? = E.A Or E.B Or E.C, Optional e As E? = Nothing)
+    End Sub
+End Class
+            </file>
+</compilation>
+
+            Dim findSymbol =
+                Function(globalns As NamespaceSymbol) globalns _
+                    .GetMember(Of NamedTypeSymbol)("C") _
+                    .GetMember(Of MethodSymbol)("M")
+
+            Dim format = New SymbolDisplayFormat(
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters,
+                parameterOptions:=
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut Or
+                    SymbolDisplayParameterOptions.IncludeType Or
+                    SymbolDisplayParameterOptions.IncludeName Or
+                    SymbolDisplayParameterOptions.IncludeDefaultValue)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "M(a As E? = 0, b As E? = A, c As E? = A Or B, d As E? = D, e As E? = Nothing)",
+                {
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NumericLiteral,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumMemberName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation
+                })
+        End Sub
+
+        <Fact()>
         Public Sub TestOptionalParameterValue_InvariantCulture1()
             Dim text =
 <compilation>
@@ -5407,6 +5684,294 @@ class Program
                 SymbolDisplayPartKind.StructName)
         End Sub
 
+        <Fact, WorkItem(38783, "https://github.com/dotnet/roslyn/issues/38783")>
+        Public Sub Operator1()
+            Dim source = "
+                class Program
+                    sub M()
+                        dim x = 1 = 1
+                    end sub
+                end class
+                "
+
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim binaryExpression = tree.GetRoot().DescendantNodes().OfType(Of BinaryExpressionSyntax)().Single()
+            Dim op = model.GetSymbolInfo(binaryExpression).Symbol
+
+            ' When asking for metadata names, this should show up as a method-name.
+            Verify(op.ToDisplayParts(SymbolDisplayFormat.TestFormat),
+                "Function System.Int32.op_Equality(left As System.Int32, right As System.Int32) As System.Boolean",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.MethodName, ' should be MethodName because of 'op_Equality'
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.StructName)
+
+            Dim ideFormat = New SymbolDisplayFormat(
+                globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+                memberOptions:=
+                    SymbolDisplayMemberOptions.IncludeRef Or
+                    SymbolDisplayMemberOptions.IncludeType Or
+                    SymbolDisplayMemberOptions.IncludeParameters Or
+                    SymbolDisplayMemberOptions.IncludeContainingType,
+                kindOptions:=
+                    SymbolDisplayKindOptions.IncludeMemberKeyword,
+                propertyStyle:=
+                    SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+                parameterOptions:=
+                    SymbolDisplayParameterOptions.IncludeName Or
+                    SymbolDisplayParameterOptions.IncludeType Or
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut Or
+                    SymbolDisplayParameterOptions.IncludeExtensionThis Or
+                    SymbolDisplayParameterOptions.IncludeDefaultValue Or
+                    SymbolDisplayParameterOptions.IncludeOptionalBrackets,
+                localOptions:=
+                    SymbolDisplayLocalOptions.IncludeRef Or
+                    SymbolDisplayLocalOptions.IncludeType,
+                miscellaneousOptions:=
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes Or
+                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName Or
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier Or
+                    SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral Or
+                    SymbolDisplayMiscellaneousOptions.CollapseTupleTypes)
+
+            ' When not asking for metadata names, this should show up as an operator.
+            Verify(op.ToDisplayParts(ideFormat),
+                "Operator Integer.=(left As Integer, right As Integer) As Boolean",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.Operator, ' Should be Operator due to '='
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
+
+            source = "
+                class Program
+                    sub M()
+                        dim x = true and false
+                    end sub
+                end class
+                "
+
+            comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            tree = comp.SyntaxTrees(0)
+            model = comp.GetSemanticModel(tree)
+            binaryExpression = tree.GetRoot().DescendantNodes().OfType(Of BinaryExpressionSyntax)().Single()
+            op = model.GetSymbolInfo(binaryExpression).Symbol
+
+            ' When asking for metadata names, this should show up as a method-name.
+            Verify(op.ToDisplayParts(SymbolDisplayFormat.TestFormat),
+                "Function System.Boolean.op_BitwiseAnd(left As System.Boolean, right As System.Boolean) As System.Boolean",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.MethodName, ' should be MethodName because of 'op_BitwiseAnd'
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.StructName)
+
+            ' When not asking for metadata names, this should show up as an operator.
+            Verify(op.ToDisplayParts(ideFormat),
+                "Operator Boolean.And(left As Boolean, right As Boolean) As Boolean",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.Keyword, ' Should be Keyword due to 'And'
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
+        End sub
+
+        <Fact>
+        Public Sub UseLongHandValueTuple()
+            Dim source =
+"
+class B
+    shared function F1(t as (integer, integer)()) as (integer, (string, long))
+        return nothing
+    end function
+end class"
+            Dim comp = CreateCompilation(source)
+            Dim formatWithoutLongHandValueTuple = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeModifiers,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            Dim formatWithLongHandValueTuple = formatWithoutLongHandValueTuple.AddMiscellaneousOptions(
+                SymbolDisplayMiscellaneousOptions.ExpandValueTuple)
+
+            Dim method = comp.GetMember(Of MethodSymbol)("B.F1")
+
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutLongHandValueTuple),
+                "Shared F1(t As (Integer, Integer)()) As (Integer, (String, Long))",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation)
+
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithLongHandValueTuple),
+                "Shared F1(t As ValueTuple(Of Integer, Integer)()) As ValueTuple(Of Integer, ValueTuple(Of String, Long))",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation)
+        End Sub
+
 #Region "Helpers"
 
         Private Shared Sub TestSymbolDescription(
@@ -5477,7 +6042,7 @@ class Program
         End Sub
 
         Private Shared Function Verify(parts As ImmutableArray(Of SymbolDisplayPart), expectedText As String, ParamArray kinds As SymbolDisplayPartKind()) As ImmutableArray(Of SymbolDisplayPart)
-            Assert.Equal(expectedText, parts.ToDisplayString())
+            AssertEx.Equal(expectedText, parts.ToDisplayString())
 
             If (kinds.Length > 0) Then
                 AssertEx.Equal(kinds, parts.Select(Function(p) p.Kind), itemInspector:=Function(p) $"                SymbolDisplayPartKind.{p}")

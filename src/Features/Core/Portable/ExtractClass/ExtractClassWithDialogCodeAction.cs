@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 _selectedType.GetAttributes(),
                 _selectedType.DeclaredAccessibility,
-                _selectedType.GetSymbolModifiers(),
+                _selectedType.GetSymbolModifiers().WithIsSealed(false),
                 _selectedType.IsRecord,
                 TypeKind.Class,
                 extractClassOptions.TypeName,

@@ -257,6 +257,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitSourceDocumentIndex((BoundSourceDocumentIndex)expression);
                     break;
 
+                case BoundKind.LocalId:
+                    Debug.Assert(used);
+                    EmitLocalIdExpression((BoundLocalId)expression);
+                    break;
+
+                case BoundKind.ParameterId:
+                    Debug.Assert(used);
+                    EmitParameterIdExpression((BoundParameterId)expression);
+                    break;
+
                 case BoundKind.MethodInfo:
                     if (used)
                     {
@@ -365,7 +375,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EmitExpression(expression.ReferenceTypeReceiver, used);
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
-            _builder.AdjustStack(-1);
+
+            if (used)
+            {
+                _builder.AdjustStack(-1);
+            }
 
             _builder.MarkLabel(whenValueTypeLabel);
             EmitExpression(expression.ValueTypeReceiver, used);
@@ -412,7 +426,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                                    ((TypeParameterSymbol)receiverType).EffectiveInterfacesNoUseSiteDiagnostics.IsEmpty) || // This could be a nullable value type, which must be copied in order to not mutate the original value
                                    LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
-                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
+                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol)) ||
+                                   (notConstrained && IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker.Analyze(expression));
 
             // ===== RECEIVER
             if (nullCheckOnCopy)
@@ -561,6 +576,64 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (receiverTemp != null)
             {
                 FreeTemp(receiverTemp);
+            }
+        }
+
+        /// <summary>
+        /// We must use a temp when there is a chance that evaluation of the call arguments
+        /// could actually modify value of the reference type reciever. The call must use
+        /// the original (unmodified) receiver.
+        /// </summary>
+        private sealed class IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private readonly BoundLoweredConditionalAccess _conditionalAccess;
+            private bool? _result;
+
+            private IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker(BoundLoweredConditionalAccess conditionalAccess)
+            {
+                _conditionalAccess = conditionalAccess;
+            }
+
+            public static bool Analyze(BoundLoweredConditionalAccess conditionalAccess)
+            {
+                var walker = new IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker(conditionalAccess);
+                walker.Visit(conditionalAccess.WhenNotNull);
+                Debug.Assert(walker._result.HasValue);
+                return walker._result.GetValueOrDefault();
+            }
+
+            public override BoundNode Visit(BoundNode node)
+            {
+                if (_result.HasValue)
+                {
+                    return null;
+                }
+
+                return base.Visit(node);
+            }
+
+            public override BoundNode VisitCall(BoundCall node)
+            {
+                if (node.ReceiverOpt is BoundConditionalReceiver { Id: var id } && id == _conditionalAccess.Id)
+                {
+                    Debug.Assert(!_result.HasValue);
+                    _result = !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(node.Arguments);
+                    return null;
+                }
+
+                return base.VisitCall(node);
+            }
+
+            public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
+            {
+                if (node.Id == _conditionalAccess.Id)
+                {
+                    Debug.Assert(!_result.HasValue);
+                    _result = false;
+                    return null;
+                }
+
+                return base.VisitConditionalReceiver(node);
             }
         }
 
@@ -1809,7 +1882,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (receiver is
                     BoundLocal { LocalSymbol.IsKnownToReferToTempIfReferenceType: true } or
-                    BoundComplexConditionalReceiver)
+                    BoundComplexConditionalReceiver or
+                    BoundConditionalReceiver { Type: { IsReferenceType: false, IsValueType: false } })
             {
                 return true;
             }
@@ -3244,6 +3318,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var symbol = node.Method.PartialDefinitionPart ?? node.Method;
 
             EmitSymbolToken(symbol, node.Syntax, null, encodeAsRawDefinitionToken: true);
+        }
+
+        private void EmitLocalIdExpression(BoundLocalId node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+
+            if (node.HoistedField is null)
+            {
+                _builder.EmitIntConstant(GetLocal(node.Local).SlotIndex);
+            }
+            else
+            {
+                EmitHoistedVariableId(node.HoistedField, node.Syntax);
+            }
+        }
+
+        private void EmitParameterIdExpression(BoundParameterId node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+
+            if (node.HoistedField is null)
+            {
+                _builder.EmitIntConstant(node.Parameter.Ordinal);
+            }
+            else
+            {
+                EmitHoistedVariableId(node.HoistedField, node.Syntax);
+            }
+        }
+
+        private void EmitHoistedVariableId(FieldSymbol field, SyntaxNode syntax)
+        {
+            Debug.Assert(field.IsDefinition);
+            var fieldRef = _module.Translate(field, syntax, _diagnostics.DiagnosticBag, needDeclaration: true);
+
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            _builder.EmitToken(fieldRef, syntax, _diagnostics.DiagnosticBag, Cci.MetadataWriter.RawTokenEncoding.LiftedVariableId);
         }
 
         private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)

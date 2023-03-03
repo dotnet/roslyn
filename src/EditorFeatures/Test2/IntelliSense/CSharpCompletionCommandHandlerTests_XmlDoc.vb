@@ -786,6 +786,44 @@ record R(int I);
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function CommitParam_Class(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+/// <param$$
+class R(int I);
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""I""")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <param name="I"$$
+                Await state.AssertLineTextAroundCaret("/// <param name=""I""", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function CommitParam_Struct(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+/// <param$$
+struct R(int I);
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""I""")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <param name="I"$$
+                Await state.AssertLineTextAroundCaret("/// <param name=""I""", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitParamNoOpenAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
