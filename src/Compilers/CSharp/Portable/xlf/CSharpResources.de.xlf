@@ -1908,13 +1908,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
-        <source>The '&amp;' operator should not be used in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used in async methods.</target>
+        <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
+        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync_Title">
-        <source>The '&amp;' operator should not be used in async methods.</source>
-        <target state="new">The '&amp;' operator should not be used in async methods.</target>
+        <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
+        <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">

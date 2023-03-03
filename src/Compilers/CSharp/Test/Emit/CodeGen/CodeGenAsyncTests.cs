@@ -901,10 +901,10 @@ class Driver
 
             var diagnostics = new[]
             {
-                // (12,29): warning CS9105: The '&' operator should not be used in async methods.
+                // (12,29): warning CS9105: The '&' operator should not be used on parameters or local variables in async methods.
                 //             Console.Write(*&x);
                 Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(12, 29),
-                // (17,29): warning CS9105: The '&' operator should not be used in async methods.
+                // (17,29): warning CS9105: The '&' operator should not be used on parameters or local variables in async methods.
                 //             Console.Write(*&x);
                 Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(17, 29)
             };
@@ -924,6 +924,7 @@ class Driver
             void releaseSymbolValidator(ModuleSymbol module)
             {
                 var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program.<Main>d__0");
+                // Test that there is no state-machine field based on 'x'.
                 Assert.Empty(stateMachine.GetMembers().Where(m => m.Name.StartsWith("<x>")));
             }
         }
@@ -958,17 +959,17 @@ class Driver
 
             var diagnostics = new[]
             {
-                // (12,29): warning CS9105: The '&' operator should not be used in async methods.
+                // (12,29): warning CS9105: The '&' operator should not be used on parameters or local variables in async methods.
                 //             Console.Write(*&x);
                 Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(12, 29),
-                // (19,29): warning CS9105: The '&' operator should not be used in async methods.
+                // (19,29): warning CS9105: The '&' operator should not be used on parameters or local variables in async methods.
                 //             Console.Write(*&x);
                 Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(19, 29)
             };
 
             CompileAndVerify(source, options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "11", symbolValidator: debugSymbolValidator, verify: Verification.Fails)
                 .VerifyDiagnostics(diagnostics);
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "11", symbolValidator: releaseSymbolValidator, verify: Verification.Fails)
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "10", symbolValidator: releaseSymbolValidator, verify: Verification.Fails)
                 .VerifyDiagnostics(diagnostics);
 
             void debugSymbolValidator(ModuleSymbol module)
@@ -981,8 +982,8 @@ class Driver
             void releaseSymbolValidator(ModuleSymbol module)
             {
                 var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program.<Main>d__0");
-                var hoistedField = stateMachine.GetMember<FieldSymbol>("<x>5__2");
-                Assert.Equal(SpecialType.System_Int64, hoistedField.Type.SpecialType);
+                // Test that there is no state-machine field based on 'x'.
+                Assert.Empty(stateMachine.GetMembers().Where(m => m.Name.StartsWith("<x>")));
             }
         }
 
@@ -994,42 +995,68 @@ class Driver
 
                 class Program
                 {
-                    int field;
+                    int F;
 
                     public static unsafe async Task Main()
                     {
                         Program prog = new Program();
-                        fixed (int* ptr = &prog.field) { }
+                        int* ptr = &prog.F; // 1
+                        fixed (int* ptr1 = &prog.F) { }
 
                         int local = 0;
-                        fixed (int* localPtr = &local) { }
+                        int* localPtr = &local; // 2
+                        fixed (int* localPtr1 = &local) { } // 3, 4
 
-                        await Task.Delay(1);
+                        S structLocal = default;
+                        int* innerPtr = &structLocal.F; // 5
+                        fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
+
+                        await Task.Delay(1); // 8
                     }
                 }
+
+                struct S { public int F; }
                 """;
 
             CreateCompilation(source, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-                // (10,28): warning CS9105: The '&' operator should not be used in async methods.
-                //         fixed (int* ptr = &prog.field) { }
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "prog.field").WithLocation(10, 28),
-                // (13,32): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
-                //         fixed (int* localPtr = &local) { }
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(13, 32),
-                // (13,33): warning CS9105: The '&' operator should not be used in async methods.
-                //         fixed (int* localPtr = &local) { }
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(13, 33),
-                // (15,9): error CS4004: Cannot await in an unsafe context
-                //         await Task.Delay(1);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(15, 9));
+                // (10,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* ptr = &prog.F; // 1
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(10, 20),
+                // (14,26): warning CS9105: The '&' operator should not be used on parameters or local variables in async methods.
+                //         int* localPtr = &local; // 2
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(14, 26),
+                // (15,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* localPtr1 = &local) { } // 3, 4
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(15, 33),
+                // (15,34): warning CS9105: The '&' operator should not be used on parameters or local variables in async methods.
+                //         fixed (int* localPtr1 = &local) { } // 3, 4
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(15, 34),
+                // (18,26): warning CS9105: The '&' operator should not be used on parameters or local variables in async methods.
+                //         int* innerPtr = &structLocal.F; // 5
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal").WithLocation(18, 26),
+                // (19,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(19, 33),
+                // (19,34): warning CS9105: The '&' operator should not be used on parameters or local variables in async methods.
+                //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal").WithLocation(19, 34),
+                // (21,9): error CS4004: Cannot await in an unsafe context
+                //         await Task.Delay(1); // 8
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(21, 9));
 
             CreateCompilation(source, options: TestOptions.UnsafeDebugExe.WithWarningLevel(7)).VerifyDiagnostics(
-                // (13,32): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
-                //         fixed (int* localPtr = &local) { }
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(13, 32),
-                // (15,9): error CS4004: Cannot await in an unsafe context
-                //         await Task.Delay(1);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(15, 9));
+                // (10,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* ptr = &prog.F; // 1
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(10, 20),
+                // (15,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* localPtr1 = &local) { } // 3, 4
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(15, 33),
+                // (19,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(19, 33),
+                // (21,9): error CS4004: Cannot await in an unsafe context
+                //         await Task.Delay(1); // 8
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(21, 9));
         }
 
         [Fact]

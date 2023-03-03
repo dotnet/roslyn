@@ -317,13 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
-        {
-            CheckAssigned(node.Operand, node.Operand.Syntax);
-            base.VisitAddressOfOperator(node);
-            return null;
-        }
-
         private sealed class OutsideVariablesUsedInside : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             private readonly HashSet<Symbol> _localsInScope;

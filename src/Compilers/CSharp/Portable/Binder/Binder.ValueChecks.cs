@@ -812,6 +812,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckLocalValueKind(SyntaxNode node, BoundLocal local, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+            if ((valueKind & BindValueKind.AddressOf) != 0 && this.IsInAsyncMethod())
+            {
+                diagnostics.Add(ErrorCode.WRN_AddressOfInAsync, local.Syntax.Location);
+            }
+
             // Local constants are never variables. Local variables are sometimes
             // not to be treated as variables, if they are fixed, declared in a using, 
             // or declared in a foreach.
@@ -900,7 +905,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+            if ((valueKind & BindValueKind.AddressOf) != 0 && this.IsInAsyncMethod())
+            {
+                Error(diagnostics, ErrorCode.WRN_AddressOfInAsync, node);
+            }
+
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
+            if (this.LockedOrDisposedVariables.Contains(parameterSymbol))
+            {
+                // Consider: It would be more conventional to pass "symbol" rather than "symbol.Name".
+                // The issue is that the error SymbolDisplayFormat doesn't display parameter
+                // names - only their types - which works great in signatures, but not at all
+                // at the top level.
+                diagnostics.Add(ErrorCode.WRN_AssignmentToLockOrDispose, parameter.Syntax.Location, parameterSymbol.Name);
+            }
 
             // all parameters can be passed by ref/out or assigned to
             // except "in" parameters, which are readonly
@@ -913,15 +931,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
                 return false;
-            }
-
-            if (this.LockedOrDisposedVariables.Contains(parameterSymbol))
-            {
-                // Consider: It would be more conventional to pass "symbol" rather than "symbol.Name".
-                // The issue is that the error SymbolDisplayFormat doesn't display parameter
-                // names - only their types - which works great in signatures, but not at all
-                // at the top level.
-                diagnostics.Add(ErrorCode.WRN_AssignmentToLockOrDispose, parameter.Syntax.Location, parameterSymbol.Name);
             }
 
             return true;
