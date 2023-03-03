@@ -331,6 +331,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <!-- We should try to keep this version in sync with the version of app-local runtime in VS. -->
-    <MicrosoftNetCoreAppPackagesVersion>6.0.6</MicrosoftNetCoreAppPackagesVersion>
+    <MicrosoftNetCoreAppPackagesVersion>6.0.14</MicrosoftNetCoreAppPackagesVersion>
   </PropertyGroup>
 </Project>
