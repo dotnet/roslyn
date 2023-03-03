@@ -30,6 +30,7 @@ try {
   }
 
   $ci = $true
+  throw "oh no things aren't working :("
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
