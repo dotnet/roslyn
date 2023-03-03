@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             IList<TypeKindOptions> assertTypeKindAbsent = null,
             bool isCancelled = false)
         {
-            var workspace = TestWorkspace.IsWorkspaceElement(initial)
+            using var workspace = TestWorkspace.IsWorkspaceElement(initial)
                 ? TestWorkspace.Create(initial, composition: s_composition)
                 : languageName == LanguageNames.CSharp
                   ? TestWorkspace.CreateCSharp(initial, composition: s_composition)
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var testOptions = new TestParameters();
             var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(workspace, testOptions);
 
-            using var testState = new GenerateTypeTestState(workspace, projectToBeModified: projectName, typeName, existingFilename);
+            var testState = new GenerateTypeTestState(workspace, projectToBeModified: projectName, typeName, existingFilename);
 
             // Initialize the viewModel values
             testState.TestGenerateTypeOptionsService.SetGenerateTypeOptions(
@@ -102,7 +103,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var action = fixActions.ElementAt(index);
 
             Assert.Equal(action.Title, FeaturesResources.Generate_new_type);
-            var operations = await action.GetOperationsAsync(CancellationToken.None);
+            var operations = await action.GetOperationsAsync(
+                workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
             Tuple<Solution, Solution> oldSolutionAndNewSolution = null;
 
             if (!isNewFile)

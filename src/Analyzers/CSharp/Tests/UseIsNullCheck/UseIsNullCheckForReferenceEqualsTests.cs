@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -36,42 +34,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
         public async Task TestIdentifierName()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if ([||]ReferenceEquals(s, null))
-            return;
-    }
-}",
-@"using System;
+                class C
+                {
+                    void M(string s)
+                    {
+                        if ([||]ReferenceEquals(s, null))
+                            return;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (s is null)
-            return;
-    }
-}");
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is null)
+                            return;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
         public async Task TestIsNullTitle()
         {
             await TestExactActionSetOfferedAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if ([||]ReferenceEquals(s, null))
-            return;
-    }
-}",
+                class C
+                {
+                    void M(string s)
+                    {
+                        if ([||]ReferenceEquals(s, null))
+                            return;
+                    }
+                }
+                """,
 new[] { CSharpAnalyzersResources.Use_is_null_check });
         }
 
@@ -79,16 +83,18 @@ new[] { CSharpAnalyzersResources.Use_is_null_check });
         public async Task TestIsObjectTitle()
         {
             await TestExactActionSetOfferedAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (![||]ReferenceEquals(s, null))
-            return;
-    }
-}",
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (![||]ReferenceEquals(s, null))
+                            return;
+                    }
+                }
+                """,
 new[] { CSharpAnalyzersResources.Use_is_object_check },
 new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
@@ -97,16 +103,18 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
         public async Task TestIsNotNullTitle()
         {
             await TestExactActionSetOfferedAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (![||]ReferenceEquals(s, null))
-            return;
-    }
-}",
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (![||]ReferenceEquals(s, null))
+                            return;
+                    }
+                }
+                """,
 new[] { CSharpAnalyzersResources.Use_is_not_null_check },
 new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
         }
@@ -115,501 +123,543 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
         public async Task TestBuiltInType()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (object.[||]ReferenceEquals(s, null))
-            return;
-    }
-}",
-@"using System;
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (object.[||]ReferenceEquals(s, null))
+                            return;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (s is null)
-            return;
-    }
-}");
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is null)
+                            return;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNamedType()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (Object.[||]ReferenceEquals(s, null))
-            return;
-    }
-}",
-@"using System;
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (Object.[||]ReferenceEquals(s, null))
+                            return;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (s is null)
-            return;
-    }
-}");
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is null)
+                            return;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestReversed()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if ([||]ReferenceEquals(null, s))
-            return;
-    }
-}",
-@"using System;
+                class C
+                {
+                    void M(string s)
+                    {
+                        if ([||]ReferenceEquals(null, s))
+                            return;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (s is null)
-            return;
-    }
-}");
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is null)
+                            return;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNegated_CSharp7()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (![||]ReferenceEquals(null, s))
-            return;
-    }
-}",
-@"using System;
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (![||]ReferenceEquals(null, s))
+                            return;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (s is object)
-            return;
-    }
-}", new TestParameters(parseOptions: CSharp7));
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is object)
+                            return;
+                    }
+                }
+                """, new TestParameters(parseOptions: CSharp7));
         }
 
         [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task TestNegated_CSharp9()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (![||]ReferenceEquals(null, s))
-            return;
-    }
-}",
-@"using System;
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (![||]ReferenceEquals(null, s))
+                            return;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if (s is not null)
-            return;
-    }
-}", new TestParameters(parseOptions: CSharp9));
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is not null)
+                            return;
+                    }
+                }
+                """, new TestParameters(parseOptions: CSharp9));
         }
 
         [Fact]
         public async Task TestNotInCSharp6()
         {
             await TestMissingAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s)
-    {
-        if ([||]ReferenceEquals(null, s))
-            return;
-    }
-}", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
+                class C
+                {
+                    void M(string s)
+                    {
+                        if ([||]ReferenceEquals(null, s))
+                            return;
+                    }
+                }
+                """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
         [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s1, string s2)
-    {
-        if ({|FixAllInDocument:ReferenceEquals|}(s1, null) ||
-            ReferenceEquals(s2, null))
-            return;
-    }
-}",
-@"using System;
+                class C
+                {
+                    void M(string s1, string s2)
+                    {
+                        if ({|FixAllInDocument:ReferenceEquals|}(s1, null) ||
+                            ReferenceEquals(s2, null))
+                            return;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M(string s1, string s2)
-    {
-        if (s1 is null ||
-            s2 is null)
-            return;
-    }
-}");
+                class C
+                {
+                    void M(string s1, string s2)
+                    {
+                        if (s1 is null ||
+                            s2 is null)
+                            return;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestFixAll2()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s1, string s2)
-    {
-        if (ReferenceEquals(s1, null) ||
-            {|FixAllInDocument:ReferenceEquals|}(s2, null))
-            return;
-    }
-}",
-@"using System;
+                class C
+                {
+                    void M(string s1, string s2)
+                    {
+                        if (ReferenceEquals(s1, null) ||
+                            {|FixAllInDocument:ReferenceEquals|}(s2, null))
+                            return;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M(string s1, string s2)
-    {
-        if (s1 is null ||
-            s2 is null)
-            return;
-    }
-}");
+                class C
+                {
+                    void M(string s1, string s2)
+                    {
+                        if (s1 is null ||
+                            s2 is null)
+                            return;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         public async Task TestValueParameterTypeIsUnconstrainedGeneric_CSharp7()
         {
             await TestInRegularAndScript1Async(
-@"
-class C
-{
-    public static void NotNull<T>(T value)
-    {
-        if ([||]ReferenceEquals(value, null))
-        {
-            return;
-        }
-    }
-}
-", @"
-class C
-{
-    public static void NotNull<T>(T value)
-    {
-        if (value == null)
-        {
-            return;
-        }
-    }
-}
-", new TestParameters(parseOptions: CSharp7));
+                """
+                class C
+                {
+                    public static void NotNull<T>(T value)
+                    {
+                        if ([||]ReferenceEquals(value, null))
+                        {
+                            return;
+                        }
+                    }
+                }
+                """, """
+                class C
+                {
+                    public static void NotNull<T>(T value)
+                    {
+                        if (value == null)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """, new TestParameters(parseOptions: CSharp7));
         }
 
         [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
         public async Task TestValueParameterTypeIsUnconstrainedGeneric_CSharp8()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    public static void NotNull<T>(T value)
-    {
-        if ({|FixAllInDocument:ReferenceEquals|}(value, null))
-        {
-            return;
-        }
-    }
-}",
-@"using System;
+                class C
+                {
+                    public static void NotNull<T>(T value)
+                    {
+                        if ({|FixAllInDocument:ReferenceEquals|}(value, null))
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public static void NotNull<T>(T value)
-    {
-        if (value is null)
-        {
-            return;
-        }
-    }
-}", new TestParameters(parseOptions: CSharp8));
+                class C
+                {
+                    public static void NotNull<T>(T value)
+                    {
+                        if (value is null)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """, new TestParameters(parseOptions: CSharp8));
         }
 
         [Fact]
         public async Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp7()
         {
             await TestInRegularAndScript1Async(
-@"
-class C
-{
-    public static void NotNull<T>(T value)
-    {
-        if (![||]ReferenceEquals(value, null))
-        {
-            return;
-        }
-    }
-}
-", @"
-class C
-{
-    public static void NotNull<T>(T value)
-    {
-        if (value is object)
-        {
-            return;
-        }
-    }
-}
-", new TestParameters(parseOptions: CSharp7));
+                """
+                class C
+                {
+                    public static void NotNull<T>(T value)
+                    {
+                        if (![||]ReferenceEquals(value, null))
+                        {
+                            return;
+                        }
+                    }
+                }
+                """, """
+                class C
+                {
+                    public static void NotNull<T>(T value)
+                    {
+                        if (value is object)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """, new TestParameters(parseOptions: CSharp7));
         }
 
         [Fact]
         public async Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp9()
         {
             await TestInRegularAndScript1Async(
-@"
-class C
-{
-    public static void NotNull<T>(T value)
-    {
-        if (![||]ReferenceEquals(value, null))
-        {
-            return;
-        }
-    }
-}
-", @"
-class C
-{
-    public static void NotNull<T>(T value)
-    {
-        if (value is not null)
-        {
-            return;
-        }
-    }
-}
-", new TestParameters(parseOptions: CSharp9));
+                """
+                class C
+                {
+                    public static void NotNull<T>(T value)
+                    {
+                        if (![||]ReferenceEquals(value, null))
+                        {
+                            return;
+                        }
+                    }
+                }
+                """, """
+                class C
+                {
+                    public static void NotNull<T>(T value)
+                    {
+                        if (value is not null)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """, new TestParameters(parseOptions: CSharp9));
         }
 
         [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         public async Task TestValueParameterTypeIsRefConstraintGeneric()
         {
             await TestInRegularAndScript1Async(
-@"
-class C
-{
-    public static void NotNull<T>(T value) where T:class
-    {
-        if ([||]ReferenceEquals(value, null))
-        {
-            return;
-        }
-    }
-}
-",
-@"
-class C
-{
-    public static void NotNull<T>(T value) where T:class
-    {
-        if (value is null)
-        {
-            return;
-        }
-    }
-}
-");
+                """
+                class C
+                {
+                    public static void NotNull<T>(T value) where T:class
+                    {
+                        if ([||]ReferenceEquals(value, null))
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    public static void NotNull<T>(T value) where T:class
+                    {
+                        if (value is null)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp7()
         {
             await TestInRegularAndScript1Async(
-@"
-class C
-{
-    public static void NotNull<T>(T value) where T:class
-    {
-        if (![||]ReferenceEquals(value, null))
-        {
-            return;
-        }
-    }
-}
-",
-@"
-class C
-{
-    public static void NotNull<T>(T value) where T:class
-    {
-        if (value is object)
-        {
-            return;
-        }
-    }
-}
-", new TestParameters(parseOptions: CSharp7));
+                """
+                class C
+                {
+                    public static void NotNull<T>(T value) where T:class
+                    {
+                        if (![||]ReferenceEquals(value, null))
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    public static void NotNull<T>(T value) where T:class
+                    {
+                        if (value is object)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """, new TestParameters(parseOptions: CSharp7));
         }
 
         [Fact]
         public async Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp9()
         {
             await TestInRegularAndScript1Async(
-@"
-class C
-{
-    public static void NotNull<T>(T value) where T:class
-    {
-        if (![||]ReferenceEquals(value, null))
-        {
-            return;
-        }
-    }
-}
-",
-@"
-class C
-{
-    public static void NotNull<T>(T value) where T:class
-    {
-        if (value is not null)
-        {
-            return;
-        }
-    }
-}
-", new TestParameters(parseOptions: CSharp9));
+                """
+                class C
+                {
+                    public static void NotNull<T>(T value) where T:class
+                    {
+                        if (![||]ReferenceEquals(value, null))
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    public static void NotNull<T>(T value) where T:class
+                    {
+                        if (value is not null)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """, new TestParameters(parseOptions: CSharp9));
         }
 
         [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         public async Task TestValueParameterTypeIsValueConstraintGeneric()
         {
             await TestMissingAsync(
-@"
-class C
-{
-    public static void NotNull<T>(T value) where T:struct
-    {
-        if ([||]ReferenceEquals(value, null))
-        {
-            return;
-        }
-    }
-}
-");
+                """
+                class C
+                {
+                    public static void NotNull<T>(T value) where T:struct
+                    {
+                        if ([||]ReferenceEquals(value, null))
+                        {
+                            return;
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestValueParameterTypeIsValueConstraintGenericNegated()
         {
             await TestMissingAsync(
-@"
-class C
-{
-    public static void NotNull<T>(T value) where T:struct
-    {
-        if (![||]ReferenceEquals(value, null))
-        {
-            return;
-        }
-    }
-}
-");
+                """
+                class C
+                {
+                    public static void NotNull<T>(T value) where T:struct
+                    {
+                        if (![||]ReferenceEquals(value, null))
+                        {
+                            return;
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestFixAllNested1()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void M(string s2)
-    {
-        if ({|FixAllInDocument:ReferenceEquals|}(ReferenceEquals(s2, null), null))
-            return;
-    }
-}",
-@"using System;
+                class C
+                {
+                    void M(string s2)
+                    {
+                        if ({|FixAllInDocument:ReferenceEquals|}(ReferenceEquals(s2, null), null))
+                            return;
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void M(string s2)
-    {
-        if (ReferenceEquals(s2, null) is null)
-            return;
-    }
-}");
+                class C
+                {
+                    void M(string s2)
+                    {
+                        if (ReferenceEquals(s2, null) is null)
+                            return;
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
         public async Task TestValueParameterTypeIsBaseTypeConstraintGeneric()
         {
             await TestInRegularAndScript1Async(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    public static void NotNull<T>(T value) where T:C
-    {
-        if ({|FixAllInDocument:ReferenceEquals|}(value, null))
-        {
-            return;
-        }
-    }
-}",
-@"using System;
+                class C
+                {
+                    public static void NotNull<T>(T value) where T:C
+                    {
+                        if ({|FixAllInDocument:ReferenceEquals|}(value, null))
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    public static void NotNull<T>(T value) where T:C
-    {
-        if (value is null)
-        {
-            return;
-        }
-    }
-}", new TestParameters(parseOptions: CSharp7));
+                class C
+                {
+                    public static void NotNull<T>(T value) where T:C
+                    {
+                        if (value is null)
+                        {
+                            return;
+                        }
+                    }
+                }
+                """, new TestParameters(parseOptions: CSharp7));
         }
     }
 }

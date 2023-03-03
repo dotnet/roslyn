@@ -610,6 +610,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">kaynak koda dönüştürüldü</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deconstruct_locals_for_0">
+        <source>Deconstruct locals for '{0}'</source>
+        <target state="new">Deconstruct locals for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">Etkin bir deyim etrafında {0} öğesini silmek, uygulamanın yeniden başlatılmasını gerektirir.</target>
@@ -4473,11 +4478,6 @@ DateTimeOffset değerleri için "K" biçim belirticisi "zzz" biçim belirticisin
         <target state="translated">Çözümleyici derlemesi {0}: {1} yüklenemiyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Metodu zaman uyumlu hale getir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">Şuradan: {0}</target>
@@ -4638,16 +4638,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Rename_type_to_0">
         <source>Rename type to {0}</source>
         <target state="translated">Tür {0} olarak yeniden adlandır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_tag">
-        <source>Remove tag</source>
-        <target state="translated">Etiketi Kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_param_nodes">
-        <source>Add missing param nodes</source>
-        <target state="translated">Eksik parametre düğümlerini ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">

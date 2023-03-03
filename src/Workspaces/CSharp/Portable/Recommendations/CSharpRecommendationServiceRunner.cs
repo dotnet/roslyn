@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Precedence;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -30,6 +29,15 @@ internal partial class CSharpRecommendationService
             : base(context, filterOutOfScopeLocals, cancellationToken)
         {
         }
+
+        protected override int GetLambdaParameterCount(AnonymousFunctionExpressionSyntax lambdaSyntax)
+            => lambdaSyntax switch
+            {
+                AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.ParameterList?.Parameters.Count ?? -1,
+                ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters.Count,
+                SimpleLambdaExpressionSyntax => 1,
+                _ => throw ExceptionUtilities.UnexpectedValue(lambdaSyntax.Kind()),
+            };
 
         public override RecommendedSymbols GetRecommendedSymbols()
         {

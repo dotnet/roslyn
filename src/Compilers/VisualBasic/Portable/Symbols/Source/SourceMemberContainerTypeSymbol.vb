@@ -1624,7 +1624,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return s_emptyTypeMembers
             End If
 
-            Return children.Select(Function(decl) CreateNestedType(decl)).ToDictionary(
+            Return children.Select(Function(decl) CreateNestedType(decl)).ToMultiDictionary(
                 Function(decl) decl.Name,
                 IdentifierComparison.Comparer)
         End Function

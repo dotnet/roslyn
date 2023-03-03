@@ -283,11 +283,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AssignmentExpressionSyntax _ when token.Kind() == SyntaxKind.EqualsToken => GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>(),
                 ForEachVariableStatementSyntax _ when token.Kind() == SyntaxKind.InKeyword => GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>(),
-                _ => GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols(),
+                _ => GetSymbolInfo(semanticModel, node, token, cancellationToken),
             };
         }
 
-        private static SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        /// <summary>
+        /// Returns the best symbols found that the provided token binds to.  This is similar to <see
+        /// cref="ModelExtensions.GetSymbolInfo(SemanticModel, SyntaxNode, CancellationToken)"/>, but sometimes employs
+        /// heuristics to provide a better result for tokens that users conceptually think bind to things, but which the
+        /// compiler does not necessarily return results for.
+        /// </summary>
+        private static ImmutableArray<ISymbol> GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
             switch (node)
             {
@@ -303,16 +309,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var ordering = orderByClauseSyntax.Orderings[index + 1];
                             if (ordering.AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
-                            {
-                                return semanticModel.GetSymbolInfo(ordering, cancellationToken);
-                            }
+                                return semanticModel.GetSymbolInfo(ordering, cancellationToken).GetBestOrAllSymbols();
                         }
                     }
                     else if (orderByClauseSyntax.Orderings[0].AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
                     {
                         // The first ordering is displayed on the "orderby" keyword itself if there isn't a 
                         // ascending/descending keyword.
-                        return semanticModel.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken);
+                        return semanticModel.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken).GetBestOrAllSymbols();
                     }
 
                     return default;
@@ -326,26 +330,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // In some cases a single clause binds to more than one method. In those cases 
                         // the tokens in the clause determine which of the two SymbolInfos are returned.
                         // See also the proposal at https://github.com/dotnet/roslyn/issues/23394
-                        return token.IsKind(SyntaxKind.InKeyword) ? queryInfo.CastInfo : queryInfo.OperationInfo;
+                        return token.IsKind(SyntaxKind.InKeyword) ? queryInfo.CastInfo.GetBestOrAllSymbols() : queryInfo.OperationInfo.GetBestOrAllSymbols();
                     }
 
                     if (hasCastInfo)
-                    {
-                        return queryInfo.CastInfo;
-                    }
+                        return queryInfo.CastInfo.GetBestOrAllSymbols();
 
-                    return queryInfo.OperationInfo;
+                    return queryInfo.OperationInfo.GetBestOrAllSymbols();
                 case IdentifierNameSyntax { Parent: PrimaryConstructorBaseTypeSyntax baseType }:
-                    return semanticModel.GetSymbolInfo(baseType, cancellationToken);
+                    return semanticModel.GetSymbolInfo(baseType, cancellationToken).GetBestOrAllSymbols();
             }
 
             //Only in the orderby clause a comma can bind to a symbol.
             if (token.IsKind(SyntaxKind.CommaToken))
+                return ImmutableArray<ISymbol>.Empty;
+
+            // If we're on 'var' then asking for the symbol-info will get us the symbol *without* nullability
+            // information. Check for that, and try to return the type with nullability info if it has it.
+            if (node is IdentifierNameSyntax { IsVar: true })
             {
-                return default;
+                var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).GetAnySymbol();
+                var type = semanticModel.GetTypeInfo(node, cancellationToken).Type;
+                if (type != null &&
+                    type.Equals(symbol, SymbolEqualityComparer.Default) &&
+                    !type.Equals(symbol, SymbolEqualityComparer.IncludeNullability))
+                {
+                    return ImmutableArray.Create<ISymbol>(type);
+                }
             }
 
-            return semanticModel.GetSymbolInfo(node, cancellationToken);
+            return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols();
         }
 
         public bool IsInsideNameOfExpression(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)

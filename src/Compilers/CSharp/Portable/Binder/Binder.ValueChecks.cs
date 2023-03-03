@@ -689,15 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var isValueType = ((BoundThisReference)expr).Type.IsValueType;
                     if (!isValueType || (RequiresAssignableVariable(valueKind) && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true))
                     {
-                        var errorCode = GetThisLvalueError(valueKind, isValueType);
-                        if (errorCode is ErrorCode.ERR_InvalidAddrOp or ErrorCode.ERR_IncrementLvalueExpected or ErrorCode.ERR_RefReturnThis or ErrorCode.ERR_RefLocalOrParamExpected or ErrorCode.ERR_RefLvalueExpected)
-                        {
-                            Error(diagnostics, errorCode, node);
-                        }
-                        else
-                        {
-                            Error(diagnostics, errorCode, node, node);
-                        }
+                        ReportThisLvalueError(node, valueKind, isValueType, isPrimaryConstructorParameter: false, diagnostics);
                         return false;
                     }
 
@@ -792,6 +784,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
                 return true;
+            }
+        }
+
+        private static void ReportThisLvalueError(SyntaxNode node, BindValueKind valueKind, bool isValueType, bool isPrimaryConstructorParameter, BindingDiagnosticBag diagnostics)
+        {
+            var errorCode = GetThisLvalueError(valueKind, isValueType, isPrimaryConstructorParameter);
+            if (errorCode is ErrorCode.ERR_InvalidAddrOp or ErrorCode.ERR_IncrementLvalueExpected or ErrorCode.ERR_RefReturnThis or ErrorCode.ERR_RefLocalOrParamExpected or ErrorCode.ERR_RefLvalueExpected)
+            {
+                Error(diagnostics, errorCode, node);
+            }
+            else
+            {
+                Error(diagnostics, errorCode, node, node);
             }
         }
 
@@ -905,6 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(!RequiresAssignableVariable(BindValueKind.AddressOf));
             if ((valueKind & BindValueKind.AddressOf) != 0 && this.IsInAsyncMethod())
             {
                 Error(diagnostics, ErrorCode.WRN_AddressOfInAsync, node);
@@ -933,7 +939,83 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            Debug.Assert(parameterSymbol.RefKind != RefKind.None || !RequiresRefAssignableVariable(valueKind));
+
+            // It is an error to capture 'in', 'ref' or 'out' parameters.
+            // Skipping them to simplify the logic.
+            if (parameterSymbol.RefKind == RefKind.None &&
+                parameterSymbol.ContainingSymbol is SynthesizedPrimaryConstructor primaryConstructor &&
+                primaryConstructor.GetCapturedParameters().TryGetValue(parameterSymbol, out FieldSymbol backingField))
+            {
+                Debug.Assert(backingField.RefKind == RefKind.None);
+                Debug.Assert(!RequiresRefAssignableVariable(valueKind));
+
+                if (backingField.IsReadOnly)
+                {
+                    Debug.Assert(backingField.RefKind == RefKind.None);
+
+                    if (RequiresAssignableVariable(valueKind) &&
+                        !CanModifyReadonlyField(receiverIsThis: true, backingField))
+                    {
+                        reportReadOnlyParameterError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
+                        return false;
+                    }
+                }
+
+                if (RequiresAssignableVariable(valueKind) && !backingField.ContainingType.IsReferenceType && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true)
+                {
+                    ReportThisLvalueError(node, valueKind, isValueType: true, isPrimaryConstructorParameter: true, diagnostics);
+                    return false;
+                }
+            }
+
             return true;
+        }
+
+        static void reportReadOnlyParameterError(ParameterSymbol parameterSymbol, SyntaxNode node, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        {
+            // It's clearer to say that the address can't be taken than to say that the field can't be modified
+            // (even though the latter message gives more explanation of why).
+            Debug.Assert(valueKind != BindValueKind.AddressOf); // If this assert fails, we probably should report ErrorCode.ERR_InvalidAddrOp
+
+            if (checkingReceiver)
+            {
+                ErrorCode errorCode;
+
+                if (valueKind == BindValueKind.RefReturn)
+                {
+                    errorCode = ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter2;
+                }
+                else if (RequiresRefOrOut(valueKind))
+                {
+                    errorCode = ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter2;
+                }
+                else
+                {
+                    errorCode = ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter2;
+                }
+
+                Error(diagnostics, errorCode, node, parameterSymbol);
+            }
+            else
+            {
+                ErrorCode errorCode;
+
+                if (valueKind == BindValueKind.RefReturn)
+                {
+                    errorCode = ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter;
+                }
+                else if (RequiresRefOrOut(valueKind))
+                {
+                    errorCode = ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter;
+                }
+                else
+                {
+                    errorCode = ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter;
+                }
+
+                Error(diagnostics, errorCode, node);
+            }
         }
     }
 
@@ -1039,7 +1121,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CheckFieldValueKind(SyntaxNode node, BoundFieldAccess fieldAccess, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
-            var fieldIsStatic = fieldSymbol.IsStatic;
 
             if (fieldSymbol.IsReadOnly)
             {
@@ -1050,37 +1131,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // S has a mutable field x, then c.f.x is not a variable because c.f is not
                 // writable.
 
-                if (fieldSymbol.RefKind == RefKind.None ? RequiresAssignableVariable(valueKind) : RequiresRefAssignableVariable(valueKind))
+                if ((fieldSymbol.RefKind == RefKind.None ? RequiresAssignableVariable(valueKind) : RequiresRefAssignableVariable(valueKind)) &&
+                    !CanModifyReadonlyField(fieldAccess.ReceiverOpt is BoundThisReference, fieldSymbol))
                 {
-                    var canModifyReadonly = false;
-
-                    Symbol containing = this.ContainingMemberOrLambda;
-                    if ((object)containing != null &&
-                        fieldIsStatic == containing.IsStatic &&
-                        (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
-                        (Compilation.FeatureStrictEnabled
-                            ? TypeSymbol.Equals(fieldSymbol.ContainingType, containing.ContainingType, TypeCompareKind.AllIgnoreOptions)
-                            // We duplicate a bug in the native compiler for compatibility in non-strict mode
-                            : TypeSymbol.Equals(fieldSymbol.ContainingType.OriginalDefinition, containing.ContainingType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions)))
-                    {
-                        if (containing.Kind == SymbolKind.Method)
-                        {
-                            MethodSymbol containingMethod = (MethodSymbol)containing;
-                            MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
-                            canModifyReadonly = (containingMethod.MethodKind == desiredMethodKind) ||
-                                isAssignedFromInitOnlySetterOnThis(fieldAccess.ReceiverOpt);
-                        }
-                        else if (containing.Kind == SymbolKind.Field)
-                        {
-                            canModifyReadonly = true;
-                        }
-                    }
-
-                    if (!canModifyReadonly)
-                    {
-                        ReportReadOnlyFieldError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
-                        return false;
-                    }
+                    ReportReadOnlyFieldError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
+                    return false;
                 }
             }
 
@@ -1108,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (RequiresRefAssignableVariable(valueKind))
             {
-                Debug.Assert(!fieldIsStatic);
+                Debug.Assert(!fieldSymbol.IsStatic);
                 Debug.Assert(valueKind == BindValueKind.RefAssignable);
 
                 switch (fieldSymbol.RefKind)
@@ -1125,19 +1180,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // r/w fields that are static or belong to reference types are writeable and returnable
-            if (fieldIsStatic || fieldSymbol.ContainingType.IsReferenceType)
+            if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
             {
                 return true;
             }
 
             // for other fields defer to the receiver.
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
+        }
 
-            bool isAssignedFromInitOnlySetterOnThis(BoundExpression receiver)
+        private bool CanModifyReadonlyField(bool receiverIsThis, FieldSymbol fieldSymbol)
+        {
+            // A field is writeable unless 
+            // (1) it is readonly and we are not in a constructor or field initializer
+            // (2) the receiver of the field is of value type and is not a variable or object creation expression.
+            // For example, if you have a class C with readonly field f of type S, and
+            // S has a mutable field x, then c.f.x is not a variable because c.f is not
+            // writable.
+
+            var fieldIsStatic = fieldSymbol.IsStatic;
+            var canModifyReadonly = false;
+
+            Symbol containing = this.ContainingMemberOrLambda;
+            if ((object)containing != null &&
+                fieldIsStatic == containing.IsStatic &&
+                (fieldIsStatic || receiverIsThis) &&
+                (Compilation.FeatureStrictEnabled
+                    ? TypeSymbol.Equals(fieldSymbol.ContainingType, containing.ContainingType, TypeCompareKind.AllIgnoreOptions)
+                    // We duplicate a bug in the native compiler for compatibility in non-strict mode
+                    : TypeSymbol.Equals(fieldSymbol.ContainingType.OriginalDefinition, containing.ContainingType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions)))
+            {
+                if (containing.Kind == SymbolKind.Method)
+                {
+                    MethodSymbol containingMethod = (MethodSymbol)containing;
+                    MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
+                    canModifyReadonly = (containingMethod.MethodKind == desiredMethodKind) ||
+                        isAssignedFromInitOnlySetterOnThis(receiverIsThis);
+                }
+                else if (containing.Kind == SymbolKind.Field)
+                {
+                    canModifyReadonly = true;
+                }
+            }
+
+            return canModifyReadonly;
+
+            bool isAssignedFromInitOnlySetterOnThis(bool receiverIsThis)
             {
                 // bad: other.readonlyField = ...
                 // bad: base.readonlyField = ...
-                if (!(receiver is BoundThisReference))
+                if (!receiverIsThis)
                 {
                     return false;
                 }
@@ -2601,7 +2693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, ReadOnlyLocalErrors[index], node, local, cause.Localize());
         }
 
-        private static ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType)
+        private static ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType, bool isPrimaryConstructorParameter)
         {
             switch (kind)
             {
@@ -2620,7 +2712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
-                    return ErrorCode.ERR_RefReturnThis;
+                    return isPrimaryConstructorParameter ? ErrorCode.ERR_RefReturnPrimaryConstructorParameter : ErrorCode.ERR_RefReturnThis;
 
                 case BindValueKind.RefAssignable:
                     return ErrorCode.ERR_RefLocalOrParamExpected;
@@ -2730,11 +2822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // It's clearer to say that the address can't be taken than to say that the field can't be modified
             // (even though the latter message gives more explanation of why).
-            if (kind == BindValueKind.AddressOf)
-            {
-                Error(diagnostics, ErrorCode.ERR_InvalidAddrOp, node);
-                return;
-            }
+            Debug.Assert(kind != BindValueKind.AddressOf); // If this assert fails, we probably should report ErrorCode.ERR_InvalidAddrOp
 
             ErrorCode[] ReadOnlyErrors =
             {

@@ -485,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;
 
                 case BoundKind.Parameter:
+                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
                     return ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
 
                 case BoundKind.FieldAccess:

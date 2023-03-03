@@ -7602,6 +7602,15 @@ record Student(int Id) : $$Person(null, null);
         }
 
         [Fact]
+        public async Task QuickInfoClass_BaseTypeList()
+        {
+            await TestAsync(@"
+class Person(string First, string Last);
+class Student(int Id) : $$Person(null, null);
+", MainDescription("Person.Person(string First, string Last)"));
+        }
+
+        [Fact]
         public async Task QuickInfo_BaseConstructorInitializer()
         {
             await TestAsync(@"
@@ -8623,6 +8632,49 @@ class Program
 }";
             await TestAsync(source,
                 MainDescription($"({FeaturesResources.local_variable}) scoped ref int r"));
+        }
+
+        [Fact, WorkItem(66854, "https://github.com/dotnet/roslyn/issues/66854")]
+        public async Task TestNullableRefTypeVar1()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    void M()
+                    {
+                        object? o = null;
+                        $$var s = (string?)o;
+                    }
+                }
+                """;
+            await TestAsync(source,
+                MainDescription($"class System.String?"));
+        }
+
+        [Fact, WorkItem(66854, "https://github.com/dotnet/roslyn/issues/66854")]
+        public async Task TestNullableRefTypeVar2()
+        {
+            var source = """
+                #nullable disable
+
+                class C
+                {
+                    void M()
+                    {
+                        $$var s = GetNullableString();
+                    }
+
+                    #nullable enable
+
+                    string? GetNullableString() => null;
+
+                    #nullable restore
+                }
+                """;
+            await TestAsync(source,
+                MainDescription($"class System.String"));
         }
     }
 }

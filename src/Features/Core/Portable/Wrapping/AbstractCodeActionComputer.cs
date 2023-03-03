@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                         // Make our code action low priority.  This option will be offered *a lot*, and 
                         // much of  the time will not be something the user particularly wants to do.  
                         // It should be offered after all other normal refactorings.
-                        result.Add(CodeActionWithNestedActions.Create(
+                        result.Add(CodeAction.Create(
                             wrappingActions[0].ParentTitle, sorted,
                             group.IsInlinable, CodeActionPriority.Low));
                     }

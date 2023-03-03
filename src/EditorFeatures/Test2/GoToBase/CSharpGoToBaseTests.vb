@@ -494,5 +494,117 @@ interface I { int [|P|] { get; set; } }")
 
 #End Region
 
+#Region "Constructors"
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain1() As Task
+            Await TestAsync("
+class C
+{
+    public $$C(int i) : this(i.ToString())
+    {
+    }
+
+    public [|C|](string s)
+    {
+    }
+}
+")
+        End Function
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain2() As Task
+            Await TestAsync("
+class Base
+{
+    public [|Base|](string s)
+    {
+    }
+}
+
+class C : Base
+{
+    public $$C(int i) : base(i.ToString())
+    {
+    }
+}
+")
+        End Function
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain3() As Task
+            Await TestAsync("
+class [|Base|]
+{
+}
+
+class C : Base
+{
+    public $$C(int i)
+    {
+    }
+}
+")
+        End Function
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain4() As Task
+            Await TestAsync("
+class Base
+{
+    public [|Base|](int i)
+    {
+    }
+}
+
+class C : Base
+{
+    public $$C(int i) : base(i)
+    {
+    }
+}
+")
+        End Function
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain5() As Task
+            Await TestAsync("
+class Base
+{
+    public [|Base|](int i = 0)
+    {
+    }
+}
+
+class C : Base
+{
+    public $$C(int i)
+    {
+    }
+}
+")
+        End Function
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain6() As Task
+            Await TestAsync("
+class Base
+{
+    public [|Base|](params int[] i)
+    {
+    }
+}
+
+class C : Base
+{
+    public $$C(int i)
+    {
+    }
+}
+")
+        End Function
+
+#End Region
+
     End Class
 End Namespace

@@ -599,5 +599,23 @@ language: LanguageNames.CSharp);
             Assert.NotNull(service);
             Assert.Equal(typeof(DefaultDocumentTextDifferencingService), service.GetType());
         }
+
+        [Fact]
+        [WorkItem(67142, "https://github.com/dotnet/roslyn/pull/67142")]
+        public void TestNotGCRootedOnConstruction()
+        {
+            var composition = FeaturesTestCompositions.Features;
+            var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
+            var adhocWorkspaceReference = ObjectReference.CreateFromFactory(
+                static composition => new AdhocWorkspace(composition.GetHostServices()),
+                composition);
+
+            // Verify the GC can reclaim member for a workspace which has not been disposed.
+            adhocWorkspaceReference.AssertReleased();
+
+            // Keep the export provider alive longer than the workspace to further ensure that the workspace is not GC
+            // rooted within the export provider instance.
+            GC.KeepAlive(exportProvider);
+        }
     }
 }

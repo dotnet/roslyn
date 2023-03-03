@@ -6,6 +6,7 @@ using System;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -17,22 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static readonly CodeStyleOption2<PreferBracesPreference> s_defaultPreferBraces =
             new(PreferBracesPreference.Always, NotificationOption2.Silent);
 
-        private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement =
-            new(value: true, notification: NotificationOption2.Suggestion);
-
-        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement =
-            new(value: true, notification: NotificationOption2.Silent);
-
         public static readonly CSharpSimplifierOptions Default = new();
 
-        [DataMember] public CodeStyleOption2<bool> VarForBuiltInTypes { get; init; } = CodeStyleOption2<bool>.Default;
-        [DataMember] public CodeStyleOption2<bool> VarWhenTypeIsApparent { get; init; } = CodeStyleOption2<bool>.Default;
-        [DataMember] public CodeStyleOption2<bool> VarElsewhere { get; init; } = CodeStyleOption2<bool>.Default;
-        [DataMember] public CodeStyleOption2<bool> PreferSimpleDefaultExpression { get; init; } = s_trueWithSuggestionEnforcement;
-        [DataMember] public CodeStyleOption2<bool> PreferParameterNullChecking { get; init; } = s_trueWithSuggestionEnforcement;
-        [DataMember] public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = s_trueWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> VarForBuiltInTypes { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> VarWhenTypeIsApparent { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> VarElsewhere { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferSimpleDefaultExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferParameterNullChecking { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
         [DataMember] public CodeStyleOption2<PreferBracesPreference> PreferBraces { get; init; } = s_defaultPreferBraces;
-        [DataMember] public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = s_trueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
 
         public CSharpSimplifierOptions()
         {
@@ -48,6 +43,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             AllowEmbeddedStatementsOnSameLine = options.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, fallbackOptions.AllowEmbeddedStatementsOnSameLine);
             PreferBraces = options.GetOption(CSharpCodeStyleOptions.PreferBraces, fallbackOptions.PreferBraces);
             PreferThrowExpression = options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression, fallbackOptions.PreferThrowExpression);
+        }
+
+        public UseVarPreference GetUseVarPreference()
+        {
+            var styleForIntrinsicTypes = this.VarForBuiltInTypes;
+            var styleForApparent = this.VarWhenTypeIsApparent;
+            var styleForElsewhere = this.VarElsewhere;
+
+            var stylePreferences = UseVarPreference.None;
+
+            if (styleForIntrinsicTypes.Value)
+                stylePreferences |= UseVarPreference.ForBuiltInTypes;
+
+            if (styleForApparent.Value)
+                stylePreferences |= UseVarPreference.WhenTypeIsApparent;
+
+            if (styleForElsewhere.Value)
+                stylePreferences |= UseVarPreference.Elsewhere;
+
+            return stylePreferences;
         }
     }
 }

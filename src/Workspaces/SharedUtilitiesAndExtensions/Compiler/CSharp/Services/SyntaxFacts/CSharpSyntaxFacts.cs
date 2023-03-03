@@ -70,6 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public bool SupportsConstantInterpolatedStrings(ParseOptions options)
             => options.LanguageVersion() >= LanguageVersion.CSharp10;
 
+        public bool SupportsTupleDeconstruction(ParseOptions options)
+            => options.LanguageVersion() >= LanguageVersion.CSharp7;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -323,8 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         }
 
         private static PredefinedType GetPredefinedType(SyntaxToken token)
-        {
-            return (SyntaxKind)token.RawKind switch
+            => token.Kind() switch
             {
                 SyntaxKind.BoolKeyword => PredefinedType.Boolean,
                 SyntaxKind.ByteKeyword => PredefinedType.Byte,
@@ -342,9 +344,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 SyntaxKind.CharKeyword => PredefinedType.Char,
                 SyntaxKind.ObjectKeyword => PredefinedType.Object,
                 SyntaxKind.VoidKeyword => PredefinedType.Void,
+                SyntaxKind.IdentifierToken => token.Text switch
+                {
+                    "nint" => PredefinedType.IntPtr,
+                    "nuint" => PredefinedType.UIntPtr,
+                    _ => PredefinedType.None,
+                },
                 _ => PredefinedType.None,
             };
-        }
 
         public bool IsPredefinedOperator(SyntaxToken token)
             => TryGetPredefinedOperator(token, out var actualOperator) && actualOperator != PredefinedOperator.None;
