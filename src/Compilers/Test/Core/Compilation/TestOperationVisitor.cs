@@ -1135,18 +1135,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(operation.ElementValues, operation.ChildOperations);
         }
 
-        public override void VisitCollectionLiteral(ICollectionLiteralOperation operation)
-        {
-            Assert.Equal(OperationKind.CollectionLiteral, operation.Kind);
-            Assert.NotNull(operation.Type);
-            var children = operation.ElementValues;
-            if (operation.CollectionCreation != null)
-            {
-                children = ImmutableArray.Create(operation.CollectionCreation).Concat(children);
-            }
-            AssertEx.Equal(children, operation.ChildOperations);
-        }
-
         private void VisitAssignment(IAssignmentOperation operation)
         {
             AssertEx.Equal(new[] { operation.Target, operation.Value }, operation.ChildOperations);

@@ -571,6 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
+        // PROTOTYPE: Ensure collection literal conversions are not considered standard implicit conversions.
         private static bool IsStandardImplicitConversionFromExpression(ConversionKind kind)
         {
             if (IsStandardImplicitConversionFromType(kind))

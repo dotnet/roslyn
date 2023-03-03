@@ -2183,6 +2183,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion = Conversion.Identity;
                     }
                 }
+                else if (boundExpr is BoundCollectionLiteralExpression { WasTargetTyped: true } convertedCollection)
+                {
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.CollectionLiteral, Conversion: var convertedCollectionConversion })
+                    {
+                        // There was an implicit cast.
+                        type = convertedCollection.NaturalTypeOpt;
+                        convertedType = convertedCollection.Type;
+                        convertedNullability = convertedCollection.TopLevelNullability;
+                        conversion = convertedCollectionConversion.IsValid ? convertedCollectionConversion : Conversion.NoConversion;
+                    }
+                    else
+                    {
+                        Debug.Assert(false); // PROTOTYPE: Are we hitting this path?
+                        // There was an explicit cast on top of this
+                        type = convertedCollection.NaturalTypeOpt;
+                        (convertedType, convertedNullability) = (type, nullability);
+                        conversion = Conversion.Identity;
+                    }
+                }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
                     (convertedType, convertedNullability) = getTypeAndNullability(highestBoundExpr);

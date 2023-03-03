@@ -3620,32 +3620,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Operation { get; }
     }
-    /// <summary>
-    /// Represents a collection literal.
-    /// <para>
-    ///   Current usage:
-    ///   (1) C# collection literal.
-    /// </para>
-    /// </summary>
-    /// <remarks>
-    /// <para>This node is associated with the following operation kinds:</para>
-    /// <list type="bullet">
-    /// <item><description><see cref="OperationKind.CollectionLiteral"/></description></item>
-    /// </list>
-    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.</para>
-    /// </remarks>
-    public interface ICollectionLiteralOperation : IOperation
-    {
-        /// <summary>
-        /// Collection creation.
-        /// </summary>
-        IOperation CollectionCreation { get; }
-        /// <summary>
-        /// Values to initialize collection literal elements.
-        /// </summary>
-        ImmutableArray<IOperation> ElementValues { get; }
-    }
     #endregion
 
     #region Implementations
@@ -10256,73 +10230,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitAttribute(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAttribute(this, argument);
     }
-    internal sealed partial class CollectionLiteralOperation : Operation, ICollectionLiteralOperation
-    {
-        internal CollectionLiteralOperation(IOperation collectionCreation, ImmutableArray<IOperation> elementValues, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
-            : base(semanticModel, syntax, isImplicit)
-        {
-            CollectionCreation = SetParentOperation(collectionCreation, this);
-            ElementValues = SetParentOperation(elementValues, this);
-            Type = type;
-        }
-        public IOperation CollectionCreation { get; }
-        public ImmutableArray<IOperation> ElementValues { get; }
-        internal override int ChildOperationsCount =>
-            (CollectionCreation is null ? 0 : 1) +
-            ElementValues.Length;
-        internal override IOperation GetCurrent(int slot, int index)
-            => slot switch
-            {
-                0 when CollectionCreation != null
-                    => CollectionCreation,
-                1 when index < ElementValues.Length
-                    => ElementValues[index],
-                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
-            };
-        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
-        {
-            switch (previousSlot)
-            {
-                case -1:
-                    if (CollectionCreation != null) return (true, 0, 0);
-                    else goto case 0;
-                case 0:
-                    if (!ElementValues.IsEmpty) return (true, 1, 0);
-                    else goto case 1;
-                case 1 when previousIndex + 1 < ElementValues.Length:
-                    return (true, 1, previousIndex + 1);
-                case 1:
-                case 2:
-                    return (false, 2, 0);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
-            }
-        }
-        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
-        {
-            switch (previousSlot)
-            {
-                case int.MaxValue:
-                    if (!ElementValues.IsEmpty) return (true, 1, ElementValues.Length - 1);
-                    else goto case 1;
-                case 1 when previousIndex > 0:
-                    return (true, 1, previousIndex - 1);
-                case 1:
-                    if (CollectionCreation != null) return (true, 0, 0);
-                    else goto case 0;
-                case 0:
-                case -1:
-                    return (false, -1, 0);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
-            }
-        }
-        public override ITypeSymbol? Type { get; }
-        internal override ConstantValue? OperationConstantValue => null;
-        public override OperationKind Kind => OperationKind.CollectionLiteral;
-        public override void Accept(OperationVisitor visitor) => visitor.VisitCollectionLiteral(this);
-        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCollectionLiteral(this, argument);
-    }
     #endregion
     #region Cloner
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
@@ -10931,11 +10838,6 @@ namespace Microsoft.CodeAnalysis.Operations
             var internalOperation = (AttributeOperation)operation;
             return new AttributeOperation(Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
-        public override IOperation VisitCollectionLiteral(ICollectionLiteralOperation operation, object? argument)
-        {
-            var internalOperation = (CollectionLiteralOperation)operation;
-            return new CollectionLiteralOperation(Visit(internalOperation.CollectionCreation), VisitArray(internalOperation.ElementValues), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
-        }
     }
     #endregion
     
@@ -11075,7 +10977,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation) => DefaultVisit(operation);
         public virtual void VisitUtf8String(IUtf8StringOperation operation) => DefaultVisit(operation);
         public virtual void VisitAttribute(IAttributeOperation operation) => DefaultVisit(operation);
-        public virtual void VisitCollectionLiteral(ICollectionLiteralOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -11212,7 +11113,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitUtf8String(IUtf8StringOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitAttribute(IAttributeOperation operation, TArgument argument) => DefaultVisit(operation, argument);
-        public virtual TResult? VisitCollectionLiteral(ICollectionLiteralOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }

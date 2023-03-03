@@ -2001,7 +2001,6 @@ endRegion:
                 case OperationKind.ListPattern:
                 case OperationKind.ImplicitIndexerReference:
                 case OperationKind.Attribute:
-                case OperationKind.CollectionLiteral:
                     return true;
             }
 

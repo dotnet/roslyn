@@ -491,6 +491,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundArrayOrSpanCollectionLiteralExpression(
                     syntax,
                     spanConstructor,
+                    naturalTypeOpt: null, // PROTOTYPE: Support natural type.
+                    wasTargetTyped: true, // PROTOTYPE: Support natural type.
                     implicitReceiver,
                     builder.ToImmutableAndFree(),
                     targetType)
@@ -538,6 +540,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundCollectionInitializerCollectionLiteralExpression(
                     syntax,
                     collectionCreation,
+                    naturalTypeOpt: null, // PROTOTYPE: Support natural type.
+                    wasTargetTyped: true, // PROTOTYPE: Support natural type.
                     implicitReceiver,
                     builder.ToImmutableAndFree(),
                     targetType)

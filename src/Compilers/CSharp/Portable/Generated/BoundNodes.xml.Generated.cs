@@ -6150,7 +6150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundCollectionLiteralExpression : BoundExpression
     {
-        protected BoundCollectionLiteralExpression(BoundKind kind, SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+        protected BoundCollectionLiteralExpression(BoundKind kind, SyntaxNode syntax, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
             : base(kind, syntax, type, hasErrors)
         {
 
@@ -6158,19 +6158,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
+            this.NaturalTypeOpt = naturalTypeOpt;
+            this.WasTargetTyped = wasTargetTyped;
             this.Placeholder = placeholder;
             this.Initializers = initializers;
         }
 
         public new TypeSymbol Type => base.Type!;
+        public TypeSymbol? NaturalTypeOpt { get; }
+        public bool WasTargetTyped { get; }
         public BoundObjectOrCollectionValuePlaceholder Placeholder { get; }
         public ImmutableArray<BoundExpression> Initializers { get; }
     }
 
     internal sealed partial class BoundArrayOrSpanCollectionLiteralExpression : BoundCollectionLiteralExpression
     {
-        public BoundArrayOrSpanCollectionLiteralExpression(SyntaxNode syntax, MethodSymbol? spanConstructor, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ArrayOrSpanCollectionLiteralExpression, syntax, placeholder, initializers, type, hasErrors || placeholder.HasErrors() || initializers.HasErrors())
+        public BoundArrayOrSpanCollectionLiteralExpression(SyntaxNode syntax, MethodSymbol? spanConstructor, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ArrayOrSpanCollectionLiteralExpression, syntax, naturalTypeOpt, wasTargetTyped, placeholder, initializers, type, hasErrors || placeholder.HasErrors() || initializers.HasErrors())
         {
 
             RoslynDebug.Assert(placeholder is object, "Field 'placeholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6185,11 +6189,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitArrayOrSpanCollectionLiteralExpression(this);
 
-        public BoundArrayOrSpanCollectionLiteralExpression Update(MethodSymbol? spanConstructor, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type)
+        public BoundArrayOrSpanCollectionLiteralExpression Update(MethodSymbol? spanConstructor, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(spanConstructor, this.SpanConstructor) || placeholder != this.Placeholder || initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(spanConstructor, this.SpanConstructor) || !TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || wasTargetTyped != this.WasTargetTyped || placeholder != this.Placeholder || initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundArrayOrSpanCollectionLiteralExpression(this.Syntax, spanConstructor, placeholder, initializers, type, this.HasErrors);
+                var result = new BoundArrayOrSpanCollectionLiteralExpression(this.Syntax, spanConstructor, naturalTypeOpt, wasTargetTyped, placeholder, initializers, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6199,8 +6203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionInitializerCollectionLiteralExpression : BoundCollectionLiteralExpression
     {
-        public BoundCollectionInitializerCollectionLiteralExpression(SyntaxNode syntax, BoundExpression? collectionCreation, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionInitializerCollectionLiteralExpression, syntax, placeholder, initializers, type, hasErrors || collectionCreation.HasErrors() || placeholder.HasErrors() || initializers.HasErrors())
+        public BoundCollectionInitializerCollectionLiteralExpression(SyntaxNode syntax, BoundExpression? collectionCreation, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CollectionInitializerCollectionLiteralExpression, syntax, naturalTypeOpt, wasTargetTyped, placeholder, initializers, type, hasErrors || collectionCreation.HasErrors() || placeholder.HasErrors() || initializers.HasErrors())
         {
 
             RoslynDebug.Assert(placeholder is object, "Field 'placeholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6215,11 +6219,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionInitializerCollectionLiteralExpression(this);
 
-        public BoundCollectionInitializerCollectionLiteralExpression Update(BoundExpression? collectionCreation, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type)
+        public BoundCollectionInitializerCollectionLiteralExpression Update(BoundExpression? collectionCreation, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type)
         {
-            if (collectionCreation != this.CollectionCreation || placeholder != this.Placeholder || initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (collectionCreation != this.CollectionCreation || !TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || wasTargetTyped != this.WasTargetTyped || placeholder != this.Placeholder || initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionInitializerCollectionLiteralExpression(this.Syntax, collectionCreation, placeholder, initializers, type, this.HasErrors);
+                var result = new BoundCollectionInitializerCollectionLiteralExpression(this.Syntax, collectionCreation, naturalTypeOpt, wasTargetTyped, placeholder, initializers, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11309,16 +11313,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
             ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
+            TypeSymbol? naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.SpanConstructor, placeholder, initializers, type);
+            return node.Update(node.SpanConstructor, naturalTypeOpt, node.WasTargetTyped, placeholder, initializers, type);
         }
         public override BoundNode? VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression node)
         {
             BoundExpression? collectionCreation = node.CollectionCreation;
             BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
             ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
+            TypeSymbol? naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(collectionCreation, placeholder, initializers, type);
+            return node.Update(collectionCreation, naturalTypeOpt, node.WasTargetTyped, placeholder, initializers, type);
         }
         public override BoundNode? VisitTupleLiteral(BoundTupleLiteral node)
         {
@@ -13463,24 +13469,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression node)
         {
             MethodSymbol? spanConstructor = GetUpdatedSymbol(node, node.SpanConstructor);
+            TypeSymbol? naturalTypeOpt = GetUpdatedSymbol(node, node.NaturalTypeOpt);
             BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
             ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
             BoundArrayOrSpanCollectionLiteralExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(spanConstructor, placeholder, initializers, infoAndType.Type!);
+                updatedNode = node.Update(spanConstructor, naturalTypeOpt, node.WasTargetTyped, placeholder, initializers, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(spanConstructor, placeholder, initializers, node.Type);
+                updatedNode = node.Update(spanConstructor, naturalTypeOpt, node.WasTargetTyped, placeholder, initializers, node.Type);
             }
             return updatedNode;
         }
 
         public override BoundNode? VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression node)
         {
+            TypeSymbol? naturalTypeOpt = GetUpdatedSymbol(node, node.NaturalTypeOpt);
             BoundExpression? collectionCreation = node.CollectionCreation;
             BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
             ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
@@ -13488,12 +13496,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(collectionCreation, placeholder, initializers, infoAndType.Type!);
+                updatedNode = node.Update(collectionCreation, naturalTypeOpt, node.WasTargetTyped, placeholder, initializers, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(collectionCreation, placeholder, initializers, node.Type);
+                updatedNode = node.Update(collectionCreation, naturalTypeOpt, node.WasTargetTyped, placeholder, initializers, node.Type);
             }
             return updatedNode;
         }
@@ -15819,6 +15827,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitArrayOrSpanCollectionLiteralExpression(BoundArrayOrSpanCollectionLiteralExpression node, object? arg) => new TreeDumperNode("arrayOrSpanCollectionLiteralExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("spanConstructor", node.SpanConstructor, null),
+            new TreeDumperNode("naturalTypeOpt", node.NaturalTypeOpt, null),
+            new TreeDumperNode("wasTargetTyped", node.WasTargetTyped, null),
             new TreeDumperNode("placeholder", null, new TreeDumperNode[] { Visit(node.Placeholder, null) }),
             new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
@@ -15829,6 +15839,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionInitializerCollectionLiteralExpression node, object? arg) => new TreeDumperNode("collectionInitializerCollectionLiteralExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("collectionCreation", null, new TreeDumperNode[] { Visit(node.CollectionCreation, null) }),
+            new TreeDumperNode("naturalTypeOpt", node.NaturalTypeOpt, null),
+            new TreeDumperNode("wasTargetTyped", node.WasTargetTyped, null),
             new TreeDumperNode("placeholder", null, new TreeDumperNode[] { Visit(node.Placeholder, null) }),
             new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
