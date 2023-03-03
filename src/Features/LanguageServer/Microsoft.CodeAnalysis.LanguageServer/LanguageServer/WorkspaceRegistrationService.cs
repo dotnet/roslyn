@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 internal class WorkspaceRegistrationService : LspWorkspaceRegistrationService
 {
     [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public WorkspaceRegistrationService()
     {
 

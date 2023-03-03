@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 
@@ -18,12 +19,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 /// based on their own service queries.
 /// MEF will dispose of each instance as its lifetime comes to an end.
 /// </remarks>
+#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [Export]
 internal class ServiceBrokerMefExport
 {
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ServiceBrokerMefExport()
+    {
+    }
+
     [Export(typeof(SVsFullAccessServiceBroker))]
     public IServiceBroker ServiceBroker => this.Container?.GetFullAccessServiceBroker() ?? throw new InvalidOperationException($"Set {nameof(this.Container)} first.");
 
     [Export("PrivateBrokeredServiceContainer")]
     internal BrokeredServiceContainer? Container { get; set; }
 }
+#pragma warning restore RS0030 // Do not used banned APIs

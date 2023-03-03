@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Utilities.ServiceBroker;
 using Roslyn.Utilities;
@@ -12,15 +13,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 [Export, Shared]
 internal class MefServiceBroker : ServiceBrokerOfExportedServices
 {
+    private readonly BrokeredServiceContainer _container;
+
     private Task<GlobalBrokeredServiceContainer>? containerTask;
 
-    [Import("PrivateBrokeredServiceContainer")]
-    internal BrokeredServiceContainer BrokeredServiceContainer { get; private set; } = null!;
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public MefServiceBroker([Import("PrivateBrokeredServiceContainer")] BrokeredServiceContainer brokeredServiceContainer)
+    {
+        _container = brokeredServiceContainer;
+    }
 
     protected override Task<GlobalBrokeredServiceContainer> GetBrokeredServiceContainerAsync(CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(BrokeredServiceContainer, $"{nameof(this.BrokeredServiceContainer)} must be set first.");
-        this.containerTask ??= Task.FromResult((GlobalBrokeredServiceContainer)this.BrokeredServiceContainer);
+        Contract.ThrowIfNull(_container, $"{nameof(_container)} must be set first.");
+        this.containerTask ??= Task.FromResult((GlobalBrokeredServiceContainer)_container);
         return this.containerTask;
     }
 }

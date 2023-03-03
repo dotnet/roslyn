@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
@@ -14,6 +15,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 internal class ServerLoggerFactory : ILoggerFactory
 {
     private ILoggerFactory? _loggerFactory;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ServerLoggerFactory()
+    {
+    }
 
     public void SetFactory(ILoggerFactory loggerFactory)
     {

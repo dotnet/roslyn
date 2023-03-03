@@ -4,12 +4,13 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-
+#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 /// <summary>
 /// An implementation of the brokered service <see cref="IWorkspaceProjectFactoryService"/> that just maps calls to the underlying project system.
 /// </summary>
@@ -19,6 +20,7 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
     private readonly LanguageServerProjectSystem _projectSystem;
 
     [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public WorkspaceProjectFactoryService(LanguageServerProjectSystem projectSystem)
     {
         _projectSystem = projectSystem;
@@ -54,3 +56,4 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
         return Task.FromResult((IReadOnlyCollection<string>)ImmutableArray<string>.Empty);
     }
 }
+#pragma warning restore RS0030 // Do not used banned APIs

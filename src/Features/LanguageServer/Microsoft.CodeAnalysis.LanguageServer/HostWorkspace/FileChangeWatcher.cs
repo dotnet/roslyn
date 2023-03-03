@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -12,6 +13,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Export(typeof(IFileChangeWatcher)), Shared]
 internal sealed class FileChangeWatcher : IFileChangeWatcher
 {
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FileChangeWatcher()
+    {
+    }
+
     public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
     {
         return new FileChangeContext(watchedDirectories.ToImmutableArray());

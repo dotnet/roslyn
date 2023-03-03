@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
@@ -23,6 +24,7 @@ internal class BrokeredServiceBridgeProvider
     private readonly TraceSource _brokeredServiceTraceSource;
 
     [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public BrokeredServiceBridgeProvider(ILoggerFactory loggerFactory, BrokeredServiceTraceListener brokeredServiceTraceListener)
     {
         _logger = loggerFactory.CreateLogger<BrokeredServiceBridgeProvider>();

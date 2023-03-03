@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -10,6 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
 
+#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [Export]
 internal class RemoteHelloWorldProvider
 {
@@ -18,6 +20,7 @@ internal class RemoteHelloWorldProvider
     private readonly ILogger _logger;
 
     [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RemoteHelloWorldProvider([Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
     {
         _serviceBroker = serviceBroker;
@@ -65,3 +68,5 @@ internal class RemoteHelloWorldProvider
         return false;
     }
 }
+
+#pragma warning restore RS0030 // Do not used banned APIs

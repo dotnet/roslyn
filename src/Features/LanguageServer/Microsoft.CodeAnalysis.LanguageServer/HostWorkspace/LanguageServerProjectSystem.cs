@@ -9,6 +9,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.VSCode.API;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
@@ -36,6 +37,7 @@ internal sealed class LanguageServerProjectSystem
     private readonly ConcurrentDictionary<string, List<LoadedProject>> _loadedProjects = new();
 
     [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LanguageServerProjectSystem(HostServicesProvider hostServicesProvider, VSCodeAnalyzerLoader analyzerLoader, IFileChangeWatcher fileChangeWatcher, ILoggerFactory loggerFactory, IAsynchronousOperationListenerProvider listenerProvider)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));

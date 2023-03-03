@@ -4,11 +4,13 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.BrokeredServiceBridgeManifest;
 
+#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [ExportBrokeredService(MonikerName, MonikerVersion, Audience = ServiceAudience.Local)]
 internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, IExportedBrokeredService
 {
@@ -23,6 +25,7 @@ internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, I
     private readonly BrokeredServiceContainer _container;
 
     [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public BrokeredServiceBridgeManifest([Import("PrivateBrokeredServiceContainer")] BrokeredServiceContainer container)
     {
         _container = container;
@@ -44,3 +47,4 @@ internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, I
         return Task.CompletedTask;
     }
 }
+#pragma warning restore RS0030 // Do not used banned APIs

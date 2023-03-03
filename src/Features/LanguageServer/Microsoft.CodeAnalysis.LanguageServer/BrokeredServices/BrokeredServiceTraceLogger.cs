@@ -4,6 +4,7 @@
 
 using System.Composition;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
@@ -16,6 +17,7 @@ internal class BrokeredServiceTraceListener : TraceListener
     public TraceSource Source { get; }
 
     [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public BrokeredServiceTraceListener(ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(BrokeredServiceTraceListener));
