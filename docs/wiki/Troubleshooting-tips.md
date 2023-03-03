@@ -76,7 +76,7 @@ There are three significant candidates to investigate:
   The file is written next to the compilation output and has a `.key` suffix.  
   Comparing those files between slow and fast runs helps detect pertinent changes (new inputs, new references, etc).  
 3. compiler server issue:  
-  Inspect the binary log (search for "Error:" and such).  
+  Inspect the binary log (search for `$message CompilerServer failed` or "Error:").  
   If the compiler server is having issues, there will be many such entries.  
   In that case, use the environment variable `set RoslynCommandLineLogFile=c:\some\dir\log.txt` to enable additional logging.  
   In that log, "Keep alive" entries indicate that the compiler server restarted (which we don't expect to happen very often).
