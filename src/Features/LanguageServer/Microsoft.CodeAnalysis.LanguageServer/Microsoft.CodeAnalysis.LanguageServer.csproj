@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <!-- Publishing settings -->
+        <SelfContained>False</SelfContained>
+        <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/publish/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
+        <PublishDir Condition="'$(RuntimeIdentifier)' == ''">$(ArtifactsDir)/publish/$(Configuration)/$(TargetFramework)/neutral</PublishDir>
+        <!-- Set the minimum runtime to a .NET 7 prerelease so that prerelease SDKs will be considered during rollForward. -->
+        <RuntimeFrameworkVersion>7.0.0-preview.7.22362.8</RuntimeFrameworkVersion>
+        <RollForward>LatestMajor</RollForward>
+    </PropertyGroup>
+
+    <ItemGroup Label="Project References">
+        <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
+        <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+        <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
+        <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+
+        <!-- Dlls we don't directly reference but need to include to build the MEF composition -->
+        <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+        <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
+        <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+        <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
+        <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
+        <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
+        <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
+        <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+        <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <RoslynVersionFile Include="$(OutDir)\RoslynVersion.txt" />
+        <FileWrites Include="@(RoslynVersionFile)" />
+    </ItemGroup>
+
+    <Target Name="WriteRoslynVersion" AfterTargets="Build">
+        <WriteLinesToFile File="@(RoslynVersionFile)" Lines="$(MicrosoftCodeAnalysisVersion)" Overwrite="true" />
+    </Target>
+
+    <Target Name="PublishRoslynVersion" AfterTargets="Publish">
+        <Copy SourceFiles="@(RoslynVersionFile)" DestinationFolder="$(PublishDir)" />
+    </Target>
+
+</Project>

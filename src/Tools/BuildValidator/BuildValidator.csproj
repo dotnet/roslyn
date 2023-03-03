@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" Version="$(MicrosoftDiaSymReaderConverterXmlVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
+    <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="$(SystemCommandLineNamingConventionBinderVersion)" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.CommandLine;
-using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -33,18 +33,18 @@ namespace BuildValidator
             System.Diagnostics.Trace.Listeners.Clear();
             var rootCommand = new RootCommand
             {
-                new Option<string>(
+                new Option<string[]>(
                     "--assembliesPath", BuildValidatorResources.Path_to_assemblies_to_rebuild_can_be_specified_one_or_more_times
-                ) { IsRequired = true, Argument = { Arity = ArgumentArity.OneOrMore } },
-                new Option<string>(
+                ) { IsRequired = true, Arity = ArgumentArity.OneOrMore },
+                new Option<string[]>(
                     "--exclude", BuildValidatorResources.Assemblies_to_be_excluded_substring_match
-                ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
+                ) { Arity = ArgumentArity.ZeroOrMore },
                 new Option<string>(
                     "--sourcePath", BuildValidatorResources.Path_to_sources_to_use_in_rebuild
                 ) { IsRequired = true },
-                new Option<string>(
+                new Option<string[]>(
                     "--referencesPath", BuildValidatorResources.Path_to_referenced_assemblies_can_be_specified_zero_or_more_times
-                ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
+                ) { Arity = ArgumentArity.ZeroOrMore },
                 new Option<bool>(
                     "--verbose", BuildValidatorResources.Output_verbose_log_information
                 ),
