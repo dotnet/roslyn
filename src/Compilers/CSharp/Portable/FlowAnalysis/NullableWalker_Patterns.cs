@@ -892,7 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SnapshotWalkerThroughConversionGroup(arm.Value, expression);
                 expressions.Add(expression);
                 conversions.Add(conversion);
-                var armType = VisitRvalueInConversion(expression);
+                var armType = VisitRvalueWithState(expression);
                 resultTypes.Add(armType);
                 Join(ref endState, ref this.State);
 

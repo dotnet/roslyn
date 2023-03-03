@@ -395,8 +395,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private int _lastConditionalAccessSlot = -1;
 
-        private BoundNode? _visitingConversionOperand;
-
 #if DEBUG
         /// <summary>
         /// Holds visited lambdas without conversion. Used to verify that we don't accidentaly visit the same lambda twice.
@@ -2130,48 +2128,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node);
             return ResultType;
-        }
-
-        /// <summary>
-        /// Call instead of VisitRvalueWithState if VisitConversion will be also called
-        /// with <paramref name="node"/> as the conversion's operand.
-        /// </summary>
-        private TypeWithState VisitRvalueInConversion(BoundExpression? node)
-        {
-            var previousConversionOperand = _visitingConversionOperand;
-            _visitingConversionOperand = node;
-            VisitRvalue(node);
-            _visitingConversionOperand = previousConversionOperand;
-            return ResultType;
-        }
-
-        /// <summary>
-        /// Call instead of Visit if VisitConversion will be also called
-        /// with <paramref name="node"/> as the conversion's operand.
-        /// </summary>
-        private BoundNode? VisitInConversion(BoundNode? node)
-        {
-            var previousConversionOperand = _visitingConversionOperand;
-            _visitingConversionOperand = node;
-            var result = Visit(node);
-            _visitingConversionOperand = previousConversionOperand;
-            return result;
-        }
-
-        /// <summary>
-        /// Call instead of VisitPossibleConditionalAccess if VisitConversion will be also called
-        /// with <paramref name="node"/> as the conversion's operand.
-        /// </summary>
-        /// <param name="node"></param>
-        /// <param name="stateWhenNotNull"></param>
-        /// <returns></returns>
-        private bool VisitPossibleConditionalAccessInConversion(BoundExpression node, out PossiblyConditionalState stateWhenNotNull)
-        {
-            var previousConversionOperand = _visitingConversionOperand;
-            _visitingConversionOperand = node;
-            var result = VisitPossibleConditionalAccess(node, out stateWhenNotNull);
-            _visitingConversionOperand = previousConversionOperand;
-            return result;
         }
 
         private TypeWithAnnotations VisitLvalueWithAnnotations(BoundExpression node)
@@ -4221,7 +4177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expressionsNoConversions.Add(expressionNoConversion);
                     conversions.Add(conversion);
                     SnapshotWalkerThroughConversionGroup(expression, expressionNoConversion);
-                    var expressionType = VisitRvalueInConversion(expressionNoConversion);
+                    var expressionType = VisitRvalueWithState(expressionNoConversion);
                     expressionTypes.Add(expressionType);
 
                     if (!IsTargetTypedExpression(expressionNoConversion))
@@ -4488,7 +4444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For simplicity, we just special case it here.
             // For example, `a?.b(out x) == true` has a conditional access on the left of the operator,
             // but `expr == a?.b(out x) == true` has a conditional access on the right of the operator
-            if (VisitPossibleConditionalAccessInConversion(leftOperand, out var conditionalStateWhenNotNull)
+            if (VisitPossibleConditionalAccess(leftOperand, out var conditionalStateWhenNotNull)
                 && CanPropagateStateWhenNotNull(leftConversion)
                 && binary.OperatorKind.Operator() is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual)
             {
@@ -4512,7 +4468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var stateAfterLeft = this.State;
                 SetState(getUnconditionalStateWhenNotNull(rightOperand, conditionalStateWhenNotNull));
-                VisitRvalueInConversion(rightOperand);
+                VisitRvalue(rightOperand);
                 var stateWhenNotNull = this.State;
 
                 _disableDiagnostics = oldDisableDiagnostics;
@@ -4520,7 +4476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Now visit the right side for public API and diagnostics using the worst-case state from the LHS.
                 // Note that we do this visit last to try and make sure that the "visit for public API" overwrites walker state recorded during previous visits where possible.
                 SetState(stateAfterLeft);
-                var rightType = VisitRvalueInConversion(rightOperand);
+                var rightType = VisitRvalueWithState(rightOperand);
                 ReinferBinaryOperatorAndSetResult(leftOperand, leftConversion, leftType, rightOperand, rightConversion, rightType, binary);
                 if (isKnownNullOrNotNull(rightOperand, rightType))
                 {
@@ -4794,7 +4750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftType = ResultType;
 
             var (rightOperand, rightConversion) = RemoveConversion(binary.Right, includeExplicitConversions: false);
-            VisitRvalueInConversion(rightOperand);
+            VisitRvalue(rightOperand);
 
             var rightType = ResultType;
             ReinferBinaryOperatorAndSetResult(leftOperand, leftConversion, leftType, rightOperand, rightConversion, rightType, binary);
@@ -5620,7 +5576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression operandNoConversion;
                 (operandNoConversion, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
                 SnapshotWalkerThroughConversionGroup(operand, operandNoConversion);
-                VisitInConversion(operandNoConversion);
+                Visit(operandNoConversion);
                 return (operandNoConversion, conversion, ResultType);
             }
 
@@ -6270,7 +6226,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert((object)argument == argumentNoConversion);
                             // 'VisitConversion' only visits a lambda when the lambda has an AnonymousFunction conversion.
                             // This lambda doesn't have a conversion, so we need to visit it here.
-                            VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda);
+                            if (lambda.Type is not null)
+                            {
+                                VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda);
+                            }
                             continue;
                         }
 
@@ -6566,7 +6525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         default:
-                            VisitRvalueInConversion(argument);
+                            VisitRvalue(argument);
                             break;
                     }
                     break;
@@ -7473,7 +7432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
             SnapshotWalkerThroughConversionGroup(node, operand);
-            TypeWithState operandType = VisitRvalueInConversion(operand);
+            TypeWithState operandType = VisitRvalueWithState(operand);
             SetResultType(node,
                 VisitConversion(
                     node,
@@ -7520,7 +7479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
             SnapshotWalkerThroughConversionGroup(expr, operand);
-            var operandType = VisitRvalueInConversion(operand);
+            var operandType = VisitRvalueWithState(operand);
 
             return visitConversion(expr, targetTypeOpt, useLegacyWarnings, trackMembers, assignmentKind, operand, conversion, operandType, delayCompletionForTargetType);
 
@@ -8995,9 +8954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Lambda bodies are usually visited in VisitConversion (we need to know the target delegate type),
             // but in errorneous code, the lambda-to-delegate conversion might be missing, then we visit the lambda here.
-            // Whenever the visitor needs to visit a conversion operand, it must call one of the Visit*InConversion overloads
-            // which set _visitingConversionOperand, so if the operand is a lambda, we skip its analysis.
-            if (_visitingConversionOperand != node)
+            if (node.Type is null)
             {
                 VisitLambda(node, delegateTypeOpt: null);
 #if DEBUG
@@ -9014,7 +8971,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
 #if DEBUG
-            // If you hit this assert, make sure to use VisitRvalueInConversion on the node instead of VisitRvalue.
             Debug.Assert(!_errorLambdas.Contains(node), $"Lambda visited already without conversion: {node.GetDebuggerDisplay()}");
 #endif
 
@@ -9451,7 +9407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        operandType = VisitRvalueInConversion(rightPart);
+                        operandType = VisitRvalueWithState(rightPart);
                         valueType = VisitConversion(
                             conversionOpt: null,
                             rightPart,
@@ -9580,7 +9536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
-            var operandType = VisitRvalueInConversion(node.Operand);
+            var operandType = VisitRvalueWithState(node.Operand);
             var operandLvalue = LvalueResultType;
             bool setResult = false;
 
@@ -9712,7 +9668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeWithState resultType;
-            TypeWithState rightType = VisitRvalueInConversion(right);
+            TypeWithState rightType = VisitRvalueWithState(right);
             if ((object)node.Operator.ReturnType != null)
             {
                 if (node.Operator.Kind.IsUserDefined() && (object)node.Operator.Method != null && node.Operator.Method.ParameterCount == 2)
@@ -10037,7 +9993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       of conversion on top, but if there was an explicit conversion in code then we could get past the initial check
             //       for a BoundConversion node.
 
-            var resultTypeWithState = VisitRvalueInConversion(expr);
+            var resultTypeWithState = VisitRvalueWithState(expr);
             var resultType = resultTypeWithState.Type;
             Debug.Assert(resultType is object);
 
