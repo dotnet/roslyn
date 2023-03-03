@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsRemoveUnnecessaryLambdaExpression = "CodeActions.RemoveUnnecessaryLambdaExpression";
             public const string CodeActionsMakeTypePartial = "CodeActions.MakeTypePartial";
+            public const string CodeActionsMakeFieldOrPropertyRequired = "CodeActions.MakeFieldOrPropertyRequired";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
             public const string CodeActionsMakeLocalFunctionStatic = "CodeActions.MakeLocalFunctionStatic";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";

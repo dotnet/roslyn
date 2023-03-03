@@ -237,4 +237,12 @@
   <data name="Make_method_async_remain_void" xml:space="preserve">
     <value>Make method async (stay void)</value>
   </data>
+  <data name="Make_field_required" xml:space="preserve">
+    <value>Make field 'required'</value>
+    <comment>{Locked="required"} "required" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Make_property_required" xml:space="preserve">
+    <value>Make property 'required'</value>
+    <comment>{Locked="required"} "required" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

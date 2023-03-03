@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string InvokeDelegateWithConditionalAccess = nameof(InvokeDelegateWithConditionalAccess);
         public const string JsonDetection = nameof(JsonDetection);
         public const string MakeDeclarationsPartial = nameof(MakeDeclarationsPartial);
+        public const string MakeFieldOrPropertyRequired = nameof(MakeFieldOrPropertyRequired);
         public const string MakeFieldReadonly = nameof(MakeFieldReadonly);
         public const string MakeLocalFunctionStatic = nameof(MakeLocalFunctionStatic);
         public const string MakeMemberStatic = nameof(MakeMemberStatic);
