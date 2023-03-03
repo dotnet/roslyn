@@ -33,16 +33,16 @@ namespace BuildValidator
             System.Diagnostics.Trace.Listeners.Clear();
             var rootCommand = new RootCommand
             {
-                new Option<string>(
+                new Option<string[]>(
                     "--assembliesPath", BuildValidatorResources.Path_to_assemblies_to_rebuild_can_be_specified_one_or_more_times
                 ) { IsRequired = true, Arity = ArgumentArity.OneOrMore },
-                new Option<string>(
+                new Option<string[]>(
                     "--exclude", BuildValidatorResources.Assemblies_to_be_excluded_substring_match
                 ) { Arity = ArgumentArity.ZeroOrMore },
                 new Option<string>(
                     "--sourcePath", BuildValidatorResources.Path_to_sources_to_use_in_rebuild
                 ) { IsRequired = true },
-                new Option<string>(
+                new Option<string[]>(
                     "--referencesPath", BuildValidatorResources.Path_to_referenced_assemblies_can_be_specified_zero_or_more_times
                 ) { Arity = ArgumentArity.ZeroOrMore },
                 new Option<bool>(
