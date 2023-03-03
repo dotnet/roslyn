@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // TODO: Remove this when implicit operations are synthesised: https://github.com/dotnet/roslyn/issues/47829 
                 var methodSyntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
                 if (method.IsConstructor() &&
-                    _compilationAnalyzer.IsRecordDeclaration(methodSyntax))
+                    (_compilationAnalyzer.IsRecordDeclaration(methodSyntax) || _compilationAnalyzer.IsClassDeclaration(methodSyntax)))
                 {
                     return false;
                 }

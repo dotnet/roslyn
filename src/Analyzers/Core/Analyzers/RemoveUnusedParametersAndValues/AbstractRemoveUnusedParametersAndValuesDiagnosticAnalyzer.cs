@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         }
 
         protected abstract bool IsRecordDeclaration(SyntaxNode node);
+        protected abstract bool IsClassDeclaration(SyntaxNode node);
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
