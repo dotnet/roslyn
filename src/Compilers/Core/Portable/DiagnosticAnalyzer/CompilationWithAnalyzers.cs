@@ -852,12 +852,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var partialTrees = PooledHashSet<SyntaxTree>.GetInstance();
                 partialTrees.Add(tree);
 
+                var addedSymbols = new ConcurrentSet<ISymbol>();
+                var addedTrees = new ConcurrentSet<SyntaxTree>();
+                addedTrees.Add(tree);
+
                 try
                 {
                     // Gather all trees with symbol declarations events in original analysis scope, except namespace symbols.
                     foreach (var compilationEvent in compilationEventsForTree)
                     {
                         if (compilationEvent is SymbolDeclaredCompilationEvent symbolDeclaredEvent &&
+                            addedSymbols.Add(symbolDeclaredEvent.Symbol) &&
                             symbolDeclaredEvent.Symbol.Kind != SymbolKind.Namespace)
                         {
                             foreach (var location in symbolDeclaredEvent.Symbol.Locations)
@@ -879,7 +884,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (analysisScope == null)
                         return;
 
-                    var compilationEvents = await GetCompilationEventsForFileAnalysisAsync(compilation, analysisScope, additionalFiles, hasAnyActionsRequiringCompilationEvents: true, cancellationToken).ConfigureAwait(false);
+                    var compilationEvents = await GenerateAndDequeueCompilationEventsForFileAnalysisAsync(compilation,
+                        analysisScope, additionalFiles, addedSymbols, addedTrees, cancellationToken).ConfigureAwait(false);
                     builder.Add((analysisScope, compilationEventsForTree.AddRange(compilationEvents)));
                 }
                 finally
@@ -941,11 +947,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return ImmutableArray.Create<CompilationEvent>(compilationStartedEvent, compilationUnitCompletedEvent);
             }
 
-            await generateCompilationEventsAsync(compilation, analysisScope, cancellationToken).ConfigureAwait(false);
+            return await GenerateAndDequeueCompilationEventsForFileAnalysisAsync(compilation, analysisScope,
+                additionalFiles, addedSymbols: null, addedTrees: null, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<ImmutableArray<CompilationEvent>> GenerateAndDequeueCompilationEventsForFileAnalysisAsync(
+            Compilation compilation,
+            AnalysisScope analysisScope,
+            ImmutableArray<AdditionalText> additionalFiles,
+            ConcurrentSet<ISymbol>? addedSymbols,
+            ConcurrentSet<SyntaxTree>? addedTrees,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(!analysisScope.IsEntireCompilationAnalysis);
+            Debug.Assert(!analysisScope.IsSyntacticSingleFileAnalysis);
+            Debug.Assert(!analysisScope.IsSemanticSingleFileAnalysisForCompilerAnalyzer);
+
+            await generateCompilationEventsAsync(compilation, analysisScope, addedSymbols, addedTrees, cancellationToken).ConfigureAwait(false);
 
             return dequeueAndFilterCompilationEvents(compilation, analysisScope, additionalFiles, cancellationToken);
 
-            static async Task generateCompilationEventsAsync(Compilation compilation, AnalysisScope analysisScope, CancellationToken cancellationToken)
+            static async Task generateCompilationEventsAsync(Compilation compilation, AnalysisScope analysisScope, ConcurrentSet<ISymbol>? addedSymbols, ConcurrentSet<SyntaxTree>? addedTrees, CancellationToken cancellationToken)
             {
                 Debug.Assert(!analysisScope.IsEntireCompilationAnalysis);
                 Debug.Assert(!analysisScope.IsSyntacticSingleFileAnalysis);
@@ -957,8 +979,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Get the mapped model and invoke GetDiagnostics for the given filter span, if any.
                     // Limiting the GetDiagnostics scope to the filter span ensures we only generate compilation events
                     // for the required symbols whose declaration intersects with this span, instead of all symbols in the tree.
-                    var mappedModel = compilation.GetSemanticModel(analysisScope.FilterFileOpt.Value.SourceTree!);
-                    _ = mappedModel.GetDiagnostics(analysisScope.FilterSpanOpt, cancellationToken);
+                    generateCompilationEventsForTree(analysisScope.FilterFileOpt.Value.SourceTree!);
                 }
                 else
                 {
@@ -971,15 +992,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         await Task.WhenAll(analysisScope.SyntaxTrees.Select(tree =>
                             Task.Run(() =>
                             {
-                                _ = compilation.GetSemanticModel(tree).GetDiagnostics(cancellationToken: cancellationToken);
+                                generateCompilationEventsForTree(tree);
                             }, cancellationToken))).ConfigureAwait(false);
                     }
                     else
                     {
                         foreach (var tree in analysisScope.SyntaxTrees)
                         {
-                            _ = compilation.GetSemanticModel(tree).GetDiagnostics(cancellationToken: cancellationToken);
+                            generateCompilationEventsForTree(tree);
                         }
+                    }
+                }
+
+                void generateCompilationEventsForTree(SyntaxTree tree)
+                {
+                    Debug.Assert(compilation.EventQueue != null);
+
+                    var mappedModel = compilation.GetSemanticModel(tree);
+                    var span = analysisScope.FilterSpanOpt ?? tree.GetRoot(cancellationToken).FullSpan;
+                    var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
+                    mappedModel.ComputeDeclarationsInSpan(span, getSymbol: true, builder, cancellationToken);
+                    foreach (var declarationInfo in builder)
+                    {
+                        if (declarationInfo.DeclaredSymbol is { } symbol &&
+                            !symbol.IsImplicitlyDeclared &&
+                            (addedSymbols == null || addedSymbols.Add(symbol)))
+                        {
+                            var symbolDeclaredEvent = new SymbolDeclaredCompilationEvent(compilation, symbol);
+                            compilation.EventQueue.Enqueue(symbolDeclaredEvent);
+                        }
+                    }
+
+                    if (addedTrees == null || addedTrees.Add(tree))
+                    {
+                        var compilationUnitCompletedEvent = new CompilationUnitCompletedEvent(compilation, tree, analysisScope.FilterSpanOpt);
+                        compilation.EventQueue.Enqueue(compilationUnitCompletedEvent);
                     }
                 }
             }
@@ -1001,10 +1048,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // We synthesize a span-based CompilationUnitCompletedEvent for improved performance for computing semantic diagnostics
-                // of compiler diagnostic analyzer. See https://github.com/dotnet/roslyn/issues/56843 for more details.
-                var needsSpanBasedCompilationUnitCompletedEvent = analysisScope.FilterSpanOpt.HasValue;
-
                 var builder = ArrayBuilder<CompilationEvent>.GetInstance();
                 while (eventQueue.TryDequeue(out CompilationEvent compilationEvent))
                 {
@@ -1025,9 +1068,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             if (!analysisScope.SyntaxTrees.Contains(compilationUnitCompletedEvent.CompilationUnit))
                                 continue;
 
-                            // We don't need to synthesize a span-based CompilationUnitCompletedEvent if the event queue already
-                            // has a CompilationUnitCompletedEvent for the entire source tree.
-                            needsSpanBasedCompilationUnitCompletedEvent = false;
                             break;
 
                         case SymbolDeclaredCompilationEvent symbolDeclaredCompilationEvent:
@@ -1051,12 +1091,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     builder.Add(compilationEvent);
-                }
-
-                if (needsSpanBasedCompilationUnitCompletedEvent)
-                {
-                    Debug.Assert(analysisScope.FilterFileOpt.HasValue);
-                    builder.Add(new CompilationUnitCompletedEvent(compilation, analysisScope.FilterFileOpt.Value.SourceTree!, analysisScope.FilterSpanOpt));
                 }
 
                 return builder.ToImmutableAndFree();
