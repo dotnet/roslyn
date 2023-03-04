@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         internal readonly struct Data
         {
-            public readonly ImmutableArray<(ushort EditKind, ushort SyntaxKind)> RudeEdits;
+            public readonly ImmutableArray<(ushort EditKind, ushort SyntaxKind, Guid projectId)> RudeEdits;
             public readonly ImmutableArray<string> EmitErrorIds;
             public readonly ImmutableArray<Guid> ProjectsWithValidDelta;
             public readonly EditAndContinueCapabilities Capabilities;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // Limit the number of reported items to limit the size of the telemetry event (max total size is 64K).
         private const int MaxReportedProjectIds = 20;
 
-        private readonly HashSet<(ushort, ushort)> _rudeEdits = new();
+        private readonly HashSet<(ushort, ushort, Guid)> _rudeEdits = new();
         private readonly HashSet<string> _emitErrorIds = new();
         private readonly HashSet<Guid> _projectsWithValidDelta = new();
 
@@ -129,13 +129,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, Guid projectTelemetryId, ImmutableArray<Diagnostic> emitDiagnostics)
             => LogProjectAnalysisSummary(summary, projectTelemetryId, emitDiagnostics.SelectAsArray(d => d.Severity == DiagnosticSeverity.Error, d => d.Id));
 
-        public void LogRudeEditDiagnostics(ImmutableArray<RudeEditDiagnostic> diagnostics)
+        public void LogRudeEditDiagnostics(ImmutableArray<RudeEditDiagnostic> diagnostics, Guid projectTelemetryId)
         {
             lock (_guard)
             {
                 foreach (var diagnostic in diagnostics)
                 {
-                    _rudeEdits.Add(((ushort)diagnostic.Kind, diagnostic.SyntaxKind));
+                    _rudeEdits.Add(((ushort)diagnostic.Kind, diagnostic.SyntaxKind, projectTelemetryId));
                 }
             }
         }

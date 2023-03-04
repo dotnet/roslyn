@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors);
+                EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors, project.State.Attributes.TelemetryId);
 
                 // track the document, so that we can refresh or clean diagnostics at the end of edit session:
                 EditSession.TrackDocumentWithReportedDiagnostics(document.Id);
