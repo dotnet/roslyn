@@ -237,7 +237,7 @@ stages:
           filePath: eng/build.ps1
           arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog
 
-      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)" -c Release -p Roslyn.sln
+      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe --root="$(Build.SourcesDirectory)" --configuration=Release --primary=Roslyn.sln
         displayName: Validate Build Artifacts
 
       - script: eng/validate-rules-missing-documentation.cmd -ci
