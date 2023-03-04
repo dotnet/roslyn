@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckLocalValueKind(SyntaxNode node, BoundLocal local, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
-            if ((valueKind & BindValueKind.AddressOf) != 0 && this.IsInAsyncMethod())
+            if (valueKind == BindValueKind.AddressOf && this.IsInAsyncMethod())
             {
                 diagnostics.Add(ErrorCode.WRN_AddressOfInAsync, local.Syntax.Location);
             }
@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!RequiresAssignableVariable(BindValueKind.AddressOf));
-            if ((valueKind & BindValueKind.AddressOf) != 0 && this.IsInAsyncMethod())
+            if (valueKind == BindValueKind.AddressOf && this.IsInAsyncMethod())
             {
                 Error(diagnostics, ErrorCode.WRN_AddressOfInAsync, node);
             }

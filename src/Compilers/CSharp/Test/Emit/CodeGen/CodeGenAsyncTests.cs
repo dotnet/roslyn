@@ -992,7 +992,8 @@ class Driver
         {
             var source = """
                 using System.Threading.Tasks;
-
+                // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                #pragma warning disable 1998
                 class Program
                 {
                     int F;
@@ -1011,7 +1012,19 @@ class Driver
                         int* innerPtr = &structLocal.F; // 5
                         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
 
-                        await Task.Delay(1); // 8
+                        localFunc();
+                        void localFunc()
+                        {
+                            int localFuncLocal = 0;
+                            int* localFuncLocalPtr = &localFuncLocal;
+                        }
+
+                        _ = asyncLocalFunc();
+                        async Task asyncLocalFunc()
+                        {
+                            int localFuncLocal = 0;
+                            int* localFuncLocalPtr = &localFuncLocal; // 8
+                        }
                     }
                 }
 
@@ -1019,44 +1032,41 @@ class Driver
                 """;
 
             CreateCompilation(source, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-                // (10,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                // (11,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* ptr = &prog.F; // 1
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(10, 20),
-                // (14,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(11, 20),
+                // (15,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         int* localPtr = &local; // 2
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(14, 26),
-                // (15,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(15, 26),
+                // (16,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* localPtr1 = &local) { } // 3, 4
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(15, 33),
-                // (15,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(16, 33),
+                // (16,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         fixed (int* localPtr1 = &local) { } // 3, 4
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(15, 34),
-                // (18,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(16, 34),
+                // (19,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         int* innerPtr = &structLocal.F; // 5
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal").WithLocation(18, 26),
-                // (19,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal").WithLocation(19, 26),
+                // (20,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(19, 33),
-                // (19,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(20, 33),
+                // (20,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal").WithLocation(19, 34),
-                // (21,9): error CS4004: Cannot await in an unsafe context
-                //         await Task.Delay(1); // 8
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(21, 9));
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal").WithLocation(20, 34),
+                // (33,39): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                //             int* localFuncLocalPtr = &localFuncLocal; // 8
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "localFuncLocal").WithLocation(33, 39));
 
             CreateCompilation(source, options: TestOptions.UnsafeDebugExe.WithWarningLevel(7)).VerifyDiagnostics(
-                // (10,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                // (11,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* ptr = &prog.F; // 1
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(10, 20),
-                // (15,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(11, 20),
+                // (16,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* localPtr1 = &local) { } // 3, 4
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(15, 33),
-                // (19,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(16, 33),
+                // (20,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(19, 33),
-                // (21,9): error CS4004: Cannot await in an unsafe context
-                //         await Task.Delay(1); // 8
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(21, 9));
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(20, 33));
         }
 
         [Fact]
