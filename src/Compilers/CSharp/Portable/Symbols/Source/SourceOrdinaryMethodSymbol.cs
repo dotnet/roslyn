@@ -293,6 +293,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (MethodDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
+        }
+
         protected override void CompleteAsyncMethodChecksBetweenStartAndFinish()
         {
             if (IsPartialDefinition)

@@ -28,8 +28,8 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
             await base.InitializeAsync().ConfigureAwait(true);
 
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(CompletionViewOptions.EnableArgumentCompletionSnippets, LanguageNames.CSharp, true);
-            globalOptions.SetGlobalOption(CompletionViewOptions.EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, true);
+            globalOptions.SetGlobalOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.CSharp, true);
+            globalOptions.SetGlobalOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, true);
         }
 
         [IdeFact]

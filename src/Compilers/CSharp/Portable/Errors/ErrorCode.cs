@@ -2162,6 +2162,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
         ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
         ERR_BadSpecialByRefUsing = 9104,
+
+        ERR_InvalidPrimaryConstructorParameterReference = 9105,
+        ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver = 9106,
+        WRN_CapturedPrimaryConstructorParameterPassedToBase = 9107,
+        ERR_AnonDelegateCantUseRefLike = 9108,
+        ERR_UnsupportedPrimaryConstructorParameterCapturingRef = 9109,
+        ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike = 9110,
+        ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember = 9111,
+        ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured = 9112,
+        WRN_UnreadPrimaryConstructorParameter = 9113,
+        ERR_AssgReadonlyPrimaryConstructorParameter = 9114,
+        ERR_RefReturnReadonlyPrimaryConstructorParameter = 9115,
+        ERR_RefReadonlyPrimaryConstructorParameter = 9116,
+        ERR_AssgReadonlyPrimaryConstructorParameter2 = 9117,
+        ERR_RefReturnReadonlyPrimaryConstructorParameter2 = 9118,
+        ERR_RefReadonlyPrimaryConstructorParameter2 = 9119,
+        ERR_RefReturnPrimaryConstructorParameter = 9120,
+        ERR_StructLayoutCyclePrimaryConstructorParameter = 9121,
+        ERR_UnexpectedParameterList = 9122,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

@@ -333,6 +333,12 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   Write-Host "Cleaning Bootstrap compiler artifacts"
   Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
 
+  # Work around NuGet bug that doesn't correctly re-generate our project.assets.json files.
+  # Deleting everything forces a regen
+  # https://github.com/NuGet/Home/issues/12437
+  Remove-Item -Recurse -Force (Join-Path $ArtifactsDir "bin")
+  Remove-Item -Recurse -Force (Join-Path $ArtifactsDir "obj")
+
   return $dir
 }
 

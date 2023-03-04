@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -346,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSynthesizedMethod(
                             frame.Constructor,
                             FlowAnalysisPass.AppendImplicitReturn(
-                                MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, Diagnostics),
+                                MethodCompiler.BindSynthesizedMethodBody(frame.Constructor, CompilationState, Diagnostics),
                                 frame.Constructor));
                     }
 
@@ -540,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSynthesizedMethod(
                         frame.Constructor,
                         FlowAnalysisPass.AppendImplicitReturn(
-                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, diagnostics),
+                            MethodCompiler.BindSynthesizedMethodBody(frame.Constructor, CompilationState, diagnostics),
                             frame.Constructor));
 
                     // add cctor
@@ -772,7 +773,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
                 if (_currentMethod.MethodKind == MethodKind.Constructor &&
                     symbol == _currentMethod.ThisParameter &&
-                    !_seenBaseCall)
+                    !_seenBaseCall &&
+                    // Primary constructor doesn't have any user code after base constructor initializer.
+                    // Therefore, if we detected a proxy for 'this', it must be used to refer in a lambda
+                    // to a constructor parameter captured into the containing type state.
+                    // That lambda could be executed before the base constructor initializer, or by
+                    // the base constructor initializer. That is why we cannot defer the proxy
+                    // initialization until after the base constructor initializer is executed.
+                    // Even though that is going to be an unverifiable IL.
+                    _currentMethod is not SynthesizedPrimaryConstructor)
                 {
                     // Containing method is a constructor 
                     // Initialization statement for the "this" proxy must be inserted
@@ -782,6 +791,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    Debug.Assert(_currentMethod is not SynthesizedPrimaryConstructor primaryConstructor ||
+                                 symbol != _currentMethod.ThisParameter ||
+                                 primaryConstructor.GetCapturedParameters().Any());
                     prologue.Add(assignToProxy);
                 }
             }
@@ -822,6 +834,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (!_currentMethod.IsStatic && TypeSymbol.Equals(_currentMethod.ContainingType, _topLevelMethod.ContainingType, TypeCompareKind.ConsiderEverything2))
                 ? node
                 : FramePointer(node.Syntax, _topLevelMethod.ContainingType); // technically, not the correct static type
+        }
+
+        public override BoundNode VisitMethodDefIndex(BoundMethodDefIndex node)
+        {
+            TypeSymbol type = VisitType(node.Type);
+
+            var loweredSymbol = (node.Method.MethodKind is MethodKind.LambdaMethod or MethodKind.LocalFunction) ?
+                Analysis.GetNestedFunctionInTree(_analysis.ScopeTree, node.Method.OriginalDefinition).SynthesizedLoweredMethod : node.Method;
+
+            return node.Update(loweredSymbol, type);
         }
 
         /// <summary>
@@ -1145,8 +1167,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            var newInstrumentation = node.Instrumentation;
+            if (newInstrumentation != null)
+            {
+                var newPrologue = (BoundStatement)Visit(newInstrumentation.Prologue);
+                var newEpilogue = (BoundStatement)Visit(newInstrumentation.Epilogue);
+                newInstrumentation = newInstrumentation.Update(newInstrumentation.Local, newPrologue, newEpilogue);
+            }
+
             // TODO: we may not need to update if there was nothing to rewrite.
-            return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, node.HasUnsafeModifier, newStatements.ToImmutableAndFree());
+            return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, node.HasUnsafeModifier, newInstrumentation, newStatements.ToImmutableAndFree());
         }
 
         public override BoundNode VisitScope(BoundScope node)

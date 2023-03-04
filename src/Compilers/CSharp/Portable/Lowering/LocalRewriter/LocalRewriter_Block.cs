@@ -14,14 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitBlock(BoundBlock node)
         {
+            if (Instrument)
+            {
+                Instrumenter.PreInstrumentBlock(node, this);
+            }
+
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
             VisitStatementSubList(builder, node.Statements);
 
             var additionalLocals = TemporaryArray<LocalSymbol>.Empty;
 
+            BoundBlockInstrumentation? instrumentation = null;
             if (Instrument)
             {
-                Instrumenter.InstrumentBlock(node, this, ref additionalLocals, out var prologue, out var epilogue);
+                Instrumenter.InstrumentBlock(node, this, ref additionalLocals, out var prologue, out var epilogue, out instrumentation);
                 if (prologue != null)
                 {
                     builder.Insert(0, prologue);
@@ -33,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundBlock(node.Syntax, node.Locals.AddRange(additionalLocals), node.LocalFunctions, node.HasUnsafeModifier, builder.ToImmutableAndFree(), node.HasErrors);
+            return new BoundBlock(node.Syntax, node.Locals.AddRange(additionalLocals), node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
         }
 
         /// <summary>
