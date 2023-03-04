@@ -54,8 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args, CancellationToken cancellationToken)
         {
-            if (!_editorOptionsService.GlobalOptions.GetOption(SplitStringLiteralOptions.Enabled))
+            if (!_editorOptionsService.GlobalOptions.GetOption(SplitStringLiteralOptionsStorage.Enabled))
+            {
                 return false;
+            }
 
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;

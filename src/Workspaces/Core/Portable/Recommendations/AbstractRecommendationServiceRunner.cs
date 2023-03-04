@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Recommendations;
 
-internal abstract partial class AbstractRecommendationService<TSyntaxContext>
+internal abstract partial class AbstractRecommendationService<TSyntaxContext, TAnonymousFunctionSyntax>
 {
     protected abstract class AbstractRecommendationServiceRunner
     {
@@ -39,6 +39,8 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
 
         public abstract RecommendedSymbols GetRecommendedSymbols();
 
+        protected abstract int GetLambdaParameterCount(TAnonymousFunctionSyntax lambdaSyntax);
+
         public abstract bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(returnValue: true)] out ITypeSymbol explicitLambdaParameterType);
 
         // This code is to help give intellisense in the following case: 
@@ -46,13 +48,17 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
         // where there are more than one overloads of ThenInclude accepting different types of parameters.
         private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position, bool useBaseReferenceAccessibility, bool unwrapNullable, bool isForDereference)
         {
-            var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position, isForDereference);
+            var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position, unwrapNullable, isForDereference);
             return symbols.IsDefault
                 ? GetMemberSymbols(parameter.Type, position, excludeInstance: false, useBaseReferenceAccessibility, unwrapNullable, isForDereference)
                 : symbols;
         }
 
-        private ImmutableArray<ISymbol> TryGetMemberSymbolsForLambdaParameter(IParameterSymbol parameter, int position, bool isForDereference)
+        private ImmutableArray<ISymbol> TryGetMemberSymbolsForLambdaParameter(
+            IParameterSymbol parameter,
+            int position,
+            bool unwrapNullable,
+            bool isForDereference)
         {
             // Use normal lookup path for this/base parameters.
             if (parameter.IsThis)
@@ -72,9 +78,10 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
 
             // Check that a => a. belongs to an invocation.
             // Find its' ordinal in the invocation, e.g. ThenInclude(a => a.Something, a=> a.
-            var lambdaSyntax = owningMethod.DeclaringSyntaxReferences.Single().GetSyntax(_cancellationToken);
-            if (!(syntaxFactsService.IsAnonymousFunctionExpression(lambdaSyntax) &&
-                  syntaxFactsService.IsArgument(lambdaSyntax.Parent) &&
+            if (owningMethod.DeclaringSyntaxReferences.Single().GetSyntax(_cancellationToken) is not TAnonymousFunctionSyntax lambdaSyntax)
+                return default;
+
+            if (!(syntaxFactsService.IsArgument(lambdaSyntax.Parent) &&
                   syntaxFactsService.IsInvocationExpression(lambdaSyntax.Parent.Parent.Parent)))
             {
                 return default;
@@ -100,7 +107,14 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
 
                 // parameter.Ordinal is the ordinal within (a,b,c) => b.
                 // For candidate symbols of (a,b,c) => b., get types of all possible b.
-                parameterTypeSymbols = GetTypeSymbols(candidateSymbols, argumentName, ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
+
+                // First try to find delegates whose parameter count matches what the user provided.  However, if that
+                // finds nothing, fall back to accepting any potential delegates.  We don't want the punish the user if
+                // they provide the wrong number while in the middle of working with their code.
+                var lambdaParameterCount = this.GetLambdaParameterCount(lambdaSyntax);
+                parameterTypeSymbols = GetTypeSymbols(candidateSymbols, argumentName, ordinalInInvocation, parameter.Ordinal, lambdaParameterCount);
+                if (parameterTypeSymbols.IsEmpty)
+                    parameterTypeSymbols = GetTypeSymbols(candidateSymbols, argumentName, ordinalInInvocation, parameter.Ordinal, lambdaParameterCount: -1);
 
                 // The parameterTypeSymbols may include type parameters, and we want their substituted types if available.
                 parameterTypeSymbols = SubstituteTypeParameters(parameterTypeSymbols, invocationExpression);
@@ -110,8 +124,8 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
             // parameter the compiler inferred as it may have made a completely suitable inference for it.
             return parameterTypeSymbols
                 .Concat(parameter.Type)
-                .SelectMany(parameterTypeSymbol => GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable: false, isForDereference))
-                .ToImmutableArray();
+                .SelectManyAsArray(parameterTypeSymbol =>
+                    GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable, isForDereference));
         }
 
         private ImmutableArray<ITypeSymbol> SubstituteTypeParameters(ImmutableArray<ITypeSymbol> parameterTypeSymbols, SyntaxNode invocationExpression)
@@ -165,20 +179,23 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
         /// <param name="ordinalInInvocation">ordinal of the arguments of function: (a,b) or (a,b,c) in the example above</param>
         /// <param name="ordinalInLambda">ordinal of the lambda parameters, e.g. a, b or c.</param>
         /// <returns></returns>
-        private ImmutableArray<ITypeSymbol> GetTypeSymbols(ImmutableArray<ISymbol> candidateSymbols, string argumentName, int ordinalInInvocation, int ordinalInLambda)
+        private ImmutableArray<ITypeSymbol> GetTypeSymbols(
+            ImmutableArray<ISymbol> candidateSymbols,
+            string argumentName,
+            int ordinalInInvocation,
+            int ordinalInLambda,
+            int lambdaParameterCount)
         {
             var expressionSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
 
-            var builder = ArrayBuilder<ITypeSymbol>.GetInstance();
+            using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var builder);
 
             foreach (var candidateSymbol in candidateSymbols)
             {
                 if (candidateSymbol is IMethodSymbol method)
                 {
                     if (!TryGetMatchingParameterTypeForArgument(method, argumentName, ordinalInInvocation, out var type))
-                    {
                         continue;
-                    }
 
                     // If type is <see cref="Expression{TDelegate}"/>, ignore <see cref="Expression"/> and use TDelegate.
                     // Ignore this check if expressionSymbol is null, e.g. semantic model is broken or incomplete or if the framework does not contain <see cref="Expression"/>.
@@ -188,9 +205,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
                     {
                         var allTypeArguments = type.GetAllTypeArguments();
                         if (allTypeArguments.Length != 1)
-                        {
                             continue;
-                        }
 
                         type = allTypeArguments[0];
                     }
@@ -199,22 +214,22 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
                     {
                         var methods = type.GetMembers(WellKnownMemberNames.DelegateInvokeName);
                         if (methods.Length != 1)
-                        {
                             continue;
-                        }
 
                         var parameters = methods[0].GetParameters();
                         if (parameters.Length <= ordinalInLambda)
-                        {
                             continue;
-                        }
+
+                        if (lambdaParameterCount >= 0 && parameters.Length != lambdaParameterCount)
+                            continue;
 
                         builder.Add(parameters[ordinalInLambda].Type);
                     }
                 }
             }
 
-            return builder.ToImmutableAndFree().Distinct();
+            builder.RemoveDuplicates();
+            return builder.ToImmutableAndClear();
         }
 
         private bool TryGetMatchingParameterTypeForArgument(IMethodSymbol method, string argumentName, int ordinalInInvocation, out ITypeSymbol parameterType)

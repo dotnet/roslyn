@@ -24,11 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseImplicitObjectCreati
         [Fact]
         public async Task TestMissingBeforeCSharp9()
         {
-            var source = @"
-class C
-{
-    C c = new C();
-}";
+            var source = """
+                class C
+                {
+                    C c = new C();
+                }
+                """;
             await new VerifyCS.Test
             {
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8,
@@ -41,16 +42,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    C c = new [|C|]();
-}",
-                FixedCode = @"
-class C
-{
-    C c = new();
-}",
+                TestCode = """
+                class C
+                {
+                    C c = new [|C|]();
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    C c = new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -60,16 +63,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    C c = new [|C|]() { };
-}",
-                FixedCode = @"
-class C
-{
-    C c = new() { };
-}",
+                TestCode = """
+                class C
+                {
+                    C c = new [|C|]() { };
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    C c = new() { };
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -79,16 +84,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    C c = new [|C|] { };
-}",
-                FixedCode = @"
-class C
-{
-    C c = new() { };
-}",
+                TestCode = """
+                class C
+                {
+                    C c = new [|C|] { };
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    C c = new() { };
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -98,16 +105,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    C c = new /*x*/ [|C|]();
-}",
-                FixedCode = @"
-class C
-{
-    C c = new /*x*/ ();
-}",
+                TestCode = """
+                class C
+                {
+                    C c = new /*x*/ [|C|]();
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    C c = new /*x*/ ();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -117,11 +126,12 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    object c = new C();
-}",
+                TestCode = """
+                class C
+                {
+                    object c = new C();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -134,11 +144,12 @@ class C
                 TestState = {
                     Sources =
                     {
-                        @"
-class C
-{
-    {|#0:E|} c = new {|#1:E|}();
-}"
+                        """
+                        class C
+                        {
+                            {|#0:E|} c = new {|#1:E|}();
+                        }
+                        """
                     },
                     ExpectedDiagnostics =
                     {
@@ -157,11 +168,12 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    dynamic c = new C();
-}",
+                TestCode = """
+                class C
+                {
+                    dynamic c = new C();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -171,11 +183,12 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    int[] c = new int[0];
-}",
+                TestCode = """
+                class C
+                {
+                    int[] c = new int[0];
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -185,16 +198,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C<T> where T : new()
-{
-    T t = new [|T|]();
-}",
-                FixedCode = @"
-class C<T> where T : new()
-{
-    T t = new();
-}",
+                TestCode = """
+                class C<T> where T : new()
+                {
+                    T t = new [|T|]();
+                }
+                """,
+                FixedCode = """
+                class C<T> where T : new()
+                {
+                    T t = new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -204,22 +219,24 @@ class C<T> where T : new()
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    void M()
-    {
-        C c = new [|C|]();
-    }
-}",
-                FixedCode = @"
-class C
-{
-    void M()
-    {
-        C c = new();
-    }
-}",
+                TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        C c = new [|C|]();
+                    }
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        C c = new();
+                    }
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
                 Options =
                 {
@@ -233,14 +250,15 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    void M()
-    {
-        C c = new C();
-    }
-}",
+                TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        C c = new C();
+                    }
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
                 Options =
                 {
@@ -254,26 +272,28 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    void M()
-    {
-        for (C c = new [|C|]();;)
-        {
-        }
-    }
-}",
-                FixedCode = @"
-class C
-{
-    void M()
-    {
-        for (C c = new();;)
-        {
-        }
-    }
-}",
+                TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        for (C c = new [|C|]();;)
+                        {
+                        }
+                    }
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        for (C c = new();;)
+                        {
+                        }
+                    }
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -283,22 +303,24 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    void M()
-    {
-        C Func() => new [|C|]();
-    }
-}",
-                FixedCode = @"
-class C
-{
-    void M()
-    {
-        C Func() => new();
-    }
-}",
+                TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        C Func() => new [|C|]();
+                    }
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        C Func() => new();
+                    }
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -308,16 +330,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    C Func() => new [|C|]();
-}",
-                FixedCode = @"
-class C
-{
-    C Func() => new();
-}",
+                TestCode = """
+                class C
+                {
+                    C Func() => new [|C|]();
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    C Func() => new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -327,16 +351,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    public static implicit operator C(int i) => new [|C|]();
-}",
-                FixedCode = @"
-class C
-{
-    public static implicit operator C(int i) => new();
-}",
+                TestCode = """
+                class C
+                {
+                    public static implicit operator C(int i) => new [|C|]();
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    public static implicit operator C(int i) => new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -346,16 +372,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    public static C operator +(C c1, C c2) => new [|C|]();
-}",
-                FixedCode = @"
-class C
-{
-    public static C operator +(C c1, C c2) => new();
-}",
+                TestCode = """
+                class C
+                {
+                    public static C operator +(C c1, C c2) => new [|C|]();
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    public static C operator +(C c1, C c2) => new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -365,16 +393,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    C P => new [|C|]();
-}",
-                FixedCode = @"
-class C
-{
-    C P => new();
-}",
+                TestCode = """
+                class C
+                {
+                    C P => new [|C|]();
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    C P => new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -384,16 +414,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    C P { get => new [|C|](); }
-}",
-                FixedCode = @"
-class C
-{
-    C P { get => new(); }
-}",
+                TestCode = """
+                class C
+                {
+                    C P { get => new [|C|](); }
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    C P { get => new(); }
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -403,11 +435,12 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    C P { set => new C(); }
-}",
+                TestCode = """
+                class C
+                {
+                    C P { set => new C(); }
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -417,16 +450,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    C this[int i] => new [|C|]();
-}",
-                FixedCode = @"
-class C
-{
-    C this[int i] => new();
-}",
+                TestCode = """
+                class C
+                {
+                    C this[int i] => new [|C|]();
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    C this[int i] => new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -436,16 +471,18 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    C this[int i] { get => new [|C|](); }
-}",
-                FixedCode = @"
-class C
-{
-    C this[int i] { get => new(); }
-}",
+                TestCode = """
+                class C
+                {
+                    C this[int i] { get => new [|C|](); }
+                }
+                """,
+                FixedCode = """
+                class C
+                {
+                    C this[int i] { get => new(); }
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -455,11 +492,12 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    C Func() { return new C(); }
-}",
+                TestCode = """
+                class C
+                {
+                    C Func() { return new C(); }
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -469,12 +507,13 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    void X() => Bar(new C());
-    void Bar(C c) { }
-}",
+                TestCode = """
+                class C
+                {
+                    void X() => Bar(new C());
+                    void Bar(C c) { }
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -484,15 +523,16 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C
-{
-    void X()
-    {
-        C c;
-        c = new C();
-    }
-}",
+                TestCode = """
+                class C
+                {
+                    void X()
+                    {
+                        C c;
+                        c = new C();
+                    }
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -502,18 +542,20 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System.Collections.Generic;
-class C
-{
-    List<int> list = new [|System.Collections.Generic.List<int>|]();
-}",
-                FixedCode = @"
-using System.Collections.Generic;
-class C
-{
-    List<int> list = new();
-}",
+                TestCode = """
+                using System.Collections.Generic;
+                class C
+                {
+                    List<int> list = new [|System.Collections.Generic.List<int>|]();
+                }
+                """,
+                FixedCode = """
+                using System.Collections.Generic;
+                class C
+                {
+                    List<int> list = new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -523,18 +565,20 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System.Collections.Generic;
-class C
-{
-    System.Collections.Generic.List<int> list = new [|List<int>|]();
-}",
-                FixedCode = @"
-using System.Collections.Generic;
-class C
-{
-    System.Collections.Generic.List<int> list = new();
-}",
+                TestCode = """
+                using System.Collections.Generic;
+                class C
+                {
+                    System.Collections.Generic.List<int> list = new [|List<int>|]();
+                }
+                """,
+                FixedCode = """
+                using System.Collections.Generic;
+                class C
+                {
+                    System.Collections.Generic.List<int> list = new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -544,20 +588,22 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System.Collections.Generic;
-using X = System.Collections.Generic.List<int>;
-class C
-{
-    System.Collections.Generic.List<int> list = new [|X|]();
-}",
-                FixedCode = @"
-using System.Collections.Generic;
-using X = System.Collections.Generic.List<int>;
-class C
-{
-    System.Collections.Generic.List<int> list = new();
-}",
+                TestCode = """
+                using System.Collections.Generic;
+                using X = System.Collections.Generic.List<int>;
+                class C
+                {
+                    System.Collections.Generic.List<int> list = new [|X|]();
+                }
+                """,
+                FixedCode = """
+                using System.Collections.Generic;
+                using X = System.Collections.Generic.List<int>;
+                class C
+                {
+                    System.Collections.Generic.List<int> list = new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -567,30 +613,32 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
-class C
-{
-    public C() { }
-    public C(Action action) { }
+                TestCode = """
+                using System;
+                class C
+                {
+                    public C() { }
+                    public C(Action action) { }
 
-    C c1 = new [|C|](() =>
-    {
-        C c2 = new [|C|]();
-    });
-}",
-                FixedCode = @"
-using System;
-class C
-{
-    public C() { }
-    public C(Action action) { }
+                    C c1 = new [|C|](() =>
+                    {
+                        C c2 = new [|C|]();
+                    });
+                }
+                """,
+                FixedCode = """
+                using System;
+                class C
+                {
+                    public C() { }
+                    public C(Action action) { }
 
-    C c1 = new(() =>
-    {
-        C c2 = new();
-    });
-}",
+                    C c1 = new(() =>
+                    {
+                        C c2 = new();
+                    });
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -600,18 +648,20 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System.Collections.Generic;
-class C
-{
-    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int SomeName, int SomeOtherName, int YetAnotherName)>|]();
-}",
-                FixedCode = @"
-using System.Collections.Generic;
-class C
-{
-    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new();
-}",
+                TestCode = """
+                using System.Collections.Generic;
+                class C
+                {
+                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int SomeName, int SomeOtherName, int YetAnotherName)>|]();
+                }
+                """,
+                FixedCode = """
+                using System.Collections.Generic;
+                class C
+                {
+                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -621,18 +671,20 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System.Collections.Generic;
-class C
-{
-    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int, int, int)>|]();
-}",
-                FixedCode = @"
-using System.Collections.Generic;
-class C
-{
-    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new();
-}",
+                TestCode = """
+                using System.Collections.Generic;
+                class C
+                {
+                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int, int, int)>|]();
+                }
+                """,
+                FixedCode = """
+                using System.Collections.Generic;
+                class C
+                {
+                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -642,24 +694,26 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System.Collections.Generic;
-class C
-{
-    void M()
-    {
-        List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int, int, int)>|]();
-    }
-}",
-                FixedCode = @"
-using System.Collections.Generic;
-class C
-{
-    void M()
-    {
-        List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new();
-    }
-}",
+                TestCode = """
+                using System.Collections.Generic;
+                class C
+                {
+                    void M()
+                    {
+                        List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int, int, int)>|]();
+                    }
+                }
+                """,
+                FixedCode = """
+                using System.Collections.Generic;
+                class C
+                {
+                    void M()
+                    {
+                        List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new();
+                    }
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -667,11 +721,12 @@ class C
         [Fact, WorkItem(57777, "https://github.com/dotnet/roslyn/issues/57777")]
         public async Task TestMissingOnNullableStruct()
         {
-            var source = @"
-class C
-{
-    int? i = new int?();
-}";
+            var source = """
+                class C
+                {
+                    int? i = new int?();
+                }
+                """;
             await new VerifyCS.Test
             {
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
@@ -684,18 +739,20 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-#nullable enable
-class C
-{
-    C? c = new [|C|]();
-}",
-                FixedCode = @"
-#nullable enable
-class C
-{
-    C? c = new();
-}",
+                TestCode = """
+                #nullable enable
+                class C
+                {
+                    C? c = new [|C|]();
+                }
+                """,
+                FixedCode = """
+                #nullable enable
+                class C
+                {
+                    C? c = new();
+                }
+                """,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }

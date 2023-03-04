@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [TagType(typeof(IErrorTag))]
     internal sealed partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(InternalFeatureOnOffOptions.Squiggles);
+        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(DiagnosticsOptionsStorage.Squiggles);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -30,12 +30,15 @@ namespace Microsoft.CodeAnalysis.Indentation
         public static string GetPreferredIndentation(this SyntaxToken token, ParsedDocument document, IndentationOptions options, CancellationToken cancellationToken)
         {
             var tokenLine = document.Text.Lines.GetLineFromPosition(token.SpanStart);
-            var firstNonWhitespacePos = tokenLine.GetFirstNonWhitespacePosition();
-            Contract.ThrowIfNull(firstNonWhitespacePos);
-            if (firstNonWhitespacePos.Value == token.SpanStart)
+            if (tokenLine.Start != token.SpanStart)
             {
-                // token was on it's own line.  Start the end delimiter at the same location as it.
-                return tokenLine.Text!.ToString(TextSpan.FromBounds(tokenLine.Start, token.SpanStart));
+                var firstNonWhitespacePos = tokenLine.GetFirstNonWhitespacePosition();
+                Contract.ThrowIfNull(firstNonWhitespacePos);
+                if (firstNonWhitespacePos.Value == token.SpanStart)
+                {
+                    // token was on it's own line.  Start the end delimiter at the same location as it.
+                    return document.Text.ToString(TextSpan.FromBounds(tokenLine.Start, token.SpanStart));
+                }
             }
 
             // Token was on a line with something else.  Determine where we would indent the token if it was on the next
@@ -55,10 +58,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             var indenter = document.LanguageServices.GetRequiredService<IIndentationService>();
             var indentation = indenter.GetIndentation(newDocument, newTokenLine.LineNumber, options, cancellationToken);
 
-            return indentation.GetIndentationString(
-                newDocument.Text,
-                options.FormattingOptions.UseTabs,
-                options.FormattingOptions.TabSize);
+            return indentation.GetIndentationString(newDocument.Text, options);
         }
     }
 
@@ -74,5 +74,11 @@ namespace Microsoft.CodeAnalysis.Indentation
             var indentString = indent.CreateIndentationString(useTabs, tabSize);
             return indentString;
         }
+
+        public static string GetIndentationString(this IndentationResult indentationResult, SourceText sourceText, SyntaxFormattingOptions options)
+            => GetIndentationString(indentationResult, sourceText, options.UseTabs, options.TabSize);
+
+        public static string GetIndentationString(this IndentationResult indentationResult, SourceText sourceText, IndentationOptions options)
+            => GetIndentationString(indentationResult, sourceText, options.FormattingOptions);
     }
 }

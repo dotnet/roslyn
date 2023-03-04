@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     foreach (var codeAction in codeActions)
                     {
-                        var changedSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                        var changedSolution = await codeAction.GetChangedSolutionInternalAsync(solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                         if (changedSolution != null)
                         {
                             var changedDocumentIds = new SolutionChanges(changedSolution, solution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments());

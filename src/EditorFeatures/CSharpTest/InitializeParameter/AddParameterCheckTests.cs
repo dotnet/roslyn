@@ -2732,6 +2732,32 @@ record C([||]string s) { public string s; }";
             }.RunAsync();
         }
 
+        [Fact]
+        public async Task TestNotInClass()
+        {
+            var code = @"
+class C([||]string s) { public string s; }";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotInStruct()
+        {
+            var code = @"
+struct C([||]string s) { public string s; }";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
         [Fact, WorkItem(38093, "https://github.com/dotnet/roslyn/issues/38093")]
         public async Task TestReadBeforeAssignment()
         {
@@ -2767,6 +2793,70 @@ record C([||]string s) { public string s; }";
                     }
 
                     public Stream OutStream { get; }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(41140, "https://github.com/dotnet/roslyn/issues/41140")]
+        public async Task TestAfterComma1()
+        {
+            await VerifyCS.VerifyRefactoringAsync("""
+                using System;
+
+                class C
+                {
+                    // should generate for 'b'
+                    void M(string a,$$ string b, string c)
+                    {
+
+                    }
+                }
+                """, """
+                using System;
+
+                class C
+                {
+                    // should generate for 'b'
+                    void M(string a, string b, string c)
+                    {
+                        if (b is null)
+                        {
+                            throw new ArgumentNullException(nameof(b));
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem(41140, "https://github.com/dotnet/roslyn/issues/41140")]
+        public async Task TestAfterComma2()
+        {
+            await VerifyCS.VerifyRefactoringAsync("""
+                using System;
+
+                class C
+                {
+                    // should generate for 'a'
+                    void M(string a,$$
+                        string b, string c)
+                    {
+
+                    }
+                }
+                """, """
+                using System;
+
+                class C
+                {
+                    // should generate for 'a'
+                    void M(string a,
+                        string b, string c)
+                    {
+                        if (a is null)
+                        {
+                            throw new ArgumentNullException(nameof(a));
+                        }
+                    }
                 }
                 """);
         }
