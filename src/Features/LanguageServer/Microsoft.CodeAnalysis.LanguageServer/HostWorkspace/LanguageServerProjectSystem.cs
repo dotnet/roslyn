@@ -38,7 +38,13 @@ internal sealed class LanguageServerProjectSystem
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public LanguageServerProjectSystem(HostServicesProvider hostServicesProvider, VSCodeAnalyzerLoader analyzerLoader, IFileChangeWatcher fileChangeWatcher, ILoggerFactory loggerFactory, IAsynchronousOperationListenerProvider listenerProvider)
+    public LanguageServerProjectSystem(
+        HostServicesProvider hostServicesProvider,
+        VSCodeAnalyzerLoader analyzerLoader,
+        IFileChangeWatcher fileChangeWatcher,
+        [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, Host.Mef.FileExtensionsMetadata>> dynamicFileInfoProviders,
+        ILoggerFactory loggerFactory,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         Workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices);
@@ -57,7 +63,7 @@ internal sealed class LanguageServerProjectSystem
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
 
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
-            DynamicFileInfoProviders: ImmutableArray<Lazy<IDynamicFileInfoProvider, Host.Mef.FileExtensionsMetadata>>.Empty,
+            DynamicFileInfoProviders: dynamicFileInfoProviders.ToImmutableArray(),
             new ProjectSystemDiagnosticSource(),
             new HostDiagnosticAnalyzerProvider());
         _fileChangeWatcher = fileChangeWatcher;

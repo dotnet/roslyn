@@ -18,8 +18,7 @@ internal sealed class LanguageServerHost
     // TODO: replace this with a MEF part instead
     /// <summary>
     /// A static reference to the server instance.
-    /// Used by loggers to determine if they can send log messages via LSP
-    /// or if they need to use a fallback mechanism.
+    /// Used by components to send notifications and requests back to the client.
     /// </summary>
     internal static LanguageServerHost? Instance { get; private set; }
 
