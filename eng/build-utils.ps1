@@ -273,7 +273,7 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    $args = "/p:TreatWarningsAsErrors=true /nologo /nodeReuse:false /p:Configuration=$configuration ";
+    $args = "/p:TreatWarningsAsErrors=true /nologo /nodeReuse:false /p:Configuration=$configuration /m /v:m";
 
     if ($warnAsError) {
       $args += " /warnaserror"
@@ -326,18 +326,63 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   $projectPath = "src\NuGet\$packageName\AnyCpu\$packageName.Package.csproj"
   $force32Flag = if ($force32) { " /p:BOOTSTRAP32=true" } else { "" }
 
+  # For debug purposes copy all the json files into the log dir
+  $jsonDest = Join-Path $LogDir "json-after-restore"
+  Create-Directory $jsonDest
+  Get-ChildItem -re -in *.json (Join-Path $ArtifactsDir "obj") | %{ 
+      $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
+      Copy-Item $_.FullName (Join-Path $jsonDest $path)
+    }
+
+  $gpropsDest = Join-Path $LogDir "gprops-after-restore"
+  Create-Directory $gpropsDest
+  Get-ChildItem -re -in *.g.props (Join-Path $ArtifactsDir "obj") | %{ 
+      $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
+      Copy-Item $_.FullName (Join-Path $gpropsDest $path)
+    }
+
+
   Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:RunAnalyzersDuringBuild=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration -runAnalyzers
   $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
   Unzip (Join-Path $dir $packageFile.Name) $dir
 
+  # For debug purposes copy all the json files into the log dir
+  $jsonDest = Join-Path $LogDir "json-before-clean"
+  Create-Directory $jsonDest
+  Get-ChildItem -re -in *.json (Join-Path $ArtifactsDir "obj") | %{ 
+      $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
+      Copy-Item $_.FullName (Join-Path $jsonDest $path)
+    }
+
+  $gpropsDest = Join-Path $LogDir "gprops-before-clean"
+  Create-Directory $gpropsDest
+  Get-ChildItem -re -in *.g.props (Join-Path $ArtifactsDir "obj") | %{ 
+      $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
+      Copy-Item $_.FullName (Join-Path $gpropsDest $path)
+    }
+
   Write-Host "Cleaning Bootstrap compiler artifacts"
   Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
+
+  $jsonDest = Join-Path $LogDir "json-after-clean"
+  Create-Directory $jsonDest
+  Get-ChildItem -re -in *.json (Join-Path $ArtifactsDir "obj") | %{ 
+      $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
+      Copy-Item $_.FullName (Join-Path $jsonDest $path)
+    }
+
+  $gpropsDest = Join-Path $LogDir "gprops-after-clean"
+  Create-Directory $gpropsDest
+  Get-ChildItem -re -in *.g.props (Join-Path $ArtifactsDir "obj") | %{ 
+      $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
+      Copy-Item $_.FullName (Join-Path $gpropsDest $path)
+    }
 
   # Work around NuGet bug that doesn't correctly re-generate our project.assets.json files.
   # Deleting everything forces a regen
   # https://github.com/NuGet/Home/issues/12437
-  Remove-Item -Recurse -Force (Join-Path $ArtifactsDir "bin")
-  Remove-Item -Recurse -Force (Join-Path $ArtifactsDir "obj")
+  # Remove-Item -Recurse -Force (Join-Path $ArtifactsDir "bin")
+  # Remove-Item -Recurse -Force (Join-Path $ArtifactsDir "obj")
 
   return $dir
 }

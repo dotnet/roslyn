@@ -33,9 +33,10 @@ try {
 
   if (-not $noBuild) {
     Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
   }
 
+  exit 1
   Subst-TempDir
 
   $dotnetInstallDir = (InitializeDotNetCli -install:$true)
@@ -77,6 +78,21 @@ catch [exception] {
   exit 1
 }
 finally {
+
+  $jsonDest = Join-Path $LogDir "json-after-build"
+  Create-Directory $jsonDest
+  Get-ChildItem -re -in *.json (Join-Path $ArtifactsDir "obj") | %{ 
+      $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
+      Copy-Item $_.FullName (Join-Path $jsonDest $path)
+    }
+
+  $gpropsDest = Join-Path $LogDir "gprops-after-build"
+  Create-Directory $gpropsDest
+  Get-ChildItem -re -in *.g.props (Join-Path $ArtifactsDir "obj") | %{ 
+      $path = $_.FullName.SubString($ArtifactsDir.Length+5).Replace("\","-")
+      Copy-Item $_.FullName (Join-Path $gpropsDest $path)
+    }
+
   Unsubst-TempDir
   Pop-Location
 }
