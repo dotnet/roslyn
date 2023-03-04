@@ -188,6 +188,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int Attribute { get; }
         int ClassDeclaration { get; }
         int ConstructorDeclaration { get; }
+        int EnumDeclaration { get; }
         int InterfaceDeclaration { get; }
         int? StructDeclaration { get; }
         int Parameter { get; }

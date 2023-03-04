@@ -17,34 +17,33 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpClassSnippetProvider : AbstractCSharpTypeSnippetProvider
+    internal sealed class CSharpEnumSnippetProvider : AbstractCSharpTypeSnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpClassSnippetProvider()
+        public CSharpEnumSnippetProvider()
         {
         }
 
-        public override string Identifier => "class";
-
-        public override string Description => FeaturesResources.class_;
+        public override string Identifier => "enum";
+        public override string Description => FeaturesResources.enum_;
 
         protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, bool useAccessibility, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var name = NameGenerator.GenerateUniqueName("MyClass", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
+            var name = NameGenerator.GenerateUniqueName("MyEnum", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
             var classDeclaration = useAccessibility is true
-                ? generator.ClassDeclaration(name, accessibility: Accessibility.Public)
-                : generator.ClassDeclaration(name);
+                ? generator.EnumDeclaration(name, accessibility: Accessibility.Public)
+                : generator.EnumDeclaration(name);
 
             return classDeclaration;
         }
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
         {
-            return syntaxFacts.IsClassDeclaration;
+            return syntaxFacts.IsEnumDeclaration;
         }
     }
 }
