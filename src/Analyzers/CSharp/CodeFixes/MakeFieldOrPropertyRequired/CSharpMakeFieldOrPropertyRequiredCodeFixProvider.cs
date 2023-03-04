@@ -21,6 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeFieldOrPropertyRequired;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeFieldOrPropertyRequired), Shared]
+[ExtensionOrder(Before = PredefinedCodeFixProviderNames.DeclareAsNullable)]
 internal sealed class CSharpMakeFieldOrPropertyRequiredCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
     private const string CS8618 = nameof(CS8618); // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
@@ -65,8 +66,7 @@ internal sealed class CSharpMakeFieldOrPropertyRequiredCodeFixProvider : SyntaxE
             if (!CanBeAccessed(containingTypeVisibility, minimalAccessibility))
                 return;
 
-            // High priority to make sure this fix is shown before more generic 'Declare as nullable' one
-            RegisterCodeFix(context, CSharpCodeFixesResources.Make_property_required, nameof(CSharpCodeFixesResources.Make_property_required), CodeActionPriority.High);
+            RegisterCodeFix(context, CSharpCodeFixesResources.Make_property_required, nameof(CSharpCodeFixesResources.Make_property_required));
         }
         else if (fieldOrPropertySymbol is IFieldSymbol fieldSymbol)
         {
@@ -76,8 +76,7 @@ internal sealed class CSharpMakeFieldOrPropertyRequiredCodeFixProvider : SyntaxE
             if (!CanBeAccessed(containingTypeVisibility, accessibility))
                 return;
 
-            // High priority to make sure this fix is shown before more generic 'Declare as nullable' one
-            RegisterCodeFix(context, CSharpCodeFixesResources.Make_field_required, nameof(CSharpCodeFixesResources.Make_field_required), CodeActionPriority.High);
+            RegisterCodeFix(context, CSharpCodeFixesResources.Make_field_required, nameof(CSharpCodeFixesResources.Make_field_required));
         }
 
         static bool CanBeAccessed(SymbolVisibility containingTypeVisibility, Accessibility accessibility) => containingTypeVisibility switch
