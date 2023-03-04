@@ -307,7 +307,7 @@ stages:
     - task: PublishBuildArtifacts@1
       displayName: Publish Asset Manifests
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
+        PathtoPublish: 'artifacts\log\$(BuildConfiguration)\AssetManifest'
         ArtifactName: AssetManifests
       condition: succeeded()
 
