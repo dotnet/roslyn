@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public bool IsInMemberContext { get; private set; }
 
             public bool IsInSourceGeneratedDocument { get; private set; }
-            public bool IsInExecutableBlock { get; private set; }
+            public bool IsInExecutableSyntax { get; private set; }
             public bool IsInConditionalAccessExpression { get; private set; }
 
             public Location AfterThisLocation { get; private set; }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             internal bool CanGenerateLocal()
             {
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
-                return !IsInMemberContext && IsInExecutableBlock && !IsInSourceGeneratedDocument;
+                return !IsInMemberContext && IsInExecutableSyntax && !IsInSourceGeneratedDocument;
             }
 
             internal bool CanGenerateParameter()
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 if (!service.TryInitializeIdentifierNameState(
                         semanticDocument, simpleName, cancellationToken,
-                        out var identifierToken, out var simpleNameOrMemberAccessExpression, out var isInExecutableBlock, out var isInConditionalAccessExpression))
+                        out var identifierToken, out var simpleNameOrMemberAccessExpression, out var isInExecutableSyntax, out var isInConditionalAccessExpression))
                 {
                     return false;
                 }
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 IdentifierToken = identifierToken;
                 SimpleNameOrMemberAccessExpressionOpt = simpleNameOrMemberAccessExpression;
-                IsInExecutableBlock = isInExecutableBlock;
+                IsInExecutableSyntax = isInExecutableSyntax;
                 IsInConditionalAccessExpression = isInConditionalAccessExpression;
 
                 // If we're in a type context then we shouldn't offer to generate a field or

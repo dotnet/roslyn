@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -537,11 +536,57 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var token = location.FindToken(cancellationToken);
 
-            var block = token.Parent.GetAncestorsOrThis<BlockSyntax>().FirstOrDefault();
-            if (block != null)
+            var nearestExecutableSyntax = token.Parent.GetAncestorsOrThis(n => n is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax).FirstOrDefault();
+
+            if (nearestExecutableSyntax is BlockSyntax block)
+            {
+                return destinationMember.ReplaceNode(block, AddStatementToBlock(block, token));
+            }
+
+            if (nearestExecutableSyntax is ArrowExpressionClauseSyntax or LambdaExpressionSyntax)
+            {
+                var parent = nearestExecutableSyntax.Parent;
+
+                var expression = nearestExecutableSyntax switch
+                {
+                    ArrowExpressionClauseSyntax arrowClause => arrowClause.Expression,
+                    LambdaExpressionSyntax lambdaExpression => lambdaExpression.ExpressionBody,
+                    _ => throw ExceptionUtilities.Unreachable()
+                } ?? throw new ArgumentException(WorkspaceExtensionsResources.No_available_location_found_to_add_statements_to);
+
+                var tokenRelativePosition = token.SpanStart - expression.SpanStart;
+
+                var semicolon = parent switch
+                {
+                    BaseMethodDeclarationSyntax baseMethod => baseMethod.SemicolonToken,
+                    LocalFunctionStatementSyntax localFunction => localFunction.SemicolonToken,
+                    _ => SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                };
+
+                var expressionStatement = SyntaxFactory.ExpressionStatement(expression, semicolon);
+                var replacementBlock = SyntaxFactory.Block(expressionStatement);
+                var searchingToken = replacementBlock.FindToken(tokenRelativePosition + 1);
+                var blockWithAddedStatement = AddStatementToBlock(replacementBlock, searchingToken);
+
+                if (nearestExecutableSyntax is LambdaExpressionSyntax lambda)
+                    return destinationMember.ReplaceNode(lambda, lambda.WithBody(blockWithAddedStatement).WithExpressionBody(null));
+
+                SyntaxNode newParent = parent switch
+                {
+                    BaseMethodDeclarationSyntax baseMethod => baseMethod.WithBody(blockWithAddedStatement).WithExpressionBody(null).WithSemicolonToken(default),
+                    LocalFunctionStatementSyntax localFunction => localFunction.WithBody(blockWithAddedStatement).WithExpressionBody(null).WithSemicolonToken(default),
+                    _ => throw ExceptionUtilities.Unreachable()
+                };
+
+                return destinationMember.ReplaceNode(parent, newParent);
+            }
+
+            throw new ArgumentException(WorkspaceExtensionsResources.No_available_location_found_to_add_statements_to);
+
+            BlockSyntax AddStatementToBlock(BlockSyntax block, SyntaxToken searchingToken)
             {
                 var blockStatements = block.Statements.ToSet();
-                var containingStatement = token.GetAncestors<StatementSyntax>().Single(blockStatements.Contains);
+                var containingStatement = searchingToken.GetAncestors<StatementSyntax>().Single(blockStatements.Contains);
                 var index = block.Statements.IndexOf(containingStatement);
 
                 var newStatements = statements.OfType<StatementSyntax>().ToArray();
@@ -560,10 +605,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     newBlock = block.WithStatements(block.Statements.InsertRange(index + 1, newStatements));
                 }
 
-                return destinationMember.ReplaceNode(block, newBlock);
+                return newBlock;
             }
-
-            throw new ArgumentException(WorkspaceExtensionsResources.No_available_location_found_to_add_statements_to);
         }
 
         private static TDeclarationNode AddStatementsToBaseMethodDeclaration<TDeclarationNode>(

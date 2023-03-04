@@ -9740,5 +9740,121 @@ class C
     }
 }", index: 4);
         }
+
+        [Fact, WorkItem(28762, "https://github.com/dotnet/roslyn/issues/28762")]
+        public async Task TestGenerateLocalForArrowExpressionBody1()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+
+                class C
+                {
+                    void M() => Console.WriteLine([|bar|]);
+                }
+                """, """
+                using System;
+                
+                class C
+                {
+                    void M()
+                    {
+                        bool bar = false;
+                        Console.WriteLine(bar);
+                    }
+                }
+                """, index: 3);
+        }
+
+        [Fact, WorkItem(28762, "https://github.com/dotnet/roslyn/issues/28762")]
+        public async Task TestGenerateLocalForArrowExpressionBody2()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        void LocalFunction() => Console.WriteLine([|bar|]);
+                    }
+                }
+                """, """
+                using System;
+                
+                class C
+                {
+                    void M()
+                    {
+                        void LocalFunction()
+                        {
+                            bool bar = false;
+                            Console.WriteLine([|bar|]);
+                        }
+                    }
+                }
+                """, index: 3);
+        }
+
+        [Fact, WorkItem(28762, "https://github.com/dotnet/roslyn/issues/28762")]
+        public async Task TestGenerateLocalForArrowExpressionBody3()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        void LocalFunction()
+                        {
+                            void NestedLocalFunction() => Console.WriteLine([|bar|]);
+                        }
+                    }
+                }
+                """, """
+                using System;
+                
+                class C
+                {
+                    void M()
+                    {
+                        void LocalFunction()
+                        {
+                            void NestedLocalFunction()
+                            {
+                                bool bar = false;
+                                Console.WriteLine([|bar|]);
+                            }
+                        }
+                    }
+                }
+                """, index: 3);
+        }
+
+        [Fact, WorkItem(28762, "https://github.com/dotnet/roslyn/issues/28762")]
+        public async Task TestGenerateLocalForArrowExpressionBody4()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        var action = () => Console.WriteLine([|bar|]);
+                    }
+                }
+                """, """
+                using System;
+                
+                class C
+                {
+                    void M()
+                    {
+                        var action = () => { bool bar = false; Console.WriteLine([|bar|]); };
+                    }
+                }
+                """, index: 3);
+        }
     }
 }

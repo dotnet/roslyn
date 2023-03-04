@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
 
         protected override bool TryInitializeIdentifierNameState(
             SemanticDocument document, SimpleNameSyntax identifierName, CancellationToken cancellationToken,
-            out SyntaxToken identifierToken, out ExpressionSyntax simpleNameOrMemberAccessExpression, out bool isInExecutableBlock, out bool isConditionalAccessExpression)
+            out SyntaxToken identifierToken, out ExpressionSyntax simpleNameOrMemberAccessExpression, out bool isInExecutableSyntax, out bool isConditionalAccessExpression)
         {
             identifierToken = identifierName.Identifier;
             if (identifierToken.ValueText != string.Empty &&
@@ -111,20 +111,20 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 // very esoteric and probably not what most users want.
                 if (!IsLegal(document, simpleNameOrMemberAccessExpression, cancellationToken))
                 {
-                    isInExecutableBlock = false;
+                    isInExecutableSyntax = false;
                     isConditionalAccessExpression = false;
                     return false;
                 }
 
-                var block = identifierName.GetAncestor<BlockSyntax>();
-                isInExecutableBlock = block != null && !block.OverlapsHiddenPosition(cancellationToken);
+                var executableSyntax = identifierName.GetAncestorsOrThis(n => n is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax).FirstOrDefault();
+                isInExecutableSyntax = executableSyntax is not null && !executableSyntax.OverlapsHiddenPosition(cancellationToken);
                 isConditionalAccessExpression = conditionalMemberAccess != null;
                 return true;
             }
 
             identifierToken = default;
             simpleNameOrMemberAccessExpression = null;
-            isInExecutableBlock = false;
+            isInExecutableSyntax = false;
             isConditionalAccessExpression = false;
             return false;
         }
