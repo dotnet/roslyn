@@ -2721,8 +2721,7 @@ class C<T>
         object y;
     }
 }";
-            ResultProperties resultProperties;
-            string error;
+
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
@@ -2732,13 +2731,40 @@ class C<T>
 {
     object x = y;
     return y;
-}))(x, y)",
-                resultProperties: out resultProperties,
-                error: out error);
-            // Currently generating errors but this seems unnecessary and
-            // an extra burden for the user. Consider allowing names
-            // inside the expression that shadow names outside.
-            Assert.Equal("error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
+}))(x)");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (object V_0) //y
+  IL_0000:  ldsfld     ""System.Func<object, object> <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""object <>x.<>c.<<>m0>b__0_0(object)""
+  IL_0014:  newobj     ""System.Func<object, object>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<object, object> <>x.<>c.<>9__0_0""
+  IL_001f:  ldarg.0
+  IL_0020:  callvirt   ""object System.Func<object, object>.Invoke(object)""
+  IL_0025:  ret
+}");
+
+            var data = testData.GetMethodData("<>x.<>c.<<>m0>b__0_0(object)");
+
+            Assert.False(data.Method.IsStatic);
+            Assert.Equal("System.Object <>x.<>c.<<>m0>b__0_0(System.Object y)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
         }
 
         [Fact]
@@ -6984,6 +7010,892 @@ class Program
   IL_0007:  dup
   IL_0008:  stind.i4
   IL_0009:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_01()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = () =>
+        {
+            sbyte x = 0;
+            int y = x;
+
+            var d3 = () =>
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+            return d3;
+        };
+
+        d2()();
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<Test>b__1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            sbyte V_1, //x
+            System.Action V_2, //d3
+            System.Action V_3)
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_02()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = () =>
+        {
+            sbyte x = 0;
+            int y = x;
+
+            var d3 = () =>
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+
+            return d3;
+        };
+
+        d2()();
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_1.<Test>b__2",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_03()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = (sbyte x) =>
+        {
+            int y = x;
+
+            var d3 = (short x) =>
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+            return d3;
+        };
+
+        d2(-100)(-200);
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<Test>b__1",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.SByte <>x.<>m0(C.<>c__DisplayClass0_0 <>4__this, System.SByte x)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                System.Action<short> V_1, //d3
+                System.Action<short> V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_04()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = (sbyte x) =>
+        {
+            int y = x;
+
+            var d3 = (short x) =>
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+
+            return d3;
+        };
+
+        d2(-100)(-200);
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_1.<Test>b__2",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.Int16 <>x.<>m0(C.<>c__DisplayClass0_1 <>4__this, System.Int16 x)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_05()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+#line 100
+        byte l1 = 1;
+#line 200
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+            short l2 = l1;
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Action V_1, //d1
+                System.Action V_2) //d2
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_06()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+#line 100
+            short l2 = l1;
+#line 200
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<Test>b__1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            System.Action V_1, //d3
+            System.Action V_2) //d4
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_07()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+            short l2 = l1;
+
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+#line 100
+                int l3 = 3 + l2;
+#line 200
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_1.<Test>b__3",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_11()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2()
+        {
+            sbyte x = 0;
+            int y = x;
+
+            void d3()
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d2|0_1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                sbyte V_1) //x
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_12()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2()
+        {
+            sbyte x = 0;
+            int y = x;
+
+            void d3()
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d3|0_2",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_13()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2(sbyte x)
+        {
+            int y = x;
+
+            void d3(short x)
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d2|0_1",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.SByte <>x.<>m0(System.SByte x, ref C.<>c__DisplayClass0_0 value)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_14()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2(sbyte x)
+        {
+            int y = x;
+
+            void d3(short x)
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d3|0_2",
+                atLineNumber: 100,
+                expr: "x");
+
+            var data = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(data.Method.IsStatic);
+            Assert.Equal("System.Int16 <>x.<>m0(System.Int16 x, ref C.<>c__DisplayClass0_0 value, ref C.<>c__DisplayClass0_1 value)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_15()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+#line 100
+        byte l1 = 1;
+#line 200
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+            short l2 = l1;
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_16()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+#line 100
+            short l2 = l1;
+#line 200
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d2|0_1",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_17()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+            short l2 = l1;
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+#line 100
+                int l3 = 3 + l2;
+#line 200
+            };
+        };
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<Test>g__d4|0_3",
+                atLineNumber: 100,
+                expr: "x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [WorkItem(67188, "https://github.com/dotnet/roslyn/issues/67188")]
+        public void CapturingAndShadowing_18()
+        {
+            var source =
+@"class C
+{
+    void Test(byte x)
+    {
+        byte l1 = 1;
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        d1();
+#line 100
+        var d2 = (int x) => x;
+#line 200
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.Test",
+                atLineNumber: 100,
+                expr: "(int x) => x");
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+            System.Func<int, int> V_1) //d2
+  IL_0000:  ldsfld     ""System.Func<int, int> <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""int <>x.<>c.<<>m0>b__0_0(int)""
+  IL_0014:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<int, int> <>x.<>c.<>9__0_0""
+  IL_001f:  ret
+}");
+
+            var data = testData.GetMethodData("<>x.<>c.<<>m0>b__0_0(int)");
+
+            Assert.False(data.Method.IsStatic);
+            Assert.Equal("System.Int32 <>x.<>c.<<>m0>b__0_0(System.Int32 x)", ((Symbol)data.Method).ToTestDisplayString());
+            data.VerifyIL(
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
 }");
         }
 

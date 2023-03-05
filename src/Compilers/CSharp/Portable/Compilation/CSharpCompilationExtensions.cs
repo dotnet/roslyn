@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal static bool IsFeatureEnabled(this CSharpCompilation compilation, MessageID feature)
         {
-            return ((CSharpParseOptions?)compilation.SyntaxTrees.FirstOrDefault()?.Options)?.IsFeatureEnabled(feature) == true;
+            return compilation.LanguageVersion >= feature.RequiredVersion();
         }
 
         internal static bool IsFeatureEnabled(this SyntaxNode? syntax, MessageID feature)

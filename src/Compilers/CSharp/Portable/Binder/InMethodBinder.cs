@@ -207,6 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length, EqualityComparer<string>.Default);
                 foreach (var parameter in parameters)
                 {
+                    if ((this.Flags & BinderFlags.InEEMethodBinder) != 0 && parameter.Type.IsDisplayClassType())
+                    {
+                        // Display class parameters shouldn't be accessible in EE
+                        continue;
+                    }
+
                     parameterMap.Add(parameter.Name, parameter);
                 }
 

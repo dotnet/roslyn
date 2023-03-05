@@ -5166,5 +5166,1271 @@ public class C
                         expectedGeneric: true);
             });
         }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_01()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = () =>
+        {
+            sbyte x = 0;
+            int y = x;
+
+            var d3 = () =>
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+            return d3;
+        };
+
+        d2()();
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<Test>b__1", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(4, locals.Count);
+
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "z", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            sbyte V_1, //x
+            System.Action V_2, //d3
+            System.Action V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.z""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            sbyte V_1, //x
+            System.Action V_2, //d3
+            System.Action V_3)
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "d3", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            sbyte V_1, //x
+            System.Action V_2, //d3
+            System.Action V_3)
+  IL_0000:  ldloc.2
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[3], "<>m3", "y", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            sbyte V_1, //x
+            System.Action V_2, //d3
+            System.Action V_3)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_02()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = () =>
+        {
+            sbyte x = 0;
+            int y = x;
+
+            var d3 = () =>
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+
+            return d3;
+        };
+
+        d2()();
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_1.<Test>b__2", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(3, locals.Count);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "y", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_000b:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "z", expectedILOpt:
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.z""
+  IL_000b:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_03()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = (sbyte x) =>
+        {
+            int y = x;
+
+            var d3 = (short x) =>
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+            return d3;
+        };
+
+        d2(-100)(-200);
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<Test>b__1", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(4, locals.Count);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                System.Action<short> V_1, //d3
+                System.Action<short> V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "z", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            System.Action<short> V_1, //d3
+            System.Action<short> V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.z""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "d3", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            System.Action<short> V_1, //d3
+            System.Action<short> V_2)
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[3], "<>m3", "y", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+            System.Action<short> V_1, //d3
+            System.Action<short> V_2)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_04()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        var d1 = () =>
+        {
+            x += z;
+        };
+
+        d1();
+
+        var d2 = (sbyte x) =>
+        {
+            int y = x;
+
+            var d3 = (short x) =>
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+
+            return d3;
+        };
+
+        d2(-100)(-200);
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_1.<Test>b__2", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(3, locals.Count);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "z", expectedILOpt:
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.z""
+  IL_000b:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_05()
+        {
+            var source =
+@"class C
+{
+    static void Test()
+    {
+        byte x = 0;
+#line 100
+        byte l1 = 1;
+#line 200
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+            short l2 = l1;
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Test", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(4, locals.Count);
+
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "d1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Action V_1, //d1
+                System.Action V_2) //d2
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "d2", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Action V_1, //d1
+                System.Action V_2) //d2
+  IL_0000:  ldloc.2
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "x", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Action V_1, //d1
+                System.Action V_2) //d2
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[3], "<>m3", "l1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Action V_1, //d1
+                System.Action V_2) //d2
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.l1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_06()
+        {
+            var source =
+@"class C
+{
+    static void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+#line 100
+            short l2 = l1;
+#line 200
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<Test>b__1", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(5, locals.Count);
+
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "l1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                System.Action V_1, //d3
+                System.Action V_2) //d4
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.l1""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "d3", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                System.Action V_1, //d3
+                System.Action V_2) //d4
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "d4", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                System.Action V_1, //d3
+                System.Action V_2) //d4
+  IL_0000:  ldloc.2
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[3], "<>m3", "x", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                System.Action V_1, //d3
+                System.Action V_2) //d4
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.x""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[4], "<>m4", "l2", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                System.Action V_1, //d3
+                System.Action V_2) //d4
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.l2""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_07()
+        {
+            var source =
+@"class C
+{
+    static void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        var d1 = () =>
+        {
+            x += l1;
+        };
+
+        var d2 = () =>
+        {
+            short x = 0;
+            short l2 = l1;
+
+            var d3 = () =>
+            {
+                x += l2;
+            };
+
+            var d4 = () =>
+            {
+                int x = 0;
+#line 100
+                int l3 = 3 + l2;
+#line 200
+            };
+        };
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_1.<Test>b__3", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(3, locals.Count);
+
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "l2", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.l2""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "l3", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_11()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2()
+        {
+            sbyte x = 0;
+            int y = x;
+
+            void d3()
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+        };
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<Test>g__d2|0_1", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(3, locals.Count);
+
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "z", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                sbyte V_1) //x
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.z""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                sbyte V_1) //x
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "y", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                sbyte V_1) //x
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_12()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2()
+        {
+            sbyte x = 0;
+            int y = x;
+
+            void d3()
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+        };
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<Test>g__d3|0_2", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(3, locals.Count);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "z", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.z""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "y", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_13()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2(sbyte x)
+        {
+            int y = x;
+
+            void d3(short x)
+            {
+                y += z;
+            };
+
+            x = -100;
+#line 100
+            z += x;
+#line 200
+        };
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<Test>g__d2|0_1", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(3, locals.Count);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "z", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.z""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "y", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_14()
+        {
+            var source =
+@"class C
+{
+    void Test()
+    {
+        int x = 0;
+        int z = 1;
+
+        void d1()
+        {
+            x += z;
+        };
+
+        void d2(sbyte x)
+        {
+            int y = x;
+
+            void d3(short x)
+            {
+#line 100
+                y += z;
+#line 200
+            };
+
+            x = -100;
+            z += x;
+        };
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<Test>g__d3|0_2", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(3, locals.Count);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "z", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.z""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "y", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.2
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_15()
+        {
+            var source =
+@"class C
+{
+    static void Test()
+    {
+        byte x = 0;
+#line 100
+        byte l1 = 1;
+#line 200
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+            short l2 = l1;
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Test", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(2, locals.Count);
+
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "l1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.l1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_16()
+        {
+            var source =
+@"class C
+{
+    static void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+#line 100
+            short l2 = l1;
+#line 200
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+                int l3 = 3 + l2;
+            };
+        };
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<Test>g__d2|0_1", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(3, locals.Count);
+
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "l1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""byte C.<>c__DisplayClass0_0.l1""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.x""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "l2", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_1 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.l2""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        public void CapturingAndShadowing_17()
+        {
+            var source =
+@"class C
+{
+    static void Test()
+    {
+        byte x = 0;
+        byte l1 = 1;
+
+        void d1()
+        {
+            x += l1;
+        };
+
+        void d2()
+        {
+            short x = 0;
+            short l2 = l1;
+
+            void d3()
+            {
+                x += l2;
+            };
+
+            void d4()
+            {
+                int x = 0;
+#line 100
+                int l3 = 3 + l2;
+#line 200
+            };
+        };
+    }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<Test>g__d4|0_3", atLineNumber: 100);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(0, assembly.Count);
+
+                Assert.Equal(3, locals.Count);
+
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "l2", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""short C.<>c__DisplayClass0_1.l2""
+  IL_0006:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "l3", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //l3
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
     }
 }

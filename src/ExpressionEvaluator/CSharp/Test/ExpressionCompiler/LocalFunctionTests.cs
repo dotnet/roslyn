@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         // Should not bind to unnamed display class parameters
         // (unnamed parameters are treated as named "value").
-        [Fact(Skip = "18426")]
+        [Fact]
         [WorkItem(18426, "https://github.com/dotnet/roslyn/issues/18426")]
         public void DisplayClassParameter()
         {

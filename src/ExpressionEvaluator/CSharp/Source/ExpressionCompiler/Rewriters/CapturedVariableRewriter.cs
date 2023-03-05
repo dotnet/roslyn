@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override BoundNode VisitLocal(BoundLocal node)
         {
             var local = node.LocalSymbol;
-            if (!local.IsCompilerGenerated)
+            if (!local.IsCompilerGenerated && local is EEDisplayClassFieldLocalSymbol)
             {
                 var variable = this.GetVariable(local.Name);
                 if (variable != null)
@@ -65,17 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
             return node;
-        }
-
-        public override BoundNode VisitParameter(BoundParameter node)
-        {
-            var parameter = node.ParameterSymbol;
-            var variable = this.GetVariable(parameter.Name);
-            if (variable == null)
-            {
-                return node;
-            }
-            return variable.ToBoundExpression(node.Syntax);
         }
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
