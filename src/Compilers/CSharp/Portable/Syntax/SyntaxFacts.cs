@@ -559,7 +559,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is null)
                 return false;
 
-            // Intentionally walk green tree to avoid allocations.  This accounted for
             var stack = ArrayBuilder<GreenNode>.GetInstance();
             stack.Push(node.Green);
 
