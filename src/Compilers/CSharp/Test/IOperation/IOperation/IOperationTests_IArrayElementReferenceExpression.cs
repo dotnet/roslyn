@@ -519,7 +519,9 @@ class C
 ";
 
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '[0]')
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '[0]')
+  Children(1):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
