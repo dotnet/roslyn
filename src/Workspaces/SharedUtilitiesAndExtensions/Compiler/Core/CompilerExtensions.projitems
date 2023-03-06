@@ -18,7 +18,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" Link="InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\NonCopyableAttribute.cs" Link="InternalUtilities\NonCopyableAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\NonDefaultableAttribute.cs" Link="InternalUtilities\NonDefaultableAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="InternalUtilities\NullableAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="InternalUtilities\IsExternalInit.cs" />
