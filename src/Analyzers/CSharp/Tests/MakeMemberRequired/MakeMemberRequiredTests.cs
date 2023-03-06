@@ -1,22 +1,22 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeFieldOrPropertyRequired;
+using Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeMemberRequired;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakeFieldOrPropertyRequired
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakeMemberRequired
 {
     using VerifyCS = CSharpCodeFixVerifier<
         EmptyDiagnosticAnalyzer,
-        CSharpMakeFieldOrPropertyRequiredCodeFixProvider>;
+        CSharpMakeMemberRequiredCodeFixProvider>;
 
-    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldOrPropertyRequired)]
-    public sealed class MakeFieldOrPropertyRequiredTests
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberRequired)]
+    public sealed class MakeMemberRequiredTests
     {
         [Fact]
         public async Task SimpleSetProperty()

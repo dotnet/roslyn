@@ -49,10 +49,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpAddYieldCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpChangeToIEnumerableCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)MakeFieldOrPropertyRequired\CSharpMakeFieldOrPropertyRequiredCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\MakeLocalFunctionStaticCodeFixHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\MakeLocalFunctionStaticCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\PassInCapturedVariablesAsArgumentsCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMemberRequired\CSharpMakeMemberRequiredCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\CSharpMakeMemberStaticCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMethodAsynchronous\CSharpMakeMethodAsynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\CSharpMakeMethodSynchronousCodeFixProvider.cs" />
