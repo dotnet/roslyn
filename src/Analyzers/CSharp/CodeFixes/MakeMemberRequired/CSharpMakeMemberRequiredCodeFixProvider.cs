@@ -79,6 +79,10 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
             RegisterCodeFix(context, CSharpCodeFixesResources.Make_field_required, nameof(CSharpCodeFixesResources.Make_field_required));
         }
 
+        // The `required` modifier cannot be used if a member is not accessible from outside of type.
+        // For instance, having private required property in a public class leads to compiler error.
+        // This function checks whether the member can be accessed by checking containing type visibility (which is computed already taking into account whether the type is nested and what is its visibility based on that fact)
+        // against accessibility of member we are trying to make required
         static bool CanBeAccessed(SymbolVisibility containingTypeVisibility, Accessibility accessibility) => containingTypeVisibility switch
         {
             SymbolVisibility.Public => accessibility is Accessibility.Public,
