@@ -667,5 +667,108 @@ End Interface")
         End Function
 #End Region
 
+#Region "Constructors"
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain1() As Task
+            Await TestAsync("
+class C
+    public sub $$new(i as integer)
+        me.new(i.ToString())
+    end sub
+
+    public sub [|new|](s as string)
+    end sub
+end class
+")
+        End Function
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain2() As Task
+            Await TestAsync("
+class Base
+    public sub [|new|](s as string)
+    end sub
+end class
+
+class C
+    inherits Base
+
+    public sub $$new(i as integer)
+        mybase.new(i.ToString())
+    end sub
+end sub
+")
+        End Function
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain3() As Task
+            Await TestAsync("
+class [|Base|]
+end class
+
+class C 
+    inherits Base
+
+    public sub $$new(i as integer)
+    end sub
+end class
+")
+        End Function
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain4() As Task
+            Await TestAsync("
+class Base
+    public sub [|new|](i as integer)
+    end sub
+end class
+
+class C 
+    inherits Base
+
+    public sub $$new(i as integer)
+        mybase.new(i)
+    end sub
+end class
+")
+        End Function
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain5() As Task
+            Await TestAsync("
+class Base
+    public sub [|new|](optional i as integer = 0)
+    end sub
+end class
+
+class C
+    inherits Base
+
+    public sub $$new(i as integer)
+    end sub
+end class
+")
+        End Function
+
+        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        Public Async Function TestNextConstructorInChain6() As Task
+            Await TestAsync("
+class Base
+    public sub [|new|](paramarray i as integer())
+    end sub
+}
+
+class C
+    inherits Base
+
+    public sub $$new(i as integer)
+    end sub
+end class
+")
+        End Function
+
+#End Region
+
     End Class
 End Namespace

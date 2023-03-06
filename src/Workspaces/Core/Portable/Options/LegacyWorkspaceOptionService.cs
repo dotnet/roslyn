@@ -30,7 +30,7 @@ internal sealed class LegacyGlobalOptionService : ILegacyGlobalOptionService
     public IGlobalOptionService GlobalOptions { get; }
 
     // access is interlocked
-    private ImmutableArray<Workspace> _registeredWorkspaces;
+    private ImmutableArray<WeakReference<Workspace>> _registeredWorkspaces;
 
     /// <summary>
     /// Stores options that are not defined by Roslyn and do not implement <see cref="IOption2"/>.
@@ -42,7 +42,7 @@ internal sealed class LegacyGlobalOptionService : ILegacyGlobalOptionService
     public LegacyGlobalOptionService(IGlobalOptionService globalOptionService)
     {
         GlobalOptions = globalOptionService;
-        _registeredWorkspaces = ImmutableArray<Workspace>.Empty;
+        _registeredWorkspaces = ImmutableArray<WeakReference<Workspace>>.Empty;
         _currentExternallyDefinedOptionValues = ImmutableDictionary.Create<OptionKey, object?>();
     }
 
@@ -102,16 +102,38 @@ internal sealed class LegacyGlobalOptionService : ILegacyGlobalOptionService
     {
         // Ensure that the Workspace's CurrentSolution snapshot is updated with new options for all registered workspaces
         // prior to raising option changed event handlers.
-        foreach (var workspace in _registeredWorkspaces)
+        foreach (var weakWorkspace in _registeredWorkspaces)
         {
+            if (!weakWorkspace.TryGetTarget(out var workspace))
+                continue;
+
             workspace.UpdateCurrentSolutionOnOptionsChanged();
         }
     }
 
     public void RegisterWorkspace(Workspace workspace)
-        => ImmutableInterlocked.Update(ref _registeredWorkspaces, (workspaces, workspace) => workspaces.Add(workspace), workspace);
+    {
+        ImmutableInterlocked.Update(
+            ref _registeredWorkspaces,
+            static (workspaces, workspace) =>
+            {
+                return workspaces
+                    .RemoveAll(static weakWorkspace => !weakWorkspace.TryGetTarget(out _))
+                    .Add(new WeakReference<Workspace>(workspace));
+            },
+            workspace);
+    }
 
     public void UnregisterWorkspace(Workspace workspace)
-        => ImmutableInterlocked.Update(ref _registeredWorkspaces, (workspaces, workspace) => workspaces.Remove(workspace), workspace);
-
+    {
+        ImmutableInterlocked.Update(
+            ref _registeredWorkspaces,
+            static (workspaces, workspace) =>
+            {
+                return workspaces.WhereAsArray(
+                    static (weakWorkspace, workspaceToRemove) => weakWorkspace.TryGetTarget(out var workspace) && workspace != workspaceToRemove,
+                    workspace);
+            },
+            workspace);
+    }
 }

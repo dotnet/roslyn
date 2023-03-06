@@ -1045,7 +1045,7 @@ class A
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.True(diagnostic != null);
-            Assert.Equal(CancellationTestAnalyzer.NonCanceledDiagnosticId, diagnostic.Id);
+            Assert.Equal(CancellationTestAnalyzer.DiagnosticId, diagnostic.Id);
         }
 
         [Theory, CombinatorialData]
@@ -1085,6 +1085,7 @@ class A
         }
 
         [Theory, CombinatorialData]
+        [WorkItem(67084, "https://github.com/dotnet/roslyn/issues/67084")]
         internal async Task TestCancellationDuringDiagnosticComputation_OutOfProc(AnalyzerRegisterActionKind actionKind)
         {
             // This test verifies that we do no attempt to re-use CompilationWithAnalyzers instance in IDE OutOfProc diagnostic computation in presence of an OperationCanceledException during analysis.
@@ -1137,7 +1138,7 @@ class A
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
             var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
             var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();
-            Assert.Equal(CancellationTestAnalyzer.NonCanceledDiagnosticId, diagnostic.Id);
+            Assert.Equal(CancellationTestAnalyzer.DiagnosticId, diagnostic.Id);
         }
 
         [Theory]
@@ -1183,88 +1184,6 @@ class A
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.True(gotDiagnostics);
-        }
-
-        internal enum AnalyzerRegisterActionKind
-        {
-            SyntaxTree,
-            SyntaxNode,
-            Symbol,
-            Operation,
-            SemanticModel,
-        }
-
-        [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        internal sealed class CancellationTestAnalyzer : DiagnosticAnalyzer
-        {
-            public const string CanceledDiagnosticId = "CanceledId";
-            public const string NonCanceledDiagnosticId = "NonCanceledId";
-            private readonly DiagnosticDescriptor s_canceledDescriptor =
-                new DiagnosticDescriptor(CanceledDiagnosticId, "test", "test", "test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-            private readonly DiagnosticDescriptor s_nonCanceledDescriptor =
-                new DiagnosticDescriptor(NonCanceledDiagnosticId, "test", "test", "test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
-            private readonly AnalyzerRegisterActionKind _actionKind;
-            private readonly CancellationTokenSource _cancellationTokenSource = new();
-
-            public CancellationTestAnalyzer(AnalyzerRegisterActionKind actionKind)
-            {
-                _actionKind = actionKind;
-                CanceledCompilations = new ConcurrentSet<Compilation>();
-            }
-
-            public CancellationToken CancellationToken => _cancellationTokenSource.Token;
-            public ConcurrentSet<Compilation> CanceledCompilations { get; }
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_canceledDescriptor, s_nonCanceledDescriptor);
-
-            public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterCompilationStartAction(OnCompilationStart);
-            }
-
-            private void OnCompilationStart(CompilationStartAnalysisContext context)
-            {
-                switch (_actionKind)
-                {
-                    case AnalyzerRegisterActionKind.SyntaxTree:
-                        context.RegisterSyntaxTreeAction(syntaxContext => HandleCallback(syntaxContext.Tree.GetRoot().GetLocation(), context.Compilation, syntaxContext.ReportDiagnostic, syntaxContext.CancellationToken));
-                        break;
-                    case AnalyzerRegisterActionKind.SyntaxNode:
-                        context.RegisterSyntaxNodeAction(context => HandleCallback(context.Node.GetLocation(), context.Compilation, context.ReportDiagnostic, context.CancellationToken), CodeAnalysis.CSharp.SyntaxKind.ClassDeclaration);
-                        break;
-                    case AnalyzerRegisterActionKind.Symbol:
-                        context.RegisterSymbolAction(context => HandleCallback(context.Symbol.Locations[0], context.Compilation, context.ReportDiagnostic, context.CancellationToken), SymbolKind.NamedType);
-                        break;
-                    case AnalyzerRegisterActionKind.Operation:
-                        context.RegisterOperationAction(context => HandleCallback(context.Operation.Syntax.GetLocation(), context.Compilation, context.ReportDiagnostic, context.CancellationToken), OperationKind.VariableDeclaration);
-                        break;
-                    case AnalyzerRegisterActionKind.SemanticModel:
-                        context.RegisterSemanticModelAction(context => HandleCallback(context.SemanticModel.SyntaxTree.GetRoot().GetLocation(), context.SemanticModel.Compilation, context.ReportDiagnostic, context.CancellationToken));
-                        break;
-                }
-            }
-
-            private void HandleCallback(Location analysisLocation, Compilation compilation, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
-            {
-                // Mimic cancellation by throwing an OperationCanceledException in first callback.
-                if (!_cancellationTokenSource.IsCancellationRequested)
-                {
-                    _cancellationTokenSource.Cancel();
-                    CanceledCompilations.Add(compilation);
-
-                    while (true)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                    }
-
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                // Report diagnostic in the second callback.
-                var descriptor = CanceledCompilations.Contains(compilation) ? s_canceledDescriptor : s_nonCanceledDescriptor;
-                reportDiagnostic(Diagnostic.Create(descriptor, analysisLocation));
-            }
         }
 
         private static Document GetDocumentFromIncompleteProject(AdhocWorkspace workspace)

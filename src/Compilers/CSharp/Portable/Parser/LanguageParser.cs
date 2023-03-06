@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfFunctionPointerParameterList = 1 << 23,
             IsEndOfFunctionPointerParameterListErrored = 1 << 24,
             IsEndOfFunctionPointerCallingConvention = 1 << 25,
-            IsEndOfRecordSignature = 1 << 26,
+            IsEndOfRecordOrClassOrStructOrInterfaceSignature = 1 << 26,
         }
 
-        private const int LastTerminatorState = (int)TerminatorState.IsEndOfRecordSignature;
+        private const int LastTerminatorState = (int)TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature;
 
         private bool IsTerminator()
         {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList(errored: false):
                     case TerminatorState.IsEndOfFunctionPointerParameterListErrored when this.IsEndOfFunctionPointerParameterList(errored: true):
                     case TerminatorState.IsEndOfFunctionPointerCallingConvention when this.IsEndOfFunctionPointerCallingConvention():
-                    case TerminatorState.IsEndOfRecordSignature when this.IsEndOfRecordSignature():
+                    case TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature when this.IsEndOfRecordOrClassOrStructOrInterfaceSignature():
                         return true;
                 }
             }
@@ -1452,16 +1452,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
-            var outerSaveTerm = _termState;
-
-            if (tryScanRecordStart(out var keyword, out var recordModifier))
-            {
-                _termState |= TerminatorState.IsEndOfRecordSignature;
-            }
-            else
+            if (!tryScanRecordStart(out var keyword, out var recordModifier))
             {
                 keyword = ConvertToKeyword(this.EatToken());
             }
+
+            var outerSaveTerm = _termState;
+            _termState |= TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature;
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
@@ -1469,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            var paramList = keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
+            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? ParseParenthesizedParameterList() : null;
 
             var baseList = this.ParseBaseList();
@@ -1492,7 +1489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
                 SyntaxToken? closeBrace;
-                if (keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                if (CurrentToken.Kind == SyntaxKind.SemicolonToken)
                 {
                     semicolon = EatToken(SyntaxKind.SemicolonToken);
                     openBrace = null;
@@ -1623,15 +1620,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (keyword.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.ClassDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,
@@ -1640,15 +1635,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.StructDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,
@@ -1657,15 +1650,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.InterfaceKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
                         return syntaxFactory.InterfaceDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
                             name,
                             typeParameters,
+                            paramList,
                             baseList,
                             constraintsList,
                             openBrace,
@@ -1812,7 +1803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             while (true)
             {
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
-                    ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
+                    ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
                     this.IsCurrentTokenWhereOfConstraintClause())
                 {
                     break;
@@ -1880,7 +1871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 while (true)
                 {
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                        || ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                        || ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                         || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
                         || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                     {
@@ -3124,8 +3115,10 @@ parse_member_name:;
         private bool IsEndOfMethodSignature()
             => this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
 
-        private bool IsEndOfRecordSignature()
-            => this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
+        private bool IsEndOfRecordOrClassOrStructOrInterfaceSignature()
+        {
+            return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
+        }
 
         private bool IsEndOfNameInExplicitInterface()
             => this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.ColonColonToken;
@@ -4311,7 +4304,16 @@ parse_member_name:;
             }
 
             var type = this.ParseType(mode: ParseTypeMode.Parameter);
-            var identifier = this.ParseIdentifierToken();
+            SyntaxToken identifier;
+
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && IsCurrentTokenWhereOfConstraintClause())
+            {
+                identifier = this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
+            }
+            else
+            {
+                identifier = this.ParseIdentifierToken();
+            }
 
             // When the user type "int goo[]", give them a useful error
             if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
@@ -5230,22 +5232,38 @@ parse_member_name:;
             }
 
             var members = default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+            SyntaxToken semicolon;
+            SyntaxToken openBrace;
+            SyntaxToken closeBrace;
 
-            if (!openBrace.IsMissing)
+            if (CurrentToken.Kind == SyntaxKind.SemicolonToken)
             {
-                // It's not uncommon for people to use semicolons to separate out enum members.  So be resilient to
-                // that, successfully consuming them as separators, while telling the user it needs to be a comma
-                // instead.
-                members = this.ParseCommaSeparatedSyntaxList(
-                    ref openBrace,
-                    SyntaxKind.CloseBraceToken,
-                    static @this => @this.IsPossibleEnumMemberDeclaration(),
-                    static @this => @this.ParseEnumMemberDeclaration(),
-                    skipBadEnumMemberListTokens,
-                    allowTrailingSeparator: true,
-                    requireOneElement: false,
-                    allowSemicolonAsSeparator: true);
+                semicolon = EatToken(SyntaxKind.SemicolonToken);
+                openBrace = null;
+                closeBrace = null;
+            }
+            else
+            {
+                openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+
+                if (!openBrace.IsMissing)
+                {
+                    // It's not uncommon for people to use semicolons to separate out enum members.  So be resilient to
+                    // that, successfully consuming them as separators, while telling the user it needs to be a comma
+                    // instead.
+                    members = this.ParseCommaSeparatedSyntaxList(
+                        ref openBrace,
+                        SyntaxKind.CloseBraceToken,
+                        static @this => @this.IsPossibleEnumMemberDeclaration(),
+                        static @this => @this.ParseEnumMemberDeclaration(),
+                        skipBadEnumMemberListTokens,
+                        allowTrailingSeparator: true,
+                        requireOneElement: false,
+                        allowSemicolonAsSeparator: true);
+                }
+
+                closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+                semicolon = TryEatToken(SyntaxKind.SemicolonToken);
             }
 
             return _syntaxFactory.EnumDeclaration(
@@ -5256,8 +5274,8 @@ parse_member_name:;
                 baseList,
                 openBrace,
                 members,
-                this.EatToken(SyntaxKind.CloseBraceToken),
-                TryEatToken(SyntaxKind.SemicolonToken));
+                closeBrace,
+                semicolon);
 
             static PostSkipAction skipBadEnumMemberListTokens(
                 LanguageParser @this, ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<EnumMemberDeclarationSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)

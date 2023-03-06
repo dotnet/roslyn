@@ -147,28 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.InstanceOpt != null && node.InstanceOpt.HasDynamicType();
         }
 
-        public static bool HasExpressionSymbols(this BoundExpression node)
-        {
-            switch (node.Kind)
-            {
-                case BoundKind.Call:
-                case BoundKind.Local:
-                case BoundKind.FieldAccess:
-                case BoundKind.PropertyAccess:
-                case BoundKind.IndexerAccess:
-                case BoundKind.EventAccess:
-                case BoundKind.MethodGroup:
-                case BoundKind.ObjectCreationExpression:
-                case BoundKind.TypeExpression:
-                case BoundKind.NamespaceExpression:
-                    return true;
-                case BoundKind.BadExpression:
-                    return ((BoundBadExpression)node).Symbols.Length > 0;
-                default:
-                    return false;
-            }
-        }
-
         public static void GetExpressionSymbols(this BoundExpression node, ArrayBuilder<Symbol> symbols, BoundNode parent, Binder binder)
         {
             switch (node.Kind)
