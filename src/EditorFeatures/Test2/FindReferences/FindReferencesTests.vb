@@ -587,7 +587,7 @@ partial class C
             Assert.Equal(expectedLinkedSymbolCount, linkedSymbols.Length)
         End Function
 
-        <Fact, WorkItem(49624, "https://github.com/dotnet/roslyn/issues/49624")>
+        <Fact, WorkItem(1758726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1758726")>
         Public Async Function TestFindReferencesInDocumentsNoCompilation() As Task
             Using workspace = TestWorkspace.Create("
 <Workspace>
