@@ -40,15 +40,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         public async Task ExpressionStatement_Suppressed()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        [|M2()|];
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|M2()|];
+                    }
 
-    int M2() => 0;
-}", options: PreferNone);
+                    int M2() => 0;
+                }
+                """, options: PreferNone);
         }
 
         [Fact]
@@ -56,24 +58,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         {
             // Discard not supported in C# 6.0, so we fallback to unused local variable.
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        [|M2()|];
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|M2()|];
+                    }
 
-    int M2() => 0;
-}",
-@"class C
-{
-    void M()
-    {
-        var unused = M2();
-    }
+                    int M2() => 0;
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var unused = M2();
+                    }
 
-    int M2() => 0;
-}", options: PreferDiscard,
+                    int M2() => 0;
+                }
+                """, options: PreferDiscard,
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
@@ -83,15 +89,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         public async Task ExpressionStatement_VariableInitialization(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        int x = [|M2()|];
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        int x = [|M2()|];
+                    }
 
-    int M2() => 0;
-}", optionName);
+                    int M2() => 0;
+                }
+                """, optionName);
         }
 
         [Theory]
@@ -100,15 +108,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         public async Task ExpressionStatement_NonConstantPrimitiveTypeValue(string optionName, string fix)
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        [|M2()|];
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|M2()|];
+                    }
 
-    int M2() => 0;
-}",
+                    int M2() => 0;
+                }
+                """,
 $@"class C
 {{
     void M()
@@ -126,15 +136,17 @@ $@"class C
         public async Task ExpressionStatement_UserDefinedType(string optionName, string fix)
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        [|M2()|];
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|M2()|];
+                    }
 
-    C M2() => new C();
-}",
+                    C M2() => new C();
+                }
+                """,
 $@"class C
 {{
     void M()
@@ -152,13 +164,15 @@ $@"class C
         public async Task ExpressionStatement_ConstantValue(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        [|1|];
-    }
-}", optionName);
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|1|];
+                    }
+                }
+                """, optionName);
         }
 
         [Theory]
@@ -167,15 +181,17 @@ $@"class C
         public async Task ExpressionStatement_SyntaxError(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        [|M2(,)|];
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|M2(,)|];
+                    }
 
-    int M2() => 0;
-}", optionName);
+                    int M2() => 0;
+                }
+                """, optionName);
         }
 
         [Theory]
@@ -184,13 +200,15 @@ $@"class C
         public async Task ExpressionStatement_SemanticError(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        [|M2()|];
-    }
-}", optionName);
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|M2()|];
+                    }
+                }
+                """, optionName);
         }
 
         [Theory, WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
@@ -199,15 +217,17 @@ $@"class C
         public async Task ExpressionStatement_SemanticError_02(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        [|M2()|];
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|M2()|];
+                    }
 
-    UndefinedType M2() => null;
-}", optionName);
+                    UndefinedType M2() => null;
+                }
+                """, optionName);
         }
 
         [Theory, WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
@@ -216,16 +236,18 @@ $@"class C
         public async Task ExpressionStatement_SemanticError_03(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System.Threading.Tasks;
+                """
+                using System.Threading.Tasks;
 
-class C
-{
-    private async Task M()
-    {
-        // error CS0103: The name 'CancellationToken' does not exist in the current context
-        [|await Task.Delay(0, CancellationToken.None).ConfigureAwait(false)|];
-    }
-}", optionName);
+                class C
+                {
+                    private async Task M()
+                    {
+                        // error CS0103: The name 'CancellationToken' does not exist in the current context
+                        [|await Task.Delay(0, CancellationToken.None).ConfigureAwait(false)|];
+                    }
+                }
+                """, optionName);
         }
 
         [Theory, WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
@@ -234,16 +256,18 @@ class C
         public async Task ExpressionStatement_SemanticError_04(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    private async Task M()
-    {
-        // error CS0103: The name 'Task' does not exist in the current context
-        // error CS0103: The name 'CancellationToken' does not exist in the current context
-        // error CS1983: The return type of an async method must be void, Task or Task<T>
-        [|await Task.Delay(0, CancellationToken.None).ConfigureAwait(false)|];
-    }
-}", optionName);
+                """
+                class C
+                {
+                    private async Task M()
+                    {
+                        // error CS0103: The name 'Task' does not exist in the current context
+                        // error CS0103: The name 'CancellationToken' does not exist in the current context
+                        // error CS1983: The return type of an async method must be void, Task or Task<T>
+                        [|await Task.Delay(0, CancellationToken.None).ConfigureAwait(false)|];
+                    }
+                }
+                """, optionName);
         }
 
         [Theory]
@@ -252,15 +276,17 @@ class C
         public async Task ExpressionStatement_VoidReturningMethodCall(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        [|M2()|];
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|M2()|];
+                    }
 
-    void M2() { }
-}", optionName);
+                    void M2() { }
+                }
+                """, optionName);
         }
 
         [Theory]
@@ -302,122 +328,138 @@ $@"class C
         public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        var unused = M2();
-        [|M2()|];
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var unused = M2();
+                        [|M2()|];
+                    }
 
-    int M2() => 0;
-}",
-@"class C
-{
-    void M()
-    {
-        var unused = M2();
-        var unused1 = M2();
-    }
+                    int M2() => 0;
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var unused = M2();
+                        var unused1 = M2();
+                    }
 
-    int M2() => 0;
-}", options: PreferUnusedLocal);
+                    int M2() => 0;
+                }
+                """, options: PreferUnusedLocal);
         }
 
         [Fact]
         public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_02()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        [|M2()|];
-        var unused = M2();
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        [|M2()|];
+                        var unused = M2();
+                    }
 
-    int M2() => 0;
-}",
-@"class C
-{
-    void M()
-    {
-        var unused1 = M2();
-        var unused = M2();
-    }
+                    int M2() => 0;
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var unused1 = M2();
+                        var unused = M2();
+                    }
 
-    int M2() => 0;
-}", options: PreferUnusedLocal);
+                    int M2() => 0;
+                }
+                """, options: PreferUnusedLocal);
         }
 
         [Fact]
         public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_03()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(int p)
-    {
-        [|M2()|];
-        if (p > 0)
-        {
-            var unused = M2();
-        }
-    }
+                """
+                class C
+                {
+                    void M(int p)
+                    {
+                        [|M2()|];
+                        if (p > 0)
+                        {
+                            var unused = M2();
+                        }
+                    }
 
-    int M2() => 0;
-}",
-@"class C
-{
-    void M(int p)
-    {
-        var unused1 = M2();
-        if (p > 0)
-        {
-            var unused = M2();
-        }
-    }
+                    int M2() => 0;
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int p)
+                    {
+                        var unused1 = M2();
+                        if (p > 0)
+                        {
+                            var unused = M2();
+                        }
+                    }
 
-    int M2() => 0;
-}", options: PreferUnusedLocal);
+                    int M2() => 0;
+                }
+                """, options: PreferUnusedLocal);
         }
 
         [Fact]
         public async Task ExpressionStatement_UnusedLocal_NameAlreadyUsed_04()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(int p)
-    {
-        if (p > 0)
-        {
-            [|M2()|];
-        }
-        else
-        {
-            var unused = M2();
-        }
-    }
+                """
+                class C
+                {
+                    void M(int p)
+                    {
+                        if (p > 0)
+                        {
+                            [|M2()|];
+                        }
+                        else
+                        {
+                            var unused = M2();
+                        }
+                    }
 
-    int M2() => 0;
-}",
-@"class C
-{
-    void M(int p)
-    {
-        if (p > 0)
-        {
-            var unused1 = M2();
-        }
-        else
-        {
-            var unused = M2();
-        }
-    }
+                    int M2() => 0;
+                }
+                """,
+                """
+                class C
+                {
+                    void M(int p)
+                    {
+                        if (p > 0)
+                        {
+                            var unused1 = M2();
+                        }
+                        else
+                        {
+                            var unused = M2();
+                        }
+                    }
 
-    int M2() => 0;
-}", options: PreferUnusedLocal);
+                    int M2() => 0;
+                }
+                """, options: PreferUnusedLocal);
         }
 
         [Theory]
@@ -426,23 +468,25 @@ $@"class C
         public async Task ExpressionStatement_FixAll(string optionName, string fix1, string fix2, string fix3)
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    public C()
-    {
-        M2();           // Separate code block
-    }
+                """
+                class C
+                {
+                    public C()
+                    {
+                        M2();           // Separate code block
+                    }
 
-    void M(int unused1, int unused2)
-    {
-        {|FixAllInDocument:M2()|};
-        M2();           // Another instance in same code block
-        _ = M2();       // Already fixed
-        var x = M2();   // Different unused value diagnostic
-    }
+                    void M(int unused1, int unused2)
+                    {
+                        {|FixAllInDocument:M2()|};
+                        M2();           // Another instance in same code block
+                        _ = M2();       // Already fixed
+                        var x = M2();   // Different unused value diagnostic
+                    }
 
-    int M2() => 0;
-}",
+                    int M2() => 0;
+                }
+                """,
 $@"class C
 {{
     public C()
@@ -466,110 +510,126 @@ $@"class C
         public async Task ExpressionStatement_Trivia_PreferDiscard_01()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        // C1
-        [|M2()|];   // C2
-        // C3
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        // C1
+                        [|M2()|];   // C2
+                        // C3
+                    }
 
-    int M2() => 0;
-}",
-@"class C
-{
-    void M()
-    {
-        // C1
-        _ = M2();   // C2
-        // C3
-    }
+                    int M2() => 0;
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        // C1
+                        _ = M2();   // C2
+                        // C3
+                    }
 
-    int M2() => 0;
-}", options: PreferDiscard);
+                    int M2() => 0;
+                }
+                """, options: PreferDiscard);
         }
 
         [Fact]
         public async Task ExpressionStatement_Trivia_PreferDiscard_02()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {/*C0*/
-        /*C1*/[|M2()|]/*C2*/;/*C3*/
-     /*C4*/
-    }
+                """
+                class C
+                {
+                    void M()
+                    {/*C0*/
+                        /*C1*/[|M2()|]/*C2*/;/*C3*/
+                     /*C4*/
+                    }
 
-    int M2() => 0;
-}",
-@"class C
-{
-    void M()
-    {/*C0*/
-        /*C1*/
-        _ = M2()/*C2*/;/*C3*/
-     /*C4*/
-    }
+                    int M2() => 0;
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {/*C0*/
+                        /*C1*/
+                        _ = M2()/*C2*/;/*C3*/
+                     /*C4*/
+                    }
 
-    int M2() => 0;
-}", options: PreferDiscard);
+                    int M2() => 0;
+                }
+                """, options: PreferDiscard);
         }
 
         [Fact]
         public async Task ExpressionStatement_Trivia_PreferUnusedLocal_01()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        // C1
-        [|M2()|];   // C2
-        // C3
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        // C1
+                        [|M2()|];   // C2
+                        // C3
+                    }
 
-    int M2() => 0;
-}",
-@"class C
-{
-    void M()
-    {
-        // C1
-        var unused = M2();   // C2
-        // C3
-    }
+                    int M2() => 0;
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        // C1
+                        var unused = M2();   // C2
+                        // C3
+                    }
 
-    int M2() => 0;
-}", options: PreferUnusedLocal);
+                    int M2() => 0;
+                }
+                """, options: PreferUnusedLocal);
         }
 
         [Fact]
         public async Task ExpressionStatement_Trivia_PreferUnusedLocal_02()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {/*C0*/
-        /*C1*/[|M2()|]/*C2*/;/*C3*/
-     /*C4*/
-    }
+                """
+                class C
+                {
+                    void M()
+                    {/*C0*/
+                        /*C1*/[|M2()|]/*C2*/;/*C3*/
+                     /*C4*/
+                    }
 
-    int M2() => 0;
-}",
-@"class C
-{
-    void M()
-    {/*C0*/
-        /*C1*/
-        var unused = M2()/*C2*/;/*C3*/
-        /*C4*/
-    }
+                    int M2() => 0;
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {/*C0*/
+                        /*C1*/
+                        var unused = M2()/*C2*/;/*C3*/
+                        /*C4*/
+                    }
 
-    int M2() => 0;
-}", options: PreferUnusedLocal);
+                    int M2() => 0;
+                }
+                """, options: PreferUnusedLocal);
         }
 
         [Theory, WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
@@ -578,11 +638,13 @@ $@"class C
         public async Task ExpressionBodiedMember_01(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M() => [|M2()|];
-    int M2() => 0;
-}", optionName);
+                """
+                class C
+                {
+                    void M() => [|M2()|];
+                    int M2() => 0;
+                }
+                """, optionName);
         }
 
         [Theory, WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
@@ -591,15 +653,17 @@ $@"class C
         public async Task ExpressionBodiedMember_02(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        System.Action a = () => [|M2()|];
-    }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        System.Action a = () => [|M2()|];
+                    }
 
-    int M2() => 0;
-}", optionName);
+                    int M2() => 0;
+                }
+                """, optionName);
         }
 
         [Theory, WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
@@ -608,18 +672,20 @@ $@"class C
         public async Task ExpressionBodiedMember_03(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        LocalFunction();
-        return;
+                """
+                class C
+                {
+                    void M()
+                    {
+                        LocalFunction();
+                        return;
 
-        void LocalFunction() => [|M2()|];
-    }
+                        void LocalFunction() => [|M2()|];
+                    }
 
-    int M2() => 0;
-}", optionName);
+                    int M2() => 0;
+                }
+                """, optionName);
         }
 
         [Theory, WorkItem(43648, "https://github.com/dotnet/roslyn/issues/43648")]
@@ -628,19 +694,21 @@ $@"class C
         public async Task ExpressionStatement_Dynamic(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class C
-{
-    void M()
-    {
-            List<dynamic> returnValue = new List<dynamic>();
+                class C
+                {
+                    void M()
+                    {
+                            List<dynamic> returnValue = new List<dynamic>();
 
-            dynamic dynamicValue = new object();
+                            dynamic dynamicValue = new object();
 
-            [|returnValue.Add(dynamicValue)|];
-    }
-}", optionName);
+                            [|returnValue.Add(dynamicValue)|];
+                    }
+                }
+                """, optionName);
         }
     }
 }

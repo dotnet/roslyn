@@ -24,14 +24,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
         public async Task TestNotInCSharp7()
         {
             var source =
-@"
-class C
-{
-    void Goo(string s)
-    {
-        var v = s[s.Length - 1];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        var v = s[s.Length - 1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -46,13 +47,15 @@ class C
         public async Task TestWithMissingReference()
         {
             var source =
-@"class {|#0:C|}
-{
-    {|#1:void|} Goo({|#2:string|} s)
-    {
-        var v = s[s.Length - {|#3:1|}];
-    }
-}";
+                """
+                class {|#0:C|}
+                {
+                    {|#1:void|} Goo({|#2:string|} s)
+                    {
+                        var v = s[s.Length - {|#3:1|}];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -79,23 +82,25 @@ class C
         public async Task TestSimple()
         {
             var source =
-@"
-class C
-{
-    void Goo(string s)
-    {
-        var v = s[[|s.Length - 1|]];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        var v = s[[|s.Length - 1|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-class C
-{
-    void Goo(string s)
-    {
-        var v = s[^1];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        var v = s[^1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -109,23 +114,25 @@ class C
         public async Task TestMultipleDefinitions()
         {
             var source =
-@"
-class C
-{
-    void Goo(string s)
-    {
-        var v = s[[|s.Length - 1|]];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        var v = s[[|s.Length - 1|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-class C
-{
-    void Goo(string s)
-    {
-        var v = s[^1];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        var v = s[^1];
+                    }
+                }
+                """;
 
             // Adding a dependency with internal definitions of Index and Range should not break the feature
             var source1 = "namespace System { internal struct Index { } internal struct Range { } }";
@@ -154,23 +161,25 @@ class C
         public async Task TestComplexSubtaction()
         {
             var source =
-@"
-class C
-{
-    void Goo(string s)
-    {
-        var v = s[[|s.Length - (1 + 1)|]];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        var v = s[[|s.Length - (1 + 1)|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-class C
-{
-    void Goo(string s)
-    {
-        var v = s[^(1 + 1)];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        var v = s[^(1 + 1)];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -184,27 +193,29 @@ class C
         public async Task TestComplexInstance()
         {
             var source =
-@"
-using System.Linq;
+                """
+                using System.Linq;
 
-class C
-{
-    void Goo(string[] ss)
-    {
-        var v = ss.Last()[[|ss.Last().Length - 3|]];
-    }
-}";
+                class C
+                {
+                    void Goo(string[] ss)
+                    {
+                        var v = ss.Last()[[|ss.Last().Length - 3|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-using System.Linq;
+                """
+                using System.Linq;
 
-class C
-{
-    void Goo(string[] ss)
-    {
-        var v = ss.Last()[^3];
-    }
-}";
+                class C
+                {
+                    void Goo(string[] ss)
+                    {
+                        var v = ss.Last()[^3];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -218,14 +229,15 @@ class C
         public async Task TestNotWithoutSubtraction1()
         {
             var source =
-@"
-class C
-{
-    void Goo(string s)
-    {
-        var v = s[s.Length];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        var v = s[s.Length];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -239,14 +251,15 @@ class C
         public async Task TestNotWithoutSubtraction2()
         {
             var source =
-@"
-class C
-{
-    void Goo(string s)
-    {
-        var v = s[s.Length + 1];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        var v = s[s.Length + 1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -260,15 +273,16 @@ class C
         public async Task TestNotWithMultipleArgs()
         {
             var source =
-@"
-struct S { public int Length { get; } public int this[int i] { get => 0; } public int this[int i, int j] { get => 0; } public int this[System.Index i] { get => 0; } }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s[s.Length - 1, 2];
-    }
-}";
+                """
+                struct S { public int Length { get; } public int this[int i] { get => 0; } public int this[int i, int j] { get => 0; } public int this[System.Index i] { get => 0; } }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s[s.Length - 1, 2];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -282,25 +296,27 @@ class C
         public async Task TestUserDefinedTypeWithLength()
         {
             var source =
-@"
-struct S { public int Length { get; } public int this[int i] { get => 0; } public int this[System.Index i] { get => 0; } }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s[[|s.Length - 2|]];
-    }
-}";
+                """
+                struct S { public int Length { get; } public int this[int i] { get => 0; } public int this[System.Index i] { get => 0; } }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s[[|s.Length - 2|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-struct S { public int Length { get; } public int this[int i] { get => 0; } public int this[System.Index i] { get => 0; } }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s[^2];
-    }
-}";
+                """
+                struct S { public int Length { get; } public int this[int i] { get => 0; } public int this[System.Index i] { get => 0; } }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s[^2];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -314,25 +330,27 @@ class C
         public async Task TestUserDefinedTypeWithCount()
         {
             var source =
-@"
-struct S { public int Count { get; } public int this[int i] { get => 0; } public int this[System.Index i] { get => 0; } }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s[[|s.Count - 2|]];
-    }
-}";
+                """
+                struct S { public int Count { get; } public int this[int i] { get => 0; } public int this[System.Index i] { get => 0; } }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s[[|s.Count - 2|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-struct S { public int Count { get; } public int this[int i] { get => 0; } public int this[System.Index i] { get => 0; } }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s[^2];
-    }
-}";
+                """
+                struct S { public int Count { get; } public int this[int i] { get => 0; } public int this[System.Index i] { get => 0; } }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s[^2];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -346,15 +364,16 @@ class C
         public async Task TestUserDefinedTypeWithNoLengthOrCount()
         {
             var source =
-@"
-struct S { public int this[int i] { get => 0; } public int this[System.Index i] { get => 0; } }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s[s.{|CS1061:Count|} - 2];
-    }
-}";
+                """
+                struct S { public int this[int i] { get => 0; } public int this[System.Index i] { get => 0; } }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s[s.{|CS1061:Count|} - 2];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -368,15 +387,16 @@ class C
         public async Task TestUserDefinedTypeWithNoInt32Indexer()
         {
             var source =
-@"
-struct S { public int Length { get; } public int this[System.Index i] { get => 0; } }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s[s.Length - 2];
-    }
-}";
+                """
+                struct S { public int Length { get; } public int this[System.Index i] { get => 0; } }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s[s.Length - 2];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -390,25 +410,27 @@ class C
         public async Task TestUserDefinedTypeWithNoIndexIndexer()
         {
             var source =
-@"
-struct S { public int Count { get; } public int this[int i] { get => 0; } }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s[[|s.Count - 2|]];
-    }
-}";
+                """
+                struct S { public int Count { get; } public int this[int i] { get => 0; } }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s[[|s.Count - 2|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-struct S { public int Count { get; } public int this[int i] { get => 0; } }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s[^2];
-    }
-}";
+                """
+                struct S { public int Count { get; } public int this[int i] { get => 0; } }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s[^2];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -422,25 +444,27 @@ class C
         public async Task TestMethodToMethod()
         {
             var source =
-@"
-struct S { public int Length { get; } public int Get(int i) => 0; public int Get(System.Index i) => 0; }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s.Get([|s.Length - 1|]);
-    }
-}";
+                """
+                struct S { public int Length { get; } public int Get(int i) => 0; public int Get(System.Index i) => 0; }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s.Get([|s.Length - 1|]);
+                    }
+                }
+                """;
             var fixedSource =
-@"
-struct S { public int Length { get; } public int Get(int i) => 0; public int Get(System.Index i) => 0; }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s.Get(^1);
-    }
-}";
+                """
+                struct S { public int Length { get; } public int Get(int i) => 0; public int Get(System.Index i) => 0; }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s.Get(^1);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -454,15 +478,16 @@ class C
         public async Task TestMethodToMethodMissingIndexIndexer()
         {
             var source =
-@"
-struct S { public int Length { get; } public int Get(int i) => 0; }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s.Get(s.Length - 1);
-    }
-}";
+                """
+                struct S { public int Length { get; } public int Get(int i) => 0; }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s.Get(s.Length - 1);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -476,15 +501,16 @@ class C
         public async Task TestMethodToMethodWithIntIndexer()
         {
             var source =
-@"
-struct S { public int Length { get; } public int Get(int i) => 0; public int this[int i] { get => 0; } }
-class C
-{
-    void Goo(S s)
-    {
-        var v = s.Get(s.Length - 1);
-    }
-}";
+                """
+                struct S { public int Length { get; } public int Get(int i) => 0; public int this[int i] { get => 0; } }
+                class C
+                {
+                    void Goo(S s)
+                    {
+                        var v = s.Get(s.Length - 1);
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -498,14 +524,15 @@ class C
         public async Task TestMissingWithNoSystemIndex()
         {
             var source =
-@"
-class C
-{
-    void Goo(string[] s)
-    {
-        var v = s[s.Length - 1];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string[] s)
+                    {
+                        var v = s[s.Length - 1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -520,14 +547,15 @@ class C
         public async Task TestMissingWithInaccessibleSystemIndex()
         {
             var source =
-@"
-class C
-{
-    void Goo(string[] s)
-    {
-        var v = s[s.Length - 1];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string[] s)
+                    {
+                        var v = s[s.Length - 1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -556,23 +584,25 @@ class C
         public async Task TestArray()
         {
             var source =
-@"
-class C
-{
-    void Goo(string[] s)
-    {
-        var v = s[[|s.Length - 1|]];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string[] s)
+                    {
+                        var v = s[[|s.Length - 1|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-class C
-{
-    void Goo(string[] s)
-    {
-        var v = s[^1];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string[] s)
+                    {
+                        var v = s[^1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -586,25 +616,27 @@ class C
         public async Task TestFixAll1()
         {
             var source =
-@"
-class C
-{
-    void Goo(string s)
-    {
-        var v1 = s[[|s.Length - 1|]];
-        var v2 = s[[|s.Length - 1|]];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        var v1 = s[[|s.Length - 1|]];
+                        var v2 = s[[|s.Length - 1|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-class C
-{
-    void Goo(string s)
-    {
-        var v1 = s[^1];
-        var v2 = s[^1];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        var v1 = s[^1];
+                        var v2 = s[^1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -618,23 +650,25 @@ class C
         public async Task TestNestedFixAll1()
         {
             var source =
-@"
-class C
-{
-    void Goo(string[] s)
-    {
-        var v1 = s[[|s.Length - 2|]][[|s[[|s.Length - 2|]].Length - 1|]];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string[] s)
+                    {
+                        var v1 = s[[|s.Length - 2|]][[|s[[|s.Length - 2|]].Length - 1|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-class C
-{
-    void Goo(string[] s)
-    {
-        var v1 = s[^2][^1];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string[] s)
+                    {
+                        var v1 = s[^2][^1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -648,23 +682,25 @@ class C
         public async Task TestNestedFixAll2()
         {
             var source =
-@"
-class C
-{
-    void Goo(string[] s)
-    {
-        var v1 = s[[|s.Length - 2|]][[|s[[|s.Length - 2|]].Length - 1|]];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string[] s)
+                    {
+                        var v1 = s[[|s.Length - 2|]][[|s[[|s.Length - 2|]].Length - 1|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-class C
-{
-    void Goo(string[] s)
-    {
-        var v1 = s[^2][^1];
-    }
-}";
+                """
+                class C
+                {
+                    void Goo(string[] s)
+                    {
+                        var v1 = s[^2][^1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -678,25 +714,27 @@ class C
         public async Task TestSimple_NoIndexIndexer_SupportsIntIndexer()
         {
             var source =
-@"
-using System.Collections.Generic;
-class C
-{
-    void Goo(List<int> s)
-    {
-        var v = s[[|s.Count - 1|]];
-    }
-}";
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    void Goo(List<int> s)
+                    {
+                        var v = s[[|s.Count - 1|]];
+                    }
+                }
+                """;
             var fixedSource =
-@"
-using System.Collections.Generic;
-class C
-{
-    void Goo(List<int> s)
-    {
-        var v = s[^1];
-    }
-}";
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    void Goo(List<int> s)
+                    {
+                        var v = s[^1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -710,25 +748,27 @@ class C
         public async Task TestSimple_NoIndexIndexer_SupportsIntIndexer_Set()
         {
             var source =
-@"
-using System.Collections.Generic;
-class C
-{
-    void Goo(List<int> s)
-    {
-        s[[|s.Count - 1|]] = 1;
-    }
-}";
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    void Goo(List<int> s)
+                    {
+                        s[[|s.Count - 1|]] = 1;
+                    }
+                }
+                """;
             var fixedSource =
-@"
-using System.Collections.Generic;
-class C
-{
-    void Goo(List<int> s)
-    {
-        s[^1] = 1;
-    }
-}";
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    void Goo(List<int> s)
+                    {
+                        s[^1] = 1;
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -742,15 +782,16 @@ class C
         public async Task NotOnConstructedIndexer()
         {
             var source =
-@"
-using System.Collections.Generic;
-class C
-{
-    void Goo(Dictionary<int, string> s)
-    {
-        var v = s[s.Count - 1];
-    }
-}";
+                """
+                using System.Collections.Generic;
+                class C
+                {
+                    void Goo(Dictionary<int, string> s)
+                    {
+                        var v = s[s.Count - 1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -764,17 +805,18 @@ class C
         public async Task TestNotInExpressionTree()
         {
             var source =
-@"
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-class C
-{
-    void Goo(List<int> s)
-    {
-        Expression<Func<int>> f = () => s[s.Count - 1];
-    }
-}";
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                class C
+                {
+                    void Goo(List<int> s)
+                    {
+                        Expression<Func<int>> f = () => s[s.Count - 1];
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {

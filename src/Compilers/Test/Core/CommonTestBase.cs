@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public string? PEVerifyMessage { get; init; }
 
         /// <summary>
-        /// True if the expected messages include member tokens.
+        /// True if the expected messages include member tokens and MVIDs.
         /// </summary>
-        public bool IncludeTokens { get; init; }
+        public bool IncludeTokensAndModuleIds { get; init; }
 
         public static readonly Verification Skipped = new() { Status = VerificationStatus.Skipped };
         public static readonly Verification Passes = new() { Status = VerificationStatus.Passes };

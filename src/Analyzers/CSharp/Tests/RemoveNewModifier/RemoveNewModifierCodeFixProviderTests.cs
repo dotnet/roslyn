@@ -94,46 +94,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveNewModifier
 
         [Fact]
         public Task TestRemoveNewFromModifiersFixAll()
-            => TestInRegularAndScriptAsync(@"	
-using System;	
-class B	
-{	
-    public int ValidNew;	
-}	
-class C : B	
-{	
-    public new int ValidNew;	
-    public new void {|FixAllInDocument:M|}() { }	
-    public new int F;	
-    public new event Action E;	
-    public new int P { get; }	
-    public new int this[int p] => p;	
-    new class C2 { }	
-    new struct S2 { }	
-    new interface I2 { }	
-    new delegate void D2();	
-    new enum E2 { }	
-}",
-                @"	
-using System;	
-class B	
-{	
-    public int ValidNew;	
-}	
-class C : B	
-{	
-    public new int ValidNew;	
-    public void M() { }	
-    public int F;	
-    public event Action E;	
-    public int P { get; }	
-    public int this[int p] => p;	
-    class C2 { }	
-    struct S2 { }	
-    interface I2 { }	
-    delegate void D2();	
-    enum E2 { }	
-}");
+            => TestInRegularAndScriptAsync("""
+                using System;	
+                class B	
+                {	
+                    public int ValidNew;	
+                }	
+                class C : B	
+                {	
+                    public new int ValidNew;	
+                    public new void {|FixAllInDocument:M|}() { }	
+                    public new int F;	
+                    public new event Action E;	
+                    public new int P { get; }	
+                    public new int this[int p] => p;	
+                    new class C2 { }	
+                    new struct S2 { }	
+                    new interface I2 { }	
+                    new delegate void D2();	
+                    new enum E2 { }	
+                }
+                """,
+                """
+                using System;	
+                class B	
+                {	
+                    public int ValidNew;	
+                }	
+                class C : B	
+                {	
+                    public new int ValidNew;	
+                    public void M() { }	
+                    public int F;	
+                    public event Action E;	
+                    public int P { get; }	
+                    public int this[int p] => p;	
+                    class C2 { }	
+                    struct S2 { }	
+                    interface I2 { }	
+                    delegate void D2();	
+                    enum E2 { }	
+                }
+                """);
 
         private Task TestRemoveNewModifierCodeFixAsync(string original, string expected)
         {
