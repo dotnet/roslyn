@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 WorkDoneProgress = false,
             };
 
+            capabilities.Inlay
+
             if (!supportsVsExtensions)
             {
                 capabilities.DiagnosticOptions = new DiagnosticOptions
