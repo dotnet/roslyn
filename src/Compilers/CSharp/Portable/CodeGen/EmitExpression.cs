@@ -3483,6 +3483,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(expr.ConstantValueOpt == null, "Constant value should have been emitted directly");
 
+            // Generate branchless IL for (b ? 1 : 0).
+            if (used &&
+                hasIntegralValueZeroOrOne(expr.Consequence, out var one1) &&
+                hasIntegralValueZeroOrOne(expr.Alternative, out var one2) &&
+                one1 != one2)
+            {
+                EmitCondExpr(expr.Condition, sense: one1);
+                return;
+            }
+
             object consequenceLabel = new object();
             object doneLabel = new object();
 
@@ -3547,6 +3557,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _builder.MarkLabel(doneLabel);
+
+            static bool hasIntegralValueZeroOrOne(BoundExpression expr, out bool one)
+            {
+                if (expr.ConstantValueOpt is { } constantValue)
+                {
+                    if (constantValue is { IsIntegral: true, UInt64Value: (1 or 0) and var v })
+                    {
+                        one = v == 1;
+                        return true;
+                    }
+
+                    if (constantValue is { IsBoolean: true, BooleanValue: var b })
+                    {
+                        one = b;
+                        return true;
+                    }
+                }
+
+                one = false;
+                return false;
+            }
         }
 
         /// <summary>
