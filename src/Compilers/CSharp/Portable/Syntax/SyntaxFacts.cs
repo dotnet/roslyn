@@ -559,16 +559,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is null)
                 return false;
 
-            var stack = ArrayBuilder<GreenNode>.GetInstance();
-            stack.Push(node.Green);
-
-            while (stack.Count > 0)
+            foreach (var current in node.Green.EnumerateNodes())
             {
-                var current = stack.Pop();
                 Debug.Assert(node.Green == current || current is not Syntax.InternalSyntax.MemberDeclarationSyntax and not Syntax.InternalSyntax.TypeDeclarationSyntax);
-
-                if (current is null)
-                    continue;
 
                 // Do not descend into functions and expressions
                 if (IsNestedFunction((SyntaxKind)current.RawKind) ||
@@ -579,15 +572,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (current is Syntax.InternalSyntax.YieldStatementSyntax)
                     return true;
-
-                foreach (var child in current.ChildNodesAndTokens())
-                {
-                    if (!child.IsToken)
-                        stack.Push(child);
-                }
             }
 
-            stack.Free();
             return false;
         }
 

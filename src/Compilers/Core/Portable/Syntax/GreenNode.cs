@@ -195,32 +195,95 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Enumerates all nodes of the tree rooted by this node (including this node).
         /// </summary>
-        internal IEnumerable<GreenNode> EnumerateNodes()
+        internal EnumerateNodesEnumerable EnumerateNodes()
+            => new(this);
+
+        public readonly struct EnumerateNodesEnumerable
         {
-            yield return this;
+            private readonly GreenNode _node;
 
-            var stack = new Stack<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>(24);
-            stack.Push(this.ChildNodesAndTokens().GetEnumerator());
-
-            while (stack.Count > 0)
+            public EnumerateNodesEnumerable(GreenNode node)
             {
-                var en = stack.Pop();
-                if (!en.MoveNext())
+                _node = node;
+            }
+
+            public EnumerateNodesEnumerator GetEnumerator()
+                => new(_node);
+
+            public struct EnumerateNodesEnumerator
+            {
+                private readonly GreenNode _root;
+                private readonly ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator> _stack = ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>.GetInstance(24);
+
+                // 0 = the initial node itself.
+                // 1 = the enumerators.
+                // 2 = complete.
+                private int _state = 0;
+                private GreenNode? _current;
+
+                public EnumerateNodesEnumerator(GreenNode root)
                 {
-                    // no more down this branch
-                    continue;
+                    _root = root;
+                    _stack.Push(root.ChildNodesAndTokens().GetEnumerator());
                 }
 
-                var current = en.Current;
-                stack.Push(en); // put it back on stack (struct enumerator)
-
-                yield return current;
-
-                if (!current.IsToken)
+                public void Dispose()
                 {
-                    // not token, so consider children
-                    stack.Push(current.ChildNodesAndTokens().GetEnumerator());
-                    continue;
+                    _stack.Free();
+                }
+
+                public bool MoveNext()
+                {
+                    if (_state == 0)
+                    {
+                        _state = 1;
+                        _current = _root;
+                        return true;
+                    }
+                    else if (_state == 1)
+                    {
+                        while (_stack.Count > 0)
+                        {
+                            var en = _stack.Pop();
+                            if (!en.MoveNext())
+                            {
+                                // no more down this branch. Go to next branch.
+                                continue;
+                            }
+
+                            var current = en.Current;
+
+                            // put it back on stack (struct enumerator)
+                            _stack.Push(en);
+
+                            if (current.IsToken)
+                                continue;
+
+                            // not token, so consider children
+                            _current = current;
+                            _stack.Push(current.ChildNodesAndTokens().GetEnumerator());
+
+                            return true;
+                        }
+
+                        _state++;
+                        _current = null;
+                        return false;
+                    }
+                    else
+                    {
+                        Debug.Assert(_state == 2);
+                        return false;
+                    }
+                }
+
+                public GreenNode Current
+                {
+                    get
+                    {
+                        Debug.Assert(_state >= 0 && _state <= 2);
+                        return _current!;
+                    }
                 }
             }
         }
