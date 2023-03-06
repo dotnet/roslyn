@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is null)
                 return false;
 
-            var stack = ArrayBuilder<GreenNode>.GetInstance();
+            using var _ = ArrayBuilder<GreenNode>.GetInstance(out var stack);
             stack.Push(node.Green);
 
             while (stack.Count > 0)
@@ -587,7 +587,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            stack.Free();
             return false;
         }
 
