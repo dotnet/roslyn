@@ -73,15 +73,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// <summary>
             /// Gets the currently reachable writes for the given symbol.
             /// </summary>
-            public IEnumerable<IOperation> GetCurrentWrites(ISymbol symbol)
+            public void ForEachCurrentWrite<TArg>(ISymbol symbol, Action<IOperation, TArg> action, TArg arg)
+            {
+                ForEachCurrentWrite(
+                    symbol,
+                    static (write, arg) =>
+                    {
+                        arg.action(write, arg.arg);
+                        return true;
+                    },
+                    (action, arg));
+            }
+
+            public bool ForEachCurrentWrite<TArg>(ISymbol symbol, Func<IOperation, TArg, bool> action, TArg arg)
             {
                 if (_reachingWrites.TryGetValue(symbol, out var values))
                 {
                     foreach (var value in values)
                     {
-                        yield return value;
+                        if (!action(value, arg))
+                            return false;
                     }
                 }
+
+                return true;
             }
 
             /// <summary>
