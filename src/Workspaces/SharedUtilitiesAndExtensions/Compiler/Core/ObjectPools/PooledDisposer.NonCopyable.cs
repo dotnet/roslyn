@@ -5,11 +5,10 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.PooledObjects
+namespace Microsoft.CodeAnalysis.PooledObjects;
+
+[NonCopyable]
+internal readonly partial struct PooledDisposer<TPoolable> : IDisposable
+    where TPoolable : class, IPooled
 {
-    [NonCopyable]
-    internal readonly partial struct PooledDisposer<TPoolable> : IDisposable
-        where TPoolable : class, IPooled
-    {
-    }
 }
