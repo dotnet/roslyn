@@ -257,6 +257,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\ISmartTokenFormatter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDisposer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\InternalOptionStorageMapping.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOptionReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IPublicOption.cs" />
@@ -569,10 +570,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolUsageInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeOrNamespaceUsageInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ValueUsageInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\ArrayBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\Extensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\IPooled.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDisposer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledHashSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledStringBuilder.cs" />
