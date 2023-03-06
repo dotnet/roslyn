@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
             public Enumerator GetEnumerator()
                 => new(_node);
 
-            public struct Enumerator
+            public struct Enumerator : IDisposable
             {
                 private readonly GreenNode _root;
                 private readonly ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator> _stack = ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>.GetInstance(24);
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis
                     _stack.Push(root.ChildNodesAndTokens().GetEnumerator());
                 }
 
-                public void Dispose()
+                public readonly void Dispose()
                 {
                     _stack.Free();
                 }
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                public GreenNode Current
+                public readonly GreenNode Current
                 {
                     get
                     {
