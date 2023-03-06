@@ -1290,21 +1290,17 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       25 (0x19)
-  .maxstack  2
+  // Code size       19 (0x13)
+  .maxstack  3
   IL_0000:  ldc.i4.1
   IL_0001:  dup
-  IL_0002:  brtrue.s   IL_0007
-  IL_0004:  ldc.i4.1
-  IL_0005:  br.s       IL_0008
-  IL_0007:  ldc.i4.0
-  IL_0008:  call       ""void System.Console.Write(int)""
-  IL_000d:  brtrue.s   IL_0012
-  IL_000f:  ldc.i4.1
-  IL_0010:  br.s       IL_0013
-  IL_0012:  ldc.i4.0
-  IL_0013:  call       ""void System.Console.Write(uint)""
-  IL_0018:  ret
+  IL_0002:  ldc.i4.0
+  IL_0003:  ceq
+  IL_0005:  call       ""void System.Console.Write(int)""
+  IL_000a:  ldc.i4.0
+  IL_000b:  ceq
+  IL_000d:  call       ""void System.Console.Write(uint)""
+  IL_0012:  ret
 }");
         }
 

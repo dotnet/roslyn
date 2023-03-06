@@ -11960,7 +11960,7 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       46 (0x2e)
+  // Code size       40 (0x28)
   .maxstack  1
   .locals init ([int] V_0,
                 [bool] V_1,
@@ -11980,20 +11980,16 @@ class C
   IL_0013:  ldc.i4.0
   IL_0014:  stloc.s    V_4
   IL_0016:  ldloc.s    V_4
-  IL_0018:  brfalse.s  IL_0026
+  IL_0018:  brfalse.s  IL_0020
   IL_001a:  nop
   IL_001b:  ldloc.3
-  IL_001c:  brtrue.s   IL_0021
-  IL_001e:  ldc.i4.0
-  IL_001f:  br.s       IL_0022
-  IL_0021:  ldc.i4.1
-  IL_0022:  stloc.s    V_5
-  IL_0024:  br.s       IL_002b
-  IL_0026:  ldc.i4.0
-  IL_0027:  stloc.s    V_5
-  IL_0029:  br.s       IL_002b
-  IL_002b:  ldloc.s    V_5
-  IL_002d:  ret
+  IL_001c:  stloc.s    V_5
+  IL_001e:  br.s       IL_0025
+  IL_0020:  ldc.i4.0
+  IL_0021:  stloc.s    V_5
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.s    V_5
+  IL_0027:  ret
 }");
 
             var diff2 = compilation2.EmitDifference(
