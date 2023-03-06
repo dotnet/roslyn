@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
@@ -30,6 +31,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         /// </summary>
         private static readonly ConditionalWeakTable<IReadOnlyList<MetadataReference>, AsyncLazy<bool>> s_metadataReferencesToDesignerAttributeInfo = new();
 
+        private readonly IAsynchronousOperationListener _listener;
+
         /// <summary>
         /// Protects mutable state in this type.
         /// </summary>
@@ -43,8 +46,9 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DesignerAttributeDiscoveryService()
+        public DesignerAttributeDiscoveryService(IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
         }
 
         private static AsyncLazy<bool> GetLazyHasDesignerCategoryType(Project project)
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                     await ProcessProjectAsync(priorityDocument.Project, priorityDocument, useFrozenSnapshots, callback, cancellationToken).ConfigureAwait(false);
 
                 // Wait a little after the priority document and process the rest at a lower priority.
-                await Task.Delay(DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
+                await _listener.Delay(DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
 
                 // Process the rest of the projects in dependency order so that their data is ready when we hit the 
                 // projects that depend on them.
