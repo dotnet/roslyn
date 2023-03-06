@@ -1143,6 +1143,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+                                case CSharp.SyntaxKind.CollectionCreationExpression:
+                                    if (((CSharp.Syntax.CollectionCreationExpressionSyntax)syntax).Elements.Any())
+                                    {
+                                        return true;
+                                    }
+                                    break;
                             }
 
                             if (syntax.Parent is CSharp.Syntax.WithExpressionSyntax withExpr
