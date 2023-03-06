@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpUseRangeOperatorCodeFixProvider()
         {
         }
@@ -174,9 +175,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 startExpr = null;
             }
 
+            // expressions that the iops point to may be skip certain expressions actually in source (like checked
+            // exprs).  Walk upwards so we grab all of that when producing the final range expression.
+            startExpr = WalkUpCheckedExpressions(startExpr);
+            endExpr = WalkUpCheckedExpressions(endExpr);
+
             return RangeExpression(
                 startExpr != null && startFromEnd ? IndexExpression(startExpr) : startExpr?.Parenthesize(),
                 endExpr != null && endFromEnd ? IndexExpression(endExpr) : endExpr?.Parenthesize());
+        }
+
+        [return: NotNullIfNotNull(nameof(expr))]
+        private static ExpressionSyntax? WalkUpCheckedExpressions(ExpressionSyntax? expr)
+        {
+            while (expr?.Parent is CheckedExpressionSyntax parent)
+                expr = parent;
+
+            return expr;
         }
 
         private static RangeExpressionSyntax CreateConstantRange(Result result, SyntaxGenerator generator)
@@ -191,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             return RangeExpression(
                 // If we're starting the range operation from 0, then we can just leave off the start of
                 // the range. i.e. `..end`
-                constant1 == 0 ? null : (ExpressionSyntax)result.Op1.Syntax,
+                constant1 == 0 ? null : WalkUpCheckedExpressions((ExpressionSyntax)result.Op1.Syntax),
                 IndexExpression((ExpressionSyntax)generator.LiteralExpression(constant2 - constant1)));
         }
 
