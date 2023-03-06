@@ -129,6 +129,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     {
                         var writes1 = _reachingWrites[symbol];
                         var writes2 = other._reachingWrites[symbol];
+
+                        // 📝 PERF: The boxed enumerator allocation that appears in some traces was fixed in .NET 8:
+                        // https://github.com/dotnet/runtime/pull/78613
                         if (!writes1.SetEquals(writes2))
                         {
                             return false;
@@ -204,6 +207,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             result.Add(symbol, values);
                         }
 
+#if NET
+                        values.EnsureCapacity(values.Count + operations.Count);
+#endif
                         values.AddRange(operations);
                     }
                 }
