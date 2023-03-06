@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This implementation differs from CollectionInitializerTypeImplementsIEnumerable().
                 // That method checks for an implicit conversion from IEnumerable to the collection type,
                 // but that would allow: Nullable<StructCollection> s = [];
-                var ienumerableType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, syntax); // PROTOTYPE: Test missing type.
+                var ienumerableType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, syntax);
                 var allInterfaces = targetType is TypeParameterSymbol typeParameter
                     ? typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics
                     : targetType.AllInterfacesNoUseSiteDiagnostics;

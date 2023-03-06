@@ -1227,6 +1227,175 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "]").WithLocation(8, 24));
         }
 
+        [Fact]
+        public void CollectionInitializerType_12()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class C : IEnumerable
+                {
+                    List<string> _list = new List<string>();
+                    public void Add(int i) { _list.Add($"i={i}"); }
+                    public void Add(object o) { _list.Add($"o={o}"); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        C x = [];
+                        C y = [1, (object)2];
+                        x.Report();
+                        y.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, GetCollectionExtensions() }, expectedOutput: "[], [i=1, o=2], ");
+        }
+
+        [Fact]
+        public void CollectionInitializerType_13()
+        {
+            string source = """
+                using System.Collections;
+                interface IA { }
+                interface IB { }
+                class AB : IA, IB { }
+                class C : IEnumerable
+                {
+                    public void Add(IA a) { }
+                    public void Add(IB b) { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        C c = [(IA)null, (IB)null, new AB()];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,36): error CS0121: The call is ambiguous between the following methods or properties: 'C.Add(IA)' and 'C.Add(IB)'
+                //         C c = [(IA)null, (IB)null, new AB()];
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new AB()").WithArguments("C.Add(IA)", "C.Add(IB)").WithLocation(15, 36));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_14()
+        {
+            string source = """
+                using System.Collections;
+                struct S<T> : IEnumerable
+                {
+                    public void Add(T x, T y) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        S<int> s;
+                        s = [];
+                        s = [1, 2];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,14): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'S<int>.Add(int, int)'
+                //         s = [1, 2];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "1").WithArguments("y", "S<int>.Add(int, int)").WithLocation(13, 14),
+                // (13,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'S<int>.Add(int, int)'
+                //         s = [1, 2];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "2").WithArguments("y", "S<int>.Add(int, int)").WithLocation(13, 17));
+        }
+
+        [Fact]
+        public void CollectionInitializerType_15()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class C<T> : IEnumerable
+                {
+                    List<T> _list = new List<T>();
+                    public void Add(T t, int index = -1) { _list.Add(t); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        C<int> c = [1, 2];
+                        c.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, GetCollectionExtensions() }, expectedOutput: "[1, 2], ");
+        }
+
+        [Fact]
+        public void CollectionInitializerType_16()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class C1<T> : IEnumerable
+                {
+                    List<T> _list = new List<T>();
+                    public void Add(T t, params T[] args) { _list.Add(t); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class C2<T> : IEnumerable
+                {
+                    List<T> _list = new List<T>();
+                    public void Add(params T[] args) { _list.Add(args[0]); }
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        C1<int> x = [1, 2];
+                        C2<int> y = [3, 4];
+                        x.Report();
+                        y.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, GetCollectionExtensions() }, expectedOutput: "[1, 2], [3, 4], ");
+        }
+
+        [Fact]
+        public void CollectionInitializerType_18()
+        {
+            string source = """
+                using System.Collections;
+                class S<T, U> : IEnumerable
+                {
+                    internal void Add(T t) { }
+                    private void Add(U u) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    static S<T, U> Create(T t, U u) => [t, u];
+                }
+                class Program
+                {
+                    static S<T, U> Create<T, U>(T x, U y) => [x, y];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,50): error CS1950: The best overloaded Add method 'S<T, U>.Add(T)' for the collection initializer has some invalid arguments
+                //     static S<T, U> Create<T, U>(T x, U y) => [x, y];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("S<T, U>.Add(T)").WithLocation(11, 50),
+                // (11,50): error CS1503: Argument 1: cannot convert from 'U' to 'T'
+                //     static S<T, U> Create<T, U>(T x, U y) => [x, y];
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "U", "T").WithLocation(11, 50));
+        }
+
         [Theory]
         [InlineData("class")]
         [InlineData("struct")]
@@ -1329,7 +1498,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("T?").WithLocation(16, 57));
         }
 
-        // PROTOTYPE: Test variations of Add() methods - inaccessible, conversion errors, use-site errors, optional parameters, params array, etc.
+        [Fact]
+        public void CollectionInitializerType_MissingIEnumerable()
+        {
+            string source = """
+                struct S
+                {
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        S s = [];
+                        object o = (S)[1, 2];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Collections_IEnumerable);
+            comp.VerifyEmitDiagnostics(
+                // (8,15): error CS0518: Predefined type 'System.Collections.IEnumerable' is not defined or imported
+                //         S s = [];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Collections.IEnumerable").WithLocation(8, 15),
+                // (8,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                //         S s = [];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(8, 15),
+                // (9,23): error CS0518: Predefined type 'System.Collections.IEnumerable' is not defined or imported
+                //         object o = (S)[1, 2];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[1, 2]").WithArguments("System.Collections.IEnumerable").WithLocation(9, 23),
+                // (9,23): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                //         object o = (S)[1, 2];
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(9, 23));
+        }
 
         [Fact]
         public void DictionaryElement_01()
