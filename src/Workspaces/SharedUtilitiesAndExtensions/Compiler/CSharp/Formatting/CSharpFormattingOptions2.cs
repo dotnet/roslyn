@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Formatting;
 
 #if CODE_STYLE
 using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
@@ -316,10 +317,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
     internal static class CSharpFormattingOptionGroups
     {
-        private const string optionGroupName = "Formatting";
-        public static readonly OptionGroup NewLine = new(optionGroupName, WorkspacesResources.New_line_preferences, priority: 1);
-        public static readonly OptionGroup Indentation = new(optionGroupName, CSharpWorkspaceResources.Indentation_preferences, priority: 2);
-        public static readonly OptionGroup Spacing = new(optionGroupName, CSharpWorkspaceResources.Space_preferences, priority: 3);
-        public static readonly OptionGroup Wrapping = new(optionGroupName, CSharpWorkspaceResources.Wrapping_preferences, priority: 4);
+        public static readonly OptionGroup NewLine = new("new_line", WorkspacesResources.New_line_preferences, priority: 1, FormattingOptionGroups.FormattingOptionGroup);
+        public static readonly OptionGroup Indentation = new("indentation", CSharpWorkspaceResources.Indentation_preferences, priority: 2, parent: FormattingOptionGroups.FormattingOptionGroup);
+        public static readonly OptionGroup Spacing = new("spacing", CSharpWorkspaceResources.Space_preferences, priority: 3, parent: FormattingOptionGroups.FormattingOptionGroup);
+        public static readonly OptionGroup Wrapping = new("wrapping", CSharpWorkspaceResources.Wrapping_preferences, priority: 4, parent: FormattingOptionGroups.FormattingOptionGroup);
     }
 }

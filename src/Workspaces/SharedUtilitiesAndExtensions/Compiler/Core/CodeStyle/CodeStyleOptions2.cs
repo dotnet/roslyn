@@ -338,18 +338,17 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     internal static class CodeStyleOptionGroups
     {
-        private const string name = "Code Style";
-        public static readonly OptionGroup CodeStyle = new(name: "", description: "", priority: 1);
+        public static readonly OptionGroup CodeStyle = new(name: "code_style", description: "", priority: 1);
 
-        public static readonly OptionGroup Usings = new(name, description: CompilerExtensionsResources.Organize_usings, priority: 1, parent: CodeStyle);
-        public static readonly OptionGroup ThisOrMe = new(name, description: CompilerExtensionsResources.this_dot_and_Me_dot_preferences, priority: 2, parent: CodeStyle);
-        public static readonly OptionGroup PredefinedTypeNameUsage = new(name, description: CompilerExtensionsResources.Language_keywords_vs_BCL_types_preferences, priority: 3, parent: CodeStyle);
-        public static readonly OptionGroup Parentheses = new(name, description: CompilerExtensionsResources.Parentheses_preferences, priority: 4, parent: CodeStyle);
-        public static readonly OptionGroup Modifier = new(name, description: CompilerExtensionsResources.Modifier_preferences, priority: 5, parent: CodeStyle);
-        public static readonly OptionGroup ExpressionLevelPreferences = new(name, description: CompilerExtensionsResources.Expression_level_preferences, priority: 6, parent: CodeStyle);
-        public static readonly OptionGroup Field = new(name, description: CompilerExtensionsResources.Field_preferences, priority: 7, parent: CodeStyle);
-        public static readonly OptionGroup Parameter = new(name, description: CompilerExtensionsResources.Parameter_preferences, priority: 8, parent: CodeStyle);
-        public static readonly OptionGroup Suppressions = new(name, description: CompilerExtensionsResources.Suppression_preferences, priority: 9, parent: CodeStyle);
-        public static readonly OptionGroup NewLinePreferences = new(name, description: CompilerExtensionsResources.New_line_preferences, priority: 10, parent: CodeStyle);
+        public static readonly OptionGroup Usings = new("usings", description: CompilerExtensionsResources.Organize_usings, priority: 1, parent: CodeStyle);
+        public static readonly OptionGroup ThisOrMe = new("this_or_me", description: CompilerExtensionsResources.this_dot_and_Me_dot_preferences, priority: 2, parent: CodeStyle);
+        public static readonly OptionGroup PredefinedTypeNameUsage = new("predefined_type_name_usage", description: CompilerExtensionsResources.Language_keywords_vs_BCL_types_preferences, priority: 3, parent: CodeStyle);
+        public static readonly OptionGroup Parentheses = new("parentheses", description: CompilerExtensionsResources.Parentheses_preferences, priority: 4, parent: CodeStyle);
+        public static readonly OptionGroup Modifier = new("modifier", description: CompilerExtensionsResources.Modifier_preferences, priority: 5, parent: CodeStyle);
+        public static readonly OptionGroup ExpressionLevelPreferences = new("expression_level_preferences", description: CompilerExtensionsResources.Expression_level_preferences, priority: 6, parent: CodeStyle);
+        public static readonly OptionGroup Field = new("field", description: CompilerExtensionsResources.Field_preferences, priority: 7, parent: CodeStyle);
+        public static readonly OptionGroup Parameter = new("parameter", description: CompilerExtensionsResources.Parameter_preferences, priority: 8, parent: CodeStyle);
+        public static readonly OptionGroup Suppressions = new("suppressions", description: CompilerExtensionsResources.Suppression_preferences, priority: 9, parent: CodeStyle);
+        public static readonly OptionGroup NewLinePreferences = new("new_line_preferences", description: CompilerExtensionsResources.New_line_preferences, priority: 10, parent: CodeStyle);
     }
 }
