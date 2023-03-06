@@ -29,10 +29,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
             // Go to definition
             MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
-            // Format
-            AutoFormattingOptionsStorage.FormatOnReturn,
-            AutoFormattingOptionsStorage.FormatOnSemicolon,
-            AutoFormattingOptionsStorage.FormatOnCloseBrace,
             // Document highlighting
             HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor,
             HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor);
