@@ -284,6 +284,7 @@ namespace Microsoft.CodeAnalysis
                     get
                     {
                         Debug.Assert(_state >= 0 && _state <= 2);
+                        Debug.Assert(_state < 2, "Called Current on an enumerator that returned 'false' from MoveNext");
                         return _current;
                     }
                 }
