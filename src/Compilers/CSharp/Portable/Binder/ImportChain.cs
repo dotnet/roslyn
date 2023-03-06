@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (target is NamedTypeSymbol { ContainingAssembly.IsLinked: false } or not NamedTypeSymbol)
                     {
                         // We skip alias imports of embedded types to avoid breaking existing code that imports types
-                        // that can't be embedded but doesn't use them anywhere else in the code.  not, this is only
+                        // that can't be embedded but doesn't use them anywhere else in the code.  Note, this is only
                         // done for named types.  Other sorts of type symbols (arrays, etc.) are allowed through.
                         var typeRef = GetTypeReference((TypeSymbol)target, syntax, moduleBuilder, diagnostics);
                         usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateType(typeRef, alias));
