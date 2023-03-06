@@ -113,14 +113,12 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
                 // `public string _myField, _myField1`
                 // Here when visiting diagnostic for `_myField1` we already changed this field declaration.
                 // Trying to change it again throws in `SyntaxEditor` later, because it cannot find the node.
-                if (visitedFieldDeclarations.Contains(fieldDeclaration))
+                if (!visitedFieldDeclarations.Add(fieldDeclaration))
                     continue;
 
                 var declarationModifiers = generator.GetModifiers(fieldDeclaration);
                 var newDeclarationModifiers = declarationModifiers.WithIsRequired(true);
                 editor.ReplaceNode(fieldDeclaration, generator.WithModifiers(fieldDeclaration, newDeclarationModifiers));
-
-                visitedFieldDeclarations.Add(fieldDeclaration);
             }
             else
             {
