@@ -104,6 +104,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundCollectionInitializerCollectionLiteralExpression((BoundCollectionInitializerCollectionLiteralExpression)boundNode);
                 case BoundKind.ArrayOrSpanCollectionLiteralExpression:
                     return CreateBoundArrayOrSpanCollectionLiteralExpression((BoundArrayOrSpanCollectionLiteralExpression)boundNode);
+                case BoundKind.UnconvertedCollectionLiteralExpression:
+                    return CreateBoundUnconvertedCollectionLiteralExpression((BoundUnconvertedCollectionLiteralExpression)boundNode);
                 case BoundKind.DefaultLiteral:
                     return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
@@ -304,7 +306,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.UnconvertedCollectionLiteralExpression: // PROTOTYPE: Is this correct?
 
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -1293,11 +1294,10 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else if (boundCollectionLiteralExpression.CollectionCreation is BoundObjectCreationExpression collectionCreation)
             {
-                Debug.Assert(collectionCreation.Arguments.IsEmpty);
                 return new ObjectCreationOperation(
                     collectionCreation.Constructor.GetPublicSymbol(),
                     initializer,
-                    arguments: ImmutableArray<IArgumentOperation>.Empty,
+                    DeriveArguments(collectionCreation),
                     _semanticModel,
                     syntax,
                     collectionType,
@@ -1307,8 +1307,17 @@ namespace Microsoft.CodeAnalysis.Operations
             else
             {
                 // PROTOTYPE: Temporary until natural type is supported.
-                return new NoneOperation(ImmutableArray<IOperation>.Empty, _semanticModel, syntax, type: collectionType, constantValue: null, isImplicit: isImplicit);
+                return new InvalidOperation(ImmutableArray.Create<IOperation>(initializer), _semanticModel, syntax, collectionType, constantValue: null, isImplicit);
             }
+        }
+
+        private IOperation CreateBoundUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression boundCollectionLiteralExpression)
+        {
+            SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
+            ITypeSymbol? collectionType = boundCollectionLiteralExpression.GetPublicTypeSymbol();
+            bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
+            var children = CreateFromArray<BoundExpression, IOperation>(boundCollectionLiteralExpression.Initializers);
+            return new InvalidOperation(children, _semanticModel, syntax, collectionType, constantValue: null, isImplicit);
         }
 
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)
