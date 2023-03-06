@@ -21,8 +21,9 @@ namespace Test.Utilities
             .AddAssemblies(ImmutableArray.Create("System.Web", "System.Web.Extensions"));
 
         public static ReferenceAssemblies DefaultForTaintedDataAnalysis { get; } = ReferenceAssemblies.NetFramework.Net472.Default
-            .AddAssemblies(ImmutableArray.Create("PresentationFramework", "System.DirectoryServices", "System.Web", "System.Web.Extensions", "System.Xaml"))
+            .AddAssemblies(ImmutableArray.Create("PresentationFramework", "System.Web", "System.Web.Extensions", "System.Xaml"))
             .AddPackages(ImmutableArray.Create(
+                new PackageIdentity("System.DirectoryServices", "6.0.1"),
                 new PackageIdentity("AntiXSS", "4.3.0"),
                 new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.2.0"),
                 new PackageIdentity("Microsoft.EntityFrameworkCore.Relational", "2.0.3")));
@@ -79,7 +80,6 @@ namespace Test.Utilities
         public static MetadataReference SystemRuntimeSerialization { get; } = MetadataReference.CreateFromFile(typeof(System.Runtime.Serialization.NetDataContractSerializer).Assembly.Location);
 #endif
         public static MetadataReference TestReferenceAssembly { get; } = MetadataReference.CreateFromFile(typeof(OtherDll.OtherDllStaticMethods).Assembly.Location);
-        public static MetadataReference SystemDirectoryServices { get; } = MetadataReference.CreateFromFile(typeof(System.DirectoryServices.DirectoryEntry).Assembly.Location);
 #if !NETCOREAPP
         public static MetadataReference SystemXaml { get; } = MetadataReference.CreateFromFile(typeof(System.Xaml.XamlReader).Assembly.Location);
         public static MetadataReference PresentationFramework { get; } = MetadataReference.CreateFromFile(typeof(System.Windows.Markup.XamlReader).Assembly.Location);
