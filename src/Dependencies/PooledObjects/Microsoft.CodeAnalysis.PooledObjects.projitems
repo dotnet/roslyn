@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ArrayBuilder.Enumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ArrayBuilder.PooledDisposer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IPooled.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NonCopyableAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPool`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledDelegates.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledDictionary.cs" />

@@ -257,7 +257,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\ISmartTokenFormatter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDisposer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\InternalOptionStorageMapping.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOptionReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IPublicOption.cs" />
