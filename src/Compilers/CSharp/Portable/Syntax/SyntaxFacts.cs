@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
@@ -544,28 +545,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static bool IsNestedFunction(SyntaxNode child)
-        {
-            switch (child.Kind())
-            {
-                case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                    return true;
-                default:
-                    return false;
-            }
-        }
+            => IsNestedFunction(child.Kind());
 
+        private static bool IsNestedFunction(SyntaxKind kind)
+            => kind is SyntaxKind.LocalFunctionStatement
+                or SyntaxKind.AnonymousMethodExpression
+                or SyntaxKind.SimpleLambdaExpression
+                or SyntaxKind.ParenthesizedLambdaExpression;
+
+        [PerformanceSensitive("", Constraint = "Use Green nodes for walking to avoid heavy allocations.")]
         internal static bool HasYieldOperations(SyntaxNode? node)
         {
-            // Do not descend into functions and expressions
-            return node is object &&
-                   node.DescendantNodesAndSelf(child =>
-                   {
-                       Debug.Assert(ReferenceEquals(node, child) || child is not (MemberDeclarationSyntax or TypeDeclarationSyntax));
-                       return !IsNestedFunction(child) && !(node is ExpressionSyntax);
-                   }).Any(n => n is YieldStatementSyntax);
+            if (node is null)
+                return false;
+
+            // Intentionally walk green tree to avoid allocations.  This accounted for
+            var stack = ArrayBuilder<GreenNode>.GetInstance();
+            stack.Push(node.Green);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                Debug.Assert(node.Green == current || current is not Syntax.InternalSyntax.MemberDeclarationSyntax and not Syntax.InternalSyntax.TypeDeclarationSyntax);
+
+                if (current is null)
+                    continue;
+
+                // Do not descend into functions and expressions
+                if (IsNestedFunction((SyntaxKind)current.RawKind) ||
+                    current is Syntax.InternalSyntax.ExpressionSyntax)
+                {
+                    continue;
+                }
+
+                if (current is Syntax.InternalSyntax.YieldStatementSyntax)
+                    return true;
+
+                foreach (var child in current.ChildNodesAndTokens())
+                {
+                    if (!child.IsToken)
+                        stack.Push(child);
+                }
+            }
+
+            stack.Free();
+            return false;
         }
 
         internal static bool HasReturnWithExpression(SyntaxNode? node)
