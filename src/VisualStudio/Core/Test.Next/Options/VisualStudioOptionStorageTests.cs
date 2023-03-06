@@ -11,6 +11,7 @@ using Xunit;
 using Microsoft.VisualStudio.LanguageServices.Options;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
@@ -261,5 +262,36 @@ public class VisualStudioOptionStorageTests
         };
 
         Assert.Contains(configName, optionsWithoutStorage);
+    }
+
+    [Fact]
+    public void VerifyOptionGroupUnique()
+    {
+        var allOptionGroups = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(VisualStudioOptionStorage).Assembly.Location))
+            .Values
+            .Select(optionTestInfo => optionTestInfo.Option.Definition.Group)
+            .Distinct();
+
+        var allOptionsNames = allOptionGroups.Select(GetOptionGroupName);
+
+        var set = new HashSet<string>();
+        foreach (var optionName in allOptionsNames)
+        {
+            Assert.True(set.Add(optionName), $"Problematic option group found: {optionName}.");
+        }
+
+        static string GetOptionGroupName(OptionGroup group)
+        {
+            var builder = new StringBuilder();
+            var currentGroup = group;
+            while (currentGroup != null)
+            {
+                var stringToInsert = builder.Length == 0 ? currentGroup.Name : currentGroup.Name + ".";
+                builder.Insert(0, stringToInsert);
+                currentGroup =currentGroup.Parent;
+            }
+
+            return builder.ToString();
+        }
     }
 }
