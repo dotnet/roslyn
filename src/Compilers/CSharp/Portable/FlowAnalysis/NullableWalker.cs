@@ -395,13 +395,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private int _lastConditionalAccessSlot = -1;
 
-#if DEBUG
-        /// <summary>
-        /// Holds visited lambdas without conversion. Used to verify that we don't accidentaly visit the same lambda twice.
-        /// </summary>
-        private readonly HashSet<BoundLambda> _errorLambdas = new HashSet<BoundLambda>();
-#endif
-
         private bool IsAnalyzingAttribute => methodMainNode.Kind == BoundKind.Attribute;
 
         protected override void Free()
@@ -8940,9 +8933,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.InAnonymousFunctionConversion)
             {
                 VisitLambda(node, delegateTypeOpt: null);
-#if DEBUG
-                Debug.Assert(_errorLambdas.Add(node), $"Lambda visited again without conversion: {node.GetDebuggerDisplay()}");
-#endif
             }
 
             // Here we just indicate that a lambda expression produces a non-null value.
@@ -8953,9 +8943,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitLambda(BoundLambda node, NamedTypeSymbol? delegateTypeOpt, Optional<LocalState> initialState = default)
         {
             Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
-#if DEBUG
-            Debug.Assert(!_errorLambdas.Contains(node), $"Lambda visited already without conversion: {node.GetDebuggerDisplay()}");
-#endif
 
             var delegateInvokeMethod = delegateTypeOpt?.DelegateInvokeMethod;
             UseDelegateInvokeParameterAndReturnTypes(node, delegateInvokeMethod, out bool useDelegateInvokeParameterTypes, out bool useDelegateInvokeReturnType);
