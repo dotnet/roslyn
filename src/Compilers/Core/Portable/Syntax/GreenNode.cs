@@ -193,24 +193,26 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Enumerates all nodes of the tree rooted by this node (including this node).
+        /// Enumerates all descendent nodes of the tree rooted by this node (including this node).  Note: this is
+        /// enumerating all green nodes.  So that means nodes *and* tokens are returned from this.  List nodes will not
+        /// be directly returned (though all the constituent nodes and tokens of the list will be).
         /// </summary>
-        internal EnumerateNodesEnumerable EnumerateNodes()
+        internal DescendantNodesAndTokensAndSelfEnumerable DescendantNodesAndTokensAndSelf()
             => new(this);
 
-        public readonly struct EnumerateNodesEnumerable
+        public readonly struct DescendantNodesAndTokensAndSelfEnumerable
         {
             private readonly GreenNode _node;
 
-            public EnumerateNodesEnumerable(GreenNode node)
+            public DescendantNodesAndTokensAndSelfEnumerable(GreenNode node)
             {
                 _node = node;
             }
 
-            public EnumerateNodesEnumerator GetEnumerator()
+            public Enumerator GetEnumerator()
                 => new(_node);
 
-            public struct EnumerateNodesEnumerator
+            public struct Enumerator
             {
                 private readonly GreenNode _root;
                 private readonly ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator> _stack = ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>.GetInstance(24);
@@ -219,11 +221,12 @@ namespace Microsoft.CodeAnalysis
                 // 1 = the enumerators.
                 // 2 = complete.
                 private int _state = 0;
-                private GreenNode? _current;
+                private GreenNode _current;
 
-                public EnumerateNodesEnumerator(GreenNode root)
+                public Enumerator(GreenNode root)
                 {
                     _root = root;
+                    _current = root;
                     _stack.Push(root.ChildNodesAndTokens().GetEnumerator());
                 }
 
@@ -236,8 +239,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_state == 0)
                     {
+                        // Root.
                         _state = 1;
-                        _current = _root;
                         return true;
                     }
                     else if (_state == 1)
@@ -267,7 +270,6 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         _state++;
-                        _current = null;
                         return false;
                     }
                     else
@@ -282,7 +284,7 @@ namespace Microsoft.CodeAnalysis
                     get
                     {
                         Debug.Assert(_state >= 0 && _state <= 2);
-                        return _current!;
+                        return _current;
                     }
                 }
             }
