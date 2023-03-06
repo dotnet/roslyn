@@ -96,7 +96,7 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
 
         foreach (var diagnostic in diagnostics)
         {
-            var propertyDeclarationOrFieldVariableDeclarator = root.FindNode(diagnostic.Location.SourceSpan);
+            var memberDeclarator = root.FindNode(diagnostic.Location.SourceSpan);
 
             // If we are fixing field, do not apply new declaration modifiers just to variable declarator, but to the whole field declaration.
             // This is observable when there are several variables in single filed declaration:
@@ -106,7 +106,7 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
             // public required string _myField;
             // public required string _myField2;
             // ```
-            if (propertyDeclarationOrFieldVariableDeclarator is VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax fieldDeclaration })
+            if (memberDeclarator is VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax fieldDeclaration })
             {
                 // Skip field declarations we already visited to not try changing the same declaration twice.
                 // Otherwise we get an exception in fix-all scenario like this:
@@ -116,16 +116,12 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
                 if (!visitedFieldDeclarations.Add(fieldDeclaration))
                     continue;
 
-                var declarationModifiers = generator.GetModifiers(fieldDeclaration);
-                var newDeclarationModifiers = declarationModifiers.WithIsRequired(true);
-                editor.ReplaceNode(fieldDeclaration, generator.WithModifiers(fieldDeclaration, newDeclarationModifiers));
+                memberDeclarator = fieldDeclaration;
             }
-            else
-            {
-                var declarationModifiers = generator.GetModifiers(propertyDeclarationOrFieldVariableDeclarator);
-                var newDeclarationModifiers = declarationModifiers.WithIsRequired(true);
-                editor.ReplaceNode(propertyDeclarationOrFieldVariableDeclarator, generator.WithModifiers(propertyDeclarationOrFieldVariableDeclarator, newDeclarationModifiers));
-            }
+
+            var declarationModifiers = generator.GetModifiers(memberDeclarator);
+            var newDeclarationModifiers = declarationModifiers.WithIsRequired(true);
+            editor.ReplaceNode(memberDeclarator, generator.WithModifiers(memberDeclarator, newDeclarationModifiers));
         }
 
         return Task.CompletedTask;
