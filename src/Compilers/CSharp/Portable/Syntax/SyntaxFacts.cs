@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is null)
                 return false;
 
-            foreach (var current in node.Green.EnumerateNodes())
+            foreach (var current in node.Green.DescendantNodesAndTokensAndSelf())
             {
                 Debug.Assert(node.Green == current || current is not Syntax.InternalSyntax.MemberDeclarationSyntax and not Syntax.InternalSyntax.TypeDeclarationSyntax);
 

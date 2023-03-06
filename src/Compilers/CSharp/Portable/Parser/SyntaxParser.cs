@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int diagnosticOffset = 0;
 
             int currentOffset = 0;
-            foreach (var node in skippedSyntax.EnumerateNodes())
+            foreach (var node in skippedSyntax.DescendantNodesAndTokensAndSelf())
             {
                 SyntaxToken token = node as SyntaxToken;
                 if (token != null)
