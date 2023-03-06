@@ -13,6 +13,172 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenConditionalOperatorTests : CSharpTestBase
     {
+        [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
+        public void Branchless_Compare()
+        {
+            var source = """
+                using static System.Console;
+                WriteLine(C.Compare(1, 2));
+                WriteLine(C.Compare(3, 3));
+                WriteLine(C.Compare(5, 4));
+
+                class C
+                {
+                    public static int Compare(int x, int y)
+                    {
+                        int tmp1 = (x > y) ? 1 : 0;
+                        int tmp2 = (x < y) ? 1 : 0;
+                        return tmp1 - tmp2;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                -1
+                0
+                1
+                """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("C.Compare", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  3
+                  .locals init (int V_0) //tmp2
+                  // sequence point: int tmp1 = (x > y) ? 1 : 0;
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  bgt.s      IL_0007
+                  IL_0004:  ldc.i4.0
+                  IL_0005:  br.s       IL_0008
+                  IL_0007:  ldc.i4.1
+                  // sequence point: int tmp2 = (x < y) ? 1 : 0;
+                  IL_0008:  ldarg.0
+                  IL_0009:  ldarg.1
+                  IL_000a:  blt.s      IL_000f
+                  IL_000c:  ldc.i4.0
+                  IL_000d:  br.s       IL_0010
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  stloc.0
+                  // sequence point: return tmp1 - tmp2;
+                  IL_0011:  ldloc.0
+                  IL_0012:  sub
+                  IL_0013:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
+        public void Branchless_Operations()
+        {
+            var source = """
+                using static System.Console;
+
+                class C
+                {
+                    static void M(int x, int y, bool b)
+                    {
+                        Write(x == y ? 1 : 0);
+                        Write(x == y ? 0 : 1);
+                        Write(x < y ? 1 : 0);
+                        Write(x < y ? 0 : 1);
+                        Write(x > y ? 1 : 0);
+                        Write(x > y ? 0 : 1);
+                        Write(b ? 0 : 1);
+                        Write(!b ? 0 : 1);
+                        Write(x <= y ? true : false);
+                        Write(x <= y ? false : true);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("C.M", """
+                {
+                  // Code size      129 (0x81)
+                  .maxstack  2
+                  // sequence point: Write(x == y ? 1 : 0);
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  beq.s      IL_0007
+                  IL_0004:  ldc.i4.0
+                  IL_0005:  br.s       IL_0008
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x == y ? 0 : 1);
+                  IL_000d:  ldarg.0
+                  IL_000e:  ldarg.1
+                  IL_000f:  beq.s      IL_0014
+                  IL_0011:  ldc.i4.1
+                  IL_0012:  br.s       IL_0015
+                  IL_0014:  ldc.i4.0
+                  IL_0015:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x < y ? 1 : 0);
+                  IL_001a:  ldarg.0
+                  IL_001b:  ldarg.1
+                  IL_001c:  blt.s      IL_0021
+                  IL_001e:  ldc.i4.0
+                  IL_001f:  br.s       IL_0022
+                  IL_0021:  ldc.i4.1
+                  IL_0022:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x < y ? 0 : 1);
+                  IL_0027:  ldarg.0
+                  IL_0028:  ldarg.1
+                  IL_0029:  blt.s      IL_002e
+                  IL_002b:  ldc.i4.1
+                  IL_002c:  br.s       IL_002f
+                  IL_002e:  ldc.i4.0
+                  IL_002f:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x > y ? 1 : 0);
+                  IL_0034:  ldarg.0
+                  IL_0035:  ldarg.1
+                  IL_0036:  bgt.s      IL_003b
+                  IL_0038:  ldc.i4.0
+                  IL_0039:  br.s       IL_003c
+                  IL_003b:  ldc.i4.1
+                  IL_003c:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x > y ? 0 : 1);
+                  IL_0041:  ldarg.0
+                  IL_0042:  ldarg.1
+                  IL_0043:  bgt.s      IL_0048
+                  IL_0045:  ldc.i4.1
+                  IL_0046:  br.s       IL_0049
+                  IL_0048:  ldc.i4.0
+                  IL_0049:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(b ? 0 : 1);
+                  IL_004e:  ldarg.2
+                  IL_004f:  brtrue.s   IL_0054
+                  IL_0051:  ldc.i4.1
+                  IL_0052:  br.s       IL_0055
+                  IL_0054:  ldc.i4.0
+                  IL_0055:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(!b ? 0 : 1);
+                  IL_005a:  ldarg.2
+                  IL_005b:  brfalse.s  IL_0060
+                  IL_005d:  ldc.i4.1
+                  IL_005e:  br.s       IL_0061
+                  IL_0060:  ldc.i4.0
+                  IL_0061:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x <= y ? true : false);
+                  IL_0066:  ldarg.0
+                  IL_0067:  ldarg.1
+                  IL_0068:  ble.s      IL_006d
+                  IL_006a:  ldc.i4.0
+                  IL_006b:  br.s       IL_006e
+                  IL_006d:  ldc.i4.1
+                  IL_006e:  call       "void System.Console.Write(bool)"
+                  // sequence point: Write(x <= y ? false : true);
+                  IL_0073:  ldarg.0
+                  IL_0074:  ldarg.1
+                  IL_0075:  ble.s      IL_007a
+                  IL_0077:  ldc.i4.1
+                  IL_0078:  br.s       IL_007b
+                  IL_007a:  ldc.i4.0
+                  IL_007b:  call       "void System.Console.Write(bool)"
+                  // sequence point: }
+                  IL_0080:  ret
+                }
+                """);
+        }
+
         [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void ConditionalDelegateInterfaceUnification1()
         {
