@@ -11,11 +11,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 {
-    internal class CSharpAddAccessibilityModifiers : AbstractAddAccessibilityModifiers<MemberDeclarationSyntax>
+    internal sealed class CSharpAddAccessibilityModifiers : AbstractAddAccessibilityModifiers<MemberDeclarationSyntax>
     {
         public static readonly CSharpAddAccessibilityModifiers Instance = new();
 
-        protected CSharpAddAccessibilityModifiers()
+        private CSharpAddAccessibilityModifiers()
         {
         }
 
