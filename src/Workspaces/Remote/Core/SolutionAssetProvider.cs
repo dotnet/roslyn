@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Remote
             if (checksums.Length == 1)
             {
                 singleAsset = await scope.GetAssetAsync(checksums[0], cancellationToken).ConfigureAwait(false);
-                singleAsset ??= SolutionAsset.Null;
             }
             else
             {
