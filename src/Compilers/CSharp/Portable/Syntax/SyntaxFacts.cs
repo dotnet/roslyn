@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             });
         }
 
-        internal static bool IsNestedFunction(SyntaxNode child)
+        private static bool IsNestedFunction(SyntaxNode child)
             => IsNestedFunction(child.Kind());
 
         private static bool IsNestedFunction(SyntaxKind kind)
