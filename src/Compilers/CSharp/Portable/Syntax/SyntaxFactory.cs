@@ -2840,15 +2840,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: type,
                 parameters: parameters);
         }
-<<<<<<< HEAD
 
+        // PROTOTYPE update to account for parameter list from primary constructor syntax
         /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
         public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
             => SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, keyword, identifier, typeParameterList,
-                forUnderlyingType, baseList, constraintClauses,
+                parameterList: null, forUnderlyingType, baseList, constraintClauses,
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), semicolonToken: default);
-||||||| e9f1cd29802
-=======
 
         /// <summary>Creates a new ClassDeclarationSyntax instance.</summary>
         public static ClassDeclarationSyntax ClassDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
@@ -2933,6 +2931,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new EnumDeclarationSyntax instance.</summary>
         public static EnumDeclarationSyntax EnumDeclaration(string identifier)
             => SyntaxFactory.EnumDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.EnumKeyword), SyntaxFactory.Identifier(identifier), null, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
->>>>>>> dotnet/main
     }
 }

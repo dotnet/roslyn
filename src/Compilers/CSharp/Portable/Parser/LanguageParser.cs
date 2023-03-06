@@ -350,14 +350,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.SealedKeyword:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.UnsafeKeyword:
-<<<<<<< HEAD
-                case SyntaxKind.OpenBracketToken:
                 case SyntaxKind.ExplicitKeyword:
                 case SyntaxKind.ImplicitKeyword:
-||||||| e9f1cd29802
-                case SyntaxKind.OpenBracketToken:
-=======
->>>>>>> dotnet/main
                     return true;
                 default:
                     return false;
@@ -1455,15 +1449,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
-<<<<<<< HEAD
-            var outerSaveTerm = _termState;
-
             SyntaxToken? firstKeyword; // class, struct, interface, record, implicit, explicit
             SyntaxToken? secondKeyword; // class (for record class), struct (for record struct), extension
             SyntaxToken mainKeyword; // class, struct, interface, record, extension
             if (tryScanRecordStart(out firstKeyword, out secondKeyword))
             {
-                _termState |= TerminatorState.IsEndOfRecordSignature;
                 mainKeyword = firstKeyword;
             }
             else if (tryScanExtensionStart(out firstKeyword, out secondKeyword))
@@ -1471,17 +1461,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 mainKeyword = secondKeyword;
             }
             else
-||||||| e9f1cd29802
-            var outerSaveTerm = _termState;
-
-            if (tryScanRecordStart(out var keyword, out var recordModifier))
-            {
-                _termState |= TerminatorState.IsEndOfRecordSignature;
-            }
-            else
-=======
-            if (!tryScanRecordStart(out var keyword, out var recordModifier))
->>>>>>> dotnet/main
             {
                 firstKeyword = ConvertToKeyword(this.EatToken());
                 secondKeyword = null;
@@ -1497,13 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-<<<<<<< HEAD
-            var paramList = mainKeyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
-||||||| e9f1cd29802
-            var paramList = keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
-=======
-            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken
->>>>>>> dotnet/main
+            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken && mainKeyword.Kind != SyntaxKind.ExtensionKeyword // PROTOTYPE
                 ? ParseParenthesizedParameterList() : null;
 
             SyntaxToken? forKeyword = null;
@@ -1536,13 +1509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
                 SyntaxToken? closeBrace;
-<<<<<<< HEAD
-                if (mainKeyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.SemicolonToken)
-||||||| e9f1cd29802
-                if (keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.SemicolonToken)
-=======
-                if (CurrentToken.Kind == SyntaxKind.SemicolonToken)
->>>>>>> dotnet/main
+                if (CurrentToken.Kind == SyntaxKind.SemicolonToken && mainKeyword.Kind != SyntaxKind.ExtensionKeyword) // PROTOTYPE
                 {
                     semicolon = EatToken(SyntaxKind.SemicolonToken);
                     openBrace = null;
@@ -1692,20 +1659,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (mainKeyword.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
-<<<<<<< HEAD
                         RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
                         RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
-||||||| e9f1cd29802
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
-=======
->>>>>>> dotnet/main
                         return syntaxFactory.ClassDeclaration(
                             attributes,
                             modifiersList,
@@ -1721,20 +1678,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
-<<<<<<< HEAD
                         RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
                         RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
-||||||| e9f1cd29802
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
-=======
->>>>>>> dotnet/main
                         return syntaxFactory.StructDeclaration(
                             attributes,
                             modifiersList,
@@ -1750,20 +1697,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.InterfaceKeyword:
-<<<<<<< HEAD
                         RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
                         RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
-||||||| e9f1cd29802
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
-=======
->>>>>>> dotnet/main
                         return syntaxFactory.InterfaceDeclaration(
                             attributes,
                             modifiersList,
@@ -1819,6 +1756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             keyword: secondKeyword,
                             name,
                             typeParameters,
+                            paramList,
                             forUnderlyingType,
                             baseList,
                             constraints,

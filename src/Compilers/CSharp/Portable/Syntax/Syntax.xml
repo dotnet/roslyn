@@ -3486,7 +3486,6 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-<<<<<<< HEAD
   <Node Name="ForTypeSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
       <summary>Class representing a 'for' token followed by a type.</summary>
@@ -3515,6 +3514,7 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" Override="true" />
     <Field Name="ForUnderlyingType" Type="ForTypeSyntax" Optional="true"/>
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
@@ -3529,12 +3529,7 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="EnumDeclarationSyntax" Base="BaseTypeDeclarationSyntax">
-||||||| e9f1cd29802
-  <Node Name="EnumDeclarationSyntax" Base="BaseTypeDeclarationSyntax">
-=======
   <Node Name="EnumDeclarationSyntax" Base="BaseTypeDeclarationSyntax" SkipConvenienceFactories="true">
->>>>>>> dotnet/main
     <TypeComment>
       <summary>Enum type declaration syntax.</summary>
     </TypeComment>
