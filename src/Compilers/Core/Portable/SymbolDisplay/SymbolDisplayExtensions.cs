@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                 var actualBuilder = pool.Builder;
                 foreach (var part in parts)
                 {
-                    actualBuilder.Append(part);
+                    actualBuilder.Append(part.ToString());
                 }
 
                 return actualBuilder.ToString();
