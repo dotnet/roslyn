@@ -96,6 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (ConversionOperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
+        }
+
         protected override int GetParameterCountFromSyntax()
         {
             return GetSyntax().ParameterList.ParameterCount;

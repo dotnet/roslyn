@@ -3351,6 +3351,7 @@
       </PropertyComment>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;">
       <PropertyComment>
         <summary>Gets the type constraint list.</summary>
@@ -3362,7 +3363,7 @@
       </PropertyComment>
     </Field>
   </AbstractNode>
-  <Node Name="ClassDeclarationSyntax" Base="TypeDeclarationSyntax">
+  <Node Name="ClassDeclarationSyntax" Base="TypeDeclarationSyntax" SkipConvenienceFactories="true">
     <TypeComment>
       <summary>Class type declaration syntax.</summary>
     </TypeComment>
@@ -3379,20 +3380,21 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" Override="true" />
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
-    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="OpenBraceToken"/>
     </Field>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
-    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="CloseBraceToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="StructDeclarationSyntax" Base="TypeDeclarationSyntax">
+  <Node Name="StructDeclarationSyntax" Base="TypeDeclarationSyntax" SkipConvenienceFactories="true">
     <TypeComment>
       <summary>Struct type declaration syntax.</summary>
     </TypeComment>
@@ -3409,20 +3411,21 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" Override="true" />
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
-    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="OpenBraceToken"/>
     </Field>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
-    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="CloseBraceToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="InterfaceDeclarationSyntax" Base="TypeDeclarationSyntax">
+  <Node Name="InterfaceDeclarationSyntax" Base="TypeDeclarationSyntax" SkipConvenienceFactories="true">
     <TypeComment>
       <summary>Interface type declaration syntax.</summary>
     </TypeComment>
@@ -3439,13 +3442,14 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" Override="true" />
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
-    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="OpenBraceToken"/>
     </Field>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
-    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="CloseBraceToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
@@ -3468,7 +3472,7 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
-    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" />
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" Override="true" />
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">
@@ -3482,7 +3486,7 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="EnumDeclarationSyntax" Base="BaseTypeDeclarationSyntax">
+  <Node Name="EnumDeclarationSyntax" Base="BaseTypeDeclarationSyntax" SkipConvenienceFactories="true">
     <TypeComment>
       <summary>Enum type declaration syntax.</summary>
     </TypeComment>
@@ -3500,7 +3504,7 @@
     </Field>
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true">
     </Field>
-    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="OpenBraceToken"/>
     </Field>
     <Field Name="Members" Type="SeparatedSyntaxList&lt;EnumMemberDeclarationSyntax&gt;" AllowTrailingSeparator="true">
@@ -3508,7 +3512,7 @@
         <summary>Gets the members declaration list.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="CloseBraceToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">

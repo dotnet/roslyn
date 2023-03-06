@@ -372,14 +372,14 @@ class C
         {
             goto label2;
             return {|Rename:NewMethod|}(x);
+
+            static int NewMethod(int x)
+            {
+                return x * x;
+            }
         };
     label2:
         return;
-
-        static int NewMethod(int x)
-        {
-            return x * x;
-        }
     }
 }", CodeActionIndex);
         }
@@ -653,12 +653,15 @@ static class C
 
     static void Main()
     {
-        Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), (object)- -1);
-
-        static string GetX(string x)
+        Outer(y => Inner(x =>
         {
-            return x;
-        }
+            {|Rename:GetX|}(x).Ex();
+
+            static string GetX(string x)
+            {
+                return x;
+            }
+        }, y), (object)- -1);
     }
 }
 
@@ -751,12 +754,15 @@ static class C
 
     static void Main()
     {
-        Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), (object)- -1);
-
-        static string GetX(string x)
+        Outer(y => Inner(x =>
         {
-            return x;
-        }
+            {|Rename:GetX|}(x).Ex<int>();
+
+            static string GetX(string x)
+            {
+                return x;
+            }
+        }, y), (object)- -1);
     }
 }
 
@@ -1680,9 +1686,9 @@ class C
     public static void Main(string[] args)
     {
         bool Local() => args == null;
-        {|Rename:NewMethod|}(args);
+        {|Rename:NewMethod|}();
 
-        void NewMethod(string[] args)
+        void NewMethod()
         {
             Local();
         }
@@ -5241,21 +5247,21 @@ public class Class
             await TestMissingAsync(code, codeActionIndex: CodeActionIndex);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/65222")]
-        public async Task TestExtractLocalFunction_LambdaInitializer()
+        [Fact]
+        public async Task TestExtractLocalFunction_LambdaBlockInitializer()
         {
             var code = """
                 class C
                 {
                     public C(int y)
-                        : this(y, (x) => 
-                            {
-                                return [|y + 1|];
-                            })
+                        : this(y, (x) =>
+                        {
+                            return [|x + 1|];
+                        })
                     {
                     }
                 
-                    public C(int x, Func<int, int> modX)
+                    public C(int x, System.Func<int, int> modX)
                     {
                     }
                 }
@@ -5265,19 +5271,19 @@ public class Class
                 class C
                 {
                     public C(int y)
-                        : this(y, (x) => 
-                            {
-                                return NewMethod(x);
+                        : this(y, (x) =>
+                        {
+                            return {|Rename:NewMethod|}(x);
 
-                                int NewMethod(int x)
-                                {
-                                    return x + 1;
-                                }
-                            })
+                            static int NewMethod(int x)
+                            {
+                                return x + 1;
+                            }
+                        })
                     {
                     }
                 
-                    public C(int x, Func<int, int> modX)
+                    public C(int x, System.Func<int, int> modX)
                     {
                     }
                 }

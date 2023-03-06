@@ -119,7 +119,7 @@ public class GlobalOptionsTests
                     // default value for the option -- may be different then default(T):
                     var defaultValue = property.GetValue(defaultOptions);
 
-                    if (OptionsTestHelpers.IsOptionValueType(property.PropertyType))
+                    if (OptionDefinition.IsSupportedOptionType(property.PropertyType))
                     {
                         if (IsStoredInGlobalOptions(property, language))
                         {
@@ -128,7 +128,7 @@ public class GlobalOptionsTests
                     }
                     else
                     {
-                        var propertyType = OptionsTestHelpers.GetNonNullableType(property.PropertyType);
+                        var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
 
                         if (propertyType != property.PropertyType)
                         {

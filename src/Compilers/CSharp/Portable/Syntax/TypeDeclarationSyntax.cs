@@ -29,6 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public new TypeDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
             => (TypeDeclarationSyntax)WithModifiersCore(modifiers);
+
+        internal PrimaryConstructorBaseTypeSyntax? PrimaryConstructorBaseTypeIfClass
+        {
+            get
+            {
+                if (Kind() is (SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration))
+                {
+                    return BaseList?.Types.FirstOrDefault() as PrimaryConstructorBaseTypeSyntax;
+                }
+
+                return null;
+            }
+        }
     }
 }
 

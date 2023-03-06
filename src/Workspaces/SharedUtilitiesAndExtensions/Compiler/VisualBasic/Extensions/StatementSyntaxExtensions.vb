@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -733,8 +734,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return Nothing
         End Function
 
-        <Extension()>
+        <Extension>
         Public Function IsConstructorInitializer(statement As StatementSyntax) As Boolean
+            Return IsConstructorInitializer(statement, Nothing)
+        End Function
+
+        <Extension>
+        Public Function IsConstructorInitializer(statement As StatementSyntax, <Out> ByRef initializer As MemberAccessExpressionSyntax) As Boolean
             If statement.IsParentKind(SyntaxKind.ConstructorBlock) AndAlso
                DirectCast(statement.Parent, ConstructorBlockSyntax).Statements.FirstOrDefault() Is statement Then
 
@@ -756,15 +762,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                 If expression IsNot Nothing Then
                     If expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
-                        Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
-
-                        Return memberAccess.IsConstructorInitializer()
+                        initializer = DirectCast(expression, MemberAccessExpressionSyntax)
+                        Return initializer.IsConstructorInitializer()
                     End If
                 End If
             End If
 
             Return False
         End Function
-
     End Module
 End Namespace

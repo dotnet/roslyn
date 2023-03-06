@@ -639,6 +639,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 void storeToTemp(BoundDagTemp temp, BoundExpression expr)
                 {
+                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expr));
+
                     if (canShareInputs && (expr.Kind == BoundKind.Parameter || expr.Kind == BoundKind.Local) && _tempAllocator.TrySetTemp(temp, expr))
                     {
                         // we've arranged to use the input value from the variable it is already stored in

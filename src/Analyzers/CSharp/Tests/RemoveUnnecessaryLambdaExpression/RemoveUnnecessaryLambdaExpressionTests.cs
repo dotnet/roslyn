@@ -38,65 +38,73 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
         public async Task TestMissingInCSharp10()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(s => Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(s => Quux(s));
+                    }
 
-    void Bar(Func<int, string> f) { }
-    string Quux(int i) => default;
-}", LanguageVersion.CSharp10);
+                    void Bar(Func<int, string> f) { }
+                    string Quux(int i) => default;
+                }
+                """, LanguageVersion.CSharp10);
         }
 
         [Fact]
         public async Task TestBasicCase()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|s => |]Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|s => |]Quux(s));
+                    }
 
-    void Bar(Func<int, string> f) { }
-    string Quux(int i) => default;
-}",
-@"using System;
+                    void Bar(Func<int, string> f) { }
+                    string Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, string> f) { }
-    string Quux(int i) => default;
-}");
+                    void Bar(Func<int, string> f) { }
+                    string Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestWithOptionOff()
         {
-            var code = @"using System;
+            var code = """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(s => Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(s => Quux(s));
+                    }
 
-    void Bar(Func<int, string> f) { }
-    string Quux(int i) => default;
-}";
+                    void Bar(Func<int, string> f) { }
+                    string Quux(int i) => default;
+                }
+                """;
             await new VerifyCS.Test
             {
                 TestCode = code,
@@ -110,647 +118,718 @@ class C
         public async Task TestNotOnStaticLambda()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(static s => Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(static s => Quux(s));
+                    }
 
-    void Bar(Func<int, string> f) { }
-    static string Quux(int i) => default;
-}");
+                    void Bar(Func<int, string> f) { }
+                    static string Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNotWithOptionalParameter()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(s => Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(s => Quux(s));
+                    }
 
-    void Bar(Func<int, string> f) { }
-    static string Quux(int i, int j = 0) => default;
-}");
+                    void Bar(Func<int, string> f) { }
+                    static string Quux(int i, int j = 0) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNotWithParams1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(s => Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(s => Quux(s));
+                    }
 
-    void Bar(Func<int, string> f) { }
-    static string Quux(int i, params int[] j) => default;
-}");
+                    void Bar(Func<int, string> f) { }
+                    static string Quux(int i, params int[] j) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNotWithParams2()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(s => Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(s => Quux(s));
+                    }
 
-    void Bar(Func<object, string> f) { }
-    static string Quux(params object[] j) => default;
-}");
+                    void Bar(Func<object, string> f) { }
+                    static string Quux(params object[] j) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestWithParams1()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|s => |]Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|s => |]Quux(s));
+                    }
 
-    void Bar(Func<object[], string> f) { }
-    string Quux(params object[] o) => default;
-}",
-@"using System;
+                    void Bar(Func<object[], string> f) { }
+                    string Quux(params object[] o) => default;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<object[], string> f) { }
-    string Quux(params object[] o) => default;
-}");
+                    void Bar(Func<object[], string> f) { }
+                    string Quux(params object[] o) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNotWithRefChange1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(s => Quux(ref s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(s => Quux(ref s));
+                    }
 
-    void Bar(Func<int, string> f) { }
-    static string Quux(ref int i) => default;
-}");
+                    void Bar(Func<int, string> f) { }
+                    static string Quux(ref int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNotWithRefChange2()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-delegate string X(ref int i);
+                delegate string X(ref int i);
 
-class C
-{
-    void Goo()
-    {
-        Bar((ref int s) => Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar((ref int s) => Quux(s));
+                    }
 
-    void Bar(X x) { }
-    static string Quux(int i) => default;
-}");
+                    void Bar(X x) { }
+                    static string Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestWithSameRef()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-delegate string X(ref int i);
+                delegate string X(ref int i);
 
-class C
-{
-    void Goo()
-    {
-        Bar([|(ref int s) => |]Quux(ref s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|(ref int s) => |]Quux(ref s));
+                    }
 
-    void Bar(X x) { }
-    static string Quux(ref int i) => default;
-}",
+                    void Bar(X x) { }
+                    static string Quux(ref int i) => default;
+                }
+                """,
 
-@"using System;
+                """
+                using System;
 
-delegate string X(ref int i);
+                delegate string X(ref int i);
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(X x) { }
-    static string Quux(ref int i) => default;
-}");
+                    void Bar(X x) { }
+                    static string Quux(ref int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNotOnConversionToObject()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        object o = (int s) => Quux(s);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        object o = (int s) => Quux(s);
+                    }
 
-    void Bar(Func<int, string> f) { }
-    static string Quux(int i) => default;
-}");
+                    void Bar(Func<int, string> f) { }
+                    static string Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestWithParenthesizedLambda()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|(int s) => |]Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|(int s) => |]Quux(s));
+                    }
 
-    void Bar(Func<int, string> f) { }
-    string Quux(int i) => default;
-}",
-@"using System;
+                    void Bar(Func<int, string> f) { }
+                    string Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, string> f) { }
-    string Quux(int i) => default;
-}");
+                    void Bar(Func<int, string> f) { }
+                    string Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestWithAnonymousMethod()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|delegate (int s) { return |]Quux(s); });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|delegate (int s) { return |]Quux(s); });
+                    }
 
-    void Bar(Func<int, string> f) { }
-    string Quux(int i) => default;
-}",
-@"using System;
+                    void Bar(Func<int, string> f) { }
+                    string Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, string> f) { }
-    string Quux(int i) => default;
-}");
+                    void Bar(Func<int, string> f) { }
+                    string Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestWithAnonymousMethodNoParameterList()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|delegate { return |]Quux(); });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|delegate { return |]Quux(); });
+                    }
 
-    void Bar(Func<string> f) { }
-    string Quux() => default;
-}",
-@"using System;
+                    void Bar(Func<string> f) { }
+                    string Quux() => default;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<string> f) { }
-    string Quux() => default;
-}");
+                    void Bar(Func<string> f) { }
+                    string Quux() => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestFixCoContravariance1()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|s => |]Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|s => |]Quux(s));
+                    }
 
-    void Bar(Func<object, string> f) { }
-    string Quux(object o) => default;
-}",
-@"using System;
+                    void Bar(Func<object, string> f) { }
+                    string Quux(object o) => default;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<object, string> f) { }
-    string Quux(object o) => default;
-}");
+                    void Bar(Func<object, string> f) { }
+                    string Quux(object o) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestFixCoContravariance2()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|s => |]Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|s => |]Quux(s));
+                    }
 
-    void Bar(Func<string, object> f) { }
-    string Quux(object o) => default;
-}",
-@"using System;
+                    void Bar(Func<string, object> f) { }
+                    string Quux(object o) => default;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<string, object> f) { }
-    string Quux(object o) => default;
-}");
+                    void Bar(Func<string, object> f) { }
+                    string Quux(object o) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestFixCoContravariance3()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(s => {|CS1662:{|CS0266:Quux(s)|}|});
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(s => {|CS1662:{|CS0266:Quux(s)|}|});
+                    }
 
-    void Bar(Func<string, string> f) { }
-    object Quux(object o) => default;
-}");
+                    void Bar(Func<string, string> f) { }
+                    object Quux(object o) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestFixCoContravariance4()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(s => Quux({|CS1503:s|}));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(s => Quux({|CS1503:s|}));
+                    }
 
-    void Bar(Func<object, object> f) { }
-    string Quux(string o) => default;
-}");
+                    void Bar(Func<object, object> f) { }
+                    string Quux(string o) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestFixCoContravariance5()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(s => Quux({|CS1503:s|}));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(s => Quux({|CS1503:s|}));
+                    }
 
-    void Bar(Func<object, string> f) { }
-    object Quux(string o) => default;
-}");
+                    void Bar(Func<object, string> f) { }
+                    object Quux(string o) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTwoArgs()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|(s1, s2) => |]Quux(s1, s2));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|(s1, s2) => |]Quux(s1, s2));
+                    }
 
-    void Bar(Func<int, bool, string> f) { }
-    string Quux(int i, bool b) => default;
-}",
-@"using System;
+                    void Bar(Func<int, bool, string> f) { }
+                    string Quux(int i, bool b) => default;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, bool, string> f) { }
-    string Quux(int i, bool b) => default;
-}");
+                    void Bar(Func<int, bool, string> f) { }
+                    string Quux(int i, bool b) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMultipleArgIncorrectPassing1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar((s1, s2) => Quux(s2, s1));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar((s1, s2) => Quux(s2, s1));
+                    }
 
-    void Bar(Func<int, int, string> f) { }
-    string Quux(int i, int b) => default;
-}");
+                    void Bar(Func<int, int, string> f) { }
+                    string Quux(int i, int b) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMultipleArgIncorrectPassing2()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar((s1, s2) => Quux(s1, s1));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar((s1, s2) => Quux(s1, s1));
+                    }
 
-    void Bar(Func<int, int, string> f) { }
-    string Quux(int i, int b) => default;
-}");
+                    void Bar(Func<int, int, string> f) { }
+                    string Quux(int i, int b) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMultipleArgIncorrectPassing3()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar((s1, s2) => Quux(s1, true));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar((s1, s2) => Quux(s1, true));
+                    }
 
-    void Bar(Func<int, bool, string> f) { }
-    string Quux(int i, bool b) => default;
-}");
+                    void Bar(Func<int, bool, string> f) { }
+                    string Quux(int i, bool b) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestReturnStatement()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|(s1, s2) => {
-            return |]Quux(s1, s2);
-        });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|(s1, s2) => {
+                            return |]Quux(s1, s2);
+                        });
+                    }
 
-    void Bar(Func<int, bool, string> f) { }
-    string Quux(int i, bool b) => default;
-}",
-@"using System;
+                    void Bar(Func<int, bool, string> f) { }
+                    string Quux(int i, bool b) => default;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, bool, string> f) { }
-    string Quux(int i, bool b) => default;
-}");
+                    void Bar(Func<int, bool, string> f) { }
+                    string Quux(int i, bool b) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestReturnStatement2()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|(s1, s2) => {
-            return |]this.Quux(s1, s2);
-        });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|(s1, s2) => {
+                            return |]this.Quux(s1, s2);
+                        });
+                    }
 
-    void Bar(Func<int, bool, string> f) { }
-    string Quux(int i, bool b) => default;
-}",
-@"using System;
+                    void Bar(Func<int, bool, string> f) { }
+                    string Quux(int i, bool b) => default;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(this.Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(this.Quux);
+                    }
 
-    void Bar(Func<int, bool, string> f) { }
-    string Quux(int i, bool b) => default;
-}");
+                    void Bar(Func<int, bool, string> f) { }
+                    string Quux(int i, bool b) => default;
+                }
+                """);
         }
 
         [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestMissingOnAmbiguity1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class A
-{
-    static void Goo<T>(T x)
-    {
-    }
+                class A
+                {
+                    static void Goo<T>(T x)
+                    {
+                    }
 
-    static void Bar(Action<int> x)
-    {
-    }
+                    static void Bar(Action<int> x)
+                    {
+                    }
 
-    static void Bar(Action<string> x)
-    {
-    }
+                    static void Bar(Action<string> x)
+                    {
+                    }
 
-    static void Main()
-    {
-        {|CS0121:Bar|}(x => Goo(x));
-    }
-}");
+                    static void Main()
+                    {
+                        {|CS0121:Bar|}(x => Goo(x));
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestWithConstraint1()
         {
-            var code = @"
-using System;
-class A
-{
-    static void Goo<T>(T x) where T : class
-    {
-    }
+            var code = """
+                using System;
+                class A
+                {
+                    static void Goo<T>(T x) where T : class
+                    {
+                    }
 
-    static void Bar(Action<int> x)
-    {
-    }
+                    static void Bar(Action<int> x)
+                    {
+                    }
 
-    static void Bar(Action<string> x)
-    {
-    }
+                    static void Bar(Action<string> x)
+                    {
+                    }
 
-    static void Main()
-    {
-        Bar([|x => |]Goo<string>(x));
-    }
-}";
+                    static void Main()
+                    {
+                        Bar([|x => |]Goo<string>(x));
+                    }
+                }
+                """;
 
-            var expected = @"
-using System;
-class A
-{
-    static void Goo<T>(T x) where T : class
-    {
-    }
+            var expected = """
+                using System;
+                class A
+                {
+                    static void Goo<T>(T x) where T : class
+                    {
+                    }
 
-    static void Bar(Action<int> x)
-    {
-    }
+                    static void Bar(Action<int> x)
+                    {
+                    }
 
-    static void Bar(Action<string> x)
-    {
-    }
+                    static void Bar(Action<string> x)
+                    {
+                    }
 
-    static void Main()
-    {
-        Bar(Goo<string>);
-    }
-}";
+                    static void Main()
+                    {
+                        Bar(Goo<string>);
+                    }
+                }
+                """;
             await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         public async Task TestWithConstraint2()
         {
-            var code = @"
-using System;
-class A
-{
-    static void Goo<T>(T x) where T : class
-    {
-    }
+            var code = """
+                using System;
+                class A
+                {
+                    static void Goo<T>(T x) where T : class
+                    {
+                    }
 
-    static void Bar(Action<int> x)
-    {
-    }
+                    static void Bar(Action<int> x)
+                    {
+                    }
 
-    static void Bar(Action<string> x)
-    {
-    }
+                    static void Bar(Action<string> x)
+                    {
+                    }
 
-    static void Main()
-    {
-        Bar(x => Goo(x));
-    }
-}";
+                    static void Main()
+                    {
+                        Bar(x => Goo(x));
+                    }
+                }
+                """;
             await TestMissingInRegularAndScriptAsync(code);
         }
 
@@ -758,142 +837,150 @@ class A
         public async Task TestMissingOnLambdaWithDynamic_1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class Program
-{
-    static void Main()
-    {
-        C<string>.InvokeGoo();
-    }
-}
+                class Program
+                {
+                    static void Main()
+                    {
+                        C<string>.InvokeGoo();
+                    }
+                }
 
-class C<T>
-{
-    public static void InvokeGoo()
-    {
-        Action<dynamic, string> goo = (x, y) => C<T>.Goo(x, y); // Simplify lambda expression
-        goo(1, """");
-    }
+                class C<T>
+                {
+                    public static void InvokeGoo()
+                    {
+                        Action<dynamic, string> goo = (x, y) => C<T>.Goo(x, y); // Simplify lambda expression
+                        goo(1, "");
+                    }
 
-    static void Goo(object x, object y)
-    {
-        Console.WriteLine(""Goo(object x, object y)"");
-    }
+                    static void Goo(object x, object y)
+                    {
+                        Console.WriteLine("Goo(object x, object y)");
+                    }
 
-    static void Goo(object x, T y)
-    {
-        Console.WriteLine(""Goo(object x, T y)"");
-    }
-}");
+                    static void Goo(object x, T y)
+                    {
+                        Console.WriteLine("Goo(object x, T y)");
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
         public async Task TestWithLambdaWithDynamic()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class Program
-{
-    static void Main()
-    {
-        C<string>.InvokeGoo();
-    }
-}
+                class Program
+                {
+                    static void Main()
+                    {
+                        C<string>.InvokeGoo();
+                    }
+                }
 
-class C<T>
-{
-    public static void InvokeGoo()
-    {
-        Action<dynamic> goo = [|x => |]C<T>.Goo(x); // Simplify lambda expression
-        goo(1);
-    }
+                class C<T>
+                {
+                    public static void InvokeGoo()
+                    {
+                        Action<dynamic> goo = [|x => |]C<T>.Goo(x); // Simplify lambda expression
+                        goo(1);
+                    }
 
-    private static void Goo(dynamic x)
-    {
-        throw new NotImplementedException();
-    }
+                    private static void Goo(dynamic x)
+                    {
+                        throw new NotImplementedException();
+                    }
 
-    static void Goo(object x, object y)
-    {
-        Console.WriteLine(""Goo(object x, object y)"");
-    }
+                    static void Goo(object x, object y)
+                    {
+                        Console.WriteLine("Goo(object x, object y)");
+                    }
 
-    static void Goo(object x, T y)
-    {
-        Console.WriteLine(""Goo(object x, T y)"");
-    }
-}",
-@"using System;
+                    static void Goo(object x, T y)
+                    {
+                        Console.WriteLine("Goo(object x, T y)");
+                    }
+                }
+                """,
+                """
+                using System;
 
-class Program
-{
-    static void Main()
-    {
-        C<string>.InvokeGoo();
-    }
-}
+                class Program
+                {
+                    static void Main()
+                    {
+                        C<string>.InvokeGoo();
+                    }
+                }
 
-class C<T>
-{
-    public static void InvokeGoo()
-    {
-        Action<dynamic> goo = C<T>.Goo; // Simplify lambda expression
-        goo(1);
-    }
+                class C<T>
+                {
+                    public static void InvokeGoo()
+                    {
+                        Action<dynamic> goo = C<T>.Goo; // Simplify lambda expression
+                        goo(1);
+                    }
 
-    private static void Goo(dynamic x)
-    {
-        throw new NotImplementedException();
-    }
+                    private static void Goo(dynamic x)
+                    {
+                        throw new NotImplementedException();
+                    }
 
-    static void Goo(object x, object y)
-    {
-        Console.WriteLine(""Goo(object x, object y)"");
-    }
+                    static void Goo(object x, object y)
+                    {
+                        Console.WriteLine("Goo(object x, object y)");
+                    }
 
-    static void Goo(object x, T y)
-    {
-        Console.WriteLine(""Goo(object x, T y)"");
-    }
-}");
+                    static void Goo(object x, T y)
+                    {
+                        Console.WriteLine("Goo(object x, T y)");
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(544625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
         public async Task ParenthesizeIfParseChanges()
         {
-            var code = @"
-using System;
-class C
-{
-    static void M()
-    {
-        C x = new C();
-        int y = 1;
-        Bar([|() => { return |]Console.ReadLine(); } < x, y > (1 + 2));
-    }
+            var code = """
+                using System;
+                class C
+                {
+                    static void M()
+                    {
+                        C x = new C();
+                        int y = 1;
+                        Bar([|() => { return |]Console.ReadLine(); } < x, y > (1 + 2));
+                    }
 
-    static void Bar(object a, object b) { }
-    public static bool operator <(Func<string> y, C x) { return true; }
-    public static bool operator >(Func<string> y, C x) { return true; }
-}";
+                    static void Bar(object a, object b) { }
+                    public static bool operator <(Func<string> y, C x) { return true; }
+                    public static bool operator >(Func<string> y, C x) { return true; }
+                }
+                """;
 
-            var expected = @"
-using System;
-class C
-{
-    static void M()
-    {
-        C x = new C();
-        int y = 1;
-        Bar((Console.ReadLine) < x, y > (1 + 2));
-    }
+            var expected = """
+                using System;
+                class C
+                {
+                    static void M()
+                    {
+                        C x = new C();
+                        int y = 1;
+                        Bar((Console.ReadLine) < x, y > (1 + 2));
+                    }
 
-    static void Bar(object a, object b) { }
-    public static bool operator <(Func<string> y, C x) { return true; }
-    public static bool operator >(Func<string> y, C x) { return true; }
-}";
+                    static void Bar(object a, object b) { }
+                    public static bool operator <(Func<string> y, C x) { return true; }
+                    public static bool operator >(Func<string> y, C x) { return true; }
+                }
+                """;
 
             await TestInRegularAndScriptAsync(code, expected);
         }
@@ -902,642 +989,716 @@ class C
         public async Task TestNotWithSideEffects()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Main()
-    {
-        Func<string> a = () => new C().ToString();
-    }
-}");
+                class C
+                {
+                    void Main()
+                    {
+                        Func<string> a = () => new C().ToString();
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem(545994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
         public async Task TestExpressionStatement()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class Program
-{
-    static void Main()
-    {
-        Action a = [|() => {
-            |]Console.WriteLine();
-        };
-    }
-}",
-@"using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Action a = [|() => {
+                            |]Console.WriteLine();
+                        };
+                    }
+                }
+                """,
+                """
+                using System;
 
-class Program
-{
-    static void Main()
-    {
-        Action a = Console.WriteLine;
-    }
-}");
+                class Program
+                {
+                    static void Main()
+                    {
+                        Action a = Console.WriteLine;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTaskOfT1()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|s => |]Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|s => |]Quux(s));
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAsyncTaskOfT1()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|async s => await |]Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|async s => await |]Quux(s));
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAsyncTaskOfT2()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|async s => await |]Quux(s).ConfigureAwait(false));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|async s => await |]Quux(s).ConfigureAwait(false));
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAsyncNoAwait1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(async s => Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(async s => Quux(s));
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    string Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task<string>> f) { }
+                    string Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTaskOfT1_Return()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|s => { return |]Quux(s); });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|s => { return |]Quux(s); });
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAsyncTaskOfT1_Return()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|async s => { return await |]Quux(s); });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|async s => { return await |]Quux(s); });
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAsyncTaskOfT2_Return()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|async s => { return await |]Quux(s).ConfigureAwait(false); });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|async s => { return await |]Quux(s).ConfigureAwait(false); });
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    Task<string> Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task<string>> f) { }
+                    Task<string> Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAsyncNoAwait1_Return()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(async s => { return Quux(s); });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(async s => { return Quux(s); });
+                    }
 
-    void Bar(Func<int, Task<string>> f) { }
-    string Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task<string>> f) { }
+                    string Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTask1()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|s => |]Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|s => |]Quux(s));
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
+                    void Bar(Func<int, Task> f) { }
+                    Task Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task> f) { }
+                    Task Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAsyncTask1()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|async s => await |]Quux(s));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|async s => await |]Quux(s));
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
+                    void Bar(Func<int, Task> f) { }
+                    Task Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task> f) { }
+                    Task Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAsyncTask2()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|async s => await |]Quux(s).ConfigureAwait(false));
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|async s => await |]Quux(s).ConfigureAwait(false));
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
+                    void Bar(Func<int, Task> f) { }
+                    Task Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task> f) { }
+                    Task Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTask1_ExpressionStatement()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(s {|CS1643:=>|} { Quux(s); });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(s {|CS1643:=>|} { Quux(s); });
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task> f) { }
+                    Task Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAsyncTask1_ExpressionStatement()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|async s => { await |]Quux(s); });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|async s => { await |]Quux(s); });
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
+                    void Bar(Func<int, Task> f) { }
+                    Task Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task> f) { }
+                    Task Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAsyncTask2_ExpressionStatement()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar([|async s => { await |]Quux(s).ConfigureAwait(false); });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|async s => { await |]Quux(s).ConfigureAwait(false); });
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
+                    void Bar(Func<int, Task> f) { }
+                    Task Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(Quux);
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}");
+                    void Bar(Func<int, Task> f) { }
+                    Task Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAsyncNoAwait1_ExpressionStatement()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    void Goo()
-    {
-        Bar(async s => { Quux(s); });
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(async s => { Quux(s); });
+                    }
 
-    void Bar(Func<int, Task> f) { }
-    void Quux(int i) { }
-}");
+                    void Bar(Func<int, Task> f) { }
+                    void Quux(int i) { }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExplicitGenericCall()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Action a = [|() => |]Quux<int>();
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Action a = [|() => |]Quux<int>();
+                    }
 
-    void Quux<T>() { }
-}",
-@"using System;
+                    void Quux<T>() { }
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Action a = Quux<int>;
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Action a = Quux<int>;
+                    }
 
-    void Quux<T>() { }
-}");
+                    void Quux<T>() { }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestImplicitGenericCall()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Action<int> a = b => Quux(b);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Action<int> a = b => Quux(b);
+                    }
 
-    void Quux<T>(T t) { }
-}");
+                    void Quux<T>(T t) { }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestNullabilityChanges()
         {
             await TestMissingInRegularAndScriptAsync(
-@"
-#nullable enable
+                """
+                #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+                using System;
+                using System.Collections.Generic;
+                using System.Diagnostics.CodeAnalysis;
 
-class C
-{
-    void Goo(List<string> assemblies, HashSet<string> usedProjectFileNames)
-    {
-        var projectAssemblyFileNames = Select(assemblies, a => GetFileName(a));
-        var v = Any(projectAssemblyFileNames, usedProjectFileNames.Contains);
-    }
+                class C
+                {
+                    void Goo(List<string> assemblies, HashSet<string> usedProjectFileNames)
+                    {
+                        var projectAssemblyFileNames = Select(assemblies, a => GetFileName(a));
+                        var v = Any(projectAssemblyFileNames, usedProjectFileNames.Contains);
+                    }
 
-    static List<TResult> Select<TItem, TResult>(List<TItem> items, Func<TItem, TResult> map) => new();
+                    static List<TResult> Select<TItem, TResult>(List<TItem> items, Func<TItem, TResult> map) => new();
 
-    [return: NotNullIfNotNull(""path"")]
-    static string? GetFileName(string? path) => path;
+                    [return: NotNullIfNotNull("path")]
+                    static string? GetFileName(string? path) => path;
 
-    static bool Any<T>(List<T> immutableArray, Func<T, bool> predicate) => true;
-}
+                    static bool Any<T>(List<T> immutableArray, Func<T, bool> predicate) => true;
+                }
 
-namespace System.Diagnostics.CodeAnalysis
-{
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
-    public sealed class NotNullIfNotNullAttribute : Attribute
-    {
-        public string ParameterName => """";
+                namespace System.Diagnostics.CodeAnalysis
+                {
+                    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
+                    public sealed class NotNullIfNotNullAttribute : Attribute
+                    {
+                        public string ParameterName => "";
 
-        public NotNullIfNotNullAttribute(string parameterName)
-        {
-        }
-    }
-}
-");
+                        public NotNullIfNotNullAttribute(string parameterName)
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(/*before*/[|s => |]Quux(s)/*after*/);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(/*before*/[|s => |]Quux(s)/*after*/);
+                    }
 
-    void Bar(Func<int, string> f) { }
-    string Quux(int i) => default;
-}",
-@"using System;
+                    void Bar(Func<int, string> f) { }
+                    string Quux(int i) => default;
+                }
+                """,
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(/*before*/Quux/*after*/);
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(/*before*/Quux/*after*/);
+                    }
 
-    void Bar(Func<int, string> f) { }
-    string Quux(int i) => default;
-}");
+                    void Bar(Func<int, string> f) { }
+                    string Quux(int i) => default;
+                }
+                """);
         }
 
         [Fact, WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestNotWithPartialDefinition()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
-using System.Diagnostics;
+                """
+                using System;
+                using System.Diagnostics;
 
-public partial class C
-{
-    internal void M1()
-    {
-        M2(x => M3(x));
-    }
-    
-    partial void M3(string s);
+                public partial class C
+                {
+                    internal void M1()
+                    {
+                        M2(x => M3(x));
+                    }
 
-    private static void M2(Action<string> a) { }
-}");
+                    partial void M3(string s);
+
+                    private static void M2(Action<string> a) { }
+                }
+                """);
         }
 
         [Fact, WorkItem(63465, "https://github.com/dotnet/roslyn/issues/63465")]
         public async Task TestWithPartialDefinitionAndImplementation()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-using System.Diagnostics;
+                """
+                using System;
+                using System.Diagnostics;
 
-public partial class C
-{
-    internal void M1()
-    {
-        M2([|x => |]M3(x));
-    }
-    
-    partial void M3(string s);
-    partial void M3(string s) { }
+                public partial class C
+                {
+                    internal void M1()
+                    {
+                        M2([|x => |]M3(x));
+                    }
 
-    private static void M2(Action<string> a) { }
-}",
-@"using System;
-using System.Diagnostics;
+                    partial void M3(string s);
+                    partial void M3(string s) { }
 
-public partial class C
-{
-    internal void M1()
-    {
-        M2(M3);
-    }
-    
-    partial void M3(string s);
-    partial void M3(string s) { }
+                    private static void M2(Action<string> a) { }
+                }
+                """,
+                """
+                using System;
+                using System.Diagnostics;
 
-    private static void M2(Action<string> a) { }
-}");
+                public partial class C
+                {
+                    internal void M1()
+                    {
+                        M2(M3);
+                    }
+
+                    partial void M3(string s);
+                    partial void M3(string s) { }
+
+                    private static void M2(Action<string> a) { }
+                }
+                """);
         }
 
         [Fact, WorkItem(63464, "https://github.com/dotnet/roslyn/issues/63464")]
