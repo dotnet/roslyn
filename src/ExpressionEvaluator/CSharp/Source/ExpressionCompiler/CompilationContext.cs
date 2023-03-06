@@ -95,6 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     _locals,
                     inScopeHoistedLocalSlots,
                     _sourceMethodParametersInOrder,
+                    // This is a special handling for async MoveNext method.
+                    // Parameters are not declared by it, and, therefore, display variables corresponding to them will be those declared outside.  
                     parametersAreOutside: currentFrame.ParameterCount == 0,
                     out var displayClassVariableNamesOutsideInOrder,
                     out var displayClassVariableNamesInsideInOrder,
@@ -408,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             {
                                 int saveCount = methodBuilder.Count;
                                 int localIndex = 0;
-                                foreach (var local in _localsForBindingOutside)
+                                foreach (var local in _localsForBindingOutside.Concat(_localsForBindingInside))
                                 {
                                     if (local.Name == parameterName && local is EEDisplayClassFieldLocalSymbol)
                                     {
@@ -417,20 +419,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     }
 
                                     localIndex++;
-                                }
-
-                                if (saveCount == methodBuilder.Count)
-                                {
-                                    foreach (var local in _localsForBindingInside)
-                                    {
-                                        if (local.Name == parameterName && local is EEDisplayClassFieldLocalSymbol)
-                                        {
-                                            AppendParameterAndMethod(localBuilder, methodBuilder, local, container, localIndex, GetLocalResultFlags(local));
-                                            break;
-                                        }
-
-                                        localIndex++;
-                                    }
                                 }
 
                                 if (saveCount != methodBuilder.Count)
