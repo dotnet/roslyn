@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Process projects in dependency graph order so that any compilations built by one are available for later
             // projects. We only have to examine the projects containing the documents requested though.
             var dependencyGraph = _solution.GetProjectDependencyGraph();
-            var projectsToSearch = documents.Select(d => d.Project).ToImmutableHashSet();
+            var projectsToSearch = documents.Select(d => d.Project).Where(p => p.SupportsCompilation).ToImmutableHashSet();
 
             foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
             {
