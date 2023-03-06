@@ -5614,8 +5614,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalState state,
             bool isReachable)
         {
-            var savedState = this.State;
-            this.State = state;
+            var savedState = PossiblyConditionalState.Create(this);
+            this.SetState(state);
 
             bool previousDisabledDiagnostics = _disableDiagnostics;
             // If the node is not reachable, then we're only visiting to get
@@ -5644,7 +5644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = default;
                 _disableDiagnostics = previousDisabledDiagnostics;
             }
-            this.State = savedState;
+            this.SetPossiblyConditionalState(in savedState);
 
             return resultType;
         }
@@ -8457,8 +8457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reportRemainingWarnings,
             Location diagnosticLocation)
         {
-            // Uncomment when https://github.com/dotnet/roslyn/issues/67153 is fixed
-            // Debug.Assert(!IsConditionalState);
+            Debug.Assert(!IsConditionalState);
             Debug.Assert(conversionOperand != null);
             Debug.Assert(targetTypeWithNullability.HasType);
             Debug.Assert(diagnosticLocation != null);
