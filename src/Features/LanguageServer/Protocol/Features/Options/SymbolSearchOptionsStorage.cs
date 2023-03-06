@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 SearchNuGetPackages = globalOptions.GetOption(SearchNuGetPackages, language)
             };
 
-        private static readonly OptionGroup s_optionGroup = new(name: "Symbol Search", description: "");
+        private static readonly OptionGroup s_optionGroup = new(name: "symbol_search", description: "");
 
         public static PerLanguageOption2<bool> SearchReferenceAssemblies =
             new("dotnet_search_reference_assemblies",
