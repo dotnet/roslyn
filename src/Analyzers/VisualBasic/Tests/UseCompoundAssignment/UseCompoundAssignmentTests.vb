@@ -332,7 +332,7 @@ end class")
 end class")
         End Function
 
-        <Fact, WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35870")>
         Public Async Function TestRightExpressionOnNextLine() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -382,7 +382,7 @@ end class",
 end class")
         End Function
 
-        <Fact, WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38137")>
         Public Async Function TestParenthesizedExpression() As Task
             Await TestInRegularAndScriptAsync(
 "public class C
@@ -397,7 +397,7 @@ end class",
 end class")
         End Function
 
-        <Fact, WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38137")>
         Public Async Function TestParenthesizedExpressionTrailingTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "public class C

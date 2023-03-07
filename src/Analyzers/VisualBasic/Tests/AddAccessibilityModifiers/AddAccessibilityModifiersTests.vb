@@ -425,7 +425,7 @@ end namespace"
             Await test.RunAsync()
         End Function
 
-        <Fact, WorkItem(44076, "https://github.com/dotnet/roslyn/issues/44076")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44076")>
         Public Async Function TestModuleConstructor() As Task
             Dim source = "
 Friend Module Example
@@ -436,7 +436,7 @@ End Module
             Await VerifyVB.VerifyCodeFixAsync(source, source)
         End Function
 
-        <Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48899")>
         Public Async Function TestAbstractMethod() As Task
             Await VerifyVB.VerifyCodeFixAsync("
 public mustinherit class TestClass
@@ -450,7 +450,7 @@ end class
 ")
         End Function
 
-        <Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48899")>
         Public Async Function TestOverriddenMethod() As Task
             Await VerifyVB.VerifyCodeFixAsync("
 public mustinherit class TestClass
@@ -478,7 +478,7 @@ end class
 ")
         End Function
 
-        <Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29633")>
         Public Async Function TestTitle1() As Task
             Dim test As New VerifyVB.Test With {
                 .TestCode = "
@@ -497,7 +497,7 @@ end class
             Await test.RunAsync()
         End Function
 
-        <Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29633")>
         Public Async Function TestTitle2() As Task
             Dim test As New VerifyVB.Test With {
                 .TestCode = "
