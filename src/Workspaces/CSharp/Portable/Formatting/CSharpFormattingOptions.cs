@@ -5,7 +5,6 @@
 #pragma warning disable RS0030 // Do not used banned APIs
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
