@@ -208,7 +208,7 @@ stages:
           - src/Compilers/*
           - src/Dependencies/*
           - src/NuGet/Microsoft.Net.Compilers.Toolset/*
-          - eng/*`
+          - eng/*
           - src/Tools/Source/CompilerGeneratorTools/*
 
   - job: Correctness_Build_Artifacts
