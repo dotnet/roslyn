@@ -1126,7 +1126,7 @@ End Module
         End Function
 
         <Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")>
-        Public Async Function VBStrictFeatureFlagAssignment1() As Task
+        Public Async Function StrictFeatureFlagAssignment1() As Task
             Await TestInRegularAndScriptAsync(
 "
 imports System
@@ -1155,7 +1155,7 @@ end class
         End Function
 
         <Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")>
-        Public Async Function VBStrictFeatureFlagAssignment2() As Task
+        Public Async Function StrictFeatureFlagAssignment2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
 imports System
@@ -1172,26 +1172,14 @@ end class
         End Function
 
         <Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")>
-        Public Async Function VBStrictFeatureFlagAssignment3() As Task
-            Await TestInRegularAndScriptAsync(
+        Public Async Function StrictFeatureFlagAssignment3() As Task
+            Await TestMissingAsync(
 "
 imports System
 imports System.Collections.Generic
 
 class C(Of T)
     private shared [|s_value|] as IEqualityComparer(Of T)
-
-    shared sub new()
-        C(Of string).s_value = nothing
-    end sub
-end class
-",
-"
-imports System
-imports System.Collections.Generic
-
-class C(Of T)
-    private shared ReadOnly s_value as IEqualityComparer(Of T)
 
     shared sub new()
         C(Of string).s_value = nothing

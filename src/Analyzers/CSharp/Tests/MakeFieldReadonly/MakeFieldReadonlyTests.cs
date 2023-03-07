@@ -2250,7 +2250,7 @@ $@"class MyClass
         [Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")]
         public async Task StrictFeatureFlagAssignment3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
                 """
                 using System;
                 using System.Collections.Generic;
@@ -2259,20 +2259,6 @@ $@"class MyClass
                 {
                     private static IEqualityComparer<T> [|s_value|];
 
-                    static C()
-                    {
-                        C<string>.s_value = null;
-                    }
-                }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class C<T>
-                {
-                    private static readonly IEqualityComparer<T> s_value;
-                
                     static C()
                     {
                         C<string>.s_value = null;

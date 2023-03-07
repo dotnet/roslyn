@@ -214,45 +214,48 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             //  2. Field is being written inside a lambda or local function.
 
             // Check if we are in the constructor of the containing type of the written field.
-            var isInConstructor = owningSymbol.IsConstructor();
+            var isInInstanceConstructor = owningSymbol.IsConstructor();
             var isInStaticConstructor = owningSymbol.IsStaticConstructor();
+
+            // If we're not in a constructor, this is definitely a write to the field that would prevent it from
+            // becoming readonly.
+            if (!isInInstanceConstructor && !isInStaticConstructor)
+                return true;
+
             var field = fieldReference.Field;
 
-            if ((isInConstructor || isInStaticConstructor) &&
-                field.ContainingType.OriginalDefinition.Equals(owningSymbol.ContainingType.OriginalDefinition))
+            // Follow 'strict' C#/VB behavior. Has to be opted into by user with feature-flag "strict", but is
+            // actually what the languages specify as correct.  Specifically the actual types of the containing
+            // type and field-reference-containing type must be the same (not just their OriginalDefinition
+            // types).
+            //
+            // https://github.com/dotnet/roslyn/blob/8770fb62a36157ed4ca38a16a0283d27321a01a7/src/Compilers/CSharp/Portable/Binder/Binder.ValueChecks.cs#L1201-L1203
+            // https//github.com/dotnet/roslyn/blob/93d3aa1a2cf1790b1a0fe2d120f00987d50445c0/src/Compilers/VisualBasic/Portable/Binding/Binder_Expressions.vb#L1868-L1871
+            if (!field.ContainingType.Equals(owningSymbol.ContainingType))
+                return true;
+
+            if (isInStaticConstructor)
+            {
+                // For static fields, ensure that we are in the static constructor.
+                if (!field.IsStatic)
+                    return true;
+            }
+            else
             {
                 // For instance fields, ensure that the instance reference is being initialized by the constructor.
-                var instanceFieldWrittenInCtor = isInConstructor &&
-                    fieldReference.Instance?.Kind == OperationKind.InstanceReference &&
-                    !fieldReference.IsTargetOfObjectMemberInitializer();
-
-                // For static fields, ensure that we are in the static constructor.
-                var staticFieldWrittenInStaticCtor = isInStaticConstructor && field.IsStatic;
-
-                if (instanceFieldWrittenInCtor || staticFieldWrittenInStaticCtor)
+                Debug.Assert(isInInstanceConstructor);
+                if (fieldReference.Instance?.Kind != OperationKind.InstanceReference ||
+                    fieldReference.IsTargetOfObjectMemberInitializer())
                 {
-                    // Finally, ensure that the write is not inside a lambda or local function.
-                    if (fieldReference.TryGetContainingAnonymousFunctionOrLocalFunction() is not null)
-                        return true;
-
-                    // Legacy 'strict' C#/VB behavior.  If a special "feature:strict" (different from "option strict") flag Is on,
-                    // then this write Is only ok if the containing types are the same.  *Not* simply the original
-                    // definitions being the same (which the caller has already checked):
-                    //
-                    // https://github.com/dotnet/roslyn/blob/8770fb62a36157ed4ca38a16a0283d27321a01a7/src/Compilers/CSharp/Portable/Binder/Binder.ValueChecks.cs#L1201-L1203
-                    // https//github.com/dotnet/roslyn/blob/93d3aa1a2cf1790b1a0fe2d120f00987d50445c0/src/Compilers/VisualBasic/Portable/Binding/Binder_Expressions.vb#L1868-L1871
-                    if (fieldReference.SemanticModel?.SyntaxTree.Options.Features.ContainsKey("strict") is true &&
-                        !field.ContainingType.Equals(owningSymbol.ContainingType))
-                    {
-                        return true;
-                    }
-
-                    // It is safe to ignore this write.
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            // Finally, ensure that the write is not inside a lambda or local function.
+            if (fieldReference.TryGetContainingAnonymousFunctionOrLocalFunction() is not null)
+                return true;
+
+            return false;
         }
 
         private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options)
