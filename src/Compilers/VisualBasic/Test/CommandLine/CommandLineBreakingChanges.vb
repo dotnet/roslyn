@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
     Partial Public Class CommandLineTests
 
-        <Fact, WorkItem(530256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530256")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530256")>
         Public Sub WarnAsErrorPrecedence1()
             Dim src As String = Temp.CreateFile().WriteAllText("
 Imports System
@@ -43,7 +43,7 @@ SRC.VB(7) : warning BC42104: Variable 'x' is used before it has been assigned a 
             CleanupAllGeneratedFiles(tempLog.Path)
         End Sub
 
-        <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
         Public Sub WarnAsErrorPrecedence2_1()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module M1
@@ -75,7 +75,7 @@ SRC.VB(6) : error BC42032: Operands of type Object used for operator '&lt;&gt;';
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
         End Sub
 
-        <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
         Public Sub WarnAsErrorPrecedence2_2()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module M1
@@ -107,7 +107,7 @@ SRC.VB(6) : error BC42032: Operands of type Object used for operator '&lt;&gt;';
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
         End Sub
 
-        <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
         Public Sub WarnAsErrorPrecedence3_1()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module M1
@@ -142,7 +142,7 @@ SRC.VB(6) : error BC42032: Operands of type Object used for operator '&lt;&gt;';
             CleanupAllGeneratedFiles(tempOut.Path)
         End Sub
 
-        <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
         Public Sub WarnAsErrorPrecedence3_2()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module M1
