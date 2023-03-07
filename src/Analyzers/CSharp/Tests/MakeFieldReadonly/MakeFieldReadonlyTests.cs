@@ -2039,7 +2039,7 @@ $@"class MyClass
                 public class MyClass
                 {
                     [System.Runtime.Serialization.DataMember]
-                    private bool [|isreadonly|];
+                    private bool [|isReadOnly|];
                 }
                         </Document>
                     </Project>
@@ -2058,7 +2058,7 @@ $@"class MyClass
                 public class MyClass
                 {
                     [System.Runtime.Serialization.DataMember]
-                    private bool [|isreadonly|];
+                    private bool [|isReadOnly|];
                 }
                         </Document>
                     </Project>
@@ -2071,7 +2071,7 @@ $@"class MyClass
                 public class MyClass
                 {
                     [System.Runtime.Serialization.DataMember]
-                    private readonly bool isreadonly;
+                    private readonly bool isReadOnly;
                 }
                         </Document>
                     </Project>
@@ -2091,9 +2091,9 @@ $@"class MyClass
                 public class MyClass
                 {
                     [System.Runtime.Serialization.DataMember]
-                    private bool isreadonly;
+                    private bool isReadOnly;
 
-                    private bool [|isreadonly2|];
+                    private bool [|isReadOnly2|];
                 }
                         </Document>
                     </Project>
@@ -2107,9 +2107,9 @@ $@"class MyClass
                 public class MyClass
                 {
                     [System.Runtime.Serialization.DataMember]
-                    private bool isreadonly;
+                    private bool isReadOnly;
 
-                    private readonly bool isreadonly2;
+                    private readonly bool isReadOnly2;
                 }
                         </Document>
                     </Project>
@@ -2128,7 +2128,7 @@ $@"class MyClass
                 [System.Runtime.Serialization.DataContractAttribute]
                 public class MyClass
                 {
-                    public bool [|isreadonly|];
+                    public bool [|isReadOnly|];
                 }
                         </Document>
                     </Project>
