@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.GoToBase;
@@ -412,6 +413,47 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 .Cast<IMappingTagSpan<ITag>>();
 
             return tags.SelectAsArray(tag => (new TagSpan<IErrorTag>(tag.Span.GetSpans(view.TextBuffer).Single(), (IErrorTag)tag.Tag)));
+        }
+
+        public async Task<ImmutableArray<TextSpan>> GetTagSpansAsync(string tagId, CancellationToken cancellationToken)
+        {
+            if (tagId == RenameFieldBackgroundAndBorderTag.TagId)
+            {
+                await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Rename, cancellationToken);
+            }
+
+            var tagInfo = (await GetTagSpansHelperAsync(tagId, cancellationToken)).ToList();
+
+            // The spans are returned in an array:
+            //    [s1.Start, s1.Length, s2.Start, s2.Length, ...]
+            // Reconstruct the spans from their component parts
+
+            var builder = ArrayBuilder<TextSpan>.GetInstance();
+
+            for (var i = 0; i < tagInfo.Count; i += 2)
+            {
+                builder.Add(new TextSpan(tagInfo[i], tagInfo[i + 1]));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Gets the spans where a particular tag appears in the active text view.
+        /// </summary>
+        /// <returns>
+        /// Given a list of tag spans [s1, s2, ...], returns a decomposed array for serialization:
+        ///     [s1.Start, s1.Length, s2.Start, s2.Length, ...]
+        /// </returns>
+        public async Task<int[]> GetTagSpansHelperAsync(string tagId, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
+            var tagAggregator = viewTagAggregatorFactory.CreateTagAggregator<ITextMarkerTag>(view);
+            var matchingTags = tagAggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)).Where(t => t.Tag.Type == tagId);
+
+            return matchingTags.Select(t => t.Span.GetSpans(view.TextBuffer).Single().Span.ToTextSpan()).SelectMany(t => new List<int> { t.Start, t.Length }).ToArray();
         }
 
         private static bool IsDebuggerTextView(ITextView textView)
