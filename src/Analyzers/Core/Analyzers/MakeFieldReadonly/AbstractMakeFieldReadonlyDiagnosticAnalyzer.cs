@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     var members = ((INamedTypeSymbol)symbolEndContext.Symbol).GetMembers();
                     foreach (var member in members)
                     {
-                        if (member is IFieldSymbol field && fieldStateMap.TryRemove(field, out var value))
+                        if (member is IFieldSymbol field && fieldStateMap.TryRemove(field.OriginalDefinition, out var value))
                         {
                             var (isCandidate, written) = value;
                             if (isCandidate && !written)
@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 void UpdateFieldStateOnWrite(IFieldSymbol field)
                 {
                     Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
-                    Debug.Assert(fieldStateMap.ContainsKey(field));
+                    Debug.Assert(fieldStateMap.ContainsKey(field.OriginalDefinition));
 
-                    fieldStateMap[field] = (isCandidate: true, written: true);
+                    fieldStateMap[field.OriginalDefinition] = (isCandidate: true, written: true);
                 }
 
                 // Method to get or initialize the field state.
@@ -174,13 +174,13 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         return default;
                     }
 
-                    if (fieldStateMap.TryGetValue(fieldSymbol, out var result))
+                    if (fieldStateMap.TryGetValue(fieldSymbol.OriginalDefinition, out var result))
                     {
                         return result;
                     }
 
                     result = ComputeInitialFieldState(fieldSymbol, options, threadStaticAttribute, dataContractAttribute, dataMemberAttribute, cancellationToken);
-                    return fieldStateMap.GetOrAdd(fieldSymbol, result);
+                    return fieldStateMap.GetOrAdd(fieldSymbol.OriginalDefinition, result);
                 }
 
                 // Method to compute the initial field state.
