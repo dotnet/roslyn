@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("*", false, ReportDiagnostic.Hidden)]
         [InlineData("false:false", false, ReportDiagnostic.Hidden)]
 
-        [WorkItem(27685, "https://github.com/dotnet/roslyn/issues/27685")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27685")]
         [InlineData("true : warning", true, ReportDiagnostic.Warn)]
         [InlineData("false : warning", false, ReportDiagnostic.Warn)]
         [InlineData("true : error", true, ReportDiagnostic.Error)]
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("always:suggestion", AccessibilityModifiersRequired.Always, ReportDiagnostic.Info)]
         [InlineData("for_non_interface_members:warning", AccessibilityModifiersRequired.ForNonInterfaceMembers, ReportDiagnostic.Warn)]
         [InlineData("omit_if_default:error", AccessibilityModifiersRequired.OmitIfDefault, ReportDiagnostic.Error)]
-        [InlineData("never : none", AccessibilityModifiersRequired.Never, ReportDiagnostic.Suppress), WorkItem(27685, "https://github.com/dotnet/roslyn/issues/27685")]
+        [InlineData("never : none", AccessibilityModifiersRequired.Never, ReportDiagnostic.Suppress), WorkItem("https://github.com/dotnet/roslyn/issues/27685")]
         [InlineData("always : suggestion", AccessibilityModifiersRequired.Always, ReportDiagnostic.Info)]
         [InlineData("for_non_interface_members : warning", AccessibilityModifiersRequired.ForNonInterfaceMembers, ReportDiagnostic.Warn)]
         [InlineData("omit_if_default : error", AccessibilityModifiersRequired.OmitIfDefault, ReportDiagnostic.Error)]
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("cr", "\r")]
         [InlineData("crlf", "\r\n")]
 
-        [WorkItem(27685, "https://github.com/dotnet/roslyn/issues/27685")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27685")]
         [InlineData(" lf ", "\n")]
         [InlineData(" cr ", "\r")]
         [InlineData(" crlf ", "\r\n")]

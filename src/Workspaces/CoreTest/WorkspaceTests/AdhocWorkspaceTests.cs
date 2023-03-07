@@ -394,7 +394,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(currentVersion, actualVersion);
         }
 
-        [Fact, WorkItem(1174396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]
         public async Task TestUpdateCSharpLanguageVersionAsync()
         {
             using var ws = new AdhocWorkspace();
@@ -601,7 +601,7 @@ language: LanguageNames.CSharp);
         }
 
         [Fact]
-        [WorkItem(67142, "https://github.com/dotnet/roslyn/pull/67142")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
         public void TestNotGCRootedOnConstruction()
         {
             var composition = FeaturesTestCompositions.Features;

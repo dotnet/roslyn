@@ -11,7 +11,7 @@ Imports System.Threading
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class VisualBasicExtensionsTests
-        <Fact, WorkItem(6536, "https://github.com/dotnet/roslyn/issues/6536")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6536")>
         Public Sub TestFindTrivia_NoStackOverflowOnLargeExpression()
             Dim code As New StringBuilder()
             code.Append(<![CDATA[

@@ -1147,7 +1147,7 @@ End Class"
             Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(538354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")>
         Public Async Function BugFix3939() As Task
             Dim code = <Code>               
                         Imports System.
@@ -1162,7 +1162,7 @@ Imports System.
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(538579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538579")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538579")>
         Public Async Function BugFix4235() As Task
             Dim code = <Code>               
                 #If False Then
@@ -1474,7 +1474,7 @@ End Namespace]]></Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(1087167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087167")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087167")>
         Public Async Function MultipleAttributesOnClass() As Task
             Dim code = <Code><![CDATA[Namespace SomeNamespace
 <SomeAttribute()>
@@ -1493,7 +1493,7 @@ End Namespace]]></Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(1087167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087167")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087167")>
         Public Async Function MultipleAttributesOnParameter_1() As Task
             Dim code = <Code><![CDATA[Class Program
     Sub P(
@@ -1511,7 +1511,7 @@ End Class]]></Code>
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(1087167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087167")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087167")>
         Public Async Function MultipleAttributesOnParameter_2() As Task
             Dim code = <Code><![CDATA[Class Program
     Sub P(
@@ -1528,7 +1528,7 @@ End Class]]></Code>
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(1087167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087167")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087167")>
         Public Async Function MultipleAttributesOnParameter_3() As Task
             Dim code = <Code><![CDATA[Class Program
     Sub P(     <Goo>
@@ -1921,7 +1921,7 @@ End Class</Code>
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
         End Function
 
-        <Fact, WorkItem(10742, "https://github.com/dotnet/roslyn/issues/10742")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10742")>
         Public Async Function ReFormatWithTabsEnabled6() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
@@ -2089,7 +2089,7 @@ End Class</Code>
             Await AssertFormatUsingAllEntryPointsAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(538533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
         Public Async Function BugFix4173_1() As Task
             Dim code = "Dim a = <xml>   <%=<xml></xml>%>    </xml>"
             Dim expected = "        Dim a = <xml><%= <xml></xml> %></xml>"
@@ -2097,7 +2097,7 @@ End Class</Code>
             Await AssertFormatAsync(CreateMethod(code), CreateMethod(expected))
         End Function
 
-        <Fact, WorkItem(538533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
         Public Async Function BugFix4173_2() As Task
             Dim code = <Code>Class Goo
         Sub Goo()           ' Comment
@@ -2138,7 +2138,7 @@ End Class</Code>
             Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(538533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
         Public Async Function BugFix4173_3() As Task
             Dim code = "
 Class C
@@ -2162,7 +2162,7 @@ End Class"
             Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(538533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
         Public Async Function BugFix4173_4() As Task
             Dim code = <code>Class C
             Sub Main(args As String())
@@ -2180,7 +2180,7 @@ End Class</code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(538533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
         Public Async Function BugFix4173_5() As Task
             Dim code = <code>Module Module1
     Public Sub goo
@@ -2191,7 +2191,7 @@ End Module</code>
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(538533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
         Public Async Function BugFix4173_6() As Task
             Dim code = <code>Module module1
 #If True Then
@@ -2201,7 +2201,7 @@ End Module</code>
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(538533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
         Public Async Function BugFix4173_7() As Task
             Dim code = <code>Module Module1
     Sub Main()
@@ -2222,7 +2222,7 @@ End Module</code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(538533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
         Public Async Function BugFix4173_8() As Task
             Dim code = <code>Module Module1
     Sub Main()
@@ -2245,7 +2245,7 @@ End Module</code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(538533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
         Public Async Function BugFix4173_9() As Task
             Dim code = <code>Module Module1
     Sub Main()
@@ -2266,7 +2266,7 @@ End Module</code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(538772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538772")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538772")>
         Public Async Function BugFix4482() As Task
             Dim code = <code>_' Public Function GroupBy(Of K, R)( _
 _' ByVal key As KeyFunc(Of K), _
@@ -2276,7 +2276,7 @@ _' ByVal selector As SelectorFunc(Of K, QueryableCollection(Of T), R)) _
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(538754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538754")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538754")>
         Public Async Function BugFix4459() As Task
             Dim code = <Code>Option Strict Off
 Module Module1
@@ -2303,7 +2303,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(538675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538675")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538675")>
         Public Async Function BugFix4352() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2328,7 +2328,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(538703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538703")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538703")>
         Public Async Function BugFix4394() As Task
             Await AssertFormatAsync("
 ''' <summary>
@@ -2387,7 +2387,7 @@ End Module")
             Await AssertFormatAsync(CreateMethod(code), CreateMethod(expected))
         End Function
 
-        <Fact, WorkItem(538703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538703")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538703")>
         Public Async Function BugFix4394_1() As Task
             Dim code = "
 Class C
@@ -2409,7 +2409,7 @@ End Class"
             Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(538889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538889")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538889")>
         Public Async Function BugFix4639() As Task
             Dim code = "Imports <xmlns=""http://DefaultNamespace""       >       "
             Dim expected = "Imports <xmlns=""http://DefaultNamespace"">"
@@ -2417,7 +2417,7 @@ End Class"
             Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, WorkItem(538891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538891")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538891")>
         Public Async Function BugFix4641() As Task
             Dim code = <Code>Module module1
 	 Structure C
@@ -2441,7 +2441,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(538892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538892")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538892")>
         Public Async Function BugFix4642() As Task
             Dim code = <Code>_      
     </Code>
@@ -2452,7 +2452,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(538894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538894")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538894")>
         Public Async Function BugFix4644() As Task
             Dim code = <Code>Option Explicit Off
 Module Module1
@@ -2493,7 +2493,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(538897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538897")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538897")>
         Public Async Function BugFix4647() As Task
             Dim code = <Code>Option Explicit Off
 Module Module1
@@ -2536,7 +2536,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(538962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538962")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538962")>
         Public Async Function WorkItem4737() As Task
             Dim code = "Dim x = <?xml version =""1.0""?><code></code>"
             Dim expected = "        Dim x = <?xml version=""1.0""?><code></code>"
@@ -2544,7 +2544,7 @@ End Module
             Await AssertFormatAsync(CreateMethod(code), CreateMethod(expected))
         End Function
 
-        <Fact, WorkItem(539031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539031")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539031")>
         Public Async Function BugFix4826() As Task
             Dim code = <Code>Imports &lt;xmlns:a=""&gt;
 Module Program
@@ -2585,7 +2585,7 @@ End Class
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(539170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539170")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539170")>
         Public Async Function BugFix5022() As Task
             Dim code = <Code>Class A
 : _
@@ -2599,7 +2599,7 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539324")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539324")>
         Public Async Function BugFix5232() As Task
             Dim code = <Code>Imports System
 Module M
@@ -2618,7 +2618,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539353")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539353")>
         Public Async Function BugFix5270() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2645,7 +2645,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539358")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539358")>
         Public Async Function BugFix5277() As Task
             Dim code = <Code>
 #If True Then
@@ -2660,7 +2660,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539455")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539455")>
         Public Async Function BugFix5432() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2689,7 +2689,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539351")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539351")>
         Public Async Function BugFix5268() As Task
             Dim code = <Code>
 #If True _
@@ -2698,7 +2698,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(539351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539351")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539351")>
         Public Async Function BugFix5268_1() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2712,7 +2712,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(539473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539473")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539473")>
         Public Async Function BugFix5456() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2736,7 +2736,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539474")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539474")>
         Public Async Function BugFix5457() As Task
             Dim code = <Code>Module module1
     Sub main()
@@ -2771,7 +2771,7 @@ End Class</Code>
             Await AssertFormatSpanAsync(code.Value.Replace(vbLf, vbCrLf), expected.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, WorkItem(539503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539503")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539503")>
         Public Async Function BugFix5492() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2803,7 +2803,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539508")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539508")>
         Public Async Function BugFix5497() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -2831,7 +2831,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539581")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539581")>
         Public Async Function BugFix5594() As Task
             Dim code = <Code>
 &lt;Assembly : MyAttr()&gt;
@@ -2865,7 +2865,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539582")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539582")>
         Public Async Function BugFix5595() As Task
             Dim code = <Code>
 Imports System.Xml
@@ -2885,7 +2885,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539616")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539616")>
         Public Async Function BugFix5637() As Task
             Dim code = <Code>Public Class Class1
 	'this line is comment line
@@ -2962,8 +2962,8 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(539458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539458")>
-        <WorkItem(539459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539459")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539458")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539459")>
         Public Async Function XmlProcessingInstruction() As Task
             Await AssertFormatAsync("
 Module Program
@@ -2982,8 +2982,8 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(530597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530597")>
-        <WorkItem(539463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539463")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530597")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539463")>
         Public Async Function XmlTest5442() As Task
             Using workspace = New AdhocWorkspace()
 
@@ -3030,7 +3030,7 @@ End Module"
             End Using
         End Function
 
-        <Fact, WorkItem(539687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539687")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539687")>
         Public Async Function BugFix5731() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -3059,7 +3059,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539545")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539545")>
         Public Async Function BugFix5547() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -3090,7 +3090,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539453")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539453")>
         Public Async Function BugFix5430() As Task
             Dim code = "
 Imports System
@@ -3111,7 +3111,7 @@ End Module"
             Await AssertFormatAsync(code, code)
         End Function
 
-        <Fact, WorkItem(539889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539889")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539889")>
         Public Async Function BugFix5989() As Task
             Dim code = <Code>Imports System
 
@@ -3134,7 +3134,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539409")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539409")>
         Public Async Function BugFix6367() As Task
             Dim code = <Code>Module Program
     Sub Main(args As String())
@@ -3153,7 +3153,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539409")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539409")>
         Public Async Function BugFix6367_1() As Task
             Dim code = <Code>Module Program
     Sub Main(args As String())
@@ -3164,7 +3164,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(540678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540678")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540678")>
         Public Async Function BugFix7023_1() As Task
             Dim code = <Code>Module Program
     Public Operator +(x As Integer, y As Integer)
@@ -3277,7 +3277,7 @@ Class C223
 End Class")
         End Function
 
-        <Fact, WorkItem(541628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541628")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541628")>
         Public Async Function MultipleControlVariables() As Task
             Dim code = <Code>Module Program
     Sub Main(args As String())
@@ -3300,7 +3300,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(541561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541561")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541561")>
         Public Async Function ColonTrivia() As Task
             Dim code = <Code>Module Program
                         Sub Goo3()
@@ -3357,7 +3357,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539574")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539574")>
         Public Async Function Preprocessors() As Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -3416,7 +3416,7 @@ namespace'</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(542698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542698")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542698")>
         Public Async Function ColonTrivia1() As Task
             Dim code = <Code>Imports _
     System.Collections.Generic _
@@ -3448,7 +3448,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(542698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542698")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542698")>
         Public Async Function ColonTrivia2() As Task
             Dim code = <Code>Imports _
     System.Collections.Generic _
@@ -3466,7 +3466,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(543197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543197")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543197")>
         Public Async Function KeyInAnonymousType() As Task
             Dim code = <Code>Class C
     Sub S()
@@ -3485,7 +3485,7 @@ End Class
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(544008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544008")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544008")>
         Public Async Function TestGetXmlNamespace() As Task
             Dim code = <Code>Class C
     Sub S()
@@ -3504,7 +3504,7 @@ End Class
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(539409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539409")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539409")>
         Public Async Function StructuredTrivia() As Task
             Dim code = <Code>#const goo=2.0d</Code>
             Dim expected = <Code>#const goo = 2.0d</Code>
@@ -3559,7 +3559,7 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(543248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543248")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543248")>
         Public Async Function FormatBadCode() As Task
             Dim code = <Code>Imports System
 Class Program
@@ -3573,7 +3573,7 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(544496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544496")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544496")>
         Public Async Function AttributeInParameterList() As Task
             Dim code = <Code>Module Program
     Sub Main(           &lt;Description&gt; args As String())
@@ -3588,7 +3588,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(544980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544980")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544980")>
         Public Async Function XmlElement_Expression() As Task
             Dim code = <Code>Module Program
     Dim x = &lt;x       &lt;%=      "" %&gt;        /&gt;
@@ -3601,7 +3601,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(542976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542976")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542976")>
         Public Async Function XmlElementStartTag() As Task
             Dim code = <Code>Module Program
     Dim x = &lt;code
@@ -3618,7 +3618,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(545088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545088")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545088")>
         Public Async Function ForNext_MultipleVariables() As Task
             Dim code = <Code>Module Program
     Sub Method()
@@ -3641,7 +3641,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(545088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545088")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545088")>
         Public Async Function ForNext_MultipleVariables2() As Task
             Dim code = <Code>Module Program
     Sub Method()
@@ -3668,7 +3668,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(544459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544459")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544459")>
         Public Async Function DictionaryAccessOperator() As Task
             Dim code = <Code>Class S
     Default Property Def(s As String) As String
@@ -3705,7 +3705,7 @@ End Module</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(542976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542976")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542976")>
         Public Async Function XmlElementStartTag1() As Task
             Await AssertFormatAsync("
 Class C
@@ -3790,14 +3790,14 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
             End Using
         End Sub
 
-        <Fact, WorkItem(545630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545630")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545630")>
         Public Async Function SpacesInXmlStrings() As Task
             Dim text = "Imports <xmlns:x='&#70;'>"
 
             Await AssertFormatAsync(text, text)
         End Function
 
-        <Fact, WorkItem(545680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545680")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545680")>
         Public Async Function SpaceBetweenPercentGreaterThanAndXmlName() As Task
             Dim text = <code>Module Program
     Sub Main(args As String())
@@ -3823,7 +3823,7 @@ End Class
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(547005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547005")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547005")>
         Public Async Function BadDirectivesAreValidRanges() As Task
             Dim code = <Code>
 #If False Then
@@ -4016,7 +4016,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(531444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531444")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531444")>
         Public Async Function TestElseIfFormattingForNestedSingleLineIf() As Task
             Dim code =
 <Code><![CDATA[
@@ -4072,7 +4072,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(679864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679864")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679864")>
         Public Async Function InsertSpaceBetweenXMLMemberAttributeAccessAndEqualsToken() As Task
             Dim expected =
 <Code><![CDATA[
@@ -4102,7 +4102,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(923172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923172")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923172")>
         Public Async Function TestMemberAccessAfterOpenParen() As Task
             Dim expected =
 <Code><![CDATA[
@@ -4144,7 +4144,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(923180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923180")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923180")>
         Public Async Function TestXmlMemberAccessDot() As Task
             Dim expected =
 <Code><![CDATA[
@@ -4184,7 +4184,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(530601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530601")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530601")>
         Public Async Function TestElasticFormattingPropertySetter() As Task
             Dim parameterList = SyntaxFactory.ParseParameterList(String.Format("(value As {0})", "Integer"))
             Dim setter = SyntaxFactory.AccessorBlock(SyntaxKind.SetAccessorBlock,
@@ -4258,8 +4258,8 @@ End Module
             Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(796562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/796562")>
-        <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/796562")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3293")>
         Public Async Function TriviaAtEndOfCaseBelongsToNextCase() As Task
             Dim text = <Code>
 Class X
@@ -4298,7 +4298,7 @@ End Class
             Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(938188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938188")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938188")>
         Public Async Function XelementAttributeSpacing() As Task
             Dim text = <Code>
 Class X
@@ -4549,7 +4549,7 @@ End Class
             Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3293")>
         Public Async Function CaseCommentsRemainsUndisturbed() As Task
             Dim text = <Code>
 Class Program
@@ -4611,7 +4611,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, WorkItem(2822, "https://github.com/dotnet/roslyn/issues/2822")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2822")>
         Public Async Function FormatLabelFollowedByDotExpression() As Task
             Dim code = <Code>
 Module Module1
@@ -4636,7 +4636,7 @@ End Module
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(21923, "https://github.com/dotnet/roslyn/issues/21923")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21923")>
         Public Async Function FormatNullableTuple() As Task
             Dim code = <Code>
 Class C
@@ -4653,7 +4653,7 @@ End Class
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, WorkItem(2822, "https://github.com/dotnet/roslyn/issues/2822")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2822")>
         Public Async Function FormatOmittedArgument() As Task
             Dim code = <Code>
 Class C
@@ -4669,7 +4669,7 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
 
-        <Fact, WorkItem(8258, "https://github.com/dotnet/roslyn/issues/8258")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8258")>
         Public Async Function FormatDictionaryOperatorProperly() As Task
             Dim code = "
 Class C

@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")]
         public async Task FindDeclarationsAsync_Metadata(TestHost testHost)
         {
             using var workspace = CreateWorkspace(testHost);
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(6616, "https://github.com/dotnet/roslyn/issues/6616")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/6616")]
         public async Task FindDeclarationsAsync_PreviousSubmission(TestHost testHost)
         {
             using var workspace = CreateWorkspace(testHost);
@@ -683,7 +683,7 @@ Inner i;
             info.AssertEquivalentTo(readInfo);
         }
 
-        [Fact, WorkItem(7941, "https://github.com/dotnet/roslyn/pull/7941")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/7941")]
         public async Task FindDeclarationsInErrorSymbolsDoesntCrash()
         {
             var source = @"

@@ -969,7 +969,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "explicit operator bool (global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
         }
 
-        [Fact, WorkItem(65833, "https://github.com/dotnet/roslyn/issues/65833")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65833")]
         public void TestConversionOperatorDeclaration()
         {
             var gcHandleType = _emptyCompilation.GetTypeByMetadataName(typeof(GCHandle).FullName);
@@ -1507,7 +1507,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "t i2.m2()\r\n{\r\n}");
         }
 
-        [Fact, WorkItem(3928, "https://github.com/dotnet/roslyn/issues/3928")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3928")]
         public void TestAsPrivateInterfaceImplementationRemovesConstraints()
         {
             var code = @"
@@ -1659,7 +1659,7 @@ public interface IFace
                 "interface i\r\n{\r\n    t f { get; set; }\r\n}");
         }
 
-        [Fact, WorkItem(66377, "https://github.com/dotnet/roslyn/issues/66377")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66377")]
         public void TestInterfaceVariance()
         {
             var compilation = Compile("""
@@ -1952,7 +1952,7 @@ public interface IFace
                 "[a]\r\n() =>");
         }
 
-        [Fact, WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5066")]
         public void TestAddAttributesToAccessors()
         {
             var prop = Generator.PropertyDeclaration("P", Generator.IdentifierName("T"));
@@ -2160,7 +2160,7 @@ public class C { } // end").Members[0];
 }");
         }
 
-        [Fact, WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public void TestUnsafeFieldDeclarationFromSymbol()
         {
             VerifySyntax<MethodDeclarationSyntax>(
@@ -2199,7 +2199,7 @@ public class C { } // end").Members[0];
 }");
         }
 
-        [Fact, WorkItem(66381, "https://github.com/dotnet/roslyn/issues/66381")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66381")]
         public void TestDelegateDeclarationFromSymbol()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2213,7 +2213,7 @@ public class C { } // end").Members[0];
                 """);
         }
 
-        [Fact, WorkItem(65638, "https://github.com/dotnet/roslyn/issues/65638")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65638")]
         public void TestMethodDeclarationFromSymbol1()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2234,7 +2234,7 @@ public class C { } // end").Members[0];
                 """);
         }
 
-        [Fact, WorkItem(65835, "https://github.com/dotnet/roslyn/issues/65835")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65835")]
         public void TestMethodDeclarationFromSymbol2()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2255,7 +2255,7 @@ public class C { } // end").Members[0];
                 """);
         }
 
-        [Fact, WorkItem(65835, "https://github.com/dotnet/roslyn/issues/65835")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65835")]
         public void TestMethodDeclarationFromSymbol3()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2276,7 +2276,7 @@ public class C { } // end").Members[0];
                 """);
         }
 
-        [Fact, WorkItem(65835, "https://github.com/dotnet/roslyn/issues/65835")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65835")]
         public void TestMethodDeclarationFromSymbol4()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2297,7 +2297,7 @@ public class C { } // end").Members[0];
                 """);
         }
 
-        [Fact, WorkItem(65638, "https://github.com/dotnet/roslyn/issues/65638")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65638")]
         public void TestConstructorDeclarationFromSymbol1()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2319,7 +2319,7 @@ public class C { } // end").Members[0];
                 """);
         }
 
-        [Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66379")]
         public void TestPropertyDeclarationFromSymbol1()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2337,7 +2337,7 @@ public class C { } // end").Members[0];
                 "public global::System.Int32 Prop { get; protected set; }");
         }
 
-        [Fact, WorkItem(66379, "https://github.com/dotnet/roslyn/issues/66379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66379")]
         public void TestPropertyDeclarationFromSymbol2()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2355,7 +2355,7 @@ public class C { } // end").Members[0];
                 "public global::System.Int32 Prop { protected get; set; }");
         }
 
-        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66382")]
         public void TestOverrideDefaultConstraint1()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2383,7 +2383,7 @@ public class C { } // end").Members[0];
                 """);
         }
 
-        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66382")]
         public void TestOverrideDefaultConstraint2()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2411,7 +2411,7 @@ public class C { } // end").Members[0];
                 """);
         }
 
-        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66382")]
         public void TestOverrideDefaultConstraint3()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2438,7 +2438,7 @@ public class C { } // end").Members[0];
                 """);
         }
 
-        [Fact, WorkItem(66382, "https://github.com/dotnet/roslyn/issues/66382")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66382")]
         public void TestOverrideDefaultConstraint4()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2470,7 +2470,7 @@ public class C { } // end").Members[0];
                 """);
         }
 
-        [Fact, WorkItem(66375, "https://github.com/dotnet/roslyn/issues/66375")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66375")]
         public void TestExplicitInterface1()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2524,7 +2524,7 @@ public class C { } // end").Members[0];
                 """);
         }
 
-        [Fact, WorkItem(66380, "https://github.com/dotnet/roslyn/issues/66380")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66380")]
         public void TestConstantFieldDeclarations()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -2542,7 +2542,7 @@ public class C { } // end").Members[0];
                 "public const global::System.Int32 F;");
         }
 
-        [Fact, WorkItem(66374, "https://github.com/dotnet/roslyn/issues/66374")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66374")]
         public void TestDestructor1()
         {
             var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
@@ -3074,7 +3074,7 @@ public class C
             VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
         }
 
-        [Theory, WorkItem(66295, "https://github.com/dotnet/roslyn/issues/66295")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66295")]
         [InlineData("private protected")]
         [InlineData("protected internal")]
         public void TestCompoundAccessibilityModifierKeywordsOrder(string modifier)
@@ -3847,7 +3847,7 @@ public class C
 }");
         }
 
-        [Theory, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
         [InlineData("record")]
         [InlineData("record class")]
         public void TestInsertMembersOnRecord_SemiColon(string typeKind)
@@ -3885,7 +3885,7 @@ $@"public class C
 }}");
         }
 
-        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
         public void TestInsertMembersOnRecordStruct_SemiColon()
         {
             var src =
@@ -3978,7 +3978,7 @@ $@"public enum C
 }}");
         }
 
-        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
         public void TestInsertMembersOnRecord_Braces()
         {
             var comp = Compile(
@@ -3996,7 +3996,7 @@ $@"public enum C
 }");
         }
 
-        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48789")]
         public void TestInsertMembersOnRecord_BracesAndSemiColon()
         {
             var comp = Compile(
@@ -4159,7 +4159,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(66376, "https://github.com/dotnet/roslyn/issues/66376")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66376")]
         public void TestRefReturnType()
         {
             var comp = Compile(
@@ -4458,7 +4458,7 @@ public void M()
 }");
         }
 
-        [Fact, WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/293")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void IntroduceBaseList()
         {
@@ -4486,7 +4486,7 @@ public class C : IDisposable
 
         #region DeclarationModifiers
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestNamespaceModifiers()
         {
             TestModifiersAsync(DeclarationModifiers.None,
@@ -4496,7 +4496,7 @@ public class C : IDisposable
 }|]");
         }
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestFileScopedNamespaceModifiers()
         {
             TestModifiersAsync(DeclarationModifiers.None,
@@ -4504,7 +4504,7 @@ public class C : IDisposable
 [|namespace N1;|]");
         }
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestClassModifiers1()
         {
             TestModifiersAsync(DeclarationModifiers.Static,
@@ -4514,7 +4514,7 @@ public class C : IDisposable
 }|]");
         }
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestMethodModifiers()
         {
             TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
@@ -4525,7 +4525,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(66170, "https://github.com/dotnet/roslyn/issues/66170")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66170")]
         public void TestMethodModifiers2()
         {
             TestModifiersAsync(DeclarationModifiers.ReadOnly,
@@ -4549,7 +4549,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestPropertyModifiers1()
         {
             TestModifiersAsync(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
@@ -4571,7 +4571,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestFieldModifiers1()
         {
             TestModifiersAsync(DeclarationModifiers.Static,
@@ -4593,7 +4593,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestEvent1()
         {
             TestModifiersAsync(DeclarationModifiers.Virtual,
@@ -4604,7 +4604,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(65834, "https://github.com/dotnet/roslyn/issues/65834")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65834")]
         public void TestStructModifiers1()
         {
             TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
