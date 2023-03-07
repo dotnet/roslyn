@@ -59,16 +59,37 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotInUsingAlias()
+        public async Task TestNotInUsing()
         {
             await VerifyAbsenceAsync(
+@"using $$");
+        }
+
+        [Fact]
+        public async Task TestInUsingAlias()
+        {
+            await VerifyKeywordAsync(
 @"using Goo = $$");
         }
 
         [Fact]
-        public async Task TestNotInGlobalUsingAlias()
+        public async Task TestInUsingAlias_Tuple()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
+@"using Goo = ($$");
+        }
+
+        [Fact]
+        public async Task TestInUsingAlias_FuncPointer()
+        {
+            await VerifyKeywordAsync(
+@"using Goo = delegate*<$$");
+        }
+
+        [Fact]
+        public async Task TestInGlobalUsingAlias()
+        {
+            await VerifyKeywordAsync(
 @"global using Goo = $$");
         }
 
